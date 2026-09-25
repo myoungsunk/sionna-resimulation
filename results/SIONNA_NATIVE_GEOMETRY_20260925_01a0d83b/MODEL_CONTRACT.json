@@ -1,0 +1,24 @@
+{
+  "backend": "native Sionna RT 2.0.1 RadioMaterial/ITURadioMaterial",
+  "source": "https://nvlabs.github.io/sionna/_modules/sionna/rt/radio_materials/radio_material.html",
+  "representation": "one RF reference sheet per physical slab; no duplicate inner/back boundary",
+  "floor_top_z_m": 0.0,
+  "floor_material_z_m": [
+    -0.2,
+    0.0
+  ],
+  "column_model": "synthetic hollow concrete panel box; no solid-column equivalence",
+  "column_thickness_rule": "min(0.05 m, minimum horizontal outer span / 4)",
+  "furniture_model": "existing connected hollow panel envelopes; all exterior empty spaces retained",
+  "contacts": "architecture owns coplanar contact; remove only coincident furniture patch",
+  "edges": "native locally planar slab approximation; no volume-union or coupled-junction solver",
+  "ideal_mappings": {
+    "PEC": "native ITU metal, 0.001 m",
+    "EPS4_LOSSLESS": "epsilon_r=4, sigma=0, explicit native default 0.1 m"
+  },
+  "volume_solver_compatible": false,
+  "source_part_count": 2383,
+  "power_noise_ffd_coordinates": "unchanged",
+  "g2_pass": false,
+  "sealed": false
+}

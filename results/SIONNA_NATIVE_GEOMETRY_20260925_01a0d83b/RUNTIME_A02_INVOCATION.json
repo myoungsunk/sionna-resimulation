@@ -1,0 +1,38 @@
+{
+  "user": "KMS",
+  "command": [
+    "docker",
+    "run",
+    "--rm",
+    "-i",
+    "--network",
+    "none",
+    "--read-only",
+    "--user",
+    "1001:1001",
+    "--tmpfs",
+    "/home/kms/.drjit:rw,mode=1777,size=256m",
+    "--tmpfs",
+    "/tmp:rw,nosuid,size=1g",
+    "-e",
+    "XDG_CACHE_HOME=/tmp",
+    "-e",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "--entrypoint",
+    "/opt/rt-env/bin/python",
+    "sha256:77244efd2cb92abfc3be258d97da2c76b4c91eeb29e1aeb50d7dc57ed72ad791",
+    "-"
+  ],
+  "local_command": [
+    "scripts/g2_completion/check_native_slab_runtime.py",
+    "--out",
+    "results/SIONNA_NATIVE_GEOMETRY_20260925_01a0d83b",
+    "--attempt",
+    "02"
+  ],
+  "payload_sha256": "84568ae604bb736ab2b49d16971fba2713fc32a6d0542bd179d52db6a6630e0f",
+  "script_sha256": "ce01e511906e609910b7217cd0f4210b73795237b98b82f67affd37f148af1f1",
+  "validator_sha256": "5c1542f8d8658971326459484c7e32a5a4bb90b6a58edcb5457e994feda54710",
+  "material_contract_path": "D:\\codex\\raytracing_modules\\rt_cp_uwb\\results\\SIONNA_G2_P2_UNIFIED_20260924_01a0d21c_R3\\MATERIAL_CONTRACT.json",
+  "material_contract_sha256": "d0a188f64adf2f9d1cd82434cccc7a1210492316c32c6ce47f3cf4f95d9e1679"
+}

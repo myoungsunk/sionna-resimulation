@@ -1,0 +1,1284 @@
+{
+  "source_manifest_sha256": "fc60d4bd9167193df19c6ab22e399b60d74dab02cd8519f6968f1ed89fdd2bad",
+  "status": "FROZEN_PRODUCER_NEUTRAL_ENVIRONMENT_POSE",
+  "interpretation": "Nine comparison cells share configured environments, Tx/Rx coordinates/trajectories and conditions; solver ray lists remain independent.",
+  "comparison_cells": [
+    {
+      "comparison_cell_id": "common-v0-c0-empty-direct-01000mm",
+      "source_common_link_id": "common-v0-c0-empty-direct-01000mm",
+      "environment_id": "C0_EMPTY_DIRECT",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [],
+        "material_semantics": [],
+        "expected_mechanisms": [
+          "LOS"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              1.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "41360b0fa270b3569c861f0cc45e1c7a73d60a79343c30c023235db5eb57f14f"
+    },
+    {
+      "comparison_cell_id": "common-v0-c0-empty-direct-03000mm",
+      "source_common_link_id": "common-v0-c0-empty-direct-03000mm",
+      "environment_id": "C0_EMPTY_DIRECT",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [],
+        "material_semantics": [],
+        "expected_mechanisms": [
+          "LOS"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              3.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "38275659118407a47cfa3921be5214bd82b8a4f1251bd9bd12170f242f2f8d9f"
+    },
+    {
+      "comparison_cell_id": "common-v0-c0-empty-direct-07000mm",
+      "source_common_link_id": "common-v0-c0-empty-direct-07000mm",
+      "environment_id": "C0_EMPTY_DIRECT",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [],
+        "material_semantics": [],
+        "expected_mechanisms": [
+          "LOS"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              7.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "22113c40f5e4f220c80b4dc5730b24f7bcdf0dfaaebb8526091d24750902befa"
+    },
+    {
+      "comparison_cell_id": "common-v0-c1-finite-pec-floor-01000mm",
+      "source_common_link_id": "common-v0-c1-finite-pec-floor-01000mm",
+      "environment_id": "C1_FINITE_PEC_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "PEC"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "PEC",
+            "model": "IDEAL_PERFECT_ELECTRIC_CONDUCTOR"
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              1.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "56d774e72c36ce47e9e0c8d8fced1837743fa9abeed078688de46b921564bcce"
+    },
+    {
+      "comparison_cell_id": "common-v0-c1-finite-pec-floor-03000mm",
+      "source_common_link_id": "common-v0-c1-finite-pec-floor-03000mm",
+      "environment_id": "C1_FINITE_PEC_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "PEC"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "PEC",
+            "model": "IDEAL_PERFECT_ELECTRIC_CONDUCTOR"
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              3.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "cf5dae9f46df8f1a4925c9b4e93c0555f2a923f68922e9d6768de2e4da8bce4a"
+    },
+    {
+      "comparison_cell_id": "common-v0-c1-finite-pec-floor-07000mm",
+      "source_common_link_id": "common-v0-c1-finite-pec-floor-07000mm",
+      "environment_id": "C1_FINITE_PEC_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "PEC"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "PEC",
+            "model": "IDEAL_PERFECT_ELECTRIC_CONDUCTOR"
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              7.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "f0310db17d1790a7acb6441de39c22c71ec5482b7029863ace828982156e3da1"
+    },
+    {
+      "comparison_cell_id": "common-v0-c2-finite-eps4-lossless-floor-01000mm",
+      "source_common_link_id": "common-v0-c2-finite-eps4-lossless-floor-01000mm",
+      "environment_id": "C2_FINITE_EPS4_LOSSLESS_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "EPS4_LOSSLESS"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "EPS4_LOSSLESS",
+            "model": "ISOTROPIC_NONMAGNETIC_DIELECTRIC",
+            "relative_permittivity": 4.0,
+            "conductivity_s_per_m": 0.0
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              1.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "73cb6c8ad8c82f00129b667f11952c122d55b48b844a9d7b692b4afc75fa7b9c"
+    },
+    {
+      "comparison_cell_id": "common-v0-c2-finite-eps4-lossless-floor-03000mm",
+      "source_common_link_id": "common-v0-c2-finite-eps4-lossless-floor-03000mm",
+      "environment_id": "C2_FINITE_EPS4_LOSSLESS_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "EPS4_LOSSLESS"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "EPS4_LOSSLESS",
+            "model": "ISOTROPIC_NONMAGNETIC_DIELECTRIC",
+            "relative_permittivity": 4.0,
+            "conductivity_s_per_m": 0.0
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              3.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "58547e255663d44d2283b95f44ecee1087886cf5f6fa18f2c365dc2ea9476480"
+    },
+    {
+      "comparison_cell_id": "common-v0-c2-finite-eps4-lossless-floor-07000mm",
+      "source_common_link_id": "common-v0-c2-finite-eps4-lossless-floor-07000mm",
+      "environment_id": "C2_FINITE_EPS4_LOSSLESS_FLOOR",
+      "environment": {
+        "coordinate_frame": {
+          "id": "LOCAL_CARTESIAN_RH_XYZ_Z_UP",
+          "length_unit": "m",
+          "angle_unit": "rad",
+          "time_unit": "s",
+          "frequency_unit": "Hz"
+        },
+        "scene_geometry": [
+          {
+            "primitive_id": "FLOOR_0",
+            "kind": "FINITE_RECTANGLE",
+            "center_m": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "normal_xyz": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "half_extent_x_m": 20.0,
+            "half_extent_y_m": 20.0,
+            "material_id": "EPS4_LOSSLESS"
+          }
+        ],
+        "material_semantics": [
+          {
+            "material_id": "EPS4_LOSSLESS",
+            "model": "ISOTROPIC_NONMAGNETIC_DIELECTRIC",
+            "relative_permittivity": 4.0,
+            "conductivity_s_per_m": 0.0
+          }
+        ],
+        "expected_mechanisms": [
+          "LOS",
+          "SPECULAR_REFLECTION"
+        ]
+      },
+      "trajectory": {
+        "trajectory_id": "STATIC_POSE_T0",
+        "interpolation": "NONE_SINGLE_SAMPLE",
+        "samples": [
+          {
+            "time_s": 0.0,
+            "tx_position_m": [
+              0.0,
+              0.0,
+              2.0
+            ],
+            "tx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rx_position_m": [
+              7.0,
+              0.0,
+              2.0
+            ],
+            "rx_orientation_wxyz": [
+              1.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "anchor_set_id": "TX_ANCHOR_0",
+      "orientation_repeat_id": "IDENTITY_R0",
+      "comparison_condition": {
+        "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+        "control_id": "BASELINE",
+        "cell_type": "IDEAL",
+        "repeat_id": "DETERMINISTIC_R0",
+        "noise_contract": "NO_ADDED_NOISE",
+        "port_response": "IDEAL_UNIT_CARTESIAN_JONES",
+        "detector_contract": "NOT_RUN_FOR_PAIRED_ANALYTIC_V0",
+        "calibration_contract": null
+      },
+      "response_basis_contract": {
+        "contract_id": "ideal-global-cartesian-transverse-projection-v1",
+        "global_axes": {
+          "X": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "Y": [
+            0.0,
+            1.0,
+            0.0
+          ]
+        },
+        "direction_rule": {
+          "tx": "unit propagation direction of the first path segment away from TX",
+          "rx": "unit propagation direction of the final path segment toward RX"
+        },
+        "spherical_basis": {
+          "k": "[sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta)]",
+          "e_theta": "[cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta)]",
+          "e_phi": "[-sin(phi), cos(phi), 0]"
+        },
+        "projection": "For global axis a, spherical coefficients are [dot(e_theta,a), dot(e_phi,a)]. Equivalently use (I-k*k^T)*a.",
+        "renormalize_after_projection": false,
+        "directional_zeros": "PRESERVE",
+        "rx_contraction": "Real global X/Y receive axes contract with the complex transverse electric field; no producer-specific gain or conjugation convention may be hidden.",
+        "canonical_output": "2x2 complex Jones matrix ordered rows RX[X,Y], columns TX[X,Y]",
+        "singularity_scope": "No frozen V1 link has a path parallel to global Z; spherical pole convention is outside this manifest."
+      },
+      "frequency_hz": [
+        6250000000,
+        6500000000,
+        6750000000
+      ],
+      "source_semantic_digest": "484a872a6da8a20fec379c7145305d4e3186b1255896804db577dd3b25e2e0ab"
+    }
+  ],
+  "expected_output_keys": [
+    {
+      "key_digest": "849af41737b4dec4adf7c30d3bed2b85ff1b0894bc45ae68943b246ed7862f0a",
+      "common_link_id": "common-v0-c0-empty-direct-01000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "38f12410627d1961c4f52ccb6a6b4da8274b8c03bf21135462234ca815ca6b9a",
+      "common_link_id": "common-v0-c0-empty-direct-01000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "a5813e7e277d6d1b18b6d3b252abaf3fcfcc8a8130ef4ff7ffdb04c1013dc332",
+      "common_link_id": "common-v0-c0-empty-direct-01000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "a12e0e9559cdfddd07375915acae83979495f21099cea0233f80c8d61b26b90e",
+      "common_link_id": "common-v0-c0-empty-direct-03000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "13ce54deca22bebe82fac75682deb697e3fd4d8e9261bba7ff7fd45be1497e04",
+      "common_link_id": "common-v0-c0-empty-direct-03000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "1e74d61f0c3fc00575d69a8363a15470ad2300644c41ab9cf15d992292fe77c4",
+      "common_link_id": "common-v0-c0-empty-direct-03000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "9cc5fc39bcc4de375e94899245aeba8249f00173abcb33fae62a3edd35b86fb8",
+      "common_link_id": "common-v0-c0-empty-direct-07000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "3d089efea06a471ec1a3144d89e1a49990a9ec522f66ea3b37adb44801b8c8bf",
+      "common_link_id": "common-v0-c0-empty-direct-07000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "11f98bc1eaed278cac571a15569c2da35ea99af0cac952d68c5e2b3c00156edb",
+      "common_link_id": "common-v0-c0-empty-direct-07000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "51fecbf6b52477c16d6ced44c2895a7d680e1aaf9284baededbd59ecf00d6363",
+      "common_link_id": "common-v0-c1-finite-pec-floor-01000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "fa973d060ced8c6aad2aa11d479af96f39b774798aa7509572464342a4972cd6",
+      "common_link_id": "common-v0-c1-finite-pec-floor-01000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "2dba3523a00ad5fc3bf8e042adb31cb992505b8f3dc0b51d09a56c3c67497fdf",
+      "common_link_id": "common-v0-c1-finite-pec-floor-01000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "00f35eed32dadfc6803bef65fa32e27c607a10879fbfbe9be7f6de709a50bc05",
+      "common_link_id": "common-v0-c1-finite-pec-floor-03000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "36f1e85e01f909f2114ad91bad928920d83affd9ead4455ff7cea9570b156d2a",
+      "common_link_id": "common-v0-c1-finite-pec-floor-03000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "b3b280cdca71357cb74ddd072750401d4e3fb0c816227f409e0c8e75162d32a8",
+      "common_link_id": "common-v0-c1-finite-pec-floor-03000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "a0b494ee1af8b2261f84e3e07247bc1a1318ddbccbd365140a0a3ba371970548",
+      "common_link_id": "common-v0-c1-finite-pec-floor-07000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "2a701aae8ee083d85b916d38edbd14cfaa26f4971d0f9e87f394ce9f44618c9f",
+      "common_link_id": "common-v0-c1-finite-pec-floor-07000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "cdc55a40d0c038bbf2ccb8ebbade3f02df5715d099cb75f42ba6a790a0100be9",
+      "common_link_id": "common-v0-c1-finite-pec-floor-07000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "426a2a5dd553cd3f4a5ce56a7f1fb6b262d1b7e98dfa82e060d09b02f3852189",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-01000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "c446252e34b14252983fbdcdb956fdb8f3b881a17fbab7fb2c85b220cdf34473",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-01000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "a65d6dcab7113a5f2ae56e53a92c63b9a29dfadcfdd1628f6e7e07719796daa5",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-01000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "b263aeac3729ae9265fec9e3eb39c655a6c69c3535082c7af9360b53e7ce027c",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-03000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "b9f22cab96dbebad6c8b4b1950b1aa6926a0bfaa8c2e49e9888de777e67521c9",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-03000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "82acad386bf5f5d5b5e9d00ef17935be6cd32d2a6dfd72fb4a8e6eb7eb2d5ed1",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-03000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "9be0ac2f08252f38bfb129f3ebdb7180e5b173cd94f11b23349be4533fa8f6b5",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-07000mm",
+      "frequency_hz": 6250000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "408ffa4efe1a4f50ed4d96fbd82d5b43679154db5261bf5a9cbb85a6d55dd30e",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-07000mm",
+      "frequency_hz": 6500000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    },
+    {
+      "key_digest": "971f51ecae6a8f2a97bbeb922a4920d67b220638e9e21ec0e83731d20c3d6467",
+      "common_link_id": "common-v0-c2-finite-eps4-lossless-floor-07000mm",
+      "frequency_hz": 6750000000,
+      "basis_id": "GLOBAL_CARTESIAN_XY_FULL_JONES",
+      "control_id": "BASELINE",
+      "cell_type": "IDEAL",
+      "repeat_id": "DETERMINISTIC_R0"
+    }
+  ]
+}
