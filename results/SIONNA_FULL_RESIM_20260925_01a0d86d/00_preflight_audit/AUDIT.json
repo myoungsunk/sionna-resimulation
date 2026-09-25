@@ -1,0 +1,670 @@
+{
+  "audit_id": "SIONNA_FULL_RESIM_20260925_01a0d86d/PREFLIGHT",
+  "verdict": "NOT_READY_FOR_FULL_RUN",
+  "status_counts": {
+    "FAIL": 2,
+    "BLOCKER": 5,
+    "WARN": 7,
+    "PASS": 22,
+    "INFO": 4
+  },
+  "rf_calls": 0,
+  "inputs_modified": false,
+  "started_utc": "2026-09-25T15:01:47.566382+00:00",
+  "finished_utc": "2026-09-25T15:02:59.663908+00:00",
+  "checks": [
+    {
+      "id": "A1",
+      "area": "delivery",
+      "status": "FAIL",
+      "summary": "upload list 571 rows vs checkout; content mismatches=3",
+      "detail": {
+        "tally": {
+          "EXTERNAL_DATA:ABSENT": 6,
+          "EXTERNAL_DATA:CRLF_ONLY": 12,
+          "EXTERNAL_DATA:EXACT": 7,
+          "GITHUB:CRLF_ONLY": 43,
+          "GITHUB:EXACT": 490,
+          "GITHUB:MISMATCH": 3,
+          "IMPLEMENT_THEN_GITHUB:ABSENT": 10
+        },
+        "mismatches": [
+          "reports/common/CLAIM_BOUNDARY.md",
+          "scripts/g2_completion/sionna_native_runtime.py",
+          "scripts/g2_completion/finish_sionna_native41.py"
+        ]
+      }
+    },
+    {
+      "id": "A2",
+      "area": "delivery",
+      "status": "BLOCKER",
+      "summary": "listed data files absent from their declared path: 6",
+      "detail": {
+        "absent": [
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/LHCP_bank.npz",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/LP_minus45_bank.npz",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/LP_plus45_bank.npz",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/LP_X_bank.npz",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/LP_Y_bank.npz",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/RHCP_bank.npz"
+        ]
+      }
+    },
+    {
+      "id": "A6",
+      "area": "delivery",
+      "status": "BLOCKER",
+      "summary": "code differs from the Windows digest in the upload list/plan snapshot: ['scripts/g2_completion/sionna_native_runtime.py', 'scripts/g2_completion/finish_sionna_native41.py']",
+      "detail": {
+        "note": "sionna_native_runtime.py SHA is part of the verification chain (RUNTIME_READBACK source_runtime_sha256=9dc7dfa5...); reconcile with the Windows original before staging"
+      }
+    },
+    {
+      "id": "A3",
+      "area": "delivery",
+      "status": "WARN",
+      "summary": "FFD bank NPZ files are at repository root, not at bank/ path used by CONFIG/runners",
+      "detail": {
+        "root_files": [
+          "LHCP_bank.npz",
+          "LP_X_bank.npz",
+          "LP_Y_bank.npz",
+          "LP_minus45_bank.npz",
+          "LP_plus45_bank.npz",
+          "RHCP_bank.npz"
+        ],
+        "expected_dir": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank"
+      }
+    },
+    {
+      "id": "A4",
+      "area": "delivery",
+      "status": "WARN",
+      "summary": "plan/upload documents duplicated at repo root and reports/common (living log may diverge)",
+      "detail": {
+        "duplicates": [
+          {
+            "root": "SIONNA_FULL_RESIM_GITHUB_FILES_20260925_01a0d87a.csv",
+            "identical": true
+          },
+          {
+            "root": "SIONNA_FULL_RESIM_PLAN_20260925_01a0d86d.md",
+            "identical": true
+          },
+          {
+            "root": "SIONNA_FULL_RESIM_GITHUB_UPLOAD_20260925_01a0d87a.md",
+            "identical": true
+          },
+          {
+            "root": "SIONNA_FULL_RESIM_GITHUB_VALIDATION_20260925_01a0d87a.json",
+            "identical": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "A5",
+      "area": "delivery",
+      "status": "WARN",
+      "summary": "no dependency lock for local checks (numpy/scipy/scikit-learn/shapely/pytest needed)",
+      "detail": {
+        "missing": [
+          "requirements-sionna-full-local.txt",
+          "runtime/sionna-full/RUNTIME_LOCK.json"
+        ]
+      }
+    },
+    {
+      "id": "B1",
+      "area": "snapshot",
+      "status": "FAIL",
+      "summary": "PLAN_INPUT_SNAPSHOT 26 source SHAs vs checkout: {'EXACT': 8, 'CRLF_ONLY': 10, 'MISMATCH': 2, 'AT_ROOT:EXACT': 6}",
+      "detail": {
+        "drift": {
+          "D:\\codex\\raytracing_modules\\rt_cp_uwb\\scripts\\g2_completion\\sionna_native_runtime.py": "MISMATCH",
+          "D:\\codex\\raytracing_modules\\rt_cp_uwb\\scripts\\g2_completion\\finish_sionna_native41.py": "MISMATCH"
+        }
+      }
+    },
+    {
+      "id": "B2",
+      "area": "snapshot",
+      "status": "PASS",
+      "summary": "plan arithmetic: 165009 targets x 257 bins x 3 arms = 127,221,939 PathSolver calls",
+      "detail": {}
+    },
+    {
+      "id": "C1",
+      "area": "targets",
+      "status": "PASS",
+      "summary": "target census 165009 (expected 165009)",
+      "detail": {
+        "family_counts": {
+          "L1": 12000,
+          "L1multi": 12000,
+          "L2static": 3000,
+          "L2multi": 6000,
+          "C1_static": 6000,
+          "C1_multi": 6000,
+          "C3": 120000,
+          "STATIC9_NATIVE_OVERLAY": 9
+        }
+      }
+    },
+    {
+      "id": "C2",
+      "area": "targets",
+      "status": "PASS",
+      "summary": "duplicate (family, case_id) keys: 0",
+      "detail": {}
+    },
+    {
+      "id": "C3",
+      "area": "targets",
+      "status": "PASS",
+      "summary": "scene union 101 vs geometry manifest 101",
+      "detail": {
+        "missing_geometry": [],
+        "unused_geometry": []
+      }
+    },
+    {
+      "id": "C4",
+      "area": "targets",
+      "status": "PASS",
+      "summary": "coordinates finite; TX-RX range min=0.5201 m max=48.805 m",
+      "detail": {
+        "non_finite": []
+      }
+    },
+    {
+      "id": "C5",
+      "area": "frames",
+      "status": "PASS",
+      "summary": "FRAMES.jsonl rows=37500 unique (unit_id,frame)=37500 canonical-hash mismatches=0",
+      "detail": {}
+    },
+    {
+      "id": "C6",
+      "area": "frames",
+      "status": "PASS",
+      "summary": "132000 common links -> 37500 frames: missing=0 rx!=tag_pose=0 scene_hash mismatch=0",
+      "detail": {}
+    },
+    {
+      "id": "C7",
+      "area": "frames",
+      "status": "PASS",
+      "summary": "link rx_azimuth_deg vs frame tag_pose.yaw_rad (mod 360) disagreements: 0",
+      "detail": {
+        "note": "rx_azimuth_deg is unwrapped (values up to 720 deg); runtime must use the frame yaw"
+      }
+    },
+    {
+      "id": "C8",
+      "area": "frames",
+      "status": "BLOCKER",
+      "summary": "dynamic panels required: 98980 links over 28120 distinct frames (41-row payload carried 12); object kinds={'dielectric': 9380, 'PEC': 18740}",
+      "detail": {
+        "materials": [
+          {
+            "kind": "dielectric",
+            "name": "blockage_panel",
+            "eps_r": 12.0,
+            "tan_delta": 0.35,
+            "thickness_m": null,
+            "frames": 9380
+          },
+          {
+            "kind": "PEC",
+            "name": "metal_pec",
+            "eps_r": 4.0,
+            "tan_delta": 0.0,
+            "thickness_m": null,
+            "frames": 18740
+          }
+        ],
+        "note": "runtime make_scene() binds every dynamic_panel to ITU metal 1 mm and RelocatedInputs raises UNSUPPORTED_DYNAMIC_OBJECT for non-PEC; dielectric panels carry no thickness, so a native RadioMaterial (eps_r, sigma from tan_delta, thickness) needs a user decision"
+      }
+    },
+    {
+      "id": "C9",
+      "area": "targets",
+      "status": "PASS",
+      "summary": "TX/RX strictly inside room bounding box (closed scenes): violations=0",
+      "detail": {
+        "examples": []
+      }
+    },
+    {
+      "id": "C10",
+      "area": "relocation",
+      "status": "PASS",
+      "summary": "CHANGED_LINKS 41 rows carry new RX in R inputs; mismatches=0 old-coordinate rows=0; common rows tagged rx_relocation=15",
+      "detail": {}
+    },
+    {
+      "id": "C11",
+      "area": "relocation",
+      "status": "PASS",
+      "summary": "NATIVE41 CONFIG rows (41) agree with R RX coordinates; mismatches=0",
+      "detail": {}
+    },
+    {
+      "id": "D1",
+      "area": "pose",
+      "status": "INFO",
+      "summary": "L families: tag_orientation_deg values={'[0.0, 0.0, 0.0]': 33000}; mount keys in source_row=none; distinct (tx,rx) frames in sample=1",
+      "detail": {
+        "note": "all L rows fall back to default TX boresight -z and RX yaw 0; confirm this is the intended historical mount semantics before S0"
+      }
+    },
+    {
+      "id": "D2",
+      "area": "pose",
+      "status": "PASS",
+      "summary": "rotation matrices orthonormal det=+1 over 9953 distinct common yaws: failures=0; reproduces NATIVE41 CONFIG row-0 rotations=True",
+      "detail": {}
+    },
+    {
+      "id": "D3",
+      "area": "pose",
+      "status": "PASS",
+      "summary": "STATIC9 quaternions (wxyz) unit-norm: max|n-1|=0.00e+00; identity=18/18",
+      "detail": {
+        "note": "no quaternion->rotation converter exists in the repo yet (plan S0 step 5)"
+      }
+    },
+    {
+      "id": "E1",
+      "area": "geometry",
+      "status": "PASS",
+      "summary": "326 meshes / 25438 triangles present with matching SHA (STATUS: 326/25438, NATIVE_SLAB_GEOMETRY_PASS)",
+      "detail": {
+        "bad": []
+      }
+    },
+    {
+      "id": "E2",
+      "area": "geometry",
+      "status": "PASS",
+      "summary": "materials {'concrete': 110, 'plasterboard': 79, 'glass': 43, 'metal': 52, 'chipboard': 18, 'wood': 14, 'brick': 7, 'EPS4_LOSSLESS': 3} valid for ITU-R P.2040 over 6.2504-6.7496 GHz",
+      "detail": {
+        "invalid": {}
+      }
+    },
+    {
+      "id": "E3",
+      "area": "geometry",
+      "status": "WARN",
+      "summary": "scenes with zero meshes (free-space STATIC9): 3; runtime calls scene.edit(add=[]) for these - verify in pilot",
+      "detail": {
+        "scenes": [
+          "common-v0-c0-empty-direct-01000mm",
+          "common-v0-c0-empty-direct-03000mm",
+          "common-v0-c0-empty-direct-07000mm"
+        ]
+      }
+    },
+    {
+      "id": "E4",
+      "area": "geometry",
+      "status": "PASS",
+      "summary": "geometry FINAL_MANIFEST outputs 356 vs checkout: drift=0",
+      "detail": {
+        "drift": {}
+      }
+    },
+    {
+      "id": "F1",
+      "area": "ffd_bank",
+      "status": "PASS",
+      "summary": "6 FFD banks: SHA==BANK_MANIFEST==CONFIG, 257-bin grid exact, finite, shape 257x181x361",
+      "detail": {
+        "ports": {
+          "RHCP": {
+            "path": "RHCP_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 15.461614608764648
+          },
+          "LHCP": {
+            "path": "LHCP_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 15.347955703735352
+          },
+          "LP_X": {
+            "path": "LP_X_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 19.113977432250977
+          },
+          "LP_Y": {
+            "path": "LP_Y_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 19.119159698486328
+          },
+          "LP_plus45": {
+            "path": "LP_plus45_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 19.163049697875977
+          },
+          "LP_minus45": {
+            "path": "LP_minus45_bank.npz",
+            "sha_ok": true,
+            "freq_exact": true,
+            "theta": [
+              0.0,
+              180.0,
+              181
+            ],
+            "phi": [
+              -180.0,
+              180.0,
+              361
+            ],
+            "shape": [
+              257,
+              181,
+              361
+            ],
+            "finite": true,
+            "peak_abs": 19.256967544555664
+          }
+        }
+      }
+    },
+    {
+      "id": "F2",
+      "area": "ffd_bank",
+      "status": "PASS",
+      "summary": "port order BANK_MANIFEST/CONFIG = ['RHCP', 'LHCP', 'LP_X', 'LP_Y', 'LP_plus45', 'LP_minus45'] (arms CP=0:2, LP_AXIS=2:4, LP_DIAG=4:6)",
+      "detail": {}
+    },
+    {
+      "id": "F3",
+      "area": "ffd_bank",
+      "status": "INFO",
+      "summary": "phi grid [-180.0, 180.0, 361]; theta grid [0.0, 180.0, 181]. BankPort wraps phi mod 360 then clips index to n-2, so the 360-deg column duplicates 0 deg (seam continuity relies on the FFD)",
+      "detail": {}
+    },
+    {
+      "id": "G1",
+      "area": "config",
+      "status": "PASS",
+      "summary": "noise_var_H_bin recomputed 4.856640061591484e-16 (config 4.856640061591484e-16); detector threshold 2.106615e-07 (config 2.106615e-07)",
+      "detail": {}
+    },
+    {
+      "id": "G2",
+      "area": "config",
+      "status": "PASS",
+      "summary": "NATIVE41 solver block equals plan section 5",
+      "detail": {
+        "config": {
+          "max_depth": 3,
+          "samples_per_src": 100000,
+          "max_num_paths_per_src": 1000000,
+          "synthetic_array": true,
+          "los": true,
+          "specular_reflection": true,
+          "refraction": true,
+          "diffraction": false,
+          "edge_diffraction": false,
+          "diffuse_reflection": false,
+          "seed": 20260924
+        }
+      }
+    },
+    {
+      "id": "G3",
+      "area": "config",
+      "status": "INFO",
+      "summary": "detector statistical_validation.executed=False; noise producer_bound=False; hardware_calibrated=False",
+      "detail": {
+        "note": "must stay un-promoted in all full-run reports (plan section 5)"
+      }
+    },
+    {
+      "id": "G4",
+      "area": "config",
+      "status": "PASS",
+      "summary": "geometry-revision CONFIG and NATIVE41 CONFIG agree on physics/operating blocks",
+      "detail": {
+        "fields": {
+          "solver": true,
+          "noise": true,
+          "detector": true,
+          "ports": true,
+          "bank_sha256": true,
+          "geometry_manifest_sha256": true,
+          "geometry_contract_sha256": true
+        }
+      }
+    },
+    {
+      "id": "G5",
+      "area": "config",
+      "status": "PASS",
+      "summary": "CONFIG geometry_manifest_sha256 -> CRLF_ONLY; geometry_contract_sha256 -> CRLF_ONLY",
+      "detail": {
+        "note": "CRLF_ONLY: git stores LF; staging must hash the Windows bytes or re-baseline explicitly"
+      }
+    },
+    {
+      "id": "G6",
+      "area": "config",
+      "status": "WARN",
+      "summary": "CONFIG carries Windows absolute roots ['bank_root', 'geometry_root']; full CONFIG needs local/server root mapping",
+      "detail": {}
+    },
+    {
+      "id": "H1",
+      "area": "code",
+      "status": "BLOCKER",
+      "summary": "existing runners are 41-row specific: 15 hard limits found",
+      "detail": {
+        "findings": [
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "runtime --stop defaults to 41"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "runtime reads targets only from CONFIG.rows"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "runtime output dir must not exist: no resume"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "NPZ written in place (no temp file + atomic rename)"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "DrJit thread count hard-coded to 4"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "output file names use link_id only (no target_id hash)"
+          },
+          {
+            "file": "scripts/g2_completion/sionna_native_runtime.py",
+            "issue": "smoke = 3 bins; full = 257 bins"
+          },
+          {
+            "file": "scripts/g2_completion/run_native41_refresh.py",
+            "issue": "41 rows / 14 lanes fixed"
+          },
+          {
+            "file": "scripts/g2_completion/run_native41_refresh.py",
+            "issue": "call count asserted to 41x771"
+          },
+          {
+            "file": "scripts/g2_completion/run_native41_refresh.py",
+            "issue": "bank bound to previous remote campaign"
+          },
+          {
+            "file": "scripts/g2_completion/run_native41_refresh.py",
+            "issue": "container UID:GID hard-coded (plan: use measured id)"
+          },
+          {
+            "file": "scripts/g2_completion/finish_sionna_native41.py",
+            "issue": "41-row assert"
+          },
+          {
+            "file": "scripts/g2_completion/summarize_native41_refresh.py",
+            "issue": "41-row assert"
+          },
+          {
+            "file": "scripts/g2_completion/prepare_sionna_native41.py",
+            "issue": "depends on prior results folder not in repo"
+          },
+          {
+            "file": "rt_cp_uwb_py/g2_relocated_inputs.py",
+            "issue": "RelocatedInputs.rows yields only the 41 changed links"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H2",
+      "area": "code",
+      "status": "BLOCKER",
+      "summary": "full-campaign entry points not implemented: 7/7",
+      "detail": {
+        "missing": [
+          "rt_cp_uwb_py/g2_full_inputs.py",
+          "scripts/g2_completion/prepare_sionna_full.py",
+          "scripts/g2_completion/run_sionna_full.py",
+          "scripts/g2_completion/finish_sionna_full.py",
+          "scripts/g2_completion/verify_sionna_full.py",
+          "tests/test_g2_full_inputs.py",
+          "tests/test_g2_full_resume.py"
+        ]
+      }
+    },
+    {
+      "id": "H3",
+      "area": "code",
+      "status": "WARN",
+      "summary": "H assembly multiplies paths.a by exp(-j2*pi*f*tau) with absolute f; LOS fixture checks |a| and tau separately, not the multi-path phase convention",
+      "detail": {
+        "action": "add a two-path (PEC floor) analytic H(f) fixture to the pilot before S3"
+      }
+    },
+    {
+      "id": "H4",
+      "area": "code",
+      "status": "INFO",
+      "summary": "PathSolver is re-run for every (bin, arm): 771 traces/target although geometry is frequency- and arm-independent; plan keeps this (no engine optimisation) - capacity must be measured in S2 pilot",
+      "detail": {}
+    },
+    {
+      "id": "T1",
+      "area": "tests",
+      "status": "WARN",
+      "summary": "pytest: 3 failed, 32 passed in 1.48s",
+      "detail": {
+        "missing_fixtures": [
+          "results/SIONNA_G2_P1_SIMPLE_CONTRACT_20260924_01a0d1b0/POWER_NOISE_CONTRACT.json"
+        ],
+        "tail": [
+          "E       FileNotFoundError: [Errno 2] No such file or directory: '/home/user/sionna-resimulation/results/SIONNA_G2_P1_SIMPLE_CONTRACT_20260924_01a0d1b0/POWER_NOISE_CONTRACT.json'",
+          "",
+          "/usr/lib/python3.11/pathlib.py:1044: FileNotFoundError",
+          "=========================== short test summary info ============================",
+          "FAILED tests/test_g2_scoped_channel.py::test_zero_signal_still_has_noise_and_paired_arms",
+          "FAILED tests/test_g2_scoped_channel.py::test_noise_is_absolute_and_detection_uses_observation",
+          "FAILED tests/test_g2_scoped_channel.py::test_actual_transform_matches_direct_sum",
+          "3 failed, 32 passed in 1.48s"
+        ]
+      }
+    }
+  ]
+}

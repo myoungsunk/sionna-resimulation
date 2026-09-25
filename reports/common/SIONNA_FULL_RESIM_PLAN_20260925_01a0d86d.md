@@ -280,3 +280,15 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - 원격 controller PID/container ID와 로그 위치:
 - 다음 정확한 명령/작업, 남은 제한:
 ```
+
+### 2026-09-25 — PREFLIGHT_AUDIT / S0 이전 / NOT_READY_FOR_FULL_RUN
+- 실행 목적·이전 로그와 달라진 점: 시뮬레이션 전 전체 감사 요청. 계획서 수치·입력·기하·FFD·설정·코드·테스트를 GitHub checkout(Linux)에서 재검증.
+- 실제 명령 및 실행 위치: `python scripts/g2_completion/audit_sionna_full_preflight.py --out results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_preflight_audit` (로컬 checkout, container 아님)
+- 입력/코드/config SHA: `00_preflight_audit/MANIFEST.json`에 기록. batch/attempt 없음.
+- 결과: BLOCKER 5 / FAIL 2 / WARN 7 / PASS 22 / INFO 4. 165,009 target·101 scene·37,500 frame·41 보정행·326 mesh·6 bank·noise/threshold 재계산 모두 PASS. 이번·누적 RF 호출 **0회**.
+- 산출물: [사전 감사 보고서](SIONNA_FULL_RESIM_PREFLIGHT_AUDIT_20260925.md), `results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_preflight_audit/{AUDIT,MANIFEST}.json`
+- 검사/시험: pytest 32 passed / 3 failed(저장소에 없는 `SIONNA_G2_P1_SIMPLE_CONTRACT_…/POWER_NOISE_CONTRACT.json`). scripts/00·01·02·06 검사는 저장소에 없어 미실행.
+- 실패 원인: (C8) 동적 판재 9,380 frame이 dielectric(εr=12, tanδ=0.35, 두께 없음)인데 runtime은 metal로 고정 → 사용자 결정 필요. (A6) checkout의 `sionna_native_runtime.py`/`finish_sionna_native41.py`가 계획 snapshot SHA와 다름. (A2) bank NPZ가 루트에 있음. (H1/H2) 41행 전용 제한 15건, 전체용 실행기 미구현.
+- 파일 변경/이동: 신규 감사 스크립트·보고서·.gitignore, 본 로그 추가. 이동/삭제 0. 루트 중복 계획서 사본은 미수정.
+- 원격 controller: 없음(Snowball 미접속).
+- 다음 작업: C8 유전체 판재 모델 결정 → A6 runtime 원본 대조 → bank 위치 path map → S0/S1 구현 → 감사 재실행으로 READY_FOR_S0 확인.
