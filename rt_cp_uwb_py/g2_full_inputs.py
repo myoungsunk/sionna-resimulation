@@ -84,9 +84,15 @@ class Registry:
         return key
 
 
-def read_frames(path, needed):
-    """Stream FRAMES.jsonl; verify every canonical hash; keep needed frames."""
+def read_frames(path, needed, moves=None):
+    """Stream FRAMES.jsonl; verify every canonical hash; keep needed frames.
+
+    moves: optional (unit_id, frame) -> relocation move; applied after the
+    source hash is verified, and the hash is recomputed.
+    """
+    from .g2_full_relocation import relocate_frame
     frames, total, keys = {}, 0, set()
+    moves = moves or {}
     with Path(path).open(encoding='utf8') as f:
         for line in f:
             row = json.loads(line); total += 1
@@ -96,6 +102,8 @@ def read_frames(path, needed):
             keys.add(key)
             if digest(row['physical']) != row['canonical_scene_hash']:
                 raise ValueError('FRAME_SHA_MISMATCH')
+            if key in moves:
+                row = relocate_frame(row, moves[key])
             if key in needed:
                 p = row['physical']
                 frames[key] = dict(hash=row['canonical_scene_hash'], tag=p['tag_pose'], size=p['scene']['size'],
@@ -103,8 +111,22 @@ def read_frames(path, needed):
     return frames, total
 
 
-def build_targets(relocated_root, geometry_root, static9_path):
-    """Return (targets, poses, panels, census). Raises on any contract breach."""
+def build_targets(relocated_root, geometry_root, static9_path, overlay=None):
+    """Return (targets, poses, panels, census). Raises on any contract breach.
+
+    overlay: optional endpoint relocation overlay (g2_full_relocation, R3)
+    applied on top of the R2 inputs; every listed move must be consumed.
+    """
+    from .g2_full_relocation import frame_moves, overlay_index, relocate_common_row, relocate_l_row
+    moved = overlay_index(overlay) if overlay else {}
+    fmoves = frame_moves(overlay) if overlay else {}
+    consumed = set()
+
+    def row_moves(family, case_id):
+        found = {role: moved[(family, case_id, role)] for role in ('tx', 'rx') if (family, case_id, role) in moved}
+        consumed.update((family, case_id, role) for role in found)
+        return found
+
     R, G = Path(relocated_root), Path(geometry_root)
     poses, panels = Registry(), Registry()
     targets, issues = [], []
@@ -121,6 +143,7 @@ def build_targets(relocated_root, geometry_root, static9_path):
         record['target_id'] = digest(record['identity'])
         change = changed.get((record['family'], record['identity']['case_id']))
         record['rx_relocated'] = change is not None
+        record['endpoint_relocation_r3'] = sorted(source.get('endpoint_relocation', {}).get('roles', [])) or None
         if change and (record['rx'] != change['new'] or record['scene_id'] != change['scene_id']):
             raise ValueError('RELOCATION_MISMATCH')
         targets.append(record)
@@ -132,6 +155,9 @@ def build_targets(relocated_root, geometry_root, static9_path):
         for sid, scene in doc['scenes'].items():
             l_rooms.setdefault(sid, scene['size'])
         for row in doc['links']:
+            mv = row_moves(fam, row['case_id'])
+            if mv:
+                row = relocate_l_row(row, mv)
             tx_rot, rx_rot = historical_mount_frames(row.get('source_row', {}))
             add(dict(identity=identity(family=fam, case_id=row['case_id'], anchor_id=row['anchor_id'],
                                        epoch_id=row['epoch_id']),
@@ -144,11 +170,16 @@ def build_targets(relocated_root, geometry_root, static9_path):
     with (R/'common/LINKS.jsonl').open(encoding='utf8') as f:
         for line in f:
             common.append(json.loads(line))
-    frames, frame_total = read_frames(R/'common/FRAMES.jsonl', {(r['unit_id'], r['frame']) for r in common})
+    frames, frame_total = read_frames(R/'common/FRAMES.jsonl', {(r['unit_id'], r['frame']) for r in common}, fmoves)
     for row in common:
         fr = frames.get((row['unit_id'], row['frame']))
         if fr is None:
             raise ValueError('MISSING_FRAME')
+        mv = row_moves(row['family'], row['case_id'])
+        if mv:
+            if 'rx' in mv and (row['unit_id'], row['frame']) not in fmoves:
+                raise ValueError('RELOCATED_RX_FRAME_NOT_MOVED')
+            row = relocate_common_row(row, mv, fr['hash'])
         if fr['tag']['position'] != row['rx'] or fr['hash'] != row['scene_hash']:
             raise ValueError('LINK_FRAME_MISMATCH')
         mount = dict(row, rx_azimuth_deg=math.degrees(fr['tag']['yaw_rad']))
@@ -180,6 +211,11 @@ def build_targets(relocated_root, geometry_root, static9_path):
                      frame_ref=None, panel_id=None, room_size=None),
                 quat_wxyz_to_matrix(s['tx_orientation_wxyz']), quat_wxyz_to_matrix(s['rx_orientation_wxyz']), s)
 
+    if set(moved) != consumed:
+        raise ValueError('RELOCATION_OVERLAY_ROWS_NOT_CONSUMED')
+    if fmoves and {k for k in fmoves} - set(frames):
+        raise ValueError('RELOCATION_OVERLAY_FRAMES_NOT_CONSUMED')
+
     # Contract checks: counts, uniqueness, scene coverage, relocation, room containment.
     counts = {fam: sum(t['family'] == fam for t in targets) for fam in FAMILY_ORDER}
     ids = [t['target_id'] for t in targets]
@@ -203,6 +239,8 @@ def build_targets(relocated_root, geometry_root, static9_path):
     census = dict(targets=len(targets), family_counts=counts, scenes=len(scenes), frames_total=frame_total,
                   frames_bound=len(frames), relocated_rx_rows=len(relocated), poses=len(poses.items),
                   condition_panels=len(panels.items),
+                  r3_relocated_rows=sum(t['endpoint_relocation_r3'] is not None for t in targets),
+                  r3_overlay=overlay.get('revision_id') if overlay else None,
                   panel_targets=sum(t['panel_id'] is not None for t in targets),
                   panel_materials={k: sum(p['spec']['kind'] == k for p in panels.items.values())
                                    for k in ('PEC', 'dielectric')},

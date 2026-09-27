@@ -5,11 +5,15 @@ import pytest
 from rt_cp_uwb_py.g2_scoped_channel import observe,load_scoped_link,ARMS
 
 ROOT=Path(__file__).resolve().parents[1]
-CONTRACT=ROOT/'results/SIONNA_G2_P1_SIMPLE_CONTRACT_20260924_01a0d1b0'
+# The P1 contract folder (SIONNA_G2_P1_SIMPLE_CONTRACT_20260924_01a0d1b0) is not part of this repository.
+# Use the operating config the full campaign adopts (path map key operating_config); it carries the same
+# adopted noise and detector blocks (noise_var_H_bin, seed_base, threshold_value).
+from rt_cp_uwb_py.g2_full_paths import load_paths
+_, PATHS=load_paths(ROOT/'config/sionna_full_paths.example.json','repo_checkout',ROOT)
 
 def settings():
-    n=json.loads((CONTRACT/'POWER_NOISE_CONTRACT.json').read_text())['noise']
-    d=json.loads((CONTRACT/'DETECTOR_CONTRACT.json').read_text())
+    c=json.loads(PATHS['operating_config'].read_text())
+    n,d=c['noise'],c['detector']
     row=dict(scene_id='fixture',link_id='fixture_1',tx=[0,0,0],rx=[1,0,0])
     return n,d,row
 

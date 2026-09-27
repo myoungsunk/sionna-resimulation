@@ -1,0 +1,39 @@
+{
+ "schema": "SIONNA_FULL_RUNTIME_LOCK_V1",
+ "docker_image": "sha256:77244efd2cb92abfc3be258d97da2c76b4c91eeb29e1aeb50d7dc57ed72ad791",
+ "docker_image_source": "Snowball local image (plan section 5); not pullable from GitHub; other hosts need an image export or build recipe",
+ "container_python": "/opt/rt-env/bin/python",
+ "host_python_note": "Snowball host python3 is old; run runtime/finish/verify only inside the container",
+ "versions": {
+  "sionna-rt": "2.0.1",
+  "mitsuba": "3.8.0",
+  "drjit": "1.3.1"
+ },
+ "mitsuba_variant": "llvm_ad_mono_polarized",
+ "solver": {
+  "max_depth": 3,
+  "samples_per_src": 100000,
+  "max_num_paths_per_src": 1000000,
+  "synthetic_array": true,
+  "los": true,
+  "specular_reflection": true,
+  "refraction": true,
+  "diffraction": false,
+  "edge_diffraction": false,
+  "diffuse_reflection": false,
+  "seed": 20260924
+ },
+ "container_user": "measured `id -u`:`id -g` on the host at launch (no hard-coded UID)",
+ "network": "none",
+ "mounts": "code/input/inputs/02_batches read-only; batches read-write",
+ "initial_concurrency": "2 containers x 4 DrJit threads; raise only after S2 pilot measurements (max 8 containers proposed)",
+ "local_dev_env": {
+  "python": "3.11",
+  "note": "development checkout used pip sionna-rt==2.0.1 (mitsuba 3.8.0, drjit 1.3.1) for the S1 smoke only",
+  "verified": {
+   "sionna-rt": "2.0.1",
+   "mitsuba": "3.8.0",
+   "drjit": "1.3.1"
+  }
+ }
+}

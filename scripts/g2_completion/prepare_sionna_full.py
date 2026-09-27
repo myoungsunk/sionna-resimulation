@@ -28,7 +28,7 @@ from rt_cp_uwb_py.g2_full_paths import file_sha, load_paths, resolve_banks
 PATH_MAP = ROOT/'config/sionna_full_paths.example.json'
 F0, DF, N_BINS = 6250400000., 1950000., 257
 TARGET_FIELDS = ('target_id', 'family', 'identity', 'scene_id', 'condition', 'tx', 'rx', 'pose_id', 'frame_ref',
-                 'panel_id', 'rx_relocated', 'geometric_range_m', 'source_sha256', 'clearance_m', 'clearance_owner',
+                 'panel_id', 'rx_relocated', 'endpoint_relocation_r3', 'geometric_range_m', 'source_sha256', 'clearance_m', 'clearance_owner',
                  'panel_clearance_m')
 
 
@@ -77,8 +77,10 @@ def static9_overlay(paths):
 
 
 def build(paths, config):
+    overlay = (json.loads(paths['relocation_overlay'].read_text(encoding='utf8'))
+               if 'relocation_overlay' in paths else None)
     targets, poses, panels, census = build_targets(paths['relocated_inputs'], paths['geometry'],
-                                                   paths['static9_contract'])
+                                                   paths['static9_contract'], overlay)
     clearance = endpoint_clearance(targets, panels, paths['geometry'])
     indep = json.loads((paths['relocated_inputs']/'CLEARANCE_INDEPENDENT.json').read_text(encoding='utf8'))
     relocated = [t['clearance_m'][1] for t in targets if t['rx_relocated']]
@@ -103,6 +105,8 @@ def gate(census):
         failures.append('TARGET_COUNT')
     if census['clearance']['inside_material']:
         failures.append('ENDPOINT_INSIDE_MATERIAL')
+    if census['clearance']['below_threshold_targets']:
+        failures.append('ENDPOINT_BELOW_1CM')  # decision 2026-09-27: all moved in revision R3
     if not census['relocated_clearance_crosscheck']['consistent']:
         failures.append('RELOCATION_CLEARANCE_CROSSCHECK')
     if any(v in ('CHANGED', 'ABSENT') for v in census['snapshot'].values()):
@@ -110,8 +114,8 @@ def gate(census):
     return failures
 
 
-def write_inputs(root, paths, config, targets, poses, panels, census, clearance, banks):
-    out = root/'00_inputs'
+def write_inputs(root, paths, config, targets, poses, panels, census, clearance, banks, inputs_dir):
+    out = root/inputs_dir
     stage = Path(tempfile.mkdtemp(prefix='.00_inputs.', dir=root))
     try:
         (stage/'dynamic').mkdir()
@@ -143,6 +147,8 @@ def write_inputs(root, paths, config, targets, poses, panels, census, clearance,
             geometry_manifest_sha256=file_sha(paths['geometry']/'SCENE_MESH_MANIFEST.json'),
             geometry_contract_sha256=file_sha(paths['geometry']/'MODEL_CONTRACT.json'),
             condition_panel_material=dict(contract_id=CONTRACT_ID, metal=METAL_PANEL, occluder=OCCLUDER_PANEL),
+            relocation_overlay=dict(revision_id=census.get('r3_overlay'), sha256=file_sha(paths['relocation_overlay'])
+                                    if 'relocation_overlay' in paths else None),
             path_map='config/sionna_full_paths.example.json (logical keys; no absolute roots)'))
         dump('TARGET_CENSUS.json', census)
         inputs = {}
@@ -157,9 +163,11 @@ def write_inputs(root, paths, config, targets, poses, panels, census, clearance,
         manifest = json.loads((paths['geometry']/'SCENE_MESH_MANIFEST.json').read_text(encoding='utf8'))
         inputs.update({f"geometry/{m['mesh']}": m['sha256'] for s in manifest['scenes'] for m in s['materials']})
         inputs.update({f'bank_dir/{p}_bank.npz': b['sha256'] for p, b in banks.items()})
-        inputs.update({k: file_sha(paths[k]) for k in ('bank_manifest', 'operating_config', 'static9_contract')})
+        inputs.update({k: file_sha(paths[k]) for k in ('bank_manifest', 'operating_config', 'static9_contract')
+                       + (('relocation_overlay',) if 'relocation_overlay' in paths else ())})
         code = ['rt_cp_uwb_py/g2_full_inputs.py', 'rt_cp_uwb_py/g2_full_panels.py', 'rt_cp_uwb_py/g2_full_paths.py',
-                'rt_cp_uwb_py/l1_l2_rf_synthesis.py', 'scripts/g2_completion/prepare_sionna_full.py',
+                'rt_cp_uwb_py/l1_l2_rf_synthesis.py', 'rt_cp_uwb_py/g2_full_relocation.py',
+                'scripts/g2_completion/prepare_sionna_full.py',
                 'config/sionna_full_paths.example.json']
         outputs = {str(p.relative_to(stage)).replace(os.sep, '/'): file_sha(p)
                    for p in sorted(stage.rglob('*')) if p.is_file()}
@@ -185,11 +193,13 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--campaign-root', type=Path, required=True)
     ap.add_argument('--environment', default='repo_checkout')
+    ap.add_argument('--inputs-dir', default=None, help='default: active_inputs_dir of the path map')
     mode = ap.add_mutually_exclusive_group(required=True)
     mode.add_argument('--dry-run', action='store_true')
     mode.add_argument('--write-inputs', action='store_true')
     a = ap.parse_args()
     config, paths = load_paths(PATH_MAP, a.environment, ROOT)
+    a.inputs_dir = a.inputs_dir or config['active_inputs_dir']
     root = a.campaign_root if a.campaign_root.is_absolute() else ROOT/a.campaign_root
     if root.resolve() != paths['campaign'].resolve():
         raise SystemExit('CAMPAIGN_ROOT_NOT_PATH_MAP_CAMPAIGN')
@@ -207,7 +217,8 @@ def main():
     if failures:
         raise SystemExit('S0_GATE_FAILED')
     if a.write_inputs:
-        out, written = write_inputs(root, paths, config, targets, poses, panels, census, clearance, banks)
+        out, written = write_inputs(root, paths, config, targets, poses, panels, census, clearance, banks,
+                                    a.inputs_dir)
         print(f'written: {out.relative_to(ROOT)}' if written else
               f'unchanged: {out.relative_to(ROOT)} already holds the identical TARGETS digest')
 

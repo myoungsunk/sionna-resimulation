@@ -1,8 +1,15 @@
 {
   "schema": "SIONNA_FULL_PATHS_V1",
   "campaign_id": "SIONNA_FULL_RESIM_20260925_01a0d86d",
-  "note": "Logical input roots per environment. Relative paths resolve against the environment root. The FFD bank NPZ files are NOT moved: in the GitHub checkout they live at the repository root (Git LFS), while BANK_MANIFEST.json stays in the original bank folder. Every resolved bank file must match BANK_MANIFEST npz_sha256 before use. No secrets.",
-  "bank_ports": ["RHCP", "LHCP", "LP_X", "LP_Y", "LP_plus45", "LP_minus45"],
+  "note": "Logical input roots per environment. Relative paths resolve against the environment root. The FFD bank NPZ files are NOT moved: in the GitHub checkout they live at the repository root (Git LFS), while BANK_MANIFEST.json stays in the original bank folder. Every resolved bank file must match BANK_MANIFEST npz_sha256 before use. No secrets. relocation_overlay: R3 endpoint relocation applied on top of relocated_inputs (R2) at load time.",
+  "bank_ports": [
+    "RHCP",
+    "LHCP",
+    "LP_X",
+    "LP_Y",
+    "LP_plus45",
+    "LP_minus45"
+  ],
   "environments": {
     "repo_checkout": {
       "root": ".",
@@ -13,7 +20,8 @@
         "bank_manifest": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json",
         "operating_config": "results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json",
         "static9_contract": "inputs/reference/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
-        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d"
+        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d",
+        "relocation_overlay": "results/SIONNA_G2_ENDPOINT_RELOCATION_20260927_R3/OVERLAY.json"
       }
     },
     "windows_workspace": {
@@ -25,7 +33,8 @@
         "bank_manifest": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json",
         "operating_config": "results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json",
         "static9_contract": "D:/codex/raytracing_modules/DRIVE_EXPORT_RT_DUAL_ENGINE_20260915/cp2_work_remote/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
-        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d"
+        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d",
+        "relocation_overlay": "results/SIONNA_G2_ENDPOINT_RELOCATION_20260927_R3/OVERLAY.json"
       }
     },
     "snowball": {
@@ -38,8 +47,10 @@
         "bank_manifest": "input/bank/BANK_MANIFEST.json",
         "operating_config": "input/CONFIG_SOURCE.json",
         "static9_contract": "input/source_inputs/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
-        "campaign": "."
+        "campaign": ".",
+        "relocation_overlay": "input/source_inputs/R3_OVERLAY.json"
       }
     }
-  }
+  },
+  "active_inputs_dir": "00_inputs_R3"
 }

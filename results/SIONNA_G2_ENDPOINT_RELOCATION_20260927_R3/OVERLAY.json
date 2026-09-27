@@ -1,0 +1,316 @@
+{
+ "revision_id": "SIONNA_G2_ENDPOINT_RELOCATION_20260927_R3",
+ "status": "ENDPOINT_RELOCATION_OVERLAY",
+ "decision": "2026-09-27 user decision: move all TX/RX below 1 cm (native geometry) with the R2 rule",
+ "base_revision": "SIONNA_G2_RX_RELOCATED_20260924_01a0d320_R2",
+ "base_inputs_sha256": {
+  "CHANGED_LINKS.json": "8b87430f3ec69ac7b70e6264d83f888b678c7ba7625870252f62a85ea2b3cc1c",
+  "MOVES.json": "b0d0ce6af502f0fd4dc2518eaa41e781e6da75aa72a1fb1ac8e5d558271aec81",
+  "MANIFEST.json": "1814cfaaa4fb102903c01c8acdd3541f568fb519948183c6f4192f27e6de38c3",
+  "common/LINKS.jsonl": "aa317022586f020db4a8e345705c200f9f640dc8d78cb63b5ad8946d1b4b5db7",
+  "common/FRAMES.jsonl": "0fed003b3aaca487af0242905b9ecb81b22e6b087b46e624db9f7573680b1ebd",
+  "inputs_v6/L1/INPUT.json": "e44d676a35cda382ecf063b7578e08f1adb16abfeaa6fc6fd3bbff71aca194ea",
+  "inputs_v6/L1multi/INPUT.json": "142ba9da0c33baabd4421a9667e6963f35ff6f6dfbafe8daf56911f4f783e203",
+  "inputs_v6/L2static/INPUT.json": "d6a401779268441b66fcabb955a25ed2a907e4705f547823891ab0fdb9dfa82f",
+  "inputs_v6/L2multi/INPUT.json": "d1f14e01537103564cf67d9739c5ca2ce28464bcc8c572c1dc9af9e0b8f51345"
+ },
+ "geometry_manifest_sha256": "d4eceb816b40ba3c99d2d3af60aa19c4ea0825cba65b8ab0329e877f22ac9db6",
+ "rule": {
+  "threshold_m": 0.01,
+  "horizontal_only": true,
+  "directions": [
+   "+x",
+   "-x",
+   "+y",
+   "-y",
+   "+x+y",
+   "+x-y",
+   "-x+y",
+   "-x-y"
+  ],
+  "step": "whole millimetre",
+  "choose": "smallest shift; tie -> larger clearance, then direction order",
+  "max_shift_mm": 500,
+  "room_margin_m": 0.01,
+  "path": "every mm outside material",
+  "clearance": "slabs: one-sided NEGATIVE_NORMAL prism; ideal sheets: distance; condition panels: sheet distance minus half thickness",
+  "linked_rows": "every row referencing the same (scene, role, coordinate)"
+ },
+ "claim_boundary": "1 cm is the existing synthetic placement rule, not a physical near-field threshold; the far-field FFD model is not validated for antennas within centimetres of metal",
+ "moves": [
+  {
+   "scene_id": "13d9f34e5bc16172a284d5e5880c46eda060d26bb9fc2a84fcadec4edc5a34cd",
+   "role": "rx",
+   "before": [
+    2.833128189897969,
+    2.8128275274927024,
+    1.4813535369795128
+   ],
+   "after": [
+    2.833128189897969,
+    2.822827527492702,
+    1.4813535369795128
+   ],
+   "shift_m": 0.01,
+   "direction": "+y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.0008695274927024523,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010869527492702239,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1",
+     "case_id": 100907
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "13d9f34e5bc16172a284d5e5880c46eda060d26bb9fc2a84fcadec4edc5a34cd",
+   "role": "rx",
+   "before": [
+    2.982352790183519,
+    2.772092196716395,
+    1.1119454405060412
+   ],
+   "after": [
+    2.982352790183519,
+    2.765092196716395,
+    1.1119454405060412
+   ],
+   "shift_m": 0.007,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.003865803283605196,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010865803283605313,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1",
+     "case_id": 101012
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "2025ac769e3088afda620dad713fc03675cea72535c71bc34257c26d9b642380",
+   "role": "tx",
+   "before": [
+    13.159646374218523,
+    2.734799187717149,
+    4.922612248533855
+   ],
+   "after": [
+    13.159646374218523,
+    2.7247991877171494,
+    4.922612248533855
+   ],
+   "shift_m": 0.01,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.0002008122828507375,
+   "nearest_before": "metal_t0p001",
+   "clearance_after_m": 0.010200812282850524,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L2static",
+     "case_id": 300408
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "41e57fea8f96ebedc715e265be48fbb787dc94169b92de29fa983bda0b8786ca",
+   "role": "rx",
+   "before": [
+    7.176350638391231,
+    4.274550673790434,
+    1.4672413557493307
+   ],
+   "after": [
+    7.176350638391231,
+    4.265550673790433,
+    1.4672413557493307
+   ],
+   "shift_m": 0.009,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.001407326209565518,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.01040732620956586,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1multi",
+     "case_id": 205993
+    },
+    {
+     "family": "L1multi",
+     "case_id": 205994
+    },
+    {
+     "family": "L1multi",
+     "case_id": 205995
+    },
+    {
+     "family": "L1multi",
+     "case_id": 205996
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "8b25afdb54d4badb43d675757e5af36f3eee73b3ffceb70e8ed332e36013eeed",
+   "role": "rx",
+   "before": [
+    3.341305397482173,
+    2.8133133673360335,
+    1.156686683760479
+   ],
+   "after": [
+    3.341305397482173,
+    2.8223133673360334,
+    1.156686683760479
+   ],
+   "shift_m": 0.009,
+   "direction": "+y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.0013553673360334048,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010355367336033301,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1",
+     "case_id": 102156
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "POSTP0_C1_C_951FB834",
+   "role": "rx",
+   "before": [
+    6.952411248660709,
+    4.233972409783133,
+    1.2
+   ],
+   "after": [
+    6.952411248660709,
+    4.232972409783133,
+    1.2
+   ],
+   "shift_m": 0.001,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.009955590216866206,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010955590216866542,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "C1_static",
+     "case_id": 81004370
+    }
+   ],
+   "linked_frames": [
+    {
+     "unit_id": "C1S_81004370",
+     "frame": 0
+    }
+   ]
+  },
+  {
+   "scene_id": "POSTP0_C1_C_F8E2E662",
+   "role": "rx",
+   "before": [
+    0.8918313605674124,
+    3.872998559917365,
+    1.2
+   ],
+   "after": [
+    0.8918313605674124,
+    3.864998559917365,
+    1.2
+   ],
+   "shift_m": 0.008,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.002321440082635462,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010321440082635469,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "C1_static",
+     "case_id": 81003607
+    }
+   ],
+   "linked_frames": [
+    {
+     "unit_id": "C1S_81003607",
+     "frame": 0
+    }
+   ]
+  },
+  {
+   "scene_id": "de2850a27ba0809575075fe345d1636db4cb6a050db0b3c2da66776cf648f58a",
+   "role": "rx",
+   "before": [
+    3.676448942215279,
+    3.941848963223439,
+    1.1118033207928963
+   ],
+   "after": [
+    3.6694489422152787,
+    3.941848963223439,
+    1.1118033207928963
+   ],
+   "shift_m": 0.007,
+   "direction": "-x",
+   "z_unchanged": true,
+   "clearance_before_m": 0.003012057784721023,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.01001205778472114,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1",
+     "case_id": 103067
+    }
+   ],
+   "linked_frames": []
+  },
+  {
+   "scene_id": "de2850a27ba0809575075fe345d1636db4cb6a050db0b3c2da66776cf648f58a",
+   "role": "rx",
+   "before": [
+    4.178978105594132,
+    3.775462369000035,
+    1.1558447098832685
+   ],
+   "after": [
+    4.178978105594132,
+    3.7654623690000353,
+    1.1558447098832685
+   ],
+   "shift_m": 0.01,
+   "direction": "-y",
+   "z_unchanged": true,
+   "clearance_before_m": 0.0004956309999646358,
+   "nearest_before": "chipboard_t0p012",
+   "clearance_after_m": 0.010495630999964424,
+   "threshold_m": 0.01,
+   "linked_rows": [
+    {
+     "family": "L1",
+     "case_id": 103119
+    }
+   ],
+   "linked_frames": []
+  }
+ ]
+}

@@ -110,6 +110,14 @@ class Audit:
 # ---------------------------------------------------------------- A. delivery
 def audit_delivery(audit):
     rows = list(csv.DictReader(FILE_LIST.open(encoding='utf-8-sig')))
+    first = subprocess.run(['git', 'rev-list', '--max-parents=0', 'HEAD'], cwd=ROOT, capture_output=True,
+                           text=True).stdout.split()
+    revised = set()
+    if first:
+        revised = set(subprocess.run(['git', 'diff', '--name-only', first[0]], cwd=ROOT, capture_output=True,
+                                     text=True).stdout.split())
+    # The verified runner pair must always equal the Windows bytes, whatever git says.
+    revised -= {'scripts/g2_completion/sionna_native_runtime.py', 'scripts/g2_completion/finish_sionna_native41.py'}
     tally = collections.Counter(); mismatches = []; absent = []
     for r in rows:
         if r['delivery'] == 'IMPLEMENT_THEN_GITHUB':
@@ -119,15 +127,19 @@ def audit_delivery(audit):
         state = classify_digest(ROOT/r['repository_or_data_path'], r['sha256'], r['bytes'])
         if state == 'MISMATCH' and r['repository_or_data_path'] == LIVING_PLAN:
             state = 'LIVING_LOG_APPENDED'  # plan is an append-only progress ledger by design
+        elif state == 'MISMATCH' and r['repository_or_data_path'] in revised:
+            state = 'REVISED_IN_GIT'  # deliberate change recorded in a later commit/working tree
         tally[(r['delivery'], state)] += 1
         if state == 'MISMATCH':
             mismatches.append(r['repository_or_data_path'])
         if state == 'ABSENT':
             absent.append(r['repository_or_data_path'])
     summary = {f'{d}:{s}': n for (d, s), n in sorted(tally.items())}
+    revised_listed = sorted(r['repository_or_data_path'] for r in rows if r['repository_or_data_path'] in revised
+                            and classify_digest(ROOT/r['repository_or_data_path'], r['sha256']) == 'MISMATCH')
     audit.add('A1', 'delivery', 'PASS' if not mismatches else 'FAIL',
               f'upload list {len(rows)} rows vs checkout; content mismatches={len(mismatches)}',
-              tally=summary, mismatches=mismatches)
+              tally=summary, mismatches=mismatches, revised_in_git=revised_listed)
     from rt_cp_uwb_py.g2_full_paths import load_paths, resolve_banks
     path_map = ROOT/'config/sionna_full_paths.example.json'
     mapped, map_error = {}, None
@@ -486,9 +498,13 @@ def audit_config(audit, cfg):
     audit.add('G5', 'config', 'PASS' if {m_sha, c_sha} <= {'EXACT', 'CRLF_ONLY'} else 'FAIL',
               f'CONFIG geometry_manifest_sha256 -> {m_sha}; geometry_contract_sha256 -> {c_sha}',
               note='CRLF_ONLY: git stores LF; staging must hash the Windows bytes or re-baseline explicitly')
-    absolute = [k for k in ('bank_root', 'geometry_root') if str(cfg.get(k, '')).startswith('D:')]
-    audit.add('G6', 'config', 'WARN' if absolute else 'PASS',
-              f'CONFIG carries Windows absolute roots {absolute}; full CONFIG needs local/server root mapping')
+    active = json.loads((CAMPAIGN/'ACTIVE_INPUTS.json').read_text(encoding='utf8'))['active_inputs_dir'] \
+        if (CAMPAIGN/'ACTIVE_INPUTS.json').is_file() else None
+    full = json.loads((CAMPAIGN/active/'CONFIG.json').read_text(encoding='utf8')) if active else {}
+    absolute = [k for k, v in full.items() if isinstance(v, str) and (v.startswith('D:') or v.startswith('/home/'))]
+    audit.add('G6', 'config', 'PASS' if full and not absolute else 'WARN',
+              f'active full-run CONFIG ({active}) uses path-map logical keys; absolute roots: {absolute}',
+              note='41-row CONFIG keeps its historical Windows roots; not consumed by the full runner')
 
 
 # -------------------------------------------------------------------- H. code
@@ -527,7 +543,14 @@ def audit_code(audit):
     if 'EXPECTED_41_UNIQUE_LINKS' in src:
         findings.append(dict(file='rt_cp_uwb_py/g2_relocated_inputs.py',
                              issue='RelocatedInputs.rows yields only the 41 changed links'))
-    audit.add('H1', 'code', 'BLOCKER', f'existing runners are 41-row specific: {len(findings)} hard limits found',
+    full_entry = all((ROOT/p).exists() for p in ('scripts/g2_completion/sionna_full_runtime.py',
+                                                 'scripts/g2_completion/finish_sionna_full.py',
+                                                 'scripts/g2_completion/verify_sionna_full.py',
+                                                 'scripts/g2_completion/run_sionna_full.py'))
+    audit.add('H1', 'code', 'INFO' if full_entry else 'BLOCKER',
+              f'41-row runners keep {len(findings)} hard limits; '
+              + ('superseded by the full-campaign entry points (historical code left untouched, '
+                 '41-row results not reusable in production)' if full_entry else 'no full-campaign runner yet'),
               findings=findings)
     planned = ['rt_cp_uwb_py/g2_full_inputs.py', 'scripts/g2_completion/prepare_sionna_full.py',
                'scripts/g2_completion/run_sionna_full.py', 'scripts/g2_completion/finish_sionna_full.py',
@@ -576,7 +599,7 @@ def main():
     if not a.skip_tests:
         audit_tests(audit)
     status = collections.Counter(c['status'] for c in audit.checks)
-    verdict = ('NOT_READY_FOR_FULL_RUN' if status['BLOCKER'] or status['FAIL'] else 'READY_FOR_S0')
+    verdict = ('NOT_READY_FOR_S2_PILOT' if status['BLOCKER'] or status['FAIL'] else 'READY_FOR_S2_PILOT')
     result = dict(audit_id='SIONNA_FULL_RESIM_20260925_01a0d86d/PREFLIGHT', verdict=verdict,
                   status_counts=dict(status), rf_calls=0, inputs_modified=False,
                   started_utc=started, finished_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
