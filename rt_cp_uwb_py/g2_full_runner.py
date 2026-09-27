@@ -79,8 +79,54 @@ def plan_batches(targets, batch_size):
 
 
 # ------------------------------------------------------------------ receipts
+FULL_BINS = list(range(257))
+RUNTIME_CODE = ['scripts/g2_completion/sionna_full_runtime.py', 'scripts/g2_completion/sionna_native_runtime.py',
+                'rt_cp_uwb_py/g2_full_runner.py', 'rt_cp_uwb_py/g2_full_panels.py', 'rt_cp_uwb_py/g2_full_paths.py']
+FINISH_CODE = ['scripts/g2_completion/finish_sionna_full.py', 'rt_cp_uwb_py/g2_full_finish.py',
+               'rt_cp_uwb_py/g2_scoped_channel.py', 'rt_cp_uwb_py/g2_native_channel.py',
+               'rt_cp_uwb_py/rf_channel_closure.py', 'rt_cp_uwb_py/features.py', 'rt_cp_uwb_py/matlab_rng.py']
+
+
 def run_key(config_sha256, targets_sha256, code_sha256):
     return dict(config_sha256=config_sha256, targets_sha256=targets_sha256, code_sha256=code_sha256)
+
+
+def expected_run_key(code_root, inputs, bins=FULL_BINS):
+    """Run key the current frozen inputs + runtime code + band would produce.
+
+    Completion anywhere (skip, finish, verify) is judged against this key, never
+    against the key stored in a COMPLETE file.
+    """
+    config = json.loads((Path(inputs)/'CONFIG.json').read_text(encoding='utf8'))
+    if file_sha(Path(inputs)/'TARGETS.jsonl') != config['targets_sha256']:
+        raise ValueError('TARGETS_SHA_NOT_CONFIG')
+    key = run_key(file_sha(Path(inputs)/'CONFIG.json'), config['targets_sha256'],
+                  {c: file_sha(Path(code_root)/c) for c in RUNTIME_CODE})
+    key['bins'] = list(bins)
+    return key
+
+
+def production_key(code_root, inputs, raw_key):
+    """Key of finish outputs: the raw key plus the finish code and operating config."""
+    return dict(raw_run_key=raw_key, config_sha256=file_sha(Path(inputs)/'CONFIG.json'),
+                finish_code_sha256={c: file_sha(Path(code_root)/c) for c in FINISH_CODE})
+
+
+def production_complete(batch_dir, batch, prod_key):
+    """FINISHED is valid only for the current production key and the full required output set."""
+    prod = Path(batch_dir)/'production'
+    fin, man = prod/'FINISHED.json', prod/'MANIFEST.json'
+    if not fin.is_file() or not man.is_file():
+        return False
+    f = json.loads(fin.read_text(encoding='utf8'))
+    if f.get('production_key') != prod_key or file_sha(man) != f.get('manifest_sha256'):
+        return False
+    m = json.loads(man.read_text(encoding='utf8'))
+    required = {f'{t}_{s}' for t in batch['target_ids'] for s in ('CHANNEL.npz', 'RESULT.json')}
+    if m.get('production_key') != prod_key or set(m.get('outputs', {})) != required \
+            or f.get('targets') != len(batch['target_ids']):
+        return False
+    return all((prod/n).is_file() and file_sha(prod/n) == h for n, h in m['outputs'].items())
 
 
 def attempts(batch_dir):
@@ -189,25 +235,40 @@ def run_batch(batch, targets_by_id, batch_dir, key, compute_fn, budget, calls_pe
         (batch_dir/'reuse_checks').mkdir(exist_ok=True)
         status['status_file'] = f'reuse_checks/{stamp}.json'
         status['complete'] = batch_complete(batch_dir, batch, key)
+        if not status['complete']:
+            # Every target verified but no valid COMPLETE (interrupted after the last receipt):
+            # close the batch in a fresh recovery attempt; older attempts stay untouched; no RF.
+            rec = new_attempt(batch_dir)
+            (rec/'RECOVERY.json').write_text(json.dumps(dict(
+                reason='ALL_TARGET_RECEIPTS_VERIFIED_WITHOUT_COMPLETE', rf_calls=0,
+                recovered_utc=datetime.datetime.now(datetime.timezone.utc).isoformat()), indent=1) + '\n')
+            write_completion(rec, batch, done, key, recovery=True)
+            status.update(attempt=rec.name, recovered=True, complete=batch_complete(batch_dir, batch, key))
         atomic_write_json(batch_dir/status['status_file'], status)
         return status
     status['status_file'] = f'{att.name}/STATUS.json'
     atomic_write_json(att/'STATUS.json', status)
     if not missing:
-        outputs = {}
-        for tid in batch['target_ids']:
-            a, r = done[tid]
-            outputs[tid] = dict(attempt=a.name, npz_sha256=r['npz_sha256'],
-                                receipt_sha256=file_sha(a/'raw'/f'{tid}.json'))
-        atomic_write_json(att/'MANIFEST.json', dict(batch_id=batch['batch_id'], run_key=key, outputs=outputs,
-                                                    target_ids_sha256=batch['target_ids_sha256']))
-        atomic_write_json(att/'COMPLETE.json', dict(batch_id=batch['batch_id'], count=len(outputs),
-                                                    manifest_sha256=file_sha(att/'MANIFEST.json'),
-                                                    run_key=key))
+        write_completion(att, batch, done, key)
         status['complete'] = True
     else:
         status['complete'] = False
     return status
+
+
+def write_completion(att, batch, done, key, recovery=False):
+    """MANIFEST then COMPLETE (atomic, last) for a batch whose targets are all verified."""
+    outputs = {}
+    for tid in batch['target_ids']:
+        a, r = done[tid]
+        outputs[tid] = dict(attempt=a.name, npz_sha256=r['npz_sha256'],
+                            receipt_sha256=file_sha(a/'raw'/f'{tid}.json'))
+    atomic_write_json(att/'MANIFEST.json', dict(batch_id=batch['batch_id'], run_key=key, outputs=outputs,
+                                                target_ids_sha256=batch['target_ids_sha256'],
+                                                recovery=recovery))
+    atomic_write_json(att/'COMPLETE.json', dict(batch_id=batch['batch_id'], count=len(outputs),
+                                                manifest_sha256=file_sha(att/'MANIFEST.json'),
+                                                run_key=key, recovery=recovery))
 
 
 def batch_complete(batch_dir, batch, key):

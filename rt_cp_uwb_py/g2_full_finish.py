@@ -7,6 +7,11 @@ noise, paired across arms, Hann 1028-tap CIR, detector) -> path metrics.
 Only full-band (257 bins, 3 arms) raw outputs are accepted. RD-LoS /
 HB-near-delay / HB-prior stay null (DEFERRED_BY_USER).
 """
+import datetime
+import json
+import sys
+from pathlib import Path
+
 import numpy as np
 
 from .g2_native_channel import sum_native_paths
@@ -89,3 +94,61 @@ def finish_target(raw, target, noise, detector):
                   path_index_policy='frequency-local indices; do not assume index identity across bins',
                   noise_seed_identity='scene_id, target_id, frame, replicate=0, seed_base (no batch/attempt/arm)')
     return arrays, record
+
+
+class FinishRefused(RuntimeError):
+    pass
+
+
+def finish_batch(code_root, root, inputs_dir, batch, runs_dir='batches'):
+    """Finish one batch against the current expected keys; see finish_sionna_full.py."""
+    from .g2_full_runner import (atomic_write_bytes, atomic_write_json, attempts, batch_complete,
+                                 expected_run_key, file_sha, npz_bytes, production_complete, production_key,
+                                 verified_receipt)
+    root, inputs = Path(root), Path(root)/inputs_dir
+    config = json.loads((inputs/'CONFIG.json').read_text(encoding='utf8'))
+    batch_dir = root/runs_dir/batch['batch_id']
+    key = expected_run_key(code_root, inputs)
+    pkey = production_key(code_root, inputs, key)
+    prod = batch_dir/'production'
+    if production_complete(batch_dir, batch, pkey):
+        return dict(batch_id=batch['batch_id'], status='ALREADY_FINISHED_FOR_CURRENT_KEY')
+    if prod.exists() and any(prod.iterdir()):
+        raise FinishRefused('PRODUCTION_STALE_OR_INCOMPLETE: existing production/ does not match the current '
+                            'key or misses outputs; preserved, not overwritten')
+    if not batch_complete(batch_dir, batch, key):
+        raise FinishRefused('RAW_KEY_NOT_CURRENT_OR_BATCH_INCOMPLETE')
+    att = next(att for att in reversed(attempts(batch_dir)) if (att/'COMPLETE.json').is_file()
+               and json.loads((att/'COMPLETE.json').read_text(encoding='utf8'))['run_key'] == key)
+    manifest = json.loads((att/'MANIFEST.json').read_text(encoding='utf8'))
+    wanted, targets = set(batch['target_ids']), {}
+    with (inputs/'TARGETS.jsonl').open(encoding='utf8') as fh:
+        for line in fh:
+            t = json.loads(line)
+            if t['target_id'] in wanted:
+                targets[t['target_id']] = t
+    prod.mkdir(exist_ok=True)
+    outputs, states = {}, {}
+    for tid in batch['target_ids']:
+        o = manifest['outputs'][tid]
+        raw_dir = batch_dir/o['attempt']/'raw'
+        if not verified_receipt(raw_dir, tid, key):
+            raise FinishRefused(f'RAW_NOT_VERIFIED:{tid}')
+        with np.load(raw_dir/f'{tid}.npz') as z:
+            raw = {k: z[k] for k in z.files}
+        arrays, record = finish_target(raw, targets[tid], config['noise'], config['detector'])
+        record.update(raw_npz=f"{o['attempt']}/raw/{tid}.npz", raw_npz_sha256=o['npz_sha256'])
+        outputs[f'{tid}_CHANNEL.npz'] = atomic_write_bytes(prod/f'{tid}_CHANNEL.npz', npz_bytes(arrays))
+        outputs[f'{tid}_RESULT.json'] = atomic_write_json(prod/f'{tid}_RESULT.json', record)
+        for d in record['detections']:
+            states[d['state']] = states.get(d['state'], 0) + 1
+    atomic_write_json(prod/'MANIFEST.json', dict(
+        batch_id=batch['batch_id'], production_key=pkey, outputs=outputs,
+        timestamp_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(), command=sys.argv))
+    atomic_write_json(prod/'FINISHED.json', dict(batch_id=batch['batch_id'], targets=len(batch['target_ids']),
+                                                 production_key=pkey, detection_states=states, rf_calls=0,
+                                                 manifest_sha256=file_sha(prod/'MANIFEST.json')))
+    if not production_complete(batch_dir, batch, pkey):
+        raise FinishRefused('PRODUCTION_SELF_CHECK_FAILED')
+    return dict(batch_id=batch['batch_id'], status='FINISHED', targets=len(batch['target_ids']),
+                detection_states=states)

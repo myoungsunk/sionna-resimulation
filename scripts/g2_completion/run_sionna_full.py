@@ -1,22 +1,33 @@
 """Controller for the full native campaign (plan section 7).
 
 Local, tested here:
-    --make-batches --batch-size 16      write 02_batches/BATCHES.jsonl (+ manifest); refuses silent changes
-    --stage-manifest                    list every file to stage with SHA and remote path (03_stage/STAGE.json)
+    --make-batches --batch-size 16   write 02_batches/BATCHES.jsonl (+ manifest); refuses silent changes
+    --stage-manifest                 03_stage/STAGE.json + SHA256SUMS (untracked, regenerable) for the clean HEAD
+    --stage-local                    manifest + 03_stage/tree with per-file SHA re-check (no network)
+
+Staging byte policy: tracked, non-LFS files (code, config, geometry, small
+inputs, batches) are staged from their Git blob at HEAD, so the payload is
+identical on Windows and Linux checkouts (the two -text runner files keep
+their Windows bytes; *.sh is LF). LFS or untracked data (FFD banks, TARGETS,
+panel PLYs) are staged from the file bytes. Every item carries its SHA; the
+remote side re-checks with sha256sum -c.
 
 Remote (Snowball, KMS, Docker image pinned in RUNTIME_LOCK). NOT executed from
 this environment; --dry-run prints the exact commands:
-    --stage     rsync code snapshot, inputs, geometry, banks; re-hash remotely
-    --pilot     run the listed pilot batches through runtime + finish
-    --launch    start the nohup lane controller (sionna_full_lanes.sh); refuses if one is alive
-    --status    read remote STATUS/COMPLETE/FINISHED counts
-    --resume    same as --launch but only when no controller is alive (idempotent)
-    --collect   rsync finished batches back, then verify SHAs locally
+    --stage     regenerate the manifest from a clean HEAD, build 03_stage/tree, rsync, remote sha256sum -c
+    --pilot     --pilot-batches ID[,ID...] required: non-empty, known, unique, <= 64; never all batches
+    --launch    all batches via the nohup lane controller; refuses if one is alive
+    --status    remote file counts (completion is decided by verify)
+    --resume    same as --launch (idempotent: an alive controller is left alone)
+    --collect   server verify (raw-policy full) -> rsync production + receipts/manifests (raw NPZ stay on the
+                server) -> local verify --raw-policy receipts-only against the server verify
 """
 import argparse
 import datetime
+import hashlib
 import json
 import shlex
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -31,7 +42,30 @@ LOCK = ROOT/'runtime/sionna-full/RUNTIME_LOCK.json'
 SSH = ['ssh', '-o', 'BatchMode=yes', '-o', 'PasswordAuthentication=no', 'Snowball']
 CODE_FILES = ['scripts/g2_completion/sionna_full_runtime.py', 'scripts/g2_completion/sionna_native_runtime.py',
               'scripts/g2_completion/finish_sionna_full.py', 'scripts/g2_completion/verify_sionna_full.py',
-              'scripts/g2_completion/sionna_full_lanes.sh', 'config/sionna_full_paths.example.json']
+              'scripts/g2_completion/sionna_full_lanes.sh', 'config/sionna_full_paths.example.json',
+              'runtime/sionna-full/RUNTIME_LOCK.json']
+PILOT_MAX = 64
+
+
+def git(*args, binary=False):
+    out = subprocess.run(['git', *args], cwd=ROOT, capture_output=True, check=True)
+    return out.stdout if binary else out.stdout.decode()
+
+
+def validate_pilot(root, ids):
+    """Explicit representative list: non-empty, no empty element, unique, known, <= PILOT_MAX."""
+    if not ids or any(not i for i in ids):
+        raise SystemExit('PILOT_BATCHES_REQUIRED: explicit non-empty representative list (no fallback to all)')
+    if len(ids) != len(set(ids)):
+        raise SystemExit('PILOT_BATCHES_DUPLICATE')
+    known = {json.loads(l)['batch_id'] for l in (root/'02_batches'/'BATCHES.jsonl').read_text(encoding='utf8')
+             .splitlines()}
+    unknown = [i for i in ids if i not in known]
+    if unknown:
+        raise SystemExit('PILOT_BATCHES_UNKNOWN:' + ','.join(unknown))
+    if len(ids) > PILOT_MAX:
+        raise SystemExit('PILOT_BATCHES_TOO_MANY')
+    return ids
 
 
 def make_batches(root, inputs_dir, size):
@@ -55,55 +89,82 @@ def make_batches(root, inputs_dir, size):
 
 
 def stage_manifest(root, inputs_dir, paths, config_map):
+    """Manifest for the clean HEAD; see the byte policy in the module docstring."""
+    if git('status', '--porcelain', '--untracked-files=no').strip():
+        raise SystemExit('STAGE_REQUIRES_CLEAN_COMMITTED_CHECKOUT (tracked files)')
+    head = git('rev-parse', 'HEAD').strip()
+    tracked = set(git('ls-tree', '-r', '--name-only', 'HEAD').splitlines())
     remote = config_map['environments']['snowball']
     rroot = remote['root']
     items = []
 
-    def add(local, remote_rel):
-        items.append(dict(local=str(Path(local).relative_to(ROOT)), remote=f'{rroot}/{remote_rel}',
-                          sha256=file_sha(local)))
-    for c in CODE_FILES + ['rt_cp_uwb_py/' + p.name for p in sorted((ROOT/'rt_cp_uwb_py').glob('*.py'))
-                           if p.name != '__init__.py'] + ['rt_cp_uwb_py/__init__.py']:
-        if (ROOT/c).is_file() and not any(i['local'] == c for i in items):
-            add(ROOT/c, f'code/{c}')
+    def add(local, remote_rel, expected=None):
+        rel = Path(local).resolve().relative_to(ROOT).as_posix()
+        lfs = rel in tracked and git('check-attr', 'filter', rel).strip().endswith('lfs')
+        if rel in tracked and not lfs:
+            data = git('cat-file', 'blob', f'HEAD:{rel}', binary=True)
+            source = 'git_blob'
+        else:
+            data = Path(local).read_bytes()
+            source = 'file'
+        digest = hashlib.sha256(data).hexdigest()
+        if expected and digest != expected:
+            raise SystemExit(f'STAGE_SHA_NOT_DECLARED:{rel}')
+        items.append(dict(local=rel, source=source, remote=f'{rroot}/{remote_rel}', sha256=digest, bytes=len(data)))
+    code = sorted({c for c in CODE_FILES} | {t for t in tracked if t.startswith('rt_cp_uwb_py/') and t.endswith('.py')})
+    for c in code:
+        add(ROOT/c, f'code/{c}')
     inputs = root/inputs_dir
+    config = json.loads((inputs/'CONFIG.json').read_text(encoding='utf8'))
     for p in sorted(inputs.rglob('*')):
         if p.is_file():
-            add(p, f'{inputs_dir}/{p.relative_to(inputs).as_posix()}')
+            add(p, f'{inputs_dir}/{p.relative_to(inputs).as_posix()}',
+                config['targets_sha256'] if p.name == 'TARGETS.jsonl' else None)
     geo = json.loads((paths['geometry']/'SCENE_MESH_MANIFEST.json').read_text(encoding='utf8'))
-    add(paths['geometry']/'SCENE_MESH_MANIFEST.json', f"{remote['paths']['geometry']}/SCENE_MESH_MANIFEST.json")
-    for s in geo['scenes']:
-        for m in s['materials']:
-            add(paths['geometry']/m['mesh'], f"{remote['paths']['geometry']}/{m['mesh']}")
+    add(paths['geometry']/'SCENE_MESH_MANIFEST.json', f"{remote['paths']['geometry']}/SCENE_MESH_MANIFEST.json",
+        config['geometry_manifest_sha256'])
+    for s_ in geo['scenes']:
+        for m in s_['materials']:
+            add(paths['geometry']/m['mesh'], f"{remote['paths']['geometry']}/{m['mesh']}", m['sha256'])
     for port in config_map['bank_ports']:
-        add(paths['bank_dir']/f'{port}_bank.npz', f"{remote['paths']['bank_dir']}/{port}_bank.npz")
+        add(paths['bank_dir']/f'{port}_bank.npz', f"{remote['paths']['bank_dir']}/{port}_bank.npz",
+            config['bank_sha256'][f'{port}_bank.npz'])
     add(paths['bank_manifest'], remote['paths']['bank_manifest'])
     for b in ('BATCHES.jsonl', 'BATCHES_MANIFEST.json'):
         add(root/'02_batches'/b, f'02_batches/{b}')
     out = root/'03_stage'; out.mkdir(exist_ok=True)
-    head = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-    atomic_write_json(out/'STAGE.json', dict(remote_root=rroot, files=len(items), items=items, git_head=head,
-                                             total_bytes=sum((ROOT/i['local']).stat().st_size for i in items)))
-    sums = ''.join(f"{i['sha256']}  {i['remote'][len(rroot)+1:]}\n" for i in items)
-    (out/'SHA256SUMS').write_text(sums, encoding='utf8')
+    code_items = [i for i in items if i['remote'].startswith(f'{rroot}/code/')]
+    atomic_write_json(out/'STAGE.json', dict(
+        remote_root=rroot, code_revision=head, files=len(items), items=items,
+        code_tree_sha256=hashlib.sha256(''.join(f"{i['local']}:{i['sha256']}\n" for i in code_items).encode())
+        .hexdigest(), byte_policy='tracked non-LFS: git blob at code_revision; LFS/untracked: file bytes',
+        total_bytes=sum(i['bytes'] for i in items),
+        timestamp_utc=datetime.datetime.now(datetime.timezone.utc).isoformat()))
+    (out/'SHA256SUMS').write_text(''.join(f"{i['sha256']}  {i['remote'][len(rroot)+1:]}\n" for i in items),
+                                  encoding='utf8', newline='\n')
     return items
 
 
 def build_stage_tree(root):
-    """Hard-link every staged file at its remote relative path under 03_stage/tree (no data copy)."""
+    """Materialise 03_stage/tree at the remote layout: blobs written, data hard-linked; SHA re-checked."""
     stage = json.loads((root/'03_stage'/'STAGE.json').read_text(encoding='utf8'))
+    if stage['code_revision'] != git('rev-parse', 'HEAD').strip():
+        raise SystemExit('STAGE_MANIFEST_NOT_FROM_HEAD')
     tree = root/'03_stage'/'tree'
+    if tree.exists():
+        shutil.rmtree(tree)  # derived, untracked view; rebuilt from the manifest every time
     for i in stage['items']:
         dst = tree/i['remote'][len(stage['remote_root'])+1:]
         dst.parent.mkdir(parents=True, exist_ok=True)
-        if dst.exists():
-            if file_sha(dst) != i['sha256']:
-                raise SystemExit(f'STAGE_TREE_STALE:{dst}')
-            continue
-        try:
-            dst.hardlink_to(ROOT/i['local'])
-        except OSError:
-            dst.symlink_to(ROOT/i['local'])
+        if i['source'] == 'git_blob':
+            dst.write_bytes(git('cat-file', 'blob', f"{stage['code_revision']}:{i['local']}", binary=True))
+        else:
+            try:
+                dst.hardlink_to(ROOT/i['local'])
+            except OSError:
+                shutil.copy2(ROOT/i['local'], dst)
+        if file_sha(dst) != i['sha256']:
+            raise SystemExit(f"STAGE_TREE_SHA:{i['local']}")
     (tree/'03_stage').mkdir(exist_ok=True)
     (tree/'03_stage'/'SHA256SUMS').write_bytes((root/'03_stage'/'SHA256SUMS').read_bytes())
     return tree
@@ -121,15 +182,21 @@ def remote_commands(action, root, inputs_dir, lanes, threads, pilot):
                 ['rsync', '-aL', '--ignore-existing', str(tree) + '/', f'Snowball:{rroot}/'],
                 SSH + [f'cd {rroot} && sha256sum --quiet -c 03_stage/SHA256SUMS && echo STAGE_SHA_OK']]
     if action == 'pilot':
-        return [SSH + [f'{env} BATCH_IDS={",".join(pilot)} bash {lanes_sh} --foreground']]
+        return [SSH + [f'{env} PILOT_IDS={shlex.quote(",".join(pilot))} bash {lanes_sh} --pilot']]
     if action in ('launch', 'resume'):
         return [SSH + [f'{env} bash {lanes_sh} --launch']]
     if action == 'status':
         return [SSH + [f'{env} bash {lanes_sh} --status']]
     if action == 'collect':
-        return [['rsync', '-a', '--include=*/', '--include=production/***', '--include=COMPLETE.json',
-                 '--include=MANIFEST.json', '--include=STATUS.json', '--exclude=*',
-                 f'Snowball:{rroot}/batches/', str(root/'05_results'/'batches') + '/']]
+        local = root/'05_results'
+        return [SSH + [f'{env} bash {lanes_sh} --server-verify'],
+                ['rsync', '-a', '--include=*/', '--include=production/***', '--include=*.json',
+                 '--exclude=*.npz', '--exclude=*', f'Snowball:{rroot}/batches/', str(local/'batches') + '/'],
+                ['rsync', '-a', f'Snowball:{rroot}/06_validation/SERVER_VERIFY.json', str(local) + '/'],
+                [sys.executable, str(ROOT/'scripts/g2_completion/verify_sionna_full.py'), '--campaign-root',
+                 str(root), '--inputs-dir', inputs_dir, '--runs-dir', '05_results/batches',
+                 '--raw-policy', 'receipts-only', '--server-verify', str(local/'SERVER_VERIFY.json'),
+                 '--out', '06_validation/COLLECTED_VERIFY.json']]
     raise ValueError(action)
 
 
@@ -138,7 +205,8 @@ def main():
     ap.add_argument('--campaign-root', type=Path, required=True)
     ap.add_argument('--inputs-dir', default='00_inputs_R3')
     g = ap.add_mutually_exclusive_group(required=True)
-    for flag in ('make-batches', 'stage-manifest', 'stage', 'pilot', 'launch', 'status', 'resume', 'collect'):
+    for flag in ('make-batches', 'stage-manifest', 'stage-local', 'stage', 'pilot', 'launch', 'status', 'resume',
+                 'collect'):
         g.add_argument('--' + flag, action='store_true')
     ap.add_argument('--batch-size', type=int, default=16)
     ap.add_argument('--lanes', type=int, default=2)
@@ -152,23 +220,20 @@ def main():
         b = make_batches(root, a.inputs_dir, a.batch_size)
         print(json.dumps(dict(batches=len(b), targets=sum(x['count'] for x in b), last=b[-1]['count'])))
         return
-    if a.stage_manifest:
+    if a.stage_manifest or a.stage_local:
         items = stage_manifest(root, a.inputs_dir, paths, config_map)
-        print(json.dumps(dict(files=len(items))))
+        tree = build_stage_tree(root) if a.stage_local else None
+        print(json.dumps(dict(files=len(items), code_revision=git('rev-parse', 'HEAD').strip(),
+                              tree=str(tree.relative_to(ROOT)) if tree else None)))
         return
     action = next(f for f in ('stage', 'pilot', 'launch', 'status', 'resume', 'collect') if getattr(a, f))
+    pilot = [p for p in a.pilot_batches.split(',')] if a.pilot_batches else []
+    if action == 'pilot':
+        validate_pilot(root, pilot)
     if action == 'stage' and not a.dry_run:
-        dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=ROOT,
-                               capture_output=True, text=True).stdout.strip()
-        if dirty:
-            raise SystemExit('STAGE_REQUIRES_CLEAN_COMMITTED_CHECKOUT')
-        stage = json.loads((root/'03_stage'/'STAGE.json').read_text(encoding='utf8'))
-        head = subprocess.run(['git', 'rev-parse', 'HEAD'], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-        if stage.get('git_head') != head:
-            raise SystemExit('STAGE_MANIFEST_NOT_FROM_HEAD: rerun --stage-manifest')
+        stage_manifest(root, a.inputs_dir, paths, config_map)   # always from the current clean HEAD
         build_stage_tree(root)
-    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads,
-                           [p for p in a.pilot_batches.split(',') if p])
+    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads, pilot)
     if a.dry_run:
         for c in cmds:
             print(' '.join(shlex.quote(x) for x in c))

@@ -37,11 +37,11 @@ import sionna.rt as rt  # noqa: E402
 
 from rt_cp_uwb_py.g2_full_panels import make_panel_material, material_readback  # noqa: E402
 from rt_cp_uwb_py.g2_full_paths import file_sha, load_paths, resolve_banks  # noqa: E402
-from rt_cp_uwb_py.g2_full_runner import CallBudget, atomic_write_json, run_batch, run_key  # noqa: E402
+from rt_cp_uwb_py.g2_full_runner import (RUNTIME_CODE, CallBudget, atomic_write_json,  # noqa: E402
+                                         expected_run_key, run_batch)
 
 PATH_MAP = ROOT/'config/sionna_full_paths.example.json'
-CODE = ['scripts/g2_completion/sionna_full_runtime.py', 'scripts/g2_completion/sionna_native_runtime.py',
-        'rt_cp_uwb_py/g2_full_runner.py', 'rt_cp_uwb_py/g2_full_panels.py', 'rt_cp_uwb_py/g2_full_paths.py']
+CODE = RUNTIME_CODE
 PATH_KEYS = ('vertices', 'interactions', 'objects', 'primitives', 'valid', 'theta_t', 'phi_t', 'theta_r', 'phi_r')
 
 
@@ -172,9 +172,7 @@ def main():
     if batch is None:
         raise SystemExit('UNKNOWN_BATCH')
     producer = Producer(paths, inputs, config, banks, a.bins, a.threads)
-    key = run_key(file_sha(inputs/'CONFIG.json'), config['targets_sha256'],
-                  {c: file_sha(ROOT/c) for c in CODE})
-    key['bins'] = producer.bins
+    key = expected_run_key(ROOT, inputs, producer.bins)
     budget = CallBudget(a.max_rf_calls)
     batch_dir = root/a.runs_dir/a.batch_id
     batch_dir.mkdir(parents=True, exist_ok=True)
