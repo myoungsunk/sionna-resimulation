@@ -1,0 +1,152 @@
+{
+ "arms": {
+  "CP": [
+   "RHCP",
+   "LHCP"
+  ],
+  "LP_AXIS": [
+   "LP_X",
+   "LP_Y"
+  ],
+  "LP_DIAG": [
+   "LP_plus45",
+   "LP_minus45"
+  ]
+ },
+ "backend": "unmodified Sionna RT 2.0.1 PathSolver and FieldCalculator",
+ "bank_sha256": {
+  "LHCP_bank.npz": "250d8f5ce06e1b18e38f1a9e5dc3bbcff5025d00bcbc4df8c2d872fff13d6778",
+  "LP_X_bank.npz": "870a2bd7b30238d951b69e4df00ad90a7f61d3d51bf777265988a959efce744d",
+  "LP_Y_bank.npz": "ae463e6d316a5579456e8e994bf642732be152699782d168e0523cf49c175524",
+  "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+  "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+  "RHCP_bank.npz": "d1916760cfc784161e54fd26e4016649b71d50984e033bde6a8e5149a7f223d0"
+ },
+ "campaign_id": "SIONNA_FULL_RESIM_20260925_01a0d86d",
+ "classification": "RD/HB deferred by user",
+ "condition_panel_material": {
+  "contract_id": "CONDITION_PANEL_MATERIAL_V1_20260927",
+  "metal": {
+   "itu_type": "metal",
+   "kind": "PEC",
+   "native": "ITURadioMaterial",
+   "thickness_m": 0.001
+  },
+  "occluder": {
+   "conductivity_rule": "sigma(f)=2*pi*f*eps0*eps_r*tan_delta",
+   "kind": "dielectric",
+   "native": "RadioMaterial",
+   "relative_permittivity": 12.0,
+   "source_name": "blockage_panel",
+   "tan_delta": 0.35,
+   "thickness_basis": "SYNTHETIC_DESIGN_VALUE_NOT_MEASURED",
+   "thickness_m": 0.02
+  }
+ },
+ "detector": {
+  "branches": "all 2x2 jointly, 4112 tests",
+  "decision_class": "SOURCE_BACKED_SYNTHETIC_DESIGN",
+  "false_alarm_family_target": 0.001,
+  "frequency_guard": "full float64-le frequency array SHA plus finite/shape/monotonic checks",
+  "ground_truth_path_used_for_gate": false,
+  "historical_fixture_result": "3/5000 is preserved; not production calibration or statistical acceptance evidence",
+  "location": "canonical 30 percent leading-edge on strongest branch after presence pass; biased relative to path tau",
+  "null_test_arm": "single arm per independent trial; paired arms are not extra independent trials",
+  "required_states": [
+   "DETECTED_CANDIDATE",
+   "MISSED_OR_NO_SIGNAL",
+   "COMPUTATION_FAILED"
+  ],
+  "search_window_taps": [
+   0,
+   1027
+  ],
+  "statistical_validation": {
+   "acceptance": "upper_bound <= 0.001",
+   "confidence": 0.95,
+   "executed": false,
+   "seed": 20260924,
+   "stop_rule": "exactly 20000 trials; no optional stopping, seed changes, or posthoc extra trials; failure remains failure",
+   "trials": 20000,
+   "upper_bound": "one-sided exact Clopper-Pearson beta.ppf(0.95, false_alarms+1, trials-false_alarms)"
+  },
+  "status": "ADOPTED_DESIGN_NOT_P4_VALIDATED",
+  "theoretical_bound": "union bound with marginal circular Gaussian taps; no independent CIR-tap assumption",
+  "threshold_formula": "sqrt(6*noise_var_H_bin*ln(4112/0.001))",
+  "threshold_value": 2.1066154614220773e-07
+ },
+ "exclusions": [
+  "diffraction",
+  "diffuse scattering"
+ ],
+ "frequencies": {
+  "k": [
+   0,
+   256
+  ],
+  "rule": "6250400000 + 1950000*k Hz"
+ },
+ "geometry_contract_sha256": "fd996570d2fa2a440a8d2c02ec7c68abb732f8bbae6bbf1b32d9edba8c5a4ac3",
+ "geometry_manifest_sha256": "d4eceb816b40ba3c99d2d3af60aa19c4ea0825cba65b8ab0329e877f22ac9db6",
+ "ideal_material_mapping": {
+  "EPS4_LOSSLESS": "native RadioMaterial epsilon_r=4 with manifest thickness",
+  "PEC": "native ITU metal 1 mm"
+ },
+ "model": "one RF reference sheet per physical slab; no duplicate inner/back boundary",
+ "noise": {
+  "boltzmann_j_per_k": 1.380649e-23,
+  "cir_covariance": "(257/1028)^2 * noise_var_H_bin * sum_k hann[k]^2 * exp(j*2*pi*k*(n-m)/1028)",
+  "cir_tap_variance": 2.9139840369548905e-15,
+  "coherent_averages": 64,
+  "complex_gaussian": "E|n|^2=noise_var_H_bin; each real and imaginary component variance is half",
+  "conversion": "noise_var_H_bin = k_B*T*10^(NF_dB/10)*receiver_ENBW/(averages*P_incident)",
+  "covariance_H": "independent bins, RX modes and sequential TX-mode estimates within an arm; paired identical noise samples across CP/LP arms for each common link/replicate",
+  "decision_class": "SOURCE_BACKED_SYNTHETIC_DESIGN",
+  "hardware_calibrated": false,
+  "historical_static9_noise": "preserve clean analytic baseline; noisy observation is a separately named downstream overlay",
+  "injection_point": "complex absolute H after correct incident-referenced antenna normalization and path sum, before Hann and IFFT; also for zero-path H",
+  "noise_figure_db": 6.0,
+  "noise_psd_w_per_hz": 1.5939741740607947e-20,
+  "noise_var_H_bin": 4.856640061591484e-16,
+  "observation_model": "Sequential narrowband tone transfer estimates, 257 frequencies; 64 independent complex estimates averaged per tone and TX mode",
+  "producer_bound": false,
+  "receiver_enbw_hz": 1950000.0,
+  "receiver_noise_power_w_before_averaging": 3.10824963941855e-14,
+  "rng": "existing canonical matlab_mt19937 implementation; verify exact producer pairing in P4/P5",
+  "seed_base": 20260924,
+  "seed_rule": "SHA256 of common scene/link/frame/replicate plus seed_base, first 32 bits little-endian; omit arm name",
+  "selection_basis": "Equal incident power and per-tone integration budget across arms; 290 K thermal reference, 6 dB design NF, 1.95 MHz per-tone ENBW selected explicitly as synthetic operating point, not inferred from df",
+  "status": "ADOPTED_SYNTHETIC_PRODUCTION_SETTING_NOT_HARDWARE_CALIBRATION",
+  "temperature_k": 290.0,
+  "tx_incident_power_w_per_active_mode": 1.0,
+  "waveform_hardware_equivalence_established": false
+ },
+ "panels_sha256": "98d2ee7abe5f8f849360eb6db3b8daeb1e33d1f8c88bb5dee23457ec9fb6aef8",
+ "path_map": "config/sionna_full_paths.example.json (logical keys; no absolute roots)",
+ "ports": [
+  "RHCP",
+  "LHCP",
+  "LP_X",
+  "LP_Y",
+  "LP_plus45",
+  "LP_minus45"
+ ],
+ "poses_sha256": "1df81b8c0a68bf40ec32f95b489b84d502f8bdfd67e04d3ce084790d62ed436a",
+ "rows": "see TARGETS.jsonl (target_id keyed)",
+ "search_completeness_claim": false,
+ "solver": {
+  "diffraction": false,
+  "diffuse_reflection": false,
+  "edge_diffraction": false,
+  "los": true,
+  "max_depth": 3,
+  "max_num_paths_per_src": 1000000,
+  "refraction": true,
+  "samples_per_src": 100000,
+  "seed": 20260924,
+  "specular_reflection": true,
+  "synthetic_array": true
+ },
+ "static9_overlay_sha256": "93e3d1fb41d341572126cfaed6ef3d71685e6f384fdf4f98e8e2096a15f741bb",
+ "targets_sha256": "362a3c26ed908d108e701819a3a50a74ab9bd664df6c7becd43399fc3104f03c"
+}

@@ -253,7 +253,7 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 ## 9. 단계 체크리스트
 
 - [x] 계획 작성: 실제 전체 입력 집계, 101장면 대응 및 입력 SHA 기록
-- [ ] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증
+- [x] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증 (2026-09-27, 이격 1 cm 미만 12건은 사용자 결정 대기)
 - [ ] S1 전체 실행기 / 로컬 기본 검증 / dry-run
 - [ ] S2 Snowball staging / 대표 실행 / 시간·저장량·자원 결정
 - [ ] S3 전체 RF 재계산
@@ -345,3 +345,23 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - **이전 41행 refresh 영향:** 같은 face 목록이 `scripts/g2_completion/prepare_sionna_native41.py:23`과 `rt_cp_uwb_py/g2_relocated_inputs.py:87`에 있다. 41행 refresh의 동적 판재 12개가 이 결함 있는 mesh로 계산되었다. 기존 코드와 결과는 보존용으로 수정하지 않았고(감사 H1에 기록), 전체 실행은 `g2_full_panels.panel_ply`만 사용한다. 41행 결과를 재사용하지 않는다는 계획 방침에 따라 전체 campaign에는 영향이 없다.
 - RF 호출 0회. 파일 이동·삭제 0.
 - 다음 작업: S0 전체 TARGETS 확정(`g2_full_inputs.py`, `prepare_sionna_full.py`).
+
+### 2026-09-27 — S0 전체 입력 확정 / S0 / S0_INPUTS_WRITTEN (이격 예외 12건 결정 대기)
+- 실행 목적: 전체 대상 165,009개를 확정했다. 외부 검토 순서 2번에 해당한다.
+- 명령(로컬 checkout, RF 호출 0):
+  - `python scripts/g2_completion/prepare_sionna_full.py --campaign-root results/SIONNA_FULL_RESIM_20260925_01a0d86d --dry-run`
+  - 이어서 `--write-inputs`를 실행했고, 같은 명령을 재실행해 결정성을 확인했다.
+- 구현:
+  - `rt_cp_uwb_py/g2_full_inputs.py`: 대상 정규화, identity→target_id, quaternion 변환, frame 결속, 판재 registry, G 기준 이격 계산.
+  - `scripts/g2_completion/prepare_sionna_full.py`: dry-run/write, S0 gate, 원자적 쓰기, 기존 입력 덮어쓰기 금지.
+  - `tests/test_g2_full_inputs.py`: 8 passed.
+- 결과: 대상 165,009개(계열별 수량은 계획과 일치), 장면 101/101, frame 37,500 결속(hash 재계산 불일치 0), 보정 RX 41행 결속, target_id 중복 0, 방 밖 좌표 0이다. 서로 다른 자세 16,664개는 모두 RᵀR=I, det=+1이다. 조건 판재 12,772개(PEC 10,832 / 유전체 1,940)가 98,980개 대상에 연결되며, 판재 PLY는 수정된 삼각형 연결을 사용한다. 입력 snapshot은 EXACT 12, CRLF_ONLY 10, 변경 0이다.
+- **이격 검사:** 새 기하 G를 기준으로 다시 계산했다. 규칙은 relocation 감사와 같다(판재 slab은 기준면에서 −n 방향으로 두께만큼, 이상 면은 면까지 거리). 보정 RX 41행은 독립 감사값(0.010130–0.010918 m)을 그대로 재현했다. 재질 내부에 있는 끝점은 0개다.
+- **결정 필요 — 1 cm 미만 12건:** 모두 재질 밖(공기 쪽)에 있고 보정 대상이 아니다. relocation POST_AUDIT는 이들을 1e-6 m(point_only)로만 검사했기 때문에 1 cm 규칙이 적용된 적이 없다.
+  - RX 11건: chipboard 가구 면에서 0.5–9.96 mm (L1 5, L1multi 4, C1_static 2)
+  - TX 1건: L2static의 metal 이상 면에서 0.2 mm
+  - 좌표는 바꾸지 않았다. 목록은 `00_inputs/CLEARANCE_REPORT.json`에 있다.
+- 산출물: `results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_inputs/` — CONFIG.json, TARGET_CENSUS.json, INPUT_MANIFEST.json, POSES.json, PANELS.json, STATIC9_OVERLAY_CONTRACT.json, CLEARANCE_REPORT.json. `TARGETS.jsonl`(151 MB)과 `dynamic/`(PLY 12,772개)은 재생성 가능하고 SHA가 기록되어 있어 Git에서 제외했다.
+- 결정성: 같은 명령을 재실행했을 때 TARGETS digest가 같았고 기존 00_inputs는 그대로 유지되었다(exit 0). 전체 pytest 54 passed / 3 failed(기존 fixture 누락).
+- 파일 이동·삭제 0. 원본 입력은 변경하지 않았다.
+- 다음 작업: S1 전체 실행기(run/finish/verify, 재개, 판재·FFD 연결)와 `tests/test_g2_full_resume.py`.
