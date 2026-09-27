@@ -242,6 +242,30 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 
 `--resume`는 원격 활성 controller가 있으면 중복 제출하지 않고 그 상태를 반환해야 한다. `--collect`는 배치별 전송을 재개할 수 있어야 한다. 서버 controller가 `finish_sionna_full.py --campaign-root <server-root> --batch-id <id> --attempt <n>`를 컨테이너 안에서 호출한다. CLI 구현이 이 계약과 달라지면 **실행 전에 이 절을 수정하고 변경 이력을 추가**한다.
 
+### 7.1 실제 구현 CLI (2026-09-27, 위 계약을 대체)
+
+활성 입력은 `00_inputs_R3`이다(`ACTIVE_INPUTS.json`, 경로 설정의 `active_inputs_dir`). `00_inputs`는 대체되었고 생산에 사용하지 않는다.
+
+```powershell
+$campaignRoot = 'results/SIONNA_FULL_RESIM_20260925_01a0d86d'
+# S0 (RF 0): R2 입력 + R3 이격 overlay → 00_inputs_R3. 기존 입력과 digest가 다르면 중단한다.
+py -3.10 scripts/g2_completion/prepare_sionna_full.py --campaign-root $campaignRoot --dry-run
+py -3.10 scripts/g2_completion/prepare_sionna_full.py --campaign-root $campaignRoot --write-inputs
+# S1 (RF 0): 고정 batch와 staging 목록을 만든다.
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --make-batches --batch-size 16
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --stage-manifest
+# S2 이후 Snowball(원격). 이 환경에서는 --dry-run으로 명령만 확인했다.
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --stage     # clean HEAD 필요, rsync 후 원격 sha256sum -c
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --pilot --pilot-batches <ids>
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --launch    # 원격 controller 실행 중이면 새로 시작하지 않음
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --status
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --resume
+py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot --collect
+py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRoot --inputs-dir 00_inputs_R3
+```
+
+컨테이너 안에서 실행되는 부분은 `sionna_full_lanes.sh`가 batch마다 호출한다. 먼저 `sionna_full_runtime.py --environment snowball --inputs-dir 00_inputs_R3 --batch-id <id>`를 실행하고, 이어서 `finish_sionna_full.py`를 실행한다. 일시 실패는 최대 3회까지 시도한다. exit 2(대상의 결정론적 실패)는 기록만 하고 재시도하지 않는다.
+
 ## 8. 다음 작업이 처음 해야 할 일
 
 1. 본 문서와 PLAN_INPUT_SNAPSHOT을 읽고 현재 SHA·진행 로그 확인.
@@ -253,8 +277,8 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 ## 9. 단계 체크리스트
 
 - [x] 계획 작성: 실제 전체 입력 집계, 101장면 대응 및 입력 SHA 기록
-- [x] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증 (2026-09-27, 이격 1 cm 미만 12건은 사용자 결정 대기)
-- [ ] S1 전체 실행기 / 로컬 기본 검증 / dry-run
+- [x] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증 (2026-09-27; R3 이격 revision 반영 → 00_inputs_R3)
+- [x] S1 전체 실행기 / 로컬 기본 검증 / dry-run (2026-09-27; 원격 단계는 dry-run만 확인, 실제 원격 동작은 S2에서 확인)
 - [ ] S2 Snowball staging / 대표 실행 / 시간·저장량·자원 결정
 - [ ] S3 전체 RF 재계산
 - [ ] S4 전체 H·CIR·검출·경로 상세 저장 및 회수
@@ -365,3 +389,48 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - 결정성: 같은 명령을 재실행했을 때 TARGETS digest가 같았고 기존 00_inputs는 그대로 유지되었다(exit 0). 전체 pytest 54 passed / 3 failed(기존 fixture 누락).
 - 파일 이동·삭제 0. 원본 입력은 변경하지 않았다.
 - 다음 작업: S1 전체 실행기(run/finish/verify, 재개, 판재·FFD 연결)와 `tests/test_g2_full_resume.py`.
+
+### 2026-09-27 — R3 이격 revision + S1 구현 + 로컬 엔진 smoke / S1 / S1_COMPLETE_REMOTE_UNTESTED
+- 사용자 결정:
+  - ① 1 cm 미만 12건은 모두 새 revision에서 이동한다. 기존 41행과 같은 배치 규칙을 적용하며, 1 cm는 물리적 임계거리가 아니라 합성 규칙의 일관성을 위한 값이다.
+  - ② S1 로컬 RF smoke를 최대 20회까지 허용한다.
+  - 누락 계약 때문에 실패하던 시험 3건을 해결한다.
+  - 41행 결과는 보존하되 생산 재사용을 금지한다.
+- **R3 revision** (`results/SIONNA_G2_ENDPOINT_RELOCATION_20260927_R3/`: OVERLAY, CHANGED_ROWS, VERIFICATION, MANIFEST)
+  - R2 이동 26건에서 규칙을 역산했다: 수평(z 불변), 8방향, mm 단위, 최소 이동량.
+  - 이동 9건 / 행 12개: L1 5, L1multi 4(같은 RX 공유), L2static TX 1, C1_static 2. 이동량 1–10 mm, 이동 후 이격 10.01–10.96 mm.
+  - 방 여백 1 cm와 경로상 재질 비관통을 확인했다. 연결된 판재까지의 이격도 포함했다.
+  - L 행은 rx/tx, true_range_m, source_row 좌표와 true_dist_m을 갱신했다. common 행은 frame tag_pose와 canonical hash, scene_hash, 이전 truth 기록, LoS 필드 null 처리를 R2와 같은 방식으로 갱신했다.
+  - R2 파일은 변경하지 않았다. overlay는 load 시점에 적용한다.
+  - S0를 다시 생성해 `00_inputs_R3`를 만들었다. 대상 165,009개, 1 cm 미만 0, 재질 내부 0, gate 통과. TARGETS digest는 362a3c26… → 10fc60b3…이다. `00_inputs`에는 SUPERSEDED_BY를 기록했고 생산에 쓰지 않는다.
+- **S1 구현**
+  - `g2_full_runner.py`: 결정론적 batch, 원자적 저장, SHA 영수증, 재개, RF 호출 상한.
+  - `sionna_full_runtime.py`: 기존 native FFD adapter, scene builder, LOS fixture를 수정 없이 재사용한다. 판재 재질 계약, 경로 설정의 FFD, 호출마다 budget을 적용했다.
+  - `g2_full_finish.py`, `finish_sionna_full.py`: H 재합산, 운용점 잡음·CIR·검출, 257 bin만 허용.
+  - `verify_sionna_full.py`, `run_sionna_full.py`, `sionna_full_lanes.sh`
+  - `runtime/sionna-full/RUNTIME_LOCK.json`, `requirements-sionna-full-local.txt`
+  - batch: 16개씩 10,314개(마지막 1개), 165,009개 전체 포함. staging 목록: 파일 13,256개, 1.57 GiB, git HEAD 1499057.
+- **로컬 엔진 smoke** (`01_local_checks/rf_smoke/`, SMOKE_RECEIPT.json PASS)
+  - 대상: C1_static 유전체 차폐판 1개(2eacc4d1…), 금속 반사판 1개(6a3909b3…). bin 0/128/256 × 3 arm.
+  - **PathSolver 호출은 총 18회다(상한 20).**
+  - 차폐판: εr=12, d=0.0200 m, σ=1.4604/1.5188/1.5771 S/m로 tanδ=0.35 규칙과 일치.
+  - 금속: ITURadioMaterial 1 mm.
+  - 판재 PLY SHA 일치, H 재합산 차이 0.0, 3 bin 결과는 finish가 FULL_BAND_REQUIRED로 거부.
+  - 두 번째 동일 실행: 재사용 2, 계산 0, 호출 0.
+  - 참고 정보이며 판정하지 않는다:
+    - 차폐 사례는 중앙 bin에서 LoS 없음, 투과 경로 10개.
+    - 반사판 사례는 LoS 있음, 판재 적중 8개.
+    - 경로 수가 bin마다 다르다(예: 47/42/37).
+  - 3 bin 결과로 전대역 CIR이나 검출 정확성을 판정하지 않는다(S2 범위).
+- 발견·수정: 재사용만 한 실행이 기존 attempt의 STATUS/RUNTIME을 덮어쓰던 결함이 있었다. 이제 reuse_checks/에 별도로 기록하며 회귀 시험을 추가했다. 첫 smoke의 attempt STATUS는 재사용 기록으로 덮어써졌지만, 대상별 영수증(9+9회)은 보존되었다. 수정 후 코드로는 run key가 달라져 다시 계산하게 되므로 smoke를 재실행하지 않았다(호출 상한).
+- 시험: 전체 pytest 76 passed(기존 실패 3건 해결 — 저장소에 없는 P1 계약 대신 채택된 운용 설정을 읽음). 사전 감사 판정은 NOT_READY_FOR_S2_PILOT이다.
+  - FAIL 1: `CLAIM_BOUNDARY.md` Windows 원본 미수령. 문서이며 실행과 무관하다.
+  - WARN 3: 루트 문서 중복, STATIC9 빈 장면 3개(E3), 다중경로 위상 규약 fixture(H3).
+- 41행 refresh: `results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/PRODUCTION_REUSE_BLOCKED.json`에 결함 판재 mesh 때문에 생산 재사용을 금지한다고 기록했다. 결과는 보존하고 재실행은 하지 않는다.
+- **원격 미확인 사항:** stage/pilot/launch/status/collect는 이 환경에서 dry-run만 했다. S2에서 확인할 항목은 다음과 같다.
+  - 컨테이너 안에서 `rt_cp_uwb_py` import 의존성(scikit-learn, shapely) 존재 여부
+  - STATIC9 빈 장면
+  - LOS fixture(budget 9회)와 2-path 위상 fixture
+  - 실측 초/행, 메모리, 저장량
+- 파일 이동·삭제 0. 보호 폴더 덮어쓰기 0.
+- 다음 작업: S2. Snowball staging(`--stage`) → 대표 batch pilot. S2 승인 전에는 원격 실행하지 않는다.
