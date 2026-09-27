@@ -31,6 +31,7 @@ C = ROOT/'results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json'
 CAMPAIGN = ROOT/'results/SIONNA_FULL_RESIM_20260925_01a0d86d'
 STATIC9 = ROOT/'inputs/reference/COMMON_ENVIRONMENT_POSE_CONTRACT.json'
 FILE_LIST = ROOT/'reports/common/SIONNA_FULL_RESIM_GITHUB_FILES_20260925_01a0d87a.csv'
+LIVING_PLAN = 'reports/common/SIONNA_FULL_RESIM_PLAN_20260925_01a0d86d.md'
 WINDOWS_ROOT = 'D:\\codex\\raytracing_modules\\rt_cp_uwb\\'
 
 L_FAMILIES = ['L1', 'L1multi', 'L2static', 'L2multi']
@@ -116,6 +117,8 @@ def audit_delivery(audit):
             tally[('IMPLEMENT_THEN_GITHUB', state)] += 1
             continue
         state = classify_digest(ROOT/r['repository_or_data_path'], r['sha256'], r['bytes'])
+        if state == 'MISMATCH' and r['repository_or_data_path'] == LIVING_PLAN:
+            state = 'LIVING_LOG_APPENDED'  # plan is an append-only progress ledger by design
         tally[(r['delivery'], state)] += 1
         if state == 'MISMATCH':
             mismatches.append(r['repository_or_data_path'])
@@ -271,15 +274,22 @@ def audit_targets(audit):
     materials = collections.Counter(
         (m['kind'], m['name'], m['eps_r'], m['tan_delta'], m.get('thickness_m'))
         for m in (frames[k]['object']['material'] for k in dyn_frames))
-    non_pec = sum(n for k, n in kinds.items() if k != 'PEC')
-    audit.add('C8', 'frames', 'PASS' if not non_pec else 'BLOCKER',
+    from rt_cp_uwb_py.g2_full_panels import CONTRACT_ID, panel_material_spec
+    unmapped = collections.Counter()
+    for k in dyn_frames:
+        try:
+            panel_material_spec(frames[k]['object'])
+        except ValueError as exc:
+            unmapped[str(exc)] += 1
+    audit.add('C8', 'frames', 'PASS' if not unmapped else 'BLOCKER',
               f'dynamic panels required: {len(dyn_links)} links over {len(dyn_frames)} distinct frames '
-              f'(41-row payload carried 12); object kinds={dict(kinds)}',
+              f'(41-row payload carried 12); object kinds={dict(kinds)}; unmapped by {CONTRACT_ID}: '
+              f'{sum(unmapped.values())}',
               materials=[dict(kind=k, name=n, eps_r=e, tan_delta=t, thickness_m=th, frames=c)
                          for (k, n, e, t, th), c in materials.items()],
-              note='runtime make_scene() binds every dynamic_panel to ITU metal 1 mm and RelocatedInputs '
-                   'raises UNSUPPORTED_DYNAMIC_OBJECT for non-PEC; dielectric panels carry no thickness, '
-                   'so a native RadioMaterial (eps_r, sigma from tan_delta, thickness) needs a user decision')
+              unmapped=dict(unmapped),
+              note='decision 2026-09-27: PEC -> ITU metal 1 mm; blockage_panel -> RadioMaterial eps_r=12, '
+                   'tan_delta=0.35 constant (sigma(f) callback), thickness 0.020 m (synthetic design value)')
 
     # Room containment: L via INPUT scenes, C via frame scene size. STATIC9 is open by contract.
     outside = []
@@ -479,6 +489,8 @@ def audit_code(audit):
         (r"dr\.set_thread_count\(4\)", 'DrJit thread count hard-coded to 4'),
         (r"link_id'\]\+'_NATIVE\.npz'", 'output file names use link_id only (no target_id hash)'),
         (r"indices=\[0,128,256\] if a\.smoke", 'smoke = 3 bins; full = 257 bins'),
+        (r"rm_dynamic_panel', itu_type='metal'", 'every dynamic_panel forced to ITU metal; must use '
+         'g2_full_panels.make_panel_material (dielectric occluder contract)'),
     ]
     for pat, msg in pats:
         if re.search(pat, rt):

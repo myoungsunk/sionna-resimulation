@@ -4,7 +4,7 @@
 - 감사 스크립트: `scripts/g2_completion/audit_sionna_full_preflight.py` (읽기 전용, RF 호출 0회, 입력 파일 수정 0)
 - 기계 판독 결과: `results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_preflight_audit/AUDIT.json`, `MANIFEST.json`
 - 실행 위치: GitHub checkout `myoungsunk/sionna-resimulation` (Linux, Python 3.11, Git LFS 8개 객체 pull 완료)
-- **판정: `NOT_READY_FOR_FULL_RUN`** — BLOCKER 5 / FAIL 2 / WARN 7 / PASS 22 / INFO 4
+- **판정: `NOT_READY_FOR_FULL_RUN`**. 최초: BLOCKER 5 / FAIL 2 / WARN 7 / PASS 22 / INFO 4. 2026-09-27 갱신: C8이 해소되어 BLOCKER는 4개(A2, A6, H1, H2)이며, 아래 §6을 참고한다.
 
 입력 데이터 자체(수량, 장면, frame 연결, 보정 RX, 기하, FFD, 잡음 설정)는 계획서와 일치합니다. 막히는 부분은 **전체용 실행기가 아직 없다는 점**, **동적 유전체 판재 모델이 정해지지 않은 점**, **checkout의 runtime 코드가 검증에 쓰인 코드와 다르다는 점**입니다.
 
@@ -63,3 +63,11 @@
 7. **다음 권장 명령:**
    `python scripts/g2_completion/audit_sionna_full_preflight.py --out results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_preflight_audit`
    → BLOCKER 해결 후 다시 실행해 `READY_FOR_S0`를 확인한 다음 S0/S1 구현을 시작합니다.
+
+## 6. 2026-09-27 갱신 — C8 조건 판재 재질 결정 반영
+
+- **결정:** 유전체 차폐판(`blockage_panel`)은 εr=12, 두께 0.020 m(새 합성 설계값이며 실측이나 특정 자재 재현이 아님)로 한다. tanδ=0.35를 전대역에서 유지하도록 σ(f)=2πfε₀·12·0.35를 주파수마다 적용한다. 금속 판재 두 조건은 ITU metal 1 mm를 유지한다. 대상 165,009개를 모두 유지한다.
+- **구현:** `rt_cp_uwb_py/g2_full_panels.py`를 추가했다. 재질 분기를 담당하고, 알 수 없는 재질이면 중단하며, σ(f) callback과 판재 PLY 생성을 포함한다. 테스트는 `tests/test_g2_full_panels.py`(7 passed)다.
+- **실제 장면 연결 확인:** `check_condition_panel_binding.py`를 사용했고 PathSolver는 호출하지 않았다. 차폐판 대표 3사례(C1_static, C1_multi, C3)에서 연결된 값은 εr=12, 두께 0.0200 m, σ=1.4604/1.5188/1.5771 S/m(bin 0/128/256)이고 역산 tanδ는 0.35였다. 금속 대표 2사례는 ITURadioMaterial 1 mm였다. 판재 frame 28,120개 전부 미매핑 0.
+- **표현 주의:** 과거 모델은 반사면만 다뤘으므로 "기존 투과 특성 보존"이 아니다. 유한 두께와 투과는 이번에 새로 정의한 것이며, 실제 투과량은 S2 pilot 계산 결과로 확인한다.
+- **아직 하지 않은 것:** 기존 `sionna_native_runtime.py`는 여전히 판재를 metal로 강제한다(H1에 추가). A6 출처 불일치를 해결한 뒤 S1 전체용 runtime에 연결한다. 재시뮬레이션은 수행하지 않았다.

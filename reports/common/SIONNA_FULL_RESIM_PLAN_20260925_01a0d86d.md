@@ -133,6 +133,13 @@ Snowball campaign/
 - 잡음: `noise_var_H_bin=4.856640061591484e-16`, 동일 link/frame/replicate의 CP/LP 잡음 짝 유지. seed key에 batch/attempt/arm을 넣지 않는다.
 - Hann·1028tap CIR. 기존 observe와 같은 정규화/지연축/검출 알고리즘을 사용하고 raw H 및 clean/noisy CIR 모두 저장.
 - 20,000회 잡음 검증의 기존 `executed=false`를 완료로 바꾸지 않는다. 이번 결과를 경험적 오탐률 적격성 입증으로 표현하지 않는다.
+- **조건 판재 재질 (2026-09-27 사용자 결정, 계약 `CONDITION_PANEL_MATERIAL_V1_20260927`, 구현 `rt_cp_uwb_py/g2_full_panels.py`)**
+  - 금속 판재 두 조건(`side_reflector_present`, `metal_near_intervention`, 18,740 frame)은 기존 ITU metal 1 mm를 유지한다.
+  - 유전체 차폐판(`occluder_present`, `blockage_panel`, 9,380 frame)은 native `RadioMaterial`로 처리한다. 값은 εr=12, 두께 **0.020 m**, tanδ=0.35이며 tanδ는 전대역에서 일정하게 유지한다. 전도도는 `frequency_update_callback`이 σ(f)=2πfε₀·12·0.35로 계산하며, `scene.frequency`를 설정할 때마다 PathSolver 호출 전에 갱신된다. 대역 양 끝 기준 값은 1.4604–1.5771 S/m이다.
+  - 형상은 기존 0.8 × 1.7 m 판재의 위치와 방향을 그대로 쓰고, 기준면 하나에 두께를 부여한다. 대상 165,009개는 차폐 조건을 포함해 모두 유지한다.
+  - **0.020 m는 이번에 새로 정한 합성 설계값이다.** 실측 두께나 특정 건축자재를 재현한다고 주장하지 않는다. 두께 비교 실험은 하지 않는다.
+  - 과거 모델은 이 판재를 반사면으로만 다뤘으므로 "기존 투과 특성 보존"이라고 표현하지 않는다. 유전체 특성은 유지하되 유한 두께와 투과는 새로 정의한 것이며, 실제 투과량은 계산 결과로 확인한다.
+  - 알 수 없는 판재 재질은 metal로 대체하지 않고 `UNSUPPORTED_CONDITION_PANEL_MATERIAL`로 중단한다. 전체용 runtime은 `make_panel_material`을 사용해야 하며, 기존 41행 runtime의 metal 강제 지정은 전체 실행에 쓰지 않는다.
 
 ## 6. 단계별 실행 지시와 종료 조건
 
@@ -292,3 +299,18 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - 파일 변경/이동: 신규 감사 스크립트·보고서·.gitignore, 본 로그 추가. 이동/삭제 0. 루트 중복 계획서 사본은 미수정.
 - 원격 controller: 없음(Snowball 미접속).
 - 다음 작업: C8 유전체 판재 모델 결정 → A6 runtime 원본 대조 → bank 위치 path map → S0/S1 구현 → 감사 재실행으로 READY_FOR_S0 확인.
+
+### 2026-09-27 — 조건 판재 재질 결정 반영 / S0 준비 / DECISION_RECORDED_RUNTIME_NOT_INTEGRATED
+- 실행 목적·이전 로그와 달라진 점: 사전 감사 C8(유전체 차폐판 모델 미정)에 대한 사용자 결정을 반영했다. 결정 내용은 §5 조건 판재 재질 항목에 기록했다.
+- 실제 명령 및 실행 위치(로컬 checkout, Sionna RT 2.0.1 / Mitsuba 3.8.0 / DrJit 1.3.1 pip 설치, container 아님):
+  - `python scripts/g2_completion/check_condition_panel_binding.py --out results/SIONNA_FULL_RESIM_20260925_01a0d86d/01_local_checks/condition_panel_binding`
+  - `python scripts/g2_completion/audit_sionna_full_preflight.py --out results/SIONNA_FULL_RESIM_20260925_01a0d86d/00_preflight_audit`
+- 결과:
+  - 조건 판재가 있는 frame 28,120개를 모두 계약에 매핑했다(PEC 18,740 / 유전체 9,380, 미매핑 0).
+  - 실제 장면 5개에 metal 2조건과 C1_static·C1_multi·C3 차폐판을 올려 bin 0/128/256에서 재질을 읽어 봤다. 차폐판은 εr=12, 두께 0.0200 m, σ=1.4604/1.5188/1.5771 S/m로 연결되었고 역산한 tanδ는 0.35였다. 금속판은 ITURadioMaterial 1 mm로 연결되었다. 전 사례 PASS.
+  - 사전 감사 C8은 PASS로 바뀌었다. 판정은 여전히 NOT_READY_FOR_FULL_RUN이며, 남은 BLOCKER는 A2, A6, H1, H2다.
+  - RF(PathSolver) 호출은 **0회**다.
+- 산출물: `rt_cp_uwb_py/g2_full_panels.py`, `tests/test_g2_full_panels.py`(7 passed), `scripts/g2_completion/check_condition_panel_binding.py`, `01_local_checks/condition_panel_binding/BINDING_RECEIPT.json`, 갱신한 `00_preflight_audit/AUDIT.json`
+- 검사/시험 결과: 전체 pytest는 39 passed, 3 failed다. 실패 3건은 기존과 같이 `POWER_NOISE_CONTRACT.json`이 저장소에 없어서 생긴 것이다. 실제 투과량은 아직 계산하지 않았다.
+- 파일 변경/이동 및 원본 보존: 기존 `sionna_native_runtime.py`(A6 출처 불일치 미해결)와 `g2_relocated_inputs.py`는 수정하지 않았다. 이동·삭제는 없다.
+- 다음 작업: A6 runtime 원본 대조 → S1 전체용 runtime에 `panel_material_spec`/`make_panel_material`/`panel_ply` 연결 → S2 pilot에 차폐 대표 사례를 넣어 실제 투과 경로와 전력을 기록한다.
