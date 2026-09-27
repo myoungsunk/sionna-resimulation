@@ -82,3 +82,9 @@
 
 - 결정: FFD bank 6개는 저장소 최상위에 그대로 둔다. `config/sionna_full_paths.example.json`과 `rt_cp_uwb_py/g2_full_paths.py`로 위치를 해석하고, BANK_MANIFEST SHA와 대조한다.
 - 감사 결과: A2 PASS(6/6), A3 INFO. 남은 BLOCKER는 H1과 H2 두 개로, 모두 S1 전체용 실행기 구현에서 해결한다.
+
+## 9. 2026-09-27 갱신 — 외부 감사(6453a69) F1–F5 대응
+
+- F1–F4와 운영 항목(status, collect)을 수정했고, 각각 RF 없는 반례 시험으로 차단과 복구를 확인했다(pytest 92 passed).
+- A1: `CLAIM_BOUNDARY.md`는 감사자의 Windows 바이트 대조를 외부 증거로 기록해 PASS다(이 checkout에서 재검증하지 않음).
+- R1(신규, BLOCKER): TARGETS 교차 환경 SHA 재현 미해결(F5). 판정은 `NOT_READY_FOR_S2_PILOT`이다.

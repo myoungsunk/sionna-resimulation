@@ -110,6 +110,8 @@ class Audit:
 # ---------------------------------------------------------------- A. delivery
 def audit_delivery(audit):
     rows = list(csv.DictReader(FILE_LIST.open(encoding='utf-8-sig')))
+    ev = CAMPAIGN/'01_local_checks/a6_windows_source/EXTERNAL_EOL_EVIDENCE.json'
+    external = json.loads(ev.read_text(encoding='utf8'))['files'] if ev.is_file() else {}
     first = subprocess.run(['git', 'rev-list', '--max-parents=0', 'HEAD'], cwd=ROOT, capture_output=True,
                            text=True).stdout.split()
     revised = set()
@@ -127,6 +129,8 @@ def audit_delivery(audit):
         state = classify_digest(ROOT/r['repository_or_data_path'], r['sha256'], r['bytes'])
         if state == 'MISMATCH' and r['repository_or_data_path'] == LIVING_PLAN:
             state = 'LIVING_LOG_APPENDED'  # plan is an append-only progress ledger by design
+        elif state == 'MISMATCH' and external.get(r['repository_or_data_path'], {}).get('windows_sha256') == r['sha256']:
+            state = 'EOL_ONLY_EXTERNALLY_VERIFIED'  # reviewer compared the Windows bytes; see EXTERNAL_EOL_EVIDENCE
         elif state == 'MISMATCH' and r['repository_or_data_path'] in revised:
             state = 'REVISED_IN_GIT'  # deliberate change recorded in a later commit/working tree
         tally[(r['delivery'], state)] += 1
@@ -569,6 +573,22 @@ def audit_code(audit):
               'measured in S2 pilot')
 
 
+def audit_reproducibility(audit):
+    """F5: TARGETS must be byte-reproducible across environments, or the difference explained row by row."""
+    d = CAMPAIGN/'01_local_checks/targets_reproducibility'
+    res = d/'RESOLUTION.json'
+    if res.is_file():
+        r = json.loads(res.read_text(encoding='utf8'))
+        audit.add('R1', 'reproducibility', 'PASS' if r.get('status') == 'RESOLVED' else 'BLOCKER',
+                  f"TARGETS cross-environment reproducibility: {r.get('status')}", resolution=r)
+    else:
+        audit.add('R1', 'reproducibility', 'BLOCKER',
+                  'TARGETS SHA not reproduced on the Windows workspace (reviewer d50c8005... vs 10fc60b3...); '
+                  'cause unresolved - compare with targets_fingerprint.py and record RESOLUTION.json',
+                  tools=['scripts/g2_completion/targets_fingerprint.py',
+                         str((d/'README_KO.md').relative_to(ROOT))])
+
+
 def audit_tests(audit):
     proc = subprocess.run([sys.executable, '-m', 'pytest', '-q', '-p', 'no:cacheprovider'], cwd=ROOT,
                           capture_output=True, text=True, timeout=1800)
@@ -596,6 +616,7 @@ def main():
     audit_bank(audit, cfg)
     audit_config(audit, cfg)
     audit_code(audit)
+    audit_reproducibility(audit)
     if not a.skip_tests:
         audit_tests(audit)
     status = collections.Counter(c['status'] for c in audit.checks)

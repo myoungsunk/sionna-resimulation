@@ -278,7 +278,7 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 
 - [x] 계획 작성: 실제 전체 입력 집계, 101장면 대응 및 입력 SHA 기록
 - [x] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증 (2026-09-27; R3 이격 revision 반영 → 00_inputs_R3)
-- [x] S1 전체 실행기 / 로컬 기본 검증 / dry-run (2026-09-27; 원격 단계는 dry-run만 확인, 실제 원격 동작은 S2에서 확인)
+- [ ] S1 전체 실행기 / 로컬 기본 검증 / dry-run — 외부 감사(6453a69)로 완료 조건 미충족 판정. F1–F4 수정은 반영했고, F5 TARGETS 재현성은 미해결이다.
 - [ ] S2 Snowball staging / 대표 실행 / 시간·저장량·자원 결정
 - [ ] S3 전체 RF 재계산
 - [ ] S4 전체 H·CIR·검출·경로 상세 저장 및 회수
@@ -434,3 +434,28 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
   - 실측 초/행, 메모리, 저장량
 - 파일 이동·삭제 0. 보호 폴더 덮어쓰기 0.
 - 다음 작업: S2. Snowball staging(`--stage`) → 대표 batch pilot. S2 승인 전에는 원격 실행하지 않는다.
+
+### 2026-09-27 — 외부 감사(6453a69) F1–F5 대응 / S1 / S1_FIXES_APPLIED_F5_OPEN
+- 감사 판정: 판재·R3·S0 성과는 확인됐지만 S1 완료 조건은 미충족이다. S2와 전체 실행은 보류한다.
+- **F1 pilot 전체 확대:** controller(`validate_pilot`)와 lane(`--pilot`, PILOT_IDS) 모두에서 비어 있는 목록, 빈 원소, 중복, 알 수 없는 ID, 64개 초과를 원격 명령 생성 전에 거부한다. 전체 선택은 `--launch`에서만 가능하다. 기존 `--foreground`와 BATCH_IDS 빈 값 → 전체 해석은 제거했다. 가짜 docker로 실제 셸을 실행해, 거부 5가지는 container 호출 0회, 지정 batch 1개는 runtime+finish 2회만 확인했다.
+- **F2 완료 판정:**
+  - `expected_run_key`(현재 CONFIG·TARGETS·runtime 코드·257 bin)와 `production_key`(raw key + CONFIG + finish 코드)를 만들어 runtime, finish, verify가 모두 이것과 대조한다. COMPLETE에 저장된 key를 믿지 않는다.
+  - production은 batch의 CHANNEL/RESULT 전부와 manifest SHA가 있어야 한다. 현재 key와 다른 production은 보존하고 finish가 거부한다(exit 4).
+  - verify는 165,009/101 계약을 검사한다. lane은 FINISHED 존재만으로 건너뛰지 않는다.
+  - 반례 시험(RF 0): solver seed만 바꾸면 raw와 production 모두 무효가 된다. production 0개나 파일 1개 삭제는 미완료로 판정한다. runtime 코드 목록이 바뀌면 pending이다.
+- **F3 재개 무한반복:** 모든 대상 영수증은 검증되었는데 COMPLETE가 없으면(MANIFEST+COMPLETE 또는 COMPLETE만 없는 두 경우), 새 recovery attempt에 MANIFEST/COMPLETE를 쓴다. RF 0회이고 기존 attempt는 바이트 불변이다. 그다음 재개는 attempt를 더 만들지 않고 끝난다.
+- **F4 staging:**
+  - `03_stage/`를 추적 대상에서 뺐다. `--stage`는 깨끗한 HEAD에서 manifest를 다시 만들고 tree를 구성하므로 HEAD 충돌이 없다.
+  - 추적 중이고 LFS가 아닌 payload는 HEAD의 git blob 바이트로 올린다. 그래서 Windows와 Linux의 줄바꿈 차이가 없다. 두 runner 파일은 Windows 바이트, *.sh는 LF다.
+  - `--stage-local`: 49bb453에서 13,270파일(blob 491 / file 12,779, 1.57 GiB), native runtime SHA 9dc7dfa5 유지, lanes.sh CR 없음, `sha256sum -c` 통과, 작업 트리 변경 0.
+- **운영 항목:**
+  - `--status`는 출력이 없는 상태에서도 JSON을 내고 exit 0이다(pipefail 결함 수정, 시험 추가).
+  - collect는 서버 verify(`--raw-policy full`) → production과 모든 영수증/manifest rsync(raw NPZ는 서버에 보존) → 로컬 `--raw-policy receipts-only` verify로 바뀌었다. 같은 key의 서버 verify가 없으면 미완료다. 시험을 추가했다.
+- **F5 TARGETS SHA:** 원인은 미확정이다. 해시나 기준은 바꾸지 않았다.
+  - 준비물: `targets_fingerprint.py`(필드별 digest와 ulp 비교), 정본 TARGETS의 결정론적 gzip(21.1 MB, 해제 SHA 10fc60b3…), `TARGETS_FIELD_DIGESTS.json`, 대조 절차(`01_local_checks/targets_reproducibility/README_KO.md`).
+  - 이 환경에서는 이격 계산이 chunk와 무관하게 비트 동일하고, 자세 계산도 결정론적이었다. 교차 플랫폼 원인은 재현하지 못했다.
+  - 사전 감사에 R1(BLOCKER)을 추가했다. RESOLUTION.json이 기록되기 전까지 `NOT_READY_FOR_S2_PILOT`이다.
+- `CLAIM_BOUNDARY.md`: 감사자가 Windows 바이트로 대조한 결과(내용 동일, 혼합 줄바꿈)를 외부 증거로 기록했다(`EXTERNAL_EOL_EVIDENCE.json`). 이 checkout에서 재검증한 것은 아니다. A1은 PASS다.
+- smoke 18회 증거는 수정 전 runner/runtime으로 만든 것이다. 현재 최종 코드로 실제 엔진을 실행한 증거는 아니며, 이번에 RF를 추가하지 않았다.
+- 시험: pytest 92 passed. 사전 감사는 BLOCKER 1(R1/F5), WARN 3(A4, E3, H3)이다. RF 호출 0회, 파일 이동은 이번에 생성한 F5 자료를 campaign 내부로 옮긴 것뿐이며 삭제 0이다.
+- 다음 작업: Windows 작업공간에서 README_KO.md 절차로 필드별 대조 → RESOLUTION.json 기록 → 감사 재실행 → 명시적 대표 목록으로 S2.
