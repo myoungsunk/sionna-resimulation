@@ -333,3 +333,15 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - Snowball: `input/bank/`는 staging 때 위 해석기가 확인한 파일을 SHA 대조 후 복사할 예정 경로다. 아직 생성하지 않았다.
 - 파일 이동·삭제: 0.
 - 다음 작업: S0/S1. 전체 TARGETS 정규화(`g2_full_inputs.py`)와 전체용 prepare/run/finish/verify를 구현하고, 판재 재질 계약과 경로 설정을 연결한다.
+
+### 2026-09-27 — 외부 검토(커밋 1fd3255) 반영: 판재 삼각형 연결 오류 수정 / S0 준비 / PANEL_MESH_FIXED
+- 검토 판정: S0/S1 구현은 계속 진행한다. S2 대표 실행과 전체 실행은 보류한다. 필수 수정 사항은 판재 형상 오류다.
+- 확인: `g2_full_panels.panel_ply`의 face (0,1,2)/(0,2,3)은 모서리 순서 (−u,−v),(−u,+v),(+u,−v),(+u,+v)에서 **면적 25%가 비고, 25%가 중복되며, 두 법선이 반대**다. 독립 표본 검사에서 이전 연결은 미적중 0.25 / 1회 0.50 / 2회 0.25, 수정 후는 1회 1.00이다.
+- 수정: 대각선 0–3을 기준으로 face를 (0,2,3),(0,3,1)로 바꿨다. 두 삼각형의 법선이 모두 기록된 `normal`(=u×v)과 같다. u·v·normal이 오른손 정규직교가 아니면 `PANEL_AXES_NOT_RIGHT_HANDED_ORTHONORMAL`로 중단한다.
+- 검증:
+  - `tests/test_g2_full_panels.py` 10 passed. 실제 FRAMES의 0.8×1.7 m 차폐판과 1.2×1.5 m 금속판에서 꼭짓점=사각형 모서리, 면적 합=4·h₀·h₁, 두 법선=기록 법선, 내부 표본마다 정확히 1개 삼각형에 속함을 확인했다.
+  - binding 검사에서 판재 frame 28,120개 모두 축 조건을 통과했다. Sionna에 올린 대표 5개 mesh는 face 2개이고 면적이 1.3600/1.8000 m²로 일치했다.
+  - 면적 합만으로는 이전 오류를 잡을 수 없다(중복과 빈 영역이 상쇄됨). 따라서 판정 근거는 표본 커버리지 시험이다.
+- **이전 41행 refresh 영향:** 같은 face 목록이 `scripts/g2_completion/prepare_sionna_native41.py:23`과 `rt_cp_uwb_py/g2_relocated_inputs.py:87`에 있다. 41행 refresh의 동적 판재 12개가 이 결함 있는 mesh로 계산되었다. 기존 코드와 결과는 보존용으로 수정하지 않았고(감사 H1에 기록), 전체 실행은 `g2_full_panels.panel_ply`만 사용한다. 41행 결과를 재사용하지 않는다는 계획 방침에 따라 전체 campaign에는 영향이 없다.
+- RF 호출 0회. 파일 이동·삭제 0.
+- 다음 작업: S0 전체 TARGETS 확정(`g2_full_inputs.py`, `prepare_sionna_full.py`).

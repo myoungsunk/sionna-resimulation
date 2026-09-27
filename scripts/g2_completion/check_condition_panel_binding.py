@@ -24,7 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from rt_cp_uwb_py.g2_full_panels import (CONTRACT_ID, EPS0, make_panel_material, material_readback,
-                                        panel_material_spec, panel_ply)
+                                        panel_material_spec, panel_ply, panel_triangles)
 
 R = ROOT/'results/SIONNA_G2_RX_RELOCATED_20260924_01a0d320_R2'
 G = ROOT/'results/SIONNA_NATIVE_GEOMETRY_20260925_01a0d83b'
@@ -50,6 +50,7 @@ def census():
             if not obj:
                 continue
             spec = panel_material_spec(obj)
+            panel_triangles(obj['panel'])  # raises unless u, v, normal are right-handed orthonormal
             family, condition, room = links[(r['unit_id'], r['frame'])]
             counts[(family, condition, spec['kind'], spec['thickness_m'])] += 1
             wanted = (family, condition) if spec['kind'] == 'dielectric' else ('ANY', condition)
@@ -83,7 +84,11 @@ def bind(rt, mi, pick, manifest, tmp):
         if spec['kind'] == 'dielectric':
             rb['tan_delta_implied'] = rb['conductivity_s_m']/(2*math.pi*FREQ(k)*EPS0*rb['relative_permittivity'])
         readings.append(rb)
-    bbox = scene.objects['dynamic_panel'].mi_mesh.bbox()
+    mesh = scene.objects['dynamic_panel'].mi_mesh
+    bbox = mesh.bbox()
+    half = pick['object']['panel']['half']
+    area, faces = float(mesh.surface_area()[0]), int(mesh.face_count())
+    geometry_ok = faces == 2 and math.isclose(area, 4*half[0]*half[1], rel_tol=1e-6)
     if spec['kind'] == 'dielectric':
         ok = all(math.isclose(r['relative_permittivity'], 12., rel_tol=1e-6)
                  and math.isclose(r['thickness_m'], .020, rel_tol=1e-6)
@@ -92,7 +97,9 @@ def bind(rt, mi, pick, manifest, tmp):
     else:
         ok = all(r['type'] == 'ITURadioMaterial' and math.isclose(r['thickness_m'], .001, rel_tol=1e-6)
                  for r in readings)
+    ok &= geometry_ok
     return dict(pick={k: v for k, v in pick.items() if k != 'object'}, object_id=pick['object']['object_id'],
+                mesh=dict(faces=faces, surface_area_m2=area, expected_area_m2=4*half[0]*half[1]),
                 source_material=pick['object']['material'], spec=spec, readback=readings,
                 panel_bbox=[list(map(float, bbox.min)), list(map(float, bbox.max))],
                 scene_objects=len(scene.objects), passed=bool(ok))
@@ -113,7 +120,7 @@ def main():
         r = c['readback']
         print(f"{'PASS' if c['passed'] else 'FAIL'} {c['pick']['family']:9} {c['pick']['condition']:24} "
               f"{r[0]['type']:16} eps={r[0]['relative_permittivity']:.3g} d={r[0]['thickness_m']:.4f} m "
-              f"sigma={[round(x['conductivity_s_m'], 4) for x in r]}")
+              f"sigma={[round(x['conductivity_s_m'], 4) for x in r]} area={c['mesh']['surface_area_m2']:.4f}/{c['mesh']['expected_area_m2']:.4f}")
     by_kind = collections.Counter()
     for (fam, cond, kind, th), n in counts.items():
         by_kind[(kind, th)] += n

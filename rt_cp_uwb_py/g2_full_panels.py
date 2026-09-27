@@ -55,16 +55,37 @@ def panel_material_spec(obj):
     raise ValueError('UNSUPPORTED_CONDITION_PANEL_MATERIAL:' + repr((m['kind'], m['name'], m['eps_r'], m['tan_delta'])))
 
 
-def panel_ply(panel):
-    """ASCII PLY for the single reference sheet, same layout as the 41-row payload."""
+# Corner order (a, b) = (-1,-1), (-1,+1), (+1,-1), (+1,+1) as in c1_c3_geometry.panel_corners.
+# The diagonal is 0-3; both triangles wind so their normal equals u x v.
+PANEL_FACES = ((0, 2, 3), (0, 3, 1))
+
+
+def panel_triangles(panel):
+    """Four corners and two non-overlapping triangles covering the whole panel.
+
+    Raises if the declared panel normal is not u x v (unit, orthogonal axes),
+    so the mesh orientation always matches the source record.
+    """
+    u, v, n = panel['u'], panel['v'], panel['normal']
+    cross = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]]
+    dot = lambda a, b: sum(x*y for x, y in zip(a, b))
+    if (abs(dot(u, u)-1) > 1e-9 or abs(dot(v, v)-1) > 1e-9 or abs(dot(u, v)) > 1e-9
+            or max(abs(c-m) for c, m in zip(cross, n)) > 1e-9):
+        raise ValueError('PANEL_AXES_NOT_RIGHT_HANDED_ORTHONORMAL')
     corners = []
     for a, b in ((-1, -1), (-1, 1), (1, -1), (1, 1)):
-        corners.append([panel['center'][i] + a*panel['half'][0]*panel['u'][i] + b*panel['half'][1]*panel['v'][i]
+        corners.append([panel['center'][i] + a*panel['half'][0]*u[i] + b*panel['half'][1]*v[i]
                         for i in range(3)])
+    return corners, PANEL_FACES
+
+
+def panel_ply(panel):
+    """ASCII PLY for the single reference sheet (4 vertices, 2 triangles)."""
+    corners, faces = panel_triangles(panel)
     header = ['ply', 'format ascii 1.0', 'element vertex 4', 'property float x', 'property float y',
               'property float z', 'element face 2', 'property list uchar int vertex_indices', 'end_header']
-    return '\n'.join(header + [' '.join(format(x, '.17g') for x in v) for v in corners]
-                     + ['3 0 1 2', '3 0 2 3']) + '\n'
+    return '\n'.join(header + [' '.join(format(x, '.17g') for x in c) for c in corners]
+                     + ['3 ' + ' '.join(map(str, f)) for f in faces]) + '\n'
 
 
 def make_panel_material(rt, spec, name='rm_dynamic_panel'):

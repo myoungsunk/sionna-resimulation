@@ -517,6 +517,9 @@ def audit_code(audit):
         ('finish_sionna_native41.py', r"rows'\]==41", '41-row assert'),
         ('summarize_native41_refresh.py', r"len\(labels\)==41", '41-row assert'),
         ('prepare_sionna_native41.py', r"SIONNA_G2_SCOPED41_V3_20260925_01a0d6e5", 'depends on prior results folder not in repo'),
+        ('prepare_sionna_native41.py', r"'3 0 1 2','3 0 2 3'", 'dynamic panel faces (0,1,2)/(0,2,3): 25% gap, 25% overlap, '
+         'opposite normals - the 12 dynamic panels of the 41-row refresh used this mesh; full runs must use '
+         'g2_full_panels.panel_ply'),
     ]:
         if re.search(pat, (ROOT/'scripts/g2_completion'/f).read_text(encoding='utf8')):
             findings.append(dict(file='scripts/g2_completion/'+f, issue=msg))
