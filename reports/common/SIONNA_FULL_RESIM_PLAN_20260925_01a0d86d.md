@@ -314,3 +314,11 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - 검사/시험 결과: 전체 pytest는 39 passed, 3 failed다. 실패 3건은 기존과 같이 `POWER_NOISE_CONTRACT.json`이 저장소에 없어서 생긴 것이다. 실제 투과량은 아직 계산하지 않았다.
 - 파일 변경/이동 및 원본 보존: 기존 `sionna_native_runtime.py`(A6 출처 불일치 미해결)와 `g2_relocated_inputs.py`는 수정하지 않았다. 이동·삭제는 없다.
 - 다음 작업: A6 runtime 원본 대조 → S1 전체용 runtime에 `panel_material_spec`/`make_panel_material`/`panel_ply` 연결 → S2 pilot에 차폐 대표 사례를 넣어 실제 투과 경로와 전력을 기록한다.
+
+### 2026-09-27 — A6 Windows 원본 대조 / S0 준비 / A6_RESOLVED_EOL_ONLY
+- 실행 목적: 사용자가 전달한 Windows 원본 `sionna_native_runtime.py`, `finish_sionna_native41.py`와 `SOURCE_MANIFEST.json`을 branch 파일과 바이트 단위로 대조했다.
+- 결과: 두 파일의 SHA는 plan snapshot과 같다(9dc7dfa5…, 5c15b1b5…). 원본에서 CR을 제거하면 branch 파일과 바이트 단위로 동일하다. **코드 내용 차이는 0이다.** 차이의 원인은 줄 끝 혼용이다(runtime은 CRLF 185행 + LF 7행, finish는 CRLF 57행 + LF 48행으로, 나중에 편집한 줄이 LF로 저장됨). Git 업로드 과정에서 줄 끝이 LF로 정규화되어 SHA가 달라졌다. 앞선 감사의 CRLF 일괄 변환 검사로는 혼용 파일을 설명할 수 없었다.
+- 조치: 두 파일을 Windows 원본 바이트로 복원했다(동작 변경 없음). `.gitattributes`에 `-text`를 지정해 Git이 다시 정규화하지 않게 했다. runtime은 자기 파일 바이트로 `runner_sha256`을 기록하므로, Snowball staging은 이 checkout 바이트를 그대로 써야 한다. 대조 증거는 `results/SIONNA_FULL_RESIM_20260925_01a0d86d/01_local_checks/a6_windows_source/`에 보존했다.
+- 감사 재실행: A6·B1 PASS(snapshot 26건 모두 일치). 판정은 NOT_READY_FOR_FULL_RUN이며, 남은 BLOCKER는 A2(bank 위치), H1(41행 제한 16건), H2(전체용 실행기 미구현)다. A1의 남은 불일치 1건은 `reports/common/CLAIM_BOUNDARY.md`이며 같은 줄 끝 혼용으로 추정한다. 원본을 받지 않아 미확인 상태다. RF 호출 0회. pytest 39 passed / 3 failed(기존 fixture 누락).
+- 파일 변경: 위 두 파일의 줄 끝, `.gitattributes`, 증거 폴더. 이동·삭제 0.
+- 다음 작업: A2 bank 위치 path map(또는 dry-run 이동 계획) → S1 전체용 실행기 구현(판재 재질 계약 연결 포함).
