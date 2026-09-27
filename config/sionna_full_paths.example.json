@@ -1,0 +1,45 @@
+{
+  "schema": "SIONNA_FULL_PATHS_V1",
+  "campaign_id": "SIONNA_FULL_RESIM_20260925_01a0d86d",
+  "note": "Logical input roots per environment. Relative paths resolve against the environment root. The FFD bank NPZ files are NOT moved: in the GitHub checkout they live at the repository root (Git LFS), while BANK_MANIFEST.json stays in the original bank folder. Every resolved bank file must match BANK_MANIFEST npz_sha256 before use. No secrets.",
+  "bank_ports": ["RHCP", "LHCP", "LP_X", "LP_Y", "LP_plus45", "LP_minus45"],
+  "environments": {
+    "repo_checkout": {
+      "root": ".",
+      "paths": {
+        "relocated_inputs": "results/SIONNA_G2_RX_RELOCATED_20260924_01a0d320_R2",
+        "geometry": "results/SIONNA_NATIVE_GEOMETRY_20260925_01a0d83b",
+        "bank_dir": ".",
+        "bank_manifest": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json",
+        "operating_config": "results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json",
+        "static9_contract": "inputs/reference/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
+        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d"
+      }
+    },
+    "windows_workspace": {
+      "root": "D:/codex/raytracing_modules/rt_cp_uwb",
+      "paths": {
+        "relocated_inputs": "results/SIONNA_G2_RX_RELOCATED_20260924_01a0d320_R2",
+        "geometry": "results/SIONNA_NATIVE_GEOMETRY_20260925_01a0d83b",
+        "bank_dir": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank",
+        "bank_manifest": "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json",
+        "operating_config": "results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json",
+        "static9_contract": "D:/codex/raytracing_modules/DRIVE_EXPORT_RT_DUAL_ENGINE_20260915/cp2_work_remote/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
+        "campaign": "results/SIONNA_FULL_RESIM_20260925_01a0d86d"
+      }
+    },
+    "snowball": {
+      "root": "/home/KMS/SIONNA_FULL_RESIM_20260925_01a0d86d",
+      "planned": true,
+      "paths": {
+        "relocated_inputs": "input/source_inputs",
+        "geometry": "input/geometry",
+        "bank_dir": "input/bank",
+        "bank_manifest": "input/bank/BANK_MANIFEST.json",
+        "operating_config": "input/CONFIG_SOURCE.json",
+        "static9_contract": "input/source_inputs/COMMON_ENVIRONMENT_POSE_CONTRACT.json",
+        "campaign": "."
+      }
+    }
+  }
+}

@@ -77,3 +77,8 @@
 - Windows 원본과 branch 파일은 **코드 내용이 동일**하다. 원본에서 CR을 제거하면 branch와 바이트 단위로 같다. 원본은 CRLF/LF 혼용 파일이었고, Git이 줄 끝을 LF로 정규화하면서 SHA가 달라졌다.
 - 두 파일을 원본 바이트로 복원하고 `.gitattributes`에 `-text`를 지정했다. 현재 checkout SHA는 plan snapshot과 같다(`9dc7dfa5…`, `5c15b1b5…`).
 - 감사 결과: A6·B1 PASS. 남은 BLOCKER는 A2, H1, H2다. A1의 `CLAIM_BOUNDARY.md` 불일치는 같은 원인으로 추정하지만 원본을 받지 않아 확인하지 않았다(문서 파일이며 실행과는 무관하다).
+
+## 8. 2026-09-27 갱신 — A2 해결 (bank 이동 없이 경로 설정 사용)
+
+- 결정: FFD bank 6개는 저장소 최상위에 그대로 둔다. `config/sionna_full_paths.example.json`과 `rt_cp_uwb_py/g2_full_paths.py`로 위치를 해석하고, BANK_MANIFEST SHA와 대조한다.
+- 감사 결과: A2 PASS(6/6), A3 INFO. 남은 BLOCKER는 H1과 H2 두 개로, 모두 S1 전체용 실행기 구현에서 해결한다.

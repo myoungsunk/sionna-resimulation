@@ -322,3 +322,14 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - 감사 재실행: A6·B1 PASS(snapshot 26건 모두 일치). 판정은 NOT_READY_FOR_FULL_RUN이며, 남은 BLOCKER는 A2(bank 위치), H1(41행 제한 16건), H2(전체용 실행기 미구현)다. A1의 남은 불일치 1건은 `reports/common/CLAIM_BOUNDARY.md`이며 같은 줄 끝 혼용으로 추정한다. 원본을 받지 않아 미확인 상태다. RF 호출 0회. pytest 39 passed / 3 failed(기존 fixture 누락).
 - 파일 변경: 위 두 파일의 줄 끝, `.gitattributes`, 증거 폴더. 이동·삭제 0.
 - 다음 작업: A2 bank 위치 path map(또는 dry-run 이동 계획) → S1 전체용 실행기 구현(판재 재질 계약 연결 포함).
+
+### 2026-09-27 — A2 FFD bank 위치 결정 / S0 준비 / A2_RESOLVED_PATH_MAP
+- 결정(사용자): FFD bank NPZ 6개는 **옮기지 않는다.** GitHub checkout에서는 저장소 최상위(Git LFS)에 두고, 전체 실행용 경로 설정 파일로 가리킨다. `BANK_MANIFEST.json`은 원래 bank 폴더에 그대로 둔다.
+- 구현:
+  - `config/sionna_full_paths.example.json`: repo_checkout / windows_workspace / snowball(예정) 환경별 경로를 담았고 비밀정보는 없다.
+  - `rt_cp_uwb_py/g2_full_paths.py`: 경로 해석기다. bank를 찾은 위치에서 그대로 쓰고, BANK_MANIFEST의 npz_sha256·포트 순서와 대조한다. LFS pointer나 SHA 불일치면 중단한다.
+  - `tests/test_g2_full_paths.py`: 4 passed.
+- 결과: checkout의 7개 논리 경로가 모두 존재한다. 최상위 bank 6개는 SHA가 일치한다. 감사 A2가 PASS로 바뀌었다(6/6 해석, 미해석 0). A3는 결정에 따른 INFO다. 판정은 NOT_READY_FOR_FULL_RUN이며, 남은 BLOCKER는 H1(41행 제한 16건)과 H2(전체용 실행기 미구현)로 모두 S1 구현 범위다. pytest 43 passed / 3 failed(기존 fixture 누락). RF 호출 0회.
+- Snowball: `input/bank/`는 staging 때 위 해석기가 확인한 파일을 SHA 대조 후 복사할 예정 경로다. 아직 생성하지 않았다.
+- 파일 이동·삭제: 0.
+- 다음 작업: S0/S1. 전체 TARGETS 정규화(`g2_full_inputs.py`)와 전체용 prepare/run/finish/verify를 구현하고, 판재 재질 계약과 경로 설정을 연결한다.

@@ -128,8 +128,21 @@ def audit_delivery(audit):
     audit.add('A1', 'delivery', 'PASS' if not mismatches else 'FAIL',
               f'upload list {len(rows)} rows vs checkout; content mismatches={len(mismatches)}',
               tally=summary, mismatches=mismatches)
-    audit.add('A2', 'delivery', 'BLOCKER' if absent else 'PASS',
-              f'listed data files absent from their declared path: {len(absent)}', absent=absent)
+    from rt_cp_uwb_py.g2_full_paths import load_paths, resolve_banks
+    path_map = ROOT/'config/sionna_full_paths.example.json'
+    mapped, map_error = {}, None
+    try:
+        config, paths = load_paths(path_map, 'repo_checkout', ROOT)
+        mapped = {str(B.relative_to(ROOT)/f'{port}_bank.npz'): str(b['path'].relative_to(ROOT))
+                  for port, b in resolve_banks(config, paths).items()}
+    except (OSError, ValueError, KeyError) as exc:
+        map_error = repr(exc)
+    unresolved = [a for a in absent if a not in mapped]
+    audit.add('A2', 'delivery', 'BLOCKER' if unresolved else 'PASS',
+              f'listed data files absent from their declared path: {len(absent)}; resolved by path map '
+              f'with BANK_MANIFEST SHA: {len(absent)-len(unresolved)}; unresolved: {len(unresolved)}',
+              absent=absent, resolved_by_path_map=mapped, unresolved=unresolved, path_map_error=map_error,
+              path_map=str(path_map.relative_to(ROOT)))
     code_drift = [m for m in mismatches if m.endswith('.py')]
     audit.add('A6', 'delivery', 'BLOCKER' if code_drift else 'PASS',
               f'code differs from the Windows digest in the upload list/plan snapshot: {code_drift}',
@@ -137,9 +150,10 @@ def audit_delivery(audit):
                    '(RUNTIME_READBACK source_runtime_sha256=9dc7dfa5...); reconcile with the Windows '
                    'original before staging')
     root_banks = sorted(p.name for p in ROOT.glob('*_bank.npz'))
-    audit.add('A3', 'delivery', 'WARN' if root_banks else 'PASS',
-              'FFD bank NPZ files are at repository root, not at bank/ path used by CONFIG/runners',
-              root_files=root_banks, expected_dir=str(B.relative_to(ROOT)))
+    audit.add('A3', 'delivery', 'INFO' if root_banks else 'PASS',
+              'FFD bank NPZ files stay at repository root by decision (2026-09-27, no move); '
+              'runners must resolve them through config/sionna_full_paths.example.json',
+              root_files=root_banks, manifest_dir=str(B.relative_to(ROOT)))
     dupes = []
     for p in ROOT.glob('SIONNA_FULL_RESIM_*'):
         twin = ROOT/'reports/common'/p.name
