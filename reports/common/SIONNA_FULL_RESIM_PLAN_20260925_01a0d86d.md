@@ -264,6 +264,8 @@ py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $campaignRoot 
 py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRoot --inputs-dir 00_inputs_R3
 ```
 
+원격 코드는 `code/<code_revision>/`에 revision별로 올리고 덮어쓰지 않는다. 검증은 `03_stage/SHA256SUMS.<rev>`로 한다. pilot, launch, collect는 로컬 HEAD가 아니라 배포된 `03_stage/STAGE.<rev>.json`의 revision을 사용한다. collect의 로컬 verify도 이 manifest의 SHA(배포된 git blob 바이트)로 key를 계산한다.
+
 컨테이너 안에서 실행되는 부분은 `sionna_full_lanes.sh`가 batch마다 호출한다. 먼저 `sionna_full_runtime.py --environment snowball --inputs-dir 00_inputs_R3 --batch-id <id>`를 실행하고, 이어서 `finish_sionna_full.py`를 실행한다. 일시 실패는 최대 3회까지 시도한다. exit 2(대상의 결정론적 실패)는 기록만 하고 재시도하지 않는다.
 
 ## 8. 다음 작업이 처음 해야 할 일
@@ -278,7 +280,7 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 
 - [x] 계획 작성: 실제 전체 입력 집계, 101장면 대응 및 입력 SHA 기록
 - [x] S0 전체 TARGETS / 입력·좌표·자세·동적 frame 검증 (2026-09-27; R3 이격 revision 반영 → 00_inputs_R3)
-- [ ] S1 전체 실행기 / 로컬 기본 검증 / dry-run — 외부 감사(6453a69)로 완료 조건 미충족 판정. F1–F4 수정은 반영했고, F5 TARGETS 재현성은 미해결이다.
+- [ ] S1 전체 실행기 / 로컬 기본 검증 / dry-run — F1–F5와 후속 감사 A–C를 반영했다(32a35cc). 외부 재감사를 기다리며, 원격 단계는 아직 실행하지 않았다.
 - [ ] S2 Snowball staging / 대표 실행 / 시간·저장량·자원 결정
 - [ ] S3 전체 RF 재계산
 - [ ] S4 전체 H·CIR·검출·경로 상세 저장 및 회수
@@ -459,3 +461,18 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - smoke 18회 증거는 수정 전 runner/runtime으로 만든 것이다. 현재 최종 코드로 실제 엔진을 실행한 증거는 아니며, 이번에 RF를 추가하지 않았다.
 - 시험: pytest 92 passed. 사전 감사는 BLOCKER 1(R1/F5), WARN 3(A4, E3, H3)이다. RF 호출 0회, 파일 이동은 이번에 생성한 F5 자료를 campaign 내부로 옮긴 것뿐이며 삭제 0이다.
 - 다음 작업: Windows 작업공간에서 README_KO.md 절차로 필드별 대조 → RESOLUTION.json 기록 → 감사 재실행 → 명시적 대표 목록으로 S2.
+
+### 2026-09-28 — 후속 독립 감사(1e2ac03) 대응: F5 종결, A–C 수정 / S1 / S1_FIXES_APPLIED_AWAITING_REAUDIT
+- 감사 판정: F5 원인 규명, F1·F2 기존 반례·F3·빈 status 해소. 원격 재업로드(A), Windows collect key(B), receipts-only 판정(C)이 남아 S2 무조건 승인과 전체 실행 승인을 보류했다.
+- **F5 종결** (`01_local_checks/targets_reproducibility/RESOLUTION.json`, status RESOLVED)
+  - 감사자 전수 대조: 차이는 geometric_range_m 15,894행(최대 3.55e-15 m, 2 ulp)과 C3 공통 yaw 자세 행렬(최대 2.22e-16, 2 ulp)뿐이다. 자세 행렬의 마지막 비트 차이가 content-hash인 pose_id 19,560행(쌍 4,510개)을 바꿨다.
+  - 두 필드만 정본 값으로 치환하면 정본 SHA가 그대로 재현된다. 좌표·identity·frame·판재·이격에는 차이가 없고, 물리 변경과 RF도 없다. 이 판정은 감사자 증거이며 이 checkout에서 재실행하지 않았다.
+  - 방침: 정본 TARGETS/POSES/PANELS를 한 세트로 그대로 배포하고 SHA를 유지한다. 다른 환경의 재계산본과 섞지 않고, 해시 교체나 허용오차 판정으로 대체하지 않는다.
+  - 강제: expected_run_key와 staging이 POSES/PANELS(및 STATIC9 overlay) SHA를 CONFIG와 대조한다. 1 ulp 다른 POSES를 거부하는 시험을 추가했다.
+- **A 재업로드:** 코드는 `code/<rev>/`로 올리고 기존 파일을 덮어쓰지 않는다(rsync `--ignore-existing`). 원격 검사는 `sha256sum --quiet --strict -c 03_stage/SHA256SUMS.<rev>`이므로, 이전 staging의 다른 SHA 파일이 남아 있으면 실패한다. lane은 `CODE_REV`의 코드로 실행한다. 시험: stage/pilot 명령 구조, 그리고 copy-if-absent 에뮬레이션과 실제 sha256sum으로 stale 파일 검출·revision 병존을 확인했다. rsync는 이 환경에 없어 실제 전송은 시험하지 않았다.
+- **B collect key:** expected_run_key와 production_key가 배포 manifest(`STAGE.<rev>.json`)의 SHA로 계산할 수 있게 했다. collect의 로컬 verify에 `--stage-manifest`를 전달한다. manifest에 없는 경로는 오류로 처리하며 로컬 바이트로 대체하지 않는다. 시험: CRLF로 바꾼 가상 Windows checkout은 manifest가 없으면 서버 key와 달라지고(감사 재현), 있으면 같다. 실제 00_inputs_R3에서도 로컬 key와 staged key가 일치한다.
+- **C receipts-only:** 서버 보고서는 status COMPLETE, expected=raw_complete=finished=계약 수, pending 0, problems·stale 없음, 같은 key일 때만 인정한다. 시험: 서버 raw 훼손(INCOMPLETE) 보고서, status만 위조한 보고서, problems가 있는 보고서를 모두 거부했다.
+- 셸 시험은 POSIX bash와 PATH를 전제하므로 Windows(os.name=='nt')에서는 사유를 명시해 건너뛴다(대상 호스트는 Linux Snowball).
+- staging 확인: 32a35cc에서 13,270파일, `code/<rev>/`, revision별 manifest 2개, tree `sha256sum --strict -c` 통과. pilot과 collect dry-run 명령이 배포 revision을 사용한다.
+- 시험: pytest 97 passed(Linux). 사전 감사에는 BLOCKER와 FAIL이 없다(`READY_FOR_S2_PILOT`은 정적 검사 기준일 뿐이며 S2는 사용자 승인 대상이다). WARN 3개(A4 문서 중복, E3 STATIC9 빈 장면, H3 다중경로 위상 fixture)는 S2 확인 항목이다. RF·SSH·Docker 호출은 0회, 삭제·이동도 없다.
+- 다음 작업: 외부 재감사 → 승인 시 `--stage`(깨끗한 HEAD) → 명시적 대표 목록으로 `--pilot`. S2에서 컨테이너 import 의존성, E3, LOS/2-path 위상 fixture, 257-bin end-to-end, 처리량을 확인한다.

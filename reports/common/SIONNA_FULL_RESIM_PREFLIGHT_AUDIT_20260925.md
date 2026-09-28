@@ -88,3 +88,9 @@
 - F1–F4와 운영 항목(status, collect)을 수정했고, 각각 RF 없는 반례 시험으로 차단과 복구를 확인했다(pytest 92 passed).
 - A1: `CLAIM_BOUNDARY.md`는 감사자의 Windows 바이트 대조를 외부 증거로 기록해 PASS다(이 checkout에서 재검증하지 않음).
 - R1(신규, BLOCKER): TARGETS 교차 환경 SHA 재현 미해결(F5). 판정은 `NOT_READY_FOR_S2_PILOT`이다.
+
+## 10. 2026-09-28 갱신 — 후속 감사(1e2ac03) A–C·F5
+
+- R1 PASS: 감사자 전수 대조로 F5 원인(≤2 ulp 반올림 → pose_id)을 규명했다. 정본 세트는 CONFIG SHA로 결속을 강제한다.
+- A(재업로드), B(배포 바이트 key), C(서버 보고 엄격 판정)를 수정했고 반례 시험을 추가했다. pytest 97 passed.
+- 판정: `READY_FOR_S2_PILOT`(정적 전제조건 기준). 원격 동작과 WARN 3개는 S2에서 확인하며, S2 실행은 사용자 승인 후 진행한다.
