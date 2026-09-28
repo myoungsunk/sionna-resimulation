@@ -476,3 +476,29 @@ py -3.10 scripts/g2_completion/verify_sionna_full.py --campaign-root $campaignRo
 - staging 확인: 32a35cc에서 13,270파일, `code/<rev>/`, revision별 manifest 2개, tree `sha256sum --strict -c` 통과. pilot과 collect dry-run 명령이 배포 revision을 사용한다.
 - 시험: pytest 97 passed(Linux). 사전 감사에는 BLOCKER와 FAIL이 없다(`READY_FOR_S2_PILOT`은 정적 검사 기준일 뿐이며 S2는 사용자 승인 대상이다). WARN 3개(A4 문서 중복, E3 STATIC9 빈 장면, H3 다중경로 위상 fixture)는 S2 확인 항목이다. RF·SSH·Docker 호출은 0회, 삭제·이동도 없다.
 - 다음 작업: 외부 재감사 → 승인 시 `--stage`(깨끗한 HEAD) → 명시적 대표 목록으로 `--pilot`. S2에서 컨테이너 import 의존성, E3, LOS/2-path 위상 fixture, 257-bin end-to-end, 처리량을 확인한다.
+
+### 2026-09-28 — S2 대표 실행 승인 수령 및 실행 도구 보완 / S2 / S2_APPROVED_NOT_STARTED
+- 승인: `APPROVED_FOR_BOUNDED_S2_PILOT`(외부 재감사, HEAD 18c760a). 범위는 기존 batch 6개, 96행, 9회 LOS fixture다. 계획 호출량은 96×257×3 = 74,016회, fixture를 더하면 74,025회다. S3·G2 PASS·봉인은 승인되지 않았다.
+- 승인 batch: `B010040,B010041`(1단계 32행: STATIC9 9 + L1/L1multi) → `B000337,B000381,B001868,B005973`(2단계 64행). 이 checkout에서 구성을 독립 확인했다: 96행 고유, L1 21 / L1multi 10 / L2static 16 / L2multi 8 / C1_static 6 / C1_multi 10 / C3 16 / STATIC9 9, R3 이동 1행, R2 보정 1행, 판재 24행.
+- **실행 환경 제약:** 이 cloud 세션에는 ssh 클라이언트가 없고 Snowball(KMS 키 인증, 사설 호스트)에 도달할 수 없다. S2 원격 단계는 Windows 작업공간에서 실행해야 한다. 이 세션의 RF·SSH·Docker 호출은 0회다.
+- **도구 보완** (승인 HEAD 이후의 코드 변경 6ab4074. 감사 권고대로 영향 범위만 재확인하면 된다):
+  - runtime `--los-fixture-only`: bin 0/128/256 × 3 arm = 정확히 9회, 상한 9. runtime 코드 해시별로 기록하며, 통과 후에는 재사용(0회)한다. `--smoke`는 제거해 `--bins all`에서 771회로 불어나는 경로를 없앴다.
+  - runtime 영수증에 lane 프로세스 peak RSS를 기록한다.
+  - `report_sionna_pilot.py`/`g2_full_pilot.py`: 승인 batch만 현재 key로 batch_complete와 production_complete를 확인한다. 정확한 행 수, 현재 코드의 fixture 통과, 257 bin, bin별 판재 재질 readback, 초/행, peak RSS, bytes/행을 검사해 `06_validation/S2_PILOT_REPORT.json`과 `03_pilot/CAPACITY_PLAN.json`을 만든다. 전체 verify는 pilot 후 INCOMPLETE가 정상이며, 전체 계약 수는 바꾸지 않았다.
+  - batch_complete가 영수증 JSON도 MANIFEST의 receipt_sha256과 대조한다. 이전에는 영수증을 수정해도 통과했다.
+  - lane/controller에 `--preflight`(호스트 부하·RAM·디스크, 고정 image, 컨테이너 버전·import 확인), `--los-fixture`, `--pilot-report`, `--collect-pilot`(raw NPZ는 서버 보존)을 추가했다.
+  - 시험: RF 없음, pytest 104 passed.
+- **S2 실행 절차** (Windows, Snowball 접속 가능, 깨끗하고 입력이 완전한 checkout. TARGETS.jsonl과 dynamic/은 정본 SHA로 준비):
+  ```powershell
+  $c = 'results/SIONNA_FULL_RESIM_20260925_01a0d86d'
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --stage              # HEAD에서 manifest 재생성 → rsync(덮어쓰기 없음) → sha256sum --strict -c
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --preflight          # load/RAM/disk, image, RT 2.0.1/Mitsuba 3.8.0/DrJit 1.3.1, sklearn/shapely/rt_cp_uwb_py import
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --los-fixture        # 9회
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --pilot --pilot-batches B010040,B010041 --lanes 2 --threads 4
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --pilot-report --pilot-batches B010040,B010041 --expected-rows 32
+  # 32행이 S2_PILOT_PASS일 때만 다음 단계:
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --pilot --pilot-batches B000337,B000381,B001868,B005973 --lanes 2 --threads 4
+  py -3.10 scripts/g2_completion/run_sionna_full.py --campaign-root $c --collect-pilot --pilot-batches B010040,B010041,B000337,B000381,B001868,B005973 --expected-rows 96
+  ```
+  preflight에서 import가 실패하거나 부하가 과하면 fixture와 pilot으로 진행하지 않는다. 결정론적 실패나 SHA 불일치가 나오면 확대하지 않는다. `--pilot`은 foreground이므로 SSH 연결을 유지한다. `--launch`는 사용하지 않는다.
+- 다음 작업: Windows 작업공간에서 위 절차를 실행한다. 결과(S2_PILOT_REPORT, CAPACITY_PLAN, LOS_FIXTURE, preflight)를 검토해 S3 여부를 판단한다.
