@@ -8,6 +8,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 LANES = ROOT/'scripts/g2_completion/sionna_full_lanes.sh'
+# The lane controller runs on the Linux host (Snowball). These tests execute it with POSIX bash and a fake
+# docker on PATH (':'-separated); on Windows run them under WSL/Linux instead.
+pytestmark = pytest.mark.skipif(os.name == 'nt', reason='requires POSIX bash and PATH semantics (Snowball host)')
 
 
 @pytest.fixture
@@ -18,7 +21,7 @@ def campaign(tmp_path):
     bindir = tmp_path/'bin'; bindir.mkdir()
     (bindir/'docker').write_text('#!/usr/bin/env bash\necho "$@" >> "$FAKE_DOCKER_LOG"\nexit 0\n')
     (bindir/'docker').chmod(0o755)
-    env = dict(os.environ, PATH=f'{bindir}:{os.environ["PATH"]}', CAMPAIGN=str(camp), INPUTS_DIR='IN',
+    env = dict(os.environ, PATH=f'{bindir}:{os.environ["PATH"]}', CAMPAIGN=str(camp), CODE_REV='rev0', INPUTS_DIR='IN',
                IMAGE='sha256:test', PY='/opt/rt-env/bin/python', LANES='2', THREADS='1', HOST_PY='python3',
                FAKE_DOCKER_LOG=str(tmp_path/'docker.log'))
     return camp, env, tmp_path/'docker.log'
@@ -49,6 +52,7 @@ def test_pilot_runs_only_the_listed_batch(campaign):
     c = calls(log)
     assert len(c) == 2 and all('B000001' in x for x in c)
     assert 'sionna_full_runtime.py' in c[0] and 'finish_sionna_full.py' in c[1]
+    assert all(f'{camp}/code/rev0:{camp}/code/rev0:ro' in x for x in c)   # revision-specific code mount
     assert not any('B000000' in x or 'B000002' in x for x in c)
 
 

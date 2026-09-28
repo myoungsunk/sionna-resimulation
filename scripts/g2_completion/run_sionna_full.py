@@ -113,13 +113,15 @@ def stage_manifest(root, inputs_dir, paths, config_map):
         items.append(dict(local=rel, source=source, remote=f'{rroot}/{remote_rel}', sha256=digest, bytes=len(data)))
     code = sorted({c for c in CODE_FILES} | {t for t in tracked if t.startswith('rt_cp_uwb_py/') and t.endswith('.py')})
     for c in code:
-        add(ROOT/c, f'code/{c}')
+        add(ROOT/c, f'code/{head}/{c}')   # A: revision-specific code dir; never overwrites another revision
     inputs = root/inputs_dir
     config = json.loads((inputs/'CONFIG.json').read_text(encoding='utf8'))
+    declared = {'TARGETS.jsonl': config['targets_sha256'], 'POSES.json': config.get('poses_sha256'),
+                'PANELS.json': config.get('panels_sha256'),
+                'STATIC9_OVERLAY_CONTRACT.json': config.get('static9_overlay_sha256')}
     for p in sorted(inputs.rglob('*')):
-        if p.is_file():
-            add(p, f'{inputs_dir}/{p.relative_to(inputs).as_posix()}',
-                config['targets_sha256'] if p.name == 'TARGETS.jsonl' else None)
+        if p.is_file():   # F5: TARGETS/POSES/PANELS must be the canonical set named by CONFIG
+            add(p, f'{inputs_dir}/{p.relative_to(inputs).as_posix()}', declared.get(p.name))
     geo = json.loads((paths['geometry']/'SCENE_MESH_MANIFEST.json').read_text(encoding='utf8'))
     add(paths['geometry']/'SCENE_MESH_MANIFEST.json', f"{remote['paths']['geometry']}/SCENE_MESH_MANIFEST.json",
         config['geometry_manifest_sha256'])
@@ -133,15 +135,18 @@ def stage_manifest(root, inputs_dir, paths, config_map):
     for b in ('BATCHES.jsonl', 'BATCHES_MANIFEST.json'):
         add(root/'02_batches'/b, f'02_batches/{b}')
     out = root/'03_stage'; out.mkdir(exist_ok=True)
-    code_items = [i for i in items if i['remote'].startswith(f'{rroot}/code/')]
+    code_items = [i for i in items if i['remote'].startswith(f'{rroot}/code/{head}/')]
     atomic_write_json(out/'STAGE.json', dict(
         remote_root=rroot, code_revision=head, files=len(items), items=items,
         code_tree_sha256=hashlib.sha256(''.join(f"{i['local']}:{i['sha256']}\n" for i in code_items).encode())
         .hexdigest(), byte_policy='tracked non-LFS: git blob at code_revision; LFS/untracked: file bytes',
         total_bytes=sum(i['bytes'] for i in items),
         timestamp_utc=datetime.datetime.now(datetime.timezone.utc).isoformat()))
-    (out/'SHA256SUMS').write_text(''.join(f"{i['sha256']}  {i['remote'][len(rroot)+1:]}\n" for i in items),
-                                  encoding='utf8', newline='\n')
+    sums = ''.join(f"{i['sha256']}  {i['remote'][len(rroot)+1:]}\n" for i in items)
+    (out/'SHA256SUMS').write_text(sums, encoding='utf8', newline='\n')
+    # Revision-named copies: the remote check and a later collect always use *this* revision's manifest.
+    (out/f'SHA256SUMS.{head}').write_text(sums, encoding='utf8', newline='\n')
+    (out/f'STAGE.{head}.json').write_bytes((out/'STAGE.json').read_bytes())
     return items
 
 
@@ -166,21 +171,37 @@ def build_stage_tree(root):
         if file_sha(dst) != i['sha256']:
             raise SystemExit(f"STAGE_TREE_SHA:{i['local']}")
     (tree/'03_stage').mkdir(exist_ok=True)
-    (tree/'03_stage'/'SHA256SUMS').write_bytes((root/'03_stage'/'SHA256SUMS').read_bytes())
+    rev = stage['code_revision']
+    for name in (f'SHA256SUMS.{rev}', f'STAGE.{rev}.json'):
+        (tree/'03_stage'/name).write_bytes((root/'03_stage'/name).read_bytes())
     return tree
 
 
-def remote_commands(action, root, inputs_dir, lanes, threads, pilot):
+def deployed_stage(root):
+    """The manifest of the revision that was staged (pilot/launch/collect use this, not the local HEAD)."""
+    stage = json.loads((root/'03_stage'/'STAGE.json').read_text(encoding='utf8'))
+    rev = stage['code_revision']
+    named = root/'03_stage'/f'STAGE.{rev}.json'
+    if not named.is_file() or file_sha(named) != file_sha(root/'03_stage'/'STAGE.json'):
+        raise SystemExit('DEPLOYED_STAGE_MANIFEST_MISSING')
+    return stage
+
+
+def remote_commands(action, root, inputs_dir, lanes, threads, pilot, rev):
+    """Remote command lists for the deployed code revision `rev`."""
     lock = json.loads(LOCK.read_text(encoding='utf8'))
     rroot = json.loads(PATH_MAP.read_text(encoding='utf8'))['environments']['snowball']['root']
-    lanes_sh = f'{rroot}/code/scripts/g2_completion/sionna_full_lanes.sh'
-    env = (f'CAMPAIGN={shlex.quote(rroot)} INPUTS_DIR={shlex.quote(inputs_dir)} IMAGE={lock["docker_image"]} '
-           f'PY={lock["container_python"]} LANES={lanes} THREADS={threads}')
+    lanes_sh = f'{rroot}/code/{rev}/scripts/g2_completion/sionna_full_lanes.sh'
+    env = (f'CAMPAIGN={shlex.quote(rroot)} CODE_REV={rev} INPUTS_DIR={shlex.quote(inputs_dir)} '
+           f'IMAGE={lock["docker_image"]} PY={lock["container_python"]} LANES={lanes} THREADS={threads}')
     if action == 'stage':
         tree = root/'03_stage'/'tree'
         return [SSH + [f'mkdir -p {rroot} && test ! -e {rroot}/controller/RUNNING'],
+                # --ignore-existing: never overwrite anything already on the server (older revisions, results) ...
                 ['rsync', '-aL', '--ignore-existing', str(tree) + '/', f'Snowball:{rroot}/'],
-                SSH + [f'cd {rroot} && sha256sum --quiet -c 03_stage/SHA256SUMS && echo STAGE_SHA_OK']]
+                # ... and prove every file equals *this* revision's manifest; a stale file with another SHA fails.
+                SSH + [f'cd {rroot} && sha256sum --quiet --strict -c 03_stage/SHA256SUMS.{rev} '
+                       f'&& echo STAGE_SHA_OK_{rev}']]
     if action == 'pilot':
         return [SSH + [f'{env} PILOT_IDS={shlex.quote(",".join(pilot))} bash {lanes_sh} --pilot']]
     if action in ('launch', 'resume'):
@@ -196,6 +217,7 @@ def remote_commands(action, root, inputs_dir, lanes, threads, pilot):
                 [sys.executable, str(ROOT/'scripts/g2_completion/verify_sionna_full.py'), '--campaign-root',
                  str(root), '--inputs-dir', inputs_dir, '--runs-dir', '05_results/batches',
                  '--raw-policy', 'receipts-only', '--server-verify', str(local/'SERVER_VERIFY.json'),
+                 '--stage-manifest', str(root/'03_stage'/f'STAGE.{rev}.json'),
                  '--out', '06_validation/COLLECTED_VERIFY.json']]
     raise ValueError(action)
 
@@ -233,7 +255,12 @@ def main():
     if action == 'stage' and not a.dry_run:
         stage_manifest(root, a.inputs_dir, paths, config_map)   # always from the current clean HEAD
         build_stage_tree(root)
-    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads, pilot)
+    if action == 'stage':
+        rev = git('rev-parse', 'HEAD').strip() if a.dry_run else json.loads(
+            (root/'03_stage'/'STAGE.json').read_text(encoding='utf8'))['code_revision']
+    else:
+        rev = deployed_stage(root)['code_revision']   # the revision that was staged, not the local HEAD
+    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads, pilot, rev)
     if a.dry_run:
         for c in cmds:
             print(' '.join(shlex.quote(x) for x in c))

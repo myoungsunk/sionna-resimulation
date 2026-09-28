@@ -1,16 +1,15 @@
 {
   "audit_id": "SIONNA_FULL_RESIM_20260925_01a0d86d/PREFLIGHT",
-  "verdict": "NOT_READY_FOR_S2_PILOT",
+  "verdict": "READY_FOR_S2_PILOT",
   "status_counts": {
-    "PASS": 31,
+    "PASS": 32,
     "INFO": 6,
-    "WARN": 3,
-    "BLOCKER": 1
+    "WARN": 3
   },
   "rf_calls": 0,
   "inputs_modified": false,
-  "started_utc": "2026-09-27T10:50:37.249962+00:00",
-  "finished_utc": "2026-09-27T10:52:03.538802+00:00",
+  "started_utc": "2026-09-28T02:02:31.476199+00:00",
+  "finished_utc": "2026-09-28T02:05:11.063928+00:00",
   "checks": [
     {
       "id": "A1",
@@ -667,26 +666,60 @@
     {
       "id": "R1",
       "area": "reproducibility",
-      "status": "BLOCKER",
-      "summary": "TARGETS SHA not reproduced on the Windows workspace (reviewer d50c8005... vs 10fc60b3...); cause unresolved - compare with targets_fingerprint.py and record RESOLUTION.json",
+      "status": "PASS",
+      "summary": "TARGETS cross-environment reproducibility: RESOLVED",
       "detail": {
-        "tools": [
-          "scripts/g2_completion/targets_fingerprint.py",
-          "results/SIONNA_FULL_RESIM_20260925_01a0d86d/01_local_checks/targets_reproducibility/README_KO.md"
-        ]
+        "resolution": {
+          "status": "RESOLVED",
+          "finding": "TARGETS byte difference between environments comes only from floating-point rounding (<= 2 ulp) in geometric_range_m and in the common-yaw pose matrices (historical_mount_frames); pose_id is a content hash of the pose matrices, so a 1-2 ulp matrix difference changes pose_id. No coordinate, identity, scene, frame, panel or clearance difference.",
+          "evidence": {
+            "source": "independent audit 2026-09-27 of HEAD 1e2ac03 (DIFF.json, FP_WIN.json, FIELD_DIGEST_DIFF.json, F5_DIAGNOSIS.json in the reviewer audit folder; not re-run in this checkout)",
+            "rows": 165009,
+            "scenes": 101,
+            "geometric_range_m": {
+              "rows": 15894,
+              "max_abs_m": 3.552713678800501e-15,
+              "max_ulp": 2
+            },
+            "pose_id": {
+              "rows": 19560,
+              "family": "C3",
+              "distinct_pairs": 4510,
+              "matrix_max_abs": 2.220446049250313e-16,
+              "max_ulp": 2
+            },
+            "other_fields": "identical (target_id, order, tx/rx, source_sha256, frame hash, panels, clearance)",
+            "min_clearance_m": 0.01001205778472114,
+            "closure": "substituting only geometric_range_m and pose_id with canonical values reproduces the canonical file SHA exactly",
+            "canonical_sha256": "10fc60b3ea49a1995f0ef94fc7c44aefd44219dfebeaa93fe4ee5d62976146e6",
+            "windows_regenerated_sha256": "d50c8005a5a293b43e290d276d2e291d36cfdb699d3a02b89cd4f6979cc438f4",
+            "attribution": "OS/libm/BLAS source of each bit not isolated; not required"
+          },
+          "policy": [
+            "Canonical TARGETS.jsonl and its POSES.json/PANELS.json are deployed together unchanged; SHAs stay as recorded in 00_inputs_R3/CONFIG.json.",
+            "Never pair a TARGETS/POSES recomputed in another environment with the canonical set; never replace the hash with the Windows value or with a tolerance check.",
+            "S0 is not regenerated on Windows for production; prepare_sionna_full refuses a different TARGETS digest (INPUT_REVISION_CHANGED)."
+          ],
+          "enforcement": [
+            "expected_run_key: POSES.json/PANELS.json SHA must equal CONFIG poses_sha256/panels_sha256 (test_recomputed_poses_cannot_be_paired_with_canonical_targets)",
+            "stage_manifest: TARGETS/POSES/PANELS/STATIC9 overlay staged only if SHA equals CONFIG"
+          ],
+          "physics_change": false,
+          "rf_calls": 0
+        }
       }
     },
     {
       "id": "T1",
       "area": "tests",
       "status": "PASS",
-      "summary": "pytest: 92 passed in 8.84s",
+      "summary": "pytest: 97 passed in 8.44s",
       "detail": {
         "missing_fixtures": [],
         "tail": [
-          "........................................................................ [ 78%]",
-          "....................                                                     [100%]",
-          "92 passed in 8.84s"
+          "........................................................................ [ 74%]",
+          ".........................                                                [100%]",
+          "97 passed in 8.44s"
         ]
       }
     }

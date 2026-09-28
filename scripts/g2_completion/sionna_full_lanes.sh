@@ -13,7 +13,8 @@
 # deterministic target failures, not retried; finish exit 4 = refused (stale/incomplete), not retried.
 # NOT executed from the development environment; see tests/test_g2_full_lanes.py for the fake-docker checks.
 set -euo pipefail
-: "${CAMPAIGN:?}" "${INPUTS_DIR:?}" "${IMAGE:?}" "${PY:?}"
+: "${CAMPAIGN:?}" "${CODE_REV:?}" "${INPUTS_DIR:?}" "${IMAGE:?}" "${PY:?}"
+CODE="$CAMPAIGN/code/$CODE_REV"   # revision-specific staged code (never overwritten)
 LANES="${LANES:-2}"; THREADS="${THREADS:-4}"; PILOT_MAX="${PILOT_MAX:-64}"
 CTRL="$CAMPAIGN/controller"
 BATCHES="$CAMPAIGN/02_batches/BATCHES.jsonl"
@@ -42,10 +43,10 @@ print("\n".join(ids))' "$BATCHES" "$PILOT_IDS" "$PILOT_MAX"
 
 container() {  # extra docker args..., then the command
   docker run --rm --user "$(id -u):$(id -g)" --network none --tmpfs /tmp:rw,size=2g -e HOME=/tmp \
-    -v "$CAMPAIGN/code:$CAMPAIGN/code:ro" -v "$CAMPAIGN/input:$CAMPAIGN/input:ro" \
+    -v "$CODE:$CODE:ro" -v "$CAMPAIGN/input:$CAMPAIGN/input:ro" \
     -v "$CAMPAIGN/$INPUTS_DIR:$CAMPAIGN/$INPUTS_DIR:ro" -v "$CAMPAIGN/02_batches:$CAMPAIGN/02_batches:ro" \
     -v "$CAMPAIGN/batches:$CAMPAIGN/batches:rw" -v "$CAMPAIGN/06_validation:$CAMPAIGN/06_validation:rw" \
-    -w "$CAMPAIGN/code" "$@"
+    -w "$CODE" "$@"
 }
 
 run_batch() {  # $1 batch id

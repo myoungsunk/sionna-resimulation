@@ -38,13 +38,31 @@ def receipts_consistent(batch_dir, batch, key):
     return False
 
 
+def server_report_problems(sv, key, pkey, expected_total):
+    """C: a server report is accepted only as a successful full-raw verification for these keys."""
+    if not sv:
+        return ['SERVER_FULL_VERIFY_MISSING_OR_OTHER_KEY']
+    out = []
+    if sv.get('raw_policy') != 'full' or sv.get('expected_run_key') != key or sv.get('production_key') != pkey:
+        out.append('SERVER_FULL_VERIFY_MISSING_OR_OTHER_KEY')
+    if sv.get('status') != 'FULL_NATIVE_SIMULATION_COMPLETE_UNSEALED':
+        out.append('SERVER_VERIFY_NOT_COMPLETE:' + str(sv.get('status')))
+    counts = (sv.get('expected'), sv.get('raw_complete'), sv.get('finished'))
+    if counts != (expected_total,)*3 or sv.get('pending') != 0:
+        out.append(f'SERVER_VERIFY_COUNTS:{counts}/pending={sv.get("pending")}')
+    if sv.get('problems') or sv.get('stale_or_other_key'):
+        out.append('SERVER_VERIFY_REPORTED_PROBLEMS')
+    return out
+
+
 def verify_campaign(code_root, root, inputs_dir, batches_file='02_batches/BATCHES.jsonl', runs_dir='batches',
                     raw_policy='full', server_verify=None, expected_total=EXPECTED_TOTAL,
-                    expected_scenes=EXPECTED_SCENES):
+                    expected_scenes=EXPECTED_SCENES, stage=None):
+    """stage: the 03_stage/STAGE.json that was deployed; keys then use the shipped bytes (B)."""
     root = Path(root)
     inputs = root/inputs_dir
-    key = expected_run_key(code_root, inputs)
-    pkey = production_key(code_root, inputs, key)
+    key = expected_run_key(code_root, inputs, stage=stage)
+    pkey = production_key(code_root, inputs, key, stage=stage)
     census = json.loads((inputs/'TARGET_CENSUS.json').read_text(encoding='utf8'))
     fam, scene = {}, {}
     with (inputs/'TARGETS.jsonl').open(encoding='utf8') as f:
@@ -61,9 +79,7 @@ def verify_campaign(code_root, root, inputs_dir, batches_file='02_batches/BATCHE
         problems.append('BATCH_TARGET_SET_NOT_EQUAL_TARGETS')
     if raw_policy == 'receipts-only':
         sv = json.loads(Path(server_verify).read_text(encoding='utf8')) if server_verify else None
-        if not sv or sv.get('raw_policy') != 'full' or sv.get('expected_run_key') != key \
-                or sv.get('production_key') != pkey:
-            problems.append('SERVER_FULL_VERIFY_MISSING_OR_OTHER_KEY')
+        problems += server_report_problems(sv, key, pkey, expected_total)
     raw_done, finished, stale, failures = set(), set(), [], []
     for b in batches:
         bdir = root/runs_dir/b['batch_id']
@@ -88,6 +104,7 @@ def verify_campaign(code_root, root, inputs_dir, batches_file='02_batches/BATCHE
     report = dict(
         status='FULL_NATIVE_SIMULATION_COMPLETE_UNSEALED' if complete else 'INCOMPLETE',
         raw_policy=raw_policy, expected_run_key=key, production_key=pkey,
+        key_bytes='stage manifest ' + str(stage.get('code_revision')) if stage else 'local files',
         expected=len(fam), raw_complete=len(raw_done), finished=len(finished),
         pending=len(set(fam) - finished), stale_or_other_key=stale, failures=failures, problems=problems,
         by_family=dict(expected=count(fam, fam), raw_complete=count(raw_done, fam), finished=count(finished, fam)),

@@ -38,9 +38,13 @@ def main():
     ap.add_argument('--out', default='06_validation/VERIFY.json')
     ap.add_argument('--raw-policy', choices=('full', 'receipts-only'), default='full')
     ap.add_argument('--server-verify', default=None, help='receipts-only: server VERIFY.json (raw-policy full)')
+    ap.add_argument('--stage-manifest', default=None,
+                    help='03_stage/STAGE.json that was deployed: judge with the shipped bytes (Windows collect)')
     a = ap.parse_args()
     root = a.campaign_root if a.campaign_root.is_absolute() else ROOT/a.campaign_root
-    report = verify_campaign(ROOT, root, a.inputs_dir, a.batches_file, a.runs_dir, a.raw_policy, a.server_verify)
+    stage = json.loads(Path(a.stage_manifest).read_text(encoding='utf8')) if a.stage_manifest else None
+    report = verify_campaign(ROOT, root, a.inputs_dir, a.batches_file, a.runs_dir, a.raw_policy, a.server_verify,
+                             stage=stage)
     out = root/a.out
     out.parent.mkdir(parents=True, exist_ok=True)
     atomic_write_json(out, report)

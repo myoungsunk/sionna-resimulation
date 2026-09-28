@@ -91,25 +91,50 @@ def run_key(config_sha256, targets_sha256, code_sha256):
     return dict(config_sha256=config_sha256, targets_sha256=targets_sha256, code_sha256=code_sha256)
 
 
-def expected_run_key(code_root, inputs, bins=FULL_BINS):
+def staged_sha(path, code_root, stage=None):
+    """SHA of a file as deployed.
+
+    Without a stage manifest: the local bytes. With one (03_stage/STAGE.json):
+    the SHA recorded for that repository path, i.e. the Git-blob bytes that were
+    shipped, so a Windows checkout whose text files differ only by line endings
+    judges with the same key as the server. A path missing from the manifest is
+    an error, never a fallback to local bytes.
+    """
+    if stage is None:
+        return file_sha(path)
+    rel = Path(path).resolve().relative_to(Path(code_root).resolve()).as_posix()
+    shas = stage.get('_by_local') or {i['local']: i['sha256'] for i in stage['items']}
+    stage['_by_local'] = shas
+    if rel not in shas:
+        raise ValueError('NOT_IN_STAGE_MANIFEST:' + rel)
+    return shas[rel]
+
+
+def expected_run_key(code_root, inputs, bins=FULL_BINS, stage=None):
     """Run key the current frozen inputs + runtime code + band would produce.
 
     Completion anywhere (skip, finish, verify) is judged against this key, never
-    against the key stored in a COMPLETE file.
+    against the key stored in a COMPLETE file. TARGETS, POSES and PANELS must be
+    the canonical set named by CONFIG (F5: pose_id is a content hash of the pose
+    matrices, so a recomputed POSES must never be paired with the canonical TARGETS).
     """
-    config = json.loads((Path(inputs)/'CONFIG.json').read_text(encoding='utf8'))
-    if file_sha(Path(inputs)/'TARGETS.jsonl') != config['targets_sha256']:
+    inputs = Path(inputs)
+    config = json.loads((inputs/'CONFIG.json').read_text(encoding='utf8'))
+    if file_sha(inputs/'TARGETS.jsonl') != config['targets_sha256']:
         raise ValueError('TARGETS_SHA_NOT_CONFIG')
-    key = run_key(file_sha(Path(inputs)/'CONFIG.json'), config['targets_sha256'],
-                  {c: file_sha(Path(code_root)/c) for c in RUNTIME_CODE})
+    for name, field in (('POSES.json', 'poses_sha256'), ('PANELS.json', 'panels_sha256')):
+        if field in config and staged_sha(inputs/name, code_root, stage) != config[field]:
+            raise ValueError(f'{name}_SHA_NOT_CONFIG: not the canonical set bound to TARGETS')
+    key = run_key(staged_sha(inputs/'CONFIG.json', code_root, stage), config['targets_sha256'],
+                  {c: staged_sha(Path(code_root)/c, code_root, stage) for c in RUNTIME_CODE})
     key['bins'] = list(bins)
     return key
 
 
-def production_key(code_root, inputs, raw_key):
+def production_key(code_root, inputs, raw_key, stage=None):
     """Key of finish outputs: the raw key plus the finish code and operating config."""
-    return dict(raw_run_key=raw_key, config_sha256=file_sha(Path(inputs)/'CONFIG.json'),
-                finish_code_sha256={c: file_sha(Path(code_root)/c) for c in FINISH_CODE})
+    return dict(raw_run_key=raw_key, config_sha256=staged_sha(Path(inputs)/'CONFIG.json', code_root, stage),
+                finish_code_sha256={c: staged_sha(Path(code_root)/c, code_root, stage) for c in FINISH_CODE})
 
 
 def production_complete(batch_dir, batch, prod_key):
