@@ -85,3 +85,21 @@ def test_controller_validates_pilot_before_building_commands(tmp_path):
     out = subprocess.run([sys.executable, str(ROOT/'scripts/g2_completion/run_sionna_full.py'), '--campaign-root',
                           str(tmp_path), '--pilot', '--dry-run'], capture_output=True, text=True)
     assert out.returncode != 0 and 'PILOT_BATCHES_REQUIRED' in out.stderr and 'ssh' not in out.stdout
+
+
+def test_preflight_fixture_and_report_modes_use_the_revision_code_and_validate(campaign):
+    camp, env, log = campaign
+    assert run(['--los-fixture'], env).returncode == 0
+    c = calls(log)
+    assert len(c) == 1 and '--los-fixture-only' in c[0] and f'{camp}/code/rev0' in c[0] and '--batch-id' not in c[0]
+    r = run(['--pilot-report'], env, dict(PILOT_IDS='B000001'))
+    assert r.returncode != 0 and len(calls(log)) == 1          # EXPECTED_ROWS required
+    r = run(['--pilot-report'], env, dict(PILOT_IDS='', EXPECTED_ROWS='16'))
+    assert r.returncode != 0 and 'PILOT_IDS_REQUIRED' in r.stderr and len(calls(log)) == 1
+    r = run(['--pilot-report'], env, dict(PILOT_IDS='B000001,B000002', EXPECTED_ROWS='32'))
+    assert r.returncode == 0, r.stderr
+    last = calls(log)[-1]
+    assert 'report_sionna_pilot.py' in last and '--batches B000001,B000002' in last and '--expected-rows 32' in last
+    r = run(['--preflight'], env)
+    assert r.returncode == 0, r.stderr
+    assert json.loads(r.stdout)['code_rev'] == 'rev0'

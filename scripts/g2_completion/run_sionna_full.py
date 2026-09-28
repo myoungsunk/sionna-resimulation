@@ -15,7 +15,12 @@ remote side re-checks with sha256sum -c.
 Remote (Snowball, KMS, Docker image pinned in RUNTIME_LOCK). NOT executed from
 this environment; --dry-run prints the exact commands:
     --stage     regenerate the manifest from a clean HEAD, build 03_stage/tree, rsync, remote sha256sum -c
+    --preflight     host load/RAM/disk, pinned image, container versions + imports (no RF)
+    --los-fixture   standalone LOS FFD fixture: exactly 9 PathSolver calls (reused if it already passed)
     --pilot     --pilot-batches ID[,ID...] required: non-empty, known, unique, <= 64; never all batches
+    --pilot-report / --collect-pilot  --pilot-batches ... --expected-rows N: bounded S2 report + capacity plan on
+                the server (raw present); collect-pilot then fetches those batches' receipts/manifests/production
+                and the report (raw NPZ stay on the server). The full verify stays INCOMPLETE after a pilot.
     --launch    all batches via the nohup lane controller; refuses if one is alive
     --status    remote file counts (completion is decided by verify)
     --resume    same as --launch (idempotent: an alive controller is left alone)
@@ -187,7 +192,7 @@ def deployed_stage(root):
     return stage
 
 
-def remote_commands(action, root, inputs_dir, lanes, threads, pilot, rev):
+def remote_commands(action, root, inputs_dir, lanes, threads, pilot, rev, expected_rows=None):
     """Remote command lists for the deployed code revision `rev`."""
     lock = json.loads(LOCK.read_text(encoding='utf8'))
     rroot = json.loads(PATH_MAP.read_text(encoding='utf8'))['environments']['snowball']['root']
@@ -202,8 +207,27 @@ def remote_commands(action, root, inputs_dir, lanes, threads, pilot, rev):
                 # ... and prove every file equals *this* revision's manifest; a stale file with another SHA fails.
                 SSH + [f'cd {rroot} && sha256sum --quiet --strict -c 03_stage/SHA256SUMS.{rev} '
                        f'&& echo STAGE_SHA_OK_{rev}']]
+    if action == 'preflight':
+        return [SSH + [f'{env} bash {lanes_sh} --preflight']]
+    if action == 'los_fixture':
+        return [SSH + [f'{env} bash {lanes_sh} --los-fixture']]
     if action == 'pilot':
         return [SSH + [f'{env} PILOT_IDS={shlex.quote(",".join(pilot))} bash {lanes_sh} --pilot']]
+    if action == 'pilot_report':
+        return [SSH + [f'{env} PILOT_IDS={shlex.quote(",".join(pilot))} EXPECTED_ROWS={expected_rows} '
+                       f'bash {lanes_sh} --pilot-report']]
+    if action == 'collect_pilot':
+        local = root/'05_results'
+        # rsync: first matching rule wins -> production (incl. CHANNEL.npz) first, then no other *.npz (raw
+        # stays on the server), then the rest of each approved batch (receipts/manifests/status), nothing else.
+        flt = ([f'--include={b}/production/***' for b in pilot] + ['--exclude=*.npz'] +
+               [f'--include={b}/***' for b in pilot] + ['--exclude=*'])
+        return [SSH + [f'{env} PILOT_IDS={shlex.quote(",".join(pilot))} EXPECTED_ROWS={expected_rows} '
+                       f'bash {lanes_sh} --pilot-report'],
+                ['rsync', '-a', *flt, f'Snowball:{rroot}/batches/', str(local/'batches') + '/'],
+                ['rsync', '-a', f'Snowball:{rroot}/06_validation/S2_PILOT_REPORT.json',
+                 f'Snowball:{rroot}/03_pilot/CAPACITY_PLAN.json', f'Snowball:{rroot}/02_fixtures/',
+                 str(local/'s2') + '/']]
     if action in ('launch', 'resume'):
         return [SSH + [f'{env} bash {lanes_sh} --launch']]
     if action == 'status':
@@ -227,13 +251,14 @@ def main():
     ap.add_argument('--campaign-root', type=Path, required=True)
     ap.add_argument('--inputs-dir', default='00_inputs_R3')
     g = ap.add_mutually_exclusive_group(required=True)
-    for flag in ('make-batches', 'stage-manifest', 'stage-local', 'stage', 'pilot', 'launch', 'status', 'resume',
-                 'collect'):
+    for flag in ('make-batches', 'stage-manifest', 'stage-local', 'stage', 'preflight', 'los-fixture', 'pilot',
+                 'pilot-report', 'collect-pilot', 'launch', 'status', 'resume', 'collect'):
         g.add_argument('--' + flag, action='store_true')
     ap.add_argument('--batch-size', type=int, default=16)
     ap.add_argument('--lanes', type=int, default=2)
     ap.add_argument('--threads', type=int, default=4)
     ap.add_argument('--pilot-batches', default='')
+    ap.add_argument('--expected-rows', type=int, default=None, help='pilot-report/collect-pilot: approved row count')
     ap.add_argument('--dry-run', action='store_true')
     a = ap.parse_args()
     config_map, paths = load_paths(PATH_MAP, 'repo_checkout', ROOT)
@@ -248,10 +273,13 @@ def main():
         print(json.dumps(dict(files=len(items), code_revision=git('rev-parse', 'HEAD').strip(),
                               tree=str(tree.relative_to(ROOT)) if tree else None)))
         return
-    action = next(f for f in ('stage', 'pilot', 'launch', 'status', 'resume', 'collect') if getattr(a, f))
+    action = next(f for f in ('stage', 'preflight', 'los_fixture', 'pilot', 'pilot_report', 'collect_pilot', 'launch',
+                              'status', 'resume', 'collect') if getattr(a, f))
     pilot = [p for p in a.pilot_batches.split(',')] if a.pilot_batches else []
-    if action == 'pilot':
+    if action in ('pilot', 'pilot_report', 'collect_pilot'):
         validate_pilot(root, pilot)
+    if action in ('pilot_report', 'collect_pilot') and not a.expected_rows:
+        raise SystemExit('EXPECTED_ROWS_REQUIRED')
     if action == 'stage' and not a.dry_run:
         stage_manifest(root, a.inputs_dir, paths, config_map)   # always from the current clean HEAD
         build_stage_tree(root)
@@ -260,7 +288,7 @@ def main():
             (root/'03_stage'/'STAGE.json').read_text(encoding='utf8'))['code_revision']
     else:
         rev = deployed_stage(root)['code_revision']   # the revision that was staged, not the local HEAD
-    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads, pilot, rev)
+    cmds = remote_commands(action, root, a.inputs_dir, a.lanes, a.threads, pilot, rev, a.expected_rows)
     if a.dry_run:
         for c in cmds:
             print(' '.join(shlex.quote(x) for x in c))

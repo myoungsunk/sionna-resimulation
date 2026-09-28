@@ -308,7 +308,9 @@ def batch_complete(batch_dir, batch, key):
         m = json.loads((att/'MANIFEST.json').read_text(encoding='utf8'))
         if sorted(m['outputs']) != sorted(batch['target_ids']):
             continue
+        # Receipt JSON must also be the one the manifest recorded (its meta feeds reports), not only the NPZ.
         if all(verified_receipt(Path(batch_dir)/o['attempt']/'raw', tid, key)
+               and file_sha(Path(batch_dir)/o['attempt']/'raw'/f'{tid}.json') == o['receipt_sha256']
                for tid, o in m['outputs'].items()):
             return True
     return False

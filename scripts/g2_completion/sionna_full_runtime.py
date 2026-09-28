@@ -15,12 +15,15 @@ imported unchanged from sionna_native_runtime.py (Windows bytes, SHA
     python scripts/g2_completion/sionna_full_runtime.py --campaign-root <root> --inputs-dir 00_inputs_R3 \
         --batch-id B000000 [--batches-file 02_batches/BATCHES.jsonl] [--bins all|0,128,256] \
         [--max-rf-calls N] [--threads 4] [--environment repo_checkout|snowball] [--runs-dir batches]
+    python scripts/g2_completion/sionna_full_runtime.py --campaign-root <root> --inputs-dir 00_inputs_R3 \
+        --los-fixture-only      # LOS FFD fixture only: bins 0/128/256 x 3 arms = exactly 9 calls
 """
 import argparse
 import hashlib
 import importlib.metadata
 import inspect
 import json
+import resource
 import sys
 import time
 from pathlib import Path
@@ -141,8 +144,37 @@ class Producer:
                     pose_id=t['pose_id'], panel_id=t['panel_id'], frame_ref=t['frame_ref'], bins=self.bins,
                     path_counts=counts, bindings=bindings, panel_material_readback=readback,
                     object_indices={str(o.object_id): name for name, o in scene.objects.items()},
-                    elapsed_s=time.monotonic()-start)
+                    elapsed_s=time.monotonic()-start,
+                    peak_rss_kib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)  # Linux: KiB, process peak
         return saved, meta
+
+
+FIXTURE_BINS = '0,128,256'
+FIXTURE_CALLS = 9   # 3 bins x 3 arms (S2 approval): never scaled by --bins
+
+
+def run_los_fixture(root, config, paths, inputs, banks, threads):
+    """Standalone FFD/native LOS adapter fixture: exactly 9 PathSolver calls, reused if already passed."""
+    producer = Producer(paths, inputs, config, banks, FIXTURE_BINS, threads)
+    code = {c: file_sha(ROOT/c) for c in CODE}
+    tag = hashlib.sha256(json.dumps(code, sort_keys=True).encode()).hexdigest()[:16]
+    out = root/'02_fixtures'/f'LOS_FIXTURE.{tag}.json'
+    if out.is_file():
+        prior = json.loads(out.read_text(encoding='utf8'))
+        if prior.get('code_sha256') == code and prior.get('passed'):
+            return dict(prior, reused=True, rf_calls_this_run=0)
+        raise SystemExit(f'LOS_FIXTURE_EXISTS_NOT_PASSED: {out} is preserved; inspect before any retry')
+    budget = CallBudget(FIXTURE_CALLS)
+    budget.take(FIXTURE_CALLS)   # fixture makes one PathSolver call per (bin, arm)
+    results = native.los_fixture(producer.banks, producer.txp, producer.rxp, producer.bins)
+    if len(results) != FIXTURE_CALLS:
+        raise SystemExit('LOS_FIXTURE_CALL_COUNT')
+    record = dict(fixture='sionna_native_runtime.los_fixture (unchanged)', bins=producer.bins, rf_calls=FIXTURE_CALLS,
+                  passed=all(r['passed'] for r in results), results=results, code_sha256=code,
+                  runtime=producer.runtime_record())
+    out.parent.mkdir(parents=True, exist_ok=True)
+    atomic_write_json(out, record)
+    return dict(record, reused=False, rf_calls_this_run=FIXTURE_CALLS, file=str(out))
 
 
 def main():
@@ -150,13 +182,14 @@ def main():
     ap.add_argument('--campaign-root', type=Path, required=True)
     ap.add_argument('--environment', default='repo_checkout')
     ap.add_argument('--inputs-dir', required=True)
-    ap.add_argument('--batch-id', required=True)
+    ap.add_argument('--batch-id')
     ap.add_argument('--batches-file', default='02_batches/BATCHES.jsonl')
     ap.add_argument('--runs-dir', default='batches')
     ap.add_argument('--bins', default='all')
     ap.add_argument('--max-rf-calls', type=int, default=None)
     ap.add_argument('--threads', type=int, default=4)
-    ap.add_argument('--smoke', action='store_true', help='run the LOS FFD fixture before the batch (counts RF calls)')
+    ap.add_argument('--los-fixture-only', action='store_true',
+                    help='run only the LOS FFD fixture at bins 0/128/256 (exactly 9 calls); no batch')
     a = ap.parse_args()
     config_map, paths = load_paths(PATH_MAP, a.environment, ROOT)
     root = a.campaign_root if a.campaign_root.is_absolute() else ROOT/a.campaign_root
@@ -167,6 +200,12 @@ def main():
         raise SystemExit('BANK_SHA_NOT_CONFIG')
     if file_sha(inputs/'TARGETS.jsonl') != config['targets_sha256']:
         raise SystemExit('TARGETS_SHA_NOT_CONFIG')
+    if a.los_fixture_only:
+        r = run_los_fixture(root, config, paths, inputs, banks, a.threads)
+        print(json.dumps({k: r[k] for k in ('passed', 'reused', 'rf_calls_this_run', 'bins')}))
+        sys.exit(0 if r['passed'] else 5)
+    if not a.batch_id:
+        raise SystemExit('BATCH_ID_REQUIRED')
     batch = next((json.loads(l) for l in (root/a.batches_file).read_text(encoding='utf8').splitlines()
                   if json.loads(l)['batch_id'] == a.batch_id), None)
     if batch is None:
@@ -176,13 +215,6 @@ def main():
     budget = CallBudget(a.max_rf_calls)
     batch_dir = root/a.runs_dir/a.batch_id
     batch_dir.mkdir(parents=True, exist_ok=True)
-    if a.smoke:
-        n_fixture = 3*len(producer.bins)
-        budget.take(n_fixture)
-        fixture = native.los_fixture(producer.banks, producer.txp, producer.rxp, producer.bins)
-        atomic_write_json(batch_dir/'LOS_FIXTURE.json', fixture)
-        if not all(r['passed'] for r in fixture):
-            raise SystemExit('FFD_NATIVE_LOS_ADAPTER_FAILED')
     targets = load_targets(inputs, batch['target_ids'])
     status = run_batch(batch, targets, batch_dir, key, producer.compute, budget, 3*len(producer.bins))
     status.update(budget_used=budget.used, budget_limit=budget.limit)

@@ -5,6 +5,10 @@
 #   --launch        all batches of 02_batches/BATCHES.jsonl in background lanes; refuses if a controller is alive
 #   --status        JSON counts (works before any output exists)
 #   --server-verify container verify_sionna_full.py --raw-policy full -> 06_validation/SERVER_VERIFY.json
+#   --preflight     host identity/load/RAM/disk + pinned image + container versions/imports -> controller/PREFLIGHT_*.json
+#   --los-fixture   container runtime --los-fixture-only (exactly 9 PathSolver calls; reused if passed)
+#   --pilot-report  PILOT_IDS + EXPECTED_ROWS: bounded S2 report -> 06_validation/S2_PILOT_REPORT.json,
+#                   03_pilot/CAPACITY_PLAN.json (the full verify stays INCOMPLETE after a pilot by design)
 #
 # Each batch: pinned Docker image -> sionna_full_runtime.py (reuses verified targets, recovers COMPLETE)
 # -> finish_sionna_full.py (skips only when production matches the current key; refuses stale output).
@@ -105,5 +109,42 @@ case "${1:-}" in
     mkdir -p "$CAMPAIGN/06_validation"
     container "$IMAGE" "$PY" scripts/g2_completion/verify_sionna_full.py --campaign-root "$CAMPAIGN" \
       --inputs-dir "$INPUTS_DIR" --raw-policy full --out 06_validation/SERVER_VERIFY.json;;
-  *) echo "usage: $0 --pilot|--launch|--status|--server-verify" >&2; exit 64;;
+  --preflight)
+    mkdir -p "$CTRL"; out="$CTRL/PREFLIGHT_$(date -u +%Y%m%dT%H%M%SZ).json"
+    {
+      echo "{\"user\": \"$(whoami)\", \"host\": \"$(hostname)\", \"nproc\": $(nproc),"
+      echo " \"loadavg\": \"$(cut -d' ' -f1-3 /proc/loadavg)\","
+      echo " \"mem_available_gib\": $(awk '/MemAvailable/ {printf "%.1f", $2/1048576}' /proc/meminfo),"
+      echo " \"disk_free_gib\": $(df -Pk "$CAMPAIGN" | awk 'NR==2 {printf "%.1f", $4/1048576}'),"
+      echo " \"image_present\": $(docker image inspect "$IMAGE" >/dev/null 2>&1 && echo true || echo false),"
+      echo " \"code_rev\": \"$CODE_REV\","
+      cont=$(container "$IMAGE" "$PY" -c 'import json,importlib.metadata as m,sys
+import mitsuba as mi; mi.set_variant("llvm_ad_mono_polarized")
+v={n:m.version(n) for n in ("sionna-rt","mitsuba","drjit")}
+mods={}
+for name in ("sklearn","shapely","scipy","numpy","rt_cp_uwb_py","rt_cp_uwb_py.g2_full_runner","rt_cp_uwb_py.g2_scoped_channel"):
+    try:
+        __import__(name); mods[name]="ok"
+    except Exception as e:
+        mods[name]=type(e).__name__+": "+str(e)[:120]
+print(json.dumps(dict(python=sys.executable, versions=v, variant=mi.variant(), imports=mods)))' 2>&1 | tail -1 || true)
+      case "$cont" in "{"*) ;; *) cont="{\"error\": \"container check failed: $(printf %s "$cont" | tr -d '"\\' | head -c 200)\"}";; esac
+      echo " \"container\": $cont"
+      echo "}"
+    } >"$out"
+    cat "$out";;
+  --los-fixture)
+    mkdir -p "$CAMPAIGN/02_fixtures"
+    docker run --rm --user "$(id -u):$(id -g)" --network none --tmpfs /tmp:rw,size=2g -e HOME=/tmp \
+      -v "$CODE:$CODE:ro" -v "$CAMPAIGN/input:$CAMPAIGN/input:ro" -v "$CAMPAIGN/$INPUTS_DIR:$CAMPAIGN/$INPUTS_DIR:ro" \
+      -v "$CAMPAIGN/02_fixtures:$CAMPAIGN/02_fixtures:rw" -w "$CODE" "$IMAGE" \
+      "$PY" scripts/g2_completion/sionna_full_runtime.py --environment snowball --campaign-root "$CAMPAIGN" \
+        --inputs-dir "$INPUTS_DIR" --los-fixture-only --threads "$THREADS";;
+  --pilot-report)
+    : "${EXPECTED_ROWS:?}"; ids=$(pilot_ids | paste -sd,)
+    mkdir -p "$CAMPAIGN/03_pilot"
+    container -v "$CAMPAIGN/03_pilot:$CAMPAIGN/03_pilot:rw" -v "$CAMPAIGN/02_fixtures:$CAMPAIGN/02_fixtures:ro" \
+      "$IMAGE" "$PY" scripts/g2_completion/report_sionna_pilot.py --campaign-root "$CAMPAIGN" \
+      --inputs-dir "$INPUTS_DIR" --batches "$ids" --expected-rows "$EXPECTED_ROWS" --lanes "$LANES" --threads "$THREADS";;
+  *) echo "usage: $0 --preflight|--los-fixture|--pilot|--pilot-report|--launch|--status|--server-verify" >&2; exit 64;;
 esac

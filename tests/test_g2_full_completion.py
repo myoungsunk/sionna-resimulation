@@ -41,7 +41,8 @@ def make_campaign(tmp_path):
 def compute(target, budget):
     for _ in range(3*257):
         budget.take()
-    return raw_two_paths(), dict(fixture=True)
+    return raw_two_paths(), dict(fixture=True, bins=list(range(257)), family=target['family'],
+                                 scene_id=target['scene_id'], elapsed_s=1.5, peak_rss_kib=1024)
 
 
 def produce(root, inputs, targets, batch):
