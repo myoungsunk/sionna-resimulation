@@ -61,6 +61,7 @@ ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 
 code { font-family: var(--font-mono); font-size: 12.5px; }
 .ok { color: var(--ok); font-family: var(--font-mono); }
 td.big { color: var(--robot); font-weight: 600; }
+td.ok { font-weight: 600; }
 details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
 details > summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
 </style>
@@ -104,6 +105,14 @@ details > summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 
       <summary>실제 yaw별 각도 오차 (전체 채널, 단위 °)</summary>
       <div id="matchdetail"></div>
     </details>
+  </section>
+
+  <section class="card" aria-label="왜곡 지표를 이용한 보정">
+    <h2>왜곡 지표로 각도 추정을 보정할 수 있나</h2>
+    <p class="note">지표 I = |r(TX+45°) − r(TX−45°)|는 정답 없이 측정만으로 구할 수 있고, 이상 포트라면 0입니다. 이 지표로 (1) 신뢰도가 낮은 추정을 거르거나, (2) 두 TX 포트의 추정을 합치거나, (3) 지표로 오차를 학습해 빼는 방법을 비교했습니다. 학습형 보정은 한 위치를 빼고 나머지로 학습해 그 위치에서 평가했습니다. 오차는 모두 RMSE(°)입니다.</p>
+    <div class="scroll"><table id="corr"></table></div>
+    <div class="scroll"><table id="corrcorr"></table></div>
+    <p class="note">초록색은 기준보다 0.3° 이상 낮은 값입니다. I로 거르는 방법의 "전체 4위치" 개선은 대부분 선택 효과입니다. I가 작은 25%의 80% 이상이 앵커 바로 아래 위치여서 가까운 위치만 남은 결과이고, 먼 3위치만 보면 개선은 11.09° → 9.4–9.5°(약 15%)입니다. 두 TX 포트를 합치는 방법은 위치 선택과 무관하게 줄어듭니다(먼 3위치 기준 약 20%, 단일 포트 평균 11.0° → 8.74°). 학습형 보정은 기준보다 나빠졌습니다.</p>
   </section>
 
   <section>
@@ -260,6 +269,27 @@ details > summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 
     });
     t.appendChild(tb); sc.appendChild(t); dd.appendChild(sc);
   });
+
+  // Artifact-indicator correction study.
+  var C = D.corr, fz = C.fusion, gt = function (sc, k) { return C.gating_by_I1.filter(function (g) { return g.scope === sc && g.keep_percent === k; })[0]; };
+  var cm = [
+    ['기준: 두 TX 포트를 모두 사용한 단일 추정', C.baseline_rmse_deg.all, C.baseline_rmse_deg.far, '–'],
+    ['단일 TX +45°', fz.all.tx_plus45, fz.far.tx_plus45, '–'],
+    ['단일 TX −45°', fz.all.tx_minus45, fz.far.tx_minus45, '–'],
+    ['두 TX의 비율을 평균한 뒤 매칭', fz.all.mean_of_ratios, fz.far.mean_of_ratios, '전부'],
+    ['두 TX의 각도 추정을 평균', fz.all.mean_of_estimates, fz.far.mean_of_estimates, '전부'],
+    ['I로 거르기: I가 작은 50%만 사용', gt('all', 50).rmse_deg, gt('far', 50).rmse_deg, '50%'],
+    ['I로 거르기: I가 작은 25%만 사용', gt('all', 25).rmse_deg, gt('far', 25).rmse_deg, '25%'],
+    ['학습형 보정 (I로 오차를 회귀해 빼기, 위치 교차검증)', C.lopo_ridge_correction.I1.all, C.lopo_ridge_correction.I1.far, '전부']
+  ];
+  var base = C.baseline_rmse_deg;
+  document.getElementById('corr').innerHTML = '<thead><tr><th>방법</th><th class="n">전체 4위치</th><th class="n">먼 3위치</th><th class="n">사용 비율</th></tr></thead><tbody>' + cm.map(function (r, i) {
+    var better = i > 2 && r[1] < base.all - 0.3, cls = function (v, b) { return v < b - 0.3 ? ' ok' : (v > b + 0.3 ? ' big' : ''); };
+    return '<tr><td>' + r[0] + '</td><td class="n' + (i > 2 ? cls(r[1], base.all) : '') + '">' + f(r[1], 2) + '</td><td class="n' + (i > 2 ? cls(r[2], base.far) : '') + '">' + f(r[2], 2) + '</td><td class="n">' + r[3] + '</td></tr>';
+  }).join('') + '</tbody>';
+  var sp = C.indicator_spearman_with_abs_error, nm = { I1: 'I = |r₊ − r₋| (측정만으로 계산)', tail: 'first-path 뒤 CIR 꼬리 비율 (측정)', fp_db: 'first-path 전력 dB (측정)', off: '앵커 off-boresight (위치로 알려진 값)', R: '거리 R (위치로 알려진 값)' };
+  document.getElementById('corrcorr').innerHTML = '<thead><tr><th>지표</th><th class="n">|각도 오차|와의 상관 ρ (4위치 전체)</th><th class="n">먼 3위치만</th></tr></thead><tbody>' + Object.keys(nm).map(function (k) {
+    return '<tr><td>' + nm[k] + '</td><td class="n">' + f(sp[k].pooled, 2) + '</td><td class="n">' + f(sp[k].far_only, 2) + '</td></tr>'; }).join('') + '</tbody>';
 
   var ul = document.getElementById('verdict');
   [
