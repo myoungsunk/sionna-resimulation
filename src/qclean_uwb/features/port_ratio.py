@@ -46,3 +46,4 @@ def los_fp_power_ratio(yaw_deg) -> np.ndarray:
     """
     yaw = np.radians(np.asarray(yaw_deg, dtype=float))
     return port_difference_ratio(np.sin(yaw) ** 2, np.cos(yaw) ** 2)
+

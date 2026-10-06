@@ -60,6 +60,9 @@ td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-nume
 ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 code { font-family: var(--font-mono); font-size: 12.5px; }
 .ok { color: var(--ok); font-family: var(--font-mono); }
+td.big { color: var(--robot); font-weight: 600; }
+details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
+details > summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
 </style>
 
 <div class="wrap">
@@ -92,6 +95,16 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
       <ul id="verdict"></ul>
     </section>
   </div>
+
+  <section class="card" aria-label="이상 곡선과의 차이와 각도 매칭 오차">
+    <h2>이상 곡선과의 차이와 각도 매칭</h2>
+    <p class="note">측정한 비율 r을 이상 곡선 |cos 2·yaw|에 맞춰 yaw를 추정합니다. 이상 곡선은 주기가 90°라 r 하나에 후보 각도가 4개(a/2, 90−a/2, 90+a/2, 180−a/2, a = arccos r) 나옵니다. 여기서는 후보 중 실제 yaw에 가장 가까운 값을 대표 각도로 삼았으므로, 모호성은 이미 풀렸다고 가정한 뒤 왜곡만 남긴 오차입니다. 오차 = 추정 − 실제.</p>
+    <div class="scroll"><table id="match"></table></div>
+    <details>
+      <summary>실제 yaw별 각도 오차 (전체 채널, 단위 °)</summary>
+      <div id="matchdetail"></div>
+    </details>
+  </section>
 
   <section>
     <h2>해석할 때 주의</h2>
@@ -221,6 +234,33 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
   tbl.querySelectorAll('tbody tr').forEach(function (tr, i) { tr.firstChild.textContent = NAME[i]; });
 
+  // Ideal-curve comparison and angle matching (numbers).
+  var A = D.angle, SUM = A.summary;
+  var pick = function (pos, tx, ch) { return SUM.filter(function (r) { return r.position === pos && r.tx_port === tx && r.channel === ch; })[0]; };
+  var mh = '<thead><tr><th>위치</th><th>TX</th><th class="n">비율 RMSE<br>LoS만</th><th class="n">비율 RMSE<br>전체</th><th class="n">비율 최대 |Δ|<br>전체 (yaw)</th><th class="n">각도 RMSE<br>LoS만 (°)</th><th class="n">각도 RMSE<br>전체 (°)</th><th class="n">각도 최대 오차<br>전체 (yaw)</th></tr></thead>';
+  var mb = '';
+  [0, 1, 2, 3].forEach(function (p) { ['+45', '-45'].forEach(function (tx) {
+    var fl = pick(p, tx, 'full'), lo = pick(p, tx, 'los_only');
+    mb += '<tr><td>' + NAME[p].replace(' (앵커 바로 아래)', ' ↓') + '</td><td>' + tx.replace('-', '−') + '°</td><td class="n">' + (lo ? f(lo.ratio_rmse, 3) : '–') + '</td><td class="n">' + f(fl.ratio_rmse, 3) + '</td><td class="n">' + f(fl.ratio_max_abs, 2) + ' (' + f(fl.ratio_max_abs_at_yaw, 0) + '°)</td><td class="n' + (lo && lo.angle_rmse_deg > 10 ? ' big' : '') + '">' + (lo ? f(lo.angle_rmse_deg, 1) : '–') + '</td><td class="n' + (fl.angle_rmse_deg > 10 ? ' big' : '') + '">' + f(fl.angle_rmse_deg, 1) + '</td><td class="n' + (fl.angle_max_abs_deg > 10 ? ' big' : '') + '">' + f(fl.angle_max_abs_deg, 1) + ' (' + f(fl.angle_max_abs_at_yaw, 0) + '°)</td></tr>';
+  }); });
+  document.getElementById('match').innerHTML = mh + '<tbody>' + mb + '</tbody>';
+  var dd = document.getElementById('matchdetail');
+  ['+45', '-45'].forEach(function (tx) {
+    dd.appendChild(h('h3', null, '앵커 TX ' + tx.replace('-', '−') + '°'));
+    var sc = h('div', 'scroll'), t = h('table'), trh = h('tr');
+    trh.appendChild(h('th', 'n', '실제 yaw (°)')); POS.forEach(function (s, i) { trh.appendChild(h('th', 'n', NAME[i].replace(' (앵커 바로 아래)', ' ↓'))); });
+    var th = h('thead'); th.appendChild(trh); t.appendChild(th); var tb = h('tbody');
+    yaws.forEach(function (y, k) {
+      var tr = h('tr'); tr.appendChild(h('td', 'n', f(y, 0)));
+      [0, 1, 2, 3].forEach(function (p) {
+        var r = A.rows.filter(function (q) { return q.position === p && q.tx_port === tx && q.channel === 'full' && q.true_yaw_deg === y; })[0];
+        var td = h('td', 'n' + (Math.abs(r.error_deg) > 10 ? ' big' : ''), (r.error_deg > 0 ? '+' : '') + f(r.error_deg, 1)); tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); sc.appendChild(t); dd.appendChild(sc);
+  });
+
   var ul = document.getElementById('verdict');
   [
     ['4 위치 × 19 yaw × 257 bin의 H가 모두 유한값이며 모든 호출에서 LoS 경로가 정확히 1개입니다.', V.per_position.every(function (c) { return c.finite && c.one_los_path_every_call; })],
@@ -232,6 +272,7 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   var cv = document.getElementById('caveats');
   [
     'FP 전력은 프로젝트의 관측 체인으로 계산했습니다: Hann 창 1028탭 CIR, 4개 RX×TX 브랜치 중 최강 브랜치의 30% leading-edge 탭, 그 탭의 |CIR|²를 두 RX 포트에서 읽습니다. 앵커 TX 포트마다 따로 계산합니다.',
+    'LoS만 남겨도 이상 곡선에서 벌어지는 부분은 반사가 아니라 오프보어사이트 각도와 실제 안테나 패턴 때문입니다. 6.5 GHz 뱅크에서 +45° 포트의 빔 피크는 φ = +41°, −45° 포트는 φ = −44° 방향이라 두 포트의 전력이 서로 다르게 변합니다.',
     '수신기 잡음을 더하지 않은 결과입니다. 잡음 반복 실험은 하지 않았습니다.',
     'first-path 탭 하나에 가까운 반사가 섞이면 비율이 바뀝니다(표의 "전체 vs LoS 최대 차"). 이는 반사가 first-path 전력을 오염시키는 정도를 보는 값입니다.',
     '벽·바닥·천장 재질(콘크리트, 석고보드)과 복도 치수는 임시값입니다. 회절과 확산 반사는 계산에 넣지 않았고, 탐색 완전성을 주장하지 않습니다.',

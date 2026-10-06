@@ -32,3 +32,20 @@ def test_ideal_fp_power_ratio_is_abs_cos_2yaw_and_symmetric_in_ports():
     yaw = np.array([0.0, 22.5, 45.0, 90.0, 135.0])
     np.testing.assert_allclose(los_fp_power_ratio(yaw), np.abs(np.cos(np.radians(2 * yaw))), atol=1e-12)
     assert los_fp_power_ratio(45.0) == pytest.approx(0.0, abs=1e-12)
+
+
+def test_angle_match_recovers_ideal_yaw_and_has_four_candidates():
+    from qclean_uwb.features.angle_match import representative_yaw, yaw_candidates
+    from qclean_uwb.features.port_ratio import los_fp_power_ratio
+    yaw = np.arange(0.0, 181.0, 10.0)
+    est, err = representative_yaw(los_fp_power_ratio(yaw), yaw)
+    np.testing.assert_allclose(err, 0.0, atol=1e-6)
+    cand = np.sort(yaw_candidates(np.cos(np.radians(60.0))))
+    np.testing.assert_allclose(cand, [30.0, 60.0, 120.0, 150.0], atol=1e-9)
+
+
+def test_angle_match_error_is_large_where_the_curve_is_flat():
+    from qclean_uwb.features.angle_match import representative_yaw
+    _, err = representative_yaw(0.95, 0.0)   # true yaw 0 (ideal ratio 1), measured 0.95
+    assert abs(float(err)) > 8.0
+
