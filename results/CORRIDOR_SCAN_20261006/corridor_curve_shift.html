@@ -75,6 +75,7 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <h2>이상 곡선과 피팅</h2>
     <div class="controls" id="posbtn" role="group" aria-label="위치 선택"></div>
     <div class="controls" id="txbtn" role="group" aria-label="앵커 TX 포트"></div>
+    <div class="legend" id="lgc"></div>
     <div class="chart" id="curve"></div>
     <div class="fitbox" id="fit"></div>
     <p class="note" id="fitnote"></p>
@@ -182,6 +183,7 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
       ['피팅 잔차 RMS |s| (전체)', f(ff.rmse_abs, 3)]].forEach(function (r) { var dv = h('div'); dv.appendChild(h('span', null, r[0])); dv.appendChild(h('b', null, r[1])); fb.appendChild(dv); });
     document.getElementById('fitnote').textContent = '피팅식은 s(yaw) = B + σ·A·cos 2(yaw − yaw₀)이고 그림의 곡선은 |s|입니다(σ = TX +45°면 −1, TX −45°면 +1). 앵커 바로 아래 (4, 0)에서는 이상 곡선과 거의 겹칩니다. 오프보어사이트 위치에서 이동 모델이 설명하는 편차는 중앙값 ' + D.captured_median + '입니다. 나머지는 이동으로 표현되지 않는 형태 변화입니다.';
   }
+  (function () { var l = document.getElementById('lgc'); legendItem(l, 'var(--ref)', '이상 곡선 (회색 점선)', 'dash'); legendItem(l, 'var(--c-los)', 'LoS 경로만 (파란 실선)'); legendItem(l, 'var(--c-all)', '다중 반사 포함 전체 (주황 실선)'); legendItem(l, 'var(--c-fit)', '이상 곡선을 x·y축으로 이동시킨 피팅 (녹색 점선)', 'dot'); })();
   var posb = document.getElementById('posbtn'); btnGroup(posb, cur.map(pname), 'pos', renderCurve);
   var txb = document.getElementById('txbtn'); btnGroup(txb, TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx', renderCurve);
 
