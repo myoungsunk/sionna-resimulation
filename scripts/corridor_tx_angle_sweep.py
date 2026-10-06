@@ -49,8 +49,9 @@ def one(banks, theta, phi, rx_actual=False, tx_actual=True, yaws=None):
     for t_i, tn in enumerate(sf.TX):
         sg = sf.SIGMA[tn]
         s = sf.signed(C, t_i)
+        p_db = dict(p1_db=(20 * np.log10(np.abs(C[:, 0, t_i]))).tolist(), p2_db=(20 * np.log10(np.abs(C[:, 1, t_i]))).tolist())
         if len(yaws) != len(sf.YAWS):  # dense-yaw call: only the signed curve is needed
-            out[tn] = dict(s=s.tolist())
+            out[tn] = dict(s=s.tolist(), **p_db)
             continue
         fit = sf.fit_shift(s, sg)
         Ex, Ey = vt[CENTER_BIN, t_i, 0], vt[CENTER_BIN, t_i, 1]
@@ -67,7 +68,7 @@ def one(banks, theta, phi, rx_actual=False, tx_actual=True, yaws=None):
         p = p / np.linalg.norm(p)
         q = np.cross(dl, p)
         co, cx = abs(p @ E) ** 2, abs(q @ E) ** 2
-        out[tn] = dict(s=s.tolist(), ratio=np.abs(s).tolist(), yaw0=fit["yaw0_deg"], B=fit["B"], A=fit["A"], captured=fit["captured"], dolp=float(np.hypot(S1, S2) / S0),
+        out[tn] = dict(s=s.tolist(), **p_db, ratio=np.abs(s).tolist(), yaw0=fit["yaw0_deg"], B=fit["B"], A=fit["A"], captured=fit["captured"], dolp=float(np.hypot(S1, S2) / S0),
                        ellipticity=float(S3 / S0), yaw0_pred=yaw0_th, xpd_db=float(10 * np.log10(co / cx)), gain_rel_db=float(10 * np.log10((co + cx))))
     return out
 

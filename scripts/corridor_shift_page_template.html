@@ -113,6 +113,19 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     <p class="note" id="eb-note"></p>
   </section>
 
+  <section class="card" aria-label="sweep 간격 평평한 구간 대칭">
+    <h2>더 촘촘한 sweep, 평평한 구간, 0°와 90°의 대칭</h2>
+    <h3>① sweep 전체를 템플릿에 맞추면 (표본 간격별 yaw 오프셋 오차)</h3>
+    <div class="scroll"><table id="fa"></table></div>
+    <p class="note" id="fa-note"></p>
+    <h3>② 평평한 구간(곡선 꼭대기 근처)에서 약한 포트의 반사 오염</h3>
+    <div class="scroll"><table id="fb"></table></div>
+    <p class="note" id="fb-note"></p>
+    <h3>③ yaw 0°와 90° (각도 모델, 앵커 정면 방향 φ = 0°)</h3>
+    <div class="scroll"><table id="fc"></table></div>
+    <p class="note" id="fc-note"></p>
+  </section>
+
   <section class="card" aria-label="이동 축 방향">
     <h2>로봇을 옮기면 이동량이 어떻게 변하나</h2>
     <div class="controls" id="txbtn2" role="group" aria-label="앵커 TX 포트 (이동 차트)"></div>
@@ -356,6 +369,24 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     document.getElementById('eby').innerHTML = h2;
     var flat = E.bins[0].n + E.bins[1].n, flatShare = E.bins[0].share_of_sse + E.bins[1].share_of_sse;
     document.getElementById('eb-note').textContent = '가파른 구간(g ≥ 0.02/°, ' + E.n_steep + '개)에서는 yaw 오차 RMS가 ' + f(E.rms_err_steep, 2) + '°이고 dr/g로 예측한 값 ' + f(E.linear_prediction_rms_steep, 2) + '°와 같습니다. 이 값은 다중 반사가 만든 x축 이동의 RMS ' + f(E.multipath_x_shift_rms, 2) + '°와 거의 같습니다. LoS만 다루는 각도 모델이 놓친 다중 반사의 가로 어긋남이 그대로 yaw 오차가 된 것입니다. 평평한 구간(g < 0.01/°, ' + flat + '개)에서는 dr이 작아도(' + f(E.bins[0].rms_dr, 3) + ' ~ ' + f(E.bins[1].rms_dr, 3) + ') yaw 오차가 5–7.5°로 커지며 전체 제곱오차의 ' + f(flatShare * 100, 0) + '%를 차지합니다. 극값 근처에서는 오차가 dr이 아니라 √dr에 비례합니다(|cos 2·yaw|는 극값에서 1 − 2·Δyaw²). 지표 불일치 RMS는 ' + f(E.rms_dr, 3) + '(곡선별 RMSE의 중앙값 0.066)이고 곡선 기울기 RMS는 ' + f(E.rms_slope, 4) + '/°라서, 기울기가 어디서나 같았더라도 ' + f(E.uniform_slope_estimate, 1) + '° 정도는 남습니다. 이 곡선은 yaw 90°–100°(피크 근처)에서 6.7–7.5°로 가장 큽니다.';
+  })();
+
+  // Denser sweep, flat regions, 0/90 degree symmetry.
+  (function () {
+    var F = D.flat, A = F.A, ks = Object.keys(A).sort(function (a, b) { return a - b; });
+    var h1 = '<thead><tr><th class="n">표본 간격 (°)</th><th class="n">사용 표본 수</th><th class="n">오프셋 RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">최대</th></tr></thead><tbody><tr><td>단일 표본 역산 (이전 방식)</td><td class="n">1</td><td class="n hi">' + f(F.single_sample_oracle_rmse, 2) + '</td><td class="n">2.20</td><td class="n">24.8</td></tr>';
+    ks.forEach(function (k) { var v = A[k]; h1 += '<tr><td class="n">' + k + '</td><td class="n">' + f(v.mean_points, 1) + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.max_abs, 1) + '</td></tr>'; });
+    document.getElementById('fa').innerHTML = h1 + '</tbody>';
+    document.getElementById('fa-note').textContent = 'sweep 전체(측정한 |s| 곡선, yaw 상대 간격은 알고 절대 오프셋만 ±45° 안에서 모름)를 각도 모델에 맞추면 오차가 단일 표본 ' + f(F.single_sample_oracle_rmse, 2) + '°에서 ' + f(A['10'].rmse, 2) + '°로 줄어듭니다. 그러나 표본 간격이 10°에서 30°(표본 6개)로 성겨져도 ' + f(A['10'].rmse, 2) + '° → ' + f(A['30'].rmse, 2) + '°로 거의 변하지 않아서 표본을 더 촘촘히 한다고 이 바닥(약 3.5°)이 내려가지 않습니다. 바닥은 LoS만 다루는 모델이 놓친 다중 반사의 x축 이동 RMS 3.7°와 같은 크기입니다(전체 곡선이 한꺼번에 3–4° 밀려 있어서 표본을 늘려도 평균되지 않는 체계적인 오차). 가진 sweep이 10° 간격이라 그보다 촘촘한 간격은 직접 시험하지 못했습니다. 0.1° 단위의 각도 매칭은 이미 하고 있습니다(템플릿을 0.1° 격자에서 역산).';
+    var B = F.B, g = { flat: '평평한 구간 (yaw 0°, 10°, 80°–100°, 170°, 180°)', steep: '가파른 구간 (yaw 30°–60°, 120°–150°)' };
+    var h2 = '<thead><tr><th>구간</th><th class="n">표본 수</th><th class="n">두 포트 LoS 전력 차 (중앙값, dB)</th><th class="n">약한 포트 반사 오염</th><th class="n">강한 포트 반사 오염</th><th class="n">약한 포트 오염 > 0.2 비율</th></tr></thead><tbody>';
+    ['flat', 'steep'].forEach(function (k) { var v = B[k]; h2 += '<tr><td>' + g[k] + '</td><td class="n">' + v.n + '</td><td class="n">' + f(v.median_gap_db, 1) + '</td><td class="n hi">' + f(v.median_contamination_weak_port, 2) + '</td><td class="n">' + f(v.median_contamination_strong_port, 2) + '</td><td class="n">' + f(v.share_weak_port_contamination_above_0p2 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('fb').innerHTML = h2 + '</tbody>';
+    document.getElementById('fb-note').textContent = '맞습니다. 평평한 구간은 한 포트가 LoS 편파와 나란하고 다른 포트가 직교(교차편파)인 yaw입니다. 그 직교 포트는 상대 전력이 중앙값 ' + f(B.flat.median_gap_db, 1) + ' dB 낮아서 곡선이 yaw에 둔감하고(전력이 yaw 차이의 제곱에 비례), 그 약한 포트에 들어오는 반사 필드가 LoS 필드의 ' + f(B.flat.median_contamination_weak_port, 2) + '배(강한 포트는 ' + f(B.flat.median_contamination_strong_port, 2) + '배)라서 오염에도 가장 약합니다. 가파른 구간에서는 두 포트의 전력 차가 ' + f(B.steep.median_gap_db, 1) + ' dB이고 오염이 두 포트에서 비슷합니다(' + f(B.steep.median_contamination_weak_port, 2) + ' / ' + f(B.steep.median_contamination_strong_port, 2) + '). 지표 |s|를 정하는 것은 크기가 큰 포트가 아니라 이 작은 포트입니다.';
+    var h3 = '<thead><tr><th>θ (°)</th><th>TX</th><th class="n">|s| (0°)</th><th class="n">|s| (90°)</th><th class="n">|s| (180°)</th><th class="n">s(0°) + s(90°) = 2B</th><th class="n">P포트1(90°) − P포트2(0°) (dB)</th><th class="n">P포트2(90°) − P포트1(0°) (dB)</th></tr></thead><tbody>';
+    F.C.forEach(function (r) { h3 += '<tr><td class="n">' + r.theta + '</td><td>' + TXN[r.tx] + '</td><td class="n">' + f(r.abs0, 3) + '</td><td class="n hi">' + f(r.abs90, 3) + '</td><td class="n">' + f(r.abs180, 3) + '</td><td class="n">' + sg(r.swap_asymmetry, 3) + '</td><td class="n">' + sg(r.d_port1_90_vs_port2_0_db, 1) + '</td><td class="n">' + sg(r.d_port2_90_vs_port1_0_db, 1) + '</td></tr>'; });
+    document.getElementById('fc').innerHTML = h3 + '</tbody>';
+    document.getElementById('fc-note').textContent = '이상 포트라면 90° 돌리면 두 포트가 서로 바뀌어서 |s|(0°) = |s|(90°)이어야 하고, 그 경우 s(0°) + s(90°) = 0입니다. 이 합이 정확히 2B(y축 이동)입니다. 수신 포트를 이상 포트로 바꾸면 B가 0.000이 되었고(앞선 4개 방향 시험), 이 경우 송신 편파 상태와 무관하게 s(yaw + 90°) = −s(yaw)가 이론적으로 성립합니다. 실제 안테나에서는 대칭이 깨집니다. 정면(θ = 0°)에서도 크기가 큰 포트끼리는 0.1 dB로 맞지만(P포트1(90°) ≈ P포트2(0°)) 교차편파 포트는 yaw 0°에서 약 −16 dB, 90°에서 −56 dB로 약 40 dB 달라서 |s|가 0.953과 1.000이 됩니다. 비스듬히 볼수록 두 포트의 빔이 서로 다른 방위로 기울어(φ ≈ +41°, −44°) 90° 돌린 포트는 원래 반대쪽 포트의 패턴이 아니게 되어 비대칭이 커집니다(θ = 80°, TX −45°에서 |s| 0.999 대 0.696).';
   })();
 
   // Case check tables.
