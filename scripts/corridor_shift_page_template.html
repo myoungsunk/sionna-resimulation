@@ -174,6 +174,22 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     <p class="note" id="cc-note"></p>
   </section>
 
+  <section class="card" aria-label="다중 반사 모델과 평평함">
+    <h2>다중 반사 모델 넣기, 그리고 평평함을 x·y축에서 바꾸는 법</h2>
+    <h3>① 해석적 1차 반사 모델을 각도 모델에 더하면 (yaw 추정, 22개 곡선, 정답에 가장 가까운 후보)</h3>
+    <div class="scroll"><table id="mt"></table></div>
+    <p class="note" id="mt-note"></p>
+    <h3>② 어느 축 보정이 오차를 줄이나 (같은 위치 sweep으로 leave-one-out 보정, 관측 |s| 기준)</h3>
+    <div class="scroll"><table id="ab"></table></div>
+    <p class="note" id="ab-note"></p>
+    <h3>③ 평평한 구간의 폭과 위치는 무엇이 정하나 (모델 s = B + σ·A·cos 2(yaw − yaw₀))</h3>
+    <div class="scroll"><table id="fx"></table></div>
+    <p class="note" id="fx-note"></p>
+    <h3>④ 두 송신 포트를 함께 쓰면 (사전 각도 모델, 보정 없음)</h3>
+    <div class="scroll"><table id="tp"></table></div>
+    <p class="note" id="tp-note"></p>
+  </section>
+
   <section>
     <h2>정리</h2>
     <ul id="findings"></ul>
@@ -411,6 +427,44 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     document.getElementById('cc').innerHTML = h3 + '</tbody>';
     var ar = C.arrivals;
     document.getElementById('cc-note').textContent = '도래 방위(그 방향에서 들어옴): LoS ' + f(ar.los.from_azimuth_deg, 0) + '°, 천장 반사 ' + f(ar.ceiling.from_azimuth_deg, 0) + '°(LoS와 같은 방향, 초과 지연 ' + f(ar.ceiling.delay_excess_ns, 1) + ' ns), 가까운 옆벽(+y) 반사 ' + f(ar.wall_y_pos.from_azimuth_deg, 0) + '°(초과 지연 ' + f(ar.wall_y_pos.delay_excess_ns, 1) + ' ns), 먼 옆벽(−y) 반사 ' + f(ar.wall_y_neg.from_azimuth_deg, 0) + '°. 포트 빔 방위는 뱅크의 빔 피크 방위(+45° 포트 +41°, −45° 포트 −44°)에 yaw를 더한 값입니다. 편파 중첩은 반사파와 LoS의 편파 상태가 얼마나 같은지(1이면 같은 편파, 0이면 직교)이며, 진폭비·중첩은 두 포트의 first-path 탭 필드에서 구했습니다. Δ|s|는 LoS에 그 반사 그룹 하나만 더했을 때 |s|가 바뀌는 양입니다.';
+  })();
+
+  // Multipath model, axis ablation, flatness versus shifts, two-port estimator.
+  (function () {
+    var M = D.mpt.summary, MN = {
+      ideal: '이상 곡선 그대로', los: '각도 모델 (LoS만)', mp_ceiling: '+ 천장 반사만', mp_ceiling_walls: '+ 천장 + 옆벽', mp_all: '+ 바닥·천장·옆벽·끝벽 (1차 반사 전부)',
+      'mp_all_material_x0.8': '전부, 재질 상수 ×0.8로 틀림', 'mp_all_material_x1.2': '전부, 재질 상수 ×1.2로 틀림', 'mp_all_wall_+5cm': '전부, 옆벽 위치 +5 cm 틀림', 'mp_all_wall_-5cm': '전부, 옆벽 위치 −5 cm 틀림',
+      'mp_all_coord_0.1m': '전부, 로봇 좌표 0.1 m 틀림', 'mp_all_coord_0.25m': '전부, 로봇 좌표 0.25 m 틀림', 'mp_all_coord_0.5m': '전부, 로봇 좌표 0.5 m 틀림' };
+    var html = '<thead><tr><th>템플릿</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">5° 이내</th><th class="n">최대 (°)</th><th class="n">사전 ±15° 안에서 RMSE</th></tr></thead><tbody>';
+    Object.keys(MN).forEach(function (k) { var v = M[k]; html += '<tr><td>' + MN[k] + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(v.max_abs, 1) + '</td><td class="n">' + f(v.prior15_rmse, 2) + '</td></tr>'; });
+    document.getElementById('mt').innerHTML = html + '</tbody>';
+    var G = D.mpm.positions.filter(function (p) { return p.x !== 4; }), mr = [], lr = [];
+    G.forEach(function (p) { TXS.forEach(function (t) { mr.push(p.tx[t].rmse_model_vs_sim); lr.push(p.tx[t].rmse_los_vs_sim); }); });
+    var md = function (a) { a = a.slice().sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; };
+    document.getElementById('mt-note').textContent = '넣는 방법: 로봇 좌표에서 이미지법으로 바닥·천장·옆벽·끝벽 1차 반사점을 구하고, 각 반사 경로를 (ITU-R P.2040 단일층 슬랩 TE/TM 반사계수) × (송신 포트 패턴을 그 출발 방향으로 읽은 필드) × (수신 포트 패턴을 그 도래 방향으로 읽은 필드)로 만든 뒤 LoS와 복소수로 더하고, 같은 first-path 탭의 필드로 포트 전력을 계산합니다. 새로 맞추는 파라미터가 없습니다. Sionna의 경로별 first-path 탭 필드와 비교하면 상대 오차가 바닥 2e-4, 천장 1.4e-3, 옆벽 7e-5 이하이고(앵커 바로 아래는 수직 입사라 편광 기저가 퇴화해 제외), 곡선 RMSE의 중앙값은 LoS만 ' + f(md(lr), 3) + '에서 반사 포함 ' + f(md(mr), 3) + '으로 내려갑니다. yaw 추정은 RMSE 4.8°에서 1.3°로, 5° 이내 비율은 78%에서 99%로 올라갑니다. 천장만 넣으면 거의 효과가 없고(4.6°) 옆벽까지 넣어야 2.2°가 됩니다. 한계: 반사가 first-path 탭 안에서 LoS와 위상이 맞아 더해지는 간섭이라 파장(4.6 cm) 단위의 기하 오차에 민감합니다. 재질 상수 ±20%는 2.1–2.2°로 견디지만 옆벽 위치 5 cm나 로봇 좌표 0.1 m가 틀리면 이득이 사라져 5° 근처로 돌아갑니다(RMSE 5.0–6.9°). 정밀한 좌표가 없으면 이 모델은 수치 이득보다 원인 해석 도구로 쓰는 편이 안전합니다. 같은 위치 sweep 전체를 맞추면 오프셋 오차가 LoS만 3.6°, 반사 포함 0.9°입니다.';
+    var AB = D.abl.ablation, an = ['none', 'x', 'y', 'A', 'x+y', 'x+A', 'y+A', 'x+y+A'];
+    var h2 = '<thead><tr><th>보정하는 축</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">5° 이내</th></tr></thead><tbody>';
+    an.forEach(function (k) { var v = AB[k]; h2 += '<tr><td>' + v.label + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('ab').innerHTML = h2 + '</tbody>';
+    var xs = [], ys = [];
+    P.forEach(function (p) { if (p.off_boresight_deg < 1) return; TXS.forEach(function (t) { if (p.tx[t].shift) { xs.push(Math.abs(p.tx[t].shift.x_multipath)); ys.push(Math.abs(p.tx[t].shift.y_multipath)); } }); });
+    document.getElementById('ab-note').textContent = '말씀하신 전제(x 이동은 각도 모델이 잡고 y 변동을 반사로 잡아야 한다)와 이 데이터는 다릅니다. 반사가 만든 y 이동은 작습니다. 반사 몫의 |B| 중앙값은 ' + f(md(ys), 3) + '이고 x 이동 몫은 중앙값 ' + f(md(xs), 1) + '°입니다. 다중 반사가 크게 움직이는 축은 x(yaw₀)이고, 진폭은 x와 함께 쓸 때 보탬이 됩니다. 보정을 한 축씩 허용해 보면 y만으로는 4.8°에서 4.8°로 거의 변하지 않고, 진폭만 4.6°, x만 3.5°, x+진폭 2.7°, 셋 다 2.6°(94%)입니다. 그리고 y축 이동 B를 넣어도 잡히지 않는 것은 곡선 모양 자체의 어긋남입니다. x·y·진폭 코사인을 맞춘 뒤에도 |s| 잔차 RMS의 중앙값이 0.110(범위 0.066–0.146)으로 각도 모델 곡선의 값 0.066보다도 큽니다. 이 잔차는 상수 B로는 잡히지 않고, 반사 경로를 직접 넣은 ①의 곡선에서 0.004로 줄어듭니다. 따라서 y 변동을 상수 이동으로 잡으려는 접근보다 반사 경로를 직접 넣는 쪽이 맞습니다.';
+    var X = D.fax, h3 = '<thead><tr><th>바꾸는 것</th><th>평평한 구간에 미치는 영향</th><th class="n">수치 (기울기 < 0.01/° 인 yaw 비율)</th></tr></thead><tbody>';
+    var gA = function (a) { return X.A_B_grid.filter(function (r) { return r.A === a && r.B === 0; })[0].flat; };
+    var gB = function (a, b) { return X.A_B_grid.filter(function (r) { return r.A === a && r.B === b; })[0].flat; };
+    var po = function (d) { return X.pair_offset.filter(function (r) { return r.offset_deg === d; })[0]; };
+    h3 += '<tr><td>x 이동 yaw₀</td><td>평평한 구간이 yaw₀ + k·90°를 중심으로 통째로 이동합니다. 폭은 변하지 않습니다.</td><td class="n">변화 없음 (' + f(gA(0.95) * 100, 0) + '%)</td></tr>' +
+      '<tr><td>진폭 A (깊이)</td><td>곡선이 가파를수록 평평한 폭이 줄어듭니다. 꼭대기 하나의 반폭 ≈ ½·asin(0.29/A) (A = 1이면 약 8.4°)입니다.</td><td class="n">A = 0.7: ' + f(gA(0.7) * 100, 0) + '%, 0.8: ' + f(gA(0.8) * 100, 0) + '%, 0.9: ' + f(gA(0.9) * 100, 0) + '%, 1.0: ' + f(gA(1) * 100, 0) + '%</td></tr>' +
+      '<tr><td>y 이동 B</td><td>기울기의 크기는 같아서 폭은 안 변합니다. 대신 꼭대기 높이가 B + A와 A − B로 갈라져(0°와 90° 근처가 서로 다른 높이) 같은 지표 값이 가리키는 yaw가 달라집니다. 영점 부근 꺾이는 점도 옮겨집니다.</td><td class="n">B = 0 → 0.2 (A = 0.8): ' + f(gB(0.8, 0) * 100, 0) + '% → ' + f(gB(0.8, 0.2) * 100, 0) + '%</td></tr>' +
+      '<tr><td>두 포트(TX +45°, TX −45°)의 x 이동 차</td><td>TX +45°는 한쪽으로, TX −45°는 반대쪽으로 yaw₀이 움직여서 두 곡선의 평평한 구간이 서로 어긋납니다. 어긋남이 평평한 폭(약 ±8°)보다 크면 한 포트가 평평할 때 다른 포트가 가파릅니다.</td><td class="n">포트 간 yaw₀ 차 0°: 공동 ' + f(po(0).joint * 100, 0) + '%, 10°: ' + f(po(10).joint * 100, 0) + '%, 15° 이상: ' + f(po(15).joint * 100, 0) + '% (단일 포트는 ' + f(po(0).single * 100, 0) + '%)</td></tr>';
+    document.getElementById('fx').innerHTML = h3 + '</tbody>';
+    var pm = X.positions, avg = function (a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; };
+    document.getElementById('fx-note').textContent = '시뮬레이션 11개 위치(앵커 아래 제외)에서 두 포트의 yaw₀ 차는 평균 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return Math.abs(r.yaw0_diff_deg); })), 1) + '°이고, 이 값으로는 공동 평평 비율이 평균 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return r.joint; })) * 100, 1) + '%이지만 두 포트의 yaw₀이 같다고 가정하면 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return r.joint_if_synced; })) * 100, 0) + '%입니다. 즉 x축 이동이 평평한 구간을 포트마다 다른 yaw로 옮기는 것이 두 포트를 함께 쓸 때 평평한 구간을 없애는 직접적인 원인입니다. 정리하면 x는 평평한 구간의 위치를, A는 폭을, B는 꼭대기 높이의 비대칭을 정합니다. 평평한 구간의 폭은 x·y 이동으로는 줄어들지 않고 A를 키워야(편파 순도를 높여야) 줄어듭니다.';
+    var T = D.abl.two_port, TN = { single_tx_plus45: 'TX +45°만', single_tx_minus45: 'TX −45°만', joint: '두 포트 공동 (비용 합)' };
+    var h4 = '<thead><tr><th>추정기</th><th class="n">후보 수 (평균)</th><th class="n">정답 후보 선택 RMSE (°)</th><th class="n">5° 이내</th><th class="n">후보 선택 없이 최솟값만 쓸 때 중앙값 |오차| (°)</th><th class="n">그때 5° 이내</th></tr></thead><tbody>';
+    Object.keys(TN).forEach(function (k) { var v = T[k]; h4 += '<tr><td>' + TN[k] + '</td><td class="n">' + f(v.mean_candidates, 1) + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(v.global_min_median, 1) + '</td><td class="n">' + f(v.global_min_within5 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('tp').innerHTML = h4 + '</tbody>';
+    document.getElementById('tp-note').textContent = '공동 추정이 더 낫고(5.2/4.5° → 3.9°) 이는 두 포트의 평평한 구간이 겹치지 않는 것과 부합합니다(원인을 따로 분리하지는 않았습니다). 정답 후보를 미리 알지 못하는 실제 추정(비용 최솟값)에서는 단일 포트가 5° 이내 ' + f(T.single_tx_plus45.global_min_within5 * 100, 0) + '%로 모호성에 막히지만 공동 추정은 ' + f(T.joint.global_min_within5 * 100, 0) + '%입니다. 두 포트를 합치면 모호성이 상당히 풀리지만 일부 곡선은 여전히 크게 틀립니다(RMSE ' + f(T.joint.global_min_rmse, 0) + '°). 이전 실행에서 공동 추정기가 10.4°로 나빠 보인 것은 후보 탐색이 yaw 0°와 180° 끝점을 빠뜨린 버그였고, 고쳤습니다. 이 비교는 후보 수가 다른 추정기를 정답에 가까운 후보로 평가하므로 후보가 많을수록 유리하다는 점에 주의하십시오(그래서 오른쪽 두 열을 함께 봅니다).';
   })();
 
   document.getElementById('lede').textContent = D.lede;

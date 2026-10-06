@@ -15,6 +15,10 @@ data["errbud"]["multipath_x_shift_rms"] = 3.68
 data["flat"] = json.loads((d / "FLAT_REGION_CHECK.json").read_text())
 data["case"] = json.loads((d / "CASE_CHECK.json").read_text())
 data["case"]["synthetic_n"] = 30
+data["mpt"] = json.loads((d / "MULTIPATH_TEMPLATE.json").read_text())
+data["mpm"] = json.loads((d / "MULTIPATH_MODEL.json").read_text())
+data["abl"] = json.loads((d / "AXIS_ABLATION.json").read_text())
+data["fax"] = json.loads((d / "FLAT_AXES.json").read_text())
 page = (ROOT / "scripts" / "corridor_shift_page_template.html").read_text(encoding="utf8").replace("__RESULTS__", json.dumps(data, ensure_ascii=False, allow_nan=False))
 out = d / "corridor_curve_shift.html"
 out.write_text(page, encoding="utf8")
