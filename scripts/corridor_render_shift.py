@@ -1,0 +1,13 @@
+"""Build the curve-shift page from SHIFT_FIT.json and LEDE_SHIFT.json."""
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+d = ROOT / "results" / "CORRIDOR_SCAN_20261006"
+data = json.loads((d / "SHIFT_FIT.json").read_text())
+data.update(json.loads((d / "LEDE_SHIFT.json").read_text()))
+page = (ROOT / "scripts" / "corridor_shift_page_template.html").read_text(encoding="utf8").replace("__RESULTS__", json.dumps(data, ensure_ascii=False, allow_nan=False))
+out = d / "corridor_curve_shift.html"
+out.write_text(page, encoding="utf8")
+print(out, round(out.stat().st_size / 1e3), "kB")

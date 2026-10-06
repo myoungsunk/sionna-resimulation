@@ -1,0 +1,231 @@
+<title>Corridor Curve Shift</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: finding first, one curve viewer, then movement charts (x then y), then the two cause tables. */
+:root {
+  --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee; --ref: #7b8794; --ok: #1f8a4c;
+  --c-los: #2a78d6; --c-all: #eb6834; --c-fit: #1baf7a;
+  --g-floor: #2a78d6; --g-ceiling: #eb6834; --g-side_walls: #1baf7a; --g-end_walls: #eda100; --g-multi_bounce: #e87ba4;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+    --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+    --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+  --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+  --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 600; }
+h3 { margin: 0; font-size: 13.5px; font-weight: 500; }
+p { margin: 0; }
+.lede { max-width: 76ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.chart { min-width: 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; } .key.dot { border-top-style: dotted; }
+.note { font-size: 13px; color: var(--muted); max-width: 82ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-variant-numeric: tabular-nums; }
+button:hover { border-color: var(--muted); }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, svg:focus-visible { outline: 2px solid var(--c-los); outline-offset: 2px; }
+svg { width: 100%; display: block; touch-action: pan-y; }
+svg text { font-family: var(--font-body); fill: var(--muted); font-size: 11.5px; }
+svg .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.18); min-width: 150px; z-index: 2; }
+.tip[hidden] { display: none; }
+.tip .t { font-family: var(--font-mono); color: var(--muted); margin-bottom: 3px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--fg); }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.hi { font-weight: 600; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+.fitbox { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 20px; font-size: 13px; }
+.fitbox div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; }
+.fitbox b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sionna RT 2.0.1 · yaw 곡선 = 이상 곡선 + x축 이동 + y축 이동</div>
+    <h1>복도 곡선 이동 원인</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section class="card" aria-label="곡선 뷰어">
+    <h2>이상 곡선과 피팅</h2>
+    <div class="controls" id="posbtn" role="group" aria-label="위치 선택"></div>
+    <div class="controls" id="txbtn" role="group" aria-label="앵커 TX 포트"></div>
+    <div class="chart" id="curve"></div>
+    <div class="fitbox" id="fit"></div>
+    <p class="note" id="fitnote"></p>
+  </section>
+
+  <section class="card" aria-label="이동 축 방향">
+    <h2>로봇을 옮기면 이동량이 어떻게 변하나</h2>
+    <div class="controls" id="txbtn2" role="group" aria-label="앵커 TX 포트 (이동 차트)"></div>
+    <div class="legend" id="lg1"></div>
+    <h3>x축 이동 (y = 0)</h3>
+    <div class="row" id="rowx"></div>
+    <h3>y축 이동 (x = 7)</h3>
+    <div class="row" id="rowy"></div>
+    <p class="note">곡선 이동의 x축 성분 yaw₀는 곡선이 yaw 방향으로 밀린 각도(°), y축 성분 B는 부호 있는 비율 (P1−P2)/(P1+P2)가 위로 밀린 양입니다. 이상 곡선은 yaw₀ = 0, B = 0입니다. 아래 두 차트는 LoS 위에 반사 그룹을 하나씩 더했을 때 생기는 변화량입니다.</p>
+  </section>
+
+  <section class="card" aria-label="LoS 단계 원인">
+    <h2>원인 1. LoS 단일 경로의 안테나 방향 의존성</h2>
+    <p class="note">LoS 채널을 뱅크에서 다시 계산하면서 안테나 패턴을 읽는 방향만 바꿔 봤습니다(PathSolver LoS와 부호 있는 비율 차이 2e-6). 각 칸은 yaw₀ (°) / B 입니다.</p>
+    <div class="scroll"><table id="los"></table></div>
+  </section>
+
+  <section class="card" aria-label="다중 반사 단계 원인">
+    <h2>원인 2. 다중 반사 경로 (LoS 위에 더해진 몫)</h2>
+    <p class="note">LoS 전용 곡선에서 전체 곡선으로 가며 생긴 이동량을 반사 그룹별로 나눴습니다. 그룹별 값의 합은 전체 몫과 거의 같습니다(합산 오차 중앙값 0.08°, 0.0006).</p>
+    <div class="scroll"><table id="mp"></table></div>
+  </section>
+
+  <section>
+    <h2>정리</h2>
+    <ul id="findings"></ul>
+  </section>
+  <section>
+    <h2>해석할 때 주의</h2>
+    <ul class="note" id="caveats"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = __RESULTS__;
+  var P = D.positions, TXS = ['LP_plus45', 'LP_minus45'], TXN = { LP_plus45: 'TX +45°', LP_minus45: 'TX −45°' };
+  var GS = D.groups, GN = { floor: '바닥', ceiling: '천장', side_walls: '옆벽', end_walls: '끝벽', multi_bounce: '다중 반사' };
+  var gcol = function (g) { return 'var(--g-' + g + ')'; };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var sg = function (v, n) { return (v >= 0 ? '+' : '') + Number(v).toFixed(n); };
+  var h = function (t, cls, txt) { var e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  var sv = function (t, a, txt) { var e = document.createElementNS('http://www.w3.org/2000/svg', t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var yaws = D.yaw_deg, N = yaws.length;
+  var xline = P.filter(function (p) { return p.y === 0; }).sort(function (a, b) { return a.x - b.x; });
+  var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
+  var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
+  var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
+  var st = { pos: 0, tx: 0, tx2: 0 };
+
+  // Line chart with a snapping crosshair; spec: {title, xs, xlabel, xname, series:[{name,color,vals,dash,w}], ymin, ymax, dec, zero}
+  function lineChart(host, spec) {
+    host.textContent = ''; host.appendChild(h('h3', null, spec.title));
+    var box = h('div'); host.appendChild(box); var tip = h('div', 'tip'); tip.hidden = true; host.appendChild(tip);
+    function draw() {
+      var W = Math.max(280, box.clientWidth || host.clientWidth), H = 250, m = { l: 46, r: 12, t: 10, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, xs = spec.xs, x0 = xs[0], x1 = xs[xs.length - 1];
+      var all = [].concat.apply([], spec.series.map(function (s) { return s.vals; }));
+      var lo = spec.ymin != null ? spec.ymin : Math.min(0, Math.min.apply(null, all)), hi = spec.ymax != null ? spec.ymax : Math.max(0, Math.max.apply(null, all));
+      var pad = (hi - lo) * 0.08 || 1; if (spec.ymin == null) lo -= lo < 0 ? pad : 0; if (spec.ymax == null) hi += pad;
+      var X = function (v) { return m.l + (x1 === x0 ? pw / 2 : (v - x0) / (x1 - x0) * pw); }, Y = function (v) { return m.t + ph * (1 - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)); };
+      var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', tabindex: '0', 'aria-label': spec.title });
+      for (var i = 0; i <= 4; i++) { var v = lo + (hi - lo) * i / 4; svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), stroke: 'var(--grid)' })); svg.appendChild(sv('text', { x: m.l - 6, y: Y(v) + 4, 'text-anchor': 'end', class: 'num' }, Math.abs(hi - lo) > 3 ? f(v, 0) : f(v, Math.abs(hi - lo) > 0.5 ? 2 : 3))); }
+      if (lo < 0 && hi > 0) svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(0), y2: Y(0), stroke: 'var(--ref)', 'stroke-dasharray': '4 4' }));
+      xs.forEach(function (v, i) { if (xs.length <= 8 || i % 2 === 0) svg.appendChild(sv('text', { x: X(v), y: m.t + ph + 16, 'text-anchor': 'middle', class: 'num' }, String(v))); });
+      svg.appendChild(sv('text', { x: m.l + pw / 2, y: H - 4, 'text-anchor': 'middle' }, spec.xlabel));
+      spec.series.forEach(function (s) {
+        svg.appendChild(sv('path', { d: s.vals.map(function (v, i) { return (i ? 'L' : 'M') + X(xs[i]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(''), fill: 'none', stroke: s.color, 'stroke-width': s.w || 2, 'stroke-dasharray': s.dash || '', 'stroke-linejoin': 'round' }));
+        if (!s.nomark) s.vals.forEach(function (v, i) { svg.appendChild(sv('circle', { cx: X(xs[i]), cy: Y(v), r: 4, fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2 })); });
+      });
+      var cross = sv('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', visibility: 'hidden' }); svg.appendChild(cross);
+      var hit = sv('rect', { x: m.l - 10, y: m.t, width: pw + 20, height: ph, fill: 'transparent' }); svg.appendChild(hit);
+      function show(k) {
+        var x = X(xs[k]); cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+        tip.hidden = false; tip.textContent = ''; tip.appendChild(h('div', 't', spec.xname + ' ' + xs[k]));
+        spec.series.forEach(function (s) { var r = h('div', 'r'), l = h('span'), key = h('i', 'key' + (s.dash ? ' dash' : '')); key.style.borderColor = s.color; l.appendChild(key); l.appendChild(document.createTextNode(s.name)); r.appendChild(l); r.appendChild(h('b', null, f(s.vals[k], spec.dec == null ? 3 : spec.dec))); tip.appendChild(r); });
+        var left = x + 12; if (left + 190 > W) left = x - 202; tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '28px';
+      }
+      var hide = function () { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; }, c = 0;
+      hit.addEventListener('pointermove', function (e) { var b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * (W / b.width), best = 0; xs.forEach(function (v, i) { if (Math.abs(X(v) - px) < Math.abs(X(xs[best]) - px)) best = i; }); c = best; show(best); });
+      hit.addEventListener('pointerleave', hide); svg.addEventListener('blur', hide);
+      svg.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); c = Math.min(xs.length - 1, Math.max(0, c + (e.key === 'ArrowRight' ? 1 : -1))); show(c); } if (e.key === 'Escape') hide(); });
+      box.textContent = ''; box.appendChild(svg);
+    }
+    draw(); spec.redraw = draw; return spec;
+  }
+  var charts = [];
+  function legendItem(host, color, text, cls) { var s = h('span'), k = h('i', 'key ' + (cls || '')); k.style.borderColor = color; s.appendChild(k); s.appendChild(document.createTextNode(text)); host.appendChild(s); }
+  function btnGroup(host, labels, key, cb) { labels.forEach(function (lab, i) { var b = h('button', null, lab); b.type = 'button'; b.setAttribute('aria-pressed', String(st[key] === i)); b.addEventListener('click', function () { st[key] = i; host.querySelectorAll('button').forEach(function (x, j) { x.setAttribute('aria-pressed', String(j === i)); }); cb(); }); host.appendChild(b); }); }
+
+  // 1. Curve viewer.
+  function renderCurve() {
+    var p = cur[st.pos], t = TXS[st.tx], d = p.tx[t], fl = d.fit_los, ff = d.fit_full, s = d.shift;
+    var series = [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: d.ratio_ideal, nomark: true }, { name: 'LoS만', color: 'var(--c-los)', vals: d.ratio_los, w: 1.5 },
+      { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: d.ratio_full, w: 2.5 }, { name: '이동 피팅 (전체)', color: 'var(--c-fit)', dash: '2 3', vals: ff.fit_abs, nomark: true, w: 2 }];
+    lineChart(document.getElementById('curve'), { title: pname(p) + ' · 앵커 ' + TXN[t] + ' · FP 비율 |P1−P2| / (P1+P2)', xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', series: series, ymin: 0, ymax: 1.05, dec: 3 });
+    var fb = document.getElementById('fit'); fb.textContent = '';
+    [['x축 이동 yaw₀: 안테나·기하 (LoS) / 다중 반사 / 합', sg(s.x_antenna_geometry, 1) + '° / ' + sg(s.x_multipath, 1) + '° / ' + sg(s.x_total, 1) + '°'],
+      ['y축 이동 B: 안테나·기하 (LoS) / 다중 반사 / 합', sg(s.y_antenna_geometry, 3) + ' / ' + sg(s.y_multipath, 3) + ' / ' + sg(s.y_total, 3)],
+      ['진폭 A (LoS / 전체)', f(fl.A, 3) + ' / ' + f(ff.A, 3)], ['이동 모델이 설명하는 편차 (LoS / 전체)', (fl.captured == null ? '–' : f(fl.captured * 100, 0) + '%') + ' / ' + (ff.captured == null ? '–' : f(ff.captured * 100, 0) + '%')],
+      ['피팅 잔차 RMS |s| (전체)', f(ff.rmse_abs, 3)]].forEach(function (r) { var dv = h('div'); dv.appendChild(h('span', null, r[0])); dv.appendChild(h('b', null, r[1])); fb.appendChild(dv); });
+    document.getElementById('fitnote').textContent = '피팅식은 s(yaw) = B + σ·A·cos 2(yaw − yaw₀)이고 그림의 곡선은 |s|입니다(σ = TX +45°면 −1, TX −45°면 +1). 앵커 바로 아래 (4, 0)에서는 이상 곡선과 거의 겹칩니다. 오프보어사이트 위치에서 이동 모델이 설명하는 편차는 중앙값 ' + D.captured_median + '입니다. 나머지는 이동으로 표현되지 않는 형태 변화입니다.';
+  }
+  var posb = document.getElementById('posbtn'); btnGroup(posb, cur.map(pname), 'pos', renderCurve);
+  var txb = document.getElementById('txbtn'); btnGroup(txb, TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx', renderCurve);
+
+  // 2. Movement charts.
+  function buildRows() {
+    var t = TXS[st.tx2]; charts.length = 0;
+    [['rowx', xline, 'x'], ['rowy', yline, 'y']].forEach(function (cfg) {
+      var host = document.getElementById(cfg[0]), line = cfg[1], axis = cfg[2]; host.textContent = '';
+      var xs = line.map(function (p) { return axis === 'x' ? p.x : p.y; }), xl = axis === 'x' ? '로봇 x (m)' : '로봇 y (m)';
+      var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, xs: xs, xlabel: xl, xname: axis, series: series }, extra || {}); lineChart(c, spec); charts.push(spec); };
+      var g = function (fn) { return line.map(function (p) { return fn(p.tx[t].shift); }); };
+      mk('x축 이동 yaw₀ (°)', [{ name: '안테나·기하 (LoS)', color: 'var(--c-los)', vals: g(function (s) { return s.x_antenna_geometry; }) }, { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: g(function (s) { return s.x_total; }) }], { dec: 1 });
+      mk('y축 이동 B', [{ name: '안테나·기하 (LoS)', color: 'var(--c-los)', vals: g(function (s) { return s.y_antenna_geometry; }) }, { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: g(function (s) { return s.y_total; }) }], { dec: 3 });
+      mk('다중 반사가 만든 x축 이동 (°, 그룹별)', GS.map(function (gg) { return { name: GN[gg], color: gcol(gg), vals: g(function (s) { return s.x_by_group[gg]; }) }; }), { dec: 2 });
+      mk('다중 반사가 만든 y축 이동 (그룹별)', GS.map(function (gg) { return { name: GN[gg], color: gcol(gg), vals: g(function (s) { return s.y_by_group[gg]; }) }; }), { dec: 3 });
+    });
+  }
+  var lg = document.getElementById('lg1');
+  legendItem(lg, 'var(--c-los)', '안테나·기하 (LoS)'); legendItem(lg, 'var(--c-all)', '전체 (다중 반사 포함)'); GS.forEach(function (g) { legendItem(lg, gcol(g), GN[g]); });
+  var txb2 = document.getElementById('txbtn2'); btnGroup(txb2, TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx2', buildRows);
+
+  // 3. LoS-level counterfactual table.
+  var VL = { base: '실제 (양쪽 off-axis)', robot_boresight: '앵커만 off-axis', anchor_boresight: '로봇만 off-axis', both_boresight: '둘 다 보어사이트', robot_equal_gain: '로봇 포트 이득 동일' };
+  function renderLos() {
+    var t = TXS[st.tx2], keys = Object.keys(VL);
+    var html = '<thead><tr><th>위치</th><th class="n">off-bore (°)</th>' + keys.map(function (k) { return '<th class="n">' + VL[k] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    cur.forEach(function (p) { var d = p.tx[t].fit_variants; html += '<tr><td>' + pname(p) + '</td><td class="n">' + f(p.off_boresight_deg, 0) + '</td>' + keys.map(function (k) { return '<td class="n' + (k === 'base' ? ' hi' : '') + '">' + sg(d[k].yaw0_deg, 1) + '° / ' + sg(d[k].B, 3) + '</td>'; }).join('') + '</tr>'; });
+    document.getElementById('los').innerHTML = html + '</tbody>';
+  }
+  // 4. Multipath attribution table.
+  function renderMp() {
+    var t = TXS[st.tx2];
+    var html = '<thead><tr><th>위치</th><th class="n">합계 x (°)</th>' + GS.map(function (g) { return '<th class="n">' + GN[g] + ' x</th>'; }).join('') + '<th class="n">합계 y</th>' + GS.map(function (g) { return '<th class="n">' + GN[g] + ' y</th>'; }).join('') + '</tr></thead><tbody>';
+    cur.forEach(function (p) { var s = p.tx[t].shift, mx = Math.max.apply(null, GS.map(function (g) { return Math.abs(s.x_by_group[g]); })), my = Math.max.apply(null, GS.map(function (g) { return Math.abs(s.y_by_group[g]); }));
+      html += '<tr><td>' + pname(p) + '</td><td class="n hi">' + sg(s.x_multipath, 1) + '</td>' + GS.map(function (g) { var v = s.x_by_group[g]; return '<td class="n' + (Math.abs(v) === mx && mx > 0.3 ? ' hi' : '') + '">' + sg(v, 1) + '</td>'; }).join('') +
+        '<td class="n hi">' + sg(s.y_multipath, 3) + '</td>' + GS.map(function (g) { var v = s.y_by_group[g]; return '<td class="n' + (Math.abs(v) === my && my > 0.004 ? ' hi' : '') + '">' + sg(v, 3) + '</td>'; }).join('') + '</tr>'; });
+    document.getElementById('mp').innerHTML = html + '</tbody>';
+  }
+  var oldCb = txb2.querySelectorAll('button'); oldCb.forEach(function (b) { b.addEventListener('click', function () { renderLos(); renderMp(); }); });
+  buildRows(); renderLos(); renderMp(); renderCurve();
+
+  document.getElementById('lede').textContent = D.lede;
+  D.findings.forEach(function (t) { document.getElementById('findings').appendChild(h('li', null, t)); });
+  D.caveats.forEach(function (t) { document.getElementById('caveats').appendChild(h('li', null, t)); });
+  window.addEventListener('resize', function () { charts.forEach(function (c) { c.redraw(); }); renderCurve(); });
+})();
+</script>
