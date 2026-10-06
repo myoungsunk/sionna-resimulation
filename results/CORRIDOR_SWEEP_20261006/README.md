@@ -10,3 +10,13 @@ Sionna RT 2.0.1 yaw sweep, LP +45/-45 port pair, 4 robot positions x 19 yaws (0-
   `python scripts/corridor_sionna_run.py --out results/CORRIDOR_SWEEP_20261006/pos<N> --position <N>`
   (about 16 min per position on one core; needs sionna-rt 2.0.1, mitsuba 3.8.0, drjit 1.3.1 and the LP_plus45/LP_minus45 FFD banks).
   `scripts/corridor_analyze.py` needs these npz files for the LoS-only curve.
+
+## Plotted metric (current): first-path power ratio
+
+`scripts/corridor_analyze_fp.py` -> `fp_ratio_table.csv`, `fp_ratio_series.json`, `FP_VALIDATION.json`;
+page: `corridor_yaw_sweep.html` (built by `scripts/corridor_render_results.py`).
+P = |CIR[first_path_index]|^2 per robot RX port (project chain: Hann 1028-tap CIR, 30 % leading edge on the
+strongest of the 4 branches, noise-free); ratio = |P1-P2| / |P1+P2| per anchor TX port.
+
+`ratio_table.csv`, `ratio_series.json`, `VALIDATION.json` come from the earlier complex-response variant
+(per-bin |p1-p2|/|p1+p2| of H); they are kept as analysis records and are no longer plotted.

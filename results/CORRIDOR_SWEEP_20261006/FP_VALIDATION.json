@@ -1,0 +1,81 @@
+{
+  "status": "FP_POWER_RATIO_ANALYSED",
+  "metric": "abs(P1-P2)/abs(P1+P2); P=|CIR[first_path_index]|^2 per RX port, Hann 1028-tap CIR, 30% leading edge on strongest of 4 branches, noise-free",
+  "per_position": [
+    {
+      "position": 0,
+      "xy": [
+        4.0,
+        0.0
+      ],
+      "range_m": 2.2,
+      "geometric_delay_ns": 7.338,
+      "first_path_index_min": 11,
+      "first_path_index_max": 11,
+      "first_path_delay_ns_median": 5.487,
+      "tap_ns": 0.4989,
+      "delay_minus_geometric_taps_max": 3.71,
+      "ratio_in_unit_interval": true
+    },
+    {
+      "position": 1,
+      "xy": [
+        7.0,
+        0.35
+      ],
+      "range_m": 3.737,
+      "geometric_delay_ns": 12.464,
+      "first_path_index_min": 21,
+      "first_path_index_max": 22,
+      "first_path_delay_ns_median": 10.476,
+      "tap_ns": 0.4989,
+      "delay_minus_geometric_taps_max": 3.99,
+      "ratio_in_unit_interval": true
+    },
+    {
+      "position": 2,
+      "xy": [
+        11.0,
+        -0.5
+      ],
+      "range_m": 7.355,
+      "geometric_delay_ns": 24.532,
+      "first_path_index_min": 45,
+      "first_path_index_max": 48,
+      "first_path_delay_ns_median": 22.947,
+      "tap_ns": 0.4989,
+      "delay_minus_geometric_taps_max": 4.18,
+      "ratio_in_unit_interval": true
+    },
+    {
+      "position": 3,
+      "xy": [
+        15.0,
+        0.0
+      ],
+      "range_m": 11.218,
+      "geometric_delay_ns": 37.419,
+      "first_path_index_min": 72,
+      "first_path_index_max": 73,
+      "first_path_delay_ns_median": 35.917,
+      "tap_ns": 0.4989,
+      "delay_minus_geometric_taps_max": 3.01,
+      "ratio_in_unit_interval": true
+    }
+  ],
+  "on_axis_vs_ideal_abs_ratio_deviation": {
+    "LP_plus45": {
+      "max_abs_dev_full": 0.046577190494327625,
+      "max_abs_dev_los_only": 0.04685215481715799
+    },
+    "LP_minus45": {
+      "max_abs_dev_full": 0.05008531768854385,
+      "max_abs_dev_los_only": 0.0503219092478524
+    }
+  },
+  "ideal": "abs(cos(2*yaw))",
+  "notes": [
+    "No receiver noise added; clean H from PathSolver.",
+    "LoS-only = H from interaction-free paths, own first-path detection."
+  ]
+}

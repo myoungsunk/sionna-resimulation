@@ -35,3 +35,14 @@ def los_two_port_ratio(yaw_deg, tx_port: str = "LP_plus45") -> np.ndarray:
     if tx_port == "LP_minus45":
         return port_difference_ratio(np.cos(yaw), np.sin(yaw))
     raise ValueError(f"unknown tx_port {tx_port!r}")
+
+
+def los_fp_power_ratio(yaw_deg) -> np.ndarray:
+    """Ideal on-axis first-path power ratio |P1 - P2| / (P1 + P2) = |cos(2 yaw)|.
+
+    With the ideal ports of ``los_two_port_ratio`` the first-path powers are
+    P1 ~ sin^2(yaw) and P2 ~ cos^2(yaw) (TX +45) or the swap (TX -45), so the ratio is
+    the same for both anchor TX ports.
+    """
+    yaw = np.radians(np.asarray(yaw_deg, dtype=float))
+    return port_difference_ratio(np.sin(yaw) ** 2, np.cos(yaw) ** 2)
