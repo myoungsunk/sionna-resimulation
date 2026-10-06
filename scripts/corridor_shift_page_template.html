@@ -101,12 +101,14 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <div class="scroll"><table id="los"></table></div>
   </section>
 
-  <section class="card" aria-label="송신 각도 실험">
-    <h2>원인 1-a. 송신 안테나가 보내는 각도 (수신은 정면으로 고정)</h2>
-    <p class="note">앵커 안테나가 정면(θ = 0°)에서 벗어난 방향 (θ, φ)로 보낼 때의 yaw 곡선입니다. 수신 포트는 정면으로 읽고 yaw만 돌렸기 때문에 곡선의 이동은 모두 송신 안테나에서 옵니다. φ는 앵커 안테나 기준 방위입니다(x축 스캔 방향이 φ = 0°).</p>
+  <section class="card" aria-label="송신 수신 각도 실험">
+    <h2>원인 1-a. 송신·수신 안테나가 보는 각도</h2>
+    <p class="note">앵커가 정면(θ = 0°)에서 벗어난 방향 (θ, φ)로 보낼 때의 yaw 곡선입니다. 실제 기하에서는 같은 직선이 두 안테나 모두에 같은 오프보어사이트 각 θ를 만들고(앵커는 아래, 로봇은 위를 봄), 수신 쪽 방위는 yaw에 따라 돌아갑니다. 세 가지로 읽습니다. 송신 + 수신 모두는 실제 기하이고, 송신만과 수신만은 반대쪽 안테나를 정면(이상)으로 읽은 경우입니다. φ는 앵커 안테나 기준 방위이며 x축 스캔 방향이 φ = 0°입니다.</p>
+    <div class="controls" id="modebtn" role="group" aria-label="읽는 방식"></div>
     <div class="controls" id="phibtn" role="group" aria-label="송신 방위 φ"></div>
-    <div class="controls" id="txabtn" role="group" aria-label="앵커 TX 포트 (송신 각도 실험)"></div>
+    <div class="controls" id="txabtn" role="group" aria-label="앵커 TX 포트 (각도 실험)"></div>
     <div class="legend" id="lgt"></div>
+    <div class="legend" id="lgm"></div>
     <div class="row" id="rowt"></div>
     <div class="scroll"><table id="txtab"></table></div>
   </section>
@@ -115,6 +117,19 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <h2>원인 2. 다중 반사 경로 (LoS 위에 더해진 몫)</h2>
     <p class="note">LoS 전용 곡선에서 전체 곡선으로 가며 생긴 이동량을 반사 그룹별로 나눴습니다. 그룹별 값의 합은 전체 몫과 거의 같습니다(합산 오차 중앙값 0.08°, 0.0006).</p>
     <div class="scroll"><table id="mp"></table></div>
+  </section>
+
+  <section class="card" aria-label="케이스 검증">
+    <h2>케이스 검증: 위치 (7.0, 0.7) · 앵커 TX +45°</h2>
+    <h3>① 피팅한 x축 이동이 맞게 계산됐나</h3>
+    <div class="scroll"><table id="ca"></table></div>
+    <p class="note" id="ca-note"></p>
+    <h3>② 이상 곡선 + 이동으로 yaw를 얼마나 잘 추정하나</h3>
+    <div class="scroll"><table id="cb"></table></div>
+    <p class="note" id="cb-note"></p>
+    <h3>③ 노란 박스 구간(yaw 80°–160°)에서 어떤 반사파가 어떤 방향·편파로 들어오나</h3>
+    <div class="scroll"><table id="cc"></table></div>
+    <p class="note" id="cc-note"></p>
   </section>
 
   <section>
@@ -142,7 +157,7 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
   var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
   var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
-  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0 };
+  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0, tmode: 0 };
 
   // Line chart with a snapping crosshair; spec: {title, xs, xlabel, xname, series:[{name,color,vals,dash,w}], ymin, ymax, dec, zero}
   function lineChart(host, spec) {
@@ -237,30 +252,57 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   }
   var oldCb = txb2.querySelectorAll('button'); oldCb.forEach(function (b) { b.addEventListener('click', function () { renderLos(); renderMp(); }); });
 
-  // TX emission-angle experiment.
-  var TA = D.txang, TH = TA.theta_deg, PH = TA.phi_deg, tst = { phi: 0, tx: 0 }, tcharts = [];
-  var key = function (th) { return th + '_' + PH[tst.phi]; };
-  var pick = function (th) { return TA.data[th + '_' + PH[tst.phi]][TXS[tst.tx]]; };
+  // TX / RX angle experiment: three ways of reading the antennas.
+  var TA = D.txang, TH = TA.theta_deg, PH = TA.phi_deg, tst = { phi: 0, tx: 0, mode: 0 }, tcharts = [];
+  var MODES = [['both', '송신 + 수신 모두 (실제 기하)'], ['tx_only', '송신만 (수신은 정면 고정, 이전 실험)'], ['rx_only', '수신만 (송신은 정면 고정)']];
+  var pk = function (th, mode) { var k = th + '_' + PH[tst.phi], tn = TXS[tst.tx]; return mode === 'tx_only' ? TA.data[k][tn] : TA.rx_included[k][mode][tn]; };
   var TC = ['var(--t0)', 'var(--t1)', 'var(--t2)', 'var(--t3)', 'var(--t4)'], TSEL = [0, 20, 40, 60, 80];
   var lgt = document.getElementById('lgt'); legendItem(lgt, 'var(--ref)', '이상 곡선', 'dash'); TSEL.forEach(function (th, i) { legendItem(lgt, TC[i], 'θ = ' + th + '°'); });
+  var lgm = document.getElementById('lgm'); legendItem(lgm, 'var(--c-all)', '송신 + 수신 모두'); legendItem(lgm, 'var(--c-los)', '송신만'); legendItem(lgm, 'var(--c-fit)', '수신만'); legendItem(lgm, 'var(--ref)', '송신 편파 기울기로 예측 (수신 정면 가정)', 'dash');
   function renderTx() {
-    var host = document.getElementById('rowt'); host.textContent = ''; tcharts.length = 0;
+    var host = document.getElementById('rowt'); host.textContent = ''; tcharts.length = 0; var md = MODES[tst.mode][0];
     var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, series: series }, extra); lineChart(c, spec); tcharts.push(spec); };
-    mk('yaw 곡선 (송신 각도별)', [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: yaws.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), nomark: true }].concat(TSEL.map(function (th, i) { return { name: 'θ = ' + th + '°', color: TC[i], vals: pick(th).ratio, nomark: true }; })),
+    mk('yaw 곡선 (' + MODES[tst.mode][1] + ')', [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: yaws.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), nomark: true }].concat(TSEL.map(function (th, i) { return { name: 'θ = ' + th + '°', color: TC[i], vals: pk(th, md).ratio, nomark: true }; })),
       { xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', ymin: 0, ymax: 1.05, dec: 3 });
     var base = { xs: TH, xlabel: '송신 각도 θ (°)', xname: 'θ' };
-    mk('x축 이동 yaw₀ (°)', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).yaw0; }) }, { name: 'TX 편파 기울기로 예측', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pick(t).yaw0_pred; }) }], Object.assign({ dec: 1 }, base));
-    mk('곡선 깊이 A', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).A; }) }, { name: 'TX 선편파 비율 (DoLP)', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pick(t).dolp; }) }], Object.assign({ dec: 3, ymin: 0.6, ymax: 1.05 }, base));
-    mk('y축 이동 B', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).B; }) }, { name: '0.16 × TX 타원율 S3/S0', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return 0.16 * pick(t).ellipticity; }) }], Object.assign({ dec: 3 }, base));
-    mk('송신 안테나 XPD (공칭 편파 대비, dB)', [{ name: 'XPD', color: 'var(--c-los)', vals: TH.map(function (t) { return pick(t).xpd_db; }) }], Object.assign({ dec: 1 }, base));
-    var html = '<thead><tr><th class="n">θ (°)</th><th class="n">XPD (dB)</th><th class="n">선편파 비율 DoLP</th><th class="n">타원율 S3/S0</th><th class="n">x 이동 피팅 (°)</th><th class="n">x 이동 예측 (°)</th><th class="n">A</th><th class="n">B</th></tr></thead><tbody>';
-    TH.forEach(function (t) { var r = pick(t); html += '<tr><td class="n">' + t + '</td><td class="n">' + f(r.xpd_db, 1) + '</td><td class="n">' + f(r.dolp, 3) + '</td><td class="n">' + sg(r.ellipticity, 2) + '</td><td class="n hi">' + sg(r.yaw0, 1) + '</td><td class="n">' + sg(r.yaw0_pred, 1) + '</td><td class="n">' + f(r.A, 3) + '</td><td class="n">' + sg(r.B, 3) + '</td></tr>'; });
+    var three = function (key) { return [{ name: '송신 + 수신 모두', color: 'var(--c-all)', vals: TH.map(function (t) { return pk(t, 'both')[key]; }) }, { name: '송신만', color: 'var(--c-los)', vals: TH.map(function (t) { return pk(t, 'tx_only')[key]; }) }, { name: '수신만', color: 'var(--c-fit)', vals: TH.map(function (t) { return pk(t, 'rx_only')[key]; }) }]; };
+    mk('x축 이동 yaw₀ (°)', three('yaw0').concat([{ name: '송신 편파 기울기로 예측', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pk(t, 'tx_only').yaw0_pred; }), nomark: true }]), Object.assign({ dec: 1 }, base));
+    mk('곡선 깊이 A', three('A'), Object.assign({ dec: 3, ymin: 0.6, ymax: 1.05 }, base));
+    mk('y축 이동 B', three('B'), Object.assign({ dec: 3 }, base));
+    mk('송신 안테나 XPD (공칭 편파 대비, dB)', [{ name: 'XPD', color: 'var(--c-los)', vals: TH.map(function (t) { return pk(t, 'tx_only').xpd_db; }) }], Object.assign({ dec: 1 }, base));
+    var html = '<thead><tr><th class="n">θ (°)</th><th class="n">모두 x (°)</th><th class="n">모두 B</th><th class="n">모두 A</th><th class="n">송신만 x</th><th class="n">송신만 B</th><th class="n">수신만 x</th><th class="n">수신만 B</th><th class="n">TX XPD (dB)</th></tr></thead><tbody>';
+    TH.forEach(function (t) { var a = pk(t, 'both'), b = pk(t, 'tx_only'), c = pk(t, 'rx_only'); html += '<tr><td class="n">' + t + '</td><td class="n hi">' + sg(a.yaw0, 1) + '</td><td class="n hi">' + sg(a.B, 3) + '</td><td class="n hi">' + f(a.A, 3) + '</td><td class="n">' + sg(b.yaw0, 1) + '</td><td class="n">' + sg(b.B, 3) + '</td><td class="n">' + sg(c.yaw0, 1) + '</td><td class="n">' + sg(c.B, 3) + '</td><td class="n">' + f(b.xpd_db, 1) + '</td></tr>'; });
     document.getElementById('txtab').innerHTML = html + '</tbody>';
   }
+  btnGroup(document.getElementById('modebtn'), MODES.map(function (m) { return m[1]; }), 'tmode', function () { tst.mode = st.tmode; renderTx(); });
   btnGroup(document.getElementById('phibtn'), PH.map(function (p) { return 'φ = ' + p + '°'; }), 'tphi', function () { tst.phi = st.tphi; renderTx(); });
   btnGroup(document.getElementById('txabtn'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'ttx', function () { tst.tx = st.ttx; renderTx(); });
   renderTx();
   buildRows(); renderLos(); renderMp(); renderCurve();
+
+  // Case check tables.
+  (function () {
+    var K = D.case, A = K.A.filter(function (r) { return r.x === K.case.x && r.y === K.case.y && r.tx === K.case.tx; })[0];
+    var all = K.A, ok2 = all.filter(function (r) { return r.null_shift_1 != null; });
+    var med = function (a) { a = a.slice().sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; };
+    document.getElementById('ca').innerHTML = '<thead><tr><th>방법</th><th class="n">x축 이동 yaw₀ (°)</th><th class="n">y축 이동 B</th><th class="n">|s| 잔차 RMS</th></tr></thead><tbody>' +
+      '<tr><td>선형 최소제곱 (페이지의 피팅)</td><td class="n hi">' + sg(A.lin_yaw0, 2) + '</td><td class="n">' + sg(A.lin_B, 3) + '</td><td class="n">' + f(A.rmse_lin, 3) + '</td></tr>' +
+      '<tr><td>독립 비선형 피팅 (|s|에 직접, 여러 시작점)</td><td class="n hi">' + sg(A.nl_yaw0, 2) + '</td><td class="n">' + sg(A.nl_B, 3) + '</td><td class="n">' + f(A.rmse_nl, 3) + '</td></tr>' +
+      '<tr><td>측정 영점 이동: 첫 영점(이상 45°) / 둘째 영점(이상 135°)</td><td class="n hi">' + sg(A.null_shift_1, 1) + ' / ' + sg(A.null_shift_2, 1) + '</td><td class="n">–</td><td class="n">–</td></tr>' +
+      '<tr><td>두 영점 이동의 평균</td><td class="n">' + sg(0.5 * (A.null_shift_1 + A.null_shift_2), 1) + '</td><td class="n">–</td><td class="n">–</td></tr></tbody>';
+    document.getElementById('ca-note').textContent = '피팅 계산은 맞습니다. 알려진 값을 넣은 합성 곡선(' + K.synthetic_n + '개)에서 오차가 0이고, 독립 비선형 피팅과 소수 둘째 자리까지 같습니다. 다만 이 케이스는 두 영점이 +' + f(A.null_shift_1, 1) + '°와 +' + f(A.null_shift_2, 1) + '°로 서로 다르게 움직였습니다(간격이 이상 90°가 아니라 ' + f(90 + A.null_shift_2 - A.null_shift_1, 0) + '°). 이동 하나(+' + f(A.lin_yaw0, 1) + '°)로는 이 비대칭을 표현할 수 없어서 평균(+' + f(0.5 * (A.null_shift_1 + A.null_shift_2), 1) + '°)보다 작은 값이 나왔습니다. 24개 곡선 중 ' + ok2.filter(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1) >= 3; }).length + '개에서 두 영점의 이동이 3° 이상 서로 달랐고(차이 중앙값 ' + f(med(ok2.map(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1); })), 1) + '°, 최대 ' + f(Math.max.apply(null, ok2.map(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1); })), 1) + '°), 피팅 yaw₀가 영점 이동 평균과 2° 이내인 곡선은 ' + ok2.filter(function (r) { return Math.abs(r.lin_yaw0 - 0.5 * (r.null_shift_1 + r.null_shift_2)) <= 2; }).length + '/' + ok2.length + '개입니다.';
+    var MN = { ideal: '이상 곡선 그대로', x: '이상 + x축 이동', xy: '이상 + x·y축 이동', xyA: '이상 + x·y축 이동 + 진폭', harm: '고조파 템플릿 (1ψ·2ψ·3ψ)', xyA_los_params: '이상 + 이동 (LoS 피팅값, 사전 예측)' };
+    var html = '<thead><tr><th>템플릿</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차| (°)</th><th class="n">최대 (°)</th><th class="n">5° 이내</th><th class="n">이 케이스 RMSE (°)</th></tr></thead><tbody>';
+    Object.keys(MN).forEach(function (m) { var v = K.B[m], ce = v.case_err ? Math.sqrt(v.case_err.reduce(function (s, e) { return s + e * e; }, 0) / v.case_err.length) : NaN; html += '<tr><td>' + MN[m] + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.max_abs, 1) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(ce, 2) + '</td></tr>'; });
+    document.getElementById('cb').innerHTML = html + '</tbody>';
+    document.getElementById('cb-note').textContent = '측정한 비율 하나를 템플릿 곡선에 거꾸로 대입해 yaw 후보를 구하고, 후보 중 실제 yaw에 가장 가까운 값을 추정값으로 삼았습니다(모호성은 풀렸다고 가정). 템플릿 계수는 해당 곡선에서 그 yaw 하나를 뺀 18점으로 맞췄습니다(leave-one-out). 앵커 아래를 뺀 ' + K.B.ideal.curves + '개 곡선 기준입니다. 이동을 넣을수록 오차가 줄지만 약 6°에서 멈춥니다. 비율은 극값 근처에서 yaw에 거의 반응하지 않기 때문입니다.';
+    var C = K.C, rows = C.rows.filter(function (r) { return r.yaw >= 80 && r.yaw <= 160; });
+    var h3 = '<thead><tr><th class="n">yaw (°)</th><th class="n">포트 +45° 빔 방위</th><th class="n">포트 −45° 빔 방위</th><th class="n">|s| LoS</th><th class="n">|s| 전체</th><th class="n">LoS 편파 기울기 (°)</th><th class="n">천장 진폭비 (+45 / −45)</th><th class="n">천장 편파 중첩</th><th class="n">천장 Δ|s|</th><th class="n">옆벽 진폭비 (+45 / −45)</th><th class="n">옆벽 편파 중첩</th><th class="n">옆벽 Δ|s|</th></tr></thead><tbody>';
+    rows.forEach(function (r) { var c = r.groups.ceiling, w = r.groups.side_walls; h3 += '<tr><td class="n">' + r.yaw + '</td><td class="n">' + sg(r.port_plus45_beam_azimuth, 0) + '°</td><td class="n">' + sg(r.port_minus45_beam_azimuth, 0) + '°</td><td class="n">' + f(r.abs_s_los, 2) + '</td><td class="n">' + f(r.abs_s_full, 2) + '</td><td class="n">' + sg(r.los_pol.tilt_deg, 0) + '</td><td class="n">' + f(c.c1_over_los, 3) + ' / ' + f(c.c2_over_los, 3) + '</td><td class="n">' + f(c.overlap, 2) + '</td><td class="n hi">' + sg(c.d_abs_s, 3) + '</td><td class="n">' + f(w.c1_over_los, 3) + ' / ' + f(w.c2_over_los, 3) + '</td><td class="n">' + f(w.overlap, 2) + '</td><td class="n">' + sg(w.d_abs_s, 3) + '</td></tr>'; });
+    document.getElementById('cc').innerHTML = h3 + '</tbody>';
+    var ar = C.arrivals;
+    document.getElementById('cc-note').textContent = '도래 방위(그 방향에서 들어옴): LoS ' + f(ar.los.from_azimuth_deg, 0) + '°, 천장 반사 ' + f(ar.ceiling.from_azimuth_deg, 0) + '°(LoS와 같은 방향, 초과 지연 ' + f(ar.ceiling.delay_excess_ns, 1) + ' ns), 가까운 옆벽(+y) 반사 ' + f(ar.wall_y_pos.from_azimuth_deg, 0) + '°(초과 지연 ' + f(ar.wall_y_pos.delay_excess_ns, 1) + ' ns), 먼 옆벽(−y) 반사 ' + f(ar.wall_y_neg.from_azimuth_deg, 0) + '°. 포트 빔 방위는 뱅크의 빔 피크 방위(+45° 포트 +41°, −45° 포트 −44°)에 yaw를 더한 값입니다. 편파 중첩은 반사파와 LoS의 편파 상태가 얼마나 같은지(1이면 같은 편파, 0이면 직교)이며, 진폭비·중첩은 두 포트의 first-path 탭 필드에서 구했습니다. Δ|s|는 LoS에 그 반사 그룹 하나만 더했을 때 |s|가 바뀌는 양입니다.';
+  })();
 
   document.getElementById('lede').textContent = D.lede;
   D.findings.forEach(function (t) { document.getElementById('findings').appendChild(h('li', null, t)); });

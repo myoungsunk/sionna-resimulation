@@ -8,6 +8,8 @@ d = ROOT / "results" / "CORRIDOR_SCAN_20261006"
 data = json.loads((d / "SHIFT_FIT.json").read_text())
 data.update(json.loads((d / "LEDE_SHIFT.json").read_text()))
 data["txang"] = json.loads((d / "TX_ANGLE_SWEEP.json").read_text())
+data["case"] = json.loads((d / "CASE_CHECK.json").read_text())
+data["case"]["synthetic_n"] = 30
 page = (ROOT / "scripts" / "corridor_shift_page_template.html").read_text(encoding="utf8").replace("__RESULTS__", json.dumps(data, ensure_ascii=False, allow_nan=False))
 out = d / "corridor_curve_shift.html"
 out.write_text(page, encoding="utf8")

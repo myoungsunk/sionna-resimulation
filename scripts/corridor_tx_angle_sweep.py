@@ -31,12 +31,14 @@ LINK_M = 3.0
 CENTER_BIN = 128
 
 
-def one(banks, theta, phi):
+def one(banks, theta, phi, rx_actual=False, tx_actual=True):
+    """rx_actual=False: receiver read at boresight (earlier experiment). rx_actual=True: receiver sees the wave from its real
+    direction -k in its own frame (off-boresight by theta, azimuth rotating with yaw). tx_actual=False: anchor read at boresight."""
     dl = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
     k = ANCHOR_ROTATION @ dl
-    vt = banks.vectors(ANCHOR_ROTATION, k)  # (257, 2 ports, 3) world Cartesian
+    vt = banks.vectors(ANCHOR_ROTATION, k, force_boresight=not tx_actual)  # (257, 2 ports, 3) world Cartesian
     amp = sf.C0 / sf.FREQ / (4 * np.pi * LINK_M) * np.exp(-2j * np.pi * sf.FREQ * LINK_M / sf.C0)
-    Hs = np.stack([np.einsum("fic,fjc->fij", banks.vectors(rot_z(y), -k, force_boresight=True), vt) * amp[:, None, None] for y in sf.YAWS])
+    Hs = np.stack([np.einsum("fic,fjc->fij", banks.vectors(rot_z(y), -k, force_boresight=not rx_actual), vt) * amp[:, None, None] for y in sf.YAWS])
     cir, t = contribution_cir(Hs[0], sf.FREQ)
     pk = np.abs(cir).max(0)
     rx, tx = np.unravel_index(pk.argmax(), pk.shape)
@@ -66,6 +68,19 @@ def one(banks, theta, phi):
     return out
 
 
+def both_sweep(banks, thetas, phis):
+    """Curves with the receiver angle included: 'both' (real geometry), 'rx_only' (anchor read at boresight)."""
+    out = {}
+    for th in thetas:
+        for ph in phis:
+            row = {}
+            for name, kw in (("both", dict(rx_actual=True, tx_actual=True)), ("rx_only", dict(rx_actual=True, tx_actual=False))):
+                r = one(banks, np.radians(th), np.radians(ph), **kw)
+                row[name] = {tn: dict(ratio=v["ratio"], yaw0=v["yaw0"], B=v["B"], A=v["A"], captured=v["captured"]) for tn, v in r.items()}
+            out[f"{th}_{ph}"] = row
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "CORRIDOR_SCAN_20261006" / "TX_ANGLE_SWEEP.json")
@@ -77,7 +92,8 @@ def main():
     for v in data.values():
         for tn in sf.TX:
             v[tn]["gain_rel_db"] -= ref
-    args.out.write_text(json.dumps(dict(yaw_deg=sf.YAWS.tolist(), theta_deg=thetas, phi_deg=phis, link_m=LINK_M, center_bin=CENTER_BIN, data=data)))
+    both = both_sweep(banks, thetas, phis)
+    args.out.write_text(json.dumps(dict(yaw_deg=sf.YAWS.tolist(), theta_deg=thetas, phi_deg=phis, link_m=LINK_M, center_bin=CENTER_BIN, data=data, rx_included=both)))
     for th in (0, 40, 60, 80):
         r = data[f"{th}_0"][sf.TX[0]]
         print(f"theta {th:2d} phi 0 TX+45: yaw0 {r['yaw0']:+6.1f} (pred {r['yaw0_pred']:+6.1f}) B {r['B']:+.3f} A {r['A']:.3f} DoLP {r['dolp']:.3f} XPD {r['xpd_db']:5.1f} dB")
