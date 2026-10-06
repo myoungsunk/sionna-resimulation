@@ -105,6 +105,14 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     <p class="note" id="tm-note"></p>
   </section>
 
+  <section class="card" aria-label="오차 분해">
+    <h2>곡선이 잘 맞는데 yaw 오차가 4.8°나 되는 이유</h2>
+    <p class="note">yaw 오차는 곡선의 세로 불일치가 아니라 가로 어긋남입니다. 지표 불일치 dr은 곡선 기울기 g로 나눠져 yaw 오차가 됩니다(오차 ≈ dr / g). 각도 모델(LoS만)과 실제의 불일치를 기울기 구간별로 나눴습니다(각도 모델 템플릿, 22개 곡선 × 19개 yaw = 418개 표본).</p>
+    <div class="scroll"><table id="eb"></table></div>
+    <div class="scroll"><table id="eby"></table></div>
+    <p class="note" id="eb-note"></p>
+  </section>
+
   <section class="card" aria-label="이동 축 방향">
     <h2>로봇을 옮기면 이동량이 어떻게 변하나</h2>
     <div class="controls" id="txbtn2" role="group" aria-label="앵커 TX 포트 (이동 차트)"></div>
@@ -337,6 +345,17 @@ details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
     document.getElementById('tm2').innerHTML = h2 + '</tbody>';
     var ks = Object.keys(SE);
     document.getElementById('tm-note').textContent = '각도 모델은 22개 곡선 중 ' + T.angle_model_better_than_shift_xyA_curves + '개에서 이전 이동 템플릿보다 RMSE가 낮습니다. 좌표가 틀려도 거의 변하지 않습니다(좌표 오차 ' + ks.map(function (k) { return k + ' m: ' + f(SE[k].rmse_mean, 2) + '°'; }).join(', ') + ', 오차 0 m: ' + f(S.angle_model.rmse, 2) + '°). 같은 위치에서 sweep을 측정해 보정하면 ' + f(S.angle_model_cal.rmse, 2) + '°까지 내려가지만, 그 보정을 가까운 다른 좌표에서 빌려 쓰면 ' + f(CT.rmse, 2) + '°로 보정 없는 각도 모델보다 나빠집니다. 다중 반사가 만드는 보정량이 위치마다 다르기 때문입니다. 정답을 모르고 ±30°만 아는 경우에는 모든 템플릿이 14–16°이고 오답 가지가 13–19%라서, 이 비율 하나로는 4–5개 후보를 가를 수 없습니다.';
+  })();
+
+  // Error budget: slope converts metric mismatch into yaw error.
+  (function () {
+    var E = D.errbud, h1 = '<thead><tr><th class="n">템플릿 기울기 g (1/°)</th><th class="n">표본 수</th><th class="n">지표 불일치 RMS dr</th><th class="n">yaw 오차 RMS (°)</th><th class="n">중앙값 |오차| (°)</th><th class="n">전체 제곱오차 중 비중</th></tr></thead><tbody>';
+    E.bins.forEach(function (b) { h1 += '<tr><td class="n">' + f(b.slope_lo, 3) + ' – ' + (b.slope_hi >= 1 ? '' : f(b.slope_hi, 3)) + '</td><td class="n">' + b.n + '</td><td class="n">' + f(b.rms_dr, 3) + '</td><td class="n hi">' + f(b.rms_err, 2) + '</td><td class="n">' + f(b.median_abs_err, 2) + '</td><td class="n">' + f(b.share_of_sse * 100, 0) + '%</td></tr>'; });
+    document.getElementById('eb').innerHTML = h1 + '</tbody>';
+    var h2 = '<thead><tr><th>실제 yaw (°)</th>' + E.by_yaw.map(function (d) { return '<th class="n">' + f(d.yaw, 0) + '</th>'; }).join('') + '</tr></thead><tbody><tr><td>yaw 오차 RMS (°)</td>' + E.by_yaw.map(function (d) { return '<td class="n' + (d.rms_err >= 5.5 ? ' hi' : '') + '">' + f(d.rms_err, 1) + '</td>'; }).join('') + '</tr><tr><td>평균 기울기 g (1/°)</td>' + E.by_yaw.map(function (d) { return '<td class="n">' + f(d.mean_slope, 3) + '</td>'; }).join('') + '</tr></tbody>';
+    document.getElementById('eby').innerHTML = h2;
+    var flat = E.bins[0].n + E.bins[1].n, flatShare = E.bins[0].share_of_sse + E.bins[1].share_of_sse;
+    document.getElementById('eb-note').textContent = '가파른 구간(g ≥ 0.02/°, ' + E.n_steep + '개)에서는 yaw 오차 RMS가 ' + f(E.rms_err_steep, 2) + '°이고 dr/g로 예측한 값 ' + f(E.linear_prediction_rms_steep, 2) + '°와 같습니다. 이 값은 다중 반사가 만든 x축 이동의 RMS ' + f(E.multipath_x_shift_rms, 2) + '°와 거의 같습니다. LoS만 다루는 각도 모델이 놓친 다중 반사의 가로 어긋남이 그대로 yaw 오차가 된 것입니다. 평평한 구간(g < 0.01/°, ' + flat + '개)에서는 dr이 작아도(' + f(E.bins[0].rms_dr, 3) + ' ~ ' + f(E.bins[1].rms_dr, 3) + ') yaw 오차가 5–7.5°로 커지며 전체 제곱오차의 ' + f(flatShare * 100, 0) + '%를 차지합니다. 극값 근처에서는 오차가 dr이 아니라 √dr에 비례합니다(|cos 2·yaw|는 극값에서 1 − 2·Δyaw²). 지표 불일치 RMS는 ' + f(E.rms_dr, 3) + '(곡선별 RMSE의 중앙값 0.066)이고 곡선 기울기 RMS는 ' + f(E.rms_slope, 4) + '/°라서, 기울기가 어디서나 같았더라도 ' + f(E.uniform_slope_estimate, 1) + '° 정도는 남습니다. 이 곡선은 yaw 90°–100°(피크 근처)에서 6.7–7.5°로 가장 큽니다.';
   })();
 
   // Case check tables.
