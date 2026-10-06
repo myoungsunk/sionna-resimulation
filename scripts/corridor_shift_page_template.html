@@ -5,6 +5,7 @@
 :root {
   --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee; --ref: #7b8794; --ok: #1f8a4c;
   --c-los: #2a78d6; --c-all: #eb6834; --c-fit: #1baf7a;
+  --t0: #86b6ef; --t1: #5598e7; --t2: #2a78d6; --t3: #1c5cab; --t4: #104281;
   --g-floor: #2a78d6; --g-ceiling: #eb6834; --g-side_walls: #1baf7a; --g-end_walls: #eda100; --g-multi_bounce: #e87ba4;
   --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
@@ -13,12 +14,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
     --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+    --t0: #184f95; --t1: #256abf; --t2: #3987e5; --t3: #6da7ec; --t4: #9ec5f4;
     --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
   --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+  --t0: #184f95; --t1: #256abf; --t2: #3987e5; --t3: #6da7ec; --t4: #9ec5f4;
   --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
 }
 body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
@@ -98,6 +101,16 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <div class="scroll"><table id="los"></table></div>
   </section>
 
+  <section class="card" aria-label="송신 각도 실험">
+    <h2>원인 1-a. 송신 안테나가 보내는 각도 (수신은 정면으로 고정)</h2>
+    <p class="note">앵커 안테나가 정면(θ = 0°)에서 벗어난 방향 (θ, φ)로 보낼 때의 yaw 곡선입니다. 수신 포트는 정면으로 읽고 yaw만 돌렸기 때문에 곡선의 이동은 모두 송신 안테나에서 옵니다. φ는 앵커 안테나 기준 방위입니다(x축 스캔 방향이 φ = 0°).</p>
+    <div class="controls" id="phibtn" role="group" aria-label="송신 방위 φ"></div>
+    <div class="controls" id="txabtn" role="group" aria-label="앵커 TX 포트 (송신 각도 실험)"></div>
+    <div class="legend" id="lgt"></div>
+    <div class="row" id="rowt"></div>
+    <div class="scroll"><table id="txtab"></table></div>
+  </section>
+
   <section class="card" aria-label="다중 반사 단계 원인">
     <h2>원인 2. 다중 반사 경로 (LoS 위에 더해진 몫)</h2>
     <p class="note">LoS 전용 곡선에서 전체 곡선으로 가며 생긴 이동량을 반사 그룹별로 나눴습니다. 그룹별 값의 합은 전체 몫과 거의 같습니다(합산 오차 중앙값 0.08°, 0.0006).</p>
@@ -129,7 +142,7 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
   var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
   var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
-  var st = { pos: 0, tx: 0, tx2: 0 };
+  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0 };
 
   // Line chart with a snapping crosshair; spec: {title, xs, xlabel, xname, series:[{name,color,vals,dash,w}], ymin, ymax, dec, zero}
   function lineChart(host, spec) {
@@ -223,11 +236,35 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     document.getElementById('mp').innerHTML = html + '</tbody>';
   }
   var oldCb = txb2.querySelectorAll('button'); oldCb.forEach(function (b) { b.addEventListener('click', function () { renderLos(); renderMp(); }); });
+
+  // TX emission-angle experiment.
+  var TA = D.txang, TH = TA.theta_deg, PH = TA.phi_deg, tst = { phi: 0, tx: 0 }, tcharts = [];
+  var key = function (th) { return th + '_' + PH[tst.phi]; };
+  var pick = function (th) { return TA.data[th + '_' + PH[tst.phi]][TXS[tst.tx]]; };
+  var TC = ['var(--t0)', 'var(--t1)', 'var(--t2)', 'var(--t3)', 'var(--t4)'], TSEL = [0, 20, 40, 60, 80];
+  var lgt = document.getElementById('lgt'); legendItem(lgt, 'var(--ref)', '이상 곡선', 'dash'); TSEL.forEach(function (th, i) { legendItem(lgt, TC[i], 'θ = ' + th + '°'); });
+  function renderTx() {
+    var host = document.getElementById('rowt'); host.textContent = ''; tcharts.length = 0;
+    var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, series: series }, extra); lineChart(c, spec); tcharts.push(spec); };
+    mk('yaw 곡선 (송신 각도별)', [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: yaws.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), nomark: true }].concat(TSEL.map(function (th, i) { return { name: 'θ = ' + th + '°', color: TC[i], vals: pick(th).ratio, nomark: true }; })),
+      { xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', ymin: 0, ymax: 1.05, dec: 3 });
+    var base = { xs: TH, xlabel: '송신 각도 θ (°)', xname: 'θ' };
+    mk('x축 이동 yaw₀ (°)', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).yaw0; }) }, { name: 'TX 편파 기울기로 예측', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pick(t).yaw0_pred; }) }], Object.assign({ dec: 1 }, base));
+    mk('곡선 깊이 A', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).A; }) }, { name: 'TX 선편파 비율 (DoLP)', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pick(t).dolp; }) }], Object.assign({ dec: 3, ymin: 0.6, ymax: 1.05 }, base));
+    mk('y축 이동 B', [{ name: '곡선 피팅', color: 'var(--c-all)', vals: TH.map(function (t) { return pick(t).B; }) }, { name: '0.16 × TX 타원율 S3/S0', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return 0.16 * pick(t).ellipticity; }) }], Object.assign({ dec: 3 }, base));
+    mk('송신 안테나 XPD (공칭 편파 대비, dB)', [{ name: 'XPD', color: 'var(--c-los)', vals: TH.map(function (t) { return pick(t).xpd_db; }) }], Object.assign({ dec: 1 }, base));
+    var html = '<thead><tr><th class="n">θ (°)</th><th class="n">XPD (dB)</th><th class="n">선편파 비율 DoLP</th><th class="n">타원율 S3/S0</th><th class="n">x 이동 피팅 (°)</th><th class="n">x 이동 예측 (°)</th><th class="n">A</th><th class="n">B</th></tr></thead><tbody>';
+    TH.forEach(function (t) { var r = pick(t); html += '<tr><td class="n">' + t + '</td><td class="n">' + f(r.xpd_db, 1) + '</td><td class="n">' + f(r.dolp, 3) + '</td><td class="n">' + sg(r.ellipticity, 2) + '</td><td class="n hi">' + sg(r.yaw0, 1) + '</td><td class="n">' + sg(r.yaw0_pred, 1) + '</td><td class="n">' + f(r.A, 3) + '</td><td class="n">' + sg(r.B, 3) + '</td></tr>'; });
+    document.getElementById('txtab').innerHTML = html + '</tbody>';
+  }
+  btnGroup(document.getElementById('phibtn'), PH.map(function (p) { return 'φ = ' + p + '°'; }), 'tphi', function () { tst.phi = st.tphi; renderTx(); });
+  btnGroup(document.getElementById('txabtn'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'ttx', function () { tst.tx = st.ttx; renderTx(); });
+  renderTx();
   buildRows(); renderLos(); renderMp(); renderCurve();
 
   document.getElementById('lede').textContent = D.lede;
   D.findings.forEach(function (t) { document.getElementById('findings').appendChild(h('li', null, t)); });
   D.caveats.forEach(function (t) { document.getElementById('caveats').appendChild(h('li', null, t)); });
-  window.addEventListener('resize', function () { charts.forEach(function (c) { c.redraw(); }); renderCurve(); });
+  window.addEventListener('resize', function () { charts.forEach(function (c) { c.redraw(); }); tcharts.forEach(function (c) { c.redraw(); }); renderCurve(); });
 })();
 </script>
