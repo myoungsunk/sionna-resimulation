@@ -113,11 +113,15 @@ def solve(solver, scene, cfg):
     n = tau.size
     coef = a.reshape(2, 2, n)
     inter = np.asarray(paths.interactions).reshape(-1, n)
-    return coef, tau, inter
+    obj = np.asarray(paths.objects).reshape(-1, n).astype(np.int64)
+    return coef, tau, inter, obj
 
 
 def run_sweep(args, setup, cfg, banks):
-    x, y = setup.example_xy_m[args.position]
+    x, y = args.xy if args.xy else setup.example_xy_m[args.position]
+    tag = args.tag or f"position_{args.position}"
+    lo, hi = setup.robot_x_range_m
+    assert lo <= x <= hi and abs(y) <= setup.robot_y_limit_m, f"POSITION_OUTSIDE_ALLOWED_REGION {x},{y}"
     yaws = args.yaws if args.yaws else list(setup.yaw_sweep_deg)
     freq = banks[0]["freqs_hz"]
     bins = list(range(0, len(freq), args.bin_stride))
@@ -129,16 +133,16 @@ def run_sweep(args, setup, cfg, banks):
     solver = rt.PathSolver()
     H = np.zeros((len(yaws), len(bins), 2, 2), np.complex128)
     counts = np.zeros((len(yaws), len(bins)), np.int32)
-    flat_a, flat_tau, flat_inter, offsets = [], [], [], [0]
+    flat_a, flat_tau, flat_inter, flat_obj, offsets = [], [], [], [], [0]
     t0 = time.monotonic()
     for bi, fi in enumerate(bins):
         set_bin(scene, banks, txp, rxp, fi, freq[fi])
         for yi, yaw in enumerate(yaws):
             scene.receivers["rx"].orientation = mi.Point3f(*euler(setup.robot_rotation(yaw)))
-            coef, tau, inter = solve(solver, scene, cfg)
+            coef, tau, inter, obj = solve(solver, scene, cfg)
             H[yi, bi] = (coef * np.exp(-2j * np.pi * freq[fi] * tau)[None, None, :]).sum(-1)
             counts[yi, bi] = tau.size
-            flat_a.append(coef.astype(np.complex64)); flat_tau.append(tau); flat_inter.append(inter.astype(np.int8))
+            flat_a.append(coef.astype(np.complex64)); flat_tau.append(tau); flat_inter.append(inter.astype(np.int8)); flat_obj.append(obj)
             offsets.append(offsets[-1] + tau.size)
         if bi % 16 == 0:
             print(json.dumps(dict(position=args.position, bin=int(fi), done=bi + 1, of=len(bins),
@@ -146,19 +150,21 @@ def run_sweep(args, setup, cfg, banks):
     assert np.isfinite(H).all(), "NONFINITE_H"
     inter_depth = max(i.shape[0] for i in flat_inter)
     inter_cat = np.concatenate([np.pad(i, ((0, inter_depth - i.shape[0]), (0, 0))) for i in flat_inter], axis=1)
+    obj_cat = np.concatenate([np.pad(o, ((0, inter_depth - o.shape[0]), (0, 0))) for o in flat_obj], axis=1)
+    np.save(args.out / f"{tag}_H.npy", H)
     np.savez_compressed(
-        args.out / f"position_{args.position}_sweep.npz", H=H, yaw_deg=np.array(yaws), bin_index=np.array(bins),
+        args.out / f"{tag}_sweep.npz", H=H, objects_cat=obj_cat, yaw_deg=np.array(yaws), bin_index=np.array(bins),
         freqs_hz=freq[bins], path_counts=counts, a_cat=np.concatenate(flat_a, axis=-1), tau_cat=np.concatenate(flat_tau),
         interactions_cat=inter_cat, offsets=np.array(offsets), robot_xy_m=np.array([x, y]), anchor_m=a_pos, robot_antenna_m=r_pos,
         ports=np.array(PORTS), H_layout="[yaw, bin, rx_port(+45,-45), tx_port(+45,-45)]; offsets index flattened (bin-major, yaw-minor)")
-    receipt = dict(position=args.position, robot_xy_m=[x, y], yaws=yaws, n_bins=len(bins), bin_stride=args.bin_stride,
+    receipt = dict(position=args.position, tag=tag, object_indices={str(o.object_id): n for n, o in scene.objects.items()}, robot_xy_m=[x, y], yaws=yaws, n_bins=len(bins), bin_stride=args.bin_stride,
                    pathsolver_calls=len(yaws) * len(bins), elapsed_s=round(time.monotonic() - t0, 2),
                    seconds_per_call=round((time.monotonic() - t0) / (len(yaws) * len(bins)), 4),
                    mean_paths=float(counts.mean()), max_paths=int(counts.max()), materials=bindings,
                    solver=cfg, versions={n: importlib.metadata.version(n) for n in ("sionna-rt", "mitsuba", "drjit")},
                    runner_sha256=sha256(Path(__file__)), adapter_sha256=sha256(ROOT / "scripts" / "g2_completion" / "sionna_native_runtime.py"),
                    bank_sha256={f"{n}_bank.npz": sha256(BANK_DIR / f"{n}_bank.npz") for n in PORTS}, command=" ".join(sys.argv))
-    (args.out / f"position_{args.position}_receipt.json").write_text(json.dumps(receipt, indent=2))
+    (args.out / f"{tag}_receipt.json").write_text(json.dumps(receipt, indent=2))
     print(json.dumps(dict(done=True, **{k: receipt[k] for k in ("position", "pathsolver_calls", "elapsed_s", "seconds_per_call", "mean_paths")})), flush=True)
 
 
@@ -211,6 +217,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--position", type=int, default=0)
+    ap.add_argument("--xy", type=float, nargs=2, help="robot x y in metres (overrides --position)")
+    ap.add_argument("--tag", help="output file prefix (default position_<N>)")
     ap.add_argument("--yaws", type=float, nargs="*")
     ap.add_argument("--bin-stride", type=int, default=1)
     ap.add_argument("--threads", type=int, default=1)
