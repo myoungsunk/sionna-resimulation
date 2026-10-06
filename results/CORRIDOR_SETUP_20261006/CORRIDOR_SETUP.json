@@ -1,0 +1,209 @@
+{
+  "status": "SETUP_VISUALISATION_ONLY_NO_RF_RUN",
+  "created_utc": "2026-10-06T09:33:00+00:00",
+  "command": "scripts/corridor_render_3d.py",
+  "config": {
+    "anchor_standoff_m": 0.05,
+    "anchor_x_m": 4.0,
+    "anchor_y_m": 0.0,
+    "arm": "LP_DIAG",
+    "example_xy_m": [
+      [
+        7.0,
+        0.35
+      ],
+      [
+        11.0,
+        -0.5
+      ],
+      [
+        15.0,
+        0.0
+      ]
+    ],
+    "height_m": 2.7,
+    "length_m": 20.0,
+    "main_index": 0,
+    "port_pair": [
+      "LP_plus45",
+      "LP_minus45"
+    ],
+    "robot_antenna_z_m": 0.45,
+    "robot_body_lwh_m": [
+      0.6,
+      0.4,
+      0.4
+    ],
+    "robot_clearance_m": 0.1,
+    "robot_x_range_m": [
+      1.0,
+      19.0
+    ],
+    "width_m": 2.4,
+    "yaw_display_deg": 30.0,
+    "yaw_sweep_deg": [
+      0.0,
+      45.0,
+      90.0,
+      135.0,
+      180.0,
+      225.0,
+      270.0,
+      315.0
+    ]
+  },
+  "config_sha256": "7070a43d3de1ec8895d3b30576dd9cdbd17dd2531e115f6ba0582d8b391cb62a",
+  "checks": [
+    {
+      "name": "anchor_inside_corridor",
+      "passed": true,
+      "detail": "anchor=[4.0, 0.0, 2.65]"
+    },
+    {
+      "name": "anchor_rotation_valid",
+      "passed": true,
+      "detail": "diag(1,-1,-1)"
+    },
+    {
+      "name": "anchor_boresight_down",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "robot_antenna_above_body",
+      "passed": true,
+      "detail": "antenna z=0.45 body h=0.4"
+    },
+    {
+      "name": "robot_antenna_below_ceiling",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "robot_y_limit_positive",
+      "passed": true,
+      "detail": "|y|<= 0.739 m"
+    },
+    {
+      "name": "robot_x_range_inside",
+      "passed": true,
+      "detail": "x in [1.0, 19.0]"
+    },
+    {
+      "name": "example_0_in_allowed_region",
+      "passed": true,
+      "detail": "xy=(7.0, 0.35)"
+    },
+    {
+      "name": "example_1_in_allowed_region",
+      "passed": true,
+      "detail": "xy=(11.0, -0.5)"
+    },
+    {
+      "name": "example_2_in_allowed_region",
+      "passed": true,
+      "detail": "xy=(15.0, 0.0)"
+    },
+    {
+      "name": "robot_rotations_valid",
+      "passed": true,
+      "detail": "8 yaw values"
+    },
+    {
+      "name": "robot_boresight_up_for_all_yaw",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "robot_antenna_z_constant",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "polarization_ports_orthogonal_and_transverse",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "links": [
+    {
+      "example": 0,
+      "main": true,
+      "robot_xy_m": [
+        7.0,
+        0.35
+      ],
+      "robot_yaw_deg": 30.0,
+      "range_m": 3.737,
+      "anchor_off_boresight_deg": 53.931,
+      "robot_off_boresight_deg": 53.931,
+      "anchor_phi_deg": -6.654,
+      "robot_phi_deg": 156.654,
+      "horizontal_m": 3.02,
+      "vertical_m": 2.2
+    },
+    {
+      "example": 1,
+      "main": false,
+      "robot_xy_m": [
+        11.0,
+        -0.5
+      ],
+      "robot_yaw_deg": 0.0,
+      "range_m": 7.355,
+      "anchor_off_boresight_deg": 72.594,
+      "robot_off_boresight_deg": 72.594,
+      "anchor_phi_deg": 4.086,
+      "robot_phi_deg": 175.914,
+      "horizontal_m": 7.018,
+      "vertical_m": 2.2
+    },
+    {
+      "example": 2,
+      "main": false,
+      "robot_xy_m": [
+        15.0,
+        0.0
+      ],
+      "robot_yaw_deg": 0.0,
+      "range_m": 11.218,
+      "anchor_off_boresight_deg": 78.69,
+      "robot_off_boresight_deg": 78.69,
+      "anchor_phi_deg": 0.0,
+      "robot_phi_deg": 180.0,
+      "horizontal_m": 11.0,
+      "vertical_m": 2.2
+    }
+  ],
+  "conventions": {
+    "coordinate_frame": "Z-up right-handed, metres, floor top z=0",
+    "anchor_rotation": [
+      [
+        1.0,
+        0.0,
+        0.0
+      ],
+      [
+        0.0,
+        -1.0,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        -1.0
+      ]
+    ],
+    "robot_rotation": "Rz(yaw), boresight +z",
+    "port_pair": [
+      "LP_plus45",
+      "LP_minus45"
+    ],
+    "arm": "LP_DIAG",
+    "port_E_nominal_note": "nominal LP_plus45=(x+y)/sqrt2, LP_minus45=(x-y)/sqrt2 in antenna frame; not read back from FFD banks"
+  },
+  "outputs": {
+    "corridor_setup_3d.html": "ce4d7004f7e7f74edeae121645da00c61f273525928090a45bbdfa22d445fa62",
+    "corridor_setup_3d.png": "f52f983899cd168691c74cd739360e54f4cdb1b77b4082ed7bd59eb166f50033"
+  }
+}
