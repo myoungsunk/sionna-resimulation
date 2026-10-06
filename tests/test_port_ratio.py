@@ -18,3 +18,10 @@ def test_ideal_los_curve_matches_tan_yaw_plus_45():
     yaw = np.array([0.0, 10.0, 30.0, 100.0, 135.0])
     np.testing.assert_allclose(los_two_port_ratio(yaw)[[0, 1, 2, 3]], np.abs(np.tan(np.radians(yaw[:4] + 45))), rtol=1e-9)
     assert los_two_port_ratio(135.0) == pytest.approx(0.0, abs=1e-12)
+
+
+def test_minus45_tx_curve_is_mirror_image_about_90_degrees():
+    yaw = np.array([0.0, 20.0, 60.0, 90.0])
+    np.testing.assert_allclose(los_two_port_ratio(180.0 - yaw, "LP_minus45"), los_two_port_ratio(yaw, "LP_plus45"), rtol=1e-9, atol=1e-12)
+    with pytest.raises(ValueError):
+        los_two_port_ratio(0.0, "RHCP")

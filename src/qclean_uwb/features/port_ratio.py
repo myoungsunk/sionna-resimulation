@@ -19,13 +19,19 @@ def port_difference_ratio(p1, p2) -> np.ndarray:
         return np.where(den > 0.0, num / den, np.inf)
 
 
-def los_two_port_ratio(yaw_deg) -> np.ndarray:
+def los_two_port_ratio(yaw_deg, tx_port: str = "LP_plus45") -> np.ndarray:
     """Ideal on-axis LoS curve for a ceiling anchor and an up-facing robot.
 
-    Ideal +45/-45 ports, boresights facing each other, anchor TX port +45
-    (world E-angle -45 deg because the anchor is flipped by diag(1,-1,-1)).
-    Robot RX ports lie at world angles 45+yaw and -45+yaw, so
-    p1 ~ -sin(yaw), p2 ~ cos(yaw) and ratio = |tan(yaw + 45 deg)|.
+    Ideal +45/-45 ports, boresights facing each other.  The anchor is flipped by
+    diag(1,-1,-1), so its local +45 port radiates along world angle -45 deg and its -45
+    port along +45 deg.  Robot RX ports lie at world angles 45+yaw (p1) and -45+yaw (p2).
+
+    * anchor TX +45: p1 ~ -sin(yaw), p2 ~ cos(yaw)  ->  ratio = |tan(yaw + 45 deg)|
+    * anchor TX -45: p1 ~  cos(yaw), p2 ~ sin(yaw)  ->  ratio = |tan(yaw - 45 deg)|
     """
     yaw = np.radians(np.asarray(yaw_deg, dtype=float))
-    return port_difference_ratio(-np.sin(yaw), np.cos(yaw))
+    if tx_port == "LP_plus45":
+        return port_difference_ratio(-np.sin(yaw), np.cos(yaw))
+    if tx_port == "LP_minus45":
+        return port_difference_ratio(np.cos(yaw), np.sin(yaw))
+    raise ValueError(f"unknown tx_port {tx_port!r}")

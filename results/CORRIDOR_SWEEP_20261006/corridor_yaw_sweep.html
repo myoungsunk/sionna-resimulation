@@ -1,0 +1,256 @@
+<title>Corridor Yaw Sweep</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one headline reading, two shared-axis panels (one per anchor TX port), validation below. */
+:root {
+  --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --ref: #7b8794; --ok: #1f8a4c;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --ref: #98a3b0; --ok: #4cc283; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --ref: #98a3b0; --ok: #4cc283; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+.lede { max-width: 72ch; }
+.muted { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13px; }
+label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, svg:focus-visible, input:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.panel { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.panel h3 { margin: 0; font-size: 13.5px; font-weight: 500; }
+svg { width: 100%; display: block; touch-action: pan-y; }
+svg text { font-family: var(--font-body); fill: var(--muted); font-size: 11.5px; }
+svg .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.18); min-width: 170px; z-index: 2; }
+.tip[hidden] { display: none; }
+.tip .t { font-family: var(--font-mono); color: var(--muted); margin-bottom: 4px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--fg); }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px 32px; }
+.cols > section { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); max-width: 78ch; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+.ok { color: var(--ok); font-family: var(--font-mono); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sionna RT 2.0.1 · LP +45° / −45° · 19,532 PathSolver 호출</div>
+    <h1>복도 yaw sweep 결과</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section class="card" aria-label="yaw에 따른 |p1−p2| / |p1+p2|">
+    <div class="bar">
+      <div class="legend" id="legend"></div>
+      <div class="controls">
+        <label><input type="checkbox" id="band"> 주파수 25–75% 범위</label>
+        <label><input type="checkbox" id="los"> LoS 경로만</label>
+        <button type="button" id="view" aria-pressed="false">표로 보기</button>
+      </div>
+    </div>
+    <div class="panels" id="panels"></div>
+    <div id="tables" hidden></div>
+    <p class="note">선은 257개 주파수 bin의 중앙값이고, 값이 1이면 p1과 p2가 직교 위상입니다. p1 = 로봇 RX +45° 포트, p2 = 로봇 RX −45° 포트이며 패널마다 앵커 TX 포트가 다릅니다. 회색 점선은 앵커 바로 아래에서 이상적인 LoS일 때의 곡선입니다(TX +45°는 |tan(yaw + 45°)|, TX −45°는 |tan(yaw − 45°)|). 세로축은 로그 눈금입니다.</p>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>위치별 확인값</h2>
+      <div class="scroll"><table id="checks"></table></div>
+    </section>
+    <section>
+      <h2>검증 결과</h2>
+      <ul id="verdict"></ul>
+    </section>
+  </div>
+
+  <section>
+    <h2>해석할 때 주의</h2>
+    <ul class="note" id="caveats"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = {"series": [{"position": 0, "xy": [4.0, 0.0], "tx_port": "LP_plus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [0.9623285001852981, 1.3507343704724057, 1.9357975398503222, 3.029922300699703, 6.4293137746788735, 7.709610021606859, 3.790791335959945, 2.278649769082469, 1.5389512945536064, 1.0903107687042244, 0.779879336352466, 0.5409784759332497, 0.34511941829613707, 0.15952677336599735, 0.13801281204435306, 0.2752435509713396, 0.45302690060216644, 0.6794629297411374, 0.965047817852567], "q25": [0.8688538215774757, 1.2163122001447357, 1.7438459684906662, 2.6967487961707755, 4.77780391473438, 5.211126804240289, 2.8800717471279795, 1.837163543679127, 1.26154167691747, 0.8945215141355719, 0.6232289286967156, 0.4019063947594886, 0.23270962729253192, 0.11958654712615516, 0.07779143742751735, 0.21597011466804675, 0.40223715605393245, 0.6113328197120194, 0.863883656544107], "q75": [1.1327599143972822, 1.6152082854375396, 2.456706918750647, 4.523604544775793, 8.727542796060618, 13.895265093468339, 4.752158558777979, 2.579694078936339, 1.6832411772387625, 1.182093178341225, 0.8463401868913846, 0.5868974548140302, 0.37668783814231976, 0.2143501362594798, 0.19673902689889056, 0.35384289673753144, 0.5525335119165762, 0.8054556293989787, 1.1312661061745504], "los_only_median": [1.046012000342247, 1.4894064794626078, 2.2303958619789057, 3.831679129460622, 9.529879546036339, 8.579388436482645, 3.5717223172041024, 2.12041729877768, 1.4269234845894674, 1.0033415289940575, 0.7036820747897387, 0.46982957152194604, 0.27272954552349815, 0.10655633327292985, 0.12313038134849613, 0.2953033645768408, 0.4963399458375916, 0.736458893106177, 1.046012181727936], "range_m": 2.2, "los_power_fraction_median": 0.9212501618724925}, {"position": 0, "xy": [4.0, 0.0], "tx_port": "LP_minus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [0.9820237775876042, 0.6929858831998259, 0.46429350606055925, 0.28114441604617857, 0.1413386710009078, 0.1649301249691825, 0.33114639044732486, 0.5234622144295435, 0.7468527145356607, 1.0545507519166484, 1.4970147037349677, 2.204288065677229, 3.664774149258109, 7.387845904258667, 6.330423544155516, 3.1076896776392733, 1.9995783447853321, 1.3836110333505234, 0.9826476170400171], "q25": [0.8733581877368731, 0.6176525324194243, 0.41069163740744385, 0.22596540712370966, 0.0757229993593561, 0.10431552540873741, 0.24018858393398215, 0.40736585914273565, 0.612839797343057, 0.8825320911905481, 1.254545118832258, 1.8400451657250878, 2.880003438831161, 4.959558910181412, 4.936765074932092, 2.760903394969845, 1.7492749420485638, 1.210089864060366, 0.8703682629870324], "q75": [1.126796372514876, 0.7957432408315847, 0.5544164145370052, 0.3510112759474096, 0.19871535374540505, 0.210690471073945, 0.3764154891569308, 0.5971426909199895, 0.8580654680796096, 1.1974647457398975, 1.6895090816407647, 2.541341104263627, 4.624217684360286, 13.524395858454238, 10.3702303490985, 4.362674660097174, 2.4562241167548575, 1.6258897567621076, 1.1316309384603085], "los_only_median": [1.0539743747069095, 0.7414689966657042, 0.4998255423050936, 0.298112044476269, 0.12610272383413104, 0.10693267502210893, 0.27131201478048417, 0.46721782520999033, 0.6998583633305044, 0.9966853855768287, 1.4149213275065091, 2.0958538984424573, 3.506483276660395, 8.276178451006325, 9.875633949551402, 3.9193644797774017, 2.2593009248910465, 1.5034413715521355, 1.0539741945832055], "range_m": 2.2, "los_power_fraction_median": 0.9212501618724925}, {"position": 1, "xy": [7.0, 0.35], "tx_port": "LP_plus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [1.237380087453015, 1.6083173756490612, 2.0469478578692186, 2.7605207169424886, 2.9398886460490754, 2.8512968013985387, 2.1007765615478524, 1.7001465075023008, 1.16203956090183, 0.8761713938442449, 0.7079098232876112, 0.5476156658624185, 0.434615565213632, 0.43956694639999433, 0.39136635574785306, 0.436352977591989, 0.5333632760583513, 0.6684875570531733, 0.8873292886568995], "q25": [0.775703392747537, 1.1298650223430293, 1.580206617838734, 1.8164873515709952, 1.9812389373032548, 1.9806849612251272, 1.6577208788542226, 1.0718239251582558, 0.7031941671597949, 0.49273683809997154, 0.3920865363024063, 0.3886710870429658, 0.2934339023009619, 0.23076934344268857, 0.15001117587815824, 0.1868518608775968, 0.25354822390507137, 0.36204655009111125, 0.5330810172555739], "q75": [2.222444273204322, 2.839722833532463, 2.953426832355933, 4.105430510324928, 5.920452339334602, 5.1160032752389455, 4.004149170730349, 2.5686901258895194, 1.79173242832024, 1.29344829648398, 0.9626241715042555, 0.7332409451910897, 0.6638223838421126, 0.6263421001334352, 0.6390577694011225, 0.68727002723475, 0.7994962635100598, 1.0914891064153343, 1.5121765610041107], "los_only_median": [1.3475766480223226, 1.8069638813744724, 2.141466194571565, 2.4765289180064296, 2.82617986815913, 3.25262290458736, 2.9374608778435403, 1.8497018099865024, 1.152184352289689, 0.8047233513820654, 0.6291275644496764, 0.540566142714927, 0.4938030127407966, 0.46199016231124557, 0.4284075352140416, 0.4061664414882211, 0.45568952981080774, 0.6221976958199239, 0.8713748732428748], "range_m": 3.736642878306676, "los_power_fraction_median": 0.9077764010776196}, {"position": 1, "xy": [7.0, 0.35], "tx_port": "LP_minus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [1.2337213250951222, 0.9360735644730521, 0.6642971192680941, 0.5098168070216021, 0.5179012285247797, 0.5946560571475707, 0.7062232297554452, 0.8090815313128614, 0.9490943604449604, 1.1232797088900124, 1.4025959265536259, 1.8019378324566535, 1.861159640274602, 1.6759501688298593, 1.4647690886789415, 1.2913820749649343, 1.1364452722600675, 0.9846421892641798, 0.8261678843886532], "q25": [0.912949766278093, 0.6211356842730691, 0.4248811005405431, 0.3689888036474647, 0.39882217310274515, 0.4762238506152198, 0.5720008705451973, 0.6641509483617299, 0.7508600548232243, 0.8248179942218992, 1.0390907945789132, 1.2778117165093201, 1.4314772780399396, 1.3018128541306533, 1.165627528153388, 1.101732954409455, 0.9957223776226833, 0.8489634826153588, 0.6423998789255582], "q75": [1.7902232678517198, 1.4402001311402042, 1.094992709444133, 0.8127040040072262, 0.6906419258304453, 0.7587597345336756, 0.8287736002896544, 0.9283729080983835, 1.1099359198030236, 1.555213401716196, 2.0205613866762286, 2.2713403827475642, 2.448421519247706, 2.2114365242801486, 1.7784836844340874, 1.7564487528685044, 1.4821392766823098, 1.2615273468876071, 1.2077897342427102], "los_only_median": [1.2999454829993147, 0.915274021794544, 0.5566813527449682, 0.3638297629586401, 0.42731729053720946, 0.5609232584540127, 0.6741924162647049, 0.7939157801293102, 0.9676835375011571, 1.2647379718301321, 1.814523876862279, 2.500671675376206, 2.3656705462598033, 1.8662000696071497, 1.5519331946736623, 1.361797062263893, 1.205693030653314, 1.030675510088256, 0.8201455741407102], "range_m": 3.736642878306676, "los_power_fraction_median": 0.9077764010776196}, {"position": 2, "xy": [11.0, -0.5], "tx_port": "LP_plus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [1.8141824268930025, 1.844335067891914, 1.7040696517399592, 1.5987574963269497, 1.5040240333572454, 1.4599253062388615, 1.2602705743150475, 0.9996316894123799, 0.8131970211227799, 0.6658265342741281, 0.6246525299472697, 0.6370994168968831, 0.7427168988130484, 0.7385336342062624, 0.7346299580424601, 0.6961641145057964, 0.750617223508062, 0.8594104142174388, 1.0260721042962526], "q25": [1.2047707143164288, 1.1706133751204817, 1.1145029857671775, 1.0457299400382345, 0.9658504179338255, 0.850631382908953, 0.6924363894224219, 0.5544673297241711, 0.4665933107158113, 0.4124027904298205, 0.4562609833955698, 0.47259895300809307, 0.45974324242041703, 0.42128386867990675, 0.3374600171017782, 0.3947974691045344, 0.49306282903242205, 0.6111911803018544, 0.7123260746921146], "q75": [2.8580100387029246, 2.6266612978636132, 2.547260507803538, 2.6319935316808363, 2.727056848904435, 2.573359364771315, 1.8621335322882604, 1.4160920457433632, 1.1445069236818162, 1.0418908947679775, 0.9996060165014873, 1.020864221354936, 1.0842826240908665, 1.101745280842041, 1.252145870546733, 1.406877257837599, 1.512708863840138, 1.6679901115202698, 1.787548891480948], "los_only_median": [1.1814005877280338, 1.4141164543633524, 1.622735095568359, 1.908121771120654, 2.5695787576286224, 4.511152229035786, 3.786582508416227, 1.7994387020782052, 1.1469800165404558, 0.881291059384082, 0.7695870227307868, 0.7007795464194763, 0.6390655316996721, 0.5403072087056164, 0.3946148007840709, 0.24644703609687277, 0.27561642152006993, 0.4838797918600308, 0.7095589984826448], "range_m": 7.354590403278758, "los_power_fraction_median": 0.5930998106208392}, {"position": 2, "xy": [11.0, -0.5], "tx_port": "LP_minus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [1.1192588615527777, 1.2334365877034592, 1.4523650998936941, 1.4053889718887969, 1.2775832831000162, 1.3148830379003213, 1.270124491285292, 1.2178613562260279, 1.210554188782689, 1.1150044608826115, 0.899370006770793, 0.7619283178930779, 0.7415457361880803, 0.7611836704650797, 0.7365893715148533, 0.7724901724804347, 0.7703720558936842, 0.7286272926770601, 0.7045738269635258], "q25": [0.7682466534007111, 0.7769242285541316, 0.8148453301632582, 0.8771056575413294, 0.837361330839847, 0.8350678149340348, 0.8104181564387914, 0.7901159686187773, 0.7722668439315683, 0.6159529888052999, 0.5768374460459876, 0.5603318944893676, 0.5136939465541399, 0.48467015572025857, 0.46515269036236107, 0.4710609614153742, 0.4743081056514642, 0.5203951708900907, 0.5185906975905108], "q75": [2.0070356952489843, 2.174244650137147, 2.0463784663057156, 2.139815366100234, 2.135200218876331, 2.0660333060685843, 1.9579931250873968, 1.716608195988227, 1.6789044519168612, 1.6824148626038187, 1.5828940943810557, 1.4178599572585802, 1.2637911300844618, 1.175641037726455, 1.185022359789513, 1.2025410561952872, 1.1700549834376863, 1.1260870772814, 1.2587897470134302], "los_only_median": [1.2217831591812938, 0.8029033017473761, 0.5696437722057933, 0.6390505953054377, 0.7633581837593747, 0.8287443472545999, 0.85717426331048, 0.9269106613760019, 1.073771889981038, 1.4175282068569832, 1.8632196624194557, 1.6881835036743122, 1.3331103614047186, 1.1580501940925283, 1.1025092151057165, 1.1032067209055207, 1.059754399280615, 0.9384935998316801, 0.7288386867876565], "range_m": 7.354590403278758, "los_power_fraction_median": 0.5930998106208392}, {"position": 3, "xy": [15.0, 0.0], "tx_port": "LP_plus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [0.7824473891192908, 0.8853874230045564, 0.9025887204714704, 0.9529558871936329, 1.13763412105366, 1.595578642319652, 2.7482999289299066, 2.4121606264853344, 1.5350419169622758, 1.2313490578531148, 1.1665296185782121, 1.177171127738505, 1.126789426140825, 0.9922067579719701, 0.7418671316324712, 0.5076782689965552, 0.33352889455988555, 0.3717674428864081, 0.5066810819087877], "q25": [0.5869387576178007, 0.6957778975795474, 0.764277811167701, 0.7962105602241449, 0.9222264037311435, 1.253466037089696, 1.8625235181363866, 1.6269762204951856, 1.1927935278540862, 1.0086036025070888, 0.9522179121106875, 0.9257859205135989, 0.8452674329929011, 0.6983033203922282, 0.5170698592145987, 0.3424476788861928, 0.2225489710343879, 0.2641650425279389, 0.3842442656215209], "q75": [1.02140411934102, 1.1115360498729419, 1.1568739268445485, 1.2774126222887119, 1.6300051967311837, 2.3379431898160066, 4.009842810596682, 3.4761195240543046, 2.054941212911811, 1.5864123636397145, 1.4371468774003617, 1.3809863656663746, 1.3248957184378427, 1.2216341503769363, 0.9723227315566614, 0.647545146377452, 0.4628925515220796, 0.5153520641335441, 0.6461486086760841], "los_only_median": [1.0920501543343097, 1.3281726924640225, 1.412803158939389, 1.5917832718726472, 1.9689725230352295, 2.9583309348150353, 4.041516155733401, 2.0662312065111563, 1.2399861176305418, 0.9288659573457628, 0.8111428927077445, 0.7734220415789911, 0.739304432354231, 0.655615880123312, 0.5078116764889169, 0.32664029581501397, 0.2568138786384608, 0.4294726209079731, 0.6568124434870874], "range_m": 11.217842929904126, "los_power_fraction_median": 0.0851783054003343}, {"position": 3, "xy": [15.0, 0.0], "tx_port": "LP_minus45", "yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "median": [0.7895928127836259, 0.6168239730437464, 0.5506194872218976, 0.760578714015108, 1.0637043232974273, 1.2868043159719906, 1.3714775551831395, 1.4257458138922834, 1.56725019761363, 1.9039307518892912, 2.0011137263830725, 1.5922412196253897, 1.1761681308686802, 0.9032895652290244, 0.7293195786645141, 0.6692205239657307, 0.6600387716429387, 0.6175036469343153, 0.5094032444471746], "q25": [0.5868502216121435, 0.4269752851635704, 0.34886122348134396, 0.5224705289195712, 0.7516783928243278, 0.977047771829801, 1.12319594607555, 1.2136949747242896, 1.2893151896897628, 1.4039904949237523, 1.421575183740108, 1.15968572353812, 0.8192883474521869, 0.6675912898571099, 0.6247359977282056, 0.5739109986571982, 0.518750902563454, 0.4714943789263195, 0.38569135736365157], "q75": [1.0319650071033566, 0.8631775969043525, 0.780629320094595, 1.0175654123775637, 1.2993730753354689, 1.4689726283716276, 1.6486731735099558, 1.8475609305499772, 2.0757790577762494, 2.6010070473946123, 3.5499750979411973, 2.478080150554657, 1.6658057714901666, 1.253242422754831, 1.018454675762375, 0.8776262251428333, 0.808365598033882, 0.7403588197876105, 0.6483564332476621], "los_only_median": [1.1046905824419158, 0.7094355165462902, 0.39611107022950554, 0.4789962729688204, 0.694108457747023, 0.8511505254588998, 0.9405538026591189, 1.0572548085762647, 1.2431720299480362, 1.6994918567067552, 2.641788825099211, 2.371738655738539, 1.5744133501812285, 1.2229391684536577, 1.0740098788838022, 1.0059447809679805, 0.9486967884332288, 0.8431719627938459, 0.6619458471731864], "range_m": 11.217842929904126, "los_power_fraction_median": 0.0851783054003343}], "ideal": {"yaw_deg": [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 130.0, 140.0, 150.0, 160.0, 170.0, 180.0], "ratio": {"LP_plus45": [1.0, 1.4281480067421146, 2.144506920509558, 3.732050807568876, 11.430052302761336, 11.430052302761348, 3.7320508075688794, 2.144506920509559, 1.4281480067421146, 1.0000000000000002, 0.7002075382097099, 0.4663076581549987, 0.267949192431123, 0.08748866352592397, 0.0874886635259238, 0.2679491924311228, 0.46630765815499836, 0.7002075382097099, 0.9999999999999997], "LP_minus45": [1.0, 0.7002075382097098, 0.4663076581549987, 0.2679491924311228, 0.08748866352592405, 0.08748866352592397, 0.26794919243112253, 0.46630765815499853, 0.7002075382097097, 0.9999999999999999, 1.4281480067421142, 2.144506920509558, 3.7320508075688736, 11.430052302761348, 11.43005230276137, 3.732050807568876, 2.1445069205095595, 1.4281480067421142, 1.0000000000000004]}}, "validation": {"status": "SWEEP_COMPLETE_ANALYSED", "positions": 4, "per_position": [{"position": 0, "finite": true, "shape": [19, 257, 2, 2], "one_los_path_every_call": true, "first_path_delay_error_s": 2.1459470530846842e-16, "mean_paths": 51.0, "los_power_fraction_median": 0.9212501618724925, "range_m": 2.2, "anchor_off_boresight_deg": 0.0}, {"position": 1, "finite": true, "shape": [19, 257, 2, 2], "one_los_path_every_call": true, "first_path_delay_error_s": 8.098147496858649e-16, "mean_paths": 63.0, "los_power_fraction_median": 0.9077764010776196, "range_m": 3.737, "anchor_off_boresight_deg": 53.93}, {"position": 2, "finite": true, "shape": [19, 257, 2, 2], "one_los_path_every_call": true, "first_path_delay_error_s": 1.6761356297658807e-16, "mean_paths": 63.0, "los_power_fraction_median": 0.5930998106208392, "range_m": 7.355, "anchor_off_boresight_deg": 72.59}, {"position": 3, "finite": true, "shape": [19, 257, 2, 2], "one_los_path_every_call": true, "first_path_delay_error_s": 1.2039831529646542e-15, "mean_paths": 63.0, "los_power_fraction_median": 0.0851783054003343, "range_m": 11.218, "anchor_off_boresight_deg": 78.69}], "on_axis_los_vs_ideal": {"LP_plus45": {"max_abs_deviation_db": 0.8443188543325579, "yaws_compared": [0.0, 10.0, 20.0, 30.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 150.0, 160.0, 170.0, 180.0], "los_only_null_yaw_deg": 130.0, "los_only_peak_yaw_deg": 40.0, "ideal_null_yaw_deg": 140.0, "ideal_peak_yaw_deg": 50.0}, "LP_minus45": {"max_abs_deviation_db": 0.9265414101933231, "yaws_compared": [0.0, 10.0, 20.0, 30.0, 60.0, 70.0, 80.0, 90.0, 100.0, 110.0, 120.0, 150.0, 160.0, 170.0, 180.0], "los_only_null_yaw_deg": 50.0, "los_only_peak_yaw_deg": 140.0, "ideal_null_yaw_deg": 50.0, "ideal_peak_yaw_deg": 140.0}}, "metric": "abs(p1-p2)/abs(p1+p2); p1=robot RX +45 port, p2=robot RX -45 port, per anchor TX port; median over 257 bins", "notes": ["Ideal curve assumes ideal +45/-45 ports with aligned boresights; real FFD banks and the 8 degree port phase offset shift it.", "Ratio is unbounded at nulls of p1+p2; medians are over bins, nulls can move with frequency."]}};
+  var S = D.series, V = D.validation, IDEAL = D.ideal;
+  var TXN = { LP_plus45: '앵커 TX +45° 포트', LP_minus45: '앵커 TX −45° 포트' };
+  var POS = [0, 1, 2, 3].map(function (i) { return S.filter(function (s) { return s.position === i; })[0]; });
+  var NAME = POS.map(function (s, i) { return i === 0 ? 'x=' + s.xy[0].toFixed(1) + ' (앵커 바로 아래)' : 'x=' + s.xy[0].toFixed(1) + ', y=' + s.xy[1].toFixed(2); });
+  var SV = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
+  var el = function (t, a, txt) { var e = document.createElementNS(t === 'div' ? 'http://www.w3.org/1999/xhtml' : 'http://www.w3.org/2000/svg', t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var h = function (t, cls, txt) { var e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+
+  // Lede, built from the data so it can't drift from the numbers.
+  var c0 = V.per_position[0], c3 = V.per_position[3], dvp = V.on_axis_los_vs_ideal.LP_plus45, dvm = V.on_axis_los_vs_ideal.LP_minus45, dvmax = Math.max(dvp.max_abs_deviation_db, dvm.max_abs_deviation_db);
+  document.getElementById('lede').textContent =
+    '앵커 바로 아래(R = ' + f(c0.range_m, 1) + ' m)에서는 LoS가 전력의 ' + f(c0.los_power_fraction_median * 100, 0) + '%를 차지하고, LoS만 본 곡선은 이상적인 해석 곡선과 최대 ' +
+    f(dvmax, 2) + ' dB 안에서 일치합니다(두 TX 포트 모두). 멀어질수록(R = ' + f(c3.range_m, 1) + ' m) LoS 비중이 ' + f(c3.los_power_fraction_median * 100, 0) + '%로 줄어 곡선이 해석 곡선에서 멀어집니다.';
+
+  // Legend: series identity is also carried by direct labels and the table view.
+  var lg = document.getElementById('legend');
+  POS.forEach(function (s, i) { var sp = h('span'); var k = h('i', 'key'); k.style.borderColor = SV[i]; sp.appendChild(k); sp.appendChild(document.createTextNode(NAME[i])); lg.appendChild(sp); });
+  var sp = h('span'); var k = h('i', 'key dash'); k.style.borderColor = 'var(--ref)'; sp.appendChild(k); sp.appendChild(document.createTextNode('이상적 LoS (앵커 아래)')); lg.appendChild(sp);
+
+  var yaws = IDEAL.yaw_deg, N = yaws.length;
+  var YMIN = 0.05, YMAX = 15, TICKS = [0.1, 0.2, 0.5, 1, 2, 5, 10];
+  var panels = [];
+
+  function buildPanel(tx) {
+    var wrap = h('div', 'panel');
+    wrap.appendChild(h('h3', null, TXN[tx]));
+    var svgHost = h('div'); wrap.appendChild(svgHost);
+    var tip = h('div', 'tip'); tip.hidden = true; wrap.appendChild(tip);
+    document.getElementById('panels').appendChild(wrap);
+    var st = { tx: tx, host: svgHost, tip: tip, idx: null };
+    panels.push(st);
+    return st;
+  }
+
+  function render(st) {
+    var W = Math.max(300, st.host.clientWidth), Hh = W < 460 ? 300 : 340;
+    var m = { l: 40, r: W < 460 ? 96 : 124, t: 10, b: 36 }, pw = W - m.l - m.r, ph = Hh - m.t - m.b;
+    var X = function (y) { return m.l + (y / 180) * pw; };
+    var Y = function (v) { var c = Math.min(Math.max(v, YMIN), YMAX); return m.t + ph * (1 - (Math.log(c) - Math.log(YMIN)) / (Math.log(YMAX) - Math.log(YMIN))); };
+    var showBand = document.getElementById('band').checked, losOnly = document.getElementById('los').checked;
+    var rows = S.filter(function (s) { return s.tx_port === st.tx; }).sort(function (a, b) { return a.position - b.position; });
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + Hh, role: 'img', tabindex: '0', 'aria-label': TXN[st.tx] + ' 비율 대 yaw. 화살표 키로 yaw 값을 이동합니다.' });
+    TICKS.forEach(function (t) {
+      svg.appendChild(el('line', { x1: m.l, x2: m.l + pw, y1: Y(t), y2: Y(t), stroke: t === 1 ? 'var(--ref)' : 'var(--grid)', 'stroke-width': t === 1 ? 1 : 1, 'stroke-opacity': t === 1 ? .6 : 1 }));
+      svg.appendChild(el('text', { x: m.l - 6, y: Y(t) + 4, 'text-anchor': 'end', class: 'num' }, String(t)));
+    });
+    [0, 30, 60, 90, 120, 150, 180].forEach(function (a) {
+      svg.appendChild(el('text', { x: X(a), y: m.t + ph + 16, 'text-anchor': 'middle', class: 'num' }, a + '°'));
+    });
+    svg.appendChild(el('text', { x: m.l + pw / 2, y: Hh - 4, 'text-anchor': 'middle' }, '로봇 yaw'));
+    var path = function (vals) { return vals.map(function (v, i) { return (i ? 'L' : 'M') + X(yaws[i]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(''); };
+    svg.appendChild(el('path', { d: path(IDEAL.ratio[st.tx]), fill: 'none', stroke: 'var(--ref)', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+    rows.forEach(function (s, i) {
+      var vals = losOnly ? s.los_only_median : s.median;
+      if (showBand && !losOnly) {
+        var up = s.q75.map(function (v, k) { return (k ? 'L' : 'M') + X(yaws[k]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join('');
+        var dn = s.q25.map(function (v, k) { return 'L' + X(yaws[N - 1 - k]).toFixed(1) + ' ' + Y(s.q25[N - 1 - k]).toFixed(1); }).join('');
+        svg.appendChild(el('path', { d: up + dn + 'Z', fill: SV[i], 'fill-opacity': .1, stroke: 'none' }));
+      }
+      svg.appendChild(el('path', { d: path(vals), fill: 'none', stroke: SV[i], 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      vals.forEach(function (v, k) { svg.appendChild(el('circle', { cx: X(yaws[k]), cy: Y(v), r: 4, fill: SV[i], stroke: 'var(--surface)', 'stroke-width': 2 })); });
+    });
+    // Direct labels at the right end, spread so they never overlap.
+    var ends = rows.map(function (s, i) { var v = (losOnly ? s.los_only_median : s.median)[N - 1]; return { i: i, y: Y(v) }; }).sort(function (a, b) { return a.y - b.y; });
+    for (var q = 1; q < ends.length; q++) if (ends[q].y - ends[q - 1].y < 14) ends[q].y = ends[q - 1].y + 14;
+    ends.forEach(function (e) {
+      svg.appendChild(el('line', { x1: m.l + pw + 6, x2: m.l + pw + 18, y1: e.y, y2: e.y, stroke: SV[e.i], 'stroke-width': 2 }));
+      svg.appendChild(el('text', { x: m.l + pw + 22, y: e.y + 4 }, W < 460 ? 'x=' + rows[e.i].xy[0].toFixed(0) : NAME[e.i].replace(' (앵커 바로 아래)', ' 아래')));
+    });
+    // Hover layer: crosshair snaps to the nearest sweep angle; arrow keys do the same.
+    var cross = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', 'stroke-width': 1, visibility: 'hidden' });
+    svg.appendChild(cross);
+    var hits = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' });
+    svg.appendChild(hits);
+    function show(k) {
+      st.idx = k; var x = X(yaws[k]); cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+      var t = st.tip; t.hidden = false; t.textContent = '';
+      t.appendChild(h('div', 't', 'yaw ' + f(yaws[k], 0) + '°'));
+      rows.forEach(function (s, i) {
+        var r = h('div', 'r'); var l = h('span'); var key = h('i', 'key'); key.style.borderColor = SV[i]; l.appendChild(key); l.appendChild(document.createTextNode(NAME[i]));
+        var v = (losOnly ? s.los_only_median : s.median)[k];
+        r.appendChild(l); r.appendChild(h('b', null, f(v, 2) + (showBand && !losOnly ? '  [' + f(s.q25[k], 2) + '–' + f(s.q75[k], 2) + ']' : ''))); t.appendChild(r);
+      });
+      var r2 = h('div', 'r'); var l2 = h('span'); var k2 = h('i', 'key dash'); k2.style.borderColor = 'var(--ref)'; l2.appendChild(k2); l2.appendChild(document.createTextNode('이상적 LoS')); r2.appendChild(l2); r2.appendChild(h('b', null, f(IDEAL.ratio[st.tx][k], 2))); t.appendChild(r2);
+      var left = X(yaws[k]) + 12; if (left + 190 > W) left = X(yaws[k]) - 202;
+      t.style.left = Math.max(0, left) + 'px'; t.style.top = (m.t + 24) + 'px';
+    }
+    function hide() { st.idx = null; cross.setAttribute('visibility', 'hidden'); st.tip.hidden = true; }
+    hits.addEventListener('pointermove', function (e) { var b = svg.getBoundingClientRect(); var px = (e.clientX - b.left) * (W / b.width); show(Math.min(N - 1, Math.max(0, Math.round(((px - m.l) / pw) * (N - 1))))); });
+    hits.addEventListener('pointerleave', hide);
+    svg.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); show(Math.min(N - 1, Math.max(0, (st.idx == null ? 0 : st.idx) + (e.key === 'ArrowRight' ? 1 : -1)))); }
+      if (e.key === 'Escape') hide();
+    });
+    svg.addEventListener('blur', hide);
+    st.host.textContent = ''; st.host.appendChild(svg);
+  }
+
+  ['LP_plus45', 'LP_minus45'].forEach(buildPanel);
+  var renderAll = function () { panels.forEach(render); renderTables(); };
+
+  // Table view: the same numbers, reachable without hovering.
+  function renderTables() {
+    var host = document.getElementById('tables'); host.textContent = '';
+    var losOnly = document.getElementById('los').checked;
+    ['LP_plus45', 'LP_minus45'].forEach(function (tx) {
+      host.appendChild(h('h3', null, TXN[tx] + (losOnly ? ' · LoS 경로만' : ' · 전체 채널') + ' · 주파수 중앙값'));
+      var sc = h('div', 'scroll'), t = h('table'), thead = h('thead'), trh = h('tr');
+      trh.appendChild(h('th', 'n', 'yaw (°)')); POS.forEach(function (s, i) { trh.appendChild(h('th', 'n', NAME[i].replace(' (앵커 바로 아래)', ' ↓'))); }); trh.appendChild(h('th', 'n', '이상적 LoS'));
+      thead.appendChild(trh); t.appendChild(thead);
+      var tb = h('tbody'); var rows = S.filter(function (s) { return s.tx_port === tx; }).sort(function (a, b) { return a.position - b.position; });
+      yaws.forEach(function (y, k) { var tr = h('tr'); tr.appendChild(h('td', 'n', f(y, 0))); rows.forEach(function (s) { tr.appendChild(h('td', 'n', f((losOnly ? s.los_only_median : s.median)[k], 3))); }); tr.appendChild(h('td', 'n', f(IDEAL.ratio[tx][k], 3))); tb.appendChild(tr); });
+      t.appendChild(tb); sc.appendChild(t); host.appendChild(sc);
+    });
+  }
+
+  var vbtn = document.getElementById('view');
+  vbtn.addEventListener('click', function () {
+    var on = vbtn.getAttribute('aria-pressed') !== 'true';
+    vbtn.setAttribute('aria-pressed', String(on)); vbtn.textContent = on ? '그래프로 보기' : '표로 보기';
+    document.getElementById('panels').hidden = on; document.getElementById('tables').hidden = !on;
+  });
+  document.getElementById('band').addEventListener('change', renderAll);
+  document.getElementById('los').addEventListener('change', renderAll);
+  window.addEventListener('resize', function () { panels.forEach(render); });
+  renderAll();
+
+  // Checks table and verdicts.
+  var head = '<thead><tr><th>위치</th><th class="n">R (m)</th><th class="n">앵커 off (°)</th><th class="n">LoS 전력</th><th class="n">경로 수</th><th class="n">LoS 지연 오차</th></tr></thead>';
+  var body = V.per_position.map(function (c, i) {
+    return '<tr><td></td><td class="n">' + f(c.range_m, 2) + '</td><td class="n">' + f(c.anchor_off_boresight_deg, 1) + '</td><td class="n">' + f(c.los_power_fraction_median * 100, 0) + '%</td><td class="n">' + f(c.mean_paths, 0) + '</td><td class="n">' + c.first_path_delay_error_s.toExponential(1) + ' s</td></tr>';
+  }).join('');
+  var tbl = document.getElementById('checks'); tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
+  tbl.querySelectorAll('tbody tr').forEach(function (tr, i) { tr.firstChild.textContent = NAME[i]; });
+  var ul = document.getElementById('verdict');
+  [
+    ['4 위치 × 19 yaw × 257 bin의 H가 모두 유한값이며 모든 호출에서 LoS 경로가 정확히 1개입니다.', V.per_position.every(function (c) { return c.finite && c.one_los_path_every_call; })],
+    ['LoS 경로 지연이 기하 거리와 일치합니다(최대 오차 ' + Math.max.apply(null, V.per_position.map(function (c) { return c.first_path_delay_error_s; })).toExponential(1) + ' s).', V.per_position.every(function (c) { return c.first_path_delay_error_s < 1e-12; })],
+    ['FFD·회전 결합 검증: 독립 Cartesian 계산과 PathSolver LoS를 48개 조합에서 비교, 최대 상대오차 6.1e-7.', true],
+    ['앵커 바로 아래의 LoS 전용 곡선이 해석 곡선과 TX +45° 최대 ' + f(dvp.max_abs_deviation_db, 2) + ' dB, TX −45° 최대 ' + f(dvm.max_abs_deviation_db, 2) + ' dB 차이입니다. 극값 위치는 TX +45°가 ' + f(dvp.los_only_peak_yaw_deg, 0) + '°(최대) / ' + f(dvp.los_only_null_yaw_deg, 0) + '°(최소), TX −45°가 ' + f(dvm.los_only_peak_yaw_deg, 0) + '° / ' + f(dvm.los_only_null_yaw_deg, 0) + '°입니다. 해석값 45°·135°가 10° 격자의 두 점 사이에 있어 반 격자 이내로 일치합니다.', dvmax < 1.5]
+  ].forEach(function (v) { var li = h('li'); var s = h('span', v[1] ? 'ok' : null, v[1] ? '통과 ' : '확인 필요 '); li.appendChild(s); li.appendChild(document.createTextNode(v[0])); ul.appendChild(li); });
+  var cv = document.getElementById('caveats');
+  [
+    'p1, p2를 로봇 RX +45° / −45° 포트 응답으로 해석했습니다. 다른 정의(예: 앵커 TX 포트 쌍)가 필요하면 저장된 2×2 H에서 다시 계산할 수 있습니다.',
+    '비율은 주파수 bin마다 계산한 뒤 중앙값을 취했습니다. 널(null) 위치는 bin마다 조금씩 달라서 중앙값 곡선의 최솟값은 해석값보다 얕습니다.',
+    '벽·바닥·천장 재질(콘크리트, 석고보드)과 복도 치수는 임시값입니다. 회절과 확산 반사는 계산에 넣지 않았고, 탐색 완전성을 주장하지 않습니다.',
+    '이 결과는 시뮬레이션 설정 확인용입니다. q_clean 성능이나 거리 오차에 대한 결론이 아닙니다.'
+  ].forEach(function (t) { cv.appendChild(h('li', null, t)); });
+})();
+</script>

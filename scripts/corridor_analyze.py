@@ -82,18 +82,21 @@ def main():
                                los_power_fraction_median=float(np.median(los_frac))))
             for yi, yaw in enumerate(yaws):
                 rows.append(dict(position=pos, x_m=x, y_m=y, tx_port=tname, yaw_deg=yaw, ratio_median=med[yi], ratio_q25=q25[yi],
-                                 ratio_q75=q75[yi], ratio_los_only_median=los_med[yi], ratio_ideal_los=float(los_two_port_ratio(yaw))))
-    # On-axis (position 0) LoS-only curve vs ideal analytic curve, in dB, where the ideal ratio is in [0.25, 4].
-    p0 = next(s for s in series if s["position"] == 0 and s["tx_port"] == TX[0])
-    ideal = los_two_port_ratio(yaws)
-    sel = (ideal > 0.25) & (ideal < 4.0)
-    dev_db = np.abs(20 * np.log10(np.array(p0["los_only_median"])[sel]) - 20 * np.log10(ideal[sel]))
-    null_yaw = float(yaws[int(np.argmin(p0["los_only_median"]))])
-    peak_yaw = float(yaws[int(np.argmax(np.where(np.isfinite(p0["los_only_median"]), p0["los_only_median"], -1)))])
+                                 ratio_q75=q75[yi], ratio_los_only_median=los_med[yi], ratio_ideal_los=float(los_two_port_ratio(yaw, tname))))
+    # On-axis (position 0) LoS-only curve vs ideal analytic curve, per anchor TX port.
+    on_axis = {}
+    for tname in TX:
+        p0 = next(s for s in series if s["position"] == 0 and s["tx_port"] == tname)
+        ideal = los_two_port_ratio(yaws, tname)
+        sel = (ideal > 0.25) & (ideal < 4.0)
+        dev_db = np.abs(20 * np.log10(np.array(p0["los_only_median"])[sel]) - 20 * np.log10(ideal[sel]))
+        los_curve = np.where(np.isfinite(p0["los_only_median"]), p0["los_only_median"], -1)
+        on_axis[tname] = dict(max_abs_deviation_db=float(dev_db.max()), yaws_compared=yaws[sel].tolist(),
+                              los_only_null_yaw_deg=float(yaws[int(np.argmin(p0["los_only_median"]))]),
+                              los_only_peak_yaw_deg=float(yaws[int(np.argmax(los_curve))]),
+                              ideal_null_yaw_deg=float(yaws[int(np.argmin(ideal))]), ideal_peak_yaw_deg=float(yaws[int(np.argmax(ideal))]))
     validation = dict(
-        status="SWEEP_COMPLETE_ANALYSED", positions=len(checks), per_position=checks,
-        on_axis_los_vs_ideal=dict(max_abs_deviation_db=float(dev_db.max()), yaws_compared=yaws[sel].tolist(),
-                                  los_only_null_yaw_deg=null_yaw, ideal_null_yaw_deg=135.0, los_only_peak_yaw_deg=peak_yaw, ideal_peak_yaw_deg=45.0),
+        status="SWEEP_COMPLETE_ANALYSED", positions=len(checks), per_position=checks, on_axis_los_vs_ideal=on_axis,
         metric="abs(p1-p2)/abs(p1+p2); p1=robot RX +45 port, p2=robot RX -45 port, per anchor TX port; median over 257 bins",
         notes=["Ideal curve assumes ideal +45/-45 ports with aligned boresights; real FFD banks and the 8 degree port phase offset shift it.",
                "Ratio is unbounded at nulls of p1+p2; medians are over bins, nulls can move with frequency."])
@@ -101,7 +104,8 @@ def main():
     with (out / "ratio_table.csv").open("w", newline="") as fh:
         w = csv.DictWriter(fh, fieldnames=list(rows[0]))
         w.writeheader(); w.writerows(rows)
-    (out / "ratio_series.json").write_text(json.dumps(dict(series=series, ideal=dict(yaw_deg=yaws.tolist(), ratio=ideal.tolist())), indent=1))
+    (out / "ratio_series.json").write_text(json.dumps(dict(series=series, ideal=dict(
+        yaw_deg=yaws.tolist(), ratio={t: los_two_port_ratio(yaws, t).tolist() for t in TX})), indent=1))
     (out / "VALIDATION.json").write_text(json.dumps(validation, indent=2))
     if not args.no_png:
         import matplotlib
@@ -114,14 +118,14 @@ def main():
                 c = colors[s["position"]]
                 ax.fill_between(yaws, s["q25"], s["q75"], color=c, alpha=0.12, lw=0)
                 ax.plot(yaws, s["median"], color=c, lw=2, marker="o", ms=4, label=f"x={s['xy'][0]:g}, y={s['xy'][1]:g}  R={s['range_m']:.1f} m")
-            ax.plot(yaws, ideal, color="#777", ls="--", lw=1.2, label="ideal on-axis LoS |tan(yaw+45°)|")
+            ax.plot(yaws, los_two_port_ratio(yaws, tname), color="#777", ls="--", lw=1.2, label="ideal on-axis LoS")
             ax.set(yscale="log", xlabel="robot yaw (deg)", title=f"anchor TX {tname}", xticks=range(0, 181, 30))
             ax.grid(alpha=0.25)
         axes[0].set_ylabel("|p1-p2| / |p1+p2|")
         axes[0].legend(fontsize=8, loc="lower left")
         fig.tight_layout()
         fig.savefig(out / "ratio_vs_yaw.png")
-    print(json.dumps(dict(rows=len(rows), on_axis_max_dev_db=round(float(dev_db.max()), 2), null_yaw=null_yaw, peak_yaw=peak_yaw)))
+    print(json.dumps(dict(rows=len(rows), on_axis={t: {k: (round(v, 2) if isinstance(v, float) else v) for k, v in d.items() if k != "yaws_compared"} for t, d in on_axis.items()})))
 
 
 if __name__ == "__main__":
