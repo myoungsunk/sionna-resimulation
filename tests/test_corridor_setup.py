@@ -46,3 +46,10 @@ def test_validation_flags_robot_outside_allowed_region():
 
 def test_config_hash_changes_with_config():
     assert CorridorSetup().snapshot()["config_sha256"] != CorridorSetup(length_m=25.0).snapshot()["config_sha256"]
+
+
+def test_default_has_four_positions_with_one_below_anchor_and_19_yaws():
+    setup = CorridorSetup()
+    assert len(setup.example_xy_m) == 4
+    assert setup.example_xy_m[0] == (setup.anchor_x_m, setup.anchor_y_m)
+    assert setup.yaw_sweep_deg == tuple(float(a) for a in range(0, 181, 10))

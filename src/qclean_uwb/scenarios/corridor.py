@@ -60,9 +60,10 @@ class CorridorSetup:
     robot_clearance_m: float = 0.10  # keep-out between robot body and walls
     robot_x_range_m: tuple = (1.0, 19.0)
     # Example robot placement shown in the figure, plus the yaw sweep.
-    example_xy_m: tuple = ((7.0, 0.35), (11.0, -0.5), (15.0, 0.0))
-    main_index: int = 0
-    yaw_sweep_deg: tuple = tuple(float(a) for a in range(0, 360, 45))
+    # Index 0 is directly below the anchor; the rest are spread along the corridor.
+    example_xy_m: tuple = ((4.0, 0.0), (7.0, 0.35), (11.0, -0.5), (15.0, 0.0))
+    main_index: int = 1  # the position drawn with the yaw-sweep ring
+    yaw_sweep_deg: tuple = tuple(float(a) for a in range(0, 181, 10))
     yaw_display_deg: float = 30.0
     port_pair: tuple = PORT_PAIR
     arm: str = ARM

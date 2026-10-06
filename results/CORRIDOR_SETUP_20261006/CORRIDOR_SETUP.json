@@ -1,6 +1,6 @@
 {
   "status": "SETUP_VISUALISATION_ONLY_NO_RF_RUN",
-  "created_utc": "2026-10-06T09:33:00+00:00",
+  "created_utc": "2026-10-06T09:43:18+00:00",
   "command": "scripts/corridor_render_3d.py",
   "config": {
     "anchor_standoff_m": 0.05,
@@ -8,6 +8,10 @@
     "anchor_y_m": 0.0,
     "arm": "LP_DIAG",
     "example_xy_m": [
+      [
+        4.0,
+        0.0
+      ],
       [
         7.0,
         0.35
@@ -23,7 +27,7 @@
     ],
     "height_m": 2.7,
     "length_m": 20.0,
-    "main_index": 0,
+    "main_index": 1,
     "port_pair": [
       "LP_plus45",
       "LP_minus45"
@@ -43,16 +47,27 @@
     "yaw_display_deg": 30.0,
     "yaw_sweep_deg": [
       0.0,
-      45.0,
+      10.0,
+      20.0,
+      30.0,
+      40.0,
+      50.0,
+      60.0,
+      70.0,
+      80.0,
       90.0,
-      135.0,
-      180.0,
-      225.0,
-      270.0,
-      315.0
+      100.0,
+      110.0,
+      120.0,
+      130.0,
+      140.0,
+      150.0,
+      160.0,
+      170.0,
+      180.0
     ]
   },
-  "config_sha256": "7070a43d3de1ec8895d3b30576dd9cdbd17dd2531e115f6ba0582d8b391cb62a",
+  "config_sha256": "43ef121ce9f16bd8070994cb569584884485a2f103f090d8aaf8dc51b491cd95",
   "checks": [
     {
       "name": "anchor_inside_corridor",
@@ -92,22 +107,27 @@
     {
       "name": "example_0_in_allowed_region",
       "passed": true,
-      "detail": "xy=(7.0, 0.35)"
+      "detail": "xy=(4.0, 0.0)"
     },
     {
       "name": "example_1_in_allowed_region",
       "passed": true,
-      "detail": "xy=(11.0, -0.5)"
+      "detail": "xy=(7.0, 0.35)"
     },
     {
       "name": "example_2_in_allowed_region",
+      "passed": true,
+      "detail": "xy=(11.0, -0.5)"
+    },
+    {
+      "name": "example_3_in_allowed_region",
       "passed": true,
       "detail": "xy=(15.0, 0.0)"
     },
     {
       "name": "robot_rotations_valid",
       "passed": true,
-      "detail": "8 yaw values"
+      "detail": "19 yaw values"
     },
     {
       "name": "robot_boresight_up_for_all_yaw",
@@ -128,6 +148,22 @@
   "links": [
     {
       "example": 0,
+      "main": false,
+      "robot_xy_m": [
+        4.0,
+        0.0
+      ],
+      "robot_yaw_deg": 0.0,
+      "range_m": 2.2,
+      "anchor_off_boresight_deg": 0.0,
+      "robot_off_boresight_deg": 0.0,
+      "anchor_phi_deg": 0.0,
+      "robot_phi_deg": 0.0,
+      "horizontal_m": 0.0,
+      "vertical_m": 2.2
+    },
+    {
+      "example": 1,
       "main": true,
       "robot_xy_m": [
         7.0,
@@ -143,7 +179,7 @@
       "vertical_m": 2.2
     },
     {
-      "example": 1,
+      "example": 2,
       "main": false,
       "robot_xy_m": [
         11.0,
@@ -159,7 +195,7 @@
       "vertical_m": 2.2
     },
     {
-      "example": 2,
+      "example": 3,
       "main": false,
       "robot_xy_m": [
         15.0,
@@ -203,7 +239,7 @@
     "port_E_nominal_note": "nominal LP_plus45=(x+y)/sqrt2, LP_minus45=(x-y)/sqrt2 in antenna frame; not read back from FFD banks"
   },
   "outputs": {
-    "corridor_setup_3d.html": "ce4d7004f7e7f74edeae121645da00c61f273525928090a45bbdfa22d445fa62",
-    "corridor_setup_3d.png": "f52f983899cd168691c74cd739360e54f4cdb1b77b4082ed7bd59eb166f50033"
+    "corridor_setup_3d.html": "0661036f5bcd449579d711d19ea9d24de6a7f58b212fc4b47182794393739024",
+    "corridor_setup_3d.png": "707cc2d38648661f8a0a55f37cf4a103ea6f0430f562dbbf87acf3aca35cf46e"
   }
 }
