@@ -84,6 +84,15 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <p class="note" id="fitnote"></p>
   </section>
 
+  <section class="card" aria-label="좌표별 각도 모델 비교">
+    <h2>모든 좌표: 각도만으로 만든 곡선 vs 실제 시뮬레이션 곡선</h2>
+    <p class="note">각 좌표에서 앵커–로봇 직선으로 송신 각도 (θ, φ<sub>tx</sub>)와 수신 각도 (θ, φ<sub>rx</sub>)를 계산하고, 두 안테나 패턴을 그 각도로 읽어 yaw 곡선을 만들었습니다(LoS만, 반사 없음, 실제 거리). 수신 방위 φ<sub>rx</sub>는 yaw를 돌리면 함께 변하며 표의 값은 yaw 0°일 때입니다.</p>
+    <div class="controls" id="txbtn3" role="group" aria-label="앵커 TX 포트 (좌표별 비교)"></div>
+    <div class="legend" id="lg3"></div>
+    <div class="row" id="grid3"></div>
+    <div class="scroll"><table id="tab3"></table></div>
+  </section>
+
   <section class="card" aria-label="이동 축 방향">
     <h2>로봇을 옮기면 이동량이 어떻게 변하나</h2>
     <div class="controls" id="txbtn2" role="group" aria-label="앵커 TX 포트 (이동 차트)"></div>
@@ -157,14 +166,14 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
   var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
   var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
-  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0, tmode: 0 };
+  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0, tmode: 0, tx3: 0 };
 
   // Line chart with a snapping crosshair; spec: {title, xs, xlabel, xname, series:[{name,color,vals,dash,w}], ymin, ymax, dec, zero}
   function lineChart(host, spec) {
     host.textContent = ''; host.appendChild(h('h3', null, spec.title));
     var box = h('div'); host.appendChild(box); var tip = h('div', 'tip'); tip.hidden = true; host.appendChild(tip);
     function draw() {
-      var W = Math.max(280, box.clientWidth || host.clientWidth), H = 250, m = { l: 46, r: 12, t: 10, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, xs = spec.xs, x0 = xs[0], x1 = xs[xs.length - 1];
+      var W = Math.max(250, box.clientWidth || host.clientWidth), H = spec.h || 250, m = { l: 46, r: 12, t: 10, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, xs = spec.xs, x0 = xs[0], x1 = xs[xs.length - 1];
       var all = [].concat.apply([], spec.series.map(function (s) { return s.vals; }));
       var lo = spec.ymin != null ? spec.ymin : Math.min(0, Math.min.apply(null, all)), hi = spec.ymax != null ? spec.ymax : Math.max(0, Math.max.apply(null, all));
       var pad = (hi - lo) * 0.08 || 1; if (spec.ymin == null) lo -= lo < 0 ? pad : 0; if (spec.ymax == null) hi += pad;
@@ -279,6 +288,26 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
   btnGroup(document.getElementById('txabtn'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'ttx', function () { tst.tx = st.ttx; renderTx(); });
   renderTx();
   buildRows(); renderLos(); renderMp(); renderCurve();
+
+  // Every coordinate: angle-only curve vs simulated curve.
+  (function () {
+    var AM = D.angmodel, PS = AM.positions, cs3 = [], t3 = { tx: 0 };
+    var lg = document.getElementById('lg3'); legendItem(lg, 'var(--ref)', '이상 곡선 (정면)', 'dash'); legendItem(lg, 'var(--c-los)', '각도만으로 만든 곡선 (송신 + 수신)'); legendItem(lg, 'var(--c-all)', '실제 시뮬레이션 (반사 포함)');
+    function draw() {
+      var tn = TXS[t3.tx], host = document.getElementById('grid3'); host.textContent = ''; cs3.length = 0;
+      PS.forEach(function (r) {
+        var v = r.tx[tn], c = h('div', 'chart'); host.appendChild(c);
+        var spec = { title: '(' + f(r.x, 1) + ', ' + f(r.y, 2) + ') · θ ' + f(r.theta_tx_deg, 0) + '° · φtx ' + sg(r.phi_tx_deg, 0) + '° · φrx(0°) ' + sg(r.phi_rx_at_yaw0_deg, 0) + '°', xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', ymin: 0, ymax: 1.05, dec: 3, h: 215,
+          series: [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: v.ratio_ideal, nomark: true }, { name: '각도만으로', color: 'var(--c-los)', vals: v.ratio_angle_model, nomark: true, w: 2 }, { name: '실제', color: 'var(--c-all)', vals: v.ratio_full_sim, w: 2 }] };
+        lineChart(c, spec); cs3.push(spec);
+      });
+    }
+    var html = '<thead><tr><th>좌표</th><th>TX</th><th class="n">거리 (m)</th><th class="n">θ (°)</th><th class="n">φtx (°)</th><th class="n">φrx(0°) (°)</th><th class="n">RMSE 이상 → 실제</th><th class="n">RMSE 각도 모델 → 실제</th><th class="n">설명한 비율</th><th class="n">각도 모델 vs 시뮬 LoS</th></tr></thead><tbody>';
+    PS.forEach(function (r) { TXS.forEach(function (tn) { var v = r.tx[tn]; html += '<tr><td>(' + f(r.x, 1) + ', ' + f(r.y, 2) + ')</td><td>' + TXN[tn] + '</td><td class="n">' + f(r.range_m, 2) + '</td><td class="n">' + f(r.theta_tx_deg, 1) + '</td><td class="n">' + sg(r.phi_tx_deg, 1) + '</td><td class="n">' + sg(r.phi_rx_at_yaw0_deg, 1) + '</td><td class="n">' + f(v.rmse_ideal_vs_full, 3) + '</td><td class="n hi">' + f(v.rmse_model_vs_full, 3) + '</td><td class="n">' + (v.explained == null ? '–' : f(v.explained * 100, 0) + '%') + '</td><td class="n">' + f(v.rmse_model_vs_los_sim, 4) + '</td></tr>'; }); });
+    document.getElementById('tab3').innerHTML = html + '</tbody>';
+    btnGroup(document.getElementById('txbtn3'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx3', function () { t3.tx = st.tx3; draw(); });
+    draw(); tcharts.push({ redraw: function () { cs3.forEach(function (c) { c.redraw(); }); } });
+  })();
 
   // Case check tables.
   (function () {
