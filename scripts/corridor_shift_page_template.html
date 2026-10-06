@@ -62,6 +62,8 @@ td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-nume
 td.hi { font-weight: 600; }
 ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
 code { font-family: var(--font-mono); font-size: 12.5px; }
+.hbar { height: 8px; border-radius: 2px; background: var(--c-all); min-width: 2px; }
+details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
 .fitbox { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 20px; font-size: 13px; }
 .fitbox div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; }
 .fitbox b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
@@ -91,6 +93,16 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     <div class="legend" id="lg3"></div>
     <div class="row" id="grid3"></div>
     <div class="scroll"><table id="tab3"></table></div>
+  </section>
+
+  <section class="card" aria-label="yaw 추정 템플릿 비교">
+    <h2>yaw 추정: 각도 모델을 사전 템플릿으로 쓰면 나아지나</h2>
+    <p class="note">측정한 비율 하나를 템플릿 곡선에 거꾸로 대입해 yaw 후보를 구하고(비율은 부호가 없어 후보가 4–5개), 후보 중 하나를 고릅니다. 앵커 아래를 뺀 22개 곡선, 각 곡선의 19개 yaw 모두에서 평가했습니다. 맞추는 템플릿은 그 yaw 하나를 뺀 18점으로 계수를 정했습니다(leave-one-out).</p>
+    <h3>① 정답에 가장 가까운 후보를 고른 경우 (모호성은 풀렸다고 가정, 템플릿 불일치만 측정)</h3>
+    <div class="scroll"><table id="tm1"></table></div>
+    <h3>② 정답을 모르고 yaw를 ±15° / ±30° 이내로만 아는 경우 (그 사전값에 가장 가까운 후보를 선택)</h3>
+    <div class="scroll"><table id="tm2"></table></div>
+    <p class="note" id="tm-note"></p>
   </section>
 
   <section class="card" aria-label="이동 축 방향">
@@ -307,6 +319,24 @@ code { font-family: var(--font-mono); font-size: 12.5px; }
     document.getElementById('tab3').innerHTML = html + '</tbody>';
     btnGroup(document.getElementById('txbtn3'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx3', function () { t3.tx = st.tx3; draw(); });
     draw(); tcharts.push({ redraw: function () { cs3.forEach(function (c) { c.redraw(); }); } });
+  })();
+
+  // Template comparison for yaw estimation.
+  (function () {
+    var T = D.tmpl, S = T.summary, DR = T.decision_rules, CT = T.calibration_transfer, SE = T.coordinate_error_sensitivity;
+    var L = [['ideal', '이상 곡선 |cos 2·yaw|', '없음'], ['shift_xyA', '이상 + x·y 이동 + 진폭 (이전 6.3° 템플릿)', '같은 위치의 yaw sweep 측정'], ['shift_los_params', '이상 + LoS 피팅값 이동', 'LoS 피팅(좌표 + 안테나 패턴)'],
+      ['angle_model', '각도 모델 (좌표로 계산한 파랑 곡선)', '좌표만'], ['angle_model_cal', '각도 모델 + 보정 (yaw 오프셋·B·A)', '같은 위치의 yaw sweep 측정']];
+    var mx = Math.max.apply(null, L.map(function (l) { return S[l[0]].rmse; }).concat([CT.rmse]));
+    var html = '<thead><tr><th>템플릿</th><th>필요한 정보</th><th class="n">RMSE (°)</th><th></th><th class="n">중앙값 |오차|</th><th class="n">90% 분위</th><th class="n">최대</th><th class="n">3° 이내</th><th class="n">5° 이내</th></tr></thead><tbody>';
+    var row = function (name, need, v, hi) { return '<tr><td>' + name + '</td><td>' + need + '</td><td class="n' + (hi ? ' hi' : '') + '">' + f(v.rmse, 2) + '</td><td style="width:90px"><div class="hbar" style="width:' + (v.rmse / mx * 100) + '%"></div></td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + (v.p90_abs == null ? '–' : f(v.p90_abs, 1)) + '</td><td class="n">' + (v.max_abs == null ? '–' : f(v.max_abs, 1)) + '</td><td class="n">' + (v.within3 == null ? '–' : f(v.within3 * 100, 0) + '%') + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td></tr>'; };
+    L.forEach(function (l) { html += row(l[1], l[2], S[l[0]], l[0] === 'angle_model'); });
+    html += row('각도 모델 + 가까운 다른 좌표(평균 ' + f(CT.mean_neighbour_distance_m, 2) + ' m)의 보정', '다른 위치의 yaw sweep 측정', CT, false);
+    document.getElementById('tm1').innerHTML = html + '</tbody>';
+    var h2 = '<thead><tr><th>템플릿</th><th class="n">후보 수/역산</th><th class="n">±15° RMSE</th><th class="n">±15° 5° 이내</th><th class="n">±15° 오답 가지(>20°)</th><th class="n">±30° RMSE</th><th class="n">±30° 오답 가지(>20°)</th></tr></thead><tbody>';
+    L.forEach(function (l) { var r = DR[l[0]]; h2 += '<tr><td>' + l[1] + '</td><td class="n">' + f(r.mean_candidates, 1) + '</td><td class="n hi">' + f(r.prior15.rmse, 2) + '</td><td class="n">' + f(r.prior15.within5 * 100, 0) + '%</td><td class="n">' + f(r.prior15.wrong_branch * 100, 1) + '%</td><td class="n">' + f(r.prior30.rmse, 2) + '</td><td class="n">' + f(r.prior30.wrong_branch * 100, 1) + '%</td></tr>'; });
+    document.getElementById('tm2').innerHTML = h2 + '</tbody>';
+    var ks = Object.keys(SE);
+    document.getElementById('tm-note').textContent = '각도 모델은 22개 곡선 중 ' + T.angle_model_better_than_shift_xyA_curves + '개에서 이전 이동 템플릿보다 RMSE가 낮습니다. 좌표가 틀려도 거의 변하지 않습니다(좌표 오차 ' + ks.map(function (k) { return k + ' m: ' + f(SE[k].rmse_mean, 2) + '°'; }).join(', ') + ', 오차 0 m: ' + f(S.angle_model.rmse, 2) + '°). 같은 위치에서 sweep을 측정해 보정하면 ' + f(S.angle_model_cal.rmse, 2) + '°까지 내려가지만, 그 보정을 가까운 다른 좌표에서 빌려 쓰면 ' + f(CT.rmse, 2) + '°로 보정 없는 각도 모델보다 나빠집니다. 다중 반사가 만드는 보정량이 위치마다 다르기 때문입니다. 정답을 모르고 ±30°만 아는 경우에는 모든 템플릿이 14–16°이고 오답 가지가 13–19%라서, 이 비율 하나로는 4–5개 후보를 가를 수 없습니다.';
   })();
 
   // Case check tables.

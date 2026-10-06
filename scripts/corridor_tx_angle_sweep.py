@@ -31,23 +31,27 @@ LINK_M = 3.0
 CENTER_BIN = 128
 
 
-def one(banks, theta, phi, rx_actual=False, tx_actual=True):
+def one(banks, theta, phi, rx_actual=False, tx_actual=True, yaws=None):
     """rx_actual=False: receiver read at boresight (earlier experiment). rx_actual=True: receiver sees the wave from its real
     direction -k in its own frame (off-boresight by theta, azimuth rotating with yaw). tx_actual=False: anchor read at boresight."""
     dl = np.array([np.sin(theta) * np.cos(phi), np.sin(theta) * np.sin(phi), np.cos(theta)])
     k = ANCHOR_ROTATION @ dl
     vt = banks.vectors(ANCHOR_ROTATION, k, force_boresight=not tx_actual)  # (257, 2 ports, 3) world Cartesian
     amp = sf.C0 / sf.FREQ / (4 * np.pi * LINK_M) * np.exp(-2j * np.pi * sf.FREQ * LINK_M / sf.C0)
-    Hs = np.stack([np.einsum("fic,fjc->fij", banks.vectors(rot_z(y), -k, force_boresight=not rx_actual), vt) * amp[:, None, None] for y in sf.YAWS])
+    yaws = sf.YAWS if yaws is None else np.asarray(yaws, float)
+    Hs = np.stack([np.einsum("fic,fjc->fij", banks.vectors(rot_z(y), -k, force_boresight=not rx_actual), vt) * amp[:, None, None] for y in yaws])
     cir, t = contribution_cir(Hs[0], sf.FREQ)
     pk = np.abs(cir).max(0)
     rx, tx = np.unravel_index(pk.argmax(), pk.shape)
     idx = extract_first_path(cir[:, rx, tx], t)[0]
-    C = sf.fp_field_from_H(Hs, [idx] * len(sf.YAWS))
+    C = sf.fp_field_from_H(Hs, [idx] * len(yaws))
     out = {}
     for t_i, tn in enumerate(sf.TX):
         sg = sf.SIGMA[tn]
         s = sf.signed(C, t_i)
+        if len(yaws) != len(sf.YAWS):  # dense-yaw call: only the signed curve is needed
+            out[tn] = dict(s=s.tolist())
+            continue
         fit = sf.fit_shift(s, sg)
         Ex, Ey = vt[CENTER_BIN, t_i, 0], vt[CENTER_BIN, t_i, 1]
         S0 = abs(Ex) ** 2 + abs(Ey) ** 2
@@ -63,7 +67,7 @@ def one(banks, theta, phi, rx_actual=False, tx_actual=True):
         p = p / np.linalg.norm(p)
         q = np.cross(dl, p)
         co, cx = abs(p @ E) ** 2, abs(q @ E) ** 2
-        out[tn] = dict(ratio=np.abs(s).tolist(), yaw0=fit["yaw0_deg"], B=fit["B"], A=fit["A"], captured=fit["captured"], dolp=float(np.hypot(S1, S2) / S0),
+        out[tn] = dict(s=s.tolist(), ratio=np.abs(s).tolist(), yaw0=fit["yaw0_deg"], B=fit["B"], A=fit["A"], captured=fit["captured"], dolp=float(np.hypot(S1, S2) / S0),
                        ellipticity=float(S3 / S0), yaw0_pred=yaw0_th, xpd_db=float(10 * np.log10(co / cx)), gain_rel_db=float(10 * np.log10((co + cx))))
     return out
 
