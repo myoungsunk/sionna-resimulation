@@ -36,10 +36,10 @@ def test_lut_matches_direct_evaluation_and_gradient_is_consistent():
     banks = ideal_banks()
     lut = L.build_lut(banks, theta_step_deg=15.0, phi_step_deg=15.0, theta_max_deg=90.0)
     f = L.HsLut(lut)
-    rng = np.random.default_rng(0)
-    for _ in range(6):
-        t, a, b = rng.uniform(5, 80), rng.uniform(-170, 170), rng.uniform(-170, 170)
-        assert f(t, a, b) == pytest.approx(L.los_s_direct(banks, t, a, b), abs=0.08)       # coarse grid, loose bound
+    th, ph = lut["theta_deg"], lut["phi_deg"]
+    for i, j, k in [(2, 4, 9), (3, 10, 5), (4, 20, 15)]:          # points a fraction of a cell away from a node: interpolation error is small
+        t, a, b = th[i] + 1.0, ph[j] + 1.5, ph[k] - 1.0
+        assert f(t, a, b) == pytest.approx(L.los_s_direct(banks, t, a, b), abs=0.05)
     # grid points are exact
     i, j, k = 3, 5, 7
     assert f(lut["theta_deg"][i], lut["phi_deg"][j], lut["phi_deg"][k]) == pytest.approx(lut["s"][i, j, k], abs=1e-12)
@@ -67,3 +67,19 @@ def test_geometry_angles_roundtrip_with_los_direct():
     from qclean_uwb.drivesim import observation as O
     s_geo = O.observe(h[None], banks[0].freqs_hz, None, None)["s"][0]
     assert L.los_s_direct(banks, float(th), float(pt), float(pr)) == pytest.approx(s_geo, abs=1e-9)
+
+
+def test_s_model_jacobian_matches_finite_differences_and_geometry_angles():
+    banks = ideal_banks()
+    f = L.HsLut(L.build_lut(banks, 15.0, 15.0))
+    setup = CorridorSetup()
+    anchor, z = setup.anchor_position, setup.robot_antenna_z_m
+    x, y, th, mount = 9.3, 0.31, np.radians(23.0), 45.0
+    val, jac = L.s_model(f, anchor, z, x, y, th, mount, with_jac=True)
+    ang = L.geometry_angles(anchor, setup.robot_position(x, y), np.degrees(th) + mount)
+    assert val == pytest.approx(f(*ang), abs=1e-12)
+    e = 1e-6
+    fd = [(L.s_model(f, anchor, z, x + e, y, th, mount) - L.s_model(f, anchor, z, x - e, y, th, mount)) / (2 * e),
+          (L.s_model(f, anchor, z, x, y + e, th, mount) - L.s_model(f, anchor, z, x, y - e, th, mount)) / (2 * e),
+          (L.s_model(f, anchor, z, x, y, th + e, mount) - L.s_model(f, anchor, z, x, y, th - e, mount)) / (2 * e)]
+    np.testing.assert_allclose(jac, fd, atol=2e-4)

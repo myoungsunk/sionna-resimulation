@@ -27,3 +27,18 @@
 - 관측: 위치 (4.0, 0.0)(앵커 바로 아래, 수평거리 0)에서 B안(trace/pattern 분리)이 A안과 H 상대 오차 1.5e-2로 어긋난다(경로 수 51, 정상 63). 수평거리가 y=1e-4 m이면 1.2e-3, 1e-3 m이면 1.1e-4, 5e-3 m 이상이면 ≤1.8e-5로 사전 등록 G2 기준을 만족한다. LoS 단독은 정상(1.9e-5), 반사 경로가 수직 입사로 퇴화하는 것이 원인으로 추정(미확정).
 - 조치(결과를 보기 전의 규칙): (a) 궤적 생성기가 수직축까지 수평거리 ≥0.01 m를 강제한다(`check_anchor_axis_clearance`; 현재 궤적 최소 0.0266 m / 0.3764 m). (b) parity gate의 기준 위치 중 수직축 위(수평거리 <0.01 m, 즉 (4.0, 0.0))는 G2 집계에서 제외하고 보고서에 `excluded_on_anchor_axis`로 남긴다. (c) G4 위치를 (5.5,0.35), (11,−0.5), (15,0)으로 바꾼다((4,0) 제외).
 - G2 임계값은 변경하지 않는다.
+
+## A4 — S4 (h_s LUT) gates, fixed before the real-bank LUT is built
+
+- LUT grid: θ 2° over [0°, 90°], φ_tx and φ_rx 2° over [−180°, 180°) (the plan's φ 5° is replaced by 2°: with 5° ideal-dipole banks gave a max interpolation error of 3.5e-2, with 2° 5.4e-3).
+- Gate L1 (interpolation): over 500 random points with θ∈[5°, 85°], \|s_LUT − s_direct\| max ≤ 1e-2 and median ≤ 1e-3.
+- Gate L2 (LUT vs Sionna `max_depth=0`, 8 random corridor poses, 257 bins): \|Δs\| max ≤ 5e-3. The LUT uses a 10 m reference link, so a sub-tap position difference is part of this number.
+- Reported (no pass/fail): LUT-vs-full-simulation mismatch σ_s along the trajectories, overall and by \|ds/dyaw\| bin (feeds the filter's R_s; the earlier branch value was about 0.09).
+
+## A5 — Filter design decisions (S5), fixed before any filter run on RF data
+
+1. **Non-identifiability.** During straight driving at constant speed the gyro bias `b` (proportional to time) and the wheel diameter-ratio error `ε` (proportional to distance) enter the odometry-vs-gyro heading difference identically; they are separated only by absolute heading (`s`) or by stationary rotation. Tests on model-consistent synthetic data showed that with prior σ_b = 0.3 dps the odom/gyro fusion alone gives 10–30° heading RMS even at the *lowest* drift level, whereas gyro-only heading gives 0.4–1.7°.
+2. **Priors** are taken from the sweep populations (RMS over the three levels), identical for all conditions and baselines: σ_b = 0.12 dps, σ_SF = 1.04 %, σ_ε = 0.64 %, initial pose σ_θ = 5°, σ_xy = 0.1 m. No per-condition tuning.
+3. **Extra baseline "gyro-only"** (`use_odom_heading=False`: heading from the gyro increments only, odometry used for distance): added next to the fused "odom+IMU" baseline, because the fused baseline is weak by construction (point 1). H1 is evaluated against both; the fused one is the pre-registered primary comparison, the gyro-only one is reported as the stronger-baseline sensitivity.
+4. **Measurement noise the filter is told:** range R = σ_r² + quantisation (tap spacing 0.149 m, uniform) + (0.05 m)²; s R = delta-method thermal variance from the *measured* tap powers + σ_mismatch²; σ_mismatch = 0.09 until S4 reports the measured value (then the measured value is used for all conditions at once). Gate: χ²₁ 99 % for range and s, 99.9 % for the odometry heading pseudo-measurement (slip).
+5. **Range model offset:** the first-path range is quantised (taps 0.149 m) and biased by the 30 % leading edge; the filter uses a constant offset computed from a flat-spectrum LoS channel passed through the same chain, averaged over distance (no trajectory data).

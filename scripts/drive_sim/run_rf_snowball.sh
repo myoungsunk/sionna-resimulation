@@ -15,7 +15,7 @@ set -u
 cd "$(dirname "$0")/../.."
 V=${PYTHON:?set PYTHON to the sionna venv python}
 D=results/DRIVE_SIM_20261007
-S1=$D/S1; S2=$D/S2; NP=${NPROC:-4}
+S1=$D/S1; S2=${S2_DIR:-$D/S2}; NP=${NPROC:-4}
 shards() { # run "<cmd> --shard i/NP" in parallel
   local i
   for ((i=0;i<NP;i++)); do ( eval "$1 --shard $i/$NP" ) & done; wait

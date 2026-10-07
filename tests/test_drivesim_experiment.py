@@ -1,0 +1,75 @@
+import numpy as np
+import pandas as pd
+import pytest
+
+from qclean_uwb.drivesim import analysis as A
+from qclean_uwb.drivesim import experiment as E
+from qclean_uwb.drivesim import hs_lut as L
+from qclean_uwb.drivesim import observation as O
+from qclean_uwb.drivesim import sensors as S
+from qclean_uwb.drivesim.trajectory import TrajectoryConfig, build_samples
+from qclean_uwb.scenarios.corridor import CorridorSetup
+from test_drivesim_hs_lut import ideal_banks
+
+SETUP = CorridorSetup()
+
+
+def ideal_world(period, mount, n=420):
+    banks = ideal_banks()
+    rows = build_samples(TrajectoryConfig(probe_period_s=period))[:n]
+    h = np.empty((len(rows), 257, 2, 2), complex)
+    for i, r in enumerate(rows):
+        pos = SETUP.robot_position(r["x"], r["y"])
+        d = (pos - SETUP.anchor_position)
+        d = d / np.linalg.norm(d)
+        h[i] = L.los_h(banks, d, r["yaw_body_deg"] + mount, dist_m=float(np.linalg.norm(pos - SETUP.anchor_position)))
+    return E.World(rows, h, banks[0].freqs_hz, 0.0, mount, period), banks
+
+
+def test_run_unit_on_los_only_channels_gives_sane_metrics():
+    worlds, banks = {}, None
+    for p in (None, 20.0):
+        worlds[p], banks = ideal_world(p, 45.0)
+    lut = L.HsLut(L.build_lut(banks, 6.0, 6.0))
+    rows, series = E.run_unit(worlds, lut, sensor=S.SensorNoise(), mismatch_sigma=0.05, anchor_xyz=tuple(SETUP.anchor_position),
+                              robot_z=SETUP.robot_antenna_z_m, range_offset=O.los_range_bias(banks[0].freqs_hz), snr_db=40.0, snr_idx=0,
+                              drift_idx=2, seed=1, compare_filters=False)
+    df = pd.DataFrame(rows)
+    assert set(df.baseline) >= {"odom_imu", "gyro_only", "range", "range_s_P0", "range_s_P1_T20"} and (df.error == "").all()
+    by = df.set_index("baseline")
+    assert by.loc["range_s_P0", "heading_rmse_deg"] < by.loc["odom_imu", "heading_rmse_deg"]
+    assert np.isfinite(df[["heading_rmse_deg", "pos_rmse_m", "nees_mean"]].to_numpy()).all()
+    assert by.loc["range_s_P1_T20", "n_probes"] >= 1 and by.loc["range_s_P0", "n_probes"] == 0
+    assert "range_s_P0" in series
+
+
+def test_holm_and_paired_analysis_detects_a_clear_improvement():
+    rng = np.random.default_rng(0)
+    rows = []
+    for lat in (0.0, 0.35):
+        for seed in range(30):
+            base = rng.uniform(5, 10)
+            for name, val in (("odom_imu", base), ("range_s_P0", 0.3 * base + rng.normal(0, 0.1))):
+                rows.append(dict(lateral=lat, mount_deg=0.0, drift=0, snr_db=30.0, seed=seed, baseline=name, filter="ekf", heading_rmse_deg=val))
+    df = pd.DataFrame(rows)
+    out = A.paired(df, "odom_imu", "range_s_P0", "heading_rmse_deg", ["lateral", "mount_deg", "drift", "snr_db"])
+    assert out.improved.all() and (out.median_rel_improvement > 0.5).all() and (out.p_holm < 0.01).all()
+    same = A.paired(df.assign(heading_rmse_deg=df.heading_rmse_deg), "odom_imu", "odom_imu", "heading_rmse_deg", ["lateral", "mount_deg", "drift", "snr_db"])
+    assert not same.improved.any()
+
+
+def test_h3_direction_convention_and_h4_bound():
+    rng = np.random.default_rng(1)
+    rows = []
+    for mount, level in ((0.0, 10.0), (45.0, 2.0)):
+        for seed in range(30):
+            rows.append(dict(lateral=0.0, mount_deg=mount, drift=0, snr_db=30.0, seed=seed, baseline="range_s_P0", filter="ekf",
+                             heading_rmse_deg=level + rng.normal(0, 0.2), wrong_branch_frac=0.0))
+    out = A.h3(pd.DataFrame(rows))
+    assert out.median_rel_improvement.iloc[0] > 0.5 and out.improved.iloc[0]          # 45 deg better -> H3
+    wb = []
+    for b, frac in (("range_s_P0", 0.5), ("range_s_P1_T10", 0.01), ("range_s_P1_T20", 0.02), ("range_s_P1_T60", 0.30)):
+        for seed in range(30):
+            wb.append(dict(lateral=0.0, mount_deg=0.0, drift=0, snr_db=30.0, seed=seed, baseline=b, wrong_branch_frac=frac))
+    r = A.h4(pd.DataFrame(wb))
+    assert r.largest_T_ok.iloc[0] == 20

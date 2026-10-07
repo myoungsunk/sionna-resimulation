@@ -87,3 +87,11 @@ def realised_snr_db(h_clean: np.ndarray, noise_var: float, tx: int = 0) -> np.nd
     """Per-sample mean per-bin SNR of the stronger RX port [dB] (diagnostic for the placeholder SNR definition)."""
     p = (np.abs(np.asarray(h_clean)[..., tx]) ** 2).mean(axis=1).max(axis=-1)
     return 10.0 * np.log10(p / noise_var)
+
+
+def los_range_bias(freqs_hz: np.ndarray, d_min: float = 2.0, d_max: float = 16.0, step: float = 0.01) -> float:
+    """Mean (chain range - true range) of a flat-spectrum LoS channel over a distance grid: the constant offset of the first-path range."""
+    d = np.arange(d_min, d_max, step)
+    h = np.exp(-2j * np.pi * freqs_hz[None, :] * d[:, None] / C0)[:, :, None] * np.ones((1, 1, 2))
+    out = first_path_batch(cir_batch(h), float(freqs_hz[1] - freqs_hz[0]))
+    return float(np.mean(out["range_m"] - d))

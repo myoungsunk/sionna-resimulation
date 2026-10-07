@@ -131,3 +131,30 @@ def geometry_angles(anchor_xyz, robot_xyz, antenna_yaw_deg):
     v_az = np.degrees(np.arctan2(-d[..., 1], -d[..., 0]))
     phi_rx = (v_az - np.asarray(antenna_yaw_deg, float) + 180.0) % 360.0 - 180.0
     return theta, phi_tx, phi_rx
+
+
+def s_model(lut: HsLut, anchor_xyz, robot_z: float, x, y, theta_rad, mount_deg: float = 0.0, with_jac: bool = False):
+    """Predicted LoS-only s for robot body positions (x, y) and body yaw ``theta_rad`` (antenna yaw = body yaw + mount).
+
+    Vectorised.  ``with_jac`` additionally returns ds/d(x, y, theta) (theta in radians) from the geometric chain rule and the LUT gradient.
+    """
+    ax, ay, az = (float(v) for v in anchor_xyz)
+    u, v = np.asarray(x, float) - ax, np.asarray(y, float) - ay
+    h = az - robot_z
+    rho2 = np.maximum(u * u + v * v, 1e-12)
+    rho = np.sqrt(rho2)
+    psi = np.degrees(np.asarray(theta_rad, float)) + mount_deg
+    theta_geo = np.degrees(np.arctan2(rho, h))
+    phi_tx = np.degrees(np.arctan2(-v, u))
+    phi_rx = (np.degrees(np.arctan2(-v, -u)) - psi + 180.0) % 360.0 - 180.0
+    if not with_jac:
+        return lut(theta_geo, phi_tx, phi_rx)
+    val, g = lut(theta_geo, phi_tx, phi_rx, with_grad=True)
+    k = 180.0 / np.pi
+    dth_du, dth_dv = h / (rho2 + h * h) * u / rho * k, h / (rho2 + h * h) * v / rho * k
+    dtx_du, dtx_dv = v / rho2 * k, -u / rho2 * k
+    drx_du, drx_dv = -v / rho2 * k, u / rho2 * k
+    jac = np.stack((g[..., 0] * dth_du + g[..., 1] * dtx_du + g[..., 2] * drx_du,
+                    g[..., 0] * dth_dv + g[..., 1] * dtx_dv + g[..., 2] * drx_dv,
+                    -g[..., 2] * k), -1)
+    return val, jac
