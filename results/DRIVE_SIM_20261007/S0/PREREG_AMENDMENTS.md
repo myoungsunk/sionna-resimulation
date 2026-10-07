@@ -73,3 +73,23 @@
 | 0.01 | 93.3 | 15.7 | 7.55 / 2.44 |
 
 Rule (closest to NEES 3) → **pos_process_std = 0.01 m**. The filter is nevertheless **not consistent**: NEES stays 5–30 times its expected value of 3. This is reported as a result, not tuned away: the s residual of the corridor (σ ≈ 0.18) is strongly correlated along the route, so a white-noise measurement model with R = 0.18² is overconfident. No further tuning is done (it would break the pre-registered procedure).
+
+## A9 — Additional routes R2/R4/R5 and a second anchor (user request; registered before any result on the new routes exists)
+
+**Scope (user decisions).** Space = the existing 20 m × 2.4 m corridor. R3 (straight line y = 0) is the existing R1 and is not repeated. Anchors: A (ceiling x = 4 m, y = 0, the original) and B (ceiling x = 10 m, y = 0). Each anchor is a separate single-anchor system (TX +45° port); no fusion of the two. Matrix per route: anchor {A, B} × mount {0°, 45°} × drift {low, mid, high} × SNR {30, 10 dB} × seeds 0–49, baselines and filter set exactly as in v1.
+
+**Routes (nominal paths; speed 0.2 m/s, 5 Hz, 0.04 m steps, heading wobble ±4° / 12 s on drive time, in-place corner turns at 25°/s, probe rule unchanged).**
+- R2 rectangle / loop closure: start (1.2, −0.45) → up to y = +0.45 → right to x = 18.8 → down to y = −0.45 → left back to x = 1.2. Four 90° corner turns.
+- R4 zigzag: lanes ±0.45 m, heading alternates +35.7° / −35.7°; 14 legs of 0.9 / sin 35.7° = 1.542 m, x from 1.2 to ≈ 18.7 m; 13 corner turns of 71.4°.
+- R5 serpentine: three lanes y = +0.45, 0, −0.45 of 17.6 m, joined at alternate ends by 0.45 m cross legs; start (1.2, +0.45); two 90° turns at each end (four turns in total per cross leg pair).
+Leg lengths are rounded to whole 0.04 m steps; the truth is kinematic (position integrates the heading incl. wobble), so loops are not exactly closed.
+
+**Guards.** Region |y| ≤ 0.74 m, x ∈ [1, 19]; horizontal distance to each anchor's vertical axis ≥ 0.02 m (method B degenerates exactly on the axis, A3). The wobble phase seed is the first of 20261007, 20261008, … that satisfies both guards; the chosen seed is stored in the timeline manifest.
+
+**Predictions registered now (two-sided tests, same statistics as H1–H4):**
+- H5 (mount, passive P0): the antenna yaw is heading + mount and the slope of s is largest at 45°/135°. R1: heading 0°/180° → mount 45° better. R2: headings 0°/90°/180°/270° → mount 45° better. R5: same as R1 on the lanes, 90° on the cross legs → mount 45° better. **R4: headings ±35.7° → mount 0° better** (yaw 35.7° is near the steep point, mount 45° puts the yaw at 9.3° and 80.7°, both flat).
+- H6 (loop closure, R2): range + s reduces the loop-closure error ‖x̂_end − x̂_start‖ (the true displacement is ≈ 0) versus odom + IMU. Reported for every route as the displacement error ‖(x̂_end − x̂_start) − (x_end − x_start)‖.
+- H7 (anchor): anchor A vs B heading RMSE — no direction registered, reported as exploratory.
+- H1/H2 are re-evaluated per route.
+
+**Constants.** SNR levels, σ_mismatch (re-measured on the new routes and anchors and then fixed once for all conditions) and pos_process_std = 0.01 follow A7; the σ_mismatch re-measurement is disclosed to use the evaluated routes.
