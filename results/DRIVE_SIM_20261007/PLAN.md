@@ -19,6 +19,7 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 | Probe | v1은 open-loop **P0 / P1**, 적응형 P2는 v2 |
 | P0 | 능동 probe 없음. 주행 중 매 UWB 이벤트의 `s` 사용. 끝 지점 180° 회전 구간의 `s`도 쓰되 **별도 flag**로 표시(§4 S1) |
 | P1 | 고정 주기 open-loop probe. 기본 T=20 s, T∈{10,20,60,∞} s sweep(§4 S1) |
+| 장착 offset | 안테나 **편파가 아니라 물리적 장착 회전**: 로봇 몸체 전방 대비 안테나 local x축의 yaw 차이. 두 포트는 항상 안테나 frame에서 +45°/−45°. 안테나 world yaw = 로봇 heading + offset. v1은 {0°, 45°} (H3) |
 | Lever arm | v1은 **0** (안테나가 TB3 base_link 회전 중심=바퀴축 중점 바로 위). 0이 아닌 값은 v2 민감도 분석 |
 | Parity reference | `results/CORRIDOR_SWEEP_20261006`, `CORRIDOR_SCAN_20261006`, `CORRIDOR_SCAN2_20261007`의 `*_H.npy` + `*_receipt.json`. c13797a 기준 SCAN2 receipt 32 + 12 = **44 position** × 19 yaw(0–180°, 10°) × 257 bin. `--los-check` 48케이스 최대 6.07e-7 (`CORRIDOR_SWEEP_20261006/LOS_CHECK.json`) |
 
@@ -46,7 +47,7 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 ## 4. 단계
 
 ### S0 — 가져오기, 고정, 사전 등록 (무거운 계산 없음)
-1. **Base 정리**: f37cf32(PLAN.md만 포함)를 c13797a 위로 **rebase** 후 `--force-with-lease`로 push하는 것을 권장(PR 없음, 이력이 직선). 대안은 `git merge c13797a`(force 불필요). PLAN.md는 c13797a에 없는 새 파일이라 충돌 없음. force push는 실행 전에 사용자 승인을 받는다. 필요한 코드·tests 존재 확인(`corridor_sionna_run.py`, `scenarios/corridor.py`, `features/{fp_power,port_ratio,reflection_attribution}.py`, `tests/test_corridor_*`). 기존 results는 읽기 전용.
+1. **Base 정리**: 작업 브랜치의 내 커밋은 PLAN.md 추가뿐이다. 파일 내용은 어느 방식이든 같다(c13797a 전체 + PLAN.md). 권장: `git merge c13797a`(force push 불필요, 원격 이력 보존). 대안: rebase 후 `--force-with-lease` push(이력이 직선이지만 원격 이력을 덮어씀). PLAN.md는 c13797a에 없는 새 파일이라 충돌 없음. force push는 실행 전에 사용자 승인을 받는다. 필요한 코드·tests 존재 확인(`corridor_sionna_run.py`, `scenarios/corridor.py`, `features/{fp_power,port_ratio,reflection_attribution}.py`, `tests/test_corridor_*`). 기존 results는 읽기 전용.
 2. **환경 재현**: 버전 3종, `load_banks()`의 bank SHA256 == `BANK_MANIFEST.json`, `--los-check` 재실행. 이 세션에는 Sionna가 없으므로 Snowball/KMS(또는 동일 버전 환경)에서 실행.
 3. **LFS bank 확보**: `git lfs pull --include "LP_plus45_bank.npz,LP_minus45_bank.npz"` (각 약 248 MB). 나머지 4개 bank는 불필요.
 4. **Lever arm = 0 고정** (§1). 값과 근거를 config에 `assumption`으로 기록하고 **POSES hash 생성 전에** 확정.
@@ -59,7 +60,8 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 - **Lateral 위치**: 궤적 변형 y₀∈{0, 0.35} m (\|y\|≤0.74 허용영역 안). y=0은 양쪽 옆벽 지연이 같아지는 특수 경우라 일반화가 안 되므로 필수. 비용 2배(§3).
 - **Heading 흔들림**: scripted truth yaw에 ±3–5° 섭동(seed 고정, 궤적 일부로 hash에 포함). 이에 따라 yaw 범위는 약 **[−50°, 230°]**이며 G4 범위 밖 yaw 검증도 이에 맞춘다(§5).
 - **초기 pose 불확실도**: σ_θ₀=5°, σ_xy=0.1 m (filter의 초기 공분산이자 Monte Carlo 초기 오차 분포; truth RF는 영향 없음).
-- **Probe 시간축**: pose당 체류 0.2 s → probe 1회 = 19 pose × 0.2 s ≈ **3.8 s**. 회전 속도(deg/s)와 정지-회전-복귀 순서를 S0에서 정해 timeline과 gyro 적분을 정의한다(미정 → S0 사전 등록 항목).
+- **Probe 시간축 (확정)**: 제자리(lever arm 0) 회전. 회전 속도 **25°/s** = 5 Hz 표본당 5°(요구된 5° 각도 분해능, 19 pose ±45°와 일치; TB3 최대 각속도 약 104°/s보다 충분히 낮음). 순서: 현재 heading → −45°(1.8 s) → +45°까지 sweep(3.6 s, 19 표본) → 원 heading 복귀(1.8 s) = **probe 1회 ≈ 7.2 s** (이 시간은 시간 비용으로 집계). 회전은 truth에서 scripted(정확히 25°/s), estimator는 gyro 적분(SF·bias 오차 포함)으로 본다.
+  - 모든 probe 표본이 5° 격자에 정렬되면 positioning 구간 표본은 sweep과 같은 yaw라 H를 재사용한다(station당 distinct yaw 19개). heading 흔들림으로 비정렬이면 A안은 probe당 최대 37 pose(약 +3 core-h/궤적)이고 B안은 영향 없음.
 - **Probe station snap**: probe 위치는 4 cm 주행 격자 위로 snap한다. 그래야 probe pose가 주행 pose와 trace를 공유하고, **주기 T∈{10, 20, 60, ∞} s sweep을 추가 RF 계산 없이** 수행할 수 있다(H4 판정에 필요).
 - **끝 지점 180° 회전**: 회전 자체가 yaw sweep이다. P0에서도 회전 중 `s`를 사용하되 **`turn_phase` flag**를 붙여 별도 집계한다(암묵적 probe 효과를 분리해서 보고). flag를 끈 변형(P0-noturn)을 추가 비교로 둔다.
 - 출력 `POSES.jsonl` + hash. 테스트: 간격, pose 수, 허용영역, yaw 연속성/랩, probe 횟수·타이밍·snap, truth가 drift에 무관함, 회전 flag.
@@ -110,16 +112,23 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 | | range 차 | ≤ 2 mm |
 | G3 (path 연속성) | 미매칭 path | 0 |
 | | 인접 pose 간 path 집합 변화 | 사유를 모두 기록 |
-| G4 (범위 밖 yaw, 약 −50°…230°) | | G2와 같은 기준 (3개 position, A안 직접 실행과 비교) |
+| G4 (범위 밖 **안테나 world yaw**, heading 범위 약 −50°…230° + 장착 offset; 45° 장착이면 약 −5°…275°) | | G2와 같은 기준 (3개 position, A안 직접 실행과 비교) |
 
 ## 6. 사전 등록 가설 (S0)
 
 판정은 drift 수준·SNR·lateral·장착 offset별로 분리해 보고한다. 효과 크기·검정 방법은 S0에서 확정.
 
+**검정 방법 (공통, 사전 등록)**
+- 단위: seed 쌍. 같은 seed는 같은 drift/noise 실현을 공유하므로 paired 비교. 조건 = drift × SNR × lateral × 장착 offset.
+- 지표: run별 heading RMSE (초기 30 s 제외 시간평균). 보조: 귀환 구간 RMSE.
+- 검정: paired Wilcoxon signed-rank(양측, α=0.01), Holm 보정(가설별 전체 조건을 한 family로). 효과 크기 = 쌍 차이의 중앙값 + bootstrap 95% CI(10,000회).
+- "개선" 판정: Holm 보정 후 유의 **그리고** 중앙값 상대 개선 ≥ 10%. (10%는 제안값; 이의 없으면 확정)
+- Wrong-branch 정의: \|θ̂−θ\| > 20°인 시간 step의 비율(초기 30 s 제외). 20°는 제안값, 민감도로 10°/30°도 보고.
+
 - **H1**: range + `s`가 odom+IMU만 쓸 때보다 heading RMSE가 낮다 (drift 수준별).
 - **H2**: `s` measurement가 `s`에서 역산한 heading보다 낫다.
 - **H3**: 45° 장착이 0° 장착보다 passive(P0) heading RMSE가 낮다.
-- **H4**: P1에서 wrong-branch 비율 ≤ X%를 유지하는 최대 probe 주기 T. (X는 S0에서 확정)
+- **H4**: P1에서 wrong-branch 비율(seed 평균 시간비율)의 bootstrap 95% 상한이 **X=10%** 이하인 최대 probe 주기 T∈{10,20,60,∞} s.
 
 ## 7. Claim 경계와 보호 경로
 
@@ -129,7 +138,7 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 
 ## 8. 열린 항목
 
-1. Probe 회전 속도(deg/s)와 회전 순서 (S1).
-2. H4의 X% 및 H1–H4 효과 크기·검정 방법.
-3. 장착 offset {0°, 45°} 확정.
-4. S0-1 base 정리 방식(rebase+force-with-lease 승인 또는 merge).
+1. ~~Probe 회전 속도~~ → 확정(§4 S1: 25°/s).
+2. ~~H4의 X, 검정 방법~~ → X=10 확정, 검정 방법은 §6에 기본값으로 기재. 제안값 3개(개선폭 10%, wrong-branch 문턱 20°, α=0.01)는 이의 없으면 확정.
+3. 장착 offset {0°, 45°}의 의미(편파가 아니라 장착 회전) 확인 → §1.
+4. S0-1 base 정리 방식: merge(force 불필요, 권장) 또는 rebase+force-with-lease.
