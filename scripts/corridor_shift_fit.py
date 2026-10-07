@@ -180,8 +180,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "CORRIDOR_SCAN_20261006" / "SHIFT_FIT.json")
     ap.add_argument("--inputs-glob", default=None, help="analyse these path files (relative to the repo root) instead of the default scan positions")
+    ap.add_argument("--anchor-x", type=float, default=None)
+    ap.add_argument("--anchor-y", type=float, default=None)
     args = ap.parse_args()
-    setup, banks = CorridorSetup(), Banks()
+    over = {k: v for k, v in (("anchor_x_m", args.anchor_x), ("anchor_y_m", args.anchor_y)) if v is not None}
+    setup, banks = CorridorSetup(**over), Banks()
     inputs = sorted(ROOT.glob(args.inputs_glob)) if args.inputs_glob else crf.find_inputs()
     rows = [analyse(p, setup, banks) for p in inputs]
     rows.sort(key=lambda r: (r["y"] != 0.0, r["x"] != 7.0, r["x"], r["y"]))
