@@ -73,3 +73,21 @@ def test_h3_direction_convention_and_h4_bound():
             wb.append(dict(lateral=0.0, mount_deg=0.0, drift=0, snr_db=30.0, seed=seed, baseline=b, wrong_branch_frac=frac))
     r = A.h4(pd.DataFrame(wb))
     assert r.largest_T_ok.iloc[0] == 20
+
+
+def test_route_analysis_helpers_h6_h7_and_generic_conditions():
+    rng = np.random.default_rng(3)
+    rows = []
+    for route in ("R2", "R4"):
+        for anchor in ("A", "B"):
+            for seed in range(30):
+                base = rng.uniform(1.0, 2.0)
+                for name, val in (("odom_imu", base), ("range_s_P0", 0.4 * base * (1.0 if anchor == "A" else 0.8))):
+                    rows.append(dict(route=route, anchor=anchor, lateral=0.0, mount_deg=0.0, drift=0, snr_db=30.0, seed=seed, baseline=name, filter="ekf",
+                                     heading_rmse_deg=val, disp_err_m=val, wrong_branch_frac=0.0))
+    df = pd.DataFrame(rows)
+    assert A.cond(df) == ["route", "anchor", "lateral", "mount_deg", "drift", "snr_db"] and A.cond(df, drop=("anchor",))[1] == "lateral"
+    h6 = A.h6_closure(df)
+    assert len(h6) == 4 and h6.improved.all()
+    h7 = A.h7_anchor(df)
+    assert len(h7) == 2 and (h7.median_rel_improvement > 0.1).all()          # B is 20 % lower by construction -> positive = B better

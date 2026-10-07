@@ -93,18 +93,19 @@ def main():
     ap.add_argument("--traces-nodes", type=Path, help="node-interpolated traces (e.g. --nodes 17) -> G2'")
     ap.add_argument("--g4-a-dir", type=Path, help="method-A runs at out-of-range yaws: <dir>/<tag>/<tag>_H.npy + receipt")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--g4-only", action="store_true", help="skip the stored-reference comparisons (used for the anchor-B check)")
     args = ap.parse_args()
     gates = json.loads(PREREG.read_text())["config"]["gates"]
     thr = {k: {kk: vv["value"] for kk, vv in g.items()} for k, g in gates.items()}
     banks = load_banks()
     freqs = banks[0].freqs_hz
-    refs = stored_positions()
+    refs = [] if args.g4_only else stored_positions()
     report = dict(prereg=str(PREREG.relative_to(ROOT)), reference_positions=len(refs),
                   excluded_on_anchor_axis=[r["tag"] for r in refs if on_axis(r["xy"])])
-    if args.traces_all:
+    if args.traces_all and not args.g4_only:
         rows, miss, bad = run_set(args.traces_all, banks, refs, freqs)
         report["G2_bin_by_bin"] = dict(missing=miss, unusable=bad, **summarize(rows, thr["G2_B_per_bin_trace"], "G2")) if rows else dict(missing=miss, passed=False)
-    if args.traces_nodes:
+    if args.traces_nodes and not args.g4_only:
         rows, miss, bad = run_set(args.traces_nodes, banks, refs, freqs)
         report["G2p_node_interpolation"] = dict(missing=miss, unusable=bad, **summarize(rows, thr["G2p_B_node_interpolation"], "G2p")) if rows else dict(missing=miss, passed=False)
     if args.g4_a_dir and (args.traces_nodes or args.traces_all):

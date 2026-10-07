@@ -30,6 +30,7 @@ def main():
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--bin-stride", type=int, default=1, help="1 = all 257 bins (production); >1 only for smoke tests")
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--anchor-x", type=float, default=4.0, help="ceiling anchor x [m] (A = 4, B = 10)")
     args = ap.parse_args()
     import drjit as dr
     dr.set_thread_count(1)
@@ -40,7 +41,7 @@ def main():
     tasks = [t for i, t in enumerate(tasks) if i % n_shards == shard]
     if args.limit:
         tasks = tasks[: args.limit]
-    setup = CorridorSetup()
+    setup = CorridorSetup(anchor_x_m=args.anchor_x)
     assert all(c["passed"] for c in setup.validate()), "SETUP_VALIDATION_FAILED"
     cfg = json.loads(C.SOLVER_SOURCE.read_text())["solver"]
     banks = C.load_banks()

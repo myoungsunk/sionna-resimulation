@@ -98,6 +98,7 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="only the first N positions of this shard (smoke test)")
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--only", nargs="*", help="only these tags, e.g. x7.0000_y0.0000")
+    ap.add_argument("--anchor-x", type=float, default=4.0, help="ceiling anchor x [m] (A = 4, B = 10); anchor y is 0")
     args = ap.parse_args()
     import drjit as dr
     dr.set_thread_count(args.threads)
@@ -109,7 +110,7 @@ def main():
     if args.limit:
         tasks = tasks[: args.limit]
     args.out.mkdir(parents=True, exist_ok=True)
-    setup = CorridorSetup()
+    setup = CorridorSetup(anchor_x_m=args.anchor_x)
     assert all(c["passed"] for c in setup.validate()), "SETUP_VALIDATION_FAILED"
     cfg = json.loads(C.SOLVER_SOURCE.read_text())["solver"]
     with np.load(C.BANK_DIR / "LP_plus45_bank.npz") as z:     # only the frequency axis is needed; SHA is checked by load_banks()

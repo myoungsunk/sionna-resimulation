@@ -27,6 +27,8 @@ class World:
     lateral: float
     mount_deg: float
     period: float | None
+    route: str = "R1"
+    anchor: str = "A"
 
     @property
     def t(self):
@@ -55,14 +57,14 @@ def read_timeline(path) -> tuple[list[dict], np.ndarray]:
     return rows, np.array(ids)
 
 
-def make_world(timeline_csv, h_store: np.ndarray, freqs, lateral: float, mount_deg: float, period, max_samples: int | None = None) -> World:
+def make_world(timeline_csv, h_store: np.ndarray, freqs, lateral: float, mount_deg: float, period, max_samples: int | None = None, route: str = "R1", anchor: str = "A") -> World:
     rows, ids = read_timeline(timeline_csv)
     if max_samples:
         rows, ids = rows[:max_samples], ids[:max_samples]
     h = h_store[ids]
     if not np.isfinite(h).all():
         raise ValueError("H_STORE_HAS_MISSING_POSES")
-    return World(rows, h, np.asarray(freqs, float), lateral, mount_deg, period)
+    return World(rows, h, np.asarray(freqs, float), lateral, mount_deg, period, route, anchor)
 
 
 def observe_world(world: World, snr_db: float | None, seed_key: tuple, sensor: S.SensorNoise, range_offset: float):
@@ -118,7 +120,10 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
     s_total = st["s_updates"] + st["s_rejected"]
     turn = world.turn_phase
     ret = keep & (np.arange(len(t)) > (np.flatnonzero(turn).max() if turn.any() else -1))
-    res = dict(heading_rmse_deg=float(np.sqrt(np.mean(head[keep] ** 2))), pos_rmse_m=float(np.sqrt(np.mean(pos[keep] ** 2))),
+    disp_true = truth[-1, :2] - truth[0, :2]
+    disp_est = out["est"][-1, :2] - out["est"][0, :2]
+    res = dict(closure_err_m=float(np.hypot(*disp_est)), disp_err_m=float(np.hypot(*(disp_est - disp_true))), final_pos_err_m=float(pos[-1]),
+               heading_rmse_deg=float(np.sqrt(np.mean(head[keep] ** 2))), pos_rmse_m=float(np.sqrt(np.mean(pos[keep] ** 2))),
                heading_final_abs_deg=float(abs(head[-1])), heading_rmse_return_deg=float(np.sqrt(np.mean(head[ret] ** 2))),
                wrong_branch_frac=float(np.mean(np.abs(head[keep]) > WRONG_BRANCH_DEG)),
                wrong_branch_frac_10=float(np.mean(np.abs(head[keep]) > 10.0)), wrong_branch_frac_30=float(np.mean(np.abs(head[keep]) > 30.0)),
@@ -132,6 +137,7 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
 
 
 PERIOD_CODE = {None: 0, 10.0: 1, 20.0: 2, 60.0: 3}
+ROUTE_CODE = {"R1": 0, "R2": 1, "R4": 2, "R5": 3}      # R1 = 0 keeps the v1 noise streams unchanged
 
 
 def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma: float, anchor_xyz, robot_z: float, range_offset: float,
@@ -144,14 +150,14 @@ def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma:
     p0 = np.array(F.FilterConfig().p0_std)
     truth0 = any_world.truth[0]
     x0 = np.array([truth0[0], truth0[1], truth0[2], 0.0, 0.0, 0.0]) + init * p0 * np.array([1, 1, 1, 0, 0, 0])
-    ident = dict(lateral=any_world.lateral, mount_deg=any_world.mount_deg, drift=drift_idx, drift_name=level.name, snr_db=snr_db if snr_db is not None else float("nan"),
+    ident = dict(route=any_world.route, anchor=any_world.anchor, lateral=any_world.lateral, mount_deg=any_world.mount_deg, drift=drift_idx, drift_name=level.name, snr_db=snr_db if snr_db is not None else float("nan"),
                  seed=seed)
     prepared = {}
     for period, w in worlds.items():
         code = PERIOD_CODE[period]
         ds, dth = S.true_increments(w.rows)
         inputs = S.generate_inputs(ds, dth, drift, sensor, 0.2, np.random.default_rng([seed, drift_idx, 2, code]))
-        obs = observe_world(w, snr_db, (seed, snr_idx, code, int(round(w.lateral * 100)), int(w.mount_deg)), sensor, range_offset)
+        obs = observe_world(w, snr_db, (seed, snr_idx, code, int(round(w.lateral * 100)), int(w.mount_deg)) + ((ROUTE_CODE[w.route],) if w.route != "R1" else ()), sensor, range_offset)
         prepared[period] = (inputs, obs)
     rows, series = [], {}
     jobs = [(b, "ekf") for b in BASELINES]

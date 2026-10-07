@@ -28,6 +28,7 @@ def main():
     ap.add_argument("--timeline", type=Path, required=True)
     ap.add_argument("--traces", type=Path, nargs="+", required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--anchor-x", type=float, default=4.0)
     args = ap.parse_args()
     stations, seen = [], set()
     for r in csv.DictReader(args.timeline.open()):
@@ -35,7 +36,7 @@ def main():
         if r["phase"] in ("drive_out", "drive_back") and key not in seen:
             seen.add(key)
             stations.append(key)
-    setup = CorridorSetup()
+    setup = CorridorSetup(anchor_x_m=args.anchor_x)
     tols = (5e-14, 2e-13)                      # 5e-14 = pre-registered (PREREG G3); 2e-13 = float32 allowance for long paths (A8)
     sigs, unmatched_total, missing, bad = [], {t: 0 for t in tols}, [], []
     max_res, min_gap = 0.0, 1.0

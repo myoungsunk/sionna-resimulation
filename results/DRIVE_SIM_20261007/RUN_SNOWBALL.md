@@ -58,3 +58,23 @@ python scripts/drive_sim/analyze_experiments.py --results $D/S6 --out $D/S6/ANAL
 All RF stages were run once locally (4 cores) to validate the code before Snowball; those files are in `DEV_RESULTS/` and are **not** production evidence.
 `PARITY_REPORT.json` there already shows G2, G2' and G4 passing on 817 + 18 poses (median H error 1.5e-5, max 5.4e-5, |Δs| ≤ 1.7e-5, first-path index 100 % equal);
 the stored position (4.0, 0.0) is excluded (anchor axis, A3). Your Snowball run should reproduce these numbers.
+
+## 5. Added routes R2 / R4 / R5 and the second anchor B (PREREG_AMENDMENTS A9)
+
+Routes (20 m corridor): R2 rectangle loop, R4 zigzag (±0.45 m, ±35.7°), R5 serpentine over lanes +0.45 / 0 / −0.45 m. R3 is the old straight run (R1). Anchors: A (x = 4 m, the original) and B (x = 10 m); each is a separate single-anchor system.
+
+```bash
+export PYTHON=$(which python); D=results/DRIVE_SIM_20261007
+bash scripts/drive_sim/run_rf_snowball.sh routes-traj            # timelines/poses/tasks, already committed in S1/routes (seconds)
+bash scripts/drive_sim/run_rf_snowball.sh routes-parity          # anchor-B check: method A vs method B at 5 positions x 7 yaws (~0.3 h)
+bash scripts/drive_sim/run_rf_snowball.sh routes-parity-report   # S2/anchorB/PARITY_REPORT_ANCHOR_B.json (G2' thresholds from PREREG)
+bash scripts/drive_sim/run_rf_snowball.sh routes-trace           # 3 routes x 2 anchors, 17-node traces, ~5,600 positions (~1-1.5 h on 4 cores)
+bash scripts/drive_sim/run_rf_snowball.sh routes-continuity      # G3 per route and anchor
+bash scripts/drive_sim/run_rf_snowball.sh routes-apply           # 12 H stores H_<route>_a<anchor>_m<mount>.npy
+python scripts/drive_sim/lut_mismatch_routes.py --s1-routes $D/S1/routes --h-dir $D/S2 --lut $D/S4/hs_lut_2deg.npy --out $D/S4/LUT_MISMATCH_ROUTES.json
+# fix --mismatch-sigma from LUT_MISMATCH_ROUTES.json (overall.rms) and write it into PREREG_AMENDMENTS (A10) BEFORE the next command
+python scripts/drive_sim/run_route_experiments.py --s1-routes $D/S1/routes --h-dir $D/S2 --lut $D/S4/hs_lut_2deg.npy --out $D/S6_routes \
+    --snr-db 30 10 --mismatch-sigma <rms> --pos-process-std 0.01 --seeds 50 --nproc 4
+python scripts/drive_sim/analyze_route_experiments.py --results $D/S6_routes --out $D/S6_routes/ANALYSIS
+```
+Apply the same decision rule as v1 (method B only if the parity gate passes; G3 is reported at 5e-14 s and 2e-13 s; the relaxation needs a decision).

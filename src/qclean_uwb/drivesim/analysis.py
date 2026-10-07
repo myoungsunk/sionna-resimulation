@@ -9,6 +9,12 @@ ALPHA = 0.01
 MIN_REL_IMPROVEMENT = 0.10
 BOOT = 10_000
 KEYS = ["lateral", "mount_deg", "drift", "snr_db", "seed"]
+COND_COLS = ["route", "anchor", "lateral", "mount_deg", "drift", "snr_db"]
+
+
+def cond(df: pd.DataFrame, drop=()) -> list[str]:
+    """Condition columns present in ``df`` (v1 results have no route/anchor columns)."""
+    return [c for c in COND_COLS if c in df.columns and c not in drop]
 
 
 def holm(pvalues) -> np.ndarray:
@@ -63,38 +69,57 @@ def paired(df: pd.DataFrame, a: str, b: str, metric: str, by: list[str], merge_o
     return out
 
 
-def h1(df, metric="heading_rmse_deg"):
-    cond = ["lateral", "mount_deg", "drift", "snr_db"]
-    return dict(vs_odom_imu=paired(df, "odom_imu", "range_s_P0", metric, cond), vs_gyro_only=paired(df, "gyro_only", "range_s_P0", metric, cond))
+def h1(df, metric="heading_rmse_deg", cand="range_s_P0"):
+    c = cond(df)
+    return dict(vs_odom_imu=paired(df, "odom_imu", cand, metric, c, c + ["seed"]), vs_gyro_only=paired(df, "gyro_only", cand, metric, c, c + ["seed"]))
 
 
 def h2(df, metric="heading_rmse_deg"):
-    return paired(df, "inverse_heading_P0", "range_s_P0", metric, ["lateral", "mount_deg", "drift", "snr_db"])
+    c = cond(df)
+    return paired(df, "inverse_heading_P0", "range_s_P0", metric, c, c + ["seed"])
+
+
+def h6_closure(df, metric="disp_err_m"):
+    """Loop-closure / displacement error of range+s (P0) against odom+IMU (R2: the true displacement is ~0, so this is the closure error)."""
+    c = cond(df)
+    return paired(df, "odom_imu", "range_s_P0", metric, c, c + ["seed"])
+
+
+def h7_anchor(df, metric="heading_rmse_deg", baseline="range_s_P0"):
+    """Anchor A (reference) versus anchor B (candidate), same drift/noise realisation per seed.  Exploratory, no registered direction."""
+    sub = df[df.baseline == baseline]
+    c = cond(df, drop=("anchor",))
+    a = sub[sub.anchor == "A"].set_index(c + ["seed"])[metric]
+    b = sub[sub.anchor == "B"].set_index(c + ["seed"])[metric]
+    both = pd.concat([a.rename("a"), b.rename("b")], axis=1, join="inner").dropna().reset_index()
+    tmp = pd.concat([both.assign(baseline="A", value=both.a), both.assign(baseline="B", value=both.b)]).rename(columns={"value": metric})
+    tmp["anchor"] = "x"
+    return paired(tmp, "A", "B", metric, c, c + ["anchor", "seed"])
 
 
 def h3(df, metric="heading_rmse_deg", baseline="range_s_P0"):
-    """Mount 45 deg vs mount 0 deg (candidate = 45).  ``median_rel_improvement`` > 0 means 45 deg is better (H3), < 0 means 0 deg is better (H3_alt)."""
+    """Mount 45 deg vs mount 0 deg (candidate = 45).  ``median_rel_improvement`` > 0 means 45 deg is better, < 0 means 0 deg is better."""
     sub = df[df.baseline == baseline]
-    a = sub[sub.mount_deg == 0.0].set_index(["lateral", "drift", "snr_db", "seed"])[metric]
-    b = sub[sub.mount_deg == 45.0].set_index(["lateral", "drift", "snr_db", "seed"])[metric]
+    c = cond(df, drop=("mount_deg",))
+    a = sub[sub.mount_deg == 0.0].set_index(c + ["seed"])[metric]
+    b = sub[sub.mount_deg == 45.0].set_index(c + ["seed"])[metric]
     both = pd.concat([a.rename("a"), b.rename("b")], axis=1, join="inner").dropna().reset_index()
-    tmp = pd.concat([both.assign(baseline="m0", value=both.a)[["lateral", "drift", "snr_db", "seed", "baseline", "value"]],
-                     both.assign(baseline="m45", value=both.b)[["lateral", "drift", "snr_db", "seed", "baseline", "value"]]])
-    tmp = tmp.rename(columns={"value": metric}).assign(mount_deg=0.0)
-    return paired(tmp, "m0", "m45", metric, ["lateral", "drift", "snr_db"], merge_on=["lateral", "mount_deg", "drift", "snr_db", "seed"])
+    tmp = pd.concat([both.assign(baseline="m0", value=both.a), both.assign(baseline="m45", value=both.b)]).rename(columns={"value": metric})
+    tmp["mount_deg"] = 0.0
+    return paired(tmp, "m0", "m45", metric, c, c + ["mount_deg", "seed"])
 
 
 def h4(df, x_percent=10.0, column="wrong_branch_frac"):
     """Largest probe period whose seed-mean wrong-branch fraction has a bootstrap 95 % upper bound <= X % (per condition)."""
     names = {"range_s_P0": None, "range_s_P1_T10": 10, "range_s_P1_T20": 20, "range_s_P1_T60": 60}
     rows = []
-    for cond, g in df[df.baseline.isin(names)].groupby(["lateral", "mount_deg", "drift", "snr_db"]):
+    for cnd, g in df[df.baseline.isin(names)].groupby(cond(df)):
         per_T = {}
         for b, T in names.items():
             v = g[g.baseline == b][column].to_numpy() * 100.0
             if len(v):
                 per_T[T] = bootstrap_ci(v, stat=np.mean, level=0.9)[1]          # one-sided 95 % upper bound = upper end of the 90 % interval
         ok = [T for T in (10, 20, 60) if T in per_T and per_T[T] <= x_percent]
-        rows.append(dict(zip(["lateral", "mount_deg", "drift", "snr_db"], cond), **{f"ub_T{k}": v for k, v in per_T.items() if k},
+        rows.append(dict(zip(cond(df), cnd if isinstance(cnd, tuple) else (cnd,)), **{f"ub_T{k}": v for k, v in per_T.items() if k},
                          ub_P0=per_T.get(None), largest_T_ok=max(ok) if ok else None))
     return pd.DataFrame(rows)
