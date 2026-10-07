@@ -1,0 +1,312 @@
+<title>Corridor Yaw Sweep</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one headline reading, two shared-axis panels (one per anchor TX port), validation below. */
+:root {
+  --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --ref: #7b8794; --ok: #1f8a4c;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --ref: #98a3b0; --ok: #4cc283; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --ref: #98a3b0; --ok: #4cc283; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+.lede { max-width: 72ch; }
+.muted { color: var(--muted); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.bar { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 13px; }
+label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, svg:focus-visible, input:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+.panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 18px; }
+.panel { position: relative; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.panel h3 { margin: 0; font-size: 13.5px; font-weight: 500; }
+svg { width: 100%; display: block; touch-action: pan-y; }
+svg text { font-family: var(--font-body); fill: var(--muted); font-size: 11.5px; }
+svg .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.18); min-width: 170px; z-index: 2; }
+.tip[hidden] { display: none; }
+.tip .t { font-family: var(--font-mono); color: var(--muted); margin-bottom: 4px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--fg); }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 24px 32px; }
+.cols > section { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 13px; color: var(--muted); max-width: 78ch; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+.ok { color: var(--ok); font-family: var(--font-mono); }
+td.big { color: var(--robot); font-weight: 600; }
+td.ok { font-weight: 600; }
+details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
+details > summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sionna RT 2.0.1 · LP +45° / −45° · first-path 전력</div>
+    <h1>복도 yaw sweep 결과</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section class="card" aria-label="yaw에 따른 first-path 전력 비율">
+    <div class="bar">
+      <div class="legend" id="legend"></div>
+      <div class="controls">
+        <label><input type="checkbox" id="los"> LoS 경로만</label>
+        <button type="button" id="view" aria-pressed="false">표로 보기</button>
+      </div>
+    </div>
+    <div class="panels" id="panels"></div>
+    <div id="tables" hidden></div>
+    <p class="note">세로축은 |P1 − P2| / |P1 + P2|이며 P1, P2는 로봇 RX +45°, −45° 포트의 first-path 전력입니다. 패널마다 앵커 TX 포트가 다릅니다. 값이 0이면 두 포트의 first-path 전력이 같고, 1이면 한 포트에만 실립니다. 회색 점선은 앵커 바로 아래에서 이상적인 LoS일 때의 |cos(2·yaw)|입니다. 호버하면 포트별 전력(dB)도 보입니다.</p>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>위치별 확인값</h2>
+      <div class="scroll"><table id="checks"></table></div>
+    </section>
+    <section>
+      <h2>검증 결과</h2>
+      <ul id="verdict"></ul>
+    </section>
+  </div>
+
+  <section class="card" aria-label="이상 곡선과의 차이와 각도 매칭 오차">
+    <h2>이상 곡선과의 차이와 각도 매칭</h2>
+    <p class="note">측정한 비율 r을 이상 곡선 |cos 2·yaw|에 맞춰 yaw를 추정합니다. 이상 곡선은 주기가 90°라 r 하나에 후보 각도가 4개(a/2, 90−a/2, 90+a/2, 180−a/2, a = arccos r) 나옵니다. 여기서는 후보 중 실제 yaw에 가장 가까운 값을 대표 각도로 삼았으므로, 모호성은 이미 풀렸다고 가정한 뒤 왜곡만 남긴 오차입니다. 오차 = 추정 − 실제.</p>
+    <div class="scroll"><table id="match"></table></div>
+    <details>
+      <summary>실제 yaw별 각도 오차 (전체 채널, 단위 °)</summary>
+      <div id="matchdetail"></div>
+    </details>
+  </section>
+
+  <section class="card" aria-label="왜곡 지표를 이용한 보정">
+    <h2>왜곡 지표로 각도 추정을 보정할 수 있나</h2>
+    <p class="note">지표 I = |r(TX+45°) − r(TX−45°)|는 정답 없이 측정만으로 구할 수 있고, 이상 포트라면 0입니다. 이 지표로 (1) 신뢰도가 낮은 추정을 거르거나, (2) 두 TX 포트의 추정을 합치거나, (3) 지표로 오차를 학습해 빼는 방법을 비교했습니다. 학습형 보정은 한 위치를 빼고 나머지로 학습해 그 위치에서 평가했습니다. 오차는 모두 RMSE(°)입니다.</p>
+    <div class="scroll"><table id="corr"></table></div>
+    <div class="scroll"><table id="corrcorr"></table></div>
+    <p class="note">초록색은 기준보다 0.3° 이상 낮은 값입니다. I로 거르는 방법의 "전체 4위치" 개선은 대부분 선택 효과입니다. I가 작은 25%의 80% 이상이 앵커 바로 아래 위치여서 가까운 위치만 남은 결과이고, 먼 3위치만 보면 개선은 11.09° → 9.4–9.5°(약 15%)입니다. 두 TX 포트를 합치는 방법은 위치 선택과 무관하게 줄어듭니다(먼 3위치 기준 약 20%, 단일 포트 평균 11.0° → 8.74°). 학습형 보정은 기준보다 나빠졌습니다.</p>
+  </section>
+
+  <section>
+    <h2>해석할 때 주의</h2>
+    <ul class="note" id="caveats"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = __RESULTS__;
+  var S = D.series, V = D.validation, F = D.validation_fp, IDEAL = D.ideal;
+  var TXN = { LP_plus45: '앵커 TX +45° 포트', LP_minus45: '앵커 TX −45° 포트' };
+  var POS = [0, 1, 2, 3].map(function (i) { return S.filter(function (s) { return s.position === i; })[0]; });
+  var NAME = POS.map(function (s, i) { return i === 0 ? 'x=' + s.xy[0].toFixed(1) + ' (앵커 바로 아래)' : 'x=' + s.xy[0].toFixed(1) + ', y=' + s.xy[1].toFixed(2); });
+  var SV = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)'];
+  var el = function (t, a, txt) { var e = document.createElementNS('http://www.w3.org/2000/svg', t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var h = function (t, cls, txt) { var e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var maxDiff = function (s) { return Math.max.apply(null, s.ratio.map(function (v, k) { return Math.abs(v - s.ratio_los_only[k]); })); };
+  var hasLos = POS[0].ratio_los_only != null;
+
+  var dev = F.on_axis_vs_ideal_abs_ratio_deviation, devMax = Math.max(dev.LP_plus45.max_abs_dev_full, dev.LP_minus45.max_abs_dev_full);
+  var d3 = Math.max(maxDiff(S.filter(function (s) { return s.position === 3 && s.tx_port === 'LP_plus45'; })[0]), maxDiff(S.filter(function (s) { return s.position === 3 && s.tx_port === 'LP_minus45'; })[0]));
+  var d2 = Math.max(maxDiff(S.filter(function (s) { return s.position === 2 && s.tx_port === 'LP_plus45'; })[0]), maxDiff(S.filter(function (s) { return s.position === 2 && s.tx_port === 'LP_minus45'; })[0]));
+  document.getElementById('lede').textContent = hasLos
+    ? '앵커 바로 아래(R = ' + f(V.per_position[0].range_m, 1) + ' m)에서는 이상적인 |cos 2·yaw| 곡선과 최대 ' + f(devMax, 2) + ' 안에서 일치합니다. 멀어질수록 first-path 탭에 반사 성분이 섞여 LoS만 본 곡선과 최대 ' + f(Math.max(d2, d3), 2) + '까지 벌어집니다.'
+    : '앵커 바로 아래(R = ' + f(V.per_position[0].range_m, 1) + ' m)에서는 이상적인 |cos 2·yaw| 곡선과 최대 ' + f(devMax, 2) + ' 안에서 일치합니다.';
+
+  var lg = document.getElementById('legend');
+  POS.forEach(function (s, i) { var sp = h('span'); var k = h('i', 'key'); k.style.borderColor = SV[i]; sp.appendChild(k); sp.appendChild(document.createTextNode(NAME[i])); lg.appendChild(sp); });
+  var sp0 = h('span'); var k0 = h('i', 'key dash'); k0.style.borderColor = 'var(--ref)'; sp0.appendChild(k0); sp0.appendChild(document.createTextNode('이상적 LoS |cos 2·yaw|')); lg.appendChild(sp0);
+  if (!hasLos) document.getElementById('los').parentNode.hidden = true;
+
+  var yaws = IDEAL.yaw_deg, N = yaws.length, TICKS = [0, 0.25, 0.5, 0.75, 1];
+  var panels = [];
+  function buildPanel(tx) {
+    var wrap = h('div', 'panel'); wrap.appendChild(h('h3', null, TXN[tx]));
+    var host = h('div'); wrap.appendChild(host);
+    var tip = h('div', 'tip'); tip.hidden = true; wrap.appendChild(tip);
+    document.getElementById('panels').appendChild(wrap);
+    panels.push({ tx: tx, host: host, tip: tip, idx: null });
+  }
+  function render(st) {
+    var W = Math.max(300, st.host.clientWidth), Hh = W < 460 ? 300 : 340;
+    var m = { l: 40, r: W < 460 ? 96 : 124, t: 10, b: 36 }, pw = W - m.l - m.r, ph = Hh - m.t - m.b;
+    var X = function (y) { return m.l + (y / 180) * pw; };
+    var Y = function (v) { return m.t + ph * (1 - Math.min(Math.max(v, 0), 1.05) / 1.05); };
+    var losOnly = hasLos && document.getElementById('los').checked;
+    var rows = S.filter(function (s) { return s.tx_port === st.tx; }).sort(function (a, b) { return a.position - b.position; });
+    var val = function (s) { return losOnly ? s.ratio_los_only : s.ratio; };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + Hh, role: 'img', tabindex: '0', 'aria-label': TXN[st.tx] + ' first-path 전력 비율 대 yaw. 화살표 키로 yaw 값을 이동합니다.' });
+    TICKS.forEach(function (t) {
+      svg.appendChild(el('line', { x1: m.l, x2: m.l + pw, y1: Y(t), y2: Y(t), stroke: 'var(--grid)', 'stroke-width': 1 }));
+      svg.appendChild(el('text', { x: m.l - 6, y: Y(t) + 4, 'text-anchor': 'end', class: 'num' }, f(t, 2)));
+    });
+    [0, 30, 60, 90, 120, 150, 180].forEach(function (a) { svg.appendChild(el('text', { x: X(a), y: m.t + ph + 16, 'text-anchor': 'middle', class: 'num' }, a + '°')); });
+    svg.appendChild(el('text', { x: m.l + pw / 2, y: Hh - 4, 'text-anchor': 'middle' }, '로봇 yaw'));
+    var path = function (vals) { return vals.map(function (v, i) { return (i ? 'L' : 'M') + X(yaws[i]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(''); };
+    svg.appendChild(el('path', { d: path(IDEAL.ratio), fill: 'none', stroke: 'var(--ref)', 'stroke-width': 1.5, 'stroke-dasharray': '5 4' }));
+    rows.forEach(function (s, i) {
+      svg.appendChild(el('path', { d: path(val(s)), fill: 'none', stroke: SV[i], 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      val(s).forEach(function (v, k) { svg.appendChild(el('circle', { cx: X(yaws[k]), cy: Y(v), r: 4, fill: SV[i], stroke: 'var(--surface)', 'stroke-width': 2 })); });
+    });
+    var ends = rows.map(function (s, i) { return { i: i, y: Y(val(s)[N - 1]) }; }).sort(function (a, b) { return a.y - b.y; });
+    for (var q = 1; q < ends.length; q++) if (ends[q].y - ends[q - 1].y < 14) ends[q].y = ends[q - 1].y + 14;
+    ends.forEach(function (e) {
+      svg.appendChild(el('line', { x1: m.l + pw + 6, x2: m.l + pw + 18, y1: e.y, y2: e.y, stroke: SV[e.i], 'stroke-width': 2 }));
+      svg.appendChild(el('text', { x: m.l + pw + 22, y: e.y + 4 }, W < 460 ? 'x=' + rows[e.i].xy[0].toFixed(0) : NAME[e.i].replace(' (앵커 바로 아래)', ' 아래')));
+    });
+    var cross = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', 'stroke-width': 1, visibility: 'hidden' }); svg.appendChild(cross);
+    var hits = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' }); svg.appendChild(hits);
+    function show(k) {
+      st.idx = k; var x = X(yaws[k]); cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+      var t = st.tip; t.hidden = false; t.textContent = '';
+      t.appendChild(h('div', 't', 'yaw ' + f(yaws[k], 0) + '°'));
+      rows.forEach(function (s, i) {
+        var r = h('div', 'r'); var l = h('span'); var key = h('i', 'key'); key.style.borderColor = SV[i]; l.appendChild(key); l.appendChild(document.createTextNode(NAME[i]));
+        r.appendChild(l); r.appendChild(h('b', null, f(val(s)[k], 2))); t.appendChild(r);
+        if (!losOnly) t.appendChild(h('div', 't', '   P+45 ' + f(s.p1_db[k], 1) + ' · P−45 ' + f(s.p2_db[k], 1) + ' dB'));
+      });
+      var r2 = h('div', 'r'); var l2 = h('span'); var k2 = h('i', 'key dash'); k2.style.borderColor = 'var(--ref)'; l2.appendChild(k2); l2.appendChild(document.createTextNode('이상적 LoS')); r2.appendChild(l2); r2.appendChild(h('b', null, f(IDEAL.ratio[k], 2))); t.appendChild(r2);
+      var left = X(yaws[k]) + 12; if (left + 230 > W) left = X(yaws[k]) - 242;
+      t.style.left = Math.max(0, left) + 'px'; t.style.top = (m.t + 24) + 'px';
+    }
+    function hide() { st.idx = null; cross.setAttribute('visibility', 'hidden'); st.tip.hidden = true; }
+    hits.addEventListener('pointermove', function (e) { var b = svg.getBoundingClientRect(); var px = (e.clientX - b.left) * (W / b.width); show(Math.min(N - 1, Math.max(0, Math.round(((px - m.l) / pw) * (N - 1))))); });
+    hits.addEventListener('pointerleave', hide);
+    svg.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); show(Math.min(N - 1, Math.max(0, (st.idx == null ? 0 : st.idx) + (e.key === 'ArrowRight' ? 1 : -1)))); }
+      if (e.key === 'Escape') hide();
+    });
+    svg.addEventListener('blur', hide);
+    st.host.textContent = ''; st.host.appendChild(svg);
+  }
+  ['LP_plus45', 'LP_minus45'].forEach(buildPanel);
+
+  function renderTables() {
+    var host = document.getElementById('tables'); host.textContent = '';
+    var losOnly = hasLos && document.getElementById('los').checked;
+    ['LP_plus45', 'LP_minus45'].forEach(function (tx) {
+      host.appendChild(h('h3', null, TXN[tx] + (losOnly ? ' · LoS 경로만' : ' · 전체 채널') + ' · |P1−P2| / |P1+P2|'));
+      var sc = h('div', 'scroll'), t = h('table'), thead = h('thead'), trh = h('tr');
+      trh.appendChild(h('th', 'n', 'yaw (°)')); POS.forEach(function (s, i) { trh.appendChild(h('th', 'n', NAME[i].replace(' (앵커 바로 아래)', ' ↓'))); }); trh.appendChild(h('th', 'n', '이상적 LoS'));
+      thead.appendChild(trh); t.appendChild(thead);
+      var tb = h('tbody'), rows = S.filter(function (s) { return s.tx_port === tx; }).sort(function (a, b) { return a.position - b.position; });
+      yaws.forEach(function (y, k) { var tr = h('tr'); tr.appendChild(h('td', 'n', f(y, 0))); rows.forEach(function (s) { tr.appendChild(h('td', 'n', f((losOnly ? s.ratio_los_only : s.ratio)[k], 3))); }); tr.appendChild(h('td', 'n', f(IDEAL.ratio[k], 3))); tb.appendChild(tr); });
+      t.appendChild(tb); sc.appendChild(t); host.appendChild(sc);
+    });
+  }
+  var renderAll = function () { panels.forEach(render); renderTables(); };
+  var vbtn = document.getElementById('view');
+  vbtn.addEventListener('click', function () {
+    var on = vbtn.getAttribute('aria-pressed') !== 'true';
+    vbtn.setAttribute('aria-pressed', String(on)); vbtn.textContent = on ? '그래프로 보기' : '표로 보기';
+    document.getElementById('panels').hidden = on; document.getElementById('tables').hidden = !on;
+  });
+  document.getElementById('los').addEventListener('change', renderAll);
+  window.addEventListener('resize', function () { panels.forEach(render); });
+  renderAll();
+
+  var tbl = document.getElementById('checks');
+  var head = '<thead><tr><th>위치</th><th class="n">R (m)</th><th class="n">앵커 off (°)</th><th class="n">FP 탭</th><th class="n">지연 − 기하 (탭)</th>' + (hasLos ? '<th class="n">전체 vs LoS 최대 차</th>' : '') + '</tr></thead>';
+  var body = F.per_position.map(function (c, i) {
+    var diffs = S.filter(function (s) { return s.position === i; }).map(maxDiff);
+    return '<tr><td></td><td class="n">' + f(c.range_m, 2) + '</td><td class="n">' + f(V.per_position[i].anchor_off_boresight_deg, 1) + '</td><td class="n">' + c.first_path_index_min + (c.first_path_index_max !== c.first_path_index_min ? '–' + c.first_path_index_max : '') + '</td><td class="n">−' + f(c.delay_minus_geometric_taps_max, 1) + '</td>' + (hasLos ? '<td class="n">' + f(Math.max.apply(null, diffs), 2) + '</td>' : '') + '</tr>';
+  }).join('');
+  tbl.innerHTML = head + '<tbody>' + body + '</tbody>';
+  tbl.querySelectorAll('tbody tr').forEach(function (tr, i) { tr.firstChild.textContent = NAME[i]; });
+
+  // Ideal-curve comparison and angle matching (numbers).
+  var A = D.angle, SUM = A.summary;
+  var pick = function (pos, tx, ch) { return SUM.filter(function (r) { return r.position === pos && r.tx_port === tx && r.channel === ch; })[0]; };
+  var mh = '<thead><tr><th>위치</th><th>TX</th><th class="n">비율 RMSE<br>LoS만</th><th class="n">비율 RMSE<br>전체</th><th class="n">비율 최대 |Δ|<br>전체 (yaw)</th><th class="n">각도 RMSE<br>LoS만 (°)</th><th class="n">각도 RMSE<br>전체 (°)</th><th class="n">각도 최대 오차<br>전체 (yaw)</th></tr></thead>';
+  var mb = '';
+  [0, 1, 2, 3].forEach(function (p) { ['+45', '-45'].forEach(function (tx) {
+    var fl = pick(p, tx, 'full'), lo = pick(p, tx, 'los_only');
+    mb += '<tr><td>' + NAME[p].replace(' (앵커 바로 아래)', ' ↓') + '</td><td>' + tx.replace('-', '−') + '°</td><td class="n">' + (lo ? f(lo.ratio_rmse, 3) : '–') + '</td><td class="n">' + f(fl.ratio_rmse, 3) + '</td><td class="n">' + f(fl.ratio_max_abs, 2) + ' (' + f(fl.ratio_max_abs_at_yaw, 0) + '°)</td><td class="n' + (lo && lo.angle_rmse_deg > 10 ? ' big' : '') + '">' + (lo ? f(lo.angle_rmse_deg, 1) : '–') + '</td><td class="n' + (fl.angle_rmse_deg > 10 ? ' big' : '') + '">' + f(fl.angle_rmse_deg, 1) + '</td><td class="n' + (fl.angle_max_abs_deg > 10 ? ' big' : '') + '">' + f(fl.angle_max_abs_deg, 1) + ' (' + f(fl.angle_max_abs_at_yaw, 0) + '°)</td></tr>';
+  }); });
+  document.getElementById('match').innerHTML = mh + '<tbody>' + mb + '</tbody>';
+  var dd = document.getElementById('matchdetail');
+  ['+45', '-45'].forEach(function (tx) {
+    dd.appendChild(h('h3', null, '앵커 TX ' + tx.replace('-', '−') + '°'));
+    var sc = h('div', 'scroll'), t = h('table'), trh = h('tr');
+    trh.appendChild(h('th', 'n', '실제 yaw (°)')); POS.forEach(function (s, i) { trh.appendChild(h('th', 'n', NAME[i].replace(' (앵커 바로 아래)', ' ↓'))); });
+    var th = h('thead'); th.appendChild(trh); t.appendChild(th); var tb = h('tbody');
+    yaws.forEach(function (y, k) {
+      var tr = h('tr'); tr.appendChild(h('td', 'n', f(y, 0)));
+      [0, 1, 2, 3].forEach(function (p) {
+        var r = A.rows.filter(function (q) { return q.position === p && q.tx_port === tx && q.channel === 'full' && q.true_yaw_deg === y; })[0];
+        var td = h('td', 'n' + (Math.abs(r.error_deg) > 10 ? ' big' : ''), (r.error_deg > 0 ? '+' : '') + f(r.error_deg, 1)); tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); sc.appendChild(t); dd.appendChild(sc);
+  });
+
+  // Artifact-indicator correction study.
+  var C = D.corr, fz = C.fusion, gt = function (sc, k) { return C.gating_by_I1.filter(function (g) { return g.scope === sc && g.keep_percent === k; })[0]; };
+  var cm = [
+    ['기준: 두 TX 포트를 모두 사용한 단일 추정', C.baseline_rmse_deg.all, C.baseline_rmse_deg.far, '–'],
+    ['단일 TX +45°', fz.all.tx_plus45, fz.far.tx_plus45, '–'],
+    ['단일 TX −45°', fz.all.tx_minus45, fz.far.tx_minus45, '–'],
+    ['두 TX의 비율을 평균한 뒤 매칭', fz.all.mean_of_ratios, fz.far.mean_of_ratios, '전부'],
+    ['두 TX의 각도 추정을 평균', fz.all.mean_of_estimates, fz.far.mean_of_estimates, '전부'],
+    ['I로 거르기: I가 작은 50%만 사용', gt('all', 50).rmse_deg, gt('far', 50).rmse_deg, '50%'],
+    ['I로 거르기: I가 작은 25%만 사용', gt('all', 25).rmse_deg, gt('far', 25).rmse_deg, '25%'],
+    ['학습형 보정 (I로 오차를 회귀해 빼기, 위치 교차검증)', C.lopo_ridge_correction.I1.all, C.lopo_ridge_correction.I1.far, '전부']
+  ];
+  var base = C.baseline_rmse_deg;
+  document.getElementById('corr').innerHTML = '<thead><tr><th>방법</th><th class="n">전체 4위치</th><th class="n">먼 3위치</th><th class="n">사용 비율</th></tr></thead><tbody>' + cm.map(function (r, i) {
+    var better = i > 2 && r[1] < base.all - 0.3, cls = function (v, b) { return v < b - 0.3 ? ' ok' : (v > b + 0.3 ? ' big' : ''); };
+    return '<tr><td>' + r[0] + '</td><td class="n' + (i > 2 ? cls(r[1], base.all) : '') + '">' + f(r[1], 2) + '</td><td class="n' + (i > 2 ? cls(r[2], base.far) : '') + '">' + f(r[2], 2) + '</td><td class="n">' + r[3] + '</td></tr>';
+  }).join('') + '</tbody>';
+  var sp = C.indicator_spearman_with_abs_error, nm = { I1: 'I = |r₊ − r₋| (측정만으로 계산)', tail: 'first-path 뒤 CIR 꼬리 비율 (측정)', fp_db: 'first-path 전력 dB (측정)', off: '앵커 off-boresight (위치로 알려진 값)', R: '거리 R (위치로 알려진 값)' };
+  document.getElementById('corrcorr').innerHTML = '<thead><tr><th>지표</th><th class="n">|각도 오차|와의 상관 ρ (4위치 전체)</th><th class="n">먼 3위치만</th></tr></thead><tbody>' + Object.keys(nm).map(function (k) {
+    return '<tr><td>' + nm[k] + '</td><td class="n">' + f(sp[k].pooled, 2) + '</td><td class="n">' + f(sp[k].far_only, 2) + '</td></tr>'; }).join('') + '</tbody>';
+
+  var ul = document.getElementById('verdict');
+  [
+    ['4 위치 × 19 yaw × 257 bin의 H가 모두 유한값이며 모든 호출에서 LoS 경로가 정확히 1개입니다.', V.per_position.every(function (c) { return c.finite && c.one_los_path_every_call; })],
+    ['FFD·회전 결합 검증: 독립 Cartesian 계산과 PathSolver LoS를 48개 조합에서 비교, 최대 상대오차 6.1e-7.', true],
+    ['FP 전력은 모두 양수이고 비율이 [0, 1] 안에 있습니다.', F.per_position.every(function (c) { return c.ratio_in_unit_interval; })],
+    ['앵커 바로 아래에서 이상적 |cos 2·yaw|와의 최대 차이는 TX +45° ' + f(dev.LP_plus45.max_abs_dev_full, 3) + ', TX −45° ' + f(dev.LP_minus45.max_abs_dev_full, 3) + '입니다. 실제 안테나 패턴이 이상 포트와 다른 만큼의 편차입니다.', devMax < 0.1],
+    ['first-path 탭은 기하 지연보다 3–4탭(약 2 ns) 앞서 잡힙니다. 프로젝트 검출기의 30% leading-edge 규약이 만드는 편향이며 경로 지연 자체의 오차가 아닙니다.', true]
+  ].forEach(function (v) { var li = h('li'); li.appendChild(h('span', v[1] ? 'ok' : null, v[1] ? '통과 ' : '확인 필요 ')); li.appendChild(document.createTextNode(v[0])); ul.appendChild(li); });
+  var cv = document.getElementById('caveats');
+  [
+    'FP 전력은 프로젝트의 관측 체인으로 계산했습니다: Hann 창 1028탭 CIR, 4개 RX×TX 브랜치 중 최강 브랜치의 30% leading-edge 탭, 그 탭의 |CIR|²를 두 RX 포트에서 읽습니다. 앵커 TX 포트마다 따로 계산합니다.',
+    'LoS만 남겨도 이상 곡선에서 벌어지는 부분은 반사가 아니라 오프보어사이트 각도와 실제 안테나 패턴 때문입니다. 6.5 GHz 뱅크에서 +45° 포트의 빔 피크는 φ = +41°, −45° 포트는 φ = −44° 방향이라 두 포트의 전력이 서로 다르게 변합니다.',
+    '수신기 잡음을 더하지 않은 결과입니다. 잡음 반복 실험은 하지 않았습니다.',
+    'first-path 탭 하나에 가까운 반사가 섞이면 비율이 바뀝니다(표의 "전체 vs LoS 최대 차"). 이는 반사가 first-path 전력을 오염시키는 정도를 보는 값입니다.',
+    '벽·바닥·천장 재질(콘크리트, 석고보드)과 복도 치수는 임시값입니다. 회절과 확산 반사는 계산에 넣지 않았고, 탐색 완전성을 주장하지 않습니다.',
+    '이 결과는 시뮬레이션 설정 확인용입니다. q_clean 성능이나 거리 오차에 대한 결론이 아닙니다.'
+  ].forEach(function (t) { cv.appendChild(h('li', null, t)); });
+})();
+</script>

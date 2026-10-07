@@ -1,0 +1,194 @@
+<title>Corridor Setup 3D</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a single reading column; the 3D scene leads, numeric tables follow. */
+:root {
+  --bg: #eef1f5; --surface: #f9fafc; --fg: #17202c; --muted: #5a6778; --line: #d3d9e2;
+  --anchor: #2f6fdd; --robot: #d9650f; --p45: #9330c4; --m45: #0b8577; --los: #a97c00; --ok: #1f8a4c;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #161e29; --fg: #e6ebf2; --muted: #93a0b2; --line: #2a3544;
+    --anchor: #6ea2ff; --robot: #ff9a4d; --p45: #c98cf0; --m45: #3fd0bd; --los: #e5bd3a; --ok: #4cc283;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #161e29; --fg: #e6ebf2; --muted: #93a0b2; --line: #2a3544;
+  --anchor: #6ea2ff; --robot: #ff9a4d; --p45: #c98cf0; --m45: #3fd0bd; --los: #e5bd3a; --ok: #4cc283;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 28px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+p { margin: 0; }
+.sub { color: var(--muted); max-width: 68ch; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 10px 12px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.stage-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 2px 4px; }
+.cams { display: flex; flex-wrap: wrap; gap: 6px; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button:focus-visible { outline: 2px solid var(--anchor); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.plot { width: 100%; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); padding: 0 4px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 18px; height: 0; border-top: 3px solid; display: inline-block; }
+.sw.dash { border-top-style: dashed; }
+.note { font-size: 13px; color: var(--muted); padding: 0 4px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 28px 32px; }
+.cols > section { min-width: 0; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; padding-right: 12px; }
+.tag { font-family: var(--font-mono); font-size: 12px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; white-space: nowrap; }
+.fixed { color: var(--anchor); } .free { color: var(--robot); }
+ul { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.ok, .bad { font-family: var(--font-mono); font-size: 13px; } .ok { color: var(--ok); } .bad { color: var(--robot); }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">설치 확인 · RF 계산 미실행</div>
+    <h1>복도 앵커–로봇 설치도</h1>
+    <p class="sub">천장 앵커(보어사이트 바닥 방향)와 바닥 로봇(안테나 z 고정, xy 이동, yaw sweep). 두 안테나 모두 LP +45° / −45° 이중 선형 편파 포트 쌍(<code>LP_plus45</code>, <code>LP_minus45</code>, arm <code>LP_DIAG</code>)을 사용합니다.</p>
+  </header>
+
+  <section class="stage" aria-label="전체 3D 설치도">
+    <div class="stage-head">
+      <h2>전체 보기</h2>
+      <div class="cams" role="group" aria-label="시점"></div>
+    </div>
+    <div id="fig-overview" class="plot"></div>
+    <div class="legend">
+      <span><i class="sw" style="border-color:var(--anchor)"></i>앵커 안테나 / 보어사이트</span>
+      <span><i class="sw" style="border-color:var(--robot)"></i>로봇 안테나 / 이동 가능 영역</span>
+      <span><i class="sw" style="border-color:var(--p45)"></i>+45° 포트 E축</span>
+      <span><i class="sw" style="border-color:var(--m45)"></i>−45° 포트 E축</span>
+      <span><i class="sw dash" style="border-color:var(--los)"></i>LoS</span>
+    </div>
+    <p class="note">x축은 화면 표시를 위해 압축했습니다. 실제 비율은 아래 근접 보기에서 확인하세요. 로봇 주변 고리의 눈금은 yaw sweep 값(0°–180°, 10° 간격)입니다. 앵커 바로 아래(x = 4 m)에도 위치 하나를 두었습니다.</p>
+  </section>
+
+  <section class="stage" aria-label="앵커-로봇 근접 3D 보기">
+    <div class="stage-head"><h2>앵커–로봇 근접 보기 (1 : 1 : 1)</h2></div>
+    <div id="fig-closeup" class="plot"></div>
+    <p class="note">연한 주황 상자는 같은 xy 이동 영역의 다른 예시 위치입니다. 로봇 본체는 시각화용 가정 크기입니다.</p>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>고정 값과 가변 값</h2>
+      <div class="scroll"><table id="spec"></table></div>
+    </section>
+    <section>
+      <h2>예시 위치의 링크 기하</h2>
+      <div class="scroll"><table id="links"></table></div>
+      <p class="note" style="padding:8px 0 0">off-boresight는 안테나 +z 축과 상대 단말 방향 사이 각도입니다. φ는 안테나 로컬 프레임 방위각이며 로봇의 φ는 yaw에 따라 변합니다.</p>
+    </section>
+  </div>
+
+  <div class="cols">
+    <section>
+      <h2>확인 필요</h2>
+      <ul>
+        <li>복도 치수, 앵커 위치, 로봇 안테나 높이, 로봇 크기는 임시 기본값입니다. 실제 값을 알려주시면 <code>CorridorSetup</code> 한 곳에서 바꿉니다.</li>
+        <li>벽·바닥·천장 재질은 아직 지정하지 않았습니다. 표시한 면은 형상만 나타냅니다.</li>
+        <li>±45° 포트의 E장 방향 <code>(x±y)/√2</code>와 보어사이트 = 안테나 로컬 +z는 기존 TX 회전 <code>diag(1,−1,−1)</code> 관례에서 가져온 명목값입니다. FFD 뱅크에서 읽어 확인하지 않았습니다.</li>
+        <li>yaw 부호는 +z 기준 반시계(위에서 볼 때)입니다.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>기하 검증</h2>
+      <div class="scroll"><table id="checks"></table></div>
+    </section>
+  </div>
+</div>
+
+<script>/*__PLOTLY__*/</script>
+<script>
+(function () {
+  var D = __DATA__;
+  var CAMS = __CAMERAS__;
+  var figs = { overview: __FIG_OVERVIEW__, closeup: __FIG_CLOSEUP__ };
+  var S = D.setup;
+
+  function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+  function themed(layout) {
+    var fg = cssVar('--muted'), grid = cssVar('--line');
+    return { 'scene.xaxis.tickfont.color': fg, 'scene.yaxis.tickfont.color': fg, 'scene.zaxis.tickfont.color': fg,
+      'scene.xaxis.title.font.color': fg, 'scene.yaxis.title.font.color': fg, 'scene.zaxis.title.font.color': fg,
+      'scene.xaxis.gridcolor': grid, 'scene.yaxis.gridcolor': grid, 'scene.zaxis.gridcolor': grid,
+      'scene.xaxis.linecolor': grid, 'scene.yaxis.linecolor': grid, 'scene.zaxis.linecolor': grid };
+  }
+  var cfg = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['toImage', 'sendDataToCloud'] };
+  var ids = { overview: 'fig-overview', closeup: 'fig-closeup' };
+  function applyTheme() {
+    Object.keys(ids).forEach(function (k) { Plotly.relayout(ids[k], themed()); });
+  }
+  Object.keys(ids).forEach(function (k) {
+    Plotly.newPlot(ids[k], figs[k].data, figs[k].layout, cfg).then(function () { Plotly.relayout(ids[k], themed()); });
+  });
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', applyTheme);
+  new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // Camera buttons.
+  var box = document.querySelector('.cams');
+  Object.keys(CAMS).forEach(function (name, i) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.textContent = name; b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+    b.addEventListener('click', function () {
+      box.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+      b.setAttribute('aria-pressed', 'true');
+      Plotly.relayout('fig-overview', { 'scene.camera': CAMS[name] });
+    });
+    box.appendChild(b);
+  });
+
+  // Tables.
+  function row(cells, tag) { return '<tr>' + cells.map(function (c) { return '<' + (tag || 'td') + (c.cls ? ' class="' + c.cls + '"' : '') + '>' + c.v + '</' + (tag || 'td') + '>'; }).join('') + '</tr>'; }
+  function f(v, n) { return Number(v).toFixed(n); }
+  var A = D.derived.anchor;
+  var spec = [
+    ['복도 (x·y·z)', f(S.length_m, 1) + ' × ' + f(S.width_m, 1) + ' × ' + f(S.height_m, 1) + ' m', 'fixed'],
+    ['앵커 위치', '(' + f(A[0], 2) + ', ' + f(A[1], 2) + ', ' + f(A[2], 2) + ') m', 'fixed'],
+    ['앵커 방향', 'R = diag(1, −1, −1), 보어사이트 −z', 'fixed'],
+    ['로봇 안테나 z', f(S.robot_antenna_z_m, 2) + ' m', 'fixed'],
+    ['로봇 안테나 보어사이트', '+z (위), 모든 yaw에서 유지', 'fixed'],
+    ['로봇 x 범위', f(S.robot_x_range_m[0], 1) + ' – ' + f(S.robot_x_range_m[1], 1) + ' m', 'free'],
+    ['로봇 |y| 한계', f(D.derived.robot_y_limit_m, 2) + ' m (벽 여유 ' + f(S.robot_clearance_m, 2) + ' m 포함)', 'free'],
+    ['로봇 yaw sweep', S.yaw_sweep_deg.length + '점, ' + f(S.yaw_sweep_deg[1] - S.yaw_sweep_deg[0], 0) + '° 간격', 'free'],
+    ['편파 포트 쌍', S.port_pair.join(' / '), 'fixed']
+  ];
+  document.getElementById('spec').innerHTML = spec.map(function (r) {
+    return row([{ v: r[0] }, { v: r[1] }, { v: '<span class="tag ' + r[2] + '">' + (r[2] === 'fixed' ? '고정' : '가변') + '</span>' }]);
+  }).join('');
+
+  var head = row([{ v: '위치 (x, y) m' }, { v: 'R (m)', cls: 'num' }, { v: '앵커 off (°)', cls: 'num' }, { v: '앵커 φ (°)', cls: 'num' }, { v: '로봇 off (°)', cls: 'num' }, { v: '로봇 φ (°)', cls: 'num' }], 'th');
+  document.getElementById('links').innerHTML = '<thead>' + head + '</thead><tbody>' + D.links.map(function (l) {
+    return row([{ v: '(' + f(l.robot_xy_m[0], 1) + ', ' + f(l.robot_xy_m[1], 2) + ')' + (l.main ? ' <span class="tag">yaw ' + f(l.robot_yaw_deg, 0) + '°</span>' : '') },
+      { v: f(l.range_m, 2), cls: 'num' }, { v: f(l.anchor_off_boresight_deg, 1), cls: 'num' }, { v: f(l.anchor_phi_deg, 1), cls: 'num' },
+      { v: f(l.robot_off_boresight_deg, 1), cls: 'num' }, { v: f(l.robot_phi_deg, 1), cls: 'num' }]);
+  }).join('') + '</tbody>';
+
+  var names = { anchor_inside_corridor: '앵커가 복도 안', anchor_rotation_valid: '앵커 회전행렬 유효', anchor_boresight_down: '앵커 보어사이트 = −z',
+    robot_antenna_above_body: '로봇 안테나가 본체 위', robot_antenna_below_ceiling: '로봇 안테나가 천장 아래', robot_y_limit_positive: '로봇 y 이동 폭 > 0',
+    robot_x_range_inside: '로봇 x 범위가 복도 안', robot_rotations_valid: 'yaw 회전행렬 유효', robot_boresight_up_for_all_yaw: '모든 yaw에서 보어사이트 +z',
+    robot_antenna_z_constant: '로봇 안테나 z 일정', polarization_ports_orthogonal_and_transverse: '±45° 포트 직교 · 보어사이트와 수직' };
+  var passed = D.checks.filter(function (c) { return c.passed; }).length;
+  document.getElementById('checks').innerHTML = '<tbody>' + D.checks.map(function (c) {
+    var n = names[c.name] || c.name.replace(/^example_(\d+)_in_allowed_region$/, '예시 위치 $1이 이동 영역 안');
+    return row([{ v: n }, { v: '<span class="' + (c.passed ? 'ok' : 'bad') + '">' + (c.passed ? '통과' : '실패') + '</span>' }]);
+  }).join('') + '</tbody><caption style="caption-side:bottom;text-align:left;padding-top:6px;color:var(--muted);font-size:12.5px">' + passed + ' / ' + D.checks.length + ' 통과 · 순수 기하 검사이며 RF 결과가 아닙니다</caption>';
+})();
+</script>
