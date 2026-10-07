@@ -1,0 +1,26 @@
+{
+  "command": [
+    "docker",
+    "run",
+    "-d",
+    "--name",
+    "drive-sim-01a11582-pipelineB2",
+    "--user",
+    "1001:1001",
+    "--mount",
+    "type=bind,source=/home/KMS/COOL_DIJKSTRA_20261007_01a11582,target=/job",
+    "-w",
+    "/job/source",
+    "-e",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "--entrypoint",
+    "/opt/rt-env/bin/python",
+    "rt-dual-engine:s2-deps-r2-20260928",
+    "/job/pipeline_b_authorized.py"
+  ],
+  "container_id": "9761a74a63bea6ef40f3c7a64a9a79beeea1191c15a97f0c3222d21b3b205f25",
+  "A_container_stopped": true,
+  "failed_start_container": "drive-sim-01a11582-pipelineB",
+  "failed_start_reason": "explicit Python entrypoint was required",
+  "wrapper_sha256": "44dd65fb8e5809913fca3c8222134b3365e113fa4a85efff62070a0624aef6bc"
+}
