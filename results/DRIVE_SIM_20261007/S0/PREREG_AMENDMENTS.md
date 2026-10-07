@@ -62,3 +62,14 @@
 2. **Filter mismatch sigma σ_mismatch = 0.18** (overall RMS of the LUT-vs-full-simulation residual over both laterals and both mounts, `DEV_LOCAL/S4/LUT_MISMATCH.json`: n = 3668, bias +0.037, σ 0.176, rms 0.180; the branch's earlier value 0.09 was for another geometry). One scalar for all conditions; it is computed on the same routes that are later evaluated, which is disclosed here.
 3. **Position process-noise slack** `pos_process_std` (random walk per 0.2 s step, protects against overconfidence from correlated range errors): chosen from {0, 0.002, 0.005, 0.01} m as the value whose mean NEES on `range_s_P0` and `range_s_P1_T20` is closest to 3, using a **calibration set disjoint from the evaluation set**: lateral 0.35, mount 0°, drift 0–2, SNR 30 and 10 dB, seeds 1000–1009. The evaluation uses seeds 0–49 only. The chosen value and the calibration table are appended to this file before the evaluation run.
 4. Range σ_r = 0.05 m (sensor) with the filter told 0.05² + quantisation (0.149 m/√12)² + 0.05². Range offset = −0.5316 m (LoS-only chain with the FFD banks, `hs_lut_meta.json: range_bias`).
+
+### A7 result — calibration of `pos_process_std` (local development run, calibration seeds 1000–1009, lateral 0.35, mount 0°; 540 runs per value)
+
+| pos_process_std [m] | mean NEES range_s_P0 | mean NEES range_s_P1_T20 | median heading RMSE P0 / P1 [deg] |
+|---|---|---|---|
+| 0 | 448.6 | 86.5 | 8.31 / 2.71 |
+| 0.002 | 193.0 | 41.2 | 7.46 / 2.39 |
+| 0.005 | 119.0 | 23.2 | 7.42 / 2.34 |
+| 0.01 | 93.3 | 15.7 | 7.55 / 2.44 |
+
+Rule (closest to NEES 3) → **pos_process_std = 0.01 m**. The filter is nevertheless **not consistent**: NEES stays 5–30 times its expected value of 3. This is reported as a result, not tuned away: the s residual of the corridor (σ ≈ 0.18) is strongly correlated along the route, so a white-noise measurement model with R = 0.18² is overconfident. No further tuning is done (it would break the pre-registered procedure).

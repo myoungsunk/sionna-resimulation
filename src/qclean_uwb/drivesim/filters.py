@@ -114,7 +114,7 @@ class DriveFilter:
         w = np.exp(-0.5 * z ** 2)
         w /= w.sum()
         var_between = float((w * z ** 2).sum())
-        sig = math.sqrt(cov[2, 2])
+        sig = math.sqrt(max(cov[2, 2], 1e-12))
         comps = []
         for zi, wi in zip(z, w):
             x = mean.copy()
@@ -286,7 +286,7 @@ class DriveFilter:
             H = np.zeros(N)
             H[:3] = J
             y = z - float(h)
-            S = float(H @ c.P @ H + R)
+            S = max(float(H @ c.P @ H + R), 1e-12)
             like.append((y * y / S, math.exp(-0.5 * y * y / S) / math.sqrt(2 * math.pi * S)))
             upd.append((H, y, S))
         nis_min = min(v[0] for v in like)

@@ -39,10 +39,10 @@ python scripts/drive_sim/build_hs_lut.py --out $D/S4                            
 python scripts/drive_sim/lut_los_check.py --lut $D/S4/hs_lut_2deg.npy --out $D/S4/LUT_LOS_CHECK.json   # gate L2, needs Sionna (~5 min)
 python scripts/drive_sim/lut_mismatch.py --s1 $D/S1 --h-dir $D/S2 --lut $D/S4/hs_lut_2deg.npy --out $D/S4/LUT_MISMATCH.json
 python scripts/drive_sim/snr_calibration.py --s1 $D/S1 --h-dir $D/S2 --out $D/S3/SNR_CALIBRATION.json --snr-db 60 50 40 30 20 10
-# choose the two SNR levels from SNR_CALIBRATION.json and the mismatch sigma from LUT_MISMATCH.json (overall.rms) BEFORE the next command;
-# write both values into S0/PREREG_AMENDMENTS.md (A7) and commit, then:
+# The SNR levels (30, 10 dB), mismatch sigma (0.18) and pos_process_std (0.01) are already fixed in S0/PREREG_AMENDMENTS.md A7. Check that your
+# SNR_CALIBRATION.json / LUT_MISMATCH.json reproduce the development values in DEV_RESULTS/ (they should: same inputs). Then:
 python scripts/drive_sim/run_experiments.py --s1 $D/S1 --h-dir $D/S2 --lut $D/S4/hs_lut_2deg.npy --out $D/S6 \
-    --snr-db <high> <low> --mismatch-sigma <rms> --seeds 50 --nproc 4
+    --snr-db 30 10 --mismatch-sigma 0.18 --pos-process-std 0.01 --seeds 50 --nproc 4      # constants fixed in PREREG_AMENDMENTS A7 (from the local development run)
 python scripts/drive_sim/analyze_experiments.py --results $D/S6 --out $D/S6/ANALYSIS
 ```
 
@@ -52,3 +52,9 @@ python scripts/drive_sim/analyze_experiments.py --results $D/S6 --out $D/S6/ANAL
 
 `S2/PARITY_REPORT.json`, `S2/G3_continuity_*.json`, `S2/traces_*/*_trace_receipt.json` (receipts only, not the npz), `S4/*.json`, `S3/SNR_CALIBRATION.json`,
 `S6/results_*.csv`, `S6/manifest_*.json`, `S6/ANALYSIS/*`.
+
+## 4. Development run (this repo, `DEV_RESULTS/`)
+
+All RF stages were run once locally (4 cores) to validate the code before Snowball; those files are in `DEV_RESULTS/` and are **not** production evidence.
+`PARITY_REPORT.json` there already shows G2, G2' and G4 passing on 817 + 18 poses (median H error 1.5e-5, max 5.4e-5, |Δs| ≤ 1.7e-5, first-path index 100 % equal);
+the stored position (4.0, 0.0) is excluded (anchor axis, A3). Your Snowball run should reproduce these numbers.
