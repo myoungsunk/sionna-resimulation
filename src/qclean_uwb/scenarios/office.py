@@ -65,24 +65,25 @@ def segment_hits_box(p0, p1, lo, hi) -> bool:
 
 @dataclass(frozen=True)
 class OfficeSetup:
-    length_m: float = 20.0
+    length_m: float = 10.0
     width_m: float = 12.0
     height_m: float = 2.7
     aisle_m: float = 1.8                 # spine width and the width of every arm
     arm_y0_m: tuple = (0.0, 5.1, 10.2)  # lower edge of each arm; notches lie between arms (3.3 m deep)
-    cubicle_pitch_m: float = 2.8
-    cubicle_x0_m: float = 2.4            # first side divider
-    n_cubicles: int = 6                  # per row
+    cubicle_pitch_m: float = 1.6
+    cubicle_x0_m: float = 2.0            # first side divider (spine is 1.8 m wide)
+    n_cubicles: int = 4                  # per row; the rest of the notch up to the far wall stays open (wider end of the three aisles)
+    rows_per_notch: int = 3              # rows of cubicles between two arms (was 2)
     partition_h_m: float = 1.4
     partition_t_m: float = 0.04
     desk_lwh_m: tuple = (1.4, 0.7, 0.75)
     desk_gap_m: float = 0.05             # desk to back partition
-    anchor_x_m: float = 10.0
+    anchor_x_m: float = 5.0
     anchor_y_m: float = 6.0              # above the middle arm
     anchor_standoff_m: float = 0.05
     robot_antenna_z_m: float = 0.45
     robot_body_lwh_m: tuple = (0.60, 0.40, 0.40)
-    sample_step_m: float = 2.0
+    sample_step_m: float = 1.5
 
     # ---- geometry -----------------------------------------------------
     @property
@@ -94,25 +95,44 @@ class OfficeSetup:
         a = self.aisle_m
         return [(self.arm_y0_m[i] + a, self.arm_y0_m[i + 1]) for i in range(len(self.arm_y0_m) - 1)]
 
+    def row_depth_m(self, n: int) -> float:
+        ylo, yhi = self.notches()[n]
+        return (yhi - ylo) / self.rows_per_notch
+
     def boxes(self) -> list:
-        """Axis-aligned solids: dicts with name, group, lo, hi (partitions are thin boxes)."""
+        """Axis-aligned solids: dicts with name, group, lo, hi (partitions are thin boxes).
+
+        Each notch holds ``rows_per_notch`` rows of cubicles, all with the same depth. Partition lines (full length) separate the rows, side
+        dividers every ``cubicle_pitch_m`` close each cubicle, and every cubicle gets one desk against the partition line on its 'back' side:
+        the first row's back is its upper line, the middle rows' back is their upper line and the last row's back is also its lower line
+        (so the last two rows are back to back).
+        """
         out = []
         t, h = self.partition_t_m, self.partition_h_m
         dl, dw, dh = self.desk_lwh_m
+        g = t / 2 + self.desk_gap_m
         x_first = self.cubicle_x0_m
         x_last = self.cubicle_x0_m + self.cubicle_pitch_m * self.n_cubicles
+        R = self.rows_per_notch
         for n, (ylo, yhi) in enumerate(self.notches()):
-            yc = 0.5 * (ylo + yhi)
-            out.append(dict(name=f"back_partition_{n}", group="partitions", lo=(x_first, yc - t / 2, 0.0), hi=(x_last, yc + t / 2, h)))
-            for i in range(self.n_cubicles + 1):
-                x = x_first + self.cubicle_pitch_m * i
-                out.append(dict(name=f"divider_{n}_lower_{i}", group="partitions", lo=(x - t / 2, ylo, 0.0), hi=(x + t / 2, yc - t / 2, h)))
-                out.append(dict(name=f"divider_{n}_upper_{i}", group="partitions", lo=(x - t / 2, yc + t / 2, 0.0), hi=(x + t / 2, yhi, h)))
-            for k in range(self.n_cubicles):
-                xc = x_first + self.cubicle_pitch_m * (k + 0.5)
-                g = t / 2 + self.desk_gap_m
-                out.append(dict(name=f"desk_{n}_lower_{k}", group="desks", lo=(xc - dl / 2, yc - g - dw, 0.0), hi=(xc + dl / 2, yc - g, dh)))
-                out.append(dict(name=f"desk_{n}_upper_{k}", group="desks", lo=(xc - dl / 2, yc + g, 0.0), hi=(xc + dl / 2, yc + g + dw, dh)))
+            d = self.row_depth_m(n)
+            line = [ylo + k * d for k in range(R + 1)]  # row r spans line[r] .. line[r+1]
+            for k in range(1, R):
+                out.append(dict(name=f"back_partition_{n}_{k}", group="partitions", lo=(x_first, line[k] - t / 2, 0.0), hi=(x_last, line[k] + t / 2, h)))
+            for r in range(R):
+                y0 = line[r] + (t / 2 if r > 0 else 0.0)
+                y1 = line[r + 1] - (t / 2 if r < R - 1 else 0.0)
+                for i in range(self.n_cubicles + 1):
+                    x = x_first + self.cubicle_pitch_m * i
+                    out.append(dict(name=f"divider_{n}_row{r}_{i}", group="partitions", lo=(x - t / 2, y0, 0.0), hi=(x + t / 2, y1, h)))
+                # rows 0..R-2: desk below their upper line; last row: desk above its lower line (back to back with the row below)
+                for k in range(self.n_cubicles):
+                    xc = x_first + self.cubicle_pitch_m * (k + 0.5)
+                    if r < R - 1:
+                        lo_y, hi_y = line[r + 1] - g - dw, line[r + 1] - g
+                    else:
+                        lo_y, hi_y = line[r] + g, line[r] + g + dw
+                    out.append(dict(name=f"desk_{n}_row{r}_{k}", group="desks", lo=(xc - dl / 2, lo_y, 0.0), hi=(xc + dl / 2, hi_y, dh)))
         return out
 
     def objects(self) -> list:
@@ -179,9 +199,9 @@ class OfficeSetup:
         a = self.anchor_position
         add("anchor_inside_envelope", 0 < a[0] < self.length_m and 0 < a[1] < self.width_m and 0 < a[2] < self.height_m, f"anchor={a.round(3).tolist()}")
         add("arms_fit_in_envelope", self.arm_y0_m[-1] + self.aisle_m <= self.width_m + 1e-9 and self.arm_y0_m[0] >= 0, f"arms y0={list(self.arm_y0_m)}")
-        add("notch_depth_positive", all(hi - lo > 2 * (self.desk_lwh_m[1] + self.partition_t_m) for lo, hi in self.notches()), f"notches={self.notches()}")
+        add("row_depth_fits_desk", all(self.row_depth_m(n) > self.desk_lwh_m[1] + self.partition_t_m + self.desk_gap_m for n in range(len(self.notches()))), f"row depth={self.row_depth_m(0):.2f} m")
         last_x = self.cubicle_x0_m + self.cubicle_pitch_m * self.n_cubicles
-        add("cubicles_inside_x_range", last_x + self.partition_t_m / 2 < self.length_m, f"last divider x={last_x:.2f}")
+        add("cubicles_inside_x_range", last_x + self.partition_t_m / 2 < self.length_m and self.cubicle_x0_m > self.aisle_m, f"last divider x={last_x:.2f}, open end {self.length_m - last_x:.2f} m")
         bx = self.boxes()
         inside = all(b["lo"][0] >= 0 and b["hi"][0] <= self.length_m and any(lo - 1e-9 <= b["lo"][1] and b["hi"][1] <= hi + 1e-9 for lo, hi in self.notches()) for b in bx)
         add("solids_inside_notches", inside, f"{len(bx)} solids")

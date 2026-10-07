@@ -12,8 +12,9 @@ def test_validation_passes():
 def test_object_counts():
     s = OfficeSetup()
     boxes = s.boxes()
-    assert sum(b["group"] == "desks" for b in boxes) == 2 * 2 * s.n_cubicles
-    assert sum(b["group"] == "partitions" for b in boxes) == 2 * (1 + 2 * (s.n_cubicles + 1))
+    R = s.rows_per_notch
+    assert sum(b["group"] == "desks" for b in boxes) == 2 * R * s.n_cubicles
+    assert sum(b["group"] == "partitions" for b in boxes) == 2 * ((R - 1) + R * (s.n_cubicles + 1))
     objs = s.objects()
     assert len(objs) == 6 + len(boxes)
     assert {o["group"] for o in objs} == {"floor", "ceiling", "outer_walls", "partitions", "desks"}
@@ -37,7 +38,7 @@ def test_segment_box_hits():
 def test_sample_points_are_in_aisles_and_los_is_mixed():
     s = OfficeSetup()
     pts = s.sample_points()
-    assert len(pts) > 20
+    assert len(pts) > 12
     assert all(s.in_aisle(x, y) for x, y in pts)
     flags = [s.los_status(x, y)["clear"] for x, y in pts]
     assert any(flags) and not all(flags)

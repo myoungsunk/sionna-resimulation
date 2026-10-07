@@ -110,9 +110,9 @@ def plan_svg(s, pts, st):
     for b in s.boxes():
         cls = "desk" if b["group"] == "desks" else "part"
         g.append(f'<rect class="{cls}" x="{px(b["lo"][0])}" y="{py(b["hi"][1])}" width="{max((b["hi"][0]-b["lo"][0])*sc, 2.2)}" height="{max((b["hi"][1]-b["lo"][1])*sc, 2.2)}"><title>{b["name"]}</title></rect>')
-    for x in range(0, 21, 2):
+    for x in range(0, int(s.length_m) + 1, 2):
         g.append(f'<text class="tk" x="{px(x)}" y="{py(0)+14}" text-anchor="middle">{x}</text>')
-    for y in range(0, 13, 2):
+    for y in range(0, int(s.width_m) + 1, 2):
         g.append(f'<text class="tk" x="{px(0)-6}" y="{py(y)+4}" text-anchor="end">{y}</text>')
     for i, (x, y) in enumerate(pts):
         ok = st[i]["clear"]
@@ -139,7 +139,8 @@ def main():
     data = dict(setup=s.snapshot()["config"], counts=dict(desks=sum(b["group"] == "desks" for b in boxes), partitions=sum(b["group"] == "partitions" for b in boxes),
                                                           points=len(pts), los=n_clear, nlos=len(pts) - n_clear, objects=len(s.objects())),
                 materials={k: dict(itu=v[0], t=v[1]) for k, v in MATERIALS.items()}, checks=checks, idx=idx, cams=CAMS,
-                notches=s.notches(), anchor=s.anchor_position.round(3).tolist())
+                notches=s.notches(), anchor=s.anchor_position.round(3).tolist(),
+                layout=dict(rows=s.rows_per_notch, per_row=s.n_cubicles, open_end_m=round(s.length_m - (s.cubicle_x0_m + s.cubicle_pitch_m * s.n_cubicles), 2), row_depth_m=round(s.row_depth_m(0), 2)))
     page = ((ROOT / "scripts" / "office_page_template.html").read_text(encoding="utf8")
             .replace("/*__PLOTLY__*/", get_plotlyjs().replace("�", "\\uFFFD")).replace("__FIG__", fig.to_json())
             .replace("__PLAN__", plan_svg(s, pts, st)).replace("__DATA__", json.dumps(data, ensure_ascii=False)))
