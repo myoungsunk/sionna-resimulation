@@ -18,4 +18,4 @@ export -f one; export V O DEADLINE
 xargs -P 4 -L 1 bash -c 'one $0 $1 $2' < $O/positions.txt
 n=$(wc -l < $O/positions.txt); done_n=$(ls $O/*/*_receipt.json 2>/dev/null | wc -l)
 echo "receipts $done_n of $n"
-[ "$done_n" -ge "$n" ] && echo SCAN2_COMPLETE > $O/logs/SCAN2_COMPLETE
+if [ "$done_n" -ge "$n" ]; then echo SCAN2_COMPLETE > $O/logs/SCAN2_COMPLETE; fi
