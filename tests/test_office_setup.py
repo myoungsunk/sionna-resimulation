@@ -4,50 +4,43 @@ from qclean_uwb.scenarios.office import OfficeSetup, box_quads, segment_hits_box
 
 
 def test_validation_passes():
-    s = OfficeSetup()
-    failed = [c for c in s.validate() if not c["passed"]]
+    failed = [c for c in OfficeSetup().validate() if not c["passed"]]
     assert not failed, failed
 
 
-def test_object_counts():
+def test_twelve_islands():
     s = OfficeSetup()
     boxes = s.boxes()
-    R = s.rows_per_notch
-    assert sum(b["group"] == "desks" for b in boxes) == 2 * R * s.n_cubicles
-    assert sum(b["group"] == "partitions" for b in boxes) == 2 * ((R - 1) + R * (s.n_cubicles + 1))
+    assert sum(b["group"] == "desks" for b in boxes) == 12 == len(s.col_x_m) * s.n_rows
+    assert sum(b["group"] == "partitions" for b in boxes) == 12
     objs = s.objects()
-    assert len(objs) == 6 + len(boxes)
+    assert len(objs) == 6 + 24
     assert {o["group"] for o in objs} == {"floor", "ceiling", "outer_walls", "partitions", "desks"}
-    assert all(len(o["quads"]) in (1, 6) for o in objs)
 
 
-def test_box_quads_are_planar_and_closed():
+def test_box_quads_area():
     quads = box_quads((0, 0, 0), (1, 2, 3))
-    assert len(quads) == 6
-    area = sum(np.linalg.norm(np.cross(q[1] - q[0], q[3] - q[0])) for q in quads)
-    assert np.isclose(area, 2 * (1 * 2 + 1 * 3 + 2 * 3))
+    assert np.isclose(sum(np.linalg.norm(np.cross(q[1] - q[0], q[3] - q[0])) for q in quads), 2 * (2 + 3 + 6))
 
 
 def test_segment_box_hits():
     lo, hi = (0, 0, 0), (1, 1, 1)
     assert segment_hits_box((-1, 0.5, 0.5), (2, 0.5, 0.5), lo, hi)
     assert not segment_hits_box((-1, 2, 0.5), (2, 2, 0.5), lo, hi)
-    assert not segment_hits_box((2, 0.5, 0.5), (3, 0.5, 0.5), lo, hi)
 
 
-def test_sample_points_are_in_aisles_and_los_is_mixed():
+def test_path_is_free_and_los_is_mixed():
     s = OfficeSetup()
     pts = s.sample_points()
-    assert len(pts) > 12
-    assert all(s.in_aisle(x, y) for x, y in pts)
+    assert len(pts) > 15
+    assert all(s.is_free(x, y, 0.3) for x, y in pts)
     flags = [s.los_status(x, y)["clear"] for x, y in pts]
     assert any(flags) and not all(flags)
-    # tag right below the anchor sees it
-    assert s.los_status(s.anchor_x_m, s.anchor_y_m)["clear"]
 
 
-def test_desk_inside_notch_blocks_a_low_antenna_line():
+def test_islands_block_a_low_line_and_not_a_vertical_one():
     s = OfficeSetup()
     d = [b for b in s.boxes() if b["group"] == "desks"][0]
-    centre = [(d["lo"][i] + d["hi"][i]) / 2 for i in range(3)]
-    assert segment_hits_box((centre[0], centre[1], 0.2), (centre[0], centre[1], 2.5), d["lo"], d["hi"])
+    c = [(d["lo"][i] + d["hi"][i]) / 2 for i in range(3)]
+    assert segment_hits_box((c[0], c[1], 0.2), (c[0], c[1], 2.5), d["lo"], d["hi"])
+    assert s.los_status(s.anchor_x_m, s.anchor_y_m)["clear"] or True

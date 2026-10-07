@@ -55,10 +55,6 @@ def build(s: OfficeSetup):
                                "wall_x1": (np.array([[L, 0, 0], [L, W, 0], [L, W, H], [L, 0, H]]), 0.07, "#8b97a6")}.items():
         tr.append(go.Mesh3d(x=c[:, 0], y=c[:, 1], z=c[:, 2], i=[0, 0], j=[1, 2], k=[2, 3], color=col, opacity=op, name=name, hoverinfo="name", showlegend=False))
     idx["shell"] = list(range(len(tr)))
-    # aisles (E) tinted on the floor
-    a = s.aisle_m
-    for (x0, y0, x1, y1) in [(0, 0, a, W)] + [(0, y, L, y + a) for y in s.arm_y0_m]:
-        tr.append(go.Mesh3d(x=[x0, x1, x1, x0], y=[y0, y0, y1, y1], z=[0.01] * 4, i=[0, 0], j=[1, 2], k=[2, 3], color="#d6c46a", opacity=0.28, hoverinfo="skip", showlegend=False))
     boxes = s.boxes()
     tr.append(merged_boxes([b for b in boxes if b["group"] == "partitions"], C_PART, 0.85, "칸막이"))
     tr.append(merged_boxes([b for b in boxes if b["group"] == "desks"], C_DESK, 0.95, "책상"))
@@ -104,9 +100,8 @@ def plan_svg(s, pts, st):
     py = lambda y: m + (s.width_m - y) * sc
     g = [f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="사무실 평면도" xmlns="http://www.w3.org/2000/svg">',
          f'<rect class="env" x="{px(0)}" y="{py(s.width_m)}" width="{s.length_m*sc}" height="{s.width_m*sc}"/>']
-    a = s.aisle_m
-    for (x0, y0, x1, y1) in [(0, 0, a, s.width_m)] + [(0, y, s.length_m, y + a) for y in s.arm_y0_m]:
-        g.append(f'<rect class="aisle" x="{px(x0)}" y="{py(y1)}" width="{(x1-x0)*sc}" height="{(y1-y0)*sc}"/>')
+    for (x0, y0), (x1, y1) in s.path_segments():
+        g.append(f'<line class="path" x1="{px(x0)}" y1="{py(y0)}" x2="{px(x1)}" y2="{py(y1)}"/>')
     for b in s.boxes():
         cls = "desk" if b["group"] == "desks" else "part"
         g.append(f'<rect class="{cls}" x="{px(b["lo"][0])}" y="{py(b["hi"][1])}" width="{max((b["hi"][0]-b["lo"][0])*sc, 2.2)}" height="{max((b["hi"][1]-b["lo"][1])*sc, 2.2)}"><title>{b["name"]}</title></rect>')
@@ -139,8 +134,8 @@ def main():
     data = dict(setup=s.snapshot()["config"], counts=dict(desks=sum(b["group"] == "desks" for b in boxes), partitions=sum(b["group"] == "partitions" for b in boxes),
                                                           points=len(pts), los=n_clear, nlos=len(pts) - n_clear, objects=len(s.objects())),
                 materials={k: dict(itu=v[0], t=v[1]) for k, v in MATERIALS.items()}, checks=checks, idx=idx, cams=CAMS,
-                notches=s.notches(), anchor=s.anchor_position.round(3).tolist(),
-                layout=dict(rows=s.rows_per_notch, per_row=s.n_cubicles, open_end_m=round(s.length_m - (s.cubicle_x0_m + s.cubicle_pitch_m * s.n_cubicles), 2), row_depth_m=round(s.row_depth_m(0), 2)))
+                anchor=s.anchor_position.round(3).tolist(),
+                layout=dict(cols=len(s.col_x_m), rows=s.n_rows, top_strip_m=round(s.width_m - s.row_y_m()[0] - s.desk_lwh_m[1] / 2 - s.partition_t_m, 2), row_y=[round(v, 2) for v in s.row_y_m()]))
     page = ((ROOT / "scripts" / "office_page_template.html").read_text(encoding="utf8")
             .replace("/*__PLOTLY__*/", get_plotlyjs().replace("�", "\\uFFFD")).replace("__FIG__", fig.to_json())
             .replace("__PLAN__", plan_svg(s, pts, st)).replace("__DATA__", json.dumps(data, ensure_ascii=False)))

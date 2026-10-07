@@ -1,28 +1,32 @@
 {
  "status": "SETUP_VISUALISATION_ONLY_NO_RF_RUN",
- "created_utc": "2026-10-07T13:47:03+00:00",
+ "created_utc": "2026-10-07T13:56:54+00:00",
  "command": "scripts/office_render_3d.py",
  "config": {
-  "aisle_m": 1.8,
   "anchor_standoff_m": 0.05,
   "anchor_x_m": 5.0,
   "anchor_y_m": 6.0,
-  "arm_y0_m": [
-   0.0,
-   5.1,
-   10.2
+  "bottom_end_y_m": 0.75,
+  "col_x_m": [
+   1.85,
+   4.9,
+   8.15
   ],
-  "cubicle_pitch_m": 1.6,
-  "cubicle_x0_m": 2.0,
-  "desk_gap_m": 0.05,
+  "corridor_x_m": [
+   0.5,
+   3.3,
+   6.55,
+   9.5
+  ],
   "desk_lwh_m": [
-   1.4,
+   1.6,
    0.7,
    0.75
   ],
   "height_m": 2.7,
   "length_m": 10.0,
-  "n_cubicles": 4,
+  "n_rows": 4,
+  "partition_gap_m": 0.02,
   "partition_h_m": 1.4,
   "partition_t_m": 0.04,
   "robot_antenna_z_m": 0.45,
@@ -31,51 +35,49 @@
    0.4,
    0.4
   ],
-  "rows_per_notch": 3,
+  "robot_clearance_m": 0.1,
+  "row_pitch_m": 1.75,
   "sample_step_m": 1.5,
+  "top_bar_y_m": 11.25,
+  "top_margin_m": 1.85,
   "width_m": 12.0
  },
- "config_sha256": "73d97bda396d7cddd1e74779a59d6333cb99d688d21c7058081feccf3efbeb72",
+ "config_sha256": "2d1e05bd19ab4e6be20de2e0c5c3ec6db123dee9579facd129ce6fab66a839fd",
  "checks": [
   {
-   "name": "anchor_inside_envelope",
+   "name": "anchor_inside_room",
    "passed": true,
    "detail": "anchor=[5.0, 6.0, 2.65]"
   },
   {
-   "name": "arms_fit_in_envelope",
+   "name": "solids_inside_room",
    "passed": true,
-   "detail": "arms y0=[0.0, 5.1, 10.2]"
+   "detail": "24 solids"
   },
   {
-   "name": "row_depth_fits_desk",
+   "name": "rows_below_top_bar",
    "passed": true,
-   "detail": "row depth=1.10 m"
-  },
-  {
-   "name": "cubicles_inside_x_range",
-   "passed": true,
-   "detail": "last divider x=8.40, open end 1.60 m"
-  },
-  {
-   "name": "solids_inside_notches",
-   "passed": true,
-   "detail": "58 solids"
+   "detail": "top of islands y=10.56"
   },
   {
    "name": "desks_do_not_overlap",
    "passed": true,
-   "detail": "24 desks"
+   "detail": "12 desks"
   },
   {
    "name": "desks_do_not_intersect_partitions",
    "passed": true,
-   "detail": ""
+   "detail": "12 partitions"
   },
   {
-   "name": "tag_path_in_aisles_with_clearance",
+   "name": "tag_path_free_with_clearance",
    "passed": true,
-   "detail": "24 points, clearance to aisle edge 0.60 m"
+   "detail": "35 points, clearance 0.40 m"
+  },
+  {
+   "name": "corridors_between_columns",
+   "passed": true,
+   "detail": "corridor centre lines clear the islands"
   },
   {
    "name": "tag_antenna_below_partition_top",
@@ -113,189 +115,235 @@
  "material_note": "partitions and desks are ASSUMED materials",
  "sample_points": [
   {
-   "x": 0.9,
-   "y": 0.9,
+   "x": 0.5,
+   "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "back_partition_0_1",
-    "divider_0_row0_0"
+    "partition_c0_r0"
    ]
   },
   {
-   "x": 0.9,
-   "y": 2.357,
+   "x": 2.0,
+   "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "divider_0_row1_0"
+    "partition_c0_r0"
    ]
   },
   {
-   "x": 0.9,
-   "y": 3.814,
-   "los_clear": false,
-   "blockers": [
-    "divider_0_row2_0"
-   ]
-  },
-  {
-   "x": 0.9,
-   "y": 5.271,
+   "x": 3.5,
+   "y": 11.25,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 0.9,
-   "y": 6.729,
+   "x": 5.0,
+   "y": 11.25,
+   "los_clear": false,
+   "blockers": [
+    "partition_c1_r0"
+   ]
+  },
+  {
+   "x": 6.5,
+   "y": 11.25,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 0.9,
-   "y": 8.186,
+   "x": 8.0,
+   "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "divider_1_row0_0"
+    "partition_c2_r0"
    ]
   },
   {
-   "x": 0.9,
-   "y": 9.643,
+   "x": 9.5,
+   "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "divider_1_row1_0"
+    "partition_c2_r0"
    ]
   },
   {
-   "x": 0.9,
-   "y": 11.1,
+   "x": 0.5,
+   "y": 9.75,
    "los_clear": false,
    "blockers": [
-    "back_partition_1_2",
-    "divider_1_row2_0"
+    "partition_c0_r1"
    ]
   },
   {
-   "x": 2.54,
-   "y": 0.9,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_0_1",
-    "divider_0_row1_1"
-   ]
-  },
-  {
-   "x": 4.18,
-   "y": 0.9,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_0_1"
-   ]
-  },
-  {
-   "x": 5.82,
-   "y": 0.9,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_0_1"
-   ]
-  },
-  {
-   "x": 7.46,
-   "y": 0.9,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_0_1",
-    "divider_0_row0_3"
-   ]
-  },
-  {
-   "x": 9.1,
-   "y": 0.9,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_0_1"
-   ]
-  },
-  {
-   "x": 0.9,
-   "y": 6.0,
+   "x": 0.5,
+   "y": 8.25,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 2.54,
-   "y": 6.0,
+   "x": 0.5,
+   "y": 6.75,
+   "los_clear": false,
+   "blockers": [
+    "desk_c0_r2"
+   ]
+  },
+  {
+   "x": 0.5,
+   "y": 5.25,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 4.18,
-   "y": 6.0,
+   "x": 0.5,
+   "y": 3.75,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 5.82,
-   "y": 6.0,
+   "x": 0.5,
+   "y": 2.25,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 7.46,
-   "y": 6.0,
+   "x": 0.5,
+   "y": 0.75,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 9.1,
-   "y": 6.0,
+   "x": 3.3,
+   "y": 9.75,
    "los_clear": true,
    "blockers": []
   },
   {
-   "x": 2.54,
-   "y": 11.1,
+   "x": 3.3,
+   "y": 8.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 6.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 5.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 9.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 8.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 6.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 5.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 9.5,
+   "y": 9.75,
    "los_clear": false,
    "blockers": [
-    "back_partition_1_2",
-    "divider_1_row1_1"
+    "partition_c2_r1"
    ]
   },
   {
-   "x": 4.18,
-   "y": 11.1,
+   "x": 9.5,
+   "y": 8.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 9.5,
+   "y": 6.75,
    "los_clear": false,
    "blockers": [
-    "back_partition_1_2"
+    "desk_c2_r2"
    ]
   },
   {
-   "x": 5.82,
-   "y": 11.1,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_1_2"
-   ]
+   "x": 9.5,
+   "y": 5.25,
+   "los_clear": true,
+   "blockers": []
   },
   {
-   "x": 7.46,
-   "y": 11.1,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_1_2",
-    "divider_1_row2_3"
-   ]
+   "x": 9.5,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
   },
   {
-   "x": 9.1,
-   "y": 11.1,
-   "los_clear": false,
-   "blockers": [
-    "back_partition_1_2"
-   ]
+   "x": 9.5,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 9.5,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
   }
  ],
  "outputs": {
-  "office_setup_3d.html": "b29d15312884040476e62fbdf33d15897167a4be3878d550bf6038a8677af775"
+  "office_setup_3d.html": "5067fbbec737905caf667ea416cf414116f5b5224daf25d3ff2b94a0f862e9d0"
  }
 }

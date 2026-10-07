@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>사무실 E자 설정</title>
+<title>사무실 열린 평면 설정</title>
 <style>
 :root{color-scheme:light;--bg:#fcfcfb;--card:#fff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--env:#f5f4f0;--aisle:#f3e7a6;--part:#7f8da0;--desk:#b8935a;--c1:#2a78d6;--c2:#eb6834;--anc:#0b0b0b;--ok:#0a7f3f;--bad:#b3261e}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--env:#262625;--aisle:#5b5226;--part:#93a1b4;--desk:#c4a06a;--c1:#3987e5;--c2:#d95926;--anc:#fff;--ok:#5cc27f;--bad:#f08a82}}
@@ -22,7 +22,7 @@ button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight
 .legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink2);margin:8px 0 0}
 .legend i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
 .scroll{overflow-x:auto}.scroll>svg{display:block;width:100%;min-width:700px;height:auto}
-.env{fill:var(--env);stroke:var(--line)}.aisle{fill:var(--aisle);opacity:.65}.part{fill:var(--part)}.desk{fill:var(--desk)}
+.env{fill:var(--env);stroke:var(--line)}.path{stroke:#a07d00;stroke-width:2;stroke-dasharray:5 4;opacity:.8}.part{fill:var(--part)}.desk{fill:var(--desk)}
 .pl{fill:var(--c1);stroke:var(--card);stroke-width:1.5}.pn{fill:var(--c2);stroke:var(--card);stroke-width:1.5}.anc{fill:var(--anc)}.tk{fill:var(--muted);font-size:11px}
 .note{color:var(--ink2);font-size:14px;margin:10px 0 0}ul{margin:6px 0 0;padding-left:20px}li{margin:4px 0}
 table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}th{color:var(--ink2);font-weight:600}.n{text-align:right;font-variant-numeric:tabular-nums}
@@ -32,15 +32,15 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;
 </head>
 <body>
 <div class="wrap">
-  <h1>사무실 E자 설정 (시뮬레이션 전)</h1>
-  <p class="lede">걸어 다닐 수 있는 통로가 E자 모양이고, 통로 사이 두 칸에 칸막이와 책상이 있는 사무실입니다. 지금까지의 복도처럼 천장에 앵커 1개, 바닥 위 0.45 m 높이에 태그 안테나를 둡니다. 모든 치수는 임시 기본값이고 아직 RF 계산은 하지 않았습니다. 점은 통로 중앙선을 일정한 간격으로 잡은 태그 위치이며, 앵커와의 직선이 칸막이나 책상에 막히는지를 기하만으로 판정해 색을 나눴습니다.</p>
+  <h1>사무실 설정: 책상 덩어리 12개와 복도 (시뮬레이션 전)</h1>
+  <p class="lede">보내 주신 지도처럼 책상 덩어리 12개(3열 × 4행)가 놓인 열린 사무실이고, 흰 부분이 복도(걸어 다니는 곳)입니다. 위쪽 가로 복도 하나에 세로 복도 4개가 빗살처럼 이어진 모양(E자에 한 줄 더 붙인 모양)으로 걷는다고 보았습니다. 책상 덩어리 하나는 책상과 칸막이로 만들었습니다. 지금까지의 복도처럼 천장에 앵커 1개, 바닥 위 0.45 m 높이에 태그 안테나를 둡니다. 모든 치수는 임시 기본값이고 아직 RF 계산은 하지 않았습니다. 점은 통로 중앙선을 일정한 간격으로 잡은 태그 위치이며, 앵커와의 직선이 칸막이나 책상에 막히는지를 기하만으로 판정해 색을 나눴습니다.</p>
   <div class="kpis" id="kpis"></div>
   <section class="card" aria-label="3D">
     <h2>3D 보기</h2>
     <div class="cams" id="cams"></div>
     <div id="fig" style="width:100%"></div>
     <div class="legend">
-      <span><i style="background:#7f8da0"></i>칸막이</span><span><i style="background:#b8935a"></i>책상</span><span><i style="background:#d6c46a"></i>걸어 다니는 통로(E)</span>
+      <span><i style="background:#7f8da0"></i>칸막이</span><span><i style="background:#b8935a"></i>책상</span><span><i style="background:#a07d00"></i>걷는 경로(점선)</span>
       <span><i style="background:var(--c1);border-radius:50%"></i>태그, 앵커와 LoS 열림</span><span><i style="background:var(--c2);transform:rotate(45deg) scale(.85)"></i>태그, LoS 막힘</span><span><i style="background:var(--anc)"></i>앵커</span>
     </div>
     <div class="cams" style="margin-top:8px"><button type="button" id="tlos" aria-pressed="false">앵커–태그 선 보기: LoS 열림</button><button type="button" id="tnlos" aria-pressed="false">앵커–태그 선 보기: LoS 막힘</button></div>
@@ -80,14 +80,14 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;
   [['tlos', 'lines_los'], ['tnlos', 'lines_nlos']].forEach(function (p) { var b = document.getElementById(p[0]); b.onclick = function () { var on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); Plotly.restyle('fig', { visible: on }, D.idx[p[1]]); }; });
   var C = D.counts, A = D.anchor;
   document.getElementById('anc-note').innerHTML = '<b>앵커는 가운데 통로 위</b> (x ' + f(A[0], 1) + ', y ' + f(A[1], 1) + ')에 하나를 뒀습니다. 위치를 바꾸면 LoS가 막히는 위치가 달라집니다.';
-  document.getElementById('lay-note').innerHTML = '<b>칸 구성:</b> 한 줄에 큐비클 ' + D.layout.per_row + '개만 두고 끝쪽 ' + D.layout.open_end_m + ' m를 비워 세 통로의 끝을 넓혔습니다. 칸마다 책상·칸막이 줄은 ' + D.layout.rows + '줄이고, 맨 안쪽 두 줄은 등을 맞댔습니다.';
-  document.getElementById('kpis').innerHTML = [[S.length_m + ' × ' + S.width_m + ' m', '바깥 치수 (높이 ' + S.height_m + ' m)'], [C.partitions, '칸막이 판'], [C.desks, '책상'], [C.points, '태그 위치 (' + S.sample_step_m + ' m 간격)'], [C.los + ' / ' + C.nlos, 'LoS 열림 / 막힘']]
+  document.getElementById('lay-note').innerHTML = '<b>지도에서 읽은 값:</b> 한 칸이 약 73픽셀 = 1 m로 보고 열 중심 x ' + S.col_x_m.join(', ') + ' m, 행 간격 ' + S.row_pitch_m + ' m로 놓았습니다. 지도 아래쪽이 잘려 있어서 맨 아래 행 아래는 빈 공간으로 두었습니다.';
+  document.getElementById('kpis').innerHTML = [[S.length_m + ' × ' + S.width_m + ' m', '바깥 치수 (높이 ' + S.height_m + ' m)'], [C.partitions, '칸막이 판 (섬마다 1개)'], [C.desks, '책상'], [C.points, '태그 위치 (' + S.sample_step_m + ' m 간격)'], [C.los + ' / ' + C.nlos, 'LoS 열림 / 막힘']]
     .map(function (k) { return '<div class="kpi"><b>' + k[0] + '</b><span>' + k[1] + '</span></div>'; }).join('');
-  var mat = D.materials, rows = [['바깥 치수 (x·y·높이)', S.length_m + ' × ' + S.width_m + ' × ' + S.height_m + ' m'], ['통로 폭', S.aisle_m + ' m (등뼈 1개, 가지 3개)'], ['칸 구성', '칸(통로 사이)마다 ' + D.layout.rows + '줄, 줄당 ' + D.layout.per_row + '개, 줄 깊이 ' + D.layout.row_depth_m + ' m, 끝쪽 열린 구간 ' + D.layout.open_end_m + ' m'], ['칸막이', S.partition_h_m + ' m 높이, ' + S.partition_t_m + ' m 두께, 피치 ' + S.cubicle_pitch_m + ' m'],
+  var mat = D.materials, rows = [['바깥 치수 (x·y·높이)', S.length_m + ' × ' + S.width_m + ' × ' + S.height_m + ' m'], ['걷는 경로', '위쪽 가로 복도 1개 + 세로 복도 4개 (x ' + S.corridor_x_m.join(', ') + ' m)'], ['책상 덩어리', D.layout.cols + '열 × ' + D.layout.rows + '행 = ' + (D.layout.cols * D.layout.rows) + '개, 위쪽 빈 띠 ' + D.layout.top_strip_m + ' m'], ['칸막이', S.partition_h_m + ' m 높이, ' + S.partition_t_m + ' m 두께, 책상 뒤쪽 한 면'],
     ['책상', S.desk_lwh_m.join(' × ') + ' m'], ['앵커', '(' + A.map(function (v) { return f(v, 2); }).join(', ') + ') m, 보어사이트 −z'], ['태그 안테나 높이', S.robot_antenna_z_m + ' m, yaw로 회전'],
     ['재질: 바닥·천장', mat.floor.itu + ' ' + mat.floor.t + ' m'], ['재질: 바깥 벽', mat.outer_walls.itu + ' ' + mat.outer_walls.t + ' m'], ['재질: 칸막이 (가정)', mat.partitions.itu + ' ' + mat.partitions.t + ' m'], ['재질: 책상 (가정)', mat.desks.itu + ' ' + mat.desks.t + ' m']];
   document.getElementById('spec').innerHTML = '<tbody>' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</tbody>';
-  var nm = { anchor_inside_envelope: '앵커가 사무실 안', arms_fit_in_envelope: '가지 통로가 바깥 안', row_depth_fits_desk: '줄 깊이가 책상+칸막이에 충분', cubicles_inside_x_range: '칸막이가 x 범위 안', solids_inside_notches: '칸막이·책상이 칸 안', desks_do_not_overlap: '책상끼리 겹치지 않음', desks_do_not_intersect_partitions: '책상과 칸막이가 안 겹침', tag_path_in_aisles_with_clearance: '태그 경로가 통로 안(여유 포함)', tag_antenna_below_partition_top: '태그 안테나가 칸막이 윗면보다 낮음', anchor_boresight_down: '앵커 보어사이트 아래' };
+  var nm = { anchor_inside_room: '앵커가 사무실 안', solids_inside_room: '책상·칸막이가 방 안', rows_below_top_bar: '위쪽 복도가 책상 덩어리와 안 겹침', corridors_between_columns: '세로 복도가 열 사이에 맞음', desks_do_not_overlap: '책상끼리 겹치지 않음', desks_do_not_intersect_partitions: '책상과 칸막이가 안 겹침', tag_path_free_with_clearance: '태그 경로가 비어 있음(여유 포함)', tag_antenna_below_partition_top: '태그 안테나가 칸막이 윗면보다 낮음', anchor_boresight_down: '앵커 보어사이트 아래' };
   var ok = D.checks.filter(function (c) { return c.passed; }).length;
   document.getElementById('checks').innerHTML = '<tbody>' + D.checks.map(function (c) { return '<tr><td>' + (nm[c.name] || c.name) + '</td><td><span class="' + (c.passed ? 'ok' : 'bad') + '">' + (c.passed ? '통과' : '실패') + '</span></td></tr>'; }).join('') + '</tbody><caption style="caption-side:bottom;text-align:left;padding-top:6px;color:var(--muted);font-size:12.5px">' + ok + ' / ' + D.checks.length + ' 통과 · 순수 기하 검사입니다.</caption>';
 })();
