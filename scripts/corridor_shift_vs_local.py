@@ -24,8 +24,13 @@ from qclean_uwb.scenarios.corridor import CorridorSetup  # noqa: E402
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--fit", type=Path, default=ROOT / "results/CORRIDOR_SCAN_20261006/SHIFT_FIT.json")
+    ap.add_argument("--out", type=Path, default=ROOT / "results/CORRIDOR_SCAN_20261006/SHIFT_VS_LOCAL.json")
+    args = ap.parse_args()
     setup, banks = CorridorSetup(), sf.Banks()
-    shift = json.loads((ROOT / "results/CORRIDOR_SCAN_20261006/SHIFT_FIT.json").read_text())
+    shift = json.loads(args.fit.read_text())
     rows = []
     for p in sorted(shift["positions"], key=lambda q: (q["x"], q["y"])):
         if p["off_boresight_deg"] < 1:
@@ -55,7 +60,7 @@ def main():
                              corr_abs_d_abs_slope=float(np.corrcoef(np.abs(d), np.abs(slope))[0, 1])))
     med = lambda k: float(np.median([r[k] for r in rows]))
     out = dict(rows=rows, n=len(rows), median={k: med(k) for k in ("rms_d", "expl_shift", "expl_shift_const_gain", "share_ss_steep", "frac_steep", "share_ss_flat", "frac_flat", "corr_abs_d_abs_slope")})
-    (ROOT / "results/CORRIDOR_SCAN_20261006/SHIFT_VS_LOCAL.json").write_text(json.dumps(out, indent=1))
+    args.out.write_text(json.dumps(out, indent=1))
     for r in rows:
         print(f"({r['x']:4.1f},{r['y']:5.2f}) {r['tx'][3:]:9s} rms_d {r['rms_d']:.3f} shift {r['shift_deg']:6.1f} expl shift {r['expl_shift']:5.2f} +c,g {r['expl_shift_const_gain']:5.2f} | SS in steep {r['share_ss_steep']:.2f} (frac {r['frac_steep']:.2f}) in flat {r['share_ss_flat']:.2f} (frac {r['frac_flat']:.2f}) corr {r['corr_abs_d_abs_slope']:5.2f}")
     print("median", {k: round(v, 3) for k, v in out["median"].items()})

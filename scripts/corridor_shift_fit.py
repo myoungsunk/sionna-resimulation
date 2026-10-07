@@ -179,9 +179,11 @@ def analyse(npz, setup, banks):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, default=ROOT / "results" / "CORRIDOR_SCAN_20261006" / "SHIFT_FIT.json")
+    ap.add_argument("--inputs-glob", default=None, help="analyse these path files (relative to the repo root) instead of the default scan positions")
     args = ap.parse_args()
     setup, banks = CorridorSetup(), Banks()
-    rows = [analyse(p, setup, banks) for p in crf.find_inputs()]
+    inputs = sorted(ROOT.glob(args.inputs_glob)) if args.inputs_glob else crf.find_inputs()
+    rows = [analyse(p, setup, banks) for p in inputs]
     rows.sort(key=lambda r: (r["y"] != 0.0, r["x"] != 7.0, r["x"], r["y"]))
     args.out.write_text(json.dumps(dict(yaw_deg=YAWS.tolist(), variants=list(VARIANTS), groups=list(REFL), positions=rows), indent=1))
     for r in rows:
