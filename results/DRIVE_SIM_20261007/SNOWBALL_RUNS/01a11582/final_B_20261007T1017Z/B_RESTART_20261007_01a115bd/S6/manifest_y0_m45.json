@@ -1,0 +1,174 @@
+{
+ "config_sha256": "1674c2a4488f38aa528498953f6d67ecf0eec23e71d9182c4095dd6bb87d8bdc",
+ "config": {
+  "snr_db": [
+   30.0,
+   10.0
+  ],
+  "seeds": 50,
+  "laterals": [
+   0.0,
+   0.35
+  ],
+  "mounts": [
+   0.0,
+   45.0
+  ],
+  "drifts": [
+   0,
+   1,
+   2
+  ],
+  "mismatch_sigma": 0.18,
+  "sensor": {
+   "arw_deg_sqrt_s": 0.015,
+   "k_s_m": 2e-05,
+   "k_theta_rad": 0.0001,
+   "k_stheta_rad2_per_m": 1e-05,
+   "slip_probability": 0.01,
+   "slip_scale_deg": 0.5,
+   "range_sigma_m": 0.05
+  },
+  "range_offset_m": -0.5315983906250129,
+  "drift_levels": [
+   {
+    "name": "low",
+    "gyro_bias_dps": 0.01,
+    "gyro_sf": 0.005,
+    "wheel_ratio": 0.002,
+    "wheelbase_err": 0.005
+   },
+   {
+    "name": "mid",
+    "gyro_bias_dps": 0.05,
+    "gyro_sf": 0.01,
+    "wheel_ratio": 0.005,
+    "wheelbase_err": 0.0075
+   },
+   {
+    "name": "high",
+    "gyro_bias_dps": 0.2,
+    "gyro_sf": 0.015,
+    "wheel_ratio": 0.01,
+    "wheelbase_err": 0.01
+   }
+  ],
+  "baselines": [
+   {
+    "name": "odom_imu",
+    "period": null,
+    "use_range": false,
+    "use_s": false,
+    "use_odom_heading": true
+   },
+   {
+    "name": "gyro_only",
+    "period": null,
+    "use_range": false,
+    "use_s": false,
+    "use_odom_heading": false
+   },
+   {
+    "name": "range",
+    "period": null,
+    "use_range": true,
+    "use_s": false,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P0",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P0_noturn",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true,
+    "skip_s_in_turn": true
+   },
+   {
+    "name": "range_s_P1_T10",
+    "period": 10.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P1_T20",
+    "period": 20.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P1_T60",
+    "period": 60.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "inverse_heading_P0",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true,
+    "s_mode": "inverse"
+   }
+  ],
+  "filters_compared": [
+   "iekf",
+   "ukf",
+   "gsf"
+  ],
+  "max_samples": 0,
+  "seed_start": 0,
+  "pos_process_std": 0.01
+ },
+ "inputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy",
+   "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+   "bytes": 11923328
+  },
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S2/H_y0_m45.npy",
+   "sha256": "36c1590c15d545fb1f6b0223d75ddc38c4d86bbcf6801baf4098fb4db7cb04c1",
+   "bytes": 20116032
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S6/results_y0_m45.csv",
+   "sha256": "6fd2d99d4c88f023270445b2bb47ef6895ba2e6bd3403bb3e1e7bc73d64009a7",
+   "bytes": 1014845
+  }
+ ],
+ "timestamp_utc": "2026-10-07T10:01:04Z",
+ "command": [
+  "scripts/drive_sim/run_experiments.py",
+  "--s1",
+  "/job/source/results/DRIVE_SIM_20261007/S1",
+  "--h-dir",
+  "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S2",
+  "--lut",
+  "/job/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy",
+  "--out",
+  "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S6",
+  "--snr-db",
+  "30",
+  "10",
+  "--mismatch-sigma",
+  "0.18",
+  "--pos-process-std",
+  "0.01",
+  "--seeds",
+  "50",
+  "--nproc",
+  "4"
+ ]
+}

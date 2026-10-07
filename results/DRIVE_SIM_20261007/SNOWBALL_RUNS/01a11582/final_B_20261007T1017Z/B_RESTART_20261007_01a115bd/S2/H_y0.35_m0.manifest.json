@@ -1,0 +1,42 @@
+{
+ "config_sha256": "d96a96902b27e5e81f15636b358a6ea2280abb2ce8474bdef57276af25a7923a",
+ "config": {
+  "mount_deg": 0.0,
+  "bins": 257,
+  "layout": "[pose_id, bin, rx(+45,-45), tx(+45,-45)]",
+  "report": {
+   "n_pose": 1223,
+   "n_positions": 874,
+   "missing": [],
+   "unusable": [],
+   "complete": true
+  }
+ },
+ "inputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/S1/rf_poses_y0.35.json",
+   "sha256": "9ff3de083656a2aad074f345d4951bec5396ca0539eb4a8da51982773709199a",
+   "bytes": 82603
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S2/H_y0.35_m0.npy",
+   "sha256": "5656b8172f1ff90ef6aa1269ce2411c16892b2e75c971748645f84279d6d6504",
+   "bytes": 20116032
+  }
+ ],
+ "timestamp_utc": "2026-10-07T09:46:56Z",
+ "command": [
+  "scripts/drive_sim/rf_b_apply.py",
+  "--poses",
+  "/job/source/results/DRIVE_SIM_20261007/S1/rf_poses_y0.35.json",
+  "--traces",
+  "/job/source/results/DRIVE_SIM_20261007/S2/traces_y0.35",
+  "--mount",
+  "0",
+  "--out",
+  "/job/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S2/H_y0.35_m0.npy"
+ ],
+ "elapsed_s": 20.32
+}
