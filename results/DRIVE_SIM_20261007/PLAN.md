@@ -1,6 +1,6 @@
 # DRIVE_SIM_20261007 — 복도 주행 시뮬레이션 계획 (v1, rev2)
 
-상태: **PLAN_ONLY / NOTHING_RUN**. 이 문서는 계획이며 계산·구현 완료나 gate PASS를 뜻하지 않는다.
+상태: **S0_DONE_WITH_FINDINGS** (`S0/REPORT_S0.md`). S1 이후는 미시작. 이 문서의 비용·gate 수치 중 S0 보고서와 다른 곳은 S0 보고서가 우선한다(특히 §3 비용: A안 실측 11.7 s/pose 처리량, 전체 ≈55 core-h; G1은 `--threads 1`에서 판정, `S0/PREREG_AMENDMENTS.md` A1).
 AGENTS.md 규칙에 따라 각 단계(S0–S6)가 끝나면 상태 보고 후 승인을 기다린다.
 
 rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `src/` 통합, A안 TX 열 유지, S1 설정 추가(lateral, heading 흔들림, 초기 불확실도, probe 시간축, 180° 회전 취급), 가설 사전 등록, probe station snap + 주기 T sweep, LFS bank 확보, S4 대조 규칙, 임계값 확정.
