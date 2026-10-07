@@ -158,3 +158,27 @@ def s_model(lut: HsLut, anchor_xyz, robot_z: float, x, y, theta_rad, mount_deg: 
                     g[..., 0] * dth_dv + g[..., 1] * dtx_dv + g[..., 2] * drx_dv,
                     -g[..., 2] * k), -1)
     return val, jac
+
+
+def range_bias_from_banks(banks, n_dirs: int = 150, seed: int = 20261007, d_min: float = 2.0, d_max: float = 16.0, d_step: float = 0.01) -> dict:
+    """Constant offset of the first-path range (chain range - true range) for LoS-only channels built from the actual FFD banks.
+
+    Averaged over random line-of-sight directions (theta 10-80 deg) and over a distance grid (which averages out the 0.149 m tap staircase).
+    No trajectory data is used.  ``std_over_directions`` shows how direction dependent the offset is.
+    """
+    rng = np.random.default_rng(seed)
+    freqs = banks[0].freqs_hz
+    dist = np.arange(d_min, d_max, d_step)
+    ph = np.exp(-2j * np.pi * freqs[None, :] * (dist[:, None] - 1.0) / C0) / dist[:, None]
+    means = []
+    for _ in range(n_dirs):
+        th, pt, pr = np.radians(rng.uniform(10, 80)), np.radians(rng.uniform(-180, 180)), np.radians(rng.uniform(-180, 180))
+        d_local = np.array([np.sin(th) * np.cos(pt), np.sin(th) * np.sin(pt), np.cos(th)])
+        d_world = ANCHOR_ROTATION @ d_local
+        yaw = np.degrees(np.arctan2(-d_world[1], -d_world[0]) - pr)
+        h1 = los_h(banks, d_world, yaw, dist_m=1.0)                                # (bin, rx, tx) at 1 m
+        hb = h1[None] * ph[:, :, None, None]
+        out = O.first_path_batch(O.cir_batch(hb[..., 0]), float(freqs[1] - freqs[0]))
+        means.append(float(np.mean(out["range_m"] - dist)))
+    means = np.array(means)
+    return dict(mean_m=float(means.mean()), std_over_directions_m=float(means.std()), min_m=float(means.min()), max_m=float(means.max()), n_dirs=n_dirs, seed=seed)

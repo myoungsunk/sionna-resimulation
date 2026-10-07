@@ -40,6 +40,7 @@ class FilterConfig:
     wheel_base: float = 0.287
     p0_std: tuple = (0.1, 0.1, math.radians(5.0), math.radians(0.12), 0.0104, 0.0064)     # PREREG_AMENDMENTS A5
     bias_rw_std: float = math.radians(1e-3)          # rad/s/sqrt(s)
+    pos_process_std: float = 0.0                     # extra position random walk per step [m] (slack for unmodelled odometry/range errors)
     s_mismatch_sigma: float = 0.09                   # model-mismatch part of R_s (S4 reports the measured value)
     range_extra_sigma: float = 0.05
     range_quant_var: float = (299792458.0 / (1028 * 1.953125e6)) ** 2 / 12.0
@@ -141,6 +142,8 @@ class DriveFilter:
             Qn[3, 3] += cfg.bias_rw_std ** 2 * cfg.dt
             Qn[4, 4] += 1e-12
             Qn[5, 5] += 1e-12
+            Qn[0, 0] += cfg.pos_process_std ** 2
+            Qn[1, 1] += cfg.pos_process_std ** 2
             c.P = F @ P @ F.T + Qn
             c.P = 0.5 * (c.P + c.P.T)
             x[0] += ds_o * math.cos(th_prev)
@@ -170,6 +173,8 @@ class DriveFilter:
         Qn[3, 3] += cfg.bias_rw_std ** 2 * cfg.dt
         Qn[4, 4] += 1e-12
         Qn[5, 5] += 1e-12
+        Qn[0, 0] += cfg.pos_process_std ** 2
+        Qn[1, 1] += cfg.pos_process_std ** 2
         c.x, c.P = mean, 0.5 * (P + Qn + (P + Qn).T)
 
     # ---------------------------------------------------------------- generic measurement updates

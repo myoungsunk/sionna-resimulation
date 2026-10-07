@@ -99,3 +99,32 @@ def test_align_paths_rejects_changed_path_set():
     assert P.align_paths(tau, d, tau + np.array([0, 0, 1e-15]), d) is not None   # 1 ulp float32 jitter is accepted
     assert P.align_paths(tau, d, tau + np.array([0, 0, 1e-11]), d) is None
     assert P.align_paths(tau, d, tau, d + 0.5) is None
+
+
+def _fake_trace(tmp_path, tag, status="OK", unmatched=0):
+    rng = np.random.default_rng(5)
+    n, k = 6, 5
+    freqs = np.linspace(6.2504e9, 6.7496e9, 257)
+    nodes = np.unique(np.round(np.linspace(0, 256, k)).astype(int))
+    jones = (rng.normal(size=(len(nodes), n, 3, 3)) + 1j * rng.normal(size=(len(nodes), n, 3, 3))) * 1e-3
+    ang = np.array([rng.uniform(2.0, 3.0, n), rng.uniform(-3, 3, n), rng.uniform(0.2, 1.0, n), rng.uniform(-3, 3, n)])
+    np.savez(tmp_path / f"{tag}_trace.npz", jones=jones, tau=np.sort(rng.uniform(2e-8, 1e-7, n)), ang=ang, node_bins=nodes, node_freq_hz=freqs[nodes],
+             x=1.0, y=0.0, signature=np.array(["LOS"]), unmatched=unmatched, status=status, flagged_bins=np.array([], int), path_counts=np.full(len(nodes), n))
+
+
+def test_assemble_maps_poses_to_rows_and_flags_missing_or_unusable_traces(tmp_path):
+    from test_drivesim_hs_lut import ideal_banks
+    from qclean_uwb.drivesim import rf_store as R
+    banks = ideal_banks()
+    _fake_trace(tmp_path, "x7.0000_y0.0000")
+    poses = [dict(pose_id=0, x=7.0, y=0.0, yaw_body_deg=0.0), dict(pose_id=1, x=7.0, y=0.0, yaw_body_deg=30.0), dict(pose_id=2, x=8.0, y=0.0, yaw_body_deg=0.0)]
+    h, rep = R.assemble(poses, [tmp_path], banks, 45.0, allow_missing=True)
+    assert rep["missing"] == ["x8.0000_y0.0000"] and not rep["complete"] and np.isnan(h[2]).all()
+    direct = R.h_for_antenna_yaws(R.load_trace(tmp_path / "x7.0000_y0.0000_trace.npz"), banks, [45.0, 75.0])
+    np.testing.assert_allclose(h[0], direct[0])
+    np.testing.assert_allclose(h[1], direct[1])
+    with pytest.raises(ValueError):
+        R.assemble(poses, [tmp_path], banks, 0.0)
+    _fake_trace(tmp_path, "x8.0000_y0.0000", status="PATH_SET_CHANGED_WITH_FREQUENCY")
+    h2, rep2 = R.assemble(poses, [tmp_path], banks, 0.0, allow_missing=True)
+    assert rep2["unusable"][0]["tag"] == "x8.0000_y0.0000"

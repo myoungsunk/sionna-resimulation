@@ -54,12 +54,12 @@ def paired(df: pd.DataFrame, a: str, b: str, metric: str, by: list[str], merge_o
         lo, hi = bootstrap_ci(d)
         rows.append(dict(zip(by, cond), n=len(g), median_a=float(np.median(g.a)), median_b=float(np.median(g.b)), median_diff=float(np.median(d)),
                          ci_lo=lo, ci_hi=hi, median_rel_improvement=float(np.median(rel)), p=float(p)))
-    out = pd.DataFrame(rows)
-    if len(out):
-        out["p_holm"] = holm(out.p.to_numpy())
-        out["significant"] = out.p_holm < ALPHA
-        out["improved"] = out.significant & (out.median_rel_improvement >= MIN_REL_IMPROVEMENT)
-        out["worse"] = out.significant & (out.median_rel_improvement <= -MIN_REL_IMPROVEMENT)
+    cols = by + ["n", "median_a", "median_b", "median_diff", "ci_lo", "ci_hi", "median_rel_improvement", "p"]
+    out = pd.DataFrame(rows, columns=cols)
+    out["p_holm"] = holm(out.p.to_numpy()) if len(out) else np.array([], float)
+    out["significant"] = out.p_holm < ALPHA
+    out["improved"] = out.significant & (out.median_rel_improvement >= MIN_REL_IMPROVEMENT)
+    out["worse"] = out.significant & (out.median_rel_improvement <= -MIN_REL_IMPROVEMENT)
     return out
 
 

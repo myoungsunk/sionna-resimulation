@@ -13,6 +13,7 @@ from qclean_uwb.drivesim import observation as O
 from qclean_uwb.drivesim import sensors as S
 from qclean_uwb.drivesim.hs_lut import HsLut
 
+POS_PROCESS_STD = 0.0
 EXCLUDE_S = 30.0
 WRONG_BRANCH_DEG = 20.0
 GRID_S = 1.0
@@ -95,7 +96,7 @@ def filter_config(base: dict, world: World, obs: dict, sensor: S.SensorNoise, mi
     cfg = F.FilterConfig(kind=kind, mount_deg=world.mount_deg, anchor_xyz=tuple(anchor_xyz), robot_z=robot_z, s_mismatch_sigma=mismatch_sigma,
                          range_offset=obs["range_offset"], range_sigma=sensor.range_sigma_m, k_s=sensor.k_s_m, k_theta=sensor.k_theta_rad,
                          k_stheta=sensor.k_stheta_rad2_per_m, arw_var=math.radians(sensor.arw_deg_sqrt_s) ** 2 * 0.2,
-                         noise_var_cir_tap=6.0 * obs["noise_var"])
+                         noise_var_cir_tap=6.0 * obs["noise_var"], pos_process_std=POS_PROCESS_STD)
     for k in ("use_range", "use_s", "use_odom_heading", "skip_s_in_turn", "s_mode"):
         if k in base:
             setattr(cfg, k, base[k])

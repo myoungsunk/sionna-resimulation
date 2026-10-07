@@ -42,3 +42,9 @@
 3. **Extra baseline "gyro-only"** (`use_odom_heading=False`: heading from the gyro increments only, odometry used for distance): added next to the fused "odom+IMU" baseline, because the fused baseline is weak by construction (point 1). H1 is evaluated against both; the fused one is the pre-registered primary comparison, the gyro-only one is reported as the stronger-baseline sensitivity.
 4. **Measurement noise the filter is told:** range R = σ_r² + quantisation (tap spacing 0.149 m, uniform) + (0.05 m)²; s R = delta-method thermal variance from the *measured* tap powers + σ_mismatch²; σ_mismatch = 0.09 until S4 reports the measured value (then the measured value is used for all conditions at once). Gate: χ²₁ 99 % for range and s, 99.9 % for the odometry heading pseudo-measurement (slip).
 5. **Range model offset:** the first-path range is quantised (taps 0.149 m) and biased by the 30 % leading edge; the filter uses a constant offset computed from a flat-spectrum LoS channel passed through the same chain, averaged over distance (no trajectory data).
+
+## A6 — S4 gate L1 result (real FFD banks, 2° grid; local development run, deterministic so the Snowball build must reproduce it)
+
+- 500 random points, θ∈[5°, 85°]: **max |Δs| = 0.0240 (threshold 1e-2: FAIL)**, median 5.3e-4 (threshold 1e-3: pass); 5/500 points exceed 1e-2, 14/500 exceed 3e-3.
+- All five exceedances sit near |s| ≈ 0 – 0.2 at specific (φ_tx, φ_rx); the cause is not smooth interpolation error but jumps of the first-path chain (the 30 % leading-edge tap changes between neighbouring grid cells), which a trilinear table cannot follow.
+- The threshold is **not** changed. The effect is far below the filter's mismatch component (σ_mismatch ≈ 0.09), so it is carried as a known limitation of the LUT; a finer grid would reduce the width of the affected cells but not remove the jumps. The measured trajectory-level mismatch σ (S4 report) is the number the filter uses.

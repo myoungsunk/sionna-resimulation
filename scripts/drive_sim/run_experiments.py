@@ -21,7 +21,6 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from qclean_uwb.drivesim import experiment as E  # noqa: E402
-from qclean_uwb.drivesim import observation as O  # noqa: E402
 from qclean_uwb.drivesim import sensors as S  # noqa: E402
 from qclean_uwb.drivesim.config import build_manifest  # noqa: E402
 from qclean_uwb.drivesim.hs_lut import HsLut  # noqa: E402
@@ -68,7 +67,10 @@ def main():
     with np.load(ROOT / "LP_plus45_bank.npz") as z:
         freqs = z["freqs_hz"]
     sensor = S.SensorNoise(range_sigma_m=args.range_sigma)
-    range_offset = O.los_range_bias(freqs)
+    doc = json.loads((args.lut.parent / "hs_lut_meta.json").read_text())
+    if "range_bias" not in doc:
+        raise SystemExit("hs_lut_meta.json has no range_bias: run build_hs_lut.py --range-bias-only")
+    range_offset = doc["range_bias"]["mean_m"]
     _G.update(lut=lut, sensor=sensor, mismatch=args.mismatch_sigma, anchor=tuple(setup.anchor_position), robot_z=setup.robot_antenna_z_m,
               range_offset=range_offset, snr=args.snr_db, compare=not args.no_compare_filters)
     config = dict(snr_db=args.snr_db, seeds=args.seeds, laterals=args.laterals, mounts=args.mounts, drifts=args.drifts, mismatch_sigma=args.mismatch_sigma,
