@@ -22,3 +22,40 @@ def first_path_power(h, frequencies):
     if index < 0:
         raise ValueError("NO_SIGNAL")
     return np.abs(cir[index]) ** 2, int(index), float(delay)
+
+
+def signed_port_ratio(p1, p2):
+    """Signed ratio ``s = (P1 - P2) / (P1 + P2)``; ``nan`` where both powers are zero."""
+    p1 = np.asarray(p1, float)
+    p2 = np.asarray(p2, float)
+    den = p1 + p2
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.where(den > 0.0, (p1 - p2) / den, np.nan)
+
+
+def first_path_power_single_tx(h, frequencies, tx: int = 0):
+    """FP power of the two RX ports for one active TX port (single-port anchor).
+
+    Same chain as ``first_path_power`` (Hann 1028-tap CIR, 30 % leading edge) but the first-path index comes from the
+    stronger of the two RX branches in the selected TX column ``tx`` only (0 = TX +45).  Returns
+    ``(power[rx], index, delay_s)``.  ``first_path_power`` (4-branch rule) is kept for reproducing earlier results.
+    """
+    from rt_cp_uwb_py.features import extract_first_path
+    from rt_cp_uwb_py.rf_channel_closure import contribution_cir
+
+    cir, time = contribution_cir(np.asarray(h, complex), frequencies)
+    column = cir[:, :, tx]
+    rx = int(np.argmax(np.max(np.abs(column), axis=0)))
+    index, delay, _ = extract_first_path(column[:, rx], time)
+    if index < 0:
+        raise ValueError("NO_SIGNAL")
+    return np.abs(column[index]) ** 2, int(index), float(delay)
+
+
+def signed_s_single_tx(h, frequencies, tx: int = 0):
+    """Signed ``s`` of the single-port-anchor chain: ``(s, power[rx], index, delay_s)``.
+
+    Ideal on-axis LoS: ``s = sigma * cos(2 yaw)`` with ``sigma = -1`` for TX +45 and ``+1`` for TX -45.
+    """
+    power, index, delay = first_path_power_single_tx(h, frequencies, tx)
+    return float(signed_port_ratio(power[0], power[1])), power, index, delay
