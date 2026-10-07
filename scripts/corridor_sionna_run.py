@@ -223,10 +223,13 @@ def main():
     ap.add_argument("--bin-stride", type=int, default=1)
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--los-check", action="store_true")
+    ap.add_argument("--anchor-x", type=float, default=None, help="ceiling anchor x in metres (default: CorridorSetup default, 4.0)")
+    ap.add_argument("--anchor-y", type=float, default=None, help="ceiling anchor y in metres (default 0.0)")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     dr.set_thread_count(args.threads)
-    setup = CorridorSetup()
+    over = {k: v for k, v in (("anchor_x_m", args.anchor_x), ("anchor_y_m", args.anchor_y)) if v is not None}
+    setup = CorridorSetup(**over)
     assert all(c["passed"] for c in setup.validate()), "SETUP_VALIDATION_FAILED"
     cfg = json.loads(SOLVER_SOURCE.read_text())["solver"]
     banks = load_banks()

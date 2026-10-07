@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앵커 두 개 스윕 계획</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#ffffff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--corr:#f3f2ee;--zone:#d9d8d1;--c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--anchor:#0b0b0b;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 18px;max-width:78ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.kpi b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.scroll{overflow-x:auto}
+svg{display:block;width:100%;min-width:760px;height:auto}
+.corr{fill:var(--corr);stroke:var(--line)}.zone{fill:none;stroke:var(--zone);stroke-dasharray:5 4}
+.mid{stroke:var(--line);stroke-dasharray:2 4}.iso{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 4;opacity:.8}
+.yline{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}.tl{fill:var(--ink2);font-size:11px}.tick,.isot{fill:var(--muted);font-size:11px}.lab{fill:var(--ink);font-size:12px}
+.c1{fill:var(--c1)}.c2{fill:var(--c2)}.c3{fill:var(--c3)}.anchor{fill:var(--anchor)}
+.mk{stroke:var(--card);stroke-width:2;paint-order:stroke}.pt:hover .mk{stroke:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 0;font-size:14px;color:var(--ink2)}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.sw{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:2px}
+.sw.c1{border-radius:50%;background:var(--c1)}.sw.c2{background:var(--c2)}.sw.c3{background:var(--c3);transform:rotate(45deg) scale(.85)}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--ink2);font-weight:600}.n{text-align:right;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;color:var(--ink2);font-size:14px}
+ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>앵커 두 개, 태그 x 스윕 계획 (시뮬레이션 전)</h1>
+  <p class="lede">앵커를 지금보다 오른쪽(x = __AX__ m)으로 옮기고, 앵커 1(y = 0)과 앵커 2(y = −0.4)에서 각각 태그를 앵커와 같은 y 선 위에서 x 방향으로 움직입니다. 그러면 앵커–태그 방향의 방위가 0° 또는 180°로 고정되어 보어사이트 이탈각 θ만 바뀝니다. 아직 아무것도 돌리지 않았습니다.</p>
+  <div class="kpis">
+    <div class="kpi"><b>__N1__</b><span>앵커 1 위치 (y = 0)</span></div>
+    <div class="kpi"><b>__N2__</b><span>앵커 2 위치 (y = −0.4)</span></div>
+    <div class="kpi"><b>__TOTAL__</b><span>합계 · 약 __HOURS__시간 (4코어)</span></div>
+  </div>
+  <section class="card" aria-label="앵커 1 위치">
+    <h2>앵커 1 (x __AX__, y 0): 태그가 y = 0 선 위에서 이동</h2>
+    <div class="scroll" tabindex="0">__P1__</div>
+    <div class="legend"><span><i style="background:var(--c1);border-radius:50%"></i>태그 위치 (원, 숫자는 θ)</span><span><i style="background:var(--anchor)"></i>앵커 (천장)</span></div>
+  </section>
+  <section class="card" aria-label="앵커 2 위치">
+    <h2>앵커 2 (x __AX__, y −0.4): 태그가 y = −0.4 선 위에서 이동</h2>
+    <div class="scroll" tabindex="0">__P2__</div>
+    <div class="legend"><span><i style="background:var(--c2)"></i>태그 위치 (사각형, 숫자는 θ)</span><span><i style="background:var(--anchor)"></i>앵커 (천장)</span></div>
+    <p class="note">좁은 화면에서는 지도를 좌우로 밀어 보세요. 점에 마우스를 올리면 좌표, θ, φ, 거리가 보입니다. 세로 방향은 확대해 그렸습니다.</p>
+  </section>
+  <section class="card" aria-label="설계">
+    <h2>설계</h2>
+    <ul>
+      <li><b>앵커 위치:</b> 복도 길이 20 m에서 x = __AX__ m입니다. 기존(x = 4)과 복도 중앙에 대해 좌우 대칭이어서, 태그를 왼쪽으로 15 m 가까이 움직여 θ를 0°에서 약 81°까지 훑을 수 있습니다. 오른쪽에는 끝벽까지 4 m만 남습니다.</li>
+      <li><b>θ 간격:</b> 왼쪽은 0°, 10°, 20°, 30°, 40°, 50°, 55°, 60°, 65°, 70°, 75°, 80°입니다. 지난 스캔에서 오차가 급증한 65° 이상을 촘촘하게 잡았습니다. 오른쪽은 20°, 40°, 50°만 넣었습니다(끝벽 때문에 θ 54°까지만 가능).</li>
+      <li><b>같은 y 선:</b> 태그의 y가 항상 앵커의 y와 같아서, 앵커에서 본 방위 φ가 0°(오른쪽) 또는 180°(왼쪽)이고 θ만 변합니다. 앵커 2는 한쪽 벽에 가까워서(벽까지 0.8 m와 1.6 m) 반사 조건이 앵커 1과 다릅니다.</li>
+      <li><b>yaw:</b> 위치마다 0°–180°를 10° 간격으로 돌립니다. 시간은 위치당 약 20분(4개 동시)으로 잡았습니다.</li>
+    </ul>
+  </section>
+  <section class="card" aria-label="위치 표">
+    <details>
+      <summary>모든 위치 표 (__TOTAL__곳)</summary>
+      <div class="scroll"><table><thead><tr><th>앵커</th><th class="n">목표 θ (°)</th><th>태그 쪽</th><th class="n">x (m)</th><th class="n">y (m)</th><th class="n">θ (°)</th><th class="n">φ (°)</th><th class="n">거리 (m)</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+    </details>
+  </section>
+</div>
+</body>
+</html>
