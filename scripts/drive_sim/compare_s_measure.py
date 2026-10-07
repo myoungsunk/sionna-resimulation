@@ -59,7 +59,7 @@ def main():
     ap.add_argument("--nproc", type=int, default=4)
     args = ap.parse_args()
     setup = CorridorSetup()
-    luts, docs = {m: load_lut(args.lut_dir, m) for m in ("fp", "rx")}
+    luts = {m: load_lut(args.lut_dir, m) for m in ("fp", "rx")}
     lut = {m: v[0] for m, v in luts.items()}
     with np.load(ROOT / "LP_plus45_bank.npz") as z:
         freqs = z["freqs_hz"]

@@ -23,6 +23,9 @@ from qclean_uwb.scenarios.corridor import CorridorSetup  # noqa: E402
 from qclean_uwb.drivesim.rf_store import tag_of  # noqa: E402
 
 
+DRIVE_PHASES = ("drive_out", "drive_back", "drive")      # R1 uses drive_out/drive_back, the added routes (R2/R4/R5) use drive
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--timeline", type=Path, required=True)
@@ -33,7 +36,7 @@ def main():
     stations, seen = [], set()
     for r in csv.DictReader(args.timeline.open()):
         key = (round(float(r["x"]), 6), round(float(r["y"]), 6))
-        if r["phase"] in ("drive_out", "drive_back") and key not in seen:
+        if r["phase"] in DRIVE_PHASES and key not in seen:
             seen.add(key)
             stations.append(key)
     setup = CorridorSetup(anchor_x_m=args.anchor_x)
@@ -65,10 +68,12 @@ def main():
         if sigs[i] != sigs[i - 1]:
             changes.append(dict(from_station=i - 1, to_station=i, xy=stations[i], **signature_diff(sigs[i - 1], sigs[i])))
     counts = sorted({len(s) for s in sigs if s is not None})
+    if not stations:
+        raise SystemExit(f"NO_STATIONS_FOUND in {args.timeline}: no row with phase in {DRIVE_PHASES} (an empty check must not pass)")
     rep = dict(stations=len(stations), missing_traces=missing, status_not_ok=bad, unmatched_paths_total={f"tol_{t:g}": v for t, v in unmatched_total.items()}, max_residual_s=max_res,
                min_gap_between_distinct_image_delays_s=min_gap, path_counts=counts,
-               n_set_changes=len(changes), set_changes=changes[:50], passed_strict_prereg_tol=bool(not missing and not bad and unmatched_total[tols[0]] == 0),
-               passed_relaxed_2e13=bool(not missing and not bad and unmatched_total[tols[1]] == 0))
+               n_set_changes=len(changes), set_changes=changes[:50], passed_strict_prereg_tol=bool(stations and not missing and not bad and unmatched_total[tols[0]] == 0),
+               passed_relaxed_2e13=bool(stations and not missing and not bad and unmatched_total[tols[1]] == 0))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(rep, indent=1))
     print(json.dumps({k: rep[k] for k in ("stations", "unmatched_paths_total", "max_residual_s", "min_gap_between_distinct_image_delays_s", "path_counts", "n_set_changes", "passed_strict_prereg_tol", "passed_relaxed_2e13")}))
