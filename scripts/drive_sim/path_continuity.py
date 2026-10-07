@@ -18,7 +18,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
-from qclean_uwb.drivesim.paths import signature_diff  # noqa: E402
+from qclean_uwb.drivesim.paths import path_residuals, signature_diff  # noqa: E402
+from qclean_uwb.scenarios.corridor import CorridorSetup  # noqa: E402
 from qclean_uwb.drivesim.rf_store import tag_of  # noqa: E402
 
 
@@ -30,11 +31,14 @@ def main():
     args = ap.parse_args()
     stations, seen = [], set()
     for r in csv.DictReader(args.timeline.open()):
-        key = (float(r["x"]), float(r["y"]))
+        key = (round(float(r["x"]), 6), round(float(r["y"]), 6))
         if r["phase"] in ("drive_out", "drive_back") and key not in seen:
             seen.add(key)
             stations.append(key)
-    sigs, unmatched_total, missing, bad = [], 0, [], []
+    setup = CorridorSetup()
+    tols = (5e-14, 2e-13)                      # 5e-14 = pre-registered (PREREG G3); 2e-13 = float32 allowance for long paths (A8)
+    sigs, unmatched_total, missing, bad = [], {t: 0 for t in tols}, [], []
+    max_res, min_gap = 0.0, 1.0
     for x, y in stations:
         tag = tag_of(x, y)
         p = next((d / f"{tag}_trace.npz" for d in args.traces if (d / f"{tag}_trace.npz").exists()), None)
@@ -43,10 +47,15 @@ def main():
             sigs.append(None)
             continue
         with np.load(p) as z:
-            sig, un, status = [str(s) for s in z["signature"]], int(z["unmatched"]), str(z["status"])
-        unmatched_total += un
+            tau, status, rx_xy = z["tau"], str(z["status"]), (float(z["x"]), float(z["y"]))
+        res, pick, cd, names = path_residuals(tau, setup.anchor_position, setup.robot_position(*rx_xy), setup.length_m, setup.y_half, setup.height_m)
+        for t in tols:
+            unmatched_total[t] += int((res > t).sum())
+        max_res = max(max_res, float(res.max()))
+        min_gap = min(min_gap, float(np.diff(cd).min()))
         if status != "OK":
             bad.append(tag)
+        sig = sorted(names[k] for k in pick)
         sigs.append(sig)
     changes = []
     for i in range(1, len(stations)):
@@ -55,11 +64,13 @@ def main():
         if sigs[i] != sigs[i - 1]:
             changes.append(dict(from_station=i - 1, to_station=i, xy=stations[i], **signature_diff(sigs[i - 1], sigs[i])))
     counts = sorted({len(s) for s in sigs if s is not None})
-    rep = dict(stations=len(stations), missing_traces=missing, status_not_ok=bad, unmatched_paths_total=unmatched_total, path_counts=counts,
-               n_set_changes=len(changes), set_changes=changes[:50], passed=bool(not missing and not bad and unmatched_total == 0))
+    rep = dict(stations=len(stations), missing_traces=missing, status_not_ok=bad, unmatched_paths_total={f"tol_{t:g}": v for t, v in unmatched_total.items()}, max_residual_s=max_res,
+               min_gap_between_distinct_image_delays_s=min_gap, path_counts=counts,
+               n_set_changes=len(changes), set_changes=changes[:50], passed_strict_prereg_tol=bool(not missing and not bad and unmatched_total[tols[0]] == 0),
+               passed_relaxed_2e13=bool(not missing and not bad and unmatched_total[tols[1]] == 0))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(rep, indent=1))
-    print(json.dumps({k: rep[k] for k in ("stations", "unmatched_paths_total", "path_counts", "n_set_changes", "passed")}))
+    print(json.dumps({k: rep[k] for k in ("stations", "unmatched_paths_total", "max_residual_s", "min_gap_between_distinct_image_delays_s", "path_counts", "n_set_changes", "passed_strict_prereg_tol", "passed_relaxed_2e13")}))
 
 
 if __name__ == "__main__":

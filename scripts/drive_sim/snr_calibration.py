@@ -43,7 +43,7 @@ def main():
         nv = O.noise_var_from_snr(snr)
         s_all, r_all, det = [], [], []
         for d in range(args.draws):
-            o = O.observe(hc, freqs, nv, np.random.default_rng([d, int(snr)]))
+            o = O.observe(hc, freqs, nv, np.random.default_rng([d, int(snr) + 1000]))
             s_all.append(o["s"] - clean["s"])
             r_all.append(o["range_m"] - clean["range_m"])
             det.append(o["detected"])

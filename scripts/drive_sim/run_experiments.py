@@ -51,6 +51,8 @@ def main():
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--snr-db", type=float, nargs="+", required=True)
     ap.add_argument("--seeds", type=int, default=50)
+    ap.add_argument("--seed-start", type=int, default=0, help="first seed (final evaluation uses 0..49; calibration uses 1000..)")
+    ap.add_argument("--pos-process-std", type=float, default=0.0, help="filter position random walk per step [m] (A7 calibration)")
     ap.add_argument("--laterals", type=float, nargs="*", default=[0.0, 0.35])
     ap.add_argument("--mounts", type=float, nargs="*", default=[0.0, 45.0])
     ap.add_argument("--drifts", type=int, nargs="*", default=[0, 1, 2])
@@ -71,11 +73,12 @@ def main():
     if "range_bias" not in doc:
         raise SystemExit("hs_lut_meta.json has no range_bias: run build_hs_lut.py --range-bias-only")
     range_offset = doc["range_bias"]["mean_m"]
+    E.POS_PROCESS_STD = args.pos_process_std
     _G.update(lut=lut, sensor=sensor, mismatch=args.mismatch_sigma, anchor=tuple(setup.anchor_position), robot_z=setup.robot_antenna_z_m,
               range_offset=range_offset, snr=args.snr_db, compare=not args.no_compare_filters)
     config = dict(snr_db=args.snr_db, seeds=args.seeds, laterals=args.laterals, mounts=args.mounts, drifts=args.drifts, mismatch_sigma=args.mismatch_sigma,
                   sensor=sensor.__dict__, range_offset_m=range_offset, drift_levels=[d.__dict__ for d in S.DRIFT_LEVELS], baselines=E.BASELINES,
-                  filters_compared=list(E.FILTER_KINDS_COMPARED), max_samples=args.max_samples)
+                  filters_compared=list(E.FILTER_KINDS_COMPARED), max_samples=args.max_samples, seed_start=args.seed_start, pos_process_std=args.pos_process_std)
     for lat in args.laterals:
         for mount in args.mounts:
             csv_path = args.out / f"results_y{lat:g}_m{mount:g}.csv"
@@ -85,7 +88,7 @@ def main():
             t0 = time.monotonic()
             h = np.load(args.h_dir / f"H_y{lat:g}_m{mount:g}.npy", mmap_mode="r")
             _G["worlds"] = {p: E.make_world(args.s1 / f"timeline_y{lat:g}_T{tag(p)}.csv", h, freqs, lat, mount, p, max_samples=args.max_samples or None) for p in PERIODS}
-            units = [(seed, d, si) for d in args.drifts for si in range(len(args.snr_db)) for seed in range(args.seeds)]
+            units = [(seed, d, si) for d in args.drifts for si in range(len(args.snr_db)) for seed in range(args.seed_start, args.seed_start + args.seeds)]
             rows, series = [], {}
             ctx = mp.get_context("fork")
             with ctx.Pool(args.nproc) as pool:

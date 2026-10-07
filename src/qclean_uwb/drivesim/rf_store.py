@@ -71,8 +71,8 @@ def assemble(poses: list[dict], trace_dirs: list[Path], banks: list[P.Bank], mou
             missing.append(tag)
             continue
         trace = load_trace(path)
-        if trace["status"] != "OK" or int(trace["unmatched"]) != 0:
-            unusable.append(dict(tag=tag, status=trace["status"], unmatched=int(trace["unmatched"])))
+        if trace["status"] != "OK":
+            unusable.append(dict(tag=tag, status=trace["status"]))
             continue
         yaws = [p["yaw_body_deg"] + mount_deg for p in ps]
         hh = h_for_antenna_yaws(trace, banks, yaws)

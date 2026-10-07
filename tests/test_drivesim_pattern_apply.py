@@ -78,6 +78,15 @@ def test_path_signature_detects_matches_and_unmatched():
     assert signature_diff(sig, ["LOS"]) == dict(removed=["floor"], added=[])
 
 
+def test_equal_image_sequences_are_one_class():
+    from qclean_uwb.features.reflection_attribution import image_delays
+    tx, rx = np.array([4.0, 0.0, 2.65]), np.array([7.0, 0.0, 0.45])           # robot on the corridor axis: wall_y_neg == wall_y_pos
+    table = image_delays(tx, rx, 20.0, 1.2, 2.7)
+    assert abs(table[("end_x_max", "floor", "end_x_max")] - table[("floor",)]) < 1e-13
+    sig, unmatched = path_signature([table[("floor",)], table[("wall_y_neg",)], table[("wall_y_pos",)]], tx, rx, 20.0, 1.2, 2.7)
+    assert unmatched == 0 and sig.count("floor") == 1 and sig.count("wall_y_neg") == 2 and "end_x_max>floor>end_x_max" not in sig
+
+
 def test_align_paths_matches_degenerate_delays_by_direction():
     rng = np.random.default_rng(3)
     n = 12
