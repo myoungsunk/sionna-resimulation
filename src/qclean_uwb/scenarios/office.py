@@ -77,7 +77,7 @@ class OfficeSetup:
     top_bar_y_m: float = 11.25
     bottom_end_y_m: float = 0.75
     anchor_x_m: float = 5.0
-    anchor_y_m: float = 6.0
+    anchor_y_m: float = 2.2
     anchor_standoff_m: float = 0.05
     robot_antenna_z_m: float = 0.45
     robot_body_lwh_m: tuple = (0.60, 0.40, 0.40)

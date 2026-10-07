@@ -1,11 +1,11 @@
 {
  "status": "SETUP_VISUALISATION_ONLY_NO_RF_RUN",
- "created_utc": "2026-10-07T13:56:54+00:00",
+ "created_utc": "2026-10-07T13:58:23+00:00",
  "command": "scripts/office_render_3d.py",
  "config": {
   "anchor_standoff_m": 0.05,
   "anchor_x_m": 5.0,
-  "anchor_y_m": 6.0,
+  "anchor_y_m": 2.2,
   "bottom_end_y_m": 0.75,
   "col_x_m": [
    1.85,
@@ -42,12 +42,12 @@
   "top_margin_m": 1.85,
   "width_m": 12.0
  },
- "config_sha256": "2d1e05bd19ab4e6be20de2e0c5c3ec6db123dee9579facd129ce6fab66a839fd",
+ "config_sha256": "72c0712a23a5acecbe4af01dce6a5f92466f852342f5a6164b20f79c80dc1393",
  "checks": [
   {
    "name": "anchor_inside_room",
    "passed": true,
-   "detail": "anchor=[5.0, 6.0, 2.65]"
+   "detail": "anchor=[5.0, 2.2, 2.65]"
   },
   {
    "name": "solids_inside_room",
@@ -119,7 +119,8 @@
    "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "partition_c0_r0"
+    "desk_c0_r0",
+    "partition_c0_r1"
    ]
   },
   {
@@ -127,6 +128,7 @@
    "y": 11.25,
    "los_clear": false,
    "blockers": [
+    "desk_c0_r0",
     "partition_c0_r0"
    ]
   },
@@ -141,7 +143,9 @@
    "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "partition_c1_r0"
+    "desk_c1_r0",
+    "partition_c1_r0",
+    "partition_c1_r1"
    ]
   },
   {
@@ -155,6 +159,7 @@
    "y": 11.25,
    "los_clear": false,
    "blockers": [
+    "desk_c2_r0",
     "partition_c2_r0"
    ]
   },
@@ -163,166 +168,179 @@
    "y": 11.25,
    "los_clear": false,
    "blockers": [
-    "partition_c2_r0"
-   ]
-  },
-  {
-   "x": 0.5,
-   "y": 9.75,
-   "los_clear": false,
-   "blockers": [
-    "partition_c0_r1"
-   ]
-  },
-  {
-   "x": 0.5,
-   "y": 8.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 0.5,
-   "y": 6.75,
-   "los_clear": false,
-   "blockers": [
-    "desk_c0_r2"
-   ]
-  },
-  {
-   "x": 0.5,
-   "y": 5.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 0.5,
-   "y": 3.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 0.5,
-   "y": 2.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 0.5,
-   "y": 0.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 9.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 8.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 6.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 5.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 3.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 2.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 3.3,
-   "y": 0.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 9.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 8.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 6.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 5.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 3.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 2.25,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 6.55,
-   "y": 0.75,
-   "los_clear": true,
-   "blockers": []
-  },
-  {
-   "x": 9.5,
-   "y": 9.75,
-   "los_clear": false,
-   "blockers": [
+    "desk_c2_r0",
     "partition_c2_r1"
    ]
   },
   {
-   "x": 9.5,
+   "x": 0.5,
+   "y": 9.75,
+   "los_clear": false,
+   "blockers": [
+    "desk_c0_r1",
+    "partition_c0_r1",
+    "partition_c0_r2"
+   ]
+  },
+  {
+   "x": 0.5,
+   "y": 8.25,
+   "los_clear": false,
+   "blockers": [
+    "partition_c0_r2"
+   ]
+  },
+  {
+   "x": 0.5,
+   "y": 6.75,
+   "los_clear": false,
+   "blockers": [
+    "partition_c0_r3"
+   ]
+  },
+  {
+   "x": 0.5,
+   "y": 5.25,
+   "los_clear": false,
+   "blockers": [
+    "desk_c0_r3"
+   ]
+  },
+  {
+   "x": 0.5,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 0.5,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 0.5,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 9.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
    "y": 8.25,
    "los_clear": true,
    "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 6.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 5.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 3.3,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 9.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 8.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 6.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 5.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 3.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 2.25,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.55,
+   "y": 0.75,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 9.5,
+   "y": 9.75,
+   "los_clear": false,
+   "blockers": [
+    "desk_c2_r1",
+    "partition_c2_r1",
+    "partition_c2_r2"
+   ]
+  },
+  {
+   "x": 9.5,
+   "y": 8.25,
+   "los_clear": false,
+   "blockers": [
+    "partition_c2_r2"
+   ]
   },
   {
    "x": 9.5,
    "y": 6.75,
    "los_clear": false,
    "blockers": [
-    "desk_c2_r2"
+    "partition_c2_r3"
    ]
   },
   {
    "x": 9.5,
    "y": 5.25,
-   "los_clear": true,
-   "blockers": []
+   "los_clear": false,
+   "blockers": [
+    "desk_c2_r3"
+   ]
   },
   {
    "x": 9.5,
@@ -344,6 +362,6 @@
   }
  ],
  "outputs": {
-  "office_setup_3d.html": "5067fbbec737905caf667ea416cf414116f5b5224daf25d3ff2b94a0f862e9d0"
+  "office_setup_3d.html": "fc2d687cc23915ce61e4c87a9e488c321c4ecdcbed331f5276b0693c72dc0984"
  }
 }

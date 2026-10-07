@@ -79,7 +79,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;
     b.onclick = function () { box.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); }); b.setAttribute('aria-pressed', 'true'); Plotly.relayout('fig', { 'scene.camera': D.cams[n] }); }; box.appendChild(b); });
   [['tlos', 'lines_los'], ['tnlos', 'lines_nlos']].forEach(function (p) { var b = document.getElementById(p[0]); b.onclick = function () { var on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); Plotly.restyle('fig', { visible: on }, D.idx[p[1]]); }; });
   var C = D.counts, A = D.anchor;
-  document.getElementById('anc-note').innerHTML = '<b>앵커는 가운데 통로 위</b> (x ' + f(A[0], 1) + ', y ' + f(A[1], 1) + ')에 하나를 뒀습니다. 위치를 바꾸면 LoS가 막히는 위치가 달라집니다.';
+  document.getElementById('anc-note').innerHTML = '<b>앵커</b>는 천장 (x ' + f(A[0], 1) + ', y ' + f(A[1], 1) + ')에 하나 있습니다. 가운데 열 아래쪽 빈 공간 위입니다. 위치를 바꾸면 LoS가 막히는 위치가 달라집니다.';
   document.getElementById('lay-note').innerHTML = '<b>지도에서 읽은 값:</b> 한 칸이 약 73픽셀 = 1 m로 보고 열 중심 x ' + S.col_x_m.join(', ') + ' m, 행 간격 ' + S.row_pitch_m + ' m로 놓았습니다. 지도 아래쪽이 잘려 있어서 맨 아래 행 아래는 빈 공간으로 두었습니다.';
   document.getElementById('kpis').innerHTML = [[S.length_m + ' × ' + S.width_m + ' m', '바깥 치수 (높이 ' + S.height_m + ' m)'], [C.partitions, '칸막이 판 (섬마다 1개)'], [C.desks, '책상'], [C.points, '태그 위치 (' + S.sample_step_m + ' m 간격)'], [C.los + ' / ' + C.nlos, 'LoS 열림 / 막힘']]
     .map(function (k) { return '<div class="kpi"><b>' + k[0] + '</b><span>' + k[1] + '</span></div>'; }).join('');
