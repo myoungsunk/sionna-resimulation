@@ -1,0 +1,156 @@
+{
+ "config_sha256": "a87178db44b96b9ce1089c22363416337ca1905045ce7687a26d2db754dec832",
+ "config": {
+  "snr_db": [
+   30.0,
+   10.0
+  ],
+  "seeds": 50,
+  "seed_start": 0,
+  "routes": [
+   "R2",
+   "R4",
+   "R5"
+  ],
+  "anchors": [
+   "A",
+   "B"
+  ],
+  "mounts": [
+   0.0,
+   45.0
+  ],
+  "drifts": [
+   0,
+   1,
+   2
+  ],
+  "mismatch_sigma": 0.16095229605409875,
+  "pos_process_std": 0.01,
+  "sensor": {
+   "arw_deg_sqrt_s": 0.015,
+   "k_s_m": 2e-05,
+   "k_theta_rad": 0.0001,
+   "k_stheta_rad2_per_m": 1e-05,
+   "slip_probability": 0.01,
+   "slip_scale_deg": 0.5,
+   "range_sigma_m": 0.05
+  },
+  "range_offset_m": -0.5315983906250129,
+  "baselines": [
+   {
+    "name": "odom_imu",
+    "period": null,
+    "use_range": false,
+    "use_s": false,
+    "use_odom_heading": true
+   },
+   {
+    "name": "gyro_only",
+    "period": null,
+    "use_range": false,
+    "use_s": false,
+    "use_odom_heading": false
+   },
+   {
+    "name": "range",
+    "period": null,
+    "use_range": true,
+    "use_s": false,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P0",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P0_noturn",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true,
+    "skip_s_in_turn": true
+   },
+   {
+    "name": "range_s_P1_T10",
+    "period": 10.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P1_T20",
+    "period": 20.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "range_s_P1_T60",
+    "period": 60.0,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true
+   },
+   {
+    "name": "inverse_heading_P0",
+    "period": null,
+    "use_range": true,
+    "use_s": true,
+    "use_odom_heading": true,
+    "s_mode": "inverse"
+   }
+  ],
+  "filters_compared": [
+   "iekf",
+   "ukf",
+   "gsf"
+  ],
+  "max_samples": 0
+ },
+ "inputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S4/hs_lut_2deg.npy",
+   "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+   "bytes": 11923328
+  },
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/H_R4_aA_m45.npy",
+   "sha256": "5eabb1e44677bdf82630cdf9eea43cad729af2459b9b790d246310d62b725724",
+   "bytes": 15165184
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S6_routes/results_R4_aA_m45.csv",
+   "sha256": "7282362818de43a88ef91e3466365419c36020949b8e13083a36fa66f3553d78",
+   "bytes": 1298915
+  }
+ ],
+ "timestamp_utc": "2026-10-07T13:48:50Z",
+ "command": [
+  "scripts/drive_sim/run_route_experiments.py",
+  "--s1-routes",
+  "/job/source/results/DRIVE_SIM_20261007/S1/routes",
+  "--h-dir",
+  "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2",
+  "--lut",
+  "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S4/hs_lut_2deg.npy",
+  "--out",
+  "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S6_routes",
+  "--snr-db",
+  "30",
+  "10",
+  "--mismatch-sigma",
+  "0.16095229605409875",
+  "--pos-process-std",
+  "0.01",
+  "--seeds",
+  "50",
+  "--nproc",
+  "32"
+ ]
+}

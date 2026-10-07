@@ -1,0 +1,44 @@
+{
+  "command": [
+    "docker",
+    "run",
+    "-d",
+    "--name",
+    "drive-sim-routes-01a11669",
+    "--user",
+    "1001:1001",
+    "--mount",
+    "type=bind,source=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669,target=/job",
+    "--mount",
+    "type=bind,source=/home/KMS/COOL_DIJKSTRA_20261007_01a11582/runtime_packages,target=/runtime_packages,readonly",
+    "-w",
+    "/job/source",
+    "-e",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "--entrypoint",
+    "/opt/rt-env/bin/python",
+    "rt-dual-engine:s2-deps-r2-20260928",
+    "/job/routes_supervisor.py"
+  ],
+  "container_id": "cb768be9542e2b871c0ff289d41517cf754a96da7f3affa7e944c89657796a66",
+  "wrapper_sha256": "60411b9686aa63d464de44fbf517316c95e6b9fa8e704eb3807c77778e2e41fd",
+  "G3_user_authorized": {
+    "authorization": "Human response: 2e-13 s \uc801\uc6a9 for new R2/R4/R5 routes",
+    "G3_original_tolerance_s": 5e-14,
+    "G3_authorized_tolerance_s": 2e-13,
+    "original_strict_reports_preserved": true,
+    "parity_thresholds_unchanged": true,
+    "LUT_L1_L2_FAIL_preserved": true,
+    "RF_nproc": 16,
+    "RF_threads": 1,
+    "S6_nproc": 4,
+    "seeds": 50,
+    "snr_db": [
+      30,
+      10
+    ],
+    "pos_process_std": 0.01,
+    "sigma_policy": "measure LUT_MISMATCH_ROUTES overall.rms once; register before S6",
+    "timestamp_UTC": "2026-10-07T12:56:01.383129+00:00"
+  }
+}

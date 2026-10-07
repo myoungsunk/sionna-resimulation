@@ -1,0 +1,42 @@
+{
+ "config_sha256": "4681851820df4b15e0600b5fabdbc2ccf3a40c29a3bd9f9aeafe808a3fc963cd",
+ "config": {
+  "mount_deg": 45.0,
+  "bins": 257,
+  "layout": "[pose_id, bin, rx(+45,-45), tx(+45,-45)]",
+  "report": {
+   "n_pose": 1303,
+   "n_positions": 925,
+   "missing": [],
+   "unusable": [],
+   "complete": true
+  }
+ },
+ "inputs": [
+  {
+   "path": "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R2.json",
+   "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+   "bytes": 89383
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/H_R2_aB_m45.npy",
+   "sha256": "fb229e187f9498025847ca550e061d3ab2cd82624f1c6e20ed9b78a5e7a60f75",
+   "bytes": 21431872
+  }
+ ],
+ "timestamp_utc": "2026-10-07T13:37:50Z",
+ "command": [
+  "scripts/drive_sim/rf_b_apply.py",
+  "--poses",
+  "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R2.json",
+  "--traces",
+  "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/traces_R2_aB",
+  "--mount",
+  "45",
+  "--out",
+  "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/H_R2_aB_m45.npy"
+ ],
+ "elapsed_s": 36.03
+}
