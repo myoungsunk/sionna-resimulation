@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pytest
 
-from qclean_uwb.drivesim.trajectory import (TrajectoryConfig, build_samples, check_region, motion_increments, probe_offsets_deg,
+from qclean_uwb.drivesim.trajectory import (TrajectoryConfig, check_anchor_axis_clearance, build_samples, check_region, motion_increments, probe_offsets_deg,
                                             rf_tasks, unique_poses)
 
 
@@ -96,3 +96,10 @@ def test_motion_increments_zero_path_during_rotation():
     m = motion_increments(r)
     idx = [i for i, x in enumerate(r) if x["phase"] in ("probe", "turn")]
     assert np.allclose(m["ds_m"][idx[1:]], 0.0, atol=1e-12) or np.allclose([m["ds_m"][i] for i in idx if r[i - 1]["phase"] == r[i]["phase"]], 0.0)
+
+
+def test_anchor_axis_clearance_guard():
+    r = rows(probe_period_s=10.0)
+    assert check_anchor_axis_clearance(r) > 0.01
+    with pytest.raises(ValueError):
+        check_anchor_axis_clearance(r, anchor_xy=(r[10]["x"], r[10]["y"]))

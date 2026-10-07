@@ -116,6 +116,14 @@ def check_region(rows: list[dict], x_range=(1.0, 19.0), y_limit: float = 0.74) -
         raise ValueError(f"TRAJECTORY_OUTSIDE_ALLOWED_REGION x[{xs.min():.3f},{xs.max():.3f}] |y|max {np.abs(ys).max():.3f}")
 
 
+def check_anchor_axis_clearance(rows: list[dict], anchor_xy=(4.0, 0.0), min_m: float = 0.01) -> float:
+    """Method B is inaccurate when the robot sits exactly on the anchor's vertical axis (all path angles degenerate): require a clearance."""
+    d = min(math.hypot(r["x"] - anchor_xy[0], r["y"] - anchor_xy[1]) for r in rows)
+    if d < min_m:
+        raise ValueError(f"TRAJECTORY_TOO_CLOSE_TO_ANCHOR_AXIS {d:.5f} m < {min_m} m")
+    return d
+
+
 def pose_key(x: float, y: float, yaw_deg: float) -> tuple:
     return (round(x, 6), round(y, 6), round(yaw_deg, 6))
 

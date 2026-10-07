@@ -16,7 +16,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 from qclean_uwb.drivesim.config import build_manifest  # noqa: E402
-from qclean_uwb.drivesim.trajectory import TrajectoryConfig, build_samples, check_region, rf_tasks, samples_sha256, unique_poses  # noqa: E402
+from qclean_uwb.drivesim.trajectory import TrajectoryConfig, build_samples, check_anchor_axis_clearance, check_region, rf_tasks, samples_sha256, unique_poses  # noqa: E402
 
 LATERALS = (0.0, 0.35)
 PERIODS = (None, 10.0, 20.0, 60.0)
@@ -35,12 +35,13 @@ def main():
     ap.add_argument("--mounts", type=float, nargs="*", default=list(MOUNTS))
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    outputs, summary = [], {}
+    outputs, summary, axis_clearance = [], {}, {}
     for y0 in args.laterals:
         variants = []
         for T in PERIODS:
             rows = build_samples(TrajectoryConfig(y0_m=y0, probe_period_s=T))
             check_region(rows)
+            axis_clearance[(y0, tag(T))] = check_anchor_axis_clearance(rows)
             variants.append(rows)
         poses, ids = unique_poses(variants)
         for T, rows, pid in zip(PERIODS, variants, ids):
@@ -59,7 +60,7 @@ def main():
             p = args.out / f"rf_tasks_y{y0:g}_m{m:g}.json"
             p.write_text(json.dumps(tasks, separators=(",", ":")))
             outputs.append(p)
-            summary[f"y{y0:g}_m{m:g}"] = dict(rf_poses=len(poses), rf_positions=len(tasks),
+            summary[f"y{y0:g}_m{m:g}"] = dict(min_distance_to_anchor_axis_m=min(v for (yy, _), v in axis_clearance.items() if yy == y0), rf_poses=len(poses), rf_positions=len(tasks),
                                              a_method_hours_4core_at_11p7s=round(len(poses) * 11.7 / 3600, 2),
                                              samples={tag(T): len(r) for T, r in zip(PERIODS, variants)},
                                              sha256={tag(T): samples_sha256(r) for T, r in zip(PERIODS, variants)})
