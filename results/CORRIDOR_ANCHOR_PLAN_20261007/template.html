@@ -37,20 +37,20 @@ ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
 </head>
 <body>
 <div class="wrap">
-  <h1>앵커 두 개, 태그 x 스윕 계획 (시뮬레이션 전)</h1>
-  <p class="lede">앵커를 지금보다 오른쪽(x = __AX__ m)으로 옮기고, 앵커 1(y = 0)과 앵커 2(y = −0.4)에서 각각 태그를 앵커와 같은 y 선 위에서 x 방향으로 움직입니다. 그러면 앵커–태그 방향의 방위가 0° 또는 180°로 고정되어 보어사이트 이탈각 θ만 바뀝니다. 아직 아무것도 돌리지 않았습니다.</p>
+  <h1>앵커 두 개 비교 계획: 앵커 1은 이전 데이터, 앵커 2는 y만 이동</h1>
+  <p class="lede">앵커 1은 이전 설정 그대로입니다(앵커 (__AX__, 0), 태그가 y = 0 선 위). 이미 돌려 둔 데이터를 다시 쓰고 새로 돌리지 않습니다. 앵커 2는 앵커의 y만 −0.4 m로 옮기고, 태그를 자기 y = −0.4 선 위의 같은 x 목록에 놓습니다. 그래서 x가 같고 θ도 거의 같은 곡선 15쌍이 생깁니다. 앵커 2 시뮬레이션은 지금 진행 중입니다.</p>
   <div class="kpis">
-    <div class="kpi"><b>__N1__</b><span>앵커 1 위치 (y = 0)</span></div>
-    <div class="kpi"><b>__N2__</b><span>앵커 2 위치 (y = −0.4)</span></div>
-    <div class="kpi"><b>__TOTAL__</b><span>합계 · 약 __HOURS__시간 (4코어)</span></div>
+    <div class="kpi"><b>__N1__</b><span>앵커 1 위치 (이전 데이터 재사용)</span></div>
+    <div class="kpi"><b>__N2__</b><span>앵커 2 위치 (새로 시뮬레이션)</span></div>
+    <div class="kpi"><b>__NEW__</b><span>새로 돌릴 위치 · 약 __HOURS__시간 (4코어)</span></div>
   </div>
   <section class="card" aria-label="앵커 1 위치">
-    <h2>앵커 1 (x __AX__, y 0): 태그가 y = 0 선 위에서 이동</h2>
+    <h2>앵커 1 (x __AX__, y 0): 이전 데이터, 태그가 y = 0 선 위에서 이동</h2>
     <div class="scroll" tabindex="0">__P1__</div>
     <div class="legend"><span><i style="background:var(--c1);border-radius:50%"></i>태그 위치 (원, 숫자는 θ)</span><span><i style="background:var(--anchor)"></i>앵커 (천장)</span></div>
   </section>
   <section class="card" aria-label="앵커 2 위치">
-    <h2>앵커 2 (x __AX__, y −0.4): 태그가 y = −0.4 선 위에서 이동</h2>
+    <h2>앵커 2 (x __AX__, y −0.4): 새 시뮬레이션, 태그가 y = −0.4 선 위에서 이동</h2>
     <div class="scroll" tabindex="0">__P2__</div>
     <div class="legend"><span><i style="background:var(--c2)"></i>태그 위치 (사각형, 숫자는 θ)</span><span><i style="background:var(--anchor)"></i>앵커 (천장)</span></div>
     <p class="note">좁은 화면에서는 지도를 좌우로 밀어 보세요. 점에 마우스를 올리면 좌표, θ, φ, 거리가 보입니다. 세로 방향은 확대해 그렸습니다.</p>
@@ -58,16 +58,17 @@ ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
   <section class="card" aria-label="설계">
     <h2>설계</h2>
     <ul>
-      <li><b>앵커 위치:</b> 복도 길이 20 m에서 x = __AX__ m입니다. 기존(x = 4)과 복도 중앙에 대해 좌우 대칭이어서, 태그를 왼쪽으로 15 m 가까이 움직여 θ를 0°에서 약 81°까지 훑을 수 있습니다. 오른쪽에는 끝벽까지 4 m만 남습니다.</li>
-      <li><b>θ 간격:</b> 왼쪽은 0°, 10°, 20°, 30°, 40°, 50°, 55°, 60°, 65°, 70°, 75°, 80°입니다. 지난 스캔에서 오차가 급증한 65° 이상을 촘촘하게 잡았습니다. 오른쪽은 20°, 40°, 50°만 넣었습니다(끝벽 때문에 θ 54°까지만 가능).</li>
-      <li><b>같은 y 선:</b> 태그의 y가 항상 앵커의 y와 같아서, 앵커에서 본 방위 φ가 0°(오른쪽) 또는 180°(왼쪽)이고 θ만 변합니다. 앵커 2는 한쪽 벽에 가까워서(벽까지 0.8 m와 1.6 m) 반사 조건이 앵커 1과 다릅니다.</li>
-      <li><b>yaw:</b> 위치마다 0°–180°를 10° 간격으로 돌립니다. 시간은 위치당 약 20분(4개 동시)으로 잡았습니다.</li>
+      <li><b>무엇을 비교하나:</b> 두 앵커는 같은 장치·같은 높이·같은 x이고 y만 0.4 m 다릅니다. 같은 x(거의 같은 θ)에서 두 곡선이 다르면 그 차이는 환경(옆벽까지의 거리가 0.8 m와 1.6 m로 달라지는 다중 경로)에서 온 것입니다.</li>
+      <li><b>태그 위치:</b> 이전에 y = 0 선에서 돌린 15곳의 x와 같습니다(1.5, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 7, 9, 11, 13, 13.48, 15, 17.5). θ는 0°에서 약 81°까지이고, 앵커 왼쪽(x &lt; 4)은 방위 φ = 180°, 오른쪽은 0°입니다. 앵커와 같은 y 선 위라서 방위는 두 값뿐입니다.</li>
+      <li><b>재사용하는 데이터:</b> 앵커 1의 15곳은 기존 결과(채널 H, 경로 파일)를 그대로 씁니다. 앵커 바로 아래(x = 4)만 평균 경로 수가 51개이고 나머지는 63개입니다. 바로 아래에서는 경로가 겹쳐 개수가 줄어드는 것으로 보이지만 확인하지 않았습니다.</li>
+      <li><b>yaw와 시간:</b> 위치마다 0°–180°를 10° 간격으로 돌립니다. 앵커 2의 15곳은 위치당 약 20분(4개 동시)이라 약 1.2시간입니다.</li>
     </ul>
+    <p class="note" style="display:none">
   </section>
   <section class="card" aria-label="위치 표">
     <details>
       <summary>모든 위치 표 (__TOTAL__곳)</summary>
-      <div class="scroll"><table><thead><tr><th>앵커</th><th class="n">목표 θ (°)</th><th>태그 쪽</th><th class="n">x (m)</th><th class="n">y (m)</th><th class="n">θ (°)</th><th class="n">φ (°)</th><th class="n">거리 (m)</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+      <div class="scroll"><table><thead><tr><th>앵커</th><th>데이터</th><th>태그 쪽</th><th class="n">x (m)</th><th class="n">y (m)</th><th class="n">θ (°)</th><th class="n">φ (°)</th><th class="n">거리 (m)</th></tr></thead><tbody>__ROWS__</tbody></table></div>
     </details>
   </section>
 </div>
