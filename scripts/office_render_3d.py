@@ -135,7 +135,7 @@ def main():
                                                           points=len(pts), los=n_clear, nlos=len(pts) - n_clear, objects=len(s.objects())),
                 materials={k: dict(itu=v[0], t=v[1]) for k, v in MATERIALS.items()}, checks=checks, idx=idx, cams=CAMS,
                 anchor=s.anchor_position.round(3).tolist(),
-                layout=dict(cols=len(s.col_x_m), rows=s.n_rows, top_strip_m=round(s.width_m - s.row_y_m()[0] - s.desk_lwh_m[1] / 2 - s.partition_t_m, 2), row_y=[round(v, 2) for v in s.row_y_m()]))
+                layout=dict(cols=len(s.col_x_m), rows=s.n_rows, top_strip_m=round(s.width_m - s.row_y_m()[0] - s.desk_lwh_m[0] / 2, 2), row_y=[round(v, 2) for v in s.row_y_m()]))
     page = ((ROOT / "scripts" / "office_page_template.html").read_text(encoding="utf8")
             .replace("/*__PLOTLY__*/", get_plotlyjs().replace("�", "\\uFFFD")).replace("__FIG__", fig.to_json())
             .replace("__PLAN__", plan_svg(s, pts, st)).replace("__DATA__", json.dumps(data, ensure_ascii=False)))

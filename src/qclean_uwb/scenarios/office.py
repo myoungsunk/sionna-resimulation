@@ -1,18 +1,20 @@
-"""Office scenario: open room with desk islands (desk + partition) and white (free) corridors; geometry only, no RF.
+"""Office scenario: open room with desk islands (two desks back to back + a partition) and white (free) corridors; geometry only, no RF.
 
-Modelled on the occupancy map the user supplied (white = walkable): a 10 x 12 m room, 12 desk blocks in 3 columns x 4 rows, an open strip
-along the top wall and open strips between the columns and along both side walls. The walkable network used for tag positions is a comb
-(an "E" with one more tooth): a bar along the top and four vertical corridors (left wall, between columns 1-2, between columns 2-3,
-right wall).
+Modelled on the occupancy map the user supplied (white = walkable) and their description: a 10 x 12 m room (x across, y along the long side),
+12 islands = 3 columns (along x) x 4 positions (along y). Each island is two desks whose wide sides touch (back to back) with a thin partition
+between them; one desk faces +x, the other -x, so 2 x 4 x 3 = 24 desks. The y = 12 end is closed (wall); the walkable network is a comb, an
+"E" turned so that its teeth run along y: a bar near y = 0 and four corridors (left wall, between columns 1-2, between columns 2-3, right wall)
+that end at the closed y = 12 side.
 
 Plan view (x across, y up, floor top z = 0, metres)::
 
-    y=12 +-----------------------------+   top bar (walkable)
-         |  ##   ##   ##               |   islands: desk + partition
-         |  ##   ##   ##               |
-         |  ##   ##   ##               |
-         |  ##   ##   ##               |
-    y=0  +-----------------------------+
+    y=12 +-----------------------------+   closed wall
+         |  [d|d]  [d|d]  [d|d]        |   island = desk | partition | desk
+         |  [d|d]  [d|d]  [d|d]        |
+         |  [d|d]  [d|d]  [d|d]        |
+         |  [d|d]  [d|d]  [d|d]        |
+         |  ....   ....   ....         |   open floor
+    y=0  +-------- connecting bar ------+
 
 All dimensions are placeholders read off the picture (about 73 px per metre); materials of partitions and desks are assumptions.
 """
@@ -69,13 +71,13 @@ class OfficeSetup:
     n_rows: int = 4
     top_margin_m: float = 1.85           # top wall to the first island centre
     row_pitch_m: float = 1.75
-    desk_lwh_m: tuple = (1.6, 0.7, 0.75)
+    desk_lwh_m: tuple = (1.4, 0.7, 0.75)  # width along y (the wide side), depth along x, height
     partition_h_m: float = 1.4
     partition_t_m: float = 0.04
-    partition_gap_m: float = 0.02        # partition sits on the +y (back) long side of the desk
+    partition_gap_m: float = 0.02        # gap between desk and the partition between the two desks
     corridor_x_m: tuple = (0.5, 3.3, 6.55, 9.5)  # centre lines of the four vertical corridors
-    top_bar_y_m: float = 11.25
-    bottom_end_y_m: float = 0.75
+    bottom_bar_y_m: float = 0.75         # connecting bar of the comb (the y = 12 end is closed)
+    corridor_top_y_m: float = 11.25      # the four corridors end here, in front of the closed wall
     anchor_x_m: float = 5.0
     anchor_y_m: float = 2.2
     anchor_standoff_m: float = 0.05
@@ -92,14 +94,16 @@ class OfficeSetup:
         return [self.width_m - self.top_margin_m - k * self.row_pitch_m for k in range(self.n_rows)]
 
     def boxes(self) -> list:
+        """Per island: a thin partition (normal x) between two desks that face +x and -x (back to back)."""
         out = []
-        dl, dw, dh = self.desk_lwh_m
+        dw, dd, dh = self.desk_lwh_m  # width (y), depth (x), height
         t, h, g = self.partition_t_m, self.partition_h_m, self.partition_gap_m
         for c, xc in enumerate(self.col_x_m):
             for r, yc in enumerate(self.row_y_m()):
-                out.append(dict(name=f"desk_c{c}_r{r}", group="desks", lo=(xc - dl / 2, yc - dw / 2, 0.0), hi=(xc + dl / 2, yc + dw / 2, dh)))
-                yb = yc + dw / 2 + g
-                out.append(dict(name=f"partition_c{c}_r{r}", group="partitions", lo=(xc - dl / 2, yb, 0.0), hi=(xc + dl / 2, yb + t, h)))
+                y0, y1 = yc - dw / 2, yc + dw / 2
+                out.append(dict(name=f"partition_c{c}_r{r}", group="partitions", lo=(xc - t / 2, y0, 0.0), hi=(xc + t / 2, y1, h)))
+                out.append(dict(name=f"desk_c{c}_r{r}_plus_x", group="desks", lo=(xc + t / 2 + g, y0, 0.0), hi=(xc + t / 2 + g + dd, y1, dh)))
+                out.append(dict(name=f"desk_c{c}_r{r}_minus_x", group="desks", lo=(xc - t / 2 - g - dd, y0, 0.0), hi=(xc - t / 2 - g, y1, dh)))
         return out
 
     def objects(self) -> list:
@@ -120,10 +124,10 @@ class OfficeSetup:
 
     # ---- walkable network ----------------------------------------------
     def path_segments(self) -> list:
-        """Top bar plus the four vertical corridors, as ((x0, y0), (x1, y1)); the corridors hang from the bar."""
+        """Bar near y = 0 plus the four corridors that run up to the closed y = 12 side, as ((x0, y0), (x1, y1))."""
         xs = self.corridor_x_m
-        segs = [((xs[0], self.top_bar_y_m), (xs[-1], self.top_bar_y_m))]
-        segs += [((x, self.top_bar_y_m), (x, self.bottom_end_y_m)) for x in xs]
+        segs = [((xs[0], self.bottom_bar_y_m), (xs[-1], self.bottom_bar_y_m))]
+        segs += [((x, self.bottom_bar_y_m), (x, self.corridor_top_y_m)) for x in xs]
         return segs
 
     def sample_points(self) -> np.ndarray:
@@ -163,7 +167,7 @@ class OfficeSetup:
         add("anchor_inside_room", 0 < a[0] < self.length_m and 0 < a[1] < self.width_m and 0 < a[2] < self.height_m, f"anchor={a.round(3).tolist()}")
         bx = self.boxes()
         add("solids_inside_room", all(b["lo"][0] >= 0 and b["hi"][0] <= self.length_m and b["lo"][1] >= 0 and b["hi"][1] <= self.width_m for b in bx), f"{len(bx)} solids")
-        add("rows_below_top_bar", max(b["hi"][1] for b in bx) < self.top_bar_y_m - 0.5 * max(self.robot_body_lwh_m[:2]) - self.robot_clearance_m, f"top of islands y={max(b['hi'][1] for b in bx):.2f}")
+        add("closed_end_has_wall_gap", max(b["hi"][1] for b in bx) < self.width_m - 0.5, f"top of islands y={max(b['hi'][1] for b in bx):.2f}, wall at y={self.width_m:g}")
         desks = [b for b in bx if b["group"] == "desks"]
         parts = [b for b in bx if b["group"] == "partitions"]
         ov = lambda p, q: all(p["lo"][k] < q["hi"][k] and q["lo"][k] < p["hi"][k] for k in range(3))
@@ -172,7 +176,8 @@ class OfficeSetup:
         half = 0.5 * max(self.robot_body_lwh_m[:2]) + self.robot_clearance_m
         pts = self.sample_points()
         add("tag_path_free_with_clearance", all(self.is_free(x, y, half) for x, y in pts), f"{len(pts)} points, clearance {half:.2f} m")
-        add("corridors_between_columns", all(self.col_x_m[i] + self.desk_lwh_m[0] / 2 + half < self.corridor_x_m[i + 1] < self.col_x_m[i + 1] - self.desk_lwh_m[0] / 2 - half for i in range(len(self.col_x_m) - 1)), "corridor centre lines clear the islands")
+        ih = self.desk_lwh_m[1] + self.partition_t_m / 2 + self.partition_gap_m  # island half width along x
+        add("corridors_between_columns", all(self.col_x_m[i] + ih + half < self.corridor_x_m[i + 1] < self.col_x_m[i + 1] - ih - half for i in range(len(self.col_x_m) - 1)), "corridor centre lines clear the islands")
         add("tag_antenna_below_partition_top", self.robot_antenna_z_m < self.partition_h_m)
         add("anchor_boresight_down", True, "diag(1,-1,-1), same as the corridor")
         return checks
