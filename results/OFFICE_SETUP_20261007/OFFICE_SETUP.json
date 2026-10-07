@@ -1,0 +1,346 @@
+{
+ "status": "SETUP_VISUALISATION_ONLY_NO_RF_RUN",
+ "created_utc": "2026-10-07T13:43:03+00:00",
+ "command": "scripts/office_render_3d.py",
+ "config": {
+  "aisle_m": 1.8,
+  "anchor_standoff_m": 0.05,
+  "anchor_x_m": 10.0,
+  "anchor_y_m": 6.0,
+  "arm_y0_m": [
+   0.0,
+   5.1,
+   10.2
+  ],
+  "cubicle_pitch_m": 2.8,
+  "cubicle_x0_m": 2.4,
+  "desk_gap_m": 0.05,
+  "desk_lwh_m": [
+   1.4,
+   0.7,
+   0.75
+  ],
+  "height_m": 2.7,
+  "length_m": 20.0,
+  "n_cubicles": 6,
+  "partition_h_m": 1.4,
+  "partition_t_m": 0.04,
+  "robot_antenna_z_m": 0.45,
+  "robot_body_lwh_m": [
+   0.6,
+   0.4,
+   0.4
+  ],
+  "sample_step_m": 2.0,
+  "width_m": 12.0
+ },
+ "config_sha256": "d927452a60e4a97a98bd0529025b80abb3f5e5ca23655b4457c8084b12851733",
+ "checks": [
+  {
+   "name": "anchor_inside_envelope",
+   "passed": true,
+   "detail": "anchor=[10.0, 6.0, 2.65]"
+  },
+  {
+   "name": "arms_fit_in_envelope",
+   "passed": true,
+   "detail": "arms y0=[0.0, 5.1, 10.2]"
+  },
+  {
+   "name": "notch_depth_positive",
+   "passed": true,
+   "detail": "notches=[(1.8, 5.1), (6.8999999999999995, 10.2)]"
+  },
+  {
+   "name": "cubicles_inside_x_range",
+   "passed": true,
+   "detail": "last divider x=19.20"
+  },
+  {
+   "name": "solids_inside_notches",
+   "passed": true,
+   "detail": "54 solids"
+  },
+  {
+   "name": "desks_do_not_overlap",
+   "passed": true,
+   "detail": "24 desks"
+  },
+  {
+   "name": "desks_do_not_intersect_partitions",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "name": "tag_path_in_aisles_with_clearance",
+   "passed": true,
+   "detail": "34 points, clearance to aisle edge 0.60 m"
+  },
+  {
+   "name": "tag_antenna_below_partition_top",
+   "passed": true,
+   "detail": ""
+  },
+  {
+   "name": "anchor_boresight_down",
+   "passed": true,
+   "detail": "diag(1,-1,-1), same as the corridor"
+  }
+ ],
+ "materials": {
+  "floor": [
+   "concrete",
+   0.2
+  ],
+  "ceiling": [
+   "concrete",
+   0.2
+  ],
+  "outer_walls": [
+   "plasterboard",
+   0.0125
+  ],
+  "partitions": [
+   "chipboard",
+   0.04
+  ],
+  "desks": [
+   "wood",
+   0.03
+  ]
+ },
+ "material_note": "partitions and desks are ASSUMED materials",
+ "sample_points": [
+  {
+   "x": 0.9,
+   "y": 0.9,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 0.9,
+   "y": 2.94,
+   "los_clear": false,
+   "blockers": [
+    "back_partition_0"
+   ]
+  },
+  {
+   "x": 0.9,
+   "y": 4.98,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 0.9,
+   "y": 7.02,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 0.9,
+   "y": 9.06,
+   "los_clear": false,
+   "blockers": [
+    "back_partition_1"
+   ]
+  },
+  {
+   "x": 0.9,
+   "y": 11.1,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 2.922,
+   "y": 0.9,
+   "los_clear": false,
+   "blockers": [
+    "divider_0_lower_1"
+   ]
+  },
+  {
+   "x": 4.944,
+   "y": 0.9,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.967,
+   "y": 0.9,
+   "los_clear": false,
+   "blockers": [
+    "divider_0_lower_2"
+   ]
+  },
+  {
+   "x": 8.989,
+   "y": 0.9,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 11.011,
+   "y": 0.9,
+   "los_clear": false,
+   "blockers": [
+    "divider_0_lower_3"
+   ]
+  },
+  {
+   "x": 13.033,
+   "y": 0.9,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 15.056,
+   "y": 0.9,
+   "los_clear": false,
+   "blockers": [
+    "divider_0_lower_4"
+   ]
+  },
+  {
+   "x": 17.078,
+   "y": 0.9,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 19.1,
+   "y": 0.9,
+   "los_clear": false,
+   "blockers": [
+    "divider_0_lower_5"
+   ]
+  },
+  {
+   "x": 0.9,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 2.922,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 4.944,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.967,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 8.989,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 11.011,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 13.033,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 15.056,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 17.078,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 19.1,
+   "y": 6.0,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 2.922,
+   "y": 11.1,
+   "los_clear": false,
+   "blockers": [
+    "divider_1_upper_1"
+   ]
+  },
+  {
+   "x": 4.944,
+   "y": 11.1,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 6.967,
+   "y": 11.1,
+   "los_clear": false,
+   "blockers": [
+    "divider_1_upper_2"
+   ]
+  },
+  {
+   "x": 8.989,
+   "y": 11.1,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 11.011,
+   "y": 11.1,
+   "los_clear": false,
+   "blockers": [
+    "divider_1_upper_3"
+   ]
+  },
+  {
+   "x": 13.033,
+   "y": 11.1,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 15.056,
+   "y": 11.1,
+   "los_clear": false,
+   "blockers": [
+    "divider_1_upper_4"
+   ]
+  },
+  {
+   "x": 17.078,
+   "y": 11.1,
+   "los_clear": true,
+   "blockers": []
+  },
+  {
+   "x": 19.1,
+   "y": 11.1,
+   "los_clear": false,
+   "blockers": [
+    "divider_1_upper_5"
+   ]
+  }
+ ],
+ "outputs": {
+  "office_setup_3d.html": "6ec2eb9d820a467626f08567859c50a79b2158b782ebdbb53c4a0768210081e5"
+ }
+}
