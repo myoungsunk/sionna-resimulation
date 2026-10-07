@@ -51,6 +51,9 @@ class FilterConfig:
     k_stheta: float = 1e-5
     range_sigma: float = 0.05
     noise_var_cir_tap: float = 0.0                   # 6 * noise_var of the observation chain (thermal part of R_s); 0 -> none
+    s_kind: str = "fp"                               # fp: first-path power ratio | rx: total received power ratio (A11, exploratory)
+    noise_var_bin: float = 0.0                       # per-bin complex noise variance (used by the rx thermal term)
+    n_bins: int = 257
     iekf_iters: int = 3
     gsf_components: int = 5
     gsf_prune: float = 1e-4
@@ -243,7 +246,11 @@ class DriveFilter:
 
     def _s_R(self, p1, p2):
         cfg = self.cfg
-        thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
+        if cfg.s_kind == "rx":
+            from qclean_uwb.drivesim.observation import thermal_var_rx_s
+            thermal = thermal_var_rx_s(p1, p2, cfg.noise_var_bin, cfg.n_bins) if cfg.noise_var_bin > 0 else 0.0
+        else:
+            thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
         return thermal + cfg.s_mismatch_sigma ** 2
 
     def update_s(self, z, p1, p2):

@@ -63,7 +63,7 @@ def first_path_batch(cir: np.ndarray, df_hz: float) -> dict:
 
 
 def observe(h_clean: np.ndarray, freqs_hz: np.ndarray, noise_var: float | None, rng: np.random.Generator | None, tx: int = 0,
-            threshold: float | None = None) -> dict:
+            threshold: float | None = None, return_h: bool = False) -> dict:
     """Observe a batch of clean channels h_clean (B, n_bin, n_rx, n_tx).  ``noise_var=None`` -> noise-free.
 
     Returns the first-path quantities plus ``detected`` (peak above the detection threshold); undetected samples have s = range = nan.
@@ -80,6 +80,8 @@ def observe(h_clean: np.ndarray, freqs_hz: np.ndarray, noise_var: float | None, 
     for k in ("s", "range_m", "delay_s"):
         out[k] = np.where(out["detected"], out[k], np.nan)
     out["threshold"] = threshold
+    if return_h:
+        out["h_noisy"] = h
     return out
 
 
@@ -95,3 +97,27 @@ def los_range_bias(freqs_hz: np.ndarray, d_min: float = 2.0, d_max: float = 16.0
     h = np.exp(-2j * np.pi * freqs_hz[None, :] * d[:, None] / C0)[:, :, None] * np.ones((1, 1, 2))
     out = first_path_batch(cir_batch(h), float(freqs_hz[1] - freqs_hz[0]))
     return float(np.mean(out["range_m"] - d))
+
+
+def rx_energy_s(h_col: np.ndarray, noise_var: float | None = 0.0):
+    """Signed ratio of the total received power of the two RX ports: ``(E1 - E2) / (E1 + E2)``, ``E_i = sum_f |H_i(f)|^2``.
+
+    ``h_col`` (B, n_bin, 2).  The expected thermal contribution ``n_bin * noise_var`` is subtracted from each energy (clipped at 0).
+    Returns ``(s, E)`` with E of shape (B, 2).
+    """
+    h = np.asarray(h_col)
+    e = (np.abs(h) ** 2).sum(axis=1) - (h.shape[1] * (noise_var or 0.0))
+    e = np.maximum(e, 0.0)
+    den = e.sum(axis=1)
+    with np.errstate(invalid="ignore", divide="ignore"):
+        s = np.where(den > 0, (e[:, 0] - e[:, 1]) / den, np.nan)
+    return s, e
+
+
+def thermal_var_rx_s(e1: float, e2: float, noise_var: float, n_bin: int) -> float:
+    """Delta-method variance of the rx-power ratio: Var(E_i) ~ 2 var E_i + n_bin var^2 (per-bin complex noise variance ``var``)."""
+    tot = e1 + e2
+    if tot <= 0:
+        return float("inf")
+    v1, v2 = 2.0 * noise_var * e1 + n_bin * noise_var ** 2, 2.0 * noise_var * e2 + n_bin * noise_var ** 2
+    return 4.0 * (e2 ** 2 * v1 + e1 ** 2 * v2) / tot ** 4

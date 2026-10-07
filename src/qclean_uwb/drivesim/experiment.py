@@ -67,11 +67,17 @@ def make_world(timeline_csv, h_store: np.ndarray, freqs, lateral: float, mount_d
     return World(rows, h, np.asarray(freqs, float), lateral, mount_deg, period, route, anchor)
 
 
-def observe_world(world: World, snr_db: float | None, seed_key: tuple, sensor: S.SensorNoise, range_offset: float):
+def observe_world(world: World, snr_db: float | None, seed_key: tuple, sensor: S.SensorNoise, range_offset: float, measure: str = "fp"):
     """Noisy first-path observation of every sample plus the random UWB range component.  ``snr_db=None`` -> noise-free chain."""
     rng = np.random.default_rng(list(seed_key))
     nv = O.noise_var_from_snr(snr_db) if snr_db is not None else None
-    obs = O.observe(world.h, world.freqs, nv, rng)
+    obs = O.observe(world.h, world.freqs, nv, rng, return_h=(measure == "rx"))
+    if measure == "rx":                                  # A11: same noisy channel, s from the total received power of each port
+        s_rx, energy = O.rx_energy_s(obs.pop("h_noisy"), nv)
+        obs["s"] = np.where(obs["detected"], s_rx, np.nan)
+        obs["power"] = energy
+    obs["s_kind"] = measure
+    obs["n_bins"] = world.h.shape[1]
     rng2 = np.random.default_rng(list(seed_key) + [4242])
     obs["range_m"] = obs["range_m"] + sensor.range_sigma_m * rng2.standard_normal(len(world.rows))
     obs["noise_var"] = nv or 0.0
@@ -98,7 +104,8 @@ def filter_config(base: dict, world: World, obs: dict, sensor: S.SensorNoise, mi
     cfg = F.FilterConfig(kind=kind, mount_deg=world.mount_deg, anchor_xyz=tuple(anchor_xyz), robot_z=robot_z, s_mismatch_sigma=mismatch_sigma,
                          range_offset=obs["range_offset"], range_sigma=sensor.range_sigma_m, k_s=sensor.k_s_m, k_theta=sensor.k_theta_rad,
                          k_stheta=sensor.k_stheta_rad2_per_m, arw_var=math.radians(sensor.arw_deg_sqrt_s) ** 2 * 0.2,
-                         noise_var_cir_tap=6.0 * obs["noise_var"], pos_process_std=POS_PROCESS_STD)
+                         noise_var_cir_tap=6.0 * obs["noise_var"], pos_process_std=POS_PROCESS_STD, s_kind=obs.get("s_kind", "fp"),
+                         noise_var_bin=obs["noise_var"], n_bins=obs.get("n_bins", 257))
     for k in ("use_range", "use_s", "use_odom_heading", "skip_s_in_turn", "s_mode"):
         if k in base:
             setattr(cfg, k, base[k])
@@ -141,7 +148,7 @@ ROUTE_CODE = {"R1": 0, "R2": 1, "R4": 2, "R5": 3}      # R1 = 0 keeps the v1 noi
 
 
 def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma: float, anchor_xyz, robot_z: float, range_offset: float,
-             snr_db: float | None, snr_idx: int, drift_idx: int, seed: int, compare_filters: bool = True) -> tuple[list[dict], dict]:
+             snr_db: float | None, snr_idx: int, drift_idx: int, seed: int, compare_filters: bool = True, measure: str = "fp") -> tuple[list[dict], dict]:
     """All baselines (and the filter-type comparison) for one (lateral, mount, drift, SNR, seed).  ``worlds`` maps period -> World."""
     any_world = next(iter(worlds.values()))
     level = S.DRIFT_LEVELS[drift_idx]
@@ -157,7 +164,7 @@ def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma:
         code = PERIOD_CODE[period]
         ds, dth = S.true_increments(w.rows)
         inputs = S.generate_inputs(ds, dth, drift, sensor, 0.2, np.random.default_rng([seed, drift_idx, 2, code]))
-        obs = observe_world(w, snr_db, (seed, snr_idx, code, int(round(w.lateral * 100)), int(w.mount_deg)) + ((ROUTE_CODE[w.route],) if w.route != "R1" else ()), sensor, range_offset)
+        obs = observe_world(w, snr_db, (seed, snr_idx, code, int(round(w.lateral * 100)), int(w.mount_deg)) + ((ROUTE_CODE[w.route],) if w.route != "R1" else ()), sensor, range_offset, measure)
         prepared[period] = (inputs, obs)
     rows, series = [], {}
     jobs = [(b, "ekf") for b in BASELINES]
