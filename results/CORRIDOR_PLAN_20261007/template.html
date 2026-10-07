@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복도 스캔 계획</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#ffffff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--corr:#f3f2ee;--zone:#d9d8d1;--c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--anchor:#0b0b0b;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 18px;max-width:78ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.kpi b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.scroll{overflow-x:auto}
+svg{display:block;width:100%;min-width:760px;height:auto}
+.corr{fill:var(--corr);stroke:var(--line)}.zone{fill:none;stroke:var(--zone);stroke-dasharray:5 4}
+.mid{stroke:var(--line);stroke-dasharray:2 4}.iso{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 4;opacity:.8}
+.tick,.isot{fill:var(--muted);font-size:11px}.lab{fill:var(--ink);font-size:12px}
+.c1{fill:var(--c1)}.c2{fill:var(--c2)}.c3{fill:var(--c3)}.anchor{fill:var(--anchor)}
+.mk{stroke:var(--card);stroke-width:2;paint-order:stroke}.pt:hover .mk{stroke:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 0;font-size:14px;color:var(--ink2)}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.sw{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:2px}
+.sw.c1{border-radius:50%;background:var(--c1)}.sw.c2{background:var(--c2)}.sw.c3{background:var(--c3);transform:rotate(45deg) scale(.85)}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--ink2);font-weight:600}.n{text-align:right;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;color:var(--ink2);font-size:14px}
+ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>복도 스캔 계획 (시뮬레이션 전)</h1>
+  <p class="lede">지금까지 12곳에서 돌렸습니다. 이번에는 x와 y를 함께 넓히려고 두 묶음을 더합니다. A는 격자 위의 훈련용 위치이고, B는 격자와 겹치지 않게 뽑은 검증용 위치입니다. 아직 아무것도 돌리지 않았고, 승인하면 이 위치대로 yaw 0°–180°(10° 간격)를 돌립니다.</p>
+  <div class="kpis">
+    <div class="kpi"><b>__NEX__</b><span>기존 위치 (완료)</span></div>
+    <div class="kpi"><b>+__NA__</b><span>A 격자 · 약 __MINA__ 시간 (4코어)</span></div>
+    <div class="kpi"><b>+__NB__</b><span>B 검증 · 약 __MINB__ 시간</span></div>
+    <div class="kpi"><b>__TOTAL__</b><span>합계 · 추가 분량 약 __MINAB__ 시간</span></div>
+  </div>
+  <section class="card" aria-label="위치 지도">
+    <h2>위에서 본 복도와 위치</h2>
+    <div class="scroll" tabindex="0" aria-label="좌우로 스크롤되는 지도">__SVG__</div>
+    <p class="note" id="swipe" style="margin:4px 0 0">좁은 화면에서는 지도를 좌우로 밀어 보세요.</p>
+    <div class="legend" aria-label="범례">
+      <span><i style="background:var(--c1);border-radius:50%"></i>기존 __NEX__곳 (원)</span>
+      <span><i style="background:var(--c2)"></i>A 격자 __NA__곳 (사각형)</span>
+      <span><i style="background:var(--c3);transform:rotate(45deg) scale(.85)"></i>B 검증 __NB__곳 (마름모)</span>
+      <span><i style="background:var(--anchor)"></i>앵커 (천장, x 4, y 0)</span>
+    </div>
+    <p class="note">회색 점선 세로 곡선은 앵커 기준 보어사이트 이탈각 θ = 20°, 40°, 60°, 70°, 80°입니다. 로봇이 앵커에서 멀어질수록 θ가 커집니다. 점선 사각형은 로봇이 갈 수 있는 범위(x __XLO__–__XHI__ m, |y| ≤ __YLIM__ m, 몸체·벽 여유 포함)입니다. 세로축은 보기 좋게 늘렸습니다(가로 1 m가 세로 1 m보다 짧게 그려짐). 점에 마우스를 올리면 좌표와 θ, φ, 거리가 보입니다.</p>
+  </section>
+  <section class="card" aria-label="설계 근거">
+    <h2>어떻게 골랐나</h2>
+    <ul>
+      <li><b>y 방향:</b> x ≤ 11에서 y = −0.7, −0.35, 0, 0.35, 0.7을 모두 채웠습니다. 이미 있는 x = 7 열과 같은 간격이라 비교가 쉽습니다.</li>
+      <li><b>x 방향:</b> 앵커 뒤쪽(x = 1.5, 2.5)을 처음으로 넣었습니다. 앵커를 기준으로 방위 φ가 반대쪽이 되고 벽과 끝벽 반사 조건도 달라집니다.</li>
+      <li><b>앵커 근처:</b> x = 3.0, 3.5, 4.5, 5.0 열에 y = −0.7, 0, 0.7을 넣어 θ 10°–30°를 채웠습니다. 지금은 이 범위에 위치가 거의 없습니다.</li>
+      <li><b>먼 쪽:</b> x = 13, 15, 17.5는 y 3개만 넣었습니다. θ가 70° 이상으로 비슷해서 촘촘할 필요가 적습니다.</li>
+      <li><b>B 검증 16곳:</b> 난수(시드 20261007)로 뽑되 격자 점과 0.4 m 이상 떨어뜨리고, θ 구간(&lt;40°, 40–60°, 60–75°, ≥75°)마다 4곳씩 넣었습니다. 보정·추정 방법을 A에서 만들고 B로 시험하기 위한 것입니다.</li>
+    </ul>
+    <p class="note">시간은 이전 실행 기준입니다(단일 코어 sweep 4개를 동시에 돌려 약 16분). 위치당 약 4분으로 계산했습니다. 경로 전체 파일(npz)은 용량이 커서 로컬에만 두고, 채널(H)과 요약만 저장소에 올립니다.</p>
+  </section>
+  <section class="card" aria-label="위치 표">
+    <details>
+      <summary>모든 위치 표 (__TOTAL__곳: 좌표, 앵커 기준 θ, φ, 거리)</summary>
+      <div class="scroll"><table><thead><tr><th>묶음</th><th class="n">x (m)</th><th class="n">y (m)</th><th class="n">θ (°)</th><th class="n">φ (°)</th><th class="n">거리 (m)</th></tr></thead><tbody>__ROWS__</tbody></table></div>
+    </details>
+  </section>
+</div>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>복도 스캔 계획</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#ffffff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--corr:#f3f2ee;--zone:#d9d8d1;--c1:#2a78d6;--c2:#eb6834;--c3:#1baf7a;--anchor:#0b0b0b;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#ffffff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--corr:#262625;--zone:#4a4a46;--c1:#3987e5;--c2:#d95926;--c3:#199e70;--anchor:#ffffff;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 18px;max-width:78ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.kpi b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.scroll{overflow-x:auto}
+svg{display:block;width:100%;min-width:760px;height:auto}
+.corr{fill:var(--corr);stroke:var(--line)}.zone{fill:none;stroke:var(--zone);stroke-dasharray:5 4}
+.mid{stroke:var(--line);stroke-dasharray:2 4}.iso{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 4;opacity:.8}
+.tick,.isot{fill:var(--muted);font-size:11px}.lab{fill:var(--ink);font-size:12px}
+.c1{fill:var(--c1)}.c2{fill:var(--c2)}.c3{fill:var(--c3)}.anchor{fill:var(--anchor)}
+.mk{stroke:var(--card);stroke-width:2;paint-order:stroke}.pt:hover .mk{stroke:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:8px 0 0;font-size:14px;color:var(--ink2)}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;vertical-align:-1px}
+.sw{display:inline-block;width:10px;height:10px;margin-right:8px;border-radius:2px}
+.sw.c1{border-radius:50%;background:var(--c1)}.sw.c2{background:var(--c2)}.sw.c3{background:var(--c3);transform:rotate(45deg) scale(.85)}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--ink2);font-weight:600}.n{text-align:right;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;color:var(--ink2);font-size:14px}
+ul{margin:6px 0 0;padding-left:20px}li{margin:3px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>복도 스캔 계획 (시뮬레이션 전)</h1>
+  <p class="lede">지금까지 12곳에서 돌렸습니다. 이번에는 x와 y를 함께 넓히려고 두 묶음을 더합니다. A는 격자 위의 훈련용 위치이고, B는 격자와 겹치지 않게 뽑은 검증용 위치입니다. 아직 아무것도 돌리지 않았고, 승인하면 이 위치대로 yaw 0°–180°(10° 간격)를 돌립니다.</p>
+  <div class="kpis">
+    <div class="kpi"><b>12</b><span>기존 위치 (완료)</span></div>
+    <div class="kpi"><b>+45</b><span>A 격자 · 약 3.0 시간 (4코어)</span></div>
+    <div class="kpi"><b>+16</b><span>B 검증 · 약 1.1 시간</span></div>
+    <div class="kpi"><b>73</b><span>합계 · 추가 분량 약 4.1 시간</span></div>
+  </div>
+  <section class="card" aria-label="위치 지도">
+    <h2>위에서 본 복도와 위치</h2>
+    <div class="scroll" tabindex="0" aria-label="좌우로 스크롤되는 지도"><svg viewBox="0 0 952 252" role="img" aria-label="복도 위에서 본 스캔 위치" xmlns="http://www.w3.org/2000/svg">
+<rect class="corr" x="46.0" y="34.0" width="880.0" height="168.0"/>
+<rect class="zone" x="90.0" y="66.27" width="792.0" height="103.46"/>
+<line class="mid" x1="46.0" x2="926.0" y1="118.0" y2="118.0"/>
+<text class="tick" x="46.0" y="218.0" text-anchor="middle">0</text>
+<text class="tick" x="134.0" y="218.0" text-anchor="middle">2</text>
+<text class="tick" x="222.0" y="218.0" text-anchor="middle">4</text>
+<text class="tick" x="310.0" y="218.0" text-anchor="middle">6</text>
+<text class="tick" x="398.0" y="218.0" text-anchor="middle">8</text>
+<text class="tick" x="486.0" y="218.0" text-anchor="middle">10</text>
+<text class="tick" x="574.0" y="218.0" text-anchor="middle">12</text>
+<text class="tick" x="662.0" y="218.0" text-anchor="middle">14</text>
+<text class="tick" x="750.0" y="218.0" text-anchor="middle">16</text>
+<text class="tick" x="838.0" y="218.0" text-anchor="middle">18</text>
+<text class="tick" x="926.0" y="218.0" text-anchor="middle">20</text>
+<text class="tick" x="486.0" y="238.0" text-anchor="middle">가로 x: 복도 방향 (m) · 세로 y: 복도 폭 방향 (m, 확대해 그림)</text>
+<text class="tick" x="38" y="206.0" text-anchor="end">-1.2</text>
+<text class="tick" x="38" y="122.0" text-anchor="end">0</text>
+<text class="tick" x="38" y="38.0" text-anchor="end">1.2</text>
+<polyline class="iso" points="223.5,174.0 233.1,171.2 237.4,168.4 240.6,165.6 243.2,162.8 245.3,160.0 247.2,157.2 248.8,154.4 250.2,151.6 251.4,148.8 252.5,146.0 253.5,143.2 254.3,140.4 255.0,137.6 255.6,134.8 256.1,132.0 256.5,129.2 256.8,126.4 257.1,123.6 257.2,120.8 257.2,118.0 257.2,115.2 257.1,112.4 256.8,109.6 256.5,106.8 256.1,104.0 255.6,101.2 255.0,98.4 254.3,95.6 253.5,92.8 252.5,90.0 251.4,87.2 250.2,84.4 248.8,81.6 247.2,78.8 245.3,76.0 243.2,73.2 240.6,70.4 237.4,67.6 233.1,64.8 223.5,62.0"/>
+<text class="isot" x="257.2323186769684" y="30" text-anchor="middle">20°</text>
+<polyline class="iso" points="220.5,174.0 210.9,171.2 206.6,168.4 203.4,165.6 200.8,162.8 198.7,160.0 196.8,157.2 195.2,154.4 193.8,151.6 192.6,148.8 191.5,146.0 190.5,143.2 189.7,140.4 189.0,137.6 188.4,134.8 187.9,132.0 187.5,129.2 187.2,126.4 186.9,123.6 186.8,120.8 186.8,118.0 186.8,115.2 186.9,112.4 187.2,109.6 187.5,106.8 187.9,104.0 188.4,101.2 189.0,98.4 189.7,95.6 190.5,92.8 191.5,90.0 192.6,87.2 193.8,84.4 195.2,81.6 196.8,78.8 198.7,76.0 200.8,73.2 203.4,70.4 206.6,67.6 210.9,64.8 220.5,62.0"/>
+<text class="isot" x="186.7676813230316" y="30" text-anchor="middle">20°</text>
+<polyline class="iso" points="283.7,202.0 285.2,199.2 286.6,196.4 287.9,193.6 289.1,190.8 290.3,188.0 291.4,185.2 292.4,182.4 293.4,179.6 294.3,176.8 295.2,174.0 296.0,171.2 296.8,168.4 297.5,165.6 298.2,162.8 298.8,160.0 299.4,157.2 299.9,154.4 300.4,151.6 300.9,148.8 301.3,146.0 301.7,143.2 302.0,140.4 302.3,137.6 302.5,134.8 302.7,132.0 302.9,129.2 303.1,126.4 303.1,123.6 303.2,120.8 303.2,118.0 303.2,115.2 303.1,112.4 303.1,109.6 302.9,106.8 302.7,104.0 302.5,101.2 302.3,98.4 302.0,95.6 301.7,92.8 301.3,90.0 300.9,87.2 300.4,84.4 299.9,81.6 299.4,78.8 298.8,76.0 298.2,73.2 297.5,70.4 296.8,67.6 296.0,64.8 295.2,62.0 294.3,59.2 293.4,56.4 292.4,53.6 291.4,50.8 290.3,48.0 289.1,45.2 287.9,42.4 286.6,39.6 285.2,36.8 283.7,34.0"/>
+<text class="isot" x="303.2248442979607" y="30" text-anchor="middle">40°</text>
+<polyline class="iso" points="160.3,202.0 158.8,199.2 157.4,196.4 156.1,193.6 154.9,190.8 153.7,188.0 152.6,185.2 151.6,182.4 150.6,179.6 149.7,176.8 148.8,174.0 148.0,171.2 147.2,168.4 146.5,165.6 145.8,162.8 145.2,160.0 144.6,157.2 144.1,154.4 143.6,151.6 143.1,148.8 142.7,146.0 142.3,143.2 142.0,140.4 141.7,137.6 141.5,134.8 141.3,132.0 141.1,129.2 140.9,126.4 140.9,123.6 140.8,120.8 140.8,118.0 140.8,115.2 140.9,112.4 140.9,109.6 141.1,106.8 141.3,104.0 141.5,101.2 141.7,98.4 142.0,95.6 142.3,92.8 142.7,90.0 143.1,87.2 143.6,84.4 144.1,81.6 144.6,78.8 145.2,76.0 145.8,73.2 146.5,70.4 147.2,67.6 148.0,64.8 148.8,62.0 149.7,59.2 150.6,56.4 151.6,53.6 152.6,50.8 153.7,48.0 154.9,45.2 156.1,42.4 157.4,39.6 158.8,36.8 160.3,34.0"/>
+<text class="isot" x="140.7751557020393" y="30" text-anchor="middle">40°</text>
+<polyline class="iso" points="381.1,202.0 381.7,199.2 382.3,196.4 382.8,193.6 383.3,190.8 383.8,188.0 384.3,185.2 384.7,182.4 385.1,179.6 385.5,176.8 385.9,174.0 386.3,171.2 386.6,168.4 387.0,165.6 387.3,162.8 387.6,160.0 387.8,157.2 388.1,154.4 388.3,151.6 388.5,148.8 388.7,146.0 388.9,143.2 389.1,140.4 389.2,137.6 389.3,134.8 389.4,132.0 389.5,129.2 389.6,126.4 389.6,123.6 389.7,120.8 389.7,118.0 389.7,115.2 389.6,112.4 389.6,109.6 389.5,106.8 389.4,104.0 389.3,101.2 389.2,98.4 389.1,95.6 388.9,92.8 388.7,90.0 388.5,87.2 388.3,84.4 388.1,81.6 387.8,78.8 387.6,76.0 387.3,73.2 387.0,70.4 386.6,67.6 386.3,64.8 385.9,62.0 385.5,59.2 385.1,56.4 384.7,53.6 384.3,50.8 383.8,48.0 383.3,45.2 382.8,42.4 382.3,39.6 381.7,36.8 381.1,34.0"/>
+<text class="isot" x="389.66251817266726" y="30" text-anchor="middle">60°</text>
+<polyline class="iso" points="62.9,202.0 62.3,199.2 61.7,196.4 61.2,193.6 60.7,190.8 60.2,188.0 59.7,185.2 59.3,182.4 58.9,179.6 58.5,176.8 58.1,174.0 57.7,171.2 57.4,168.4 57.0,165.6 56.7,162.8 56.4,160.0 56.2,157.2 55.9,154.4 55.7,151.6 55.5,148.8 55.3,146.0 55.1,143.2 54.9,140.4 54.8,137.6 54.7,134.8 54.6,132.0 54.5,129.2 54.4,126.4 54.4,123.6 54.3,120.8 54.3,118.0 54.3,115.2 54.4,112.4 54.4,109.6 54.5,106.8 54.6,104.0 54.7,101.2 54.8,98.4 54.9,95.6 55.1,92.8 55.3,90.0 55.5,87.2 55.7,84.4 55.9,81.6 56.2,78.8 56.4,76.0 56.7,73.2 57.0,70.4 57.4,67.6 57.7,64.8 58.1,62.0 58.5,59.2 58.9,56.4 59.3,53.6 59.7,50.8 60.2,48.0 60.7,45.2 61.2,42.4 61.7,39.6 62.3,36.8 62.9,34.0"/>
+<polyline class="iso" points="482.7,202.0 483.0,199.2 483.4,196.4 483.7,193.6 484.0,190.8 484.3,188.0 484.6,185.2 484.9,182.4 485.1,179.6 485.4,176.8 485.6,174.0 485.8,171.2 486.1,168.4 486.3,165.6 486.5,162.8 486.6,160.0 486.8,157.2 487.0,154.4 487.1,151.6 487.3,148.8 487.4,146.0 487.5,143.2 487.6,140.4 487.7,137.6 487.7,134.8 487.8,132.0 487.9,129.2 487.9,126.4 487.9,123.6 487.9,120.8 488.0,118.0 487.9,115.2 487.9,112.4 487.9,109.6 487.9,106.8 487.8,104.0 487.7,101.2 487.7,98.4 487.6,95.6 487.5,92.8 487.4,90.0 487.3,87.2 487.1,84.4 487.0,81.6 486.8,78.8 486.6,76.0 486.5,73.2 486.3,70.4 486.1,67.6 485.8,64.8 485.6,62.0 485.4,59.2 485.1,56.4 484.9,53.6 484.6,50.8 484.3,48.0 484.0,45.2 483.7,42.4 483.4,39.6 483.0,36.8 482.7,34.0"/>
+<text class="isot" x="487.9558142032073" y="30" text-anchor="middle">70°</text>
+<polyline class="iso" points="768.4,202.0 768.6,199.2 768.8,196.4 768.9,193.6 769.1,190.8 769.2,188.0 769.4,185.2 769.5,182.4 769.6,179.6 769.7,176.8 769.9,174.0 770.0,171.2 770.1,168.4 770.2,165.6 770.3,162.8 770.3,160.0 770.4,157.2 770.5,154.4 770.6,151.6 770.6,148.8 770.7,146.0 770.8,143.2 770.8,140.4 770.8,137.6 770.9,134.8 770.9,132.0 770.9,129.2 771.0,126.4 771.0,123.6 771.0,120.8 771.0,118.0 771.0,115.2 771.0,112.4 771.0,109.6 770.9,106.8 770.9,104.0 770.9,101.2 770.8,98.4 770.8,95.6 770.8,92.8 770.7,90.0 770.6,87.2 770.6,84.4 770.5,81.6 770.4,78.8 770.3,76.0 770.3,73.2 770.2,70.4 770.1,67.6 770.0,64.8 769.9,62.0 769.7,59.2 769.6,56.4 769.5,53.6 769.4,50.8 769.2,48.0 769.1,45.2 768.9,42.4 768.8,39.6 768.6,36.8 768.4,34.0"/>
+<text class="isot" x="770.9800801389939" y="30" text-anchor="middle">80°</text>
+<g class="pt"><rect class="mk c2" x="107.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 1.5, y -0.7 m · θ 49.7° · φ 164.4° · 거리 3.4 m</title></g>
+<g class="pt"><rect class="mk c2" x="107.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 1.5, y -0.35 m · θ 48.9° · φ 172.0° · 거리 3.35 m</title></g>
+<g class="pt"><rect class="mk c2" x="107.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 1.5, y 0 m · θ 48.7° · φ 180.0° · 거리 3.33 m</title></g>
+<g class="pt"><rect class="mk c2" x="107.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 1.5, y 0.35 m · θ 48.9° · φ -172.0° · 거리 3.35 m</title></g>
+<g class="pt"><rect class="mk c2" x="107.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 1.5, y 0.7 m · θ 49.7° · φ -164.4° · 거리 3.4 m</title></g>
+<g class="pt"><rect class="mk c2" x="151.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 2.5, y -0.7 m · θ 37.0° · φ 155.0° · 거리 2.75 m</title></g>
+<g class="pt"><rect class="mk c2" x="151.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 2.5, y -0.35 m · θ 35.0° · φ 166.9° · 거리 2.69 m</title></g>
+<g class="pt"><rect class="mk c2" x="151.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 2.5, y 0 m · θ 34.3° · φ 180.0° · 거리 2.66 m</title></g>
+<g class="pt"><rect class="mk c2" x="151.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 2.5, y 0.35 m · θ 35.0° · φ -166.9° · 거리 2.69 m</title></g>
+<g class="pt"><rect class="mk c2" x="151.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 2.5, y 0.7 m · θ 37.0° · φ -155.0° · 거리 2.75 m</title></g>
+<g class="pt"><rect class="mk c2" x="173.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3, y -0.7 m · θ 29.0° · φ 145.0° · 거리 2.52 m</title></g>
+<g class="pt"><rect class="mk c2" x="173.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3, y 0 m · θ 24.4° · φ 180.0° · 거리 2.42 m</title></g>
+<g class="pt"><rect class="mk c2" x="173.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3, y 0.7 m · θ 29.0° · φ -145.0° · 거리 2.52 m</title></g>
+<g class="pt"><rect class="mk c2" x="195.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3.5, y -0.7 m · θ 21.4° · φ 125.5° · 거리 2.36 m</title></g>
+<g class="pt"><rect class="mk c2" x="195.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3.5, y 0 m · θ 12.8° · φ 180.0° · 거리 2.26 m</title></g>
+<g class="pt"><rect class="mk c2" x="195.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 3.5, y 0.7 m · θ 21.4° · φ -125.5° · 거리 2.36 m</title></g>
+<g class="pt"><rect class="mk c2" x="217.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 4, y -0.7 m · θ 17.7° · φ 90.0° · 거리 2.31 m</title></g>
+<g class="pt"><rect class="mk c2" x="217.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 4, y -0.35 m · θ 9.0° · φ 90.0° · 거리 2.23 m</title></g>
+<g class="pt"><rect class="mk c2" x="217.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 4, y 0.35 m · θ 9.0° · φ -90.0° · 거리 2.23 m</title></g>
+<g class="pt"><rect class="mk c2" x="217.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 4, y 0.7 m · θ 17.7° · φ -90.0° · 거리 2.31 m</title></g>
+<g class="pt"><rect class="mk c2" x="239.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 4.5, y -0.7 m · θ 21.4° · φ 54.5° · 거리 2.36 m</title></g>
+<g class="pt"><rect class="mk c2" x="239.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 4.5, y 0 m · θ 12.8° · φ 0.0° · 거리 2.26 m</title></g>
+<g class="pt"><rect class="mk c2" x="239.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 4.5, y 0.7 m · θ 21.4° · φ -54.5° · 거리 2.36 m</title></g>
+<g class="pt"><rect class="mk c2" x="261.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 5, y -0.7 m · θ 29.0° · φ 35.0° · 거리 2.52 m</title></g>
+<g class="pt"><rect class="mk c2" x="261.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 5, y 0 m · θ 24.4° · φ 0.0° · 거리 2.42 m</title></g>
+<g class="pt"><rect class="mk c2" x="261.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 5, y 0.7 m · θ 29.0° · φ -35.0° · 거리 2.52 m</title></g>
+<g class="pt"><rect class="mk c2" x="283.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 5.5, y -0.7 m · θ 37.0° · φ 25.0° · 거리 2.75 m</title></g>
+<g class="pt"><rect class="mk c2" x="283.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 5.5, y -0.35 m · θ 35.0° · φ 13.1° · 거리 2.69 m</title></g>
+<g class="pt"><rect class="mk c2" x="283.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 5.5, y 0.35 m · θ 35.0° · φ -13.1° · 거리 2.69 m</title></g>
+<g class="pt"><rect class="mk c2" x="283.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 5.5, y 0.7 m · θ 37.0° · φ -25.0° · 거리 2.75 m</title></g>
+<g class="pt"><rect class="mk c2" x="437.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 9, y -0.7 m · θ 66.5° · φ 8.0° · 거리 5.51 m</title></g>
+<g class="pt"><rect class="mk c2" x="437.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 9, y -0.35 m · θ 66.3° · φ 4.0° · 거리 5.47 m</title></g>
+<g class="pt"><rect class="mk c2" x="437.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 9, y 0.35 m · θ 66.3° · φ -4.0° · 거리 5.47 m</title></g>
+<g class="pt"><rect class="mk c2" x="437.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 9, y 0.7 m · θ 66.5° · φ -8.0° · 거리 5.51 m</title></g>
+<g class="pt"><rect class="mk c2" x="525.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 11, y -0.7 m · θ 72.6° · φ 5.7° · 거리 7.37 m</title></g>
+<g class="pt"><rect class="mk c2" x="525.0" y="137.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 11, y -0.35 m · θ 72.6° · φ 2.9° · 거리 7.35 m</title></g>
+<g class="pt"><rect class="mk c2" x="525.0" y="88.5" width="10" height="10" rx="1.5"/><title>A 격자 · x 11, y 0.35 m · θ 72.6° · φ -2.9° · 거리 7.35 m</title></g>
+<g class="pt"><rect class="mk c2" x="525.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 11, y 0.7 m · θ 72.6° · φ -5.7° · 거리 7.37 m</title></g>
+<g class="pt"><rect class="mk c2" x="613.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 13, y -0.7 m · θ 76.3° · φ 4.4° · 거리 9.29 m</title></g>
+<g class="pt"><rect class="mk c2" x="613.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 13, y 0.7 m · θ 76.3° · φ -4.4° · 거리 9.29 m</title></g>
+<g class="pt"><rect class="mk c2" x="701.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 15, y -0.7 m · θ 78.7° · φ 3.6° · 거리 11.24 m</title></g>
+<g class="pt"><rect class="mk c2" x="701.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 15, y 0.7 m · θ 78.7° · φ -3.6° · 거리 11.24 m</title></g>
+<g class="pt"><rect class="mk c2" x="811.0" y="162.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 17.5, y -0.7 m · θ 80.8° · φ 3.0° · 거리 13.7 m</title></g>
+<g class="pt"><rect class="mk c2" x="811.0" y="113.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 17.5, y 0 m · θ 80.7° · φ 0.0° · 거리 13.68 m</title></g>
+<g class="pt"><rect class="mk c2" x="811.0" y="64.0" width="10" height="10" rx="1.5"/><title>A 격자 · x 17.5, y 0.7 m · θ 80.8° · φ -3.0° · 거리 13.7 m</title></g>
+<g class="pt"><path class="mk c3" d="M187.24 135.5 L194.24 142.5 L187.24 149.5 L180.24 142.5 Z"/><title>B 검증 · x 3.21, y -0.35 m · θ 21.4° · φ 156.1° · 거리 2.36 m</title></g>
+<g class="pt"><path class="mk c3" d="M189.88 87.19999999999999 L196.88 94.19999999999999 L189.88 101.19999999999999 L182.88 94.19999999999999 Z"/><title>B 검증 · x 3.27, y 0.34 m · θ 20.1° · φ -155.0° · 거리 2.34 m</title></g>
+<g class="pt"><path class="mk c3" d="M255.44 135.5 L262.44 142.5 L255.44 149.5 L248.44 142.5 Z"/><title>B 검증 · x 4.76, y -0.35 m · θ 20.8° · φ 24.7° · 거리 2.35 m</title></g>
+<g class="pt"><path class="mk c3" d="M255.44 87.89999999999999 L262.44 94.89999999999999 L255.44 101.89999999999999 L248.44 94.89999999999999 Z"/><title>B 검증 · x 4.76, y 0.33 m · θ 20.6° · φ -23.5° · 거리 2.35 m</title></g>
+<g class="pt"><path class="mk c3" d="M322.32 88.6 L329.32 95.6 L322.32 102.6 L315.32 95.6 Z"/><title>B 검증 · x 6.28, y 0.32 m · θ 46.3° · φ -8.0° · 거리 3.18 m</title></g>
+<g class="pt"><path class="mk c3" d="M375.12 124.30000000000001 L382.12 131.3 L375.12 138.3 L368.12 131.3 Z"/><title>B 검증 · x 7.48, y -0.19 m · θ 57.7° · φ 3.1° · 거리 4.12 m</title></g>
+<g class="pt"><path class="mk c3" d="M387.0 88.6 L394.0 95.6 L387.0 102.6 L380.0 95.6 Z"/><title>B 검증 · x 7.75, y 0.32 m · θ 59.7° · φ -4.9° · 거리 4.36 m</title></g>
+<g class="pt"><path class="mk c3" d="M387.44 150.9 L394.44 157.9 L387.44 164.9 L380.44 157.9 Z"/><title>B 검증 · x 7.76, y -0.57 m · θ 60.0° · φ 8.6° · 거리 4.39 m</title></g>
+<g class="pt"><path class="mk c3" d="M411.64000000000004 106.8 L418.64000000000004 113.8 L411.64000000000004 120.8 L404.64000000000004 113.8 Z"/><title>B 검증 · x 8.31, y 0.06 m · θ 63.0° · φ -0.8° · 거리 4.84 m</title></g>
+<g class="pt"><path class="mk c3" d="M495.68 149.5 L502.68 156.5 L495.68 163.5 L488.68 156.5 Z"/><title>B 검증 · x 10.22, y -0.55 m · θ 70.6° · φ 5.1° · 거리 6.62 m</title></g>
+<g class="pt"><path class="mk c3" d="M497.88 69.69999999999999 L504.88 76.69999999999999 L497.88 83.69999999999999 L490.88 76.69999999999999 Z"/><title>B 검증 · x 10.27, y 0.59 m · θ 70.7° · φ -5.4° · 거리 6.67 m</title></g>
+<g class="pt"><path class="mk c3" d="M560.8 113.1 L567.8 120.1 L560.8 127.1 L553.8 120.1 Z"/><title>B 검증 · x 11.7, y -0.03 m · θ 74.1° · φ 0.2° · 거리 8.01 m</title></g>
+<g class="pt"><path class="mk c3" d="M639.12 111.0 L646.12 118.0 L639.12 125.0 L632.12 118.0 Z"/><title>B 검증 · x 13.48, y 0 m · θ 76.9° · φ 0.0° · 거리 9.73 m</title></g>
+<g class="pt"><path class="mk c3" d="M659.36 150.2 L666.36 157.2 L659.36 164.2 L652.36 157.2 Z"/><title>B 검증 · x 13.94, y -0.56 m · θ 77.5° · φ 3.2° · 거리 10.2 m</title></g>
+<g class="pt"><path class="mk c3" d="M840.64 136.2 L847.64 143.2 L840.64 150.2 L833.64 143.2 Z"/><title>B 검증 · x 18.06, y -0.36 m · θ 81.1° · φ 1.5° · 거리 14.24 m</title></g>
+<g class="pt"><path class="mk c3" d="M874.96 110.3 L881.96 117.3 L874.96 124.3 L867.96 117.3 Z"/><title>B 검증 · x 18.84, y 0.01 m · θ 81.6° · φ -0.0° · 거리 15.0 m</title></g>
+<g class="pt"><circle class="mk c1" cx="222.0" cy="118.0" r="5.5"/><title>기존 · x 4, y 0 m · θ 0.0° · φ 0.0° · 거리 2.2 m</title></g>
+<g class="pt"><circle class="mk c1" cx="288.0" cy="118.0" r="5.5"/><title>기존 · x 5.5, y 0 m · θ 34.3° · φ 0.0° · 거리 2.66 m</title></g>
+<g class="pt"><circle class="mk c1" cx="354.0" cy="167.0" r="5.5"/><title>기존 · x 7, y -0.7 m · θ 54.5° · φ 13.1° · 거리 3.79 m</title></g>
+<g class="pt"><circle class="mk c1" cx="354.0" cy="142.5" r="5.5"/><title>기존 · x 7, y -0.35 m · θ 53.9° · φ 6.7° · 거리 3.74 m</title></g>
+<g class="pt"><circle class="mk c1" cx="354.0" cy="118.0" r="5.5"/><title>기존 · x 7, y 0 m · θ 53.7° · φ 0.0° · 거리 3.72 m</title></g>
+<g class="pt"><circle class="mk c1" cx="354.0" cy="93.5" r="5.5"/><title>기존 · x 7, y 0.35 m · θ 53.9° · φ -6.7° · 거리 3.74 m</title></g>
+<g class="pt"><circle class="mk c1" cx="354.0" cy="69.0" r="5.5"/><title>기존 · x 7, y 0.7 m · θ 54.5° · φ -13.1° · 거리 3.79 m</title></g>
+<g class="pt"><circle class="mk c1" cx="442.0" cy="118.0" r="5.5"/><title>기존 · x 9, y 0 m · θ 66.3° · φ 0.0° · 거리 5.46 m</title></g>
+<g class="pt"><circle class="mk c1" cx="530.0" cy="153.0" r="5.5"/><title>기존 · x 11, y -0.5 m · θ 72.6° · φ 4.1° · 거리 7.35 m</title></g>
+<g class="pt"><circle class="mk c1" cx="530.0" cy="118.0" r="5.5"/><title>기존 · x 11, y 0 m · θ 72.6° · φ 0.0° · 거리 7.34 m</title></g>
+<g class="pt"><circle class="mk c1" cx="618.0" cy="118.0" r="5.5"/><title>기존 · x 13, y 0 m · θ 76.3° · φ 0.0° · 거리 9.26 m</title></g>
+<g class="pt"><circle class="mk c1" cx="706.0" cy="118.0" r="5.5"/><title>기존 · x 15, y 0 m · θ 78.7° · φ 0.0° · 거리 11.22 m</title></g>
+<rect class="anchor" x="216.0" y="112.0" width="12" height="12"/><title>앵커 · 천장 (x 4, y 0)</title>
+</svg></div>
+    <p class="note" id="swipe" style="margin:4px 0 0">좁은 화면에서는 지도를 좌우로 밀어 보세요.</p>
+    <div class="legend" aria-label="범례">
+      <span><i style="background:var(--c1);border-radius:50%"></i>기존 12곳 (원)</span>
+      <span><i style="background:var(--c2)"></i>A 격자 45곳 (사각형)</span>
+      <span><i style="background:var(--c3);transform:rotate(45deg) scale(.85)"></i>B 검증 16곳 (마름모)</span>
+      <span><i style="background:var(--anchor)"></i>앵커 (천장, x 4, y 0)</span>
+    </div>
+    <p class="note">회색 점선 세로 곡선은 앵커 기준 보어사이트 이탈각 θ = 20°, 40°, 60°, 70°, 80°입니다. 로봇이 앵커에서 멀어질수록 θ가 커집니다. 점선 사각형은 로봇이 갈 수 있는 범위(x 1–19 m, |y| ≤ 0.74 m, 몸체·벽 여유 포함)입니다. 세로축은 보기 좋게 늘렸습니다(가로 1 m가 세로 1 m보다 짧게 그려짐). 점에 마우스를 올리면 좌표와 θ, φ, 거리가 보입니다.</p>
+  </section>
+  <section class="card" aria-label="설계 근거">
+    <h2>어떻게 골랐나</h2>
+    <ul>
+      <li><b>y 방향:</b> x ≤ 11에서 y = −0.7, −0.35, 0, 0.35, 0.7을 모두 채웠습니다. 이미 있는 x = 7 열과 같은 간격이라 비교가 쉽습니다.</li>
+      <li><b>x 방향:</b> 앵커 뒤쪽(x = 1.5, 2.5)을 처음으로 넣었습니다. 앵커를 기준으로 방위 φ가 반대쪽이 되고 벽과 끝벽 반사 조건도 달라집니다.</li>
+      <li><b>앵커 근처:</b> x = 3.0, 3.5, 4.5, 5.0 열에 y = −0.7, 0, 0.7을 넣어 θ 10°–30°를 채웠습니다. 지금은 이 범위에 위치가 거의 없습니다.</li>
+      <li><b>먼 쪽:</b> x = 13, 15, 17.5는 y 3개만 넣었습니다. θ가 70° 이상으로 비슷해서 촘촘할 필요가 적습니다.</li>
+      <li><b>B 검증 16곳:</b> 난수(시드 20261007)로 뽑되 격자 점과 0.4 m 이상 떨어뜨리고, θ 구간(&lt;40°, 40–60°, 60–75°, ≥75°)마다 4곳씩 넣었습니다. 보정·추정 방법을 A에서 만들고 B로 시험하기 위한 것입니다.</li>
+    </ul>
+    <p class="note">시간은 이전 실행 기준입니다(단일 코어 sweep 4개를 동시에 돌려 약 16분). 위치당 약 4분으로 계산했습니다. 경로 전체 파일(npz)은 용량이 커서 로컬에만 두고, 채널(H)과 요약만 저장소에 올립니다.</p>
+  </section>
+  <section class="card" aria-label="위치 표">
+    <details>
+      <summary>모든 위치 표 (73곳: 좌표, 앵커 기준 θ, φ, 거리)</summary>
+      <div class="scroll"><table><thead><tr><th>묶음</th><th class="n">x (m)</th><th class="n">y (m)</th><th class="n">θ (°)</th><th class="n">φ (°)</th><th class="n">거리 (m)</th></tr></thead><tbody><tr><td><span class="sw c1"></span>기존</td><td class="n">4</td><td class="n">0</td><td class="n">0.0</td><td class="n">0.0</td><td class="n">2.2</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">5.5</td><td class="n">0</td><td class="n">34.3</td><td class="n">0.0</td><td class="n">2.66</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">7</td><td class="n">-0.7</td><td class="n">54.5</td><td class="n">13.1</td><td class="n">3.79</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">7</td><td class="n">-0.35</td><td class="n">53.9</td><td class="n">6.7</td><td class="n">3.74</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">7</td><td class="n">0</td><td class="n">53.7</td><td class="n">0.0</td><td class="n">3.72</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">7</td><td class="n">0.35</td><td class="n">53.9</td><td class="n">-6.7</td><td class="n">3.74</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">7</td><td class="n">0.7</td><td class="n">54.5</td><td class="n">-13.1</td><td class="n">3.79</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">9</td><td class="n">0</td><td class="n">66.3</td><td class="n">0.0</td><td class="n">5.46</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">11</td><td class="n">-0.5</td><td class="n">72.6</td><td class="n">4.1</td><td class="n">7.35</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">11</td><td class="n">0</td><td class="n">72.6</td><td class="n">0.0</td><td class="n">7.34</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">13</td><td class="n">0</td><td class="n">76.3</td><td class="n">0.0</td><td class="n">9.26</td></tr><tr><td><span class="sw c1"></span>기존</td><td class="n">15</td><td class="n">0</td><td class="n">78.7</td><td class="n">0.0</td><td class="n">11.22</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">1.5</td><td class="n">-0.7</td><td class="n">49.7</td><td class="n">164.4</td><td class="n">3.4</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">1.5</td><td class="n">-0.35</td><td class="n">48.9</td><td class="n">172.0</td><td class="n">3.35</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">1.5</td><td class="n">0</td><td class="n">48.7</td><td class="n">180.0</td><td class="n">3.33</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">1.5</td><td class="n">0.35</td><td class="n">48.9</td><td class="n">-172.0</td><td class="n">3.35</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">1.5</td><td class="n">0.7</td><td class="n">49.7</td><td class="n">-164.4</td><td class="n">3.4</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">2.5</td><td class="n">-0.7</td><td class="n">37.0</td><td class="n">155.0</td><td class="n">2.75</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">2.5</td><td class="n">-0.35</td><td class="n">35.0</td><td class="n">166.9</td><td class="n">2.69</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">2.5</td><td class="n">0</td><td class="n">34.3</td><td class="n">180.0</td><td class="n">2.66</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">2.5</td><td class="n">0.35</td><td class="n">35.0</td><td class="n">-166.9</td><td class="n">2.69</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">2.5</td><td class="n">0.7</td><td class="n">37.0</td><td class="n">-155.0</td><td class="n">2.75</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3</td><td class="n">-0.7</td><td class="n">29.0</td><td class="n">145.0</td><td class="n">2.52</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3</td><td class="n">0</td><td class="n">24.4</td><td class="n">180.0</td><td class="n">2.42</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3</td><td class="n">0.7</td><td class="n">29.0</td><td class="n">-145.0</td><td class="n">2.52</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3.5</td><td class="n">-0.7</td><td class="n">21.4</td><td class="n">125.5</td><td class="n">2.36</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3.5</td><td class="n">0</td><td class="n">12.8</td><td class="n">180.0</td><td class="n">2.26</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">3.5</td><td class="n">0.7</td><td class="n">21.4</td><td class="n">-125.5</td><td class="n">2.36</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4</td><td class="n">-0.7</td><td class="n">17.7</td><td class="n">90.0</td><td class="n">2.31</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4</td><td class="n">-0.35</td><td class="n">9.0</td><td class="n">90.0</td><td class="n">2.23</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4</td><td class="n">0.35</td><td class="n">9.0</td><td class="n">-90.0</td><td class="n">2.23</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4</td><td class="n">0.7</td><td class="n">17.7</td><td class="n">-90.0</td><td class="n">2.31</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4.5</td><td class="n">-0.7</td><td class="n">21.4</td><td class="n">54.5</td><td class="n">2.36</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4.5</td><td class="n">0</td><td class="n">12.8</td><td class="n">0.0</td><td class="n">2.26</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">4.5</td><td class="n">0.7</td><td class="n">21.4</td><td class="n">-54.5</td><td class="n">2.36</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5</td><td class="n">-0.7</td><td class="n">29.0</td><td class="n">35.0</td><td class="n">2.52</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5</td><td class="n">0</td><td class="n">24.4</td><td class="n">0.0</td><td class="n">2.42</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5</td><td class="n">0.7</td><td class="n">29.0</td><td class="n">-35.0</td><td class="n">2.52</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5.5</td><td class="n">-0.7</td><td class="n">37.0</td><td class="n">25.0</td><td class="n">2.75</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5.5</td><td class="n">-0.35</td><td class="n">35.0</td><td class="n">13.1</td><td class="n">2.69</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5.5</td><td class="n">0.35</td><td class="n">35.0</td><td class="n">-13.1</td><td class="n">2.69</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">5.5</td><td class="n">0.7</td><td class="n">37.0</td><td class="n">-25.0</td><td class="n">2.75</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">9</td><td class="n">-0.7</td><td class="n">66.5</td><td class="n">8.0</td><td class="n">5.51</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">9</td><td class="n">-0.35</td><td class="n">66.3</td><td class="n">4.0</td><td class="n">5.47</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">9</td><td class="n">0.35</td><td class="n">66.3</td><td class="n">-4.0</td><td class="n">5.47</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">9</td><td class="n">0.7</td><td class="n">66.5</td><td class="n">-8.0</td><td class="n">5.51</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">11</td><td class="n">-0.7</td><td class="n">72.6</td><td class="n">5.7</td><td class="n">7.37</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">11</td><td class="n">-0.35</td><td class="n">72.6</td><td class="n">2.9</td><td class="n">7.35</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">11</td><td class="n">0.35</td><td class="n">72.6</td><td class="n">-2.9</td><td class="n">7.35</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">11</td><td class="n">0.7</td><td class="n">72.6</td><td class="n">-5.7</td><td class="n">7.37</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">13</td><td class="n">-0.7</td><td class="n">76.3</td><td class="n">4.4</td><td class="n">9.29</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">13</td><td class="n">0.7</td><td class="n">76.3</td><td class="n">-4.4</td><td class="n">9.29</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">15</td><td class="n">-0.7</td><td class="n">78.7</td><td class="n">3.6</td><td class="n">11.24</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">15</td><td class="n">0.7</td><td class="n">78.7</td><td class="n">-3.6</td><td class="n">11.24</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">17.5</td><td class="n">-0.7</td><td class="n">80.8</td><td class="n">3.0</td><td class="n">13.7</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">17.5</td><td class="n">0</td><td class="n">80.7</td><td class="n">0.0</td><td class="n">13.68</td></tr><tr><td><span class="sw c2"></span>A 격자</td><td class="n">17.5</td><td class="n">0.7</td><td class="n">80.8</td><td class="n">-3.0</td><td class="n">13.7</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">3.21</td><td class="n">-0.35</td><td class="n">21.4</td><td class="n">156.1</td><td class="n">2.36</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">3.27</td><td class="n">0.34</td><td class="n">20.1</td><td class="n">-155.0</td><td class="n">2.34</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">4.76</td><td class="n">-0.35</td><td class="n">20.8</td><td class="n">24.7</td><td class="n">2.35</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">4.76</td><td class="n">0.33</td><td class="n">20.6</td><td class="n">-23.5</td><td class="n">2.35</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">6.28</td><td class="n">0.32</td><td class="n">46.3</td><td class="n">-8.0</td><td class="n">3.18</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">7.48</td><td class="n">-0.19</td><td class="n">57.7</td><td class="n">3.1</td><td class="n">4.12</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">7.75</td><td class="n">0.32</td><td class="n">59.7</td><td class="n">-4.9</td><td class="n">4.36</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">7.76</td><td class="n">-0.57</td><td class="n">60.0</td><td class="n">8.6</td><td class="n">4.39</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">8.31</td><td class="n">0.06</td><td class="n">63.0</td><td class="n">-0.8</td><td class="n">4.84</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">10.22</td><td class="n">-0.55</td><td class="n">70.6</td><td class="n">5.1</td><td class="n">6.62</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">10.27</td><td class="n">0.59</td><td class="n">70.7</td><td class="n">-5.4</td><td class="n">6.67</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">11.7</td><td class="n">-0.03</td><td class="n">74.1</td><td class="n">0.2</td><td class="n">8.01</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">13.48</td><td class="n">0</td><td class="n">76.9</td><td class="n">0.0</td><td class="n">9.73</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">13.94</td><td class="n">-0.56</td><td class="n">77.5</td><td class="n">3.2</td><td class="n">10.2</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">18.06</td><td class="n">-0.36</td><td class="n">81.1</td><td class="n">1.5</td><td class="n">14.24</td></tr><tr><td><span class="sw c3"></span>B 검증</td><td class="n">18.84</td><td class="n">0.01</td><td class="n">81.6</td><td class="n">-0.0</td><td class="n">15.0</td></tr></tbody></table></div>
+    </details>
+  </section>
+</div>
+</body>
+</html>
