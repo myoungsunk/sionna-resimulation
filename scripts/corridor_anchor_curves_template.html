@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>앵커 1·2 yaw 곡선</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#fff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--grid:#eceae5;--c1:#2a78d6;--c2:#eb6834;--sel:#0b0b0b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 16px;max-width:80ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:0 0 10px}
+.seg,.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:14px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:5px 11px;cursor:pointer}
+button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}
+button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.lab{font-size:13px;color:var(--muted);margin-right:2px}
+svg{display:block;width:100%;height:auto}
+.ax{stroke:var(--line)}.gr{stroke:var(--grid)}.tk{fill:var(--muted);font-size:11px}
+.l1{fill:none;stroke:var(--c1);stroke-width:2}.l2{fill:none;stroke:var(--c2);stroke-width:2}
+.lm{fill:none;stroke:var(--ink2);stroke-width:1.5;stroke-dasharray:5 3}.li{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 3}
+.m1{fill:var(--c1);stroke:var(--card);stroke-width:1.5}.m2{fill:var(--c2);stroke:var(--card);stroke-width:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink2);margin:0 0 8px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 0}
+.stat{border:1px solid var(--line);border-radius:8px;padding:6px 10px}.stat b{display:block;font-size:18px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap}
+.wrapc{position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.mini{border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;background:var(--card)}
+.mini[aria-pressed="true"]{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel)}
+.mini h3{font-size:12px;margin:0 0 2px;color:var(--ink2);font-weight:600}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--ink2);font-weight:600}
+.scroll{overflow-x:auto}details summary{cursor:pointer;color:var(--ink2);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>앵커 1과 앵커 2의 yaw 곡선</h1>
+  <p class="lede">지표는 |P1−P2| / |P1+P2| (first-path 전력 비율)이고 가로축은 태그의 yaw입니다. 같은 x에서 앵커 1(y = 0, 기존 데이터)과 앵커 2(y = −0.4)를 겹쳐 그렸습니다. 두 앵커는 장치가 같고 y만 0.4 m 달라서 두 곡선의 차이는 환경(다중 경로)에서 옵니다. 위치 버튼을 누르면 큰 그림이 바뀝니다.</p>
+  <section class="card" aria-label="곡선 뷰어">
+    <div class="row">
+      <span class="lab">송신 포트</span><div class="seg" id="txseg"></div>
+    </div>
+    <div class="row"><span class="lab">태그 위치 (θ 순)</span><div class="chips" id="chips"></div></div>
+    <div class="legend" id="legend"></div>
+    <div class="wrapc"><svg id="main" role="img" aria-label="yaw 곡선: 앵커 1, 앵커 2, 각도 모델, 이상 곡선"></svg><div class="tip" id="tip"></div></div>
+    <div class="stats" id="stats"></div>
+    <p class="note" id="msg"></p>
+  </section>
+  <section class="card" aria-label="모든 위치">
+    <h2>모든 위치 한눈에 (선택한 송신 포트)</h2>
+    <div class="grid" id="minis"></div>
+    <p class="note">파랑은 앵커 1, 주황은 앵커 2, 회색 점선은 앵커 2용 각도 모델입니다. θ가 커질수록 두 곡선이 벌어지는 것이 보입니다. 패널을 누르면 위의 큰 그림으로 바뀝니다.</p>
+  </section>
+  <section class="card" aria-label="표">
+    <details><summary>표로 보기 (위치별 곡선 차이와 yaw 추정 오차)</summary>
+      <div class="scroll"><table id="tbl"></table></div>
+    </details>
+  </section>
+</div>
+<script>
+(function () {
+  var D = __DATA__, R = D.records, TXS = ['LP_plus45', 'LP_minus45'], TXN = { LP_plus45: '송신 +45°', LP_minus45: '송신 −45°' };
+  var st = { tx: 'LP_plus45', i: R.length - 3 }; // start on a large-theta position
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var el = function (t, a, txt) { var e = document.createElementNS(NS, t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var $ = function (id) { return document.getElementById(id); };
+  var YA = D.yaw_deg, YM = D.model_yaw_deg;
+  function path(xs, ys, sx, sy) { return xs.map(function (x, i) { return (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + sy(ys[i]).toFixed(1); }).join(''); }
+
+  function chart(svg, rec, o) {
+    var W = o.w, H = o.h, m = o.m, d = rec.tx[st.tx];
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.textContent = '';
+    var sx = function (v) { return m.l + v / 180 * (W - m.l - m.r); }, sy = function (v) { return H - m.b - v * (H - m.t - m.b); };
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (v) { svg.appendChild(el('line', { class: 'gr', x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v) })); if (o.axes) svg.appendChild(el('text', { class: 'tk', x: m.l - 6, y: sy(v) + 4, 'text-anchor': 'end' }, v)); });
+    (o.axes ? [0, 30, 60, 90, 120, 150, 180] : [0, 90, 180]).forEach(function (v) { svg.appendChild(el('text', { class: 'tk', x: sx(v), y: H - m.b + 15, 'text-anchor': 'middle' }, v + '°')); });
+    if (o.axes) svg.appendChild(el('text', { class: 'tk', x: (W + m.l) / 2, y: H - 4, 'text-anchor': 'middle' }, 'yaw (°)'));
+    svg.appendChild(el('path', { class: 'li', d: path(YM, YM.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), sx, sy) }));
+    svg.appendChild(el('path', { class: 'lm', d: path(YM, d.model, sx, sy) }));
+    svg.appendChild(el('path', { class: 'l1', d: path(YA, d.a1, sx, sy) }));
+    svg.appendChild(el('path', { class: 'l2', d: path(YA, d.a2, sx, sy) }));
+    if (o.markers) YA.forEach(function (y, k) {
+      svg.appendChild(el('circle', { class: 'm1', cx: sx(y), cy: sy(d.a1[k]), r: 3.5 }));
+      svg.appendChild(el('rect', { class: 'm2', x: sx(y) - 3.2, y: sy(d.a2[k]) - 3.2, width: 6.4, height: 6.4, rx: 1 }));
+    });
+    return { sx: sx, sy: sy, m: m, W: W, H: H };
+  }
+
+  function drawMain() {
+    var rec = R[st.i], d = rec.tx[st.tx], svg = $('main');
+    var g = chart(svg, rec, { w: 760, h: 340, m: { l: 40, r: 12, t: 10, b: 34 }, axes: true, markers: true });
+    var cross = el('line', { class: 'ax', y1: g.m.t, y2: g.H - g.m.b, x1: 0, x2: 0, style: 'display:none' });
+    svg.appendChild(cross);
+    var hit = el('rect', { x: g.m.l, y: g.m.t, width: g.W - g.m.l - g.m.r, height: g.H - g.m.t - g.m.b, fill: 'transparent' });
+    svg.appendChild(hit);
+    var tip = $('tip');
+    function move(ev) {
+      var r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * g.W;
+      var k = Math.max(0, Math.min(18, Math.round((px - g.m.l) / (g.W - g.m.l - g.m.r) * 18)));
+      cross.setAttribute('x1', g.sx(YA[k])); cross.setAttribute('x2', g.sx(YA[k])); cross.style.display = '';
+      tip.innerHTML = '<b>yaw ' + YA[k] + '°</b><br>앵커 1 ' + f(d.a1[k], 3) + '<br>앵커 2 ' + f(d.a2[k], 3) + '<br>각도 모델 ' + f(d.model[YA[k]], 3) + '<br>이상 ' + f(d.ideal[k], 3);
+      tip.style.display = 'block';
+      var pr = svg.parentNode.getBoundingClientRect();
+      tip.style.left = Math.min(pr.width - 150, Math.max(0, ev.clientX - pr.left + 12)) + 'px'; tip.style.top = Math.max(0, ev.clientY - pr.top - 20) + 'px';
+    }
+    hit.addEventListener('mousemove', move); hit.addEventListener('touchmove', function (e) { move(e.touches[0]); }, { passive: true });
+    hit.addEventListener('mouseleave', function () { tip.style.display = 'none'; cross.style.display = 'none'; });
+    var S = [['θ (앵커에서 본 이탈각)', f(rec.theta, 1) + '°'], ['방위 φ', f(rec.phi, 0) + '°'], ['두 앵커 곡선의 RMS 차이', f(d.rms_diff, 3)],
+      ['yaw RMSE · 각도 모델', f(d.yaw_rmse.angle_model_A2, 1) + '°'], ['yaw RMSE · 앵커 1 곡선', f(d.yaw_rmse.anchor1_curve, 1) + '°'], ['yaw RMSE · 이상 곡선', f(d.yaw_rmse.ideal, 1) + '°']];
+    $('stats').innerHTML = S.map(function (s) { return '<div class="stat"><b>' + s[1] + '</b><span>' + s[0] + '</span></div>'; }).join('');
+    $('msg').textContent = '태그 x = ' + rec.x + ' m · 앵커 1은 (4, 0), 앵커 2는 (4, −0.4), 태그는 각자 앵커의 y 선 위입니다. 거리 ' + rec.range_m + ' m. yaw RMSE는 앵커 2 곡선의 yaw를 각 템플릿으로 추정했을 때(정답에 가장 가까운 후보 선택)의 오차입니다.';
+  }
+
+  function drawMinis() {
+    var box = $('minis'); box.textContent = '';
+    R.forEach(function (rec, i) {
+      var b = document.createElement('div'); b.className = 'mini'; b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0'); b.setAttribute('aria-pressed', i === st.i);
+      var h = document.createElement('h3'); h.textContent = 'θ ' + f(rec.theta, 0) + '° · x ' + rec.x + ' · 차이 ' + f(rec.tx[st.tx].rms_diff, 3); b.appendChild(h);
+      var s = el('svg', { role: 'img', 'aria-label': 'x ' + rec.x + ' 곡선' }); b.appendChild(s); box.appendChild(b);
+      chart(s, rec, { w: 220, h: 110, m: { l: 6, r: 6, t: 4, b: 18 }, axes: false, markers: false });
+      var go = function () { st.i = i; render(); };
+      b.addEventListener('click', go); b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+  }
+
+  function drawControls() {
+    $('txseg').innerHTML = ''; TXS.forEach(function (t) { var b = document.createElement('button'); b.textContent = TXN[t]; b.setAttribute('aria-pressed', st.tx === t); b.onclick = function () { st.tx = t; render(); }; $('txseg').appendChild(b); });
+    $('chips').innerHTML = ''; R.forEach(function (r, i) { var b = document.createElement('button'); b.textContent = f(r.theta, 0) + '° (x ' + r.x + ')'; b.setAttribute('aria-pressed', st.i === i); b.onclick = function () { st.i = i; render(); }; $('chips').appendChild(b); });
+    $('legend').innerHTML = '<span><i style="border-color:var(--c1)"></i>앵커 1 (y = 0)</span><span><i style="border-color:var(--c2)"></i>앵커 2 (y = −0.4)</span><span><i style="border-color:var(--ink2);border-top-style:dashed"></i>앵커 2용 각도 모델</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>이상 곡선 |cos 2·yaw|</span>';
+  }
+
+  function drawTable() {
+    var h = '<thead><tr><th>태그 x (m)</th><th>θ (°)</th><th>송신</th><th>곡선 RMS 차이</th><th>yaw RMSE 각도 모델 (°)</th><th>앵커 1 곡선 (°)</th><th>이상 (°)</th></tr></thead><tbody>';
+    R.forEach(function (r) { TXS.forEach(function (t) { var d = r.tx[t]; h += '<tr><td>' + r.x + '</td><td>' + f(r.theta, 1) + '</td><td>' + TXN[t] + '</td><td>' + f(d.rms_diff, 3) + '</td><td>' + f(d.yaw_rmse.angle_model_A2, 2) + '</td><td>' + f(d.yaw_rmse.anchor1_curve, 2) + '</td><td>' + f(d.yaw_rmse.ideal, 2) + '</td></tr>'; }); });
+    $('tbl').innerHTML = h + '</tbody>';
+  }
+
+  function render() { drawControls(); drawMain(); drawMinis(); }
+  drawTable(); render();
+})();
+</script>
+</body>
+</html>
