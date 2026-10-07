@@ -137,3 +137,28 @@ def test_assemble_maps_poses_to_rows_and_flags_missing_or_unusable_traces(tmp_pa
     _fake_trace(tmp_path, "x8.0000_y0.0000", status="PATH_SET_CHANGED_WITH_FREQUENCY")
     h2, rep2 = R.assemble(poses, [tmp_path], banks, 0.0, allow_missing=True)
     assert rep2["unusable"][0]["tag"] == "x8.0000_y0.0000"
+
+
+def test_match_partial_reports_missing_and_new_paths():
+    tau = np.array([1e-8, 2e-8, 3e-8, 4e-8])
+    d = np.eye(4, 6)
+    match, extra = P.match_partial(tau, d, tau[[0, 2, 3]], d[[0, 2, 3]])
+    assert match.tolist() == [0, -1, 1, 2] and len(extra) == 0
+    match, extra = P.match_partial(tau[:3], d[:3], np.r_[tau[:3], 9e-8], np.vstack([d[:3], 0.5 * np.ones((1, 6))]))
+    assert match.tolist() == [0, 1, 2] and extra.tolist() == [3]
+
+
+def test_interp_handles_a_path_that_vanishes_inside_the_band_without_ringing():
+    f = np.linspace(6.25e9, 6.75e9, 257)
+    nodes = np.unique(np.round(np.linspace(0, 256, 17)).astype(int).tolist() + [148, 149])
+    amp = np.array([1.0, 0.05])                                    # path 1 exists up to bin 148 and is then dropped by the solver
+    j = np.zeros((len(f), 2, 3, 3), complex)
+    j[:, 0] = 1.0
+    j[:148 + 1, 1] = 0.05
+    present = np.ones((len(nodes), 2), bool)
+    present[:, 1] = np.array(nodes) <= 148
+    jn = j[nodes] * np.where(present, 1.0, 0.0)[:, :, None, None]
+    out = P.interp_jones(jn, f[nodes], f, present=present)
+    assert np.allclose(out[149:, 1], 0.0) and np.allclose(out[:149, 1], 0.05, atol=1e-6)
+    plain = P.interp_jones(jn, f[nodes], f)
+    assert np.abs(plain[:, 1] - j[:, 1]).max() > np.abs(out[:, 1] - j[:, 1]).max()

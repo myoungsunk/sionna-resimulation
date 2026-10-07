@@ -55,38 +55,86 @@ def node_bins(n_total: int, k: str) -> list[int]:
     return sorted({int(v) for v in np.round(np.linspace(0, n_total - 1, int(k)))})
 
 
-def ang_perm(perm, p):
-    return [np.asarray(getattr(p, k)).ravel().astype(np.float64)[perm] for k in ("theta_t", "phi_t", "theta_r", "phi_r")]
+MAX_DROPPED_REL_AMP = 1e-2          # reported flag only (PREREG_AMENDMENTS A10b); validity is decided by the parity run
+
+
+def _solve(scene, solver, cfg, freq, fi):
+    scene.frequency = float(freq[fi])
+    p = solver(scene, **cfg)
+    a_iso = (np.asarray(p.a[0]) + 1j * np.asarray(p.a[1])).reshape(2, 2, -1)
+    tau = np.asarray(p.tau).ravel().astype(np.float64)
+    ang = [np.asarray(getattr(p, k)).ravel().astype(np.float64) for k in ("theta_t", "phi_t", "theta_r", "phi_r")]
+    return a_iso, tau, ang
+
+
+def _assemble(raw, bins):
+    """Union reference over all nodes; returns (ref_tau, ref_ang, ref_dirs, jones, amp, present)."""
+    _, t0, g0 = raw[bins[0]]
+    order = P.canonical_order(t0, *g0)
+    ref_tau, ref_ang = t0[order], [a[order] for a in g0]
+    ref_dirs = P.path_directions(*ref_ang)
+    for fi in bins[1:]:                                              # grow the reference with paths that are new at later nodes
+        _, tau, ang = raw[fi]
+        _, extra = P.match_partial(ref_tau, ref_dirs, tau, P.path_directions(*ang), tol=ANGLE_TOL_RAD)
+        if len(extra):
+            ref_tau = np.r_[ref_tau, tau[extra]]
+            ref_ang = [np.r_[r, a[extra]] for r, a in zip(ref_ang, ang)]
+            ref_dirs = P.path_directions(*ref_ang)
+    n = len(ref_tau)
+    jones = np.zeros((len(bins), n, 3, 3), complex)
+    amp = np.zeros((len(bins), n))
+    present = np.zeros((len(bins), n), bool)
+    for k, fi in enumerate(bins):
+        a_iso, tau, ang = raw[fi]
+        match, _ = P.match_partial(ref_tau, ref_dirs, tau, P.path_directions(*ang), tol=ANGLE_TOL_RAD)
+        got = np.flatnonzero(match >= 0)
+        sel = match[got]
+        present[k, got] = True
+        jones[k, got] = P.jones_from_iso(a_iso[:, :, sel], *[a[sel] for a in ang])
+        amp[k, got] = np.linalg.norm(a_iso[:, :, sel], axis=(0, 1))
+    return ref_tau, ref_ang, ref_dirs, jones, amp, present
 
 
 def trace_position(scene, solver, cfg, freq, bins, x, y, setup):
+    """Trace one position at ``bins``; returns (jones (K, n, 3, 3), (tau, ang), status, counts, audit).
+
+    Paths are matched across nodes against a union reference; a path absent at a node gets J = 0 there.  For a path that exists on one side of a cut only,
+    the cut bin is located by bisection and its two bins are added as nodes (A10c).  ``audit`` lists every path absent somewhere with its relative amplitude.
+    """
     scene.receivers["rx"].position = mi.Point3f(*setup.robot_position(x, y).tolist())
-    jones, ref, flags, counts = [], None, [], []
-    for fi in bins:
-        scene.frequency = float(freq[fi])
-        p = solver(scene, **cfg)
-        a_iso = (np.asarray(p.a[0]) + 1j * np.asarray(p.a[1])).reshape(2, 2, -1)
-        tau = np.asarray(p.tau).ravel().astype(np.float64)
-        ang = [np.asarray(getattr(p, k)).ravel().astype(np.float64) for k in ("theta_t", "phi_t", "theta_r", "phi_r")]
-        if ref is None:
-            order = P.canonical_order(tau, *ang)
-            ref = (tau[order], [a[order] for a in ang], P.path_directions(*[a[order] for a in ang]))
-            tau, ang = ref[0], ref[1]
-            perm = order
-        else:
-            got = P.align_paths(ref[0], ref[2], tau, P.path_directions(*ang), tol=ANGLE_TOL_RAD)
-            if got is None:
-                if __import__("os").environ.get("DRIVE_DEBUG"):
-                    g2 = P.align_paths(ref[0], ref[2], tau, P.path_directions(*ang), tol=10.0)
-                    print("ALIGN_FAIL bin", fi, "n", tau.size, "tau multiset equal", bool(np.array_equal(np.sort(ref[0]), np.sort(tau))),
-                          "worst", None if g2 is None else g2[1], flush=True)
-                flags.append(int(fi))
-                counts.append(int(tau.size))
-                continue
-            perm = got[0]
-        counts.append(int(ref[0].size))
-        jones.append(P.jones_from_iso(a_iso[:, :, perm], *ang_perm(perm, p)))
-    return np.array(jones), ref, flags, counts
+    raw = {fi: _solve(scene, solver, cfg, freq, fi) for fi in bins}
+    nodes = list(bins)
+    ref_tau, ref_ang, ref_dirs, jones, amp, present = _assemble(raw, nodes)
+    cuts, complex_paths = {}, []
+    for i in np.flatnonzero(~present.all(axis=0)):
+        p = present[:, i]
+        k = np.flatnonzero(p[:-1] != p[1:])
+        if len(k) != 1:
+            complex_paths.append(int(i))
+            continue
+        lo, hi, had_lo = nodes[k[0]], nodes[k[0] + 1], bool(p[k[0]])
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if mid not in raw:
+                raw[mid] = _solve(scene, solver, cfg, freq, mid)
+            _, tau_m, ang_m = raw[mid]
+            match, _ = P.match_partial(ref_tau[[i]], ref_dirs[[i]], tau_m, P.path_directions(*ang_m), tol=ANGLE_TOL_RAD)
+            if (match[0] >= 0) == had_lo:
+                lo = mid
+            else:
+                hi = mid
+        cuts[int(i)] = dict(last_present_bin=int(lo if had_lo else hi), first_absent_bin=int(hi if had_lo else lo), present_below=had_lo)
+    if len(raw) > len(nodes):
+        nodes = sorted(raw)
+        ref_tau, ref_ang, ref_dirs, jones, amp, present = _assemble(raw, nodes)
+    counts = [int(raw[fi][1].size) for fi in nodes]
+    rel = amp / np.maximum(np.linalg.norm(amp, axis=1, keepdims=True), 1e-300)
+    dropped = [dict(path=int(i), tau_s=float(ref_tau[i]), absent_nodes=[int(nodes[k]) for k in np.flatnonzero(~present[:, i])], cut=cuts.get(int(i)),
+                    max_rel_amp_where_present=float(rel[present[:, i], i].max()) if present[:, i].any() else 0.0) for i in np.flatnonzero(~present.all(axis=0))]
+    worst = max([d["max_rel_amp_where_present"] for d in dropped], default=0.0)
+    status = "OK" if not complex_paths else "PATH_SET_CHANGED_WITH_FREQUENCY"          # more than one transition of a path inside the band: not handled
+    return jones, (ref_tau, ref_ang), status, counts, dict(dropped_paths=dropped, max_dropped_rel_amp=worst, screen_exceeded=bool(worst > MAX_DROPPED_REL_AMP),
+                                                           n_paths_union=int(len(ref_tau)), present=present, nodes=nodes, complex_paths=complex_paths)
 
 
 def main():
@@ -128,18 +176,22 @@ def main():
     for t in tasks:
         out = args.out / f"{t['tag']}_trace.npz"
         if out.exists():
-            continue
+            with np.load(out) as z:
+                if str(z["status"]) == "OK":
+                    continue                              # unusable traces are recomputed (A10)
         t0 = time.monotonic()
-        j, ref, flags, counts = trace_position(scene, solver, cfg, freq, bins, t["x"], t["y"], setup)
-        status = "OK" if not flags else "PATH_SET_CHANGED_WITH_FREQUENCY"
+        j, ref, status, counts, audit = trace_position(scene, solver, cfg, freq, bins, t["x"], t["y"], setup)
+        flags = []
         tau, ang = ref[0], ref[1]
         names, unmatched = path_signature(tau, setup.anchor_position, setup.robot_position(t["x"], t["y"]), setup.length_m, setup.y_half, setup.height_m)
         tmp = out.with_suffix(".tmp.npz")
-        np.savez_compressed(tmp, jones=j, tau=tau, ang=np.array(ang), node_bins=np.array(bins), node_freq_hz=freq[bins], x=t["x"], y=t["y"],
-                            signature=np.array(names), unmatched=unmatched, status=status, flagged_bins=np.array(flags, int), path_counts=np.array(counts))
+        np.savez_compressed(tmp, jones=j, tau=tau, ang=np.array(ang), node_bins=np.array(audit["nodes"]), node_freq_hz=freq[audit["nodes"]], x=t["x"], y=t["y"],
+                            signature=np.array(names), unmatched=unmatched, status=status, flagged_bins=np.array(flags, int), path_counts=np.array(counts),
+                            present=audit["present"], max_dropped_rel_amp=audit["max_dropped_rel_amp"])
         tmp.replace(out)
-        receipt = dict(tag=t["tag"], x=t["x"], y=t["y"], status=status, flagged_bins=flags, n_nodes=len(bins), n_paths=int(tau.size),
-                       unmatched_paths=unmatched, pathsolver_calls=len(bins), elapsed_s=round(time.monotonic() - t0, 2), versions=versions,
+        receipt = dict(tag=t["tag"], x=t["x"], y=t["y"], status=status, flagged_bins=flags, dropped_audit=audit["dropped_paths"], max_dropped_rel_amp=audit["max_dropped_rel_amp"], screen_exceeded=audit["screen_exceeded"],
+                       n_nodes=len(audit["nodes"]), n_paths=int(tau.size), complex_paths=audit["complex_paths"],
+                       unmatched_paths=unmatched, pathsolver_calls=len(audit["nodes"]), elapsed_s=round(time.monotonic() - t0, 2), versions=versions,
                        solver=cfg, materials=bindings, runner_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
                        command=" ".join(sys.argv))
         (args.out / f"{t['tag']}_trace_receipt.json").write_text(json.dumps(receipt, indent=1))

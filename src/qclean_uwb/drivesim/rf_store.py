@@ -47,7 +47,7 @@ def h_for_antenna_yaws(trace: dict, banks: list[P.Bank], antenna_yaws_deg, tx_ro
     if trace["status"] != "OK":
         raise ValueError(f"TRACE_NOT_USABLE {trace['status']}")
     freqs = banks[0].freqs_hz
-    jones = P.interp_jones(trace["jones"], trace["node_freq_hz"], freqs)
+    jones = P.interp_jones(trace["jones"], trace["node_freq_hz"], freqs, present=trace.get("present"))
     ang, tau = trace["ang"], trace["tau"]
     tx_f = np.stack([P.field_world(b, tx_rotation, ang[0], ang[1]) for b in banks])
     out = []

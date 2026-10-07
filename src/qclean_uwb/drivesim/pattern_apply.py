@@ -96,11 +96,14 @@ def canonical_order(tau, theta_t, phi_t, theta_r, phi_r, decimals: int = 3):
     return np.lexsort(tuple(keys[:, i] for i in reversed(range(6))) + (np.asarray(tau),))
 
 
-def interp_jones(jones_nodes, node_freq_hz, freqs_hz):
+def interp_jones(jones_nodes, node_freq_hz, freqs_hz, present=None):
     """Interpolate path Jones matrices over frequency: cubic spline of ``J * f`` (removes the 1/f spreading factor).
 
     Measured on x7.0_y0.0 (257 bins, 6.25-6.75 GHz): K=9 nodes 1.0e-5, K=17 nodes 5.4e-7 relative H error (linear: 1.1e-4 / 2.4e-5).
     With ``node_freq_hz == freqs_hz`` the input is returned unchanged (bin-by-bin trace).
+
+    ``present`` (K, n) marks the nodes at which a path exists (the solver drops some paths inside the band).  Such a path is interpolated by a spline
+    through the nodes where it exists and is exactly zero outside the first/last of them (the bisection node puts that boundary on a bin).
     """
     from scipy.interpolate import CubicSpline
 
@@ -112,7 +115,23 @@ def interp_jones(jones_nodes, node_freq_hz, freqs_hz):
     if len(nodes) == 1:
         return np.repeat(jones_nodes * nodes[0], len(freqs), axis=0) / freqs[:, None, None, None]
     scaled = jones_nodes * nodes[:, None, None, None]
-    return CubicSpline(nodes, scaled, axis=0)(freqs) / freqs[:, None, None, None]
+    out = CubicSpline(nodes, scaled, axis=0)(freqs) / freqs[:, None, None, None]
+    if present is not None:
+        present = np.asarray(present, bool)
+        for i in np.flatnonzero(~present.all(axis=0)):
+            keep = np.flatnonzero(present[:, i])
+            if len(keep) == 0:
+                out[:, i] = 0.0
+                continue
+            lo, hi = nodes[keep[0]], nodes[keep[-1]]
+            inside = (freqs >= lo - 1e-3) & (freqs <= hi + 1e-3)
+            seg = np.zeros((len(freqs),) + jones_nodes.shape[2:], complex)
+            if len(keep) >= 2:
+                seg[inside] = CubicSpline(nodes[keep], scaled[keep, i], axis=0)(freqs[inside]) / freqs[inside][:, None, None]
+            else:
+                seg[inside] = scaled[keep[0], i] / freqs[inside][:, None, None]
+            out[:, i] = seg
+    return out
 
 
 def path_directions(theta_t, phi_t, theta_r, phi_r):
@@ -141,3 +160,21 @@ def align_paths(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float 
     perm = np.empty(len(ref_tau), int)
     perm[rows] = cols
     return perm, float(dist[rows, cols].max())
+
+
+def match_partial(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float = 2e-13):
+    """Rectangular version of ``align_paths``: ``(match, extra)`` with ``match[i]`` = index into the new trace for reference path ``i`` (-1 if the
+    path is absent in the new trace) and ``extra`` = indices of new paths that match no reference path."""
+    from scipy.optimize import linear_sum_assignment
+
+    ref_tau, tau = np.asarray(ref_tau, float), np.asarray(tau, float)
+    match = np.full(len(ref_tau), -1, int)
+    if len(ref_tau) and len(tau):
+        dist = np.linalg.norm(ref_dirs[:, None, :] - dirs[None, :, :], axis=-1)
+        dtau = np.abs(ref_tau[:, None] - tau[None, :])
+        rows, cols = linear_sum_assignment(dist + dtau * 1e9)
+        for r, c in zip(rows, cols):
+            if dist[r, c] <= tol and dtau[r, c] <= tau_tol:
+                match[r] = c
+    extra = np.array(sorted(set(range(len(tau))) - set(match[match >= 0].tolist())), int)
+    return match, extra

@@ -78,3 +78,5 @@ python scripts/drive_sim/run_route_experiments.py --s1-routes $D/S1/routes --h-d
 python scripts/drive_sim/analyze_route_experiments.py --results $D/S6_routes --out $D/S6_routes/ANALYSIS
 ```
 Apply the same decision rule as v1 (method B only if the parity gate passes; G3 is reported at 5e-14 s and 2e-13 s; the relaxation needs a decision).
+
+**Anchor B and the vanishing path (A10/A10b/A10c).** For anchor B the solver drops one path (about −45 dB to −30 dB) above ≈ bin 146–150 at every position. `rf_b_trace.py` handles it: the cut bin is found by bisection (4 extra solver calls), the path is interpolated piecewise and is exactly zero above the cut; `dropped_audit` / `screen_exceeded` are written to every trace receipt. `routes-parity-report` must show `all_passed: true` (developer run: |Δs| max 1.2e-5, H error max 5.9e-5, 35 poses); if it does not, run method A for anchor B (`rf_a_runner.py ... --anchor-x 10`, about 105 core-hours for all routes and both mounts).
