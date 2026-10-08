@@ -133,3 +133,17 @@ Exploratory only, not a pre-registered test. Replacing the LoS-only angle-correc
 - median heading RMSE, range+s P0: mount 0° LUT 6.70° vs ideal 18.49°; mount 45° LUT 1.38° vs ideal 8.04°; odom_imu reference 7.64°.
 - with probes the gap widens at mount 0° (T10: 1.62° vs 17.31°); the ideal model is better than the LUT in 0–18 % of paired runs depending on baseline (≈0 % for range_s_*).
 - Conclusion: the TX/RX angle correction in the LUT is what makes `s` usable as a measurement; with the uncorrected ideal curve the filter is worse than odom+IMU in most conditions. Placeholder sensors and simulation only; R1 dev stores, not routes.
+
+## A14 — Routes: relaxed G3 tolerance (2e-13 s) authorised by the user; G3 evidence for R2/R4/R5 (registered after the corrected re-run, no experiment result changed)
+
+The user explicitly approved the relaxed 2e-13 s tolerance for the routes (the earlier approval covered only the R1 B-restart). Evidence is the corrected `routes-continuity` re-run on the unchanged Snowball traces (`SNOWBALL_ROUTE_RUNS/01a11669/g3_recheck_20261008/`; all 12 H stores and 37 S6 files verified byte-identical, no S6 re-run):
+
+| route | stations | unmatched @5e-14 s (strict, pre-registered) | unmatched @2e-13 s (relaxed) | max residual [s] | path-set changes | min gap between distinct image delays [s] |
+|---|---|---|---|---|---|---|
+| R2 (anchor A / B) | 925 | 1 / 1 | 0 / 0 | 5.1e-14 / 5.8e-14 | 53 / 51 | 2.6e-13 / 2.4e-13 |
+| R4 (A / B) | 547 | 3 / 3 | 0 / 0 | 9.4e-14 / 8.2e-14 | 44 / 33 | 1.03e-13 / 1.05e-13 |
+| R5 (A / B) | 1343 | 9 / 9 | 0 / 0 | 1.01e-13 / 9.7e-14 | 106 / 103 | 1.03e-13 / 1.15e-13 |
+
+Status wording to be used in every report: **strict (pre-registered 5e-14 s) G3 FAILS for all six route/anchor combinations; relaxed (2e-13 s, user-authorised) G3 passes.** The pre-registered threshold is not edited and the strict failure is not removed from the record. The old six "passes" (A12) stay void.
+
+Limitation, stated as in A8: for R4 and R5 the smallest gap between distinct image-delay classes (≈1.0e-13 s) is below the relaxed tolerance, so labels of such nearly identical paths can be ambiguous. G3 judges path-set continuity (no path appears/disappears unmatched), for which this is harmless, but it is not evidence that individual paths keep their labels. `B_G3_eligible_after_recheck: true` applies only under the relaxed tolerance; `scientific_PASS` stays false (L1/L2 FAIL, strict G3 fail, NEES over-confident, placeholder sensors).
