@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LoS 막힌 위치 곡선</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#fff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--grid:#eceae5;--c1:#2a78d6;--c2:#eb6834;--sel:#0b0b0b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 16px;max-width:82ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:0 0 10px}.seg,.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:13.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer}
+button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.lab{font-size:13px;color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+.gr{stroke:var(--grid)}.ax{stroke:var(--line)}.tk{fill:var(--muted);font-size:11px}
+.l1{fill:none;stroke:var(--c1);stroke-width:2.2}.lm{fill:none;stroke:var(--ink2);stroke-width:1.6;stroke-dasharray:5 3}.li{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 3}
+.m1{fill:var(--c1);stroke:var(--card);stroke-width:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink2);margin:0 0 8px}.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 0}.stat{border:1px solid var(--line);border-radius:8px;padding:6px 10px}.stat b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap}.wrapc{position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.mini{border:1px solid var(--line);border-left:4px solid var(--c1);border-radius:8px;padding:6px;cursor:pointer;background:var(--card)}.mini.nlos{border-left-color:var(--c2)}
+.mini[aria-pressed="true"]{box-shadow:0 0 0 1px var(--sel);border-color:var(--sel)}
+.mini h3{font-size:12px;margin:0 0 2px;color:var(--ink2);font-weight:600}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--ink2);font-weight:600}
+.scroll{overflow-x:auto}details summary{cursor:pointer;color:var(--ink2);font-size:14px}.tag{font-size:12px;border-radius:6px;padding:1px 6px;border:1px solid var(--line)}.tag.n{border-color:var(--c2);color:var(--c2)}
+.plan{max-width:420px}.env{fill:var(--bg);stroke:var(--line)}.desk{fill:#b8935a}.part{fill:#7f8da0}.ln{stroke:var(--muted);stroke-width:.8;stroke-dasharray:2 3}.anc{fill:var(--ink)}.pt{fill:var(--c2);stroke:var(--card);stroke-width:1.5}.pn{fill:#fff;font-size:10px;font-weight:700}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}.pc{border:1px solid var(--line);border-left:4px solid var(--c2);border-radius:10px;padding:10px;background:var(--card)}.pc h3{font-size:14px;margin:0 0 2px}.pc .sub{font-size:12.5px;color:var(--ink2);margin:0 0 6px}.two{display:grid;grid-template-columns:1fr 1fr;gap:6px}.two h4{font-size:12px;margin:0;color:var(--ink2);font-weight:600}.mn{font-size:12px;color:var(--ink2);margin:2px 0 0}.top{display:grid;grid-template-columns:minmax(260px,420px) 1fr;gap:16px;align-items:start}@media (max-width:760px){.top{grid-template-columns:1fr}.two{grid-template-columns:1fr}}</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LoS가 막힌 위치: 각도 모델과 시뮬레이션 곡선</h1>
+  <p class="lede">앵커(천장)와 태그 사이 직선이 칸막이 판이나 책상 윗판에 막히는 10곳입니다. 각 위치에서 두 송신 포트의 yaw 곡선을 겹쳐 그렸습니다. 파랑은 시뮬레이션, 긴 점선은 각도 모델(안테나 패턴으로 만든 LoS 곡선, 막힌 물체는 모름), 가는 점선은 이상 곡선 |cos 2·yaw|입니다. 지표는 first-path 전력 비율 |P1−P2| / |P1+P2|입니다.</p>
+  <section class="card top" aria-label="위치와 요약">
+    <div class="plan">__PLAN__</div>
+    <div id="summary"></div>
+  </section>
+  <div class="cards" id="cards"></div>
+  <section class="card" style="margin-top:16px" aria-label="표"><details><summary>표로 보기</summary><div class="scroll"><table id="tbl"></table></div></details></section>
+</div>
+<script>
+(function () {
+  var D = __DATA__, P = D.positions, S = D.stats, TXN = { LP_plus45: '송신 +45°', LP_minus45: '송신 −45°' };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var el = function (t, a, txt) { var e = document.createElementNS(NS, t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var YA = D.yaw_deg, YM = D.model_yaw_deg;
+  function path(xs, ys, sx, sy) { return xs.map(function (x, i) { return (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + sy(ys[i]).toFixed(1); }).join(''); }
+  function chart(t) {
+    var W = 260, H = 150, m = { l: 26, r: 6, t: 6, b: 20 }, svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img' });
+    var sx = function (v) { return m.l + v / 180 * (W - m.l - m.r); }, sy = function (v) { return H - m.b - v * (H - m.t - m.b); };
+    [0, 0.5, 1].forEach(function (v) { svg.appendChild(el('line', { class: 'gr', x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v) })); svg.appendChild(el('text', { class: 'tk', x: m.l - 4, y: sy(v) + 3, 'text-anchor': 'end' }, v)); });
+    [0, 45, 90, 135, 180].forEach(function (v) { svg.appendChild(el('text', { class: 'tk', x: sx(v), y: H - 6, 'text-anchor': 'middle' }, v + '°')); });
+    svg.appendChild(el('path', { class: 'li', d: path(YM, YM.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), sx, sy) }));
+    svg.appendChild(el('path', { class: 'lm', d: path(YM, t.model_dense_abs, sx, sy) }));
+    svg.appendChild(el('path', { class: 'l1', d: path(YA, t.s.map(Math.abs), sx, sy) }));
+    YA.forEach(function (y, k) { svg.appendChild(el('circle', { class: 'm1', cx: sx(y), cy: sy(Math.abs(t.s[k])), r: 2.4 })); });
+    return svg;
+  }
+  var box = document.getElementById('cards');
+  P.forEach(function (p, i) {
+    var c = document.createElement('div'); c.className = 'pc';
+    c.innerHTML = '<h3>' + (i + 1) + '. 태그 (' + p.x + ', ' + p.y + ') · θ ' + f(p.theta_deg, 0) + '°</h3><p class="sub">막는 판: ' + p.blockers.join(', ') + ' · 직선 통과 손실 추정 ' + f(p.loss_db, 1) + ' dB</p>';
+    var two = document.createElement('div'); two.className = 'two';
+    Object.keys(TXN).forEach(function (tn) {
+      var t = p.tx[tn], w = document.createElement('div'); w.innerHTML = '<h4>' + TXN[tn] + '</h4>'; w.appendChild(chart(t));
+      var q = document.createElement('div'); q.className = 'mn'; q.textContent = '편차 RMS ' + f(t.rms_dev_model, 2) + ' (이상 ' + f(t.rms_dev_ideal, 2) + ') · 상관 ' + f(t.corr_model, 2) + ' · yaw RMSE ' + f(t.yaw_rmse_model, 1) + '° (이상 ' + f(t.yaw_rmse_ideal, 1) + '°)'; w.appendChild(q);
+      two.appendChild(w);
+    });
+    c.appendChild(two); box.appendChild(c);
+  });
+  document.getElementById('summary').innerHTML = '<h2>요약 (막힌 10곳, 곡선 20개)</h2><ul>' +
+    '<li>각도 모델이 yaw를 5° 안으로 맞히는 곡선: <b>' + S.n_good + ' / ' + S.n_curves + '</b>. 10°보다 크게 틀리는 곡선: <b>' + S.n_bad + ' / ' + S.n_curves + '</b>.</li>' +
+    '<li>곡선 모양이 거의 같은(상관 0.9 이상) 곡선: <b>' + S.n_corr_hi + ' / ' + S.n_curves + '</b>. 막혀 있어도 모양이 각도 모델과 맞는 곡선이 있습니다.</li>' +
+    '<li>각도 모델이 이상 곡선보다 나은(yaw RMSE 기준) 곡선: <b>' + S.model_better + ' / ' + S.n_curves + '</b>.</li>' +
+    '<li>편차는 θ가 클수록 커집니다(위치 10곳에서 θ와 편차 RMS의 상관 ' + f(S.corr_theta_dev, 2) + '). 직선 통과 손실 추정과의 상관은 ' + f(S.corr_loss_dev, 2) + '로 약합니다. 위치가 10곳뿐이라 가볍게 읽어야 합니다.</li>' +
+    '<li>좌우 거울 위치(x 0.5와 9.5)는 앵커 기준 거의 거울 형상(같은 θ)인데도 곡선이 다릅니다. 예를 들어 (0.5, 5.25)는 송신 −45°가 잘 맞고 +45°는 어긋나는데, (9.5, 5.25)는 반대 경향입니다. 안테나 패턴이 좌우 대칭이 아니기 때문으로 보입니다(확인하지 않음).</li></ul>' +
+    '<p class="note">왜 막혀도 맞는 곡선이 있는지(첫 경로가 판을 투과한 직선 경로인지 등)는 경로 파일(npz, Snowball에 있음)이 있어야 확인할 수 있습니다. 이 시뮬레이션은 회절을 끄고 판을 슬랩 하나로 계산합니다.</p>';
+  var t = '<thead><tr><th>위치</th><th>θ</th><th>막는 판</th><th>통과 손실(dB)</th><th>송신</th><th>편차(모델)</th><th>상관</th><th>yaw RMSE 모델</th><th>이상</th></tr></thead><tbody>';
+  P.forEach(function (p) { Object.keys(TXN).forEach(function (tn) { var q = p.tx[tn]; t += '<tr><td>(' + p.x + ', ' + p.y + ')</td><td>' + f(p.theta_deg, 1) + '</td><td>' + p.blockers.join(', ') + '</td><td>' + f(p.loss_db, 1) + '</td><td>' + TXN[tn] + '</td><td>' + f(q.rms_dev_model, 3) + '</td><td>' + f(q.corr_model, 2) + '</td><td>' + f(q.yaw_rmse_model, 1) + '</td><td>' + f(q.yaw_rmse_ideal, 1) + '</td></tr>'; }); });
+  document.getElementById('tbl').innerHTML = t + '</tbody>';
+})();
+</script>
+</body>
+</html>
