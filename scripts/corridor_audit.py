@@ -45,7 +45,7 @@ def main():
         ax, ay = ANCHOR_BY_DIR[top]
         setup = CorridorSetup(anchor_x_m=ax, anchor_y_m=ay)
         exp = Expect(yaw_deg=list(setup.yaw_sweep_deg), bin_stride=1, freq_grid_hz=freq, solver=solver, adapter_sha256=adapter, bank_sha256=bank_sha, anchor_m=setup.anchor_position.tolist(),
-                     setup_config_sha256=setup.snapshot()["config_sha256"], runner_sha256=None, materials=mats, los_expected=lambda x, y: True, require_scene_files=6, npz_optional=("objects_cat",) if top == "CORRIDOR_SWEEP_20261006" else ())
+                     robot_position=setup.robot_position, setup_config_sha256=setup.snapshot()["config_sha256"], runner_sha256=None, materials=mats, los_expected=lambda x, y: True, require_scene_files=6, npz_optional=("objects_cat",) if top == "CORRIDOR_SWEEP_20261006" else ())
         issues = check_position(rp.parent, tag if (rp.parent / f"{tag}_H.npy").exists() else tag, xy, exp)
         issues = [i for i in issues if not (i.startswith("receipt lacks") and False)]
         rows.append(dict(dir=top, folder=str(rp.parent.relative_to(ROOT)), tag=tag, xy=list(xy), issues=issues))

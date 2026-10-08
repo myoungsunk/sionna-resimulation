@@ -56,7 +56,7 @@ def build_expect(args) -> tuple:
         n_scene = len(mats)
     yaws = list(setup.yaw_sweep_deg)
     exp = Expect(yaw_deg=yaws, bin_stride=args.bin_stride, freq_grid_hz=freq, solver=solver, adapter_sha256=sha256_file(ADAPTER), bank_sha256=bank_sha,
-                 anchor_m=setup.anchor_position.tolist(), setup_config_sha256=setup.snapshot()["config_sha256"],
+                 anchor_m=setup.anchor_position.tolist(), robot_position=setup.robot_position, setup_config_sha256=setup.snapshot()["config_sha256"],
                  runner_sha256=None if args.allow_runner_change else sha256_file(RUNNER), materials=mats, los_expected=los, require_scene_files=n_scene, scenario=args.scenario)
     return setup, exp
 

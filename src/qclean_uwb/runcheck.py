@@ -13,7 +13,8 @@ from pathlib import Path
 import numpy as np
 
 NPZ_KEYS = ("H", "yaw_deg", "bin_index", "freqs_hz", "path_counts", "offsets", "tau_cat", "a_cat", "interactions_cat", "objects_cat",
-            "robot_xy_m", "anchor_m", "robot_antenna_m", "ports")
+            "robot_xy_m", "anchor_m", "robot_antenna_m", "ports", "H_layout")
+H_LAYOUT = "[yaw, bin, rx_port(+45,-45), tx_port(+45,-45)]; offsets index flattened (bin-major, yaw-minor)"
 
 
 def sha256_file(path: Path) -> str:
@@ -34,6 +35,7 @@ class Expect:
     adapter_sha256: str
     bank_sha256: dict                      # {"LP_plus45_bank.npz": sha, ...}
     anchor_m: list
+    robot_position: object                 # callable (x, y) -> planned receiver xyz
     setup_config_sha256: str | None = None
     runner_sha256: str | None = None       # None: do not compare (audit of results made by older runner versions)
     materials: list | None = None          # [(object, itu_type, thickness_m)] in the order of the receipt, None: skip
@@ -45,7 +47,66 @@ class Expect:
 
 
 def _close(a, b, tol=1e-9) -> bool:
-    return bool(np.allclose(np.asarray(a, float), np.asarray(b, float), rtol=0, atol=tol)) and np.shape(a) == np.shape(b)
+    try:
+        return np.shape(a) == np.shape(b) and bool(np.allclose(np.asarray(a, float), np.asarray(b, float), rtol=0, atol=tol))
+    except (TypeError, ValueError):
+        return False
+
+
+def _check_paths(z, H, n_yaw, frequencies, xy, exp):
+    """Validate structure before indexing; reproduce the runner's bin-major sum.
+
+    The runner saves coefficients as complex64, but H before that conversion.
+    Allow 2*eps32*sum(abs(a)) for storage rounding, plus a conservative
+    floating-point summation bound. No fixed absolute floor masks weak channels.
+    Keep the producer's delay dtype in the phase expression.
+    """
+    counts, offsets = z["path_counts"], z["offsets"]
+    if (counts.shape != (n_yaw, len(frequencies)) or
+            offsets.shape != (n_yaw * len(frequencies) + 1,) or
+            counts.dtype.kind not in "iu" or offsets.dtype.kind not in "iu" or
+            (counts < 0).any() or (offsets < 0).any() or offsets[0] != 0 or
+            (offsets[1:] < offsets[:-1]).any() or
+            not np.array_equal(np.diff(offsets), counts.T.ravel())):
+        return ["npz path_counts/offsets violate integer, nonnegative, bin-major contract"]
+    n = int(offsets[-1])
+    a, tau, inter = z["a_cat"], z["tau_cat"], z["interactions_cat"]
+    if (a.shape != (2, 2, n) or a.dtype.kind != "c" or
+            tau.shape != (n,) or tau.dtype.kind != "f" or
+            inter.ndim != 2 or inter.shape[1] != n or inter.dtype.kind not in "iu"):
+        return ["npz concatenated path array shapes/dtypes disagree with offsets"]
+    if "objects_cat" in z.files:
+        obj = z["objects_cat"]
+        if obj.shape != inter.shape or obj.dtype.kind not in "iu":
+            return ["npz objects_cat shape/dtype differs from interactions_cat"]
+    if not np.isfinite(a).all() or not np.isfinite(tau).all() or (tau < 0).any():
+        return ["npz path coefficients/delays must be finite and delays nonnegative"]
+    issues = []
+    if H.shape == (n_yaw, len(frequencies), 2, 2):
+        mismatch = 0
+        for bi, freq in enumerate(frequencies):
+            for yi in range(n_yaw):
+                j = bi * n_yaw + yi
+                start, stop = int(offsets[j]), int(offsets[j + 1])
+                coef, delay = a[..., start:stop], tau[start:stop]
+                phase = np.exp(-2j * np.pi * freq * delay)
+                reconstructed = (coef * phase[None, None, :]).sum(-1)
+                magnitude = np.abs(coef.astype(np.complex128)).sum(-1)
+                eps = np.finfo(reconstructed.real.dtype).eps
+                bound = (2 * np.finfo(np.float32).eps + 8 * max(1, stop-start) * eps) * magnitude
+                if (not np.isfinite(reconstructed).all() or
+                        not (np.abs(reconstructed - H[yi, bi]) <= bound).all()):
+                    mismatch += 1
+        if mismatch:
+            issues.append(f"npz path reconstruction differs from H in {mismatch} calls")
+    if exp.los_expected is not None:
+        zero = (inter == 0).all(axis=0).astype(np.int64)
+        cs = np.concatenate([[0], np.cumsum(zero)])
+        los_per_call = cs[offsets[1:]] - cs[offsets[:-1]]
+        want = bool(exp.los_expected(*xy))
+        if not ((los_per_call > 0) == want).all():
+            issues.append(f"LoS path presence disagrees with the geometric expectation (expected {'clear' if want else 'blocked'}) in {int(((los_per_call > 0) != want).sum())} calls")
+    return issues
 
 
 def check_position(folder: Path, tag: str, xy: tuple, exp: Expect) -> list:
@@ -117,7 +178,7 @@ def check_position(folder: Path, tag: str, xy: tuple, exp: Expect) -> list:
         return issues + [f"sweep.npz unreadable: {e}"]
     if missing:
         return issues + [f"sweep.npz lacks {missing}"]
-    if z["H"].shape == H.shape and not np.allclose(z["H"], H, rtol=0, atol=1e-12):
+    if z["H"].shape == H.shape and (not np.iscomplexobj(z["H"]) or not np.array_equal(z["H"], H)):
         issues.append("sweep.npz H differs from H.npy")
     elif z["H"].shape != H.shape:
         issues.append("sweep.npz H shape differs from H.npy")
@@ -127,30 +188,22 @@ def check_position(folder: Path, tag: str, xy: tuple, exp: Expect) -> list:
         issues.append("npz bin_index differs from the requested bins")
     elif not _close(z["freqs_hz"], exp.freq_grid_hz[bins], 1e-3):
         issues.append("npz freqs_hz differ from the bank frequency grid")
-    counts, offsets = z["path_counts"], z["offsets"]
-    if counts.shape != (n_yaw, len(bins)) or offsets.shape != (n_yaw * len(bins) + 1,):
-        issues.append("npz path_counts/offsets shapes are inconsistent with the request")
-    else:
-        if not np.array_equal(np.diff(offsets), counts.T.ravel()):
-            issues.append("npz offsets do not match path_counts")
-        n_tot = int(offsets[-1])
-        if not (z["tau_cat"].size == z["a_cat"].shape[-1] == z["interactions_cat"].shape[1] == n_tot and ("objects_cat" not in z.files or z["objects_cat"].shape[1] == n_tot)):
-            issues.append("npz concatenated path arrays disagree with offsets")
-        elif exp.los_expected is not None:
-            zero = (z["interactions_cat"] == 0).all(axis=0).astype(np.int64)
-            cs = np.concatenate([[0], np.cumsum(zero)])
-            los_per_call = cs[offsets[1:]] - cs[offsets[:-1]]
-            want = bool(exp.los_expected(*xy))
-            if not ((los_per_call > 0) == want).all():
-                issues.append(f"LoS path presence disagrees with the geometric expectation (expected {'clear' if want else 'blocked'}) in {int(((los_per_call > 0) != want).sum())} calls")
+    issues.extend(_check_paths(z, H, n_yaw, exp.freq_grid_hz[bins], xy, exp))
+    if not np.array_equal(z["ports"], ["LP_plus45", "LP_minus45"]):
+        issues.append("npz ports differ from the RX/TX port order")
+    if "H_layout" in z.files and (z["H_layout"].shape != () or z["H_layout"].item() != H_LAYOUT):
+        issues.append("npz H_layout differs from the RX/TX axis contract")
+    if not _close(z["robot_antenna_m"], exp.robot_position(*xy), 1e-9):
+        issues.append("npz robot_antenna_m differs from the planned receiver")
     if not _close(z["robot_xy_m"], xy, 1e-9):
         issues.append("npz robot_xy_m differs from the requested position")
     if not _close(z["anchor_m"], exp.anchor_m, 1e-9):
         issues.append("npz anchor_m differs from the planned anchor")
+    z.close()
     return issues
 
 
-def check_run(run_dir: Path, positions: list, tag_fn, exp: Expect, ignore_dirs=("logs", "_superseded", "geom_check")) -> dict:
+def check_run(run_dir: Path, positions: list, tag_fn, exp: Expect, ignore_dirs=("logs", "_superseded", "geom_check", "slab_check")) -> dict:
     """All requested positions valid, none duplicated, none unexpected."""
     run_dir = Path(run_dir)
     out = dict(positions={}, duplicates=[], unexpected=[])

@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from qclean_uwb.runcheck import Expect, check_position, check_run
+from qclean_uwb.runcheck import Expect, H_LAYOUT, check_position, check_run
 
 ROOT = Path(__file__).resolve().parents[1]
 YAWS = [0.0, 10.0, 20.0]
@@ -17,7 +17,7 @@ FREQ = 6.2504e9 + 1.953125e6 * np.arange(257)
 
 def make_exp(**kw):
     base = dict(yaw_deg=YAWS, bin_stride=64, freq_grid_hz=FREQ, solver={"max_depth": 3}, adapter_sha256="ad", bank_sha256={"a": "1"}, anchor_m=[5.0, 2.2, 2.65],
-                setup_config_sha256="cfg", runner_sha256="run", materials=[("floor", "concrete", 0.2)], los_expected=lambda x, y: True, require_scene_files=1, scenario="office")
+                robot_position=lambda x, y: [x, y, 0.45], setup_config_sha256="cfg", runner_sha256="run", materials=[("floor", "concrete", 0.2)], los_expected=lambda x, y: True, require_scene_files=1, scenario="office")
     base.update(kw)
     return Expect(**base)
 
@@ -29,18 +29,25 @@ def write_valid(folder: Path, tag: str, xy, exp: Expect, los=True):
     bins = list(range(0, len(exp.freq_grid_hz), exp.bin_stride))
     ny, nb = len(exp.yaw_deg), len(bins)
     rng = np.random.default_rng(0)
-    H = (rng.normal(size=(ny, nb, 2, 2)) + 1j * rng.normal(size=(ny, nb, 2, 2))) + 1.0
+    H = np.empty((ny, nb, 2, 2), complex)
     counts = np.full((ny, nb), 2, np.int32)
     offsets = np.concatenate([[0], np.cumsum(counts.T.ravel())])
     n = int(offsets[-1])
+    coef = rng.normal(size=(2, 2, n)) + 1j * rng.normal(size=(2, 2, n))
+    tau = rng.uniform(1e-9, 1e-7, n)
+    for bi, fi in enumerate(bins):
+        for yi in range(ny):
+            j = bi * ny + yi
+            sl = slice(offsets[j], offsets[j+1])
+            H[yi, bi] = (coef[..., sl] * np.exp(-2j * np.pi * exp.freq_grid_hz[fi] * tau[sl])).sum(-1)
     inter = np.zeros((1, n), np.int8)
     inter[0, 1::2] = 1  # per call: path 0 has no interaction (LoS), path 1 has one
     if not los:
         inter[0, :] = 1
     np.save(folder / f"{tag}_H.npy", H)
     np.savez_compressed(folder / f"{tag}_sweep.npz", H=H, yaw_deg=np.array(exp.yaw_deg), bin_index=np.array(bins), freqs_hz=exp.freq_grid_hz[bins], path_counts=counts, offsets=offsets,
-                        tau_cat=np.zeros(n), a_cat=np.zeros((2, 2, n), np.complex64), interactions_cat=inter, objects_cat=np.zeros((1, n), np.int64),
-                        robot_xy_m=np.array(xy), anchor_m=np.array(exp.anchor_m), robot_antenna_m=np.array([xy[0], xy[1], 0.45]), ports=np.array(["LP_plus45", "LP_minus45"]))
+                        tau_cat=tau, a_cat=coef.astype(np.complex64), interactions_cat=inter, objects_cat=np.zeros((1, n), np.int64),
+                        robot_xy_m=np.array(xy), anchor_m=np.array(exp.anchor_m), robot_antenna_m=np.array(exp.robot_position(*xy)), ports=np.array(["LP_plus45", "LP_minus45"]), H_layout=H_LAYOUT)
     rc = dict(scenario=exp.scenario, setup_config_sha256=exp.setup_config_sha256, robot_xy_m=list(xy), yaws=exp.yaw_deg, n_bins=nb, bin_stride=exp.bin_stride, pathsolver_calls=ny * nb,
               solver=exp.solver, adapter_sha256=exp.adapter_sha256, bank_sha256=exp.bank_sha256, runner_sha256=exp.runner_sha256, mean_paths=2.0, tag=tag, versions={"sionna-rt": "2.0.1"},
               materials=[dict(object=a, itu_type=b, thickness_m=c) for a, b, c in exp.materials])
@@ -52,6 +59,97 @@ def test_valid_fixture_passes(tmp_path):
     exp = make_exp()
     write_valid(tmp_path / "t", "t", (1.0, 2.0), exp)
     assert check_position(tmp_path / "t", "t", (1.0, 2.0), exp) == []
+
+
+@pytest.mark.parametrize("key,change", [
+    ("a_cat", lambda v: np.zeros_like(v)),
+    ("a_cat", lambda v: np.full_like(v, np.nan)),
+    ("tau_cat", lambda v: np.full_like(v, np.nan)),
+    ("tau_cat", lambda v: -v),
+    ("a_cat", lambda v: v[0]),
+    ("a_cat", lambda v: v.real),
+    ("tau_cat", lambda v: v[None, :]),
+    ("interactions_cat", lambda v: v.ravel()),
+    ("objects_cat", lambda v: np.repeat(v, 2, axis=0)),
+    ("path_counts", lambda v: v.astype(float)),
+    ("path_counts", lambda v: -v),
+    ("offsets", lambda v: v.astype(float)),
+    ("offsets", lambda v: v + 1),
+    ("offsets", lambda v: v[::-1]),
+    ("ports", lambda v: v[::-1]),
+    ("robot_antenna_m", lambda v: np.array([99, 99, 99])),
+    ("H_layout", lambda v: np.array("[yaw, bin, tx_port, rx_port]")),
+])
+def test_reaudit_corruption_rejected(tmp_path, key, change):
+    exp = make_exp()
+    write_valid(tmp_path / "t", "t", (1., 2.), exp)
+    file = tmp_path / "t/t_sweep.npz"
+    with np.load(file) as z:
+        data = dict(z)
+    data[key] = change(data[key])
+    np.savez(file, **data)
+    assert check_position(tmp_path / "t", "t", (1., 2.), exp)
+
+
+def test_readme_auxiliary_folders_and_unexpected_position(tmp_path):
+    exp = make_exp()
+    write_valid(tmp_path / "t", "t", (1., 2.), exp)
+    for name in ("slab_check", "geom_check", "logs", "_superseded"):
+        (tmp_path / name).mkdir()
+    assert check_run(tmp_path, [(1., 2.)], lambda x, y: "t", exp)["ok"]
+    (tmp_path / "office_x9_y9").mkdir()
+    assert not check_run(tmp_path, [(1., 2.)], lambda x, y: "t", exp)["ok"]
+
+
+@pytest.mark.parametrize("scale", [1., 1e-14])
+def test_reconstruction_quantization_and_small_channel_corruption(tmp_path, scale):
+    exp = make_exp()
+    write_valid(tmp_path / "t", "t", (1., 2.), exp)
+    file = tmp_path / "t/t_sweep.npz"
+    with np.load(file) as z:
+        data = dict(z)
+    data["a_cat"] *= scale
+    data["H"] *= scale
+    np.savez(file, **data)
+    np.save(tmp_path / "t/t_H.npy", data["H"])
+    assert check_position(tmp_path / "t", "t", (1., 2.), exp) == []
+    data["H"][1, 2, 0, 1] *= 1.01
+    np.savez(file, **data)
+    np.save(tmp_path / "t/t_H.npy", data["H"])
+    assert any("reconstruction" in s for s in check_position(tmp_path / "t", "t", (1., 2.), exp))
+
+
+def test_float32_delays_and_legacy_objects(tmp_path):
+    exp = make_exp(npz_optional=("objects_cat",))
+    write_valid(tmp_path / "t", "t", (1., 2.), exp)
+    file = tmp_path / "t/t_sweep.npz"
+    with np.load(file) as z:
+        data = dict(z)
+    del data["objects_cat"]
+    data["tau_cat"] = data["tau_cat"].astype(np.float32)
+    for bi, freq in enumerate(data["freqs_hz"]):
+        for yi in range(len(YAWS)):
+            j = bi * len(YAWS) + yi
+            sl = slice(data["offsets"][j], data["offsets"][j+1])
+            data["H"][yi, bi] = (data["a_cat"][..., sl] * np.exp(-2j*np.pi*freq*data["tau_cat"][sl])).sum(-1)
+    np.savez(file, **data)
+    np.save(tmp_path / "t/t_H.npy", data["H"])
+    assert check_position(tmp_path / "t", "t", (1., 2.), exp) == []
+    assert any("lacks" in s for s in check_position(tmp_path / "t", "t", (1., 2.), make_exp()))
+
+
+def test_duplicate_H_is_exact_and_layout_is_required(tmp_path):
+    exp = make_exp()
+    write_valid(tmp_path / "t", "t", (1., 2.), exp)
+    file = tmp_path / "t/t_sweep.npz"
+    with np.load(file) as z:
+        data = dict(z)
+    data["H"][0, 0, 0, 0] += 1e-14
+    np.savez(file, **data)
+    assert any("H differs" in s for s in check_position(tmp_path / "t", "t", (1., 2.), exp))
+    del data["H_layout"]
+    np.savez(file, **data)
+    assert any("lacks" in s for s in check_position(tmp_path / "t", "t", (1., 2.), exp))
 
 
 def test_repro_A_zero_channel_without_sweep_npz_and_mismatched_receipt(tmp_path):
