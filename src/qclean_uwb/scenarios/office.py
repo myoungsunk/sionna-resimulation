@@ -27,6 +27,8 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
+from qclean_uwb.scenarios.corridor import ANCHOR_ROTATION, rot_z
+
 MATERIALS = {
     "floor": ("concrete", 0.2), "ceiling": ("concrete", 0.2), "outer_walls": ("plasterboard", 0.0125),
     "partitions": ("chipboard", 0.04), "desks": ("wood", 0.03),
@@ -35,12 +37,19 @@ GROUPS = tuple(MATERIALS)
 
 
 def box_quads(lo, hi) -> list:
-    """Six outward faces of an axis-aligned box as (4, 3) corner arrays."""
+    """Six faces of an axis-aligned box as (4, 3) corner arrays, counter-clockwise seen from OUTSIDE (normals point away from the box centre)."""
+    lo, hi = np.asarray(lo, float), np.asarray(hi, float)
+    centre = 0.5 * (lo + hi)
     (x0, y0, z0), (x1, y1, z1) = lo, hi
     q = lambda *p: np.array(p, float)
-    return [q((x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)), q((x0, y0, z1), (x0, y1, z1), (x1, y1, z1), (x1, y0, z1)),
-            q((x0, y0, z0), (x0, y0, z1), (x1, y0, z1), (x1, y0, z0)), q((x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)),
-            q((x0, y0, z0), (x0, y1, z0), (x0, y1, z1), (x0, y0, z1)), q((x1, y0, z0), (x1, y0, z1), (x1, y1, z1), (x1, y1, z0))]
+    faces = [q((x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0)), q((x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)),
+             q((x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1)), q((x0, y1, z0), (x1, y1, z0), (x1, y1, z1), (x0, y1, z1)),
+             q((x0, y0, z0), (x0, y1, z0), (x0, y1, z1), (x0, y0, z1)), q((x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1))]
+    out = []
+    for f in faces:
+        n = np.cross(f[1] - f[0], f[3] - f[0])
+        out.append(f if n @ (f.mean(0) - centre) > 0 else f[::-1].copy())
+    return out
 
 
 def segment_hits_box(p0, p1, lo, hi) -> bool:
@@ -142,6 +151,32 @@ class OfficeSetup:
 
     def tag_position(self, x: float, y: float) -> np.ndarray:
         return np.array([x, y, self.robot_antenna_z_m])
+
+    # ---- interface shared with CorridorSetup (used by scripts/corridor_sionna_run.py) ----
+    yaw_sweep_deg = tuple(float(v) for v in range(0, 181, 10))
+
+    def robot_position(self, x: float, y: float) -> np.ndarray:
+        return self.tag_position(x, y)
+
+    def robot_rotation(self, yaw_deg: float) -> np.ndarray:
+        return rot_z(yaw_deg)
+
+    @property
+    def example_xy_m(self) -> list:
+        return [(round(float(x), 3), round(float(y), 3)) for x, y in self.sample_points()]
+
+    def position_allowed(self, x: float, y: float) -> bool:
+        return self.is_free(x, y, 0.5 * max(self.robot_body_lwh_m[:2]) + self.robot_clearance_m)
+
+    def link_geometry(self, x: float, y: float, yaw_deg: float = 0.0) -> dict:
+        a, r = self.anchor_position, self.robot_position(x, y)
+        d = r - a
+        rng = float(np.linalg.norm(d))
+        u = d / rng
+        off_a = math.degrees(math.acos(float(np.clip((ANCHOR_ROTATION @ np.array([0.0, 0.0, 1.0])) @ u, -1, 1))))
+        la = ANCHOR_ROTATION.T @ u
+        return dict(range_m=rng, anchor_off_boresight_deg=off_a, anchor_phi_deg=math.degrees(math.atan2(la[1], la[0])),
+                    horizontal_m=float(np.hypot(d[0], d[1])), vertical_m=float(-d[2]))
 
     def los_status(self, x: float, y: float) -> dict:
         a, r = self.anchor_position, self.tag_position(x, y)

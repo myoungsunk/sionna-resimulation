@@ -54,3 +54,21 @@ def test_islands_block_a_low_line_and_not_a_vertical_one():
     d = [b for b in s.boxes() if b["group"] == "desks"][0]
     c = [(d["lo"][i] + d["hi"][i]) / 2 for i in range(3)]
     assert segment_hits_box((c[0], c[1], 0.2), (c[0], c[1], 2.5), d["lo"], d["hi"])
+
+
+def test_box_faces_point_outward():
+    lo, hi = np.array([0.0, 0.0, 0.0]), np.array([1.0, 2.0, 3.0])
+    c = 0.5 * (lo + hi)
+    for f in box_quads(lo, hi):
+        n = np.cross(f[1] - f[0], f[3] - f[0])
+        assert n @ (f.mean(0) - c) > 0
+
+
+def test_runner_interface_and_allowed_positions():
+    s = OfficeSetup()
+    assert s.robot_rotation(0.0).shape == (3, 3) and np.allclose(s.robot_rotation(90.0) @ [1, 0, 0], [0, 1, 0], atol=1e-12)
+    assert len(s.yaw_sweep_deg) == 19 and s.yaw_sweep_deg[-1] == 180.0
+    assert all(s.position_allowed(x, y) for x, y in s.example_xy_m)
+    assert not s.position_allowed(1.85, 10.15)  # inside the first island
+    g = s.link_geometry(s.anchor_x_m, s.anchor_y_m)
+    assert abs(g["anchor_off_boresight_deg"]) < 1e-6 and np.isclose(g["range_m"], s.anchor_position[2] - s.robot_antenna_z_m)

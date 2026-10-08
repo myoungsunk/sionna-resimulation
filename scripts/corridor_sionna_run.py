@@ -33,6 +33,8 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "g2_completion"))
 from sionna_native_runtime import BankPort, Ports  # noqa: E402  (project's pinned FFD adapter)
 from qclean_uwb.scenarios.corridor import ANCHOR_ROTATION, CorridorSetup  # noqa: E402
+from qclean_uwb.scenarios.office import OfficeSetup  # noqa: E402
+from qclean_uwb.scenarios.ply import write_ply  # noqa: E402
 
 C0 = 299792458.0
 # Temporary material assignment (same ITU names the project uses); thickness in metres.
@@ -63,19 +65,19 @@ def load_banks() -> list[dict]:
     return banks
 
 
-def write_ply(path: Path, quad: np.ndarray) -> None:
-    tris = [(0, 1, 2), (0, 2, 3)]
-    lines = ["ply", "format ascii 1.0", "element vertex 4", "property float x", "property float y", "property float z",
-             "element face 2", "property list uchar int vertex_indices", "end_header"]
-    lines += [" ".join(format(float(v), ".17g") for v in p) for p in quad]
-    lines += [f"3 {a} {b} {c}" for a, b, c in tris]
-    path.write_text("\n".join(lines) + "\n", encoding="ascii")
-
-
 def build_scene(setup: CorridorSetup, scene_dir: Path):
     scene_dir.mkdir(parents=True, exist_ok=True)
     scene = rt.load_scene()
     objects, bindings = [], []
+    if hasattr(setup, "objects"):  # office scenario: boxes and panels with a material per object group
+        for o in setup.objects():
+            ply = scene_dir / f"{o['name']}.ply"
+            write_ply(ply, o["quads"])
+            mat = rt.ITURadioMaterial(name="rm_" + o["name"], itu_type=o["material"], thickness=o["thickness_m"])
+            objects.append(rt.SceneObject(fname=str(ply), name=o["name"], radio_material=mat))
+            bindings.append(dict(object=o["name"], group=o["group"], itu_type=o["material"], thickness_m=o["thickness_m"], ply_sha256=sha256(ply)))
+        scene.edit(add=objects)
+        return scene, bindings
     for name, quad in setup.surfaces().items():
         itu, thick = MATERIALS[name]
         ply = scene_dir / f"{name}.ply"
@@ -120,8 +122,11 @@ def solve(solver, scene, cfg):
 def run_sweep(args, setup, cfg, banks):
     x, y = args.xy if args.xy else setup.example_xy_m[args.position]
     tag = args.tag or f"position_{args.position}"
-    lo, hi = setup.robot_x_range_m
-    assert lo <= x <= hi and abs(y) <= setup.robot_y_limit_m, f"POSITION_OUTSIDE_ALLOWED_REGION {x},{y}"
+    if hasattr(setup, "position_allowed"):
+        assert setup.position_allowed(x, y), f"POSITION_OUTSIDE_ALLOWED_REGION {x},{y}"
+    else:
+        lo, hi = setup.robot_x_range_m
+        assert lo <= x <= hi and abs(y) <= setup.robot_y_limit_m, f"POSITION_OUTSIDE_ALLOWED_REGION {x},{y}"
     yaws = args.yaws if args.yaws else list(setup.yaw_sweep_deg)
     freq = banks[0]["freqs_hz"]
     bins = list(range(0, len(freq), args.bin_stride))
@@ -213,6 +218,31 @@ def los_check(args, setup, banks):
     assert all(r["passed"] for r in results), "FFD_ROTATION_LOS_CHECK_FAILED"
 
 
+def office_geom_check(args, setup, banks):
+    """Does PathSolver (max_depth=0, LoS only) agree with the geometric LoS test of OfficeSetup.los_status at every tag position?"""
+    freq = banks[0]["freqs_hz"]
+    txp, rxp = make_ports(banks)
+    scene, _ = build_scene(setup, args.out / "scene")
+    a_pos = setup.anchor_position
+    scene.add(rt.Transmitter("tx", position=a_pos.tolist(), orientation=euler(ANCHOR_ROTATION)))
+    scene.add(rt.Receiver("rx", position=setup.robot_position(*setup.example_xy_m[0]).tolist(), orientation=euler(setup.robot_rotation(0.0))))
+    fi = len(freq) // 2
+    set_bin(scene, banks, txp, rxp, fi, float(freq[fi]))
+    solver, rows = rt.PathSolver(), []
+    for x, y in setup.example_xy_m:
+        scene.receivers["rx"].position = mi.Point3f(*setup.robot_position(x, y).tolist())
+        paths = solver(scene, max_depth=0, los=True, specular_reflection=False, refraction=False)
+        n = int(np.asarray(paths.tau).size)
+        geo = setup.los_status(x, y)
+        rows.append(dict(x=x, y=y, sionna_los_paths=n, sionna_clear=n > 0, geometric_clear=geo["clear"], blockers=geo["blockers"], match=(n > 0) == geo["clear"]))
+    (args.out / "GEOM_LOS_CHECK.json").write_text(json.dumps(rows, indent=2))
+    bad = [r for r in rows if not r["match"]]
+    print(json.dumps(dict(positions=len(rows), sionna_clear=sum(r["sionna_clear"] for r in rows), geometric_clear=sum(r["geometric_clear"] for r in rows), mismatches=len(bad),
+                          mismatch_positions=[(r["x"], r["y"]) for r in bad])))
+    if bad:
+        raise SystemExit("OFFICE_GEOMETRIC_LOS_DISAGREES_WITH_SIONNA")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
@@ -223,18 +253,23 @@ def main():
     ap.add_argument("--bin-stride", type=int, default=1)
     ap.add_argument("--threads", type=int, default=1)
     ap.add_argument("--los-check", action="store_true")
+    ap.add_argument("--scenario", choices=("corridor", "office"), default="corridor")
+    ap.add_argument("--geom-check", action="store_true", help="office only: Sionna LoS-only paths versus the geometric LoS test, all tag positions")
     ap.add_argument("--anchor-x", type=float, default=None, help="ceiling anchor x in metres (default: CorridorSetup default, 4.0)")
     ap.add_argument("--anchor-y", type=float, default=None, help="ceiling anchor y in metres (default 0.0)")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
     dr.set_thread_count(args.threads)
     over = {k: v for k, v in (("anchor_x_m", args.anchor_x), ("anchor_y_m", args.anchor_y)) if v is not None}
-    setup = CorridorSetup(**over)
+    setup = OfficeSetup(**over) if args.scenario == "office" else CorridorSetup(**over)
     assert all(c["passed"] for c in setup.validate()), "SETUP_VALIDATION_FAILED"
     cfg = json.loads(SOLVER_SOURCE.read_text())["solver"]
     banks = load_banks()
     (args.out / "SETUP_SNAPSHOT.json").write_text(json.dumps(setup.snapshot(), indent=2))
-    if args.los_check:
+    if args.geom_check:
+        assert args.scenario == "office", "--geom-check is for the office scenario"
+        office_geom_check(args, setup, banks)
+    elif args.los_check:
         los_check(args, setup, banks)
     else:
         run_sweep(args, setup, cfg, banks)
