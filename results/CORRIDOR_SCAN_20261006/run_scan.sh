@@ -1,4 +1,5 @@
 #!/bin/bash
+# LEGACY (kept for the record): resumes on receipt presence only and does not report failures; use scripts/sweep_run.sh for new runs.
 # Two batches of four single-core PathSolver sweeps (about 16 min each).
 cd /home/user/sionna-resimulation
 V=${PYTHON:?set PYTHON to the sionna venv python}

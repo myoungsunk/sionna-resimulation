@@ -12,7 +12,8 @@ import numpy as np
 C0 = 299792458.0
 EPS0 = 8.8541878128e-12
 # ITU-R P.2040 constants (a, b, c, d): eps_r = a f_GHz^b, sigma = c f_GHz^d (same values as sionna.rt.radio_materials.itu).
-ITU = {"concrete": (5.24, 0.0, 0.0462, 0.7822), "plasterboard": (2.73, 0.0, 0.0085, 0.9395)}
+ITU = {"concrete": (5.24, 0.0, 0.0462, 0.7822), "plasterboard": (2.73, 0.0, 0.0085, 0.9395),
+       "chipboard": (2.58, 0.0, 0.0217, 0.7800), "wood": (1.99, 0.0, 0.0047, 1.0718)}  # same numbers as sionna.rt.radio_materials.itu
 SURFACES = {  # name: (plane axis, coordinate or 'H'/'L'/'h', group, material, thickness_m)
     "floor": (2, "zero", "floor", "concrete", 0.2), "ceiling": (2, "H", "ceiling", "concrete", 0.2),
     "wall_y_neg": (1, "-h", "side_walls", "plasterboard", 0.0125), "wall_y_pos": (1, "h", "side_walls", "plasterboard", 0.0125),
@@ -28,15 +29,35 @@ def eta_complex(material: str, f_hz, scale: float = 1.0):
     return a * f_ghz ** b - 1j * (c * f_ghz ** d) / (2 * np.pi * np.asarray(f_hz, float) * EPS0)
 
 
-def slab_reflection(cos_theta, eta, d, wavelength):
-    """ITU-R P.2040-3 eq. (43a): TE and TM reflection coefficients of a single-layer slab (vacuum on both sides)."""
+def slab_coefficients(cos_theta, eta, d, wavelength):
+    """ITU-R P.2040-3 single-layer slab (vacuum on both sides): reflection and transmission coefficients (TE, TM).
+
+    This is the model Sionna RT 2.0.1 applies to EVERY intersected surface (the surface stands for a slab of thickness d), so a closed box
+    built from six such surfaces applies the transmission twice to a ray that crosses it.  Returns ((R_te, T_te), (R_tm, T_tm)).
+    """
     sin2 = 1.0 - cos_theta ** 2
     root = np.sqrt(eta - sin2 + 0j)
     r_te_p = (cos_theta - root) / (cos_theta + root)
     r_tm_p = (eta * cos_theta - root) / (eta * cos_theta + root)
     q = 2 * np.pi * d / wavelength * root
     e2q = np.exp(-2j * q)
-    return r_te_p * (1 - e2q) / (1 - r_te_p ** 2 * e2q), r_tm_p * (1 - e2q) / (1 - r_tm_p ** 2 * e2q)
+    out = []
+    for r in (r_te_p, r_tm_p):
+        den = 1 - r ** 2 * e2q
+        out.append((r * (1 - e2q) / den, (1 - r ** 2) * np.exp(-1j * q) / den))
+    return tuple(out)
+
+
+def slab_reflection(cos_theta, eta, d, wavelength):
+    """ITU-R P.2040-3 eq. (43a): TE and TM reflection coefficients of a single-layer slab (vacuum on both sides)."""
+    (r_te, _), (r_tm, _) = slab_coefficients(cos_theta, eta, d, wavelength)
+    return r_te, r_tm
+
+
+def slab_transmission(cos_theta, eta, d, wavelength):
+    """TE and TM transmission coefficients of the same single-layer slab."""
+    (_, t_te), (_, t_tm) = slab_coefficients(cos_theta, eta, d, wavelength)
+    return t_te, t_tm
 
 
 def plane(name, length, half_width, height):

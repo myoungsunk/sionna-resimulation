@@ -17,6 +17,13 @@ Plan view (x across, y up, floor top z = 0, metres)::
     y=0  +-------- connecting bar ------+
 
 All dimensions are placeholders read off the picture (about 73 px per metre); materials of partitions and desks are assumptions.
+
+Two geometries on purpose:
+* ``boxes()``  - visual / collision volumes (3D page, plan view, robot clearance);
+* ``rf_sheets()`` / ``objects()`` - what the ray tracer sees: ONE flat sheet per physical slab. Sionna RT 2.0.1 treats every intersected surface as a
+  full slab of the material thickness (transmission and reflection of a slab of thickness d), so a closed box would apply the slab twice to a ray
+  that crosses it. A partition is therefore one vertical sheet and a desk is one horizontal sheet (the desk top; the open space under it is not
+  modelled as solid).
 """
 from __future__ import annotations
 
@@ -71,6 +78,32 @@ def segment_hits_box(p0, p1, lo, hi) -> bool:
     return True
 
 
+def segment_hits_quad(p0, p1, quad, eps: float = 1e-12) -> bool:
+    """Does the segment p0 -> p1 cross the planar quad (4 corners, two triangles, Moller-Trumbore)?"""
+    p0, p1, quad = np.asarray(p0, float), np.asarray(p1, float), np.asarray(quad, float)
+    d = p1 - p0
+    for tri in ((0, 1, 2), (0, 2, 3)):
+        a, b, c = quad[list(tri)]
+        e1, e2 = b - a, c - a
+        h = np.cross(d, e2)
+        det = e1 @ h
+        if abs(det) < eps:
+            continue
+        f = 1.0 / det
+        sv = p0 - a
+        u = f * (sv @ h)
+        if u < -eps or u > 1 + eps:
+            continue
+        qv = np.cross(sv, e1)
+        v = f * (d @ qv)
+        if v < -eps or u + v > 1 + eps:
+            continue
+        t = f * (e2 @ qv)
+        if -eps <= t <= 1 + eps:
+            return True
+    return False
+
+
 @dataclass(frozen=True)
 class OfficeSetup:
     length_m: float = 10.0               # x
@@ -115,21 +148,32 @@ class OfficeSetup:
                 out.append(dict(name=f"desk_c{c}_r{r}_minus_x", group="desks", lo=(xc - t / 2 - g - dd, y0, 0.0), hi=(xc - t / 2 - g, y1, dh)))
         return out
 
-    def objects(self) -> list:
+    def rf_sheets(self) -> list:
+        """One flat sheet per physical slab, as dicts with name, group, quad (4, 3). Envelope: floor, ceiling, four walls; per island: a vertical
+        partition sheet between the two desks and one horizontal desk-top sheet per desk."""
         L, W, H = self.length_m, self.width_m, self.height_m
         q = lambda *p: np.array(p, float)
-        env = {
-            "floor": ("floor", [q((0, 0, 0), (L, 0, 0), (L, W, 0), (0, W, 0))]),
-            "ceiling": ("ceiling", [q((0, 0, H), (0, W, H), (L, W, H), (L, 0, H))]),
-            "wall_y_min": ("outer_walls", [q((0, 0, 0), (0, 0, H), (L, 0, H), (L, 0, 0))]),
-            "wall_y_max": ("outer_walls", [q((0, W, 0), (L, W, 0), (L, W, H), (0, W, H))]),
-            "wall_x_min": ("outer_walls", [q((0, 0, 0), (0, W, 0), (0, W, H), (0, 0, H))]),
-            "wall_x_max": ("outer_walls", [q((L, 0, 0), (L, 0, H), (L, W, H), (L, W, 0))]),
-        }
-        objs = [dict(name=n, group=g, material=MATERIALS[g][0], thickness_m=MATERIALS[g][1], quads=quads) for n, (g, quads) in env.items()]
+        sheets = [
+            dict(name="floor", group="floor", quad=q((0, 0, 0), (L, 0, 0), (L, W, 0), (0, W, 0))),
+            dict(name="ceiling", group="ceiling", quad=q((0, 0, H), (0, W, H), (L, W, H), (L, 0, H))),
+            dict(name="wall_y_min", group="outer_walls", quad=q((0, 0, 0), (0, 0, H), (L, 0, H), (L, 0, 0))),
+            dict(name="wall_y_max", group="outer_walls", quad=q((0, W, 0), (L, W, 0), (L, W, H), (0, W, H))),
+            dict(name="wall_x_min", group="outer_walls", quad=q((0, 0, 0), (0, W, 0), (0, W, H), (0, 0, H))),
+            dict(name="wall_x_max", group="outer_walls", quad=q((L, 0, 0), (L, 0, H), (L, W, H), (L, W, 0))),
+        ]
         for b in self.boxes():
-            objs.append(dict(name=b["name"], group=b["group"], material=MATERIALS[b["group"]][0], thickness_m=MATERIALS[b["group"]][1], quads=box_quads(b["lo"], b["hi"])))
-        return objs
+            (x0, y0, z0), (x1, y1, z1) = b["lo"], b["hi"]
+            if b["group"] == "partitions":
+                xm = 0.5 * (x0 + x1)  # mid plane of the thin box
+                sheets.append(dict(name=b["name"], group="partitions", quad=q((xm, y0, 0), (xm, y1, 0), (xm, y1, z1), (xm, y0, z1))))
+            else:
+                sheets.append(dict(name=b["name"], group="desks", quad=q((x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1))))
+        return sheets
+
+    def objects(self) -> list:
+        """Everything the ray tracer needs: name, group, ITU material, thickness, quads (always exactly one sheet per object)."""
+        return [dict(name=sh["name"], group=sh["group"], material=MATERIALS[sh["group"]][0], thickness_m=MATERIALS[sh["group"]][1], quads=[sh["quad"]])
+                for sh in self.rf_sheets()]
 
     # ---- walkable network ----------------------------------------------
     def path_segments(self) -> list:
@@ -180,7 +224,7 @@ class OfficeSetup:
 
     def los_status(self, x: float, y: float) -> dict:
         a, r = self.anchor_position, self.tag_position(x, y)
-        blockers = [b["name"] for b in self.boxes() if segment_hits_box(r, a, b["lo"], b["hi"])]
+        blockers = [sh["name"] for sh in self.rf_sheets() if sh["group"] in ("partitions", "desks") and segment_hits_quad(r, a, sh["quad"])]
         return dict(clear=not blockers, blockers=blockers)
 
     def is_free(self, x: float, y: float, margin: float = 0.0) -> bool:

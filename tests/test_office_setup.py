@@ -1,6 +1,6 @@
 import numpy as np
 
-from qclean_uwb.scenarios.office import OfficeSetup, box_quads, segment_hits_box
+from qclean_uwb.scenarios.office import OfficeSetup, box_quads, segment_hits_box, segment_hits_quad
 
 
 def test_validation_passes():
@@ -19,7 +19,7 @@ def test_twelve_islands_and_24_desks_facing_plus_and_minus_x():
     d = desks[0]
     assert np.isclose(d["hi"][1] - d["lo"][1], s.desk_lwh_m[0]) and np.isclose(d["hi"][0] - d["lo"][0], s.desk_lwh_m[1])
     objs = s.objects()
-    assert len(objs) == 6 + 36
+    assert len(objs) == 6 + 12 + 24  # one sheet per physical slab: envelope, partitions, desk tops
     assert {o["group"] for o in objs} == {"floor", "ceiling", "outer_walls", "partitions", "desks"}
 
 
@@ -72,3 +72,42 @@ def test_runner_interface_and_allowed_positions():
     assert not s.position_allowed(1.85, 10.15)  # inside the first island
     g = s.link_geometry(s.anchor_x_m, s.anchor_y_m)
     assert abs(g["anchor_off_boresight_deg"]) < 1e-6 and np.isclose(g["range_m"], s.anchor_position[2] - s.robot_antenna_z_m)
+
+
+def test_every_object_is_exactly_one_flat_sheet():
+    """Sionna RT applies a full slab to every intersected surface, so a physical slab must be ONE sheet (no closed boxes)."""
+    for o in OfficeSetup().objects():
+        assert len(o["quads"]) == 1
+        q = np.asarray(o["quads"][0])
+        assert q.shape == (4, 3)
+        n = np.cross(q[1] - q[0], q[3] - q[0])
+        assert np.allclose([(q[2] - q[0]) @ n], [0.0], atol=1e-9)  # planar
+
+
+def test_a_straight_line_crosses_each_object_at_most_once():
+    s = OfficeSetup()
+    rng = np.random.default_rng(1)
+    for _ in range(200):
+        p0 = rng.uniform([0, 0, 0.05], [s.length_m, s.width_m, 2.6])
+        p1 = rng.uniform([0, 0, 0.05], [s.length_m, s.width_m, 2.6])
+        for o in s.objects():
+            # a single planar sheet is crossed at most once by a segment: both end points on the same side => no crossing
+            q = np.asarray(o["quads"][0])
+            n = np.cross(q[1] - q[0], q[3] - q[0])
+            if np.sign((p0 - q[0]) @ n) == np.sign((p1 - q[0]) @ n):
+                assert not segment_hits_quad(p0, p1, q)
+
+
+def test_segment_quad_hits():
+    quad = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], float)
+    assert segment_hits_quad((0.5, 0.5, -1), (0.5, 0.5, 1), quad)
+    assert not segment_hits_quad((0.5, 0.5, 0.2), (0.5, 0.5, 1), quad)
+    assert not segment_hits_quad((2.0, 0.5, -1), (2.0, 0.5, 1), quad)
+
+
+def test_geometric_los_uses_the_rf_sheets():
+    s = OfficeSetup()
+    blocked = [(x, y) for x, y in s.example_xy_m if not s.los_status(x, y)["clear"]]
+    assert blocked
+    names = {b for x, y in blocked for b in s.los_status(x, y)["blockers"]}
+    assert names and all(n.startswith(("partition_", "desk_")) for n in names)

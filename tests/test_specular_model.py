@@ -41,3 +41,22 @@ def test_mirror_places_image_behind_plane():
     assert np.allclose(q, [4.0, 0.5, -2.65])
     axis, coord, n = sm.plane("ceiling", 20.0, 1.2, 2.7)
     assert axis == 2 and coord == 2.7 and np.allclose(n, [0, 0, 1])
+
+
+def test_transmission_limits_and_energy():
+    eta = sm.eta_complex("chipboard", F)
+    t0 = sm.slab_transmission(0.9, eta, 1e-9, LAM)
+    assert np.allclose(t0, 1.0, atol=1e-6)  # vanishing thickness: nothing happens
+    for d in (0.0125, 0.03, 0.04, 0.2):
+        for ang in (0, 30, 60):
+            c = np.cos(np.deg2rad(ang))
+            (r_te, t_te), (r_tm, t_tm) = sm.slab_coefficients(c, eta, d, LAM)
+            assert abs(r_te) ** 2 + abs(t_te) ** 2 <= 1 + 1e-9 and abs(r_tm) ** 2 + abs(t_tm) ** 2 <= 1 + 1e-9
+
+
+def test_sionna_material_constants_match():
+    import pytest
+    itu = pytest.importorskip("sionna.rt.radio_materials.itu")
+    for name in ("concrete", "plasterboard", "chipboard", "wood"):
+        (rng,) = [v for k, v in itu.ITU_MATERIALS_PROPERTIES[name].items() if k[0] <= 6.25 <= k[1]][:1]
+        assert tuple(rng) == sm.ITU[name]

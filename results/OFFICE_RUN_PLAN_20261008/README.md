@@ -5,6 +5,7 @@
 ## 무엇을 돌리나
 
 - 방 10 × 12 × 2.7 m, 큐비클 덩어리 12개(3열 × 4개), 책상 24개(두 개씩 등을 맞대고 +x / −x를 봄), 칸막이 12장, 앵커 천장 (5.0, 2.2).
+- **RF 형상은 물리 슬랩당 판 한 장입니다**(총 42개 물체: 바닥·천장·벽 6, 칸막이 판 12, 책상 윗판 24). Sionna는 닿는 면마다 재질 두께의 슬랩 하나를 통째로 계산하므로 닫힌 상자를 쓰지 않습니다. 시각화용 상자(`boxes()`)와 RF 판(`rf_sheets()`)은 분리돼 있습니다.
 - 태그 위치 35곳(`positions_all.txt`, 걷는 경로를 1.5 m 간격으로 잡은 것), 위치마다 yaw 0°–180° 10° 간격 19개, 주파수 257개(6.2504 GHz + k·1.95 MHz).
 - 위치 35곳 중 25곳은 기하상 LoS가 열리고 10곳은 막힙니다(`RUN_PLAN.json`).
 - 솔버 설정은 복도와 같습니다: `max_depth` 3, LoS + 정반사 + 굴절, 회절·산란 끔, 시드 20260924.
@@ -22,33 +23,41 @@
 ## 실행 순서
 
 ```bash
-export PYTHON=<sionna-rt 2.0.1이 있는 python>
+export PYTHON=<sionna-rt 2.0.1이 있는 python>      # numpy도 같은 환경에 있어야 합니다(검증 스크립트가 씁니다)
+
+# 0) 단일 슬랩 투과 검증 (RF, 약 1분): Sionna가 한 장을 슬랩 하나로 계산하는지, 해석식과 같은지
+$PYTHON scripts/office_slab_check.py --out results/OFFICE_RUN_20261008/slab_check
+#    기대: PASSED (한 장 오차 1e-4 미만; 닫힌 상자는 T²로 달라짐을 보여 줍니다)
 
 # 1) 장면과 LoS 검증 (약 1분): Sionna의 LoS 경로가 기하 판정과 같은 위치에서 나오는지
 $PYTHON scripts/corridor_sionna_run.py --scenario office --geom-check --out results/OFFICE_RUN_20261008/geom_check
 #    기대: {"positions": 35, "sionna_clear": 25, "geometric_clear": 25, "mismatches": 0, ...}
 
-# 2) 시험 실행: 위치 6곳(LoS 3 + 막힘 3), 시간을 재 보는 용도
-POSITIONS=results/OFFICE_RUN_PLAN_20261008/positions_pilot.txt OUT=results/OFFICE_RUN_PILOT CORES=4 bash scripts/office_run.sh
-python3 scripts/office_verify_outputs.py --run-dir results/OFFICE_RUN_PILOT --expect 6
+# 2) 시험 실행: 위치 6곳(LoS 3 + 막힘 3), 시간을 재 보는 용도 (OUT은 전체 실행과 다른 폴더)
+POSITIONS=results/OFFICE_RUN_PLAN_20261008/positions_pilot.txt OUT=results/OFFICE_RUN_PILOT CORES=4 bash scripts/office_run.sh; echo "exit=$?"
 
-# 3) 전체 실행: 35곳 (끊겨도 같은 명령으로 이어서 돕니다)
-CORES=4 bash scripts/office_run.sh
-python3 scripts/office_verify_outputs.py --run-dir results/OFFICE_RUN_20261008 --expect 35
+# 3) 전체 실행: 35곳 (끊겨도 같은 명령으로 이어서 돕니다. 검증을 통과한 위치만 건너뜁니다)
+CORES=4 bash scripts/office_run.sh; echo "exit=$?"
 ```
 
-`office_run.sh` 환경 변수: `POSITIONS`, `OUT`, `CORES`(동시 프로세스 수, 기본 4), `BIN_STRIDE`(주파수 bin 건너뛰기, 기본 1), `DEADLINE_MIN`(이 시간 뒤에는 새 위치를 시작하지 않음).
+**종료코드:** 0 = 35곳 전부 계산되고 검증 통과 / 1 = 위치 실패 또는 출력 검증 실패 / 2 = 같은 OUT에 다른 요청(stride, 위치 목록, 설정)으로 이어 돌려 거절됨 / 3 = 미완료(DEADLINE_MIN으로 중단, 실패 없음).
+완료 표식 `OUT/logs/SWEEP_COMPLETE`는 종료코드 0일 때만 생깁니다. 상태는 `OUT/RUN_STATUS.json`, 위치별 결과는 `OUT/VERIFY.json`에 있습니다.
+
+`office_run.sh` 환경 변수: `PYTHON`(필수), `POSITIONS`, `OUT`, `CORES`(4), `BIN_STRIDE`(1 = 257개 bin 전부), `DEADLINE_MIN`(이 시간 뒤에는 새 위치를 시작하지 않음), `VERIFY_PYTHON`(검증용 파이썬, 기본은 PYTHON).
+
+**이어 돌리기와 검증:** 위치마다 `scripts/sweep_verify.py position`이 요청 계약(yaw 19개, bin stride, 솔버 설정, 어댑터·뱅크·러너 해시, 설정 해시, 물체 목록, H와 npz와 receipt의 일치, 모든 호출에서 LoS 유무가 기하와 일치)을 확인합니다. receipt가 있다는 이유로는 건너뛰지 않으며, 검증에 실패한 폴더는 `OUT/_superseded/`로 옮겨 보존하고 다시 계산합니다. 전체 확인은 `python3 scripts/sweep_verify.py run --scenario office --run-dir <OUT> --positions <목록> --expect-n 35`입니다.
 
 ## 시간 추정 (이 세션의 3-bin 시험 기준, 확정치 아님)
 
 - PathSolver 호출 1회가 약 0.43–0.5 초입니다. 복도(0.17–0.27초)보다 약 2배 느립니다. 물체가 42개로 늘었기 때문입니다.
-- 위치 하나(257 bin × 19 yaw = 4883회)가 코어 하나에서 약 35–40분입니다. 35곳이면 코어 약 21–23시간, 4코어로 약 5.5시간입니다.
+- 위치 하나(257 bin × 19 yaw = 4883회)가 코어 하나에서 약 35–40분입니다(판 한 장 모델로 바꾼 뒤에도 호출당 0.43초 안팎이었습니다). 35곳이면 코어 약 21–23시간, 4코어로 약 5.5시간입니다.
 - `BIN_STRIDE=4`면 약 1/4(4코어로 약 1.4시간)이지만 아래 주의를 보세요. 시험 실행(위 2번)의 `median_seconds_per_call`로 다시 어림하는 것이 좋습니다.
 
 ## 주의
 
 - **bin을 건너뛰면 분석 코드가 달라져야 합니다.** 기존 분석(`contribution_cir`을 부르는 코드)은 257개 bin의 고정 주파수 격자를 가정합니다. `BIN_STRIDE`를 1이 아닌 값으로 돌리면 npz의 `freqs_hz`를 읽도록 분석 코드를 바꿔야 합니다. 복도와 같은 분석을 그대로 쓰려면 `BIN_STRIDE=1`로 돌리세요.
 - **경로 파일(`*_sweep.npz`)은 위치당 수십 MB입니다.** 저장소에는 올리지 않고(`.git/info/exclude`), 채널 `*_H.npy`와 `*_receipt.json`만 커밋하는 방식이 복도와 같습니다.
+- **책상은 윗판 한 장입니다**(아래는 비어 있는 것으로 계산, 서랍·옆판 없음). 이 가정은 LoS 판정에도 같이 쓰입니다.
 - **재질은 가정입니다.** 칸막이 chipboard 0.04 m, 책상 wood 0.03 m. 바닥·천장 concrete 0.2 m, 바깥 벽 plasterboard 0.0125 m.
 - **분석 코드는 아직 없습니다.** 복도 분석의 반사 그룹 분류(이미지법)는 복도 전용이라 사무실에서는 경로가 닿은 물체 이름(npz의 `objects_cat`)으로 나눠야 합니다. LoS가 막힌 위치는 각도 모델이 적용되지 않으므로 따로 다뤄야 합니다.
 

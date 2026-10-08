@@ -19,11 +19,16 @@ def test_single_quad_and_box_roundtrip(tmp_path):
     write_ply(tmp_path / "q.ply", quad)
     v, f = read_ply(tmp_path / "q.ply")
     assert v.shape == (4, 3) and f.shape == (2, 3) and np.allclose(v, quad)
-    obj = [o for o in OfficeSetup().objects() if o["name"].startswith("desk_")][0]
-    write_ply(tmp_path / "d.ply", obj["quads"])
+    # multi-quad writer (generic): a closed box as six quads
+    from qclean_uwb.scenarios.office import box_quads
+    write_ply(tmp_path / "d.ply", box_quads((0, 0, 0), (1.4, 0.7, 0.75)))
     v, f = read_ply(tmp_path / "d.ply")
     assert v.shape == (24, 3) and f.shape == (12, 3) and f.max() == 23
     area = sum(0.5 * np.linalg.norm(np.cross(v[b] - v[a], v[c] - v[a])) for a, b, c in f)
-    lo, hi = v.min(0), v.max(0)
-    d = hi - lo
+    d = v.max(0) - v.min(0)
     assert np.isclose(area, 2 * (d[0] * d[1] + d[0] * d[2] + d[1] * d[2]))
+    # the office objects are single sheets
+    obj = [o for o in OfficeSetup().objects() if o["name"].startswith("desk_")][0]
+    write_ply(tmp_path / "s.ply", obj["quads"])
+    v, f = read_ply(tmp_path / "s.ply")
+    assert v.shape == (4, 3) and f.shape == (2, 3)

@@ -162,7 +162,8 @@ def run_sweep(args, setup, cfg, banks):
         freqs_hz=freq[bins], path_counts=counts, a_cat=np.concatenate(flat_a, axis=-1), tau_cat=np.concatenate(flat_tau),
         interactions_cat=inter_cat, offsets=np.array(offsets), robot_xy_m=np.array([x, y]), anchor_m=a_pos, robot_antenna_m=r_pos,
         ports=np.array(PORTS), H_layout="[yaw, bin, rx_port(+45,-45), tx_port(+45,-45)]; offsets index flattened (bin-major, yaw-minor)")
-    receipt = dict(position=args.position, tag=tag, object_indices={str(o.object_id): n for n, o in scene.objects.items()}, robot_xy_m=[x, y], yaws=yaws, n_bins=len(bins), bin_stride=args.bin_stride,
+    receipt = dict(scenario=args.scenario, setup_config_sha256=setup.snapshot()["config_sha256"], anchor_m=a_pos.tolist(), n_objects=len(bindings),
+                   position=args.position, tag=tag, object_indices={str(o.object_id): n for n, o in scene.objects.items()}, robot_xy_m=[x, y], yaws=yaws, n_bins=len(bins), bin_stride=args.bin_stride,
                    pathsolver_calls=len(yaws) * len(bins), elapsed_s=round(time.monotonic() - t0, 2),
                    seconds_per_call=round((time.monotonic() - t0) / (len(yaws) * len(bins)), 4),
                    mean_paths=float(counts.mean()), max_paths=int(counts.max()), materials=bindings,
