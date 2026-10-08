@@ -93,3 +93,28 @@ H1(range+s가 odom+IMU/gyro_only보다 우수), H2(`s`를 측정으로 쓰는 �
 - **git만으로는 S6 전체를 재생할 수 없다.** `H_*.npy`, `*_trace.npz`, `*_sweep.npz`, `hs_lut*.npy`는 LFS 불가로 git에서 제외(`.gitignore`). Snowball 측 산출물의 SHA256이 `UNCHANGED_H_S6_VERIFICATION.json`/`TRANSFER_MANIFEST.json`에 있다. 재생성 절차는 `RUN_SNOWBALL.md`, `scripts/drive_sim/run_rf_snowball.sh`.
 - 보호 경로(`data/raw/`, `results/frozen/`, `reports/release/` 등)는 수정하지 않았다. 모든 변경은 `results/DRIVE_SIM_20261007/`, `src/qclean_uwb/drivesim/`, `scripts/drive_sim/`, `tests/`에 한정된다.
 - 로컬 검증: `pytest -q tests/test_drivesim_*.py tests/test_fp_single_tx.py tests/test_path_continuity_script.py` → 72 passed.
+
+## 12. IMU / 오도메트리 / UWB 센서 설정과 출처 (코드: `src/qclean_uwb/drivesim/sensors.py`, 근거 문서: `PLAN.md` S5, `S0/PREREG.json`, A5/A7)
+
+**모든 파라미터는 placeholder(assumption)이다. 특정 논문이나 실측에서 추출·보정한 값이 없다.** 문서와 코드에 명시된 출처는 아래 세 가지뿐이다.
+
+| 항목 | 설정 | 출처 상태 |
+|---|---|---|
+| 샘플율/속도 | 5 Hz(dt 0.2 s), 0.2 m/s | 설계 선택 |
+| 자이로 ARW | 0.015 °/√s (rate noise 0.015 dps/√Hz) | ICM-20648 데이터시트 값으로 기재. 이 세션에서 데이터시트를 직접 열어 확인하지 않았다. 실물 IC 확인 필요(구형 MPU9250과 다름)로 표시 |
+| 자이로 bias 잔여 | low/mid/high = 0.01/0.05/0.2 dps (run마다 부호 무작위) | 가정 |
+| 자이로 scale factor | 0.5/1.0/1.5 % | 가정 |
+| 휠 직경비 오차 E_d | 0.2/0.5/1.0 % | 가정 |
+| 휠베이스 오차 E_b | 0.5/0.75/1.0 % | 가정 |
+| 로봇 기하 | 휠베이스 0.287 m, 바퀴 반지름 0.033 m | TurtleBot3 Waffle Pi 패키지 값으로 기재, 실물 확인 필요 |
+| 오도 비계통 잡음 | var(ds)=2e-5·\|ds\|, var(dθ)=1e-4·\|dθ\|+1e-5·\|ds\| | "Thrun형" 가정 |
+| 회전 slip | 회전 샘플당 1 %, Student-t(3)×0.5° | 가정(설계 선택) |
+| UWB 거리 추가 잡음 | σ_r = 0.05 m (sweep 0.05/0.10) | 가정 |
+
+**참고한 개념(인용 아님).** 코드 주석의 "Thrun-style non-systematic noise"는 Thrun·Burgard·Fox, *Probabilistic Robotics*의 오도메트리 모션 모델(이동량에 비례하는 잡음) 개념을 따른 것이고, α1–α4 파라미터화나 그 책의 값을 쓰지는 않았다. 직경비 E_d / 휠베이스 E_b라는 계통 오차 구분은 Borenstein & Feng의 UMBmark 계통 오차 정의와 같은 개념이지만, 코드·계획서에 인용이 없고 값도 그 논문에서 가져오지 않았다. 이 두 문헌과의 대응은 작성자(Claude)의 설계 기억에 의한 것이며, 감사 시 인용 정확성을 별도로 확인해야 한다.
+
+**결과 해석에 영향을 주는 점.**
+- 필터는 잡음 *구조*(ARW, k_s, k_θ, k_sθ, 거리 σ)를 생성기와 같은 값으로 알고 있다(drift 실현값만 모른다). 실제 센서에서는 이 일치가 없으므로 필터에 유리한 설정이다.
+- 필터의 drift prior(σ_b 0.12 dps, σ_SF 1.04 %, σ_ε 0.64 %)는 위 3단계 drift 수준의 RMS에서 정했다(A5). 생성 분포와 prior가 일치한다.
+- 실제 자이로의 bias 불안정성(Allan 분석), 온도 의존성, 비선형성, 바퀴-지면 슬립의 직진 구간 발생, 가속도계는 모델에 없다.
+- 따라서 H1(range+s가 odom+IMU보다 우수)의 효과 크기는 이 센서 설정에 종속적이며, 특정 하드웨어에 대한 예측이 아니다. drift 3수준 × SNR 2수준은 민감도 범위이지 실측 대표값이 아니다.
