@@ -334,3 +334,35 @@ Evidence that motivates it (A19 a): the LUT residual rms grows with the off-bore
 Limits: R1 development H only (routes need the Snowball H stores); the table is fitted on the same corridor and the same anchor; the autocorrelation of the residual (κ ≈ 14–21, A17) is not modelled, so a pass would not mean the correlation problem is solved.
 
 **Additive code (defaults reproduce the stored behaviour):** `FilterConfig.s_sigma_table` (θ_geo knots and σ values; None = scalar σ), `run_unit(..., baselines=None)` with extra period codes for the steered worlds.
+
+### A20 result (`DEV_RESULTS/STEERED_T10_A20.csv/.json/.checks.json`, `scripts/drive_sim/steered_t10_experiment.py`; R1 development H, 120 pairs per cell, EKF, σ 0.18)
+
+Self-check: re-assembling the stored sweep probe rows from the Method-B traces reproduces the stored H store to a maximum relative error of 7.8e-9 – 8.2e-9 (float32 level) in all four lateral/mount combinations, so the steered channels are built by the same rule as the stored ones.
+Median paired Δ of the common-station heading RMSE, steered T10 − sweep T10 [deg] (95 % bootstrap interval; share of pairs better / worse); elapsed time identical, 305.6 s:
+
+| command error | mount 0° | mount 45° |
+|---|---|---|
+| ε = 0° (oracle) | −0.06 (−0.26, +0.08; 55 % / 45 %) | −0.18 (−0.24, −0.06; 68 % / 33 %) |
+| ε = +5° | −0.28 (−0.33, −0.21; 73 % / 27 %) | +0.03 (−0.06, +0.11; 47 % / 53 %) |
+| ε = −5° | −0.67 (−0.73, −0.54; 89 % / 11 %) | −0.36 (−0.44, −0.27; 84 % / 16 %) |
+
+Median common-station heading RMSE: sweep 1.75° (mount 0°) / 1.52° (45°); steered ε = 0° 1.60° / 1.27°, ε = +5° 1.31° / 1.51°, ε = −5° 0.99° / 1.08°; `range_s_P0` for reference 6.70° / 1.38°. Mean fraction of samples with |error| > 10°: 0.000 in all steered variants. Mean pose NEES stays 26–44 (coverage 0.25–0.33): the steered probe does not change the covariance inconsistency (A17).
+Reading: with an error-free command the steered probe is not worse than the sweep in either mount and its gain over the sweep is small (0.06–0.18°); the CI at mount 0° includes 0. Command errors of ±5° do not hurt except ε = +5° at mount 45° (no change). The asymmetry (ε = −5° is the best variant in both mounts, better than the nominal ε = 0°) means that the angle at which the real LUT is steepest is not exactly `ψ + mount = 45° (mod 90°)`; **this is an observation, the offset was not estimated or tuned** (a tuned offset would need a new pre-registration and a held-out check). Not covered: filter-in-the-loop command (the failure mode of a wrong heading estimate steering the probe is untested), routes (Snowball), cold start, an equal-elapsed comparison with P0 (the probe still costs 122 s).
+
+### A21 result (`DEV_RESULTS/DISTANCE_SIGMA_CALIB.json`, `DISTANCE_SIGMA_HELDOUT.json/.csv`, `scripts/drive_sim/distance_sigma_experiment.py`)
+
+**Diagnostic (a), calibration lateral 0.35, n = 1534.** rms of the residual by equal-count θ_geo bin (centre in degrees): 0.031 (34°), 0.074 (65°), 0.201 (74°), 0.339 (79°), 0.201 (81°). The relation is increasing up to the fourth bin and not monotone in the last one. Spearman(|r|, θ_geo) = +0.48. The receiver-side LoS-dominance indicator q = (P1 + P2)/(E1 + E2) carries **no** information about |r|: Spearman(|r|, q) = −0.01, partial correlation given θ_geo = +0.04 (q vs θ_geo −0.09); the partial correlation of |r| with θ_geo given q is +0.48. So, in this definition, the degree of matching is not observable from the first-path power fraction, and distance is the only structure found.
+**Held-out evaluation (lateral 0.0, 60 runs per cell), V3 = θ_geo-dependent σ table vs V0 = scalar 0.18:**
+
+| variant / baseline / mount | mean NEES | pose coverage | median heading RMSE [deg] | paired Δ vs V0 (median; better share) |
+|---|---|---|---|---|
+| V0 P0 0° | 37.4 | 0.23 | 4.61 | — |
+| V0 P0 45° | 19.9 | 0.33 | 1.22 | — |
+| V0 T20 0° | 60.0 | 0.18 | 4.55 | — |
+| V0 T20 45° | 20.6 | 0.37 | 1.31 | — |
+| V3 P0 0° | 36.6 | 0.40 | 3.13 | −1.46° (92 %) |
+| V3 P0 45° | 52.3 | 0.33 | 1.09 | −0.13° (57 %) |
+| V3 T20 0° | 64.6 | 0.08 | 5.47 | +0.91° (0 %) |
+| V3 T20 45° | 28.9 | 0.14 | 2.13 | +0.83° (0 %) |
+
+Outcome against the proposed acceptance values (mean NEES ≤ 6, pose coverage ≥ 0.90, accuracy ≤ 1.25 × V0): **V3 is not acceptable** (no cell passes, and the two probe cells lose accuracy in 100 % of the pairs). It helps the P0 filter at mount 0° (4.61° → 3.13°) and hurts the P1 filter at both mounts (heading coverage falls to 0.04–0.34). The table was fitted on one lateral only; its smallest entries (σ 0.03 at θ_geo 34°, 0.07 at 65°) trust `s` strongly near the anchor, and lateral 0.0 passes directly under the anchor where the model is ill-conditioned (A3, the vertical-axis degeneracy of the angles). **That explanation is a hypothesis, not tested**; per the pre-registered rule the table is not adjusted afterwards. Conclusion: a position-dependent σ fitted on a single lateral does not transfer to the held-out lateral and does not repair the consistency; consistency would need a model of the residual itself (A17) and a calibration over several geometries.

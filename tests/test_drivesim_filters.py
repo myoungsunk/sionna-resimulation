@@ -165,3 +165,15 @@ def test_s_var_inflation_scales_only_the_mismatch_part_of_R_s():
     cfg2 = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.5, s_var_inflation=4.0)
     f2 = F.DriveFilter(cfg2, None, np.zeros(6))
     assert f2._s_R(1.0, 1.0) == pytest.approx(F.thermal_var_s(1.0, 1.0, 0.5) + 4.0 * 0.18 ** 2)
+
+
+def test_s_sigma_table_follows_the_estimated_position_and_default_is_the_scalar():
+    far, near = (14.0, 0.0), (4.5, 0.0)                     # horizontal distances 10 m and 0.5 m from the anchor at (4, 0, 2.65), robot z 0.45
+    table = ((20.0, 80.0), (0.03, 0.30))
+    cfg = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0, s_sigma_table=table)
+    f = F.DriveFilter(cfg, None, np.zeros(6))
+    assert f._s_R(1.0, 1.0, xy=far) == pytest.approx(np.interp(math.degrees(math.atan2(10.0, 2.2)), *table) ** 2)
+    assert f._s_R(1.0, 1.0, xy=near) < f._s_R(1.0, 1.0, xy=far)
+    assert f._s_R(1.0, 1.0) == pytest.approx(0.18 ** 2)                  # no position -> scalar
+    plain = F.DriveFilter(F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0), None, np.zeros(6))
+    assert plain._s_R(1.0, 1.0, xy=far) == pytest.approx(0.18 ** 2)      # default table None = stored filter

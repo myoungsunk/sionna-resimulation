@@ -162,13 +162,13 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
     return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))
 
 
-PERIOD_CODE = {None: 0, 10.0: 1, 20.0: 2, 60.0: 3}
+PERIOD_CODE = {None: 0, 10.0: 1, 20.0: 2, 60.0: 3, "S10e0": 1, "S10e5": 1, "S10em5": 1}     # A20 steered T10 worlds share the stored T10 noise streams (paired by seed)
 ROUTE_CODE = {"R1": 0, "R2": 1, "R4": 2, "R5": 3}      # R1 = 0 keeps the v1 noise streams unchanged
 
 
 def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma: float, anchor_xyz, robot_z: float, range_offset: float,
              snr_db: float | None, snr_idx: int, drift_idx: int, seed: int, compare_filters: bool = True, measure: str = "fp",
-             obs_transform=None, drift_transform=None, cfg_transform=None) -> tuple[list[dict], dict]:
+             obs_transform=None, drift_transform=None, cfg_transform=None, baselines=None) -> tuple[list[dict], dict]:
     """All baselines (and the filter-type comparison) for one (lateral, mount, drift, SNR, seed).  ``worlds`` maps period -> World."""
     any_world = next(iter(worlds.values()))
     level = S.DRIFT_LEVELS[drift_idx]
@@ -191,9 +191,10 @@ def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma:
             obs = obs_transform(obs, w, np.random.default_rng([seed, snr_idx, code, 9090]))
         prepared[period] = (inputs, obs)
     rows, series = [], {}
-    jobs = [(b, "ekf") for b in BASELINES]
+    base_list = BASELINES if baselines is None else baselines
+    jobs = [(b, "ekf") for b in base_list]
     if compare_filters:
-        jobs += [(b, k) for b in BASELINES if b["name"] in ("range_s_P0", "range_s_P1_T20") for k in FILTER_KINDS_COMPARED]
+        jobs += [(b, k) for b in base_list if b["name"] in ("range_s_P0", "range_s_P1_T20") for k in FILTER_KINDS_COMPARED]
     for base, kind in jobs:
         if base["period"] not in worlds:
             continue
