@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>사무실 yaw 곡선</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#fff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--grid:#eceae5;--c1:#2a78d6;--c2:#eb6834;--sel:#0b0b0b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--sel:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}h2{font-size:17px;margin:0 0 10px}
+.lede{color:var(--ink2);margin:0 0 16px;max-width:82ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:0 0 10px}.seg,.chips{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:13.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer}
+button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+.lab{font-size:13px;color:var(--muted)}
+svg{display:block;width:100%;height:auto}
+.gr{stroke:var(--grid)}.ax{stroke:var(--line)}.tk{fill:var(--muted);font-size:11px}
+.l1{fill:none;stroke:var(--c1);stroke-width:2.2}.lm{fill:none;stroke:var(--ink2);stroke-width:1.6;stroke-dasharray:5 3}.li{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:1 3}
+.m1{fill:var(--c1);stroke:var(--card);stroke-width:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink2);margin:0 0 8px}.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0 0}.stat{border:1px solid var(--line);border-radius:8px;padding:6px 10px}.stat b{display:block;font-size:17px;font-variant-numeric:tabular-nums}.stat span{font-size:12px;color:var(--ink2)}
+.tip{position:absolute;pointer-events:none;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15);display:none;white-space:nowrap}.wrapc{position:relative}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.mini{border:1px solid var(--line);border-left:4px solid var(--c1);border-radius:8px;padding:6px;cursor:pointer;background:var(--card)}.mini.nlos{border-left-color:var(--c2)}
+.mini[aria-pressed="true"]{box-shadow:0 0 0 1px var(--sel);border-color:var(--sel)}
+.mini h3{font-size:12px;margin:0 0 2px;color:var(--ink2);font-weight:600}
+.note{color:var(--ink2);font-size:14px;margin:10px 0 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--ink2);font-weight:600}
+.scroll{overflow-x:auto}details summary{cursor:pointer;color:var(--ink2);font-size:14px}.tag{font-size:12px;border-radius:6px;padding:1px 6px;border:1px solid var(--line)}.tag.n{border-color:var(--c2);color:var(--c2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>사무실 yaw 곡선 (Snowball 시뮬레이션 결과)</h1>
+  <p class="lede">지표는 |P1−P2| / |P1+P2| (first-path 전력 비율)이고 가로축은 태그의 yaw입니다. 사무실의 태그 35곳을 모두 보여 줍니다. 파랑이 시뮬레이션이고, 긴 점선은 안테나 패턴으로 만든 각도 모델(LoS만 가정), 가는 점선은 이상 곡선 |cos 2·yaw|입니다. 앵커와 태그 사이 직선이 칸막이·책상에 막히는 곳(막힘, 주황 표시)은 첫 경로가 반사·투과 경로라서 각도 모델이 원래 맞지 않는 곳입니다.</p>
+  <div class="kpis" id="kpis"></div>
+  <section class="card" aria-label="곡선 뷰어">
+    <div class="row"><span class="lab">송신 포트</span><div class="seg" id="txseg"></div><span class="lab">보기</span><div class="seg" id="fseg"></div></div>
+    <div class="row"><span class="lab">태그 위치 (θ 순, 괄호는 x, y)</span><div class="chips" id="chips"></div></div>
+    <div class="legend"><span><i style="border-color:var(--c1)"></i>시뮬레이션</span><span><i style="border-color:var(--ink2);border-top-style:dashed"></i>각도 모델 (LoS 가정)</span><span><i style="border-color:var(--muted);border-top-style:dotted"></i>이상 곡선 |cos 2·yaw|</span></div>
+    <div class="wrapc"><svg id="main" role="img" aria-label="yaw 곡선: 시뮬레이션, 각도 모델, 이상 곡선"></svg><div class="tip" id="tip"></div></div>
+    <div class="stats" id="stats"></div>
+    <p class="note" id="msg"></p>
+  </section>
+  <section class="card" aria-label="요약">
+    <h2>LoS가 열린 곳에서 각도 모델은 얼마나 맞나 (θ 구간별)</h2>
+    <div class="scroll"><table id="bytheta"></table></div>
+    <p class="note" id="bytheta-note"></p>
+  </section>
+  <section class="card" aria-label="모든 위치">
+    <h2>모든 위치 (선택한 송신 포트, θ 순)</h2>
+    <div class="grid" id="minis"></div>
+    <p class="note">왼쪽 막대: 파랑은 LoS 열림, 주황은 막힘(제목에도 글자로 표시). 패널을 누르면 위의 큰 그림으로 바뀝니다.</p>
+  </section>
+  <section class="card" aria-label="표"><details><summary>표로 보기 (위치별 편차와 yaw 추정 오차)</summary><div class="scroll"><table id="tbl"></table></div></details></section>
+</div>
+<script>
+(function () {
+  var D = __DATA__, R = D.positions, TXS = ['LP_plus45', 'LP_minus45'], TXN = { LP_plus45: '송신 +45°', LP_minus45: '송신 −45°' };
+  var st = { tx: 'LP_plus45', i: 0, f: 'all' };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var NS = 'http://www.w3.org/2000/svg';
+  var el = function (t, a, txt) { var e = document.createElementNS(NS, t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var $ = function (id) { return document.getElementById(id); };
+  var YA = D.yaw_deg, YM = D.model_yaw_deg;
+  var vis = function () { return R.map(function (r, i) { return i; }).filter(function (i) { return st.f === 'all' || (st.f === 'los') === R[i].los_clear; }); };
+  function path(xs, ys, sx, sy) { return xs.map(function (x, i) { return (i ? 'L' : 'M') + sx(x).toFixed(1) + ' ' + sy(ys[i]).toFixed(1); }).join(''); }
+  function chart(svg, rec, o) {
+    var W = o.w, H = o.h, m = o.m, d = rec.tx[st.tx];
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.textContent = '';
+    var sx = function (v) { return m.l + v / 180 * (W - m.l - m.r); }, sy = function (v) { return H - m.b - v * (H - m.t - m.b); };
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (v) { svg.appendChild(el('line', { class: 'gr', x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v) })); if (o.axes) svg.appendChild(el('text', { class: 'tk', x: m.l - 6, y: sy(v) + 4, 'text-anchor': 'end' }, v)); });
+    (o.axes ? [0, 30, 60, 90, 120, 150, 180] : [0, 90, 180]).forEach(function (v) { svg.appendChild(el('text', { class: 'tk', x: sx(v), y: H - m.b + 15, 'text-anchor': 'middle' }, v + '°')); });
+    if (o.axes) svg.appendChild(el('text', { class: 'tk', x: (W + m.l) / 2, y: H - 4, 'text-anchor': 'middle' }, 'yaw (°)'));
+    svg.appendChild(el('path', { class: 'li', d: path(YM, YM.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), sx, sy) }));
+    svg.appendChild(el('path', { class: 'lm', d: path(YM, d.model_dense_abs, sx, sy) }));
+    svg.appendChild(el('path', { class: 'l1', d: path(YA, d.s.map(Math.abs), sx, sy) }));
+    if (o.markers) YA.forEach(function (y, k) { svg.appendChild(el('circle', { class: 'm1', cx: sx(y), cy: sy(Math.abs(d.s[k])), r: 3.5 })); });
+    return { sx: sx, m: m, W: W, H: H };
+  }
+  function drawMain() {
+    var rec = R[st.i], d = rec.tx[st.tx], svg = $('main');
+    var g = chart(svg, rec, { w: 760, h: 330, m: { l: 40, r: 12, t: 10, b: 34 }, axes: true, markers: true });
+    var cross = el('line', { class: 'ax', y1: g.m.t, y2: g.H - g.m.b, x1: 0, x2: 0, style: 'display:none' }); svg.appendChild(cross);
+    var hit = el('rect', { x: g.m.l, y: g.m.t, width: g.W - g.m.l - g.m.r, height: g.H - g.m.t - g.m.b, fill: 'transparent' }); svg.appendChild(hit);
+    var tip = $('tip');
+    function move(ev) {
+      var r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * g.W;
+      var k = Math.max(0, Math.min(18, Math.round((px - g.m.l) / (g.W - g.m.l - g.m.r) * 18)));
+      cross.setAttribute('x1', g.sx(YA[k])); cross.setAttribute('x2', g.sx(YA[k])); cross.style.display = '';
+      tip.innerHTML = '<b>yaw ' + YA[k] + '°</b><br>시뮬레이션 ' + f(Math.abs(d.s[k]), 3) + '<br>각도 모델 ' + f(d.model_dense_abs[YA[k]], 3) + '<br>이상 ' + f(Math.abs(Math.cos(2 * YA[k] * Math.PI / 180)), 3);
+      tip.style.display = 'block'; var pr = svg.parentNode.getBoundingClientRect();
+      tip.style.left = Math.min(pr.width - 150, Math.max(0, ev.clientX - pr.left + 12)) + 'px'; tip.style.top = Math.max(0, ev.clientY - pr.top - 20) + 'px';
+    }
+    hit.addEventListener('mousemove', move); hit.addEventListener('touchmove', function (e) { move(e.touches[0]); }, { passive: true });
+    hit.addEventListener('mouseleave', function () { tip.style.display = 'none'; cross.style.display = 'none'; });
+    var S = [['θ (앵커에서 본 이탈각)', f(rec.theta_deg, 1) + '°'], ['LoS 판정(기하)', rec.los_clear ? '열림' : '막힘'], ['거리', f(rec.range_m, 2) + ' m'], ['곡선 편차 RMS · 각도 모델', f(d.rms_dev_model, 3)], ['곡선 편차 RMS · 이상', f(d.rms_dev_ideal, 3)],
+      ['yaw RMSE · 각도 모델', f(d.yaw_rmse_model, 1) + '°'], ['yaw RMSE · 이상', f(d.yaw_rmse_ideal, 1) + '°']];
+    $('stats').innerHTML = S.map(function (s) { return '<div class="stat"><b>' + s[1] + '</b><span>' + s[0] + '</span></div>'; }).join('');
+    $('msg').textContent = '태그 (' + rec.x + ', ' + rec.y + ') m, 앵커 (5.0, 2.2) 천장. ' + (rec.los_clear ? '직선이 열려 있어서 각도 모델(LoS 가정)이 적용되는 위치입니다.' : '직선이 ' + rec.blockers.slice(0, 3).join(', ') + '에 막혀 첫 경로가 LoS가 아닙니다. 각도 모델은 이 위치에 맞지 않습니다.') + ' yaw RMSE는 정답에 가장 가까운 후보를 고르는 방식(한 번의 측정으로 역산)입니다.';
+  }
+  function drawMinis() {
+    var box = $('minis'); box.textContent = '';
+    vis().forEach(function (i) {
+      var rec = R[i], b = document.createElement('div'); b.className = 'mini' + (rec.los_clear ? '' : ' nlos'); b.setAttribute('role', 'button'); b.setAttribute('tabindex', '0'); b.setAttribute('aria-pressed', i === st.i);
+      var h = document.createElement('h3'); h.textContent = (rec.los_clear ? 'LoS' : '막힘') + ' · θ ' + f(rec.theta_deg, 0) + '° · (' + rec.x + ', ' + rec.y + ')'; b.appendChild(h);
+      var s = el('svg', { role: 'img', 'aria-label': '위치 ' + rec.x + ',' + rec.y }); b.appendChild(s); box.appendChild(b);
+      chart(s, rec, { w: 200, h: 100, m: { l: 6, r: 6, t: 4, b: 18 }, axes: false, markers: false });
+      var go = function () { st.i = i; render(); };
+      b.addEventListener('click', go); b.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+    });
+  }
+  function drawControls() {
+    $('txseg').innerHTML = ''; TXS.forEach(function (t) { var b = document.createElement('button'); b.textContent = TXN[t]; b.setAttribute('aria-pressed', st.tx === t); b.onclick = function () { st.tx = t; render(); }; $('txseg').appendChild(b); });
+    $('fseg').innerHTML = ''; [['all', '전체 35'], ['los', 'LoS 열림 ' + D.summary.los.n_positions], ['nlos', '막힘 ' + D.summary.nlos.n_positions]].forEach(function (p) { var b = document.createElement('button'); b.textContent = p[1]; b.setAttribute('aria-pressed', st.f === p[0]);
+      b.onclick = function () { st.f = p[0]; if (vis().indexOf(st.i) < 0) st.i = vis()[0]; render(); }; $('fseg').appendChild(b); });
+    $('chips').innerHTML = ''; vis().forEach(function (i) { var r = R[i], b = document.createElement('button'); b.textContent = (r.los_clear ? '' : '✕ ') + f(r.theta_deg, 0) + '° (' + r.x + ', ' + r.y + ')'; b.setAttribute('aria-pressed', st.i === i); b.onclick = function () { st.i = i; render(); }; $('chips').appendChild(b); });
+  }
+  function drawTables() {
+    var S = D.summary, k = function (a, b) { return '<div class="kpi"><b>' + a + '</b><span>' + b + '</span></div>'; };
+    $('kpis').innerHTML = k(S.los.n_positions + ' / ' + S.nlos.n_positions, 'LoS 열림 / 막힘 (태그 35곳)') + k(f(S.los.yaw_rmse_model, 1) + '° (이상 ' + f(S.los.yaw_rmse_ideal, 1) + '°)', 'LoS 위치 yaw RMSE: 각도 모델 (이상 곡선)') + k(f(S.nlos.yaw_rmse_model, 1) + '° (이상 ' + f(S.nlos.yaw_rmse_ideal, 1) + '°)', '막힌 위치 yaw RMSE: 각도 모델 (이상 곡선)') + k(f(S.los.within5_model * 100, 0) + '% / ' + f(S.nlos.within5_model * 100, 0) + '%', '5° 이내 비율 (LoS / 막힘, 각도 모델)');
+    var h = '<thead><tr><th>θ 구간</th><th>위치 수</th><th>곡선 편차 RMS 중앙값</th><th>yaw RMSE (°)</th><th>5° 이내</th></tr></thead><tbody>';
+    D.los_by_theta.forEach(function (b) { h += '<tr><td>' + b.theta_lo + '°–' + b.theta_hi + '°</td><td>' + b.n_positions + '</td><td>' + f(b.median_rms_dev_model, 3) + '</td><td>' + f(b.yaw_rmse_model, 2) + '</td><td>' + f(b.within5 * 100, 0) + '%</td></tr>'; });
+    $('bytheta').innerHTML = h + '</tbody>';
+    $('bytheta-note').textContent = 'LoS가 열린 25곳(두 송신 포트의 곡선 50개) 기준이고, 각도 모델은 앵커·태그 안테나 패턴과 방향만 쓰며 책상·칸막이를 모릅니다. yaw RMSE는 정답에 가까운 후보를 고르는 방식입니다. θ가 커질수록(앵커에서 멀수록) 오차가 커지는 경향은 복도와 같습니다. 구간별 위치 수가 2–10곳이라 구간 값은 불안정합니다.';
+    var t = '<thead><tr><th>위치 (x, y)</th><th>LoS</th><th>θ (°)</th><th>송신</th><th>편차 RMS (모델)</th><th>yaw RMSE 모델 (°)</th><th>이상 (°)</th></tr></thead><tbody>';
+    R.forEach(function (r) { TXS.forEach(function (tn) { var d = r.tx[tn]; t += '<tr><td>(' + r.x + ', ' + r.y + ')</td><td>' + (r.los_clear ? '열림' : '막힘') + '</td><td>' + f(r.theta_deg, 1) + '</td><td>' + TXN[tn] + '</td><td>' + f(d.rms_dev_model, 3) + '</td><td>' + f(d.yaw_rmse_model, 2) + '</td><td>' + f(d.yaw_rmse_ideal, 2) + '</td></tr>'; }); });
+    $('tbl').innerHTML = t + '</tbody>';
+  }
+  function render() { drawControls(); drawMain(); drawMinis(); }
+  drawTables(); st.i = vis()[vis().length - 3]; render();
+})();
+</script>
+</body>
+</html>
