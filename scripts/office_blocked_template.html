@@ -83,7 +83,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;
     '<li>곡선 모양이 거의 같은(상관 0.9 이상) 곡선: <b>' + S.n_corr_hi + ' / ' + S.n_curves + '</b>. 막혀 있어도 모양이 각도 모델과 맞는 곡선이 있습니다.</li>' +
     '<li>각도 모델이 이상 곡선보다 나은(yaw RMSE 기준) 곡선: <b>' + S.model_better + ' / ' + S.n_curves + '</b>.</li>' +
     '<li>편차는 θ가 클수록 커집니다(위치 10곳에서 θ와 편차 RMS의 상관 ' + f(S.corr_theta_dev, 2) + '). 직선 통과 손실 추정과의 상관은 ' + f(S.corr_loss_dev, 2) + '로 약합니다. 위치가 10곳뿐이라 가볍게 읽어야 합니다.</li>' +
-    '<li>좌우 거울 위치(x 0.5와 9.5)는 앵커 기준 거의 거울 형상(같은 θ)인데도 곡선이 다릅니다. 예를 들어 (0.5, 5.25)는 송신 −45°가 잘 맞고 +45°는 어긋나는데, (9.5, 5.25)는 반대 경향입니다. 안테나 패턴이 좌우 대칭이 아니기 때문으로 보입니다(확인하지 않음).</li></ul>' +
+    '<li>좌우 거울 위치(x 0.5와 9.5)는 앵커 기준 거의 같은 θ·같은 막힘 구조입니다. 거울에서는 +45°와 −45° 포트가 서로 바뀌므로 (0.5, y)의 +45°와 (9.5, y)의 −45°가 비슷해야 합니다. y 6.75에서는 그렇습니다(yaw RMSE 3.1°와 2.9°). y 5.25에서는 그렇지 않습니다(−45° 2.6°와 +45° 15.2°). 안테나 패턴의 비대칭이나 가운데 열이 중심에서 0.1 m 어긋난 영향일 수 있으나 확인하지 않았습니다.</li></ul>' +
     '<p class="note">왜 막혀도 맞는 곡선이 있는지(첫 경로가 판을 투과한 직선 경로인지 등)는 경로 파일(npz, Snowball에 있음)이 있어야 확인할 수 있습니다. 이 시뮬레이션은 회절을 끄고 판을 슬랩 하나로 계산합니다.</p>';
   var t = '<thead><tr><th>위치</th><th>θ</th><th>막는 판</th><th>통과 손실(dB)</th><th>송신</th><th>편차(모델)</th><th>상관</th><th>yaw RMSE 모델</th><th>이상</th></tr></thead><tbody>';
   P.forEach(function (p) { Object.keys(TXN).forEach(function (tn) { var q = p.tx[tn]; t += '<tr><td>(' + p.x + ', ' + p.y + ')</td><td>' + f(p.theta_deg, 1) + '</td><td>' + p.blockers.join(', ') + '</td><td>' + f(p.loss_db, 1) + '</td><td>' + TXN[tn] + '</td><td>' + f(q.rms_dev_model, 3) + '</td><td>' + f(q.corr_model, 2) + '</td><td>' + f(q.yaw_rmse_model, 1) + '</td><td>' + f(q.yaw_rmse_ideal, 1) + '</td></tr>'; }); });
