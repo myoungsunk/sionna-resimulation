@@ -41,6 +41,7 @@ class FilterConfig:
     p0_std: tuple = (0.1, 0.1, math.radians(5.0), math.radians(0.12), 0.0104, 0.0064)     # PREREG_AMENDMENTS A5
     bias_rw_std: float = math.radians(1e-3)          # rad/s/sqrt(s)
     pos_process_std: float = 0.0                     # extra position random walk per step [m] (slack for unmodelled odometry/range errors)
+    s_var_inflation: float = 1.0                     # A17: multiplies the mismatch variance in R_s (1.0 = stored filter)
     s_mismatch_sigma: float = 0.09                   # model-mismatch part of R_s (S4 reports the measured value)
     range_extra_sigma: float = 0.05
     range_quant_var: float = (299792458.0 / (1028 * 1.953125e6)) ** 2 / 12.0
@@ -256,7 +257,7 @@ class DriveFilter:
             thermal = thermal_var_rx_s(p1, p2, cfg.noise_var_bin, cfg.n_bins) if cfg.noise_var_bin > 0 else 0.0
         else:
             thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
-        return thermal + cfg.s_mismatch_sigma ** 2
+        return thermal + cfg.s_var_inflation * cfg.s_mismatch_sigma ** 2
 
     def update_s(self, z, p1, p2):
         cfg = self.cfg

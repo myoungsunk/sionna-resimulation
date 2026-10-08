@@ -234,3 +234,48 @@ All of V0–V2 are evaluated on the held-out test set. Reported per variant, bas
 **Additive code (defaults reproduce the stored behaviour):** `FilterConfig.s_var_inflation = 1.0`; extra metric columns `nees_cov95` (pose coverage fraction), `heading_cov95` (heading coverage fraction); `run_unit(..., obs_transform=None, drift_transform=None)` hooks used by the variants above.
 
 Limits stay: LoS-only LUT stands for the multipath channel (L1/L2 FAIL stays), placeholder sensors, one corridor, development H stores, truth-near initial prior; held-out here means other seeds and another lateral of the same corridor, not another environment.
+
+### A17 result (local R1 development H stores; `DEV_RESULTS/CONSISTENCY_CALIB.json/.csv`, `CONSISTENCY_HELDOUT.json/.csv`; code `scripts/drive_sim/consistency_diagnostics.py`)
+
+**A. Cause decomposition (calibration set: lateral 0.35, seeds 1000–1009, 60 runs per cell; mean pose NEES, expected 3; coverage = fraction of samples with NEES ≤ 7.81)**
+
+| variant | range_s_P0 m0° | range_s_P0 m45° | range_s_P1_T20 m0° | range_s_P1_T20 m45° |
+|---|---|---|---|---|
+| E0 real RF `s` (production) | 93.3 (cov 0.13) | 25.8 (0.36) | 15.7 (0.40) | 23.3 (0.40) |
+| E1 synthetic, thermal noise only | 1.21 (0.99) | 1.32 (0.99) | 0.94 (1.00) | 1.45 (0.99) |
+| E2 E1 + white mismatch σ 0.18 | 19.2 (0.86) | 2.30 (0.97) | 2.39 (0.97) | 2.42 (0.96) |
+| E3 E0 without wheelbase error | 92.5 (0.13) | 25.2 (0.37) | 15.5 (0.40) | 22.6 (0.40) |
+| E4 E0 without odometry-heading pseudo-measurement | 102.8 (0.13) | 52.6 (0.34) | 14.9 (0.43) | 22.2 (0.39) |
+
+Reference baselines on the same runs (E0): `gyro_only` 3.16 (cov 0.91), `odom_imu` 4.31 (0.92). Reading: (i) with model-consistent synthetic data the filter is consistent (NEES ≈ 1–1.5, slightly conservative), so the filter structure — including the reuse of the gyro increment in the odometry-heading pseudo-measurement (E4: removing it does not help) and the unmodelled wheelbase error (E3: no change) — is **not** the cause of the 15–93 × inflation in these runs; F07 is not supported as the dominant cause here (it can still cost second-order consistency, which these runs cannot resolve). (ii) White mismatch of the measured size reproduces only part of the effect (2.3–2.4 at three cells, 19 at P0 mount 0°), far less than the real RF data. (iii) The inflation is therefore tied to the real residual `s_chain(H) − LUT(truth)` itself, i.e. its temporal/spatial structure (L1/L2 FAIL).
+
+**B. Mismatch residual (calibration lateral, t ≥ 30 s, P0 timeline)**
+
+| mount | n | mean | std | rms | ρ₁ | ρ₂ | ρ₅ | ρ₁₀ | ρ₂₅ | κ (uncentred) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 0° | 767 | +0.067 | 0.200 | 0.211 | 0.90 | 0.83 | 0.52 | 0.17 | 0.19 | 20.9 |
+| 45° | 767 | +0.012 | 0.191 | 0.191 | 0.96 | 0.89 | 0.61 | 0.25 | −0.14 | 14.1 |
+Pooled rms (σ_cal) = 0.2012; κ (mean of the two mounts) = 17.48. The residual is strongly autocorrelated (about 1 s correlation time at 5 Hz), which a per-sample independent update ignores; the effective number of independent `s` observations is much smaller than the number of samples the filter assumes. The centred autocorrelation is within 0.02 of the uncentred one except at mount 0° ρ₁₀/ρ₂₅.
+
+**C. Held-out evaluation (lateral 0.0, seeds 0–9, 60 runs per cell); V0 σ = 0.18, κ = 1 (stored filter); V1 σ = 0.2012 (calibration lateral only), κ = 1; V2 σ = 0.2012, κ = 17.48**
+
+| variant / baseline / mount | mean NEES | pose coverage | median heading RMSE [deg] | paired Δ heading RMSE vs V0 (median; better/worse share) |
+|---|---|---|---|---|
+| V0 P0 0° | 37.4 | 0.23 | 4.61 | — |
+| V0 P0 45° | 19.9 | 0.33 | 1.22 | — |
+| V0 T20 0° | 60.0 | 0.18 | 4.55 | — |
+| V0 T20 45° | 20.6 | 0.37 | 1.31 | — |
+| V1 P0 0° | 36.2 | 0.24 | 4.71 | +0.13° (17 % / 83 %) |
+| V1 P0 45° | 20.1 | 0.36 | 1.21 | +0.00° (48 % / 52 %) |
+| V1 T20 0° | 41.0 | 0.19 | 4.41 | −0.09° (78 % / 22 %) |
+| V1 T20 45° | 19.5 | 0.39 | 1.25 | −0.06° (92 % / 8 %) |
+| V2 P0 0° | 43.9 | 0.28 | 10.87 | +6.70° (13 % / 87 %) |
+| V2 P0 45° | 10.4 | 0.59 | 1.37 | +0.17° (23 % / 77 %) |
+| V2 T20 0° | 13.7 | 0.55 | 3.61 | −0.87° (73 % / 27 %) |
+| V2 T20 45° | 11.4 | 0.59 | 1.17 | −0.20° (70 % / 30 %) |
+
+Heading coverage (|error| ≤ 1.96 σ_ψ): V0 0.51/0.86/0.24/0.74 (P0 0°, P0 45°, T20 0°, T20 45°), V1 0.54/0.89/0.27/0.79, V2 0.37/0.99/0.72/1.00. Reference baselines (V0): `gyro_only` 3.45, `odom_imu` 4.09 with pose coverage 0.91/0.89.
+
+**Outcome against the proposed acceptance values (mean NEES ≤ 6.0 and pose coverage ≥ 0.90, in all four cells, heading RMSE ≤ 1.25 × V0): no variant is acceptable.** V0 and V1 are equivalent (re-measuring σ on a held-out lateral changes nothing material; 0.18 → 0.20 is within the calibration scatter). V2 (variance inflation by the estimated correlation factor) raises the coverage at mount 45° (heading 0.99–1.0) and halves the NEES there, but NEES stays 10–14 in three cells and 43.9 at P0 mount 0° (T20 mount 0°: 60.0 → 13.7, still far above 6), and at P0 mount 0° it more than doubles the heading RMSE (4.6 → 10.9°) because the `s` updates are almost switched off; it fails both the consistency and the accuracy condition. Per the pre-registered rule nothing is tuned further and no σ/κ is chosen to pass.
+
+**Conclusions (diagnostic, local, R1 only).** F06: held-out re-measurement of σ_mismatch shows the in-sample calibration (0.18) is not what drives the consistency failure (held-out 0.20 behaves the same); the concern about evaluation-informed R stays formally open for the routes (needs the route H stores). F02: the covariance inconsistency of the `s`-fusing filters is caused by the strongly autocorrelated, geometry-dependent LUT-vs-channel residual (not by filter bookkeeping, gyro reuse or wheelbase error in these runs); a scalar σ or a scalar variance inflation does not repair it. A model change would have to represent the residual itself (e.g. a better measurement model — the L1/L2 route — or a correlated-error state), which is a new design and a new pre-registration, not done here. F07: not the dominant cause; no change made. `scientific_PASS` stays false.

@@ -156,3 +156,12 @@ def test_gsf_reseed_with_std_theta_floor_keeps_psd():
     f.reseed(std_theta=math.radians(5.0))
     for c in f.comps:
         assert np.linalg.eigvalsh(c.P).min() >= -1e-12
+
+
+def test_s_var_inflation_scales_only_the_mismatch_part_of_R_s():
+    cfg = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0)
+    f = F.DriveFilter(cfg, None, np.zeros(6))
+    assert f._s_R(1.0, 1.0) == pytest.approx(0.18 ** 2)                  # default 1.0 = stored filter
+    cfg2 = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.5, s_var_inflation=4.0)
+    f2 = F.DriveFilter(cfg2, None, np.zeros(6))
+    assert f2._s_R(1.0, 1.0) == pytest.approx(F.thermal_var_s(1.0, 1.0, 0.5) + 4.0 * 0.18 ** 2)

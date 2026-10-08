@@ -16,6 +16,7 @@ from qclean_uwb.drivesim.hs_lut import HsLut
 POS_PROCESS_STD = 0.0
 EXCLUDE_S = 30.0
 WRONG_BRANCH_DEG = 20.0
+CHI2_3_95 = 7.814727903251179        # chi2(3 dof) 95 % point (pose NEES coverage, A17)
 GRID_S = 1.0
 COMMON_FROM_DRIVE_G = 150      # A16: 30 s of drive time at 5 Hz; common stations = non-probe samples from this drive index on
 
@@ -147,6 +148,9 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
                s_reject_frac=float(st["s_rejected"] / s_total) if s_total else float("nan"),
                r_reject_frac=float(st["r_rejected"] / max(st["r_updates"] + st["r_rejected"], 1)),
                n_probes=world.n_probes, duration_s=float(t[-1]), n_samples=len(t))
+    # A17 (additive columns): coverage of the filter's own covariance
+    sig_psi = np.sqrt(np.maximum(out["cov3"][:, 2, 2], 1e-18))
+    res.update(nees_cov95=float(np.mean(nees <= CHI2_3_95)), heading_cov95=float(np.mean(np.abs(F.wrap(err[keep][:, 2])) <= 1.96 * sig_psi[keep])))
     # A16 (additive columns): the same drive positions in every probe schedule, and the probe samples on their own
     common = (world.probe_id < 0) & (world.drive_g >= COMMON_FROM_DRIVE_G)
     probe = (world.probe_id >= 0) & (world.drive_g >= COMMON_FROM_DRIVE_G)
@@ -163,11 +167,14 @@ ROUTE_CODE = {"R1": 0, "R2": 1, "R4": 2, "R5": 3}      # R1 = 0 keeps the v1 noi
 
 
 def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma: float, anchor_xyz, robot_z: float, range_offset: float,
-             snr_db: float | None, snr_idx: int, drift_idx: int, seed: int, compare_filters: bool = True, measure: str = "fp") -> tuple[list[dict], dict]:
+             snr_db: float | None, snr_idx: int, drift_idx: int, seed: int, compare_filters: bool = True, measure: str = "fp",
+             obs_transform=None, drift_transform=None, cfg_transform=None) -> tuple[list[dict], dict]:
     """All baselines (and the filter-type comparison) for one (lateral, mount, drift, SNR, seed).  ``worlds`` maps period -> World."""
     any_world = next(iter(worlds.values()))
     level = S.DRIFT_LEVELS[drift_idx]
     drift = S.draw_drift(level, np.random.default_rng([seed, drift_idx, 1]))
+    if drift_transform is not None:                       # A17 diagnostics only; None reproduces the stored behaviour
+        drift = drift_transform(drift)
     init = np.random.default_rng([seed, 3]).standard_normal(6)
     p0 = np.array(F.FilterConfig().p0_std)
     truth0 = any_world.truth[0]
@@ -180,6 +187,8 @@ def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma:
         ds, dth = S.true_increments(w.rows)
         inputs = S.generate_inputs(ds, dth, drift, sensor, 0.2, np.random.default_rng([seed, drift_idx, 2, code]))
         obs = observe_world(w, snr_db, (seed, snr_idx, code, int(round(w.lateral * 100)), int(w.mount_deg)) + ((ROUTE_CODE[w.route],) if w.route != "R1" else ()), sensor, range_offset, measure)
+        if obs_transform is not None:                       # A17 diagnostics only
+            obs = obs_transform(obs, w, np.random.default_rng([seed, snr_idx, code, 9090]))
         prepared[period] = (inputs, obs)
     rows, series = [], {}
     jobs = [(b, "ekf") for b in BASELINES]
@@ -191,6 +200,8 @@ def run_unit(worlds: dict, lut: HsLut, *, sensor: S.SensorNoise, mismatch_sigma:
         w = worlds[base["period"]]
         inputs, obs = prepared[base["period"]]
         cfg = filter_config(base, w, obs, sensor, mismatch_sigma, anchor_xyz, robot_z, kind=kind)
+        if cfg_transform is not None:                       # A17 diagnostics only
+            cfg = cfg_transform(cfg, base)
         row = dict(ident, baseline=base["name"], filter=kind, period_s=base["period"] if base["period"] else float("nan"))
         try:
             res = run_one(w, obs, inputs, cfg, lut, x0)
