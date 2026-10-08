@@ -124,3 +124,12 @@ Question (user): does computing `s` from the received power of each RX port (rx 
 ## A13 — Exploratory (not pre-registered): value of the TX/RX angle model — LoS-only LUT versus the ideal curve `s = −cos 2·yaw`
 
 The v1 filter predicts `s` with the LoS-only LUT `h_s(θ, φ_tx, φ_rx)` built from the FFD banks, i.e. it corrects for the transmit and receive angles of the antenna patterns. Ablation: the same EKF with the **ideal** curve (ideal ±45° ports: `s = −cos(2(φ_tx + φ_rx)) = −cos 2·yaw_antenna`, no dependence on θ and no pattern). Each model uses its own measured mismatch σ against the noise-free simulated `s`; everything else (noise draws, drift, priors, `pos_process_std`) is identical. R1 development H stores, seeds 0–9.
+
+### A13 result (R1 dev H stores, seeds 0–9, 4 lateral × mount combos, SNR 30/10, drifts 0–2, EKF; `DEV_RESULTS/ANGLE_MODEL_ABLATION.json`)
+
+Exploratory only, not a pre-registered test. Replacing the LoS-only angle-corrected LUT h_s(θ, φ_tx, φ_rx) by the ideal curve s = −cos 2·yaw (σ_mismatch re-fitted for each model):
+
+- mismatch rms vs. noise-free simulated s: LUT 0.180, ideal 0.294 (the ideal curve ignores the pattern-dependent TX/RX angle response and the multipath that the LUT's LoS term does not represent either).
+- median heading RMSE, range+s P0: mount 0° LUT 6.70° vs ideal 18.49°; mount 45° LUT 1.38° vs ideal 8.04°; odom_imu reference 7.64°.
+- with probes the gap widens at mount 0° (T10: 1.62° vs 17.31°); the ideal model is better than the LUT in 0–18 % of paired runs depending on baseline (≈0 % for range_s_*).
+- Conclusion: the TX/RX angle correction in the LUT is what makes `s` usable as a measurement; with the uncorrected ideal curve the filter is worse than odom+IMU in most conditions. Placeholder sensors and simulation only; R1 dev stores, not routes.
