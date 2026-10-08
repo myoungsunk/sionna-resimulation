@@ -207,3 +207,30 @@ Reading (descriptive): scoring only on the drive positions that exist in every s
 - Initial-heading profile (Δψ0 ∈ [−180°, 180°), 1° steps, 16 P0 cases): **no local minimum other than Δψ0 = 0 in any case**; the noise-free range+s χ² for a ±5° initial heading error is 149–2776 (reading aid: 10.8 = χ²₁ 99.9 %), i.e. the measurements separate a 5° error from the truth in this slice. This is a one-dimensional slice (positions at truth, b = SF = ε = 0, noise-free, LoS-only LUT); it does not exclude other roots in the joint position–heading–parameter space, does not include the LUT mismatch (L1/L2 FAIL), and does not explain the observed wrong-branch runs (e.g. 49 % at R2 anchor A mount 0° P0).
 
 Not done: filter-consistency work (F02/F06/F07), anchor-B parity (F05), multimodal initial-condition runs through the filter (F10 "broad initial conditions"), equal-elapsed probe control, route common-station statistics. `scientific_PASS` stays false.
+
+## A17 — Filter-consistency diagnosis and held-out calibration (audit F02, F06, F07 — step 4); definitions and proposed acceptance values fixed **before** any number below was computed
+
+Status: diagnostic + one pre-specified candidate correction, CPU only, local R1 development H stores. Not a replacement of the stored S6 results, not a new hypothesis test. The audit asks for a cause diagnosis and a held-out consistency evaluation and forbids tuning σ until the metric passes; this amendment follows that. **The acceptance values in C are proposed by the assistant and have not been approved by the user; they are fixed here only so that they exist before the held-out result, and the user may replace them (then the result is re-read against the replacement, and the change is recorded).**
+
+**Data split (disjoint in seeds and in geometry).** Calibration set: R1 lateral 0.35 m, mounts 0°/45°, noise/drift seeds 1000–1009. Held-out test set: R1 lateral 0.0 m (a different path relative to the anchor), mounts 0°/45°, seeds 0–9. Drifts 0–2, SNR 30 and 10 dB, baselines `range_s_P0` and `range_s_P1_T20` (plus `odom_imu`, `gyro_only` as consistency references). Routes R2/R4/R5 need the Snowball route H stores and are not touched here.
+
+**A. Cause decomposition on the calibration set** (mean pose NEES over the t ≥ 30 s samples, expected value 3; same truth, sensor draws and seeds in every variant):
+- E0 real RF `s` and range (the production observation);
+- E1 synthetic observation: `s = LUT(truth) +` thermal noise only (the variance the filter assumes), range = truth range + offset + the same range noise — tests the filter structure (gyro increment reuse, bias/scale states, unmodelled wheelbase error, odometry-heading pseudo-measurement) without any model mismatch;
+- E2 = E1 plus white Gaussian mismatch with σ = σ_mismatch (0.18) — tests white mismatch;
+- E3 = E0 with the wheelbase error switched off in the sensor drift (`E_b = 0`) — tests the unmodelled wheelbase error on real data;
+- E4 = E0 with the odometry-heading pseudo-measurement removed (`use_odom_heading=False` for the range+s filter) — tests the reuse of the gyro increment.
+Reading: the variant at which the mean NEES returns to ≈ 3 identifies the dominant cause; nothing is concluded from a single variant alone.
+
+**B. Mismatch-residual statistics** on the calibration set: r_k = s_noise-free-chain(H_k) − LUT(truth_k) per sample; mean, std, rms, and the autocorrelation at lags 1, 2, 5, 10, 25 samples (0.2 s each, drive samples only), per mount, and the integrated inflation factor `κ = 1 + 2 Σ_{k=1..K} ρ_k` (K = first lag at which ρ ≤ 0 or 50, whichever is smaller, truncated at κ ≥ 1).
+
+**C. Candidate correction and held-out evaluation** (the only filter change considered; default values reproduce the stored filter exactly):
+- V0 = stored filter (σ_mismatch = 0.18 measured on both laterals, κ = 1);
+- V1 = σ_mismatch re-measured on the **calibration** set only (rms of r_k, both mounts pooled), κ = 1 — the held-out version of the stored calibration;
+- V2 = V1 with the s-update variance `R_s = thermal + κ·σ²` where κ is the calibration-set value from B (`FilterConfig.s_var_inflation`, default 1.0).
+All of V0–V2 are evaluated on the held-out test set. Reported per variant, baseline and mount: mean pose NEES; fraction of samples whose pose NEES ≤ χ²₃(0.95) = 7.815 (pose coverage); fraction of samples with |heading error| ≤ 1.96·σ_ψ (heading coverage); median heading RMSE and pos RMSE; paired change of heading RMSE versus V0.
+**Proposed acceptance values (assistant-proposed, see status):** consistency is called *acceptable* for a baseline and mount if the mean pose NEES ≤ 6.0 (twice the expected value) and the pose coverage ≥ 0.90; a variant is called *usable* only if it is acceptable for both `range_s_P0` and `range_s_P1_T20` at both mounts and the median heading RMSE of each of these cells is ≤ 1.25 × that of V0. If no variant is acceptable, that is the result; σ is not tuned further and no value is chosen to pass.
+
+**Additive code (defaults reproduce the stored behaviour):** `FilterConfig.s_var_inflation = 1.0`; extra metric columns `nees_cov95` (pose coverage fraction), `heading_cov95` (heading coverage fraction); `run_unit(..., obs_transform=None, drift_transform=None)` hooks used by the variants above.
+
+Limits stay: LoS-only LUT stands for the multipath channel (L1/L2 FAIL stays), placeholder sensors, one corridor, development H stores, truth-near initial prior; held-out here means other seeds and another lateral of the same corridor, not another environment.
