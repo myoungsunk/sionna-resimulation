@@ -42,6 +42,7 @@ def main():
     setup = CorridorSetup(anchor_x_m=args.anchor_x)
     tols = (5e-14, 2e-13)                      # 5e-14 = pre-registered (PREREG G3); 2e-13 = float32 allowance for long paths (A8)
     sigs, unmatched_total, missing, bad = [], {t: 0 for t in tols}, [], []
+    strict_unmatched_stations = []              # A15: every station with a delay residual above the pre-registered tolerance, not only the totals
     max_res, min_gap = 0.0, 1.0
     for x, y in stations:
         tag = tag_of(x, y)
@@ -56,6 +57,8 @@ def main():
         for t in tols:
             unmatched_total[t] += int((res > t).sum())
         max_res = max(max_res, float(res.max()))
+        if (res > tols[0]).any():
+            strict_unmatched_stations.append(dict(tag=tag, xy=[x, y], n_unmatched=int((res > tols[0]).sum()), max_residual_s=float(res.max())))
         min_gap = min(min_gap, float(np.diff(cd).min()))
         if status != "OK":
             bad.append(tag)
@@ -72,7 +75,7 @@ def main():
         raise SystemExit(f"NO_STATIONS_FOUND in {args.timeline}: no row with phase in {DRIVE_PHASES} (an empty check must not pass)")
     rep = dict(stations=len(stations), missing_traces=missing, status_not_ok=bad, unmatched_paths_total={f"tol_{t:g}": v for t, v in unmatched_total.items()}, max_residual_s=max_res,
                min_gap_between_distinct_image_delays_s=min_gap, path_counts=counts,
-               n_set_changes=len(changes), set_changes=changes[:50], passed_strict_prereg_tol=bool(stations and not missing and not bad and unmatched_total[tols[0]] == 0),
+               n_set_changes=len(changes), set_changes=changes, strict_unmatched_stations=strict_unmatched_stations, passed_strict_prereg_tol=bool(stations and not missing and not bad and unmatched_total[tols[0]] == 0),
                passed_relaxed_2e13=bool(stations and not missing and not bad and unmatched_total[tols[1]] == 0))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(rep, indent=1))

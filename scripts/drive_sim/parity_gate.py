@@ -57,6 +57,15 @@ def summarize(rows, thr, prefix):
     return out
 
 
+def coverage_checked(report: dict, missing: list, unusable: list) -> dict:
+    """A15 (audit M01): a stored reference position without a usable trace is a failed gate, not a silently smaller sample."""
+    report = dict(report)
+    report["missing"], report["unusable"] = list(missing), list(unusable)
+    report["checks"] = dict(report.get("checks", {}), coverage_complete=not missing and not unusable)
+    report["passed"] = bool(report.get("passed", False) and not missing and not unusable)
+    return report
+
+
 AXIS_XY = (4.0, 0.0)       # anchor vertical axis; method B is degenerate exactly on it (S0 PREREG_AMENDMENTS A3)
 AXIS_CLEARANCE_M = 0.01
 
@@ -104,10 +113,10 @@ def main():
                   excluded_on_anchor_axis=[r["tag"] for r in refs if on_axis(r["xy"])])
     if args.traces_all and not args.g4_only:
         rows, miss, bad = run_set(args.traces_all, banks, refs, freqs)
-        report["G2_bin_by_bin"] = dict(missing=miss, unusable=bad, **summarize(rows, thr["G2_B_per_bin_trace"], "G2")) if rows else dict(missing=miss, passed=False)
+        report["G2_bin_by_bin"] = coverage_checked(summarize(rows, thr["G2_B_per_bin_trace"], "G2"), miss, bad) if rows else dict(missing=miss, unusable=bad, passed=False)
     if args.traces_nodes and not args.g4_only:
         rows, miss, bad = run_set(args.traces_nodes, banks, refs, freqs)
-        report["G2p_node_interpolation"] = dict(missing=miss, unusable=bad, **summarize(rows, thr["G2p_B_node_interpolation"], "G2p")) if rows else dict(missing=miss, passed=False)
+        report["G2p_node_interpolation"] = coverage_checked(summarize(rows, thr["G2p_B_node_interpolation"], "G2p"), miss, bad) if rows else dict(missing=miss, unusable=bad, passed=False)
     if args.g4_a_dir and (args.traces_nodes or args.traces_all):
         trace_dir = args.traces_all or args.traces_nodes
         rows = []

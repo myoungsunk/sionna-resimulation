@@ -107,7 +107,14 @@ class DriveFilter:
         return mean, cov
 
     def reseed(self, std_theta: float | None = None):
-        """Moment-preserving split of the (collapsed) heading Gaussian into ``gsf_components`` narrower components."""
+        """Moment-preserving split of the (collapsed) Gaussian into ``gsf_components`` components spread along the heading.
+
+        The component means are shifted along ``u = P[:, 2] / sqrt(P[2, 2])`` (heading shift z_i*sigma, correlated position shift), and every
+        component keeps ``P_c = P - t u u^T`` with ``t = sum_i w_i z_i^2`` (capped at 0.95).  ``P - u u^T`` is the Schur complement of the heading
+        variance, hence PSD, so ``P_c`` is PSD for every ``t <= 1`` including the position-heading cross terms (A15: the earlier version shrank
+        only ``P[2, 2]`` and could produce an indefinite matrix).  When the cap is active the shift is scaled by ``sqrt(cap / t)`` so that the
+        mixture mean and covariance still equal the input exactly.
+        """
         mean, cov = self.mean_cov()
         if std_theta is not None:
             cov = cov.copy()
@@ -118,14 +125,12 @@ class DriveFilter:
         w /= w.sum()
         var_between = float((w * z ** 2).sum())
         sig = math.sqrt(max(cov[2, 2], 1e-12))
-        comps = []
-        for zi, wi in zip(z, w):
-            x = mean.copy()
-            P = cov.copy()
-            x[2] = mean[2] + zi * sig
-            P[2, 2] = cov[2, 2] * max(1.0 - var_between, 0.05)
-            comps.append(Component(float(wi), x, P))
-        self.comps = comps
+        u = cov[:, 2] / sig
+        t_cap = 0.95
+        kappa = min(1.0, math.sqrt(t_cap / var_between)) if var_between > 0 else 1.0
+        P_c = cov - var_between * kappa ** 2 * np.outer(u, u)
+        P_c = 0.5 * (P_c + P_c.T)
+        self.comps = [Component(float(wi), mean + zi * kappa * u, P_c.copy()) for zi, wi in zip(z, w)]
 
     # ---------------------------------------------------------------- predict
     def predict(self, ds_o: float, dth_g: float):

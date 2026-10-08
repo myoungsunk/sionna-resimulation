@@ -96,3 +96,63 @@ def test_inverse_heading_baseline_runs_and_gate_counts_are_reported():
     cfg = F.FilterConfig(kind="ekf", s_mode="inverse", mount_deg=mount, anchor_xyz=ANCHOR, s_mismatch_sigma=0.02, range_quant_var=0.0, range_extra_sigma=0.0)
     out = F.run_filter(cfg, lut, inputs, obs, flags, [truth[0, 0], truth[0, 1], truth[0, 2], 0, 0, 0])
     assert out["stats"]["s_updates"] + out["stats"]["s_rejected"] > 0 and np.isfinite(out["est"]).all()
+
+
+# ---- GSF split must keep every component covariance PSD and the mixture moments (A15, audit F08)
+def _gsf_filter(P0, k=5):
+    cfg = F.FilterConfig(kind="gsf", gsf_components=k, anchor_xyz=ANCHOR)
+    x0 = np.array([1.0, 0.3, 0.7, 0.0, 0.0, 0.0])
+    f = F.DriveFilter(cfg, None, x0, P0)
+    return f, x0
+
+
+def _legacy_split_cov(cov, k):
+    """The pre-A15 rule: shrink only P[2, 2] and keep the position-heading cross terms."""
+    z = np.linspace(-1.5, 1.5, k)
+    w = np.exp(-0.5 * z ** 2)
+    w /= w.sum()
+    vb = float((w * z ** 2).sum())
+    P = cov.copy()
+    P[2, 2] = cov[2, 2] * max(1.0 - vb, 0.05)
+    return P
+
+
+def test_gsf_reseed_audit_counterexample_old_rule_indefinite_new_rule_psd():
+    cov2 = np.array([[1.0, 0.8], [0.8, 1.0]])               # the audit's valid block (min eigenvalue 0.2), order (x, heading)
+    cov = np.eye(6) * 1e-3
+    cov[0, 0] = cov[2, 2] = 1.0
+    cov[0, 2] = cov[2, 0] = 0.8
+    assert np.linalg.eigvalsh(cov2).min() == pytest.approx(0.2)
+    old = _legacy_split_cov(cov, 5)
+    assert np.linalg.eigvalsh(old).min() < -0.2             # audit: -0.245244 on the 2x2 block
+    f, _ = _gsf_filter(cov, k=5)
+    for c in f.comps:
+        assert np.linalg.eigvalsh(c.P).min() >= -1e-12
+        assert np.allclose(c.P, c.P.T)
+
+
+@pytest.mark.parametrize("k", [2, 3, 5, 9, 21])           # k = 2 exercises the 0.95 cap
+@pytest.mark.parametrize("rho", [0.0, 0.5, 0.95, -0.9])
+def test_gsf_reseed_components_psd_and_mixture_moments_preserved(k, rho):
+    sd = np.array([0.3, 0.2, 0.09, 0.002, 0.01, 0.005])
+    corr = np.eye(6)
+    corr[0, 2] = corr[2, 0] = rho
+    corr[1, 2] = corr[2, 1] = -0.3 * rho
+    assert np.linalg.eigvalsh(corr).min() > 0
+    P0 = corr * np.outer(sd, sd)
+    f, x0 = _gsf_filter(P0, k)
+    assert np.isclose(sum(c.w for c in f.comps), 1.0)
+    for c in f.comps:
+        assert np.linalg.eigvalsh(c.P).min() >= -1e-12
+    mean, cov = f.mean_cov()
+    assert np.allclose(mean, x0, atol=1e-12)
+    assert np.allclose(cov, P0, atol=1e-12)
+
+
+def test_gsf_reseed_with_std_theta_floor_keeps_psd():
+    P0 = np.diag([0.04, 0.04, 1e-6, 1e-6, 1e-6, 1e-6])
+    P0[0, 2] = P0[2, 0] = 1e-4
+    f, _ = _gsf_filter(P0)
+    f.reseed(std_theta=math.radians(5.0))
+    for c in f.comps:
+        assert np.linalg.eigvalsh(c.P).min() >= -1e-12

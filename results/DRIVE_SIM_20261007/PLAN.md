@@ -11,7 +11,7 @@ rev2 변경 요약: base 이력 처리(rebase), `s` 정의 위치 정정 및 `sr
 |---|---|
 | Base | `myoungsunk/sionna-resimulation` @ `claude/determined-turing-vxge0c` (`c13797a`). **작업 브랜치(`f37cf32`)와 c13797a는 갈라진 상태**(fd2f757은 c13797a의 조상이지만 f37cf32는 c13797a 이력에 없음). §4 S0-1 참조 |
 | Producer | `scripts/corridor_sionna_run.py` (LP_DIAG 1 arm, pose당 257 호출, 0.2709 s/call → 약 69.6 s/pose, SCAN2 receipt 기준) |
-| Scene | `qclean_uwb/scenarios/corridor.py` (20×2.4×2.7 m, anchor x=4 천장, robot 안테나 z=0.45, x∈[1,19], \|y\|≤0.74). **101-scene CORRIDOR 사용 금지.** 재질(concrete 0.2 / plasterboard 12.5 mm)은 코드상 temporary → config에 `assumption` 태그 |
+| Scene | `qclean_uwb/scenarios/corridor.py` (20×2.4×2.7 m, anchor x=4 천장 아래 5 cm = z 2.65 m, robot 안테나 z=0.45, x∈[1,19], \|y\|≤0.74). **101-scene CORRIDOR 사용 금지.** 재질(concrete 0.2 / plasterboard 12.5 mm)은 코드상 temporary → config에 `assumption` 태그 |
 | `s` | signed `s=(P1−P2)/(P1+P2)`, P=first-path(FP) tap power. 이상적 `s=σ·cos 2yaw`, σ=−1(TX +45). **정의 위치 정정**: signed s는 `scripts/corridor_shift_fit.py::signed()`에 있고, `features/port_ratio.py`는 복소 응답의 `\|p1−p2\|/\|p1+p2\|`로 다른 양이다 |
 | CP arm | 불필요 (v1 제외) |
 | 환경 | sionna-rt 2.0.1 / mitsuba 3.8.0 (`llvm_ad_mono_polarized`) / drjit 1.3.1, bank SHA256이 `BANK_MANIFEST.json`(`results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/`)과 일치 |
