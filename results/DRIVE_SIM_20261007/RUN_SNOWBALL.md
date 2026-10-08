@@ -80,3 +80,17 @@ python scripts/drive_sim/analyze_route_experiments.py --results $D/S6_routes --o
 Apply the same decision rule as v1 (method B only if the parity gate passes; G3 is reported at 5e-14 s and 2e-13 s; the relaxation needs a decision).
 
 **Anchor B and the vanishing path (A10/A10b/A10c).** For anchor B the solver drops one path (about −45 dB to −30 dB) above ≈ bin 146–150 at every position. `rf_b_trace.py` handles it: the cut bin is found by bisection (4 extra solver calls), the path is interpolated piecewise and is exactly zero above the cut; `dropped_audit` / `screen_exceeded` are written to every trace receipt. `routes-parity-report` must show `all_passed: true` (developer run: |Δs| max 1.2e-5, H error max 5.9e-5, 35 poses); if it does not, run method A for anchor B (`rf_a_runner.py ... --anchor-x 10`, about 105 core-hours for all routes and both mounts).
+
+## 6. A16 diagnostics (CPU only; no RF; report separately from the stored S6 results)
+
+**Probe fairness on the routes (common-station metric).** The stored S6 CSVs have no `heading_rmse_common_deg`. Re-run the route experiments into a **new** directory (same H stores, same `--mismatch-sigma 0.16095229605409875 --pos-process-std 0.01 --seeds 50`; with the A15 code), then:
+```bash
+export D=results/DRIVE_SIM_20261007
+python scripts/drive_sim/run_route_experiments.py --s1-routes $D/S1/routes --h-dir <H dir> --lut <LUT> --out $D/S6_routes_A16 \
+    --snr-db 30 10 --mismatch-sigma 0.16095229605409875 --pos-process-std 0.01 --seeds 50 --nproc 32
+python scripts/drive_sim/probe_fairness.py analyze --csv $D/S6_routes_A16/results_R*_a*_m*.csv --out $D/S6_routes_A16/PROBE_FAIRNESS_ROUTES.json
+```
+The filter-comparison rows (`iekf/ukf/gsf`) in that re-run use the A15 GSF split, so they differ from the stored GSF rows; the EKF rows reproduce the stored numbers except for the added columns.
+
+**Observability / initial-heading profile** (needs only the LUT and the timelines, no H):
+`python scripts/drive_sim/observability_check.py --s1 $D/S1 --lut-dir $D/S4 --out $D/DEV_RESULTS/OBSERVABILITY_A16.json --s6-r1 <R1 S6 dir> --s6-routes <S6_routes dir>`

@@ -17,6 +17,7 @@ POS_PROCESS_STD = 0.0
 EXCLUDE_S = 30.0
 WRONG_BRANCH_DEG = 20.0
 GRID_S = 1.0
+COMMON_FROM_DRIVE_G = 150      # A16: 30 s of drive time at 5 Hz; common stations = non-probe samples from this drive index on
 
 
 @dataclass
@@ -41,6 +42,14 @@ class World:
     @property
     def turn_phase(self):
         return np.array([bool(r["turn_phase"]) for r in self.rows])
+
+    @property
+    def drive_g(self):
+        return np.array([r["drive_g"] for r in self.rows])
+
+    @property
+    def probe_id(self):
+        return np.array([r["probe_id"] for r in self.rows])
 
     @property
     def n_probes(self):
@@ -138,6 +147,12 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
                s_reject_frac=float(st["s_rejected"] / s_total) if s_total else float("nan"),
                r_reject_frac=float(st["r_rejected"] / max(st["r_updates"] + st["r_rejected"], 1)),
                n_probes=world.n_probes, duration_s=float(t[-1]), n_samples=len(t))
+    # A16 (additive columns): the same drive positions in every probe schedule, and the probe samples on their own
+    common = (world.probe_id < 0) & (world.drive_g >= COMMON_FROM_DRIVE_G)
+    probe = (world.probe_id >= 0) & (world.drive_g >= COMMON_FROM_DRIVE_G)
+    res.update(heading_rmse_common_deg=float(np.sqrt(np.mean(head[common] ** 2))) if common.any() else float("nan"),
+               pos_rmse_common_m=float(np.sqrt(np.mean(pos[common] ** 2))) if common.any() else float("nan"),
+               heading_rmse_probe_deg=float(np.sqrt(np.mean(head[probe] ** 2))) if probe.any() else float("nan"), n_common_samples=int(common.sum()))
     grid = np.arange(0.0, t[-1] + 1e-9, GRID_S)
     idx = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 1)
     return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))

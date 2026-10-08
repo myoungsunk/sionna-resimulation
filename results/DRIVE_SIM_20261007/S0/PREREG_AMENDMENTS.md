@@ -183,3 +183,27 @@ Descriptive paired comparison per (route, anchor, lateral, mount, drift, SNR, se
 - reported: eigenvalues of the prior-whitened measurement information `P0^{1/2} I_meas P0^{1/2}` (dimensionless; values far above 1 mean the data dominate the prior in that direction, values near 0 mean the direction is not observed), the linearised posterior heading standard deviation (mean over the common stations and at the last sample), and its ratio to the empirical median `heading_rmse_deg` of the stored S6 results where those exist (context only, not a validation).
 - **Initial-heading ambiguity profile:** for Δψ0 in −180°…+180° (step 1°) with x0, y0 at truth and b = SF = ε = 0, the dead-reckoned path is rotated about its start; the profile is the noise-free χ² of range+s (sum of squared residuals over σ²). Reported: all local minima of the profile with their χ² values (reading aid: χ²₁ 99.9 % = 10.83 per measurement; a minimum whose total χ² is of that order or below cannot be told from the truth by the measurements) and the global minimum other than Δψ0 = 0.
 Limits that stay in force: truth-linearised local analysis, not global observability proof; LoS-only LUT stands in for the multipath channel (L1/L2 FAIL); independent Gaussian noise; no s-mismatch correlation; not a statement about the filter's actual consistency (F02).
+
+### A16 result (local CPU diagnostics; definitions above were committed first as `e367573`)
+
+**A. Probe fairness — R1 development H stores** (`DEV_RESULTS/PROBE_FAIRNESS_R1.csv/.json`; laterals 0 and 0.35 pooled, mounts 0°/45°, drifts 0–2, SNR 30/10 dB, seeds 0–9 → 120 paired runs per cell; `range_s_P0` vs `range_s_P1_T*`, EKF; routes are **not** covered, see below).
+
+| mount | schedule | P0 median [deg] | P1 median [deg] | Δ median common [deg] (95 % CI) | Δ median all samples [deg] | seeds better / worse (common) | elapsed P0 → P1 [s] |
+|---|---|---|---|---|---|---|---|
+| 0° | T60 | 6.70 | 3.70 | −2.74 (−2.90, −2.59) | −2.74 | 100 % / 0 % | 183 → 198 |
+| 0° | T20 | 6.70 | 3.35 | −3.94 (−4.23, −1.09) | −4.06 | 72 % / 28 % | 183 → 241 |
+| 0° | T10 | 6.70 | 1.75 | −4.77 (−5.13, −4.17) | −4.90 | 99 % / 1 % | 183 → 306 |
+| 45° | T60 | 1.38 | 1.31 | −0.09 (−0.13, −0.02) | −0.10 | 60 % / 40 % | 183 → 198 |
+| 45° | T20 | 1.38 | 1.41 | +0.05 (−0.02, +0.13) | +0.03 | 43 % / 57 % | 183 → 241 |
+| 45° | T10 | 1.38 | 1.52 | +0.20 (+0.13, +0.29) | +0.15 | 27 % / 73 % | 183 → 306 |
+
+Reading (descriptive): scoring only on the drive positions that exist in every schedule gives the same picture as the all-sample metric (differences ≤ 0.15°), so the stored P1 benefit at mount 0° is **not** an artefact of scoring extra probe samples. At mount 45° the benefit is ≈ 0 and T10 is worse in 73 % of the paired runs. The elapsed time grows by 8–67 %, and no equal-elapsed control exists; the improvement remains a combined effect of manoeuvre, extra observations and extra time (F09 stays open for that part). Route statistics need the Snowball re-run in `RUN_SNOWBALL.md` §6 (the stored route CSVs lack the common-station columns); nothing is claimed for R2/R4/R5 here.
+
+**B. Observability and initial-heading profile** (`DEV_RESULTS/OBSERVABILITY_A16.json`, 16 route/anchor/lateral/mount cases × 4 schedules, actual LUT, truth-linearised).
+- Odom+IMU alone: three of six whitened information eigenvalues are 0 in all 64 cases (x0, y0, ψ0 unobserved); linearised mean heading std 6.9–12.8°.
+- Range alone: the smallest eigenvalue is 0 in all cases (the anchor-centred rotation gauge, as stated in the audit); heading std 0.84–6.1°.
+- Range+s: all six eigenvalues positive; smallest prior-whitened eigenvalue 0.83–29.9 (lowest: R2 anchor B mount 0° P0 0.83, R5 anchor B mount 0° P0 1.0); linearised heading std 0.16–0.63°. Probes raise the smaller eigenvalues (e.g. R1 y0 mount 0°: 4.3 → 29.9 for P0 → T10) and lower the std; the 45° mount has the smaller linearised std than 0° on R1, R2 and R5 but the larger one on R4 (0.36–0.50° vs 0.23–0.26°).
+- The linearised standard deviation is **not** a prediction of the filter: the empirical median heading RMSE of the stored S6 results is 2.1–25.6× (median 7.2×) larger than the linearised value in the 64 cases where both exist (e.g. R2 anchor A mount 0° P0: 0.49° vs 10.7°). The failures behind the larger empirical errors (wrong-branch episodes, LUT mismatch, gating, correlated noise) are outside this local analysis.
+- Initial-heading profile (Δψ0 ∈ [−180°, 180°), 1° steps, 16 P0 cases): **no local minimum other than Δψ0 = 0 in any case**; the noise-free range+s χ² for a ±5° initial heading error is 149–2776 (reading aid: 10.8 = χ²₁ 99.9 %), i.e. the measurements separate a 5° error from the truth in this slice. This is a one-dimensional slice (positions at truth, b = SF = ε = 0, noise-free, LoS-only LUT); it does not exclude other roots in the joint position–heading–parameter space, does not include the LUT mismatch (L1/L2 FAIL), and does not explain the observed wrong-branch runs (e.g. 49 % at R2 anchor A mount 0° P0).
+
+Not done: filter-consistency work (F02/F06/F07), anchor-B parity (F05), multimodal initial-condition runs through the filter (F10 "broad initial conditions"), equal-elapsed probe control, route common-station statistics. `scientific_PASS` stays false.

@@ -91,3 +91,27 @@ def test_route_analysis_helpers_h6_h7_and_generic_conditions():
     assert len(h6) == 4 and h6.improved.all()
     h7 = A.h7_anchor(df)
     assert len(h7) == 2 and (h7.median_rel_improvement > 0.1).all()          # B is 20 % lower by construction -> positive = B better
+
+
+def test_common_station_metrics_use_the_same_drive_positions_in_every_probe_schedule():
+    """A16: heading_rmse_common_deg is scored on non-probe samples with drive_g >= 150, identical truth for P0 and P1."""
+    worlds, banks = {}, None
+    for p in (None, 20.0):
+        banks = ideal_banks()
+        rows = [r for r in build_samples(TrajectoryConfig(probe_period_s=p)) if r["drive_g"] <= 260][:700]
+        h = np.empty((len(rows), 257, 2, 2), complex)
+        for i, r in enumerate(rows):
+            pos = SETUP.robot_position(r["x"], r["y"])
+            d = pos - SETUP.anchor_position
+            h[i] = L.los_h(banks, d / np.linalg.norm(d), r["yaw_body_deg"] + 45.0, dist_m=float(np.linalg.norm(d)))
+        worlds[p] = E.World(rows, h, banks[0].freqs_hz, 0.0, 45.0, p)
+    com = {p: (w.probe_id < 0) & (w.drive_g >= E.COMMON_FROM_DRIVE_G) for p, w in worlds.items()}
+    assert com[None].sum() == com[20.0].sum() > 0
+    assert np.allclose(worlds[None].truth[com[None]], worlds[20.0].truth[com[20.0]])
+    lut = L.HsLut(L.build_lut(banks, 6.0, 6.0))
+    rows, _ = E.run_unit(worlds, lut, sensor=S.SensorNoise(), mismatch_sigma=0.05, anchor_xyz=tuple(SETUP.anchor_position), robot_z=SETUP.robot_antenna_z_m,
+                         range_offset=O.los_range_bias(banks[0].freqs_hz), snr_db=40.0, snr_idx=0, drift_idx=1, seed=2, compare_filters=False)
+    by = pd.DataFrame(rows).set_index("baseline")
+    assert by.loc["range_s_P0", "n_common_samples"] == by.loc["range_s_P1_T20", "n_common_samples"] == com[None].sum()
+    assert np.isnan(by.loc["range_s_P0", "heading_rmse_probe_deg"]) and np.isfinite(by.loc["range_s_P1_T20", "heading_rmse_probe_deg"])
+    assert np.isfinite(by[["heading_rmse_common_deg", "pos_rmse_common_m"]].to_numpy()).all()
