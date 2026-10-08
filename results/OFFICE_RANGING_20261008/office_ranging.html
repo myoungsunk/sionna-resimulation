@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>First-path 거리 오차</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--card:#fff;--ink:#0b0b0b;--ink2:#52514e;--muted:#7b7a75;--line:#e4e3de;--grid:#eceae5;--c1:#2a78d6;--c2:#eb6834;--band:#e9e8e3}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--band:#33322f}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--card:#222221;--ink:#fff;--ink2:#c3c2b7;--muted:#9a998f;--line:#353533;--grid:#2c2c2a;--c1:#3987e5;--c2:#d95926;--band:#33322f}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI","Noto Sans KR",sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 56px}
+h1{font-size:22px;margin:0 0 6px}
+.lede{color:var(--ink2);margin:0 0 16px;max-width:82ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:0 0 16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 14px}.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.kpi span{color:var(--ink2);font-size:13px}
+.row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin:0 0 12px}.seg{display:flex;gap:6px}.lab{font-size:13px;color:var(--muted)}
+button{font:inherit;font-size:13.5px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer}
+button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink);font-weight:600}button:focus-visible{outline:2px solid var(--c1);outline-offset:2px}
+svg{display:block;width:100%;height:auto}
+.gr{stroke:var(--grid)}.zero{stroke:var(--muted);stroke-width:1}.tk{fill:var(--muted);font-size:11px}.band{fill:var(--band)}.tap{fill:none;stroke:var(--muted);stroke-dasharray:3 3;stroke-width:.8}
+.l1{fill:none;stroke:var(--c2);stroke-width:2.2}.m1{fill:var(--c2);stroke:var(--card);stroke-width:1.5}
+.legend{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:14px;color:var(--ink2);margin:0 0 12px}.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}.legend b{display:inline-block;width:18px;height:10px;background:var(--band);margin-right:6px;vertical-align:middle;border:1px solid var(--line)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}.pc{border:1px solid var(--line);border-left:4px solid var(--c2);border-radius:10px;padding:10px;background:var(--card)}.pc h3{font-size:14px;margin:0 0 2px}.pc .sub{font-size:12.5px;color:var(--ink2);margin:0 0 6px}.mn{font-size:12.5px;color:var(--ink2);margin:2px 0 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:16px 0 0}.note{color:var(--ink2);font-size:14px;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:5px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}th:first-child,td:first-child{text-align:left}th{color:var(--ink2);font-weight:600}
+.scroll{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>First-path 거리 오차: LoS가 막힌 10곳</h1>
+  <p class="lede">오차 = (검출한 first-path 지연 × c) − (앵커–태그 실제 거리). yaw 0~180° 19점마다 구했고, 검출 방법은 first-path 전력 비율을 만들 때 쓴 것과 같습니다(2×2 채널 중 가장 센 가지에서 피크의 30%를 처음 넘는 탭). H만 사용했습니다.</p>
+  <div class="kpis" id="kpis"></div>
+  <div class="row"><span class="lab">보기</span><div class="seg" id="mode"></div></div>
+  <div class="legend"><span><i style="border-color:var(--c2)"></i>막힌 위치의 오차</span><span><b></b>LoS가 트인 25곳의 범위(최소~최대)</span><span><i style="border-top-style:dashed;border-color:var(--muted)"></i>±1탭(0.15 m)</span></div>
+  <div class="cards" id="cards"></div>
+  <section class="card" aria-label="표"><div class="scroll"><table id="tbl"></table></div>
+    <p class="note" id="note"></p></section>
+</div>
+<script>
+(function () {
+  var D = {"yaw_deg":[0.0,10.0,20.0,30.0,40.0,50.0,60.0,70.0,80.0,90.0,100.0,110.0,120.0,130.0,140.0,150.0,160.0,170.0,180.0],"offset_m":-0.5234322358575277,"tap_m":0.1495522588047491,"summary":{"los_clear":{"n":25,"rms_cal":0.046606256638939976,"mean_cal":0.004395789473684211,"p95_abs":0.081,"max_abs":0.206,"n_gt_0p3m":0},"blocked":{"n":10,"rms_cal":0.5614637214694425,"mean_cal":0.3134578947368422,"p95_abs":1.25,"max_abs":2.297,"n_gt_0p3m":6}},"clear_env":{"lo":[-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.073,-0.081,-0.081,-0.107,-0.081,-0.081,-0.081,-0.081],"hi":[0.069,0.069,0.069,0.069,0.206,0.13,0.13,0.1,0.069,0.069,0.069,0.1,0.1,0.1,0.176,0.176,0.069,0.099,0.099]},"positions":[{"x":0.5,"y":5.25,"theta_deg":68.0,"range_m":5.86,"blockers":["partition_c0_r3","desk_c0_r3_minus_x"],"loss_db":7.8,"err_m":[-0.327,-0.327,-0.476,-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327],"err_cal_m":[0.196,0.196,0.047,0.047,0.047,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196,0.196],"mean":-0.3501799387724029,"mean_cal":0.17325229708512485,"std":0.0545330759234766,"err_single":{"LP_plus45":[-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.327],"LP_minus45":[-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327,-0.327]}},{"x":9.5,"y":5.25,"theta_deg":68.0,"range_m":5.86,"blockers":["partition_c2_r3","desk_c2_r3_plus_x"],"loss_db":7.8,"err_m":[-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.476,-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.476,-0.476],"err_cal_m":[0.047,0.047,0.196,0.196,0.196,0.196,0.047,0.047,0.047,0.047,0.047,0.196,0.196,0.047,0.047,0.047,0.047,0.047,0.047],"mean":-0.4288916539327967,"mean_cal":0.09454058192473103,"std":0.06951630456751103,"err_single":{"LP_plus45":[-0.327,-0.327,-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.476,-0.327,-0.327,-0.327,-0.327,-0.327],"LP_minus45":[-0.476,-0.476,-0.327,-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.476,-0.476,-0.327,-0.327,-0.476,-0.476,-0.476,-0.476,-0.476,-0.476]}},{"x":0.5,"y":6.75,"theta_deg":71.0,"range_m":6.77,"blockers":["desk_c0_r2_minus_x","partition_c0_r3"],"loss_db":8.38,"err_m":[-0.489,-0.489,-0.489,-0.19,-0.19,-0.339,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.339,-0.19,-0.19,-0.19,-0.19],"err_cal_m":[0.034,0.034,0.034,0.333,0.333,0.184,0.333,0.333,0.333,0.333,0.333,0.333,0.333,0.333,0.184,0.333,0.333,0.333,0.333],"mean":-0.2526699847193551,"mean_cal":0.27076225113817265,"std":0.11187036644729462,"err_single":{"LP_plus45":[-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.339,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.339,-0.489,-0.489,-0.489,-0.489],"LP_minus45":[-0.19,-0.19,-0.19,-0.19,-0.19,-0.339,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.19,-0.339,-0.19,-0.19,-0.19,-0.19]}},{"x":9.5,"y":6.75,"theta_deg":71.0,"range_m":6.77,"blockers":["desk_c2_r2_plus_x","partition_c2_r3"],"loss_db":8.38,"err_m":[-0.489,-0.489,-0.19,-0.19,-0.339,-0.04,-0.04,-0.19,-0.489,-0.489,-0.489,-0.339,-0.339,-0.339,-0.489,-0.489,-0.489,-0.489,-0.489],"err_cal_m":[0.034,0.034,0.333,0.333,0.184,0.483,0.483,0.333,0.034,0.034,0.034,0.184,0.184,0.184,0.034,0.034,0.034,0.034,0.034],"mean":-0.3628663859439076,"mean_cal":0.16056584991362016,"std":0.15544318255753484,"err_single":{"LP_plus45":[-0.19,-0.19,-0.19,-0.19,-0.339,-0.04,-0.04,-0.19,-0.19,-0.19,-0.19,-0.339,-0.339,-0.339,0.109,0.109,-0.04,-0.19,-0.19],"LP_minus45":[-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489,-0.489]}},{"x":0.5,"y":8.25,"theta_deg":73.7,"range_m":7.85,"blockers":["partition_c0_r2"],"loss_db":5.15,"err_m":[-0.372,-0.522,-0.522,-0.522,-0.522,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372],"err_cal_m":[0.151,0.001,0.001,0.001,0.001,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151],"mean":-0.40387174582670354,"mean_cal":0.1195604900308242,"std":0.060969832393525755,"err_single":{"LP_plus45":[-0.522,-0.522,-0.522,-0.522,-0.522,-0.522,-0.372,-0.372,-0.223,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.223,-0.223,-0.073,-0.372],"LP_minus45":[-0.372,-0.522,-0.522,-0.522,-0.522,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.522,-0.522,-0.522,-0.372,-0.372,-0.372,-0.372,-0.372]}},{"x":9.5,"y":8.25,"theta_deg":73.7,"range_m":7.85,"blockers":["partition_c2_r2"],"loss_db":5.15,"err_m":[-0.372,-0.073,-0.073,-0.223,-0.223,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.522,-0.522,-0.522,-0.522,-0.522],"err_cal_m":[0.151,0.45,0.45,0.3,0.3,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.151,0.001,0.001,0.001,0.001,0.001],"mean":-0.3645158882465064,"mean_cal":0.15891634761102136,"std":0.13264734016901564,"err_single":{"LP_plus45":[-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372],"LP_minus45":[-0.372,-0.073,-0.073,-0.223,-0.223,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.372,-0.522,-0.522,-0.522,-0.522,-0.522,-0.522]}},{"x":0.5,"y":9.75,"theta_deg":75.9,"range_m":9.06,"blockers":["desk_c0_r1_minus_x"],"loss_db":4.42,"err_m":[-0.536,-0.536,-0.536,-0.536,-0.536,-0.386,-0.386,-0.236,-0.386,-0.386,-0.386,-0.386,-0.386,-0.236,-0.236,-0.236,-0.236,-0.386,-0.386],"err_cal_m":[-0.013,-0.013,-0.013,-0.013,-0.013,0.137,0.137,0.287,0.137,0.137,0.137,0.137,0.137,0.287,0.287,0.287,0.287,0.137,0.137],"mean":-0.3859689893245535,"mean_cal":0.13746324653297426,"std":0.10849661191315135,"err_single":{"LP_plus45":[-0.536,-0.536,-0.536,-0.536,-0.536,-0.536,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386],"LP_minus45":[-0.236,0.063,0.661,2.007,-0.386,-0.386,-0.386,-0.236,-0.236,-0.236,-0.087,0.511,2.007,-0.236,-0.236,-0.236,-0.236,-0.087,-0.087]}},{"x":9.5,"y":9.75,"theta_deg":75.9,"range_m":9.06,"blockers":["desk_c2_r1_plus_x"],"loss_db":4.42,"err_m":[-0.386,-0.386,-0.536,-0.536,-0.087,0.063,-0.386,-0.386,-0.386,-0.386,-0.536,-0.536,-0.236,-0.236,-0.536,-0.536,-0.536,-0.536,-0.536],"err_cal_m":[0.137,0.137,-0.013,-0.013,0.436,0.586,0.137,0.137,0.137,0.137,-0.013,-0.013,0.287,0.287,-0.013,-0.013,-0.013,-0.013,-0.013],"mean":-0.40171133235663253,"mean_cal":0.1217209035008952,"std":0.16734340186508545,"err_single":{"LP_plus45":[-0.087,-0.087,-0.087,-0.087,-0.087,0.063,-0.087,0.063,-0.087,-0.087,-0.236,-0.236,-0.236,-0.236,-0.087,-0.087,-0.087,-0.087,-0.236],"LP_minus45":[-0.386,-0.386,-0.536,-0.536,-0.386,-0.386,-0.386,-0.386,-0.386,-0.386,-0.536,-0.536,-0.536,-0.536,-0.536,-0.536,-0.536,-0.536,-0.536]}},{"x":0.5,"y":11.25,"theta_deg":77.7,"range_m":10.34,"blockers":["desk_c0_r0_minus_x","partition_c0_r1"],"loss_db":10.53,"err_m":[0.727,0.129,0.129,0.129,0.129,1.624,1.624,1.624,1.624,0.727,0.727,-0.021,-0.021,1.624,1.624,0.577,-0.17,-0.17,-0.021],"err_cal_m":[1.25,0.652,0.652,0.652,0.652,2.147,2.147,2.147,2.147,1.25,1.25,0.502,0.502,2.147,2.147,1.1,0.353,0.353,0.502],"mean":0.6638977794231166,"mean_cal":1.1873300152806443,"std":0.7070047322823646,"err_single":{"LP_plus45":[-0.021,0.129,0.129,0.129,-0.021,-0.021,-0.17,-0.021,-0.021,-0.021,-0.021,-0.021,-0.021,-0.021,-0.021,-0.17,-0.17,-0.17,-0.021],"LP_minus45":[0.727,0.577,0.278,-0.021,0.129,1.624,1.624,1.624,1.624,0.727,0.727,0.428,0.129,1.624,1.624,0.577,0.428,0.428,0.428]}},{"x":9.5,"y":11.25,"theta_deg":77.7,"range_m":10.34,"blockers":["desk_c2_r0_plus_x","partition_c2_r1"],"loss_db":10.53,"err_m":[-0.17,-0.17,-0.17,-0.17,-0.17,-0.17,-0.021,-0.021,-0.021,-0.021,1.774,1.624,1.624,-0.17,-0.021,-0.021,-0.021,-0.021,-0.021],"err_cal_m":[0.353,0.353,0.353,0.353,0.353,0.353,0.502,0.502,0.502,0.502,2.297,2.147,2.147,0.353,0.502,0.502,0.502,0.502,0.502],"mean":0.19162748846075092,"mean_cal":0.7150597243182787,"std":0.6461076441996539,"err_single":{"LP_plus45":[1.624,1.624,1.624,1.624,1.624,1.624,-0.021,-0.021,1.774,1.774,1.774,1.624,1.624,1.624,0.129,-0.17,-0.021,0.278,1.774],"LP_minus45":[-0.17,-0.17,-0.17,-0.17,-0.17,-0.17,-0.021,-0.021,-0.021,-0.021,-0.021,-0.021,-0.17,-0.17,-0.021,-0.021,-0.021,-0.021,-0.021]}}]}, P = D.positions, S = D.summary, f = function (v, n) { return Number(v).toFixed(n); }, sg = function (v, n) { return (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(n); };
+  var NS = 'http://www.w3.org/2000/svg', cal = true, YA = D.yaw_deg;
+  var el = function (t, a, txt) { var e = document.createElementNS(NS, t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var k = document.getElementById('kpis');
+  [[sg(D.offset_m, 2) + ' m', 'LoS가 트인 곳에서도 있는 검출기 고정 오프셋 (피크 30% 기준이 펄스 앞쪽을 잡음)'],
+   [f(S.los_clear.rms_cal, 2) + ' m', '트인 25곳 오차 RMS (오프셋 보정 후)'],
+   [f(S.blocked.rms_cal, 2) + ' m', '막힌 10곳 오차 RMS (오프셋 보정 후)'],
+   [S.blocked.n_gt_0p3m + ' / 10', '곡선 중 한 번이라도 0.3 m를 넘은 위치 수 (트인 곳은 ' + S.los_clear.n_gt_0p3m + ' / 25)']].forEach(function (a) {
+    var d = document.createElement('div'); d.className = 'kpi'; d.innerHTML = '<b>' + a[0] + '</b><span>' + a[1] + '</span>'; k.appendChild(d); });
+  var YR = function () { return cal ? [-0.5, 2.5] : [-1.0, 2.0]; };
+  function chart(p) {
+    var W = 300, H = 170, m = { l: 34, r: 6, t: 6, b: 20 }, svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': '위치 (' + p.x + ',' + p.y + ') yaw별 거리 오차' }), r = YR(), off = cal ? 0 : D.offset_m;
+    var sx = function (v) { return m.l + v / 180 * (W - m.l - m.r); }, sy = function (v) { return m.t + (r[1] - v) / (r[1] - r[0]) * (H - m.t - m.b); };
+    var t = []; for (var v = Math.ceil(r[0] * 2) / 2; v <= r[1] + 1e-9; v += 0.5) t.push(v);
+    t.forEach(function (v) { svg.appendChild(el('line', { class: v === 0 && cal ? 'zero' : 'gr', x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v) })); svg.appendChild(el('text', { class: 'tk', x: m.l - 4, y: sy(v) + 3, 'text-anchor': 'end' }, f(v, 1))); });
+    [0, 45, 90, 135, 180].forEach(function (v) { svg.appendChild(el('text', { class: 'tk', x: sx(v), y: H - 6, 'text-anchor': 'middle' }, v + '°')); });
+    var up = YA.map(function (y, i) { return sx(y).toFixed(1) + ',' + sy(D.clear_env.hi[i] + off).toFixed(1); }), dn = YA.map(function (y, i) { return sx(y).toFixed(1) + ',' + sy(D.clear_env.lo[i] + off).toFixed(1); }).reverse();
+    svg.appendChild(el('polygon', { class: 'band', points: up.concat(dn).join(' ') }));
+    [off + D.tap_m, off - D.tap_m].forEach(function (v) { svg.appendChild(el('line', { class: 'tap', x1: m.l, x2: W - m.r, y1: sy(v), y2: sy(v) })); });
+    var e = cal ? p.err_cal_m : p.err_m;
+    svg.appendChild(el('path', { class: 'l1', d: e.map(function (v, i) { return (i ? 'L' : 'M') + sx(YA[i]).toFixed(1) + ' ' + sy(Math.max(r[0], Math.min(r[1], v))).toFixed(1); }).join('') }));
+    e.forEach(function (v, i) { svg.appendChild(el('circle', { class: 'm1', cx: sx(YA[i]), cy: sy(Math.max(r[0], Math.min(r[1], v))), r: 2.4 })); });
+    svg.appendChild(el('text', { class: 'tk', x: m.l + 2, y: m.t + 10 }, 'm'));
+    return svg;
+  }
+  function draw() {
+    var box = document.getElementById('cards'); box.innerHTML = '';
+    P.forEach(function (p, i) {
+      var c = document.createElement('div'), e = cal ? p.err_cal_m : p.err_m, mn = Math.min.apply(null, e), mx = Math.max.apply(null, e), mean = cal ? p.mean_cal : p.mean;
+      c.className = 'pc';
+      c.innerHTML = '<h3>' + (i + 1) + '. 태그 (' + p.x + ', ' + p.y + ') · θ ' + f(p.theta_deg, 0) + '° · 거리 ' + f(p.range_m, 2) + ' m</h3><p class="sub">막는 판: ' + p.blockers.join(', ') + ' · 직선 통과 손실 추정 ' + f(p.loss_db, 1) + ' dB</p>';
+      c.appendChild(chart(p));
+      var q = document.createElement('div'); q.className = 'mn'; q.textContent = '평균 ' + sg(mean, 2) + ' m · yaw에 따른 흔들림(표준편차) ' + f(p.std, 2) + ' m · 범위 ' + sg(mn, 2) + ' ~ ' + sg(mx, 2) + ' m'; c.appendChild(q);
+      box.appendChild(c);
+    });
+  }
+  var seg = document.getElementById('mode');
+  [['보정 후 (고정 오프셋 뺌)', true], ['원래 값', false]].forEach(function (a) {
+    var b = document.createElement('button'); b.textContent = a[0]; b.setAttribute('aria-pressed', a[1] === cal);
+    b.onclick = function () { cal = a[1]; Array.prototype.forEach.call(seg.children, function (x, j) { x.setAttribute('aria-pressed', (j === 0) === cal); }); draw(); };
+    seg.appendChild(b);
+  });
+  draw();
+  var t = document.getElementById('tbl'), h = '<tr><th>위치</th><th>θ</th><th>손실 dB</th><th>평균 m</th><th>흔들림 m</th><th>최소 m</th><th>최대 m</th><th>TX +45° 단독 평균</th><th>TX −45° 단독 평균</th></tr>';
+  var mean = function (a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length - D.offset_m; };
+  P.forEach(function (p, i) { h += '<tr><td>' + (i + 1) + '. (' + p.x + ', ' + p.y + ')</td><td>' + f(p.theta_deg, 0) + '°</td><td>' + f(p.loss_db, 1) + '</td><td>' + sg(p.mean_cal, 2) + '</td><td>' + f(p.std, 2) + '</td><td>' + sg(Math.min.apply(null, p.err_cal_m), 2) + '</td><td>' + sg(Math.max.apply(null, p.err_cal_m), 2) + '</td><td>' + sg(mean(p.err_single.LP_plus45), 2) + '</td><td>' + sg(mean(p.err_single.LP_minus45), 2) + '</td></tr>'; });
+  t.innerHTML = h;
+  document.getElementById('note').textContent = '탭 간격은 ' + f(D.tap_m, 2) + ' m(500 MHz 대역, 영 채우기 2배)이고 실제 분해능은 약 0.6 m입니다. 표의 “단독”은 해당 송신 포트 하나에서 수신 두 가지 중 센 쪽만 써서 검출한 평균(보정 후)입니다. 손실 추정이 큰 위치(10.5 dB, y=11.25)에서만 오차가 크게 벌어집니다. 직선 통과 경로가 약해져 검출 기준(피크의 30%) 아래로 내려갔는지는 경로별 파일(스노우볼의 npz)이 있어야 확인할 수 있어, 여기서는 손실과의 동반 경향만 말할 수 있습니다.';
+})();
+</script>
+</body>
+</html>
