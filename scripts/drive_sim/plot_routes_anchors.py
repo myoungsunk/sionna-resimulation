@@ -80,7 +80,7 @@ def main():
     panel(axs[2], s, [(read(rd / "timeline_R4_T10.csv"), VIOLET, "")], "R4  zigzag (±0.45 m, 35.7°)", "")
     panel(axs[3], s, [(read(rd / "timeline_R5_T10.csv"), GREEN, "")], "R5  serpentine (lanes y = +0.45 / 0 / −0.45 m)", "")
     axs[3].set_xlabel("x along the corridor [m]")
-    fig.text(0.06, 0.945, "dashed lines: allowed robot region |y| ≤ %.2f m; anchors on the ceiling (z = 2.7 m) above y = 0, boresight down; robot antenna z = 0.45 m" % s.robot_y_limit_m, fontsize=8.5, color=INK2)
+    fig.text(0.06, 0.945, "dashed lines: allowed robot region |y| ≤ %.2f m; anchors 5 cm below the ceiling (z = 2.65 m) above y = 0, boresight down; robot antenna z = 0.45 m" % s.robot_y_limit_m, fontsize=8.5, color=INK2)
     out = args.out / "routes_anchors_overview.png"
     fig.savefig(out, dpi=150)
     inputs = sorted([str(args.s1 / "timeline_y0_T10.csv"), str(args.s1 / "timeline_y0.35_T10.csv")] + [str(rd / f"timeline_R{r}_T10.csv") for r in (2, 4, 5)])
