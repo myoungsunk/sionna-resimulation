@@ -177,3 +177,21 @@ def test_s_sigma_table_follows_the_estimated_position_and_default_is_the_scalar(
     assert f._s_R(1.0, 1.0) == pytest.approx(0.18 ** 2)                  # no position -> scalar
     plain = F.DriveFilter(F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0), None, np.zeros(6))
     assert plain._s_R(1.0, 1.0, xy=far) == pytest.approx(0.18 ** 2)      # default table None = stored filter
+
+
+def test_s_sigma_table2d_uses_the_estimated_heading_relative_to_the_steepest_slope():
+    grid = [[0.05, 0.10, 0.15]] * 4                          # theta_geo bins x |nu| bins (0-15, 15-30, 30-45 deg)
+    cfg = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, mount_deg=0.0, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0,
+                         s_sigma_table2d=((40.0, 60.0, 75.0), (15.0, 30.0), grid, (20.0, 80.0), (0.03, 0.30)))
+    f = F.DriveFilter(cfg, None, np.zeros(6))
+    xy = (6.0, 0.0)
+    steep = f._s_R(1.0, 1.0, xy=xy, psi=math.radians(45.0))      # nu = 0
+    mid = f._s_R(1.0, 1.0, xy=xy, psi=math.radians(70.0))        # nu = 25
+    flat = f._s_R(1.0, 1.0, xy=xy, psi=math.radians(0.0))        # nu = -45
+    assert steep == pytest.approx(0.05 ** 2) and mid == pytest.approx(0.10 ** 2) and flat == pytest.approx(0.15 ** 2)
+    grid_nan = [[float("nan")] * 3] * 4                      # empty cells fall back to the 1-D table
+    cfg2 = F.FilterConfig(kind="ekf", anchor_xyz=ANCHOR, mount_deg=0.0, s_mismatch_sigma=0.18, noise_var_cir_tap=0.0,
+                          s_sigma_table2d=((40.0, 60.0, 75.0), (15.0, 30.0), grid_nan, (20.0, 80.0), (0.03, 0.30)))
+    f2 = F.DriveFilter(cfg2, None, np.zeros(6))
+    th = math.degrees(math.atan2(2.0, 2.2))
+    assert f2._s_R(1.0, 1.0, xy=xy, psi=0.3) == pytest.approx(np.interp(th, (20.0, 80.0), (0.03, 0.30)) ** 2)

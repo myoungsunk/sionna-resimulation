@@ -42,6 +42,7 @@ class FilterConfig:
     bias_rw_std: float = math.radians(1e-3)          # rad/s/sqrt(s)
     pos_process_std: float = 0.0                     # extra position random walk per step [m] (slack for unmodelled odometry/range errors)
     s_sigma_table: tuple | None = None               # A21: (theta_geo_knots_deg, sigma_knots); None = scalar s_mismatch_sigma
+    s_sigma_table2d: tuple | None = None             # A22: (geo_edges[3], nu_edges[2], sigma[4][3] (nan = fallback), fallback_knots, fallback_sigma); uses the estimated heading
     s_var_inflation: float = 1.0                     # A17: multiplies the mismatch variance in R_s (1.0 = stored filter)
     s_mismatch_sigma: float = 0.09                   # model-mismatch part of R_s (S4 reports the measured value)
     range_extra_sigma: float = 0.05
@@ -251,27 +252,32 @@ class DriveFilter:
         I_KH = np.eye(N) - np.outer(K, H)
         c.P = I_KH @ c.P @ I_KH.T + R * np.outer(K, K)
 
-    def _mismatch_sigma(self, xy=None) -> float:
+    def _mismatch_sigma(self, xy=None, psi=None) -> float:
         cfg = self.cfg
-        if cfg.s_sigma_table is None or xy is None:
+        if xy is None or (cfg.s_sigma_table is None and cfg.s_sigma_table2d is None):
             return cfg.s_mismatch_sigma
         a = cfg.anchor_xyz
         theta_geo = math.degrees(math.atan2(math.hypot(xy[0] - a[0], xy[1] - a[1]), a[2] - cfg.robot_z))
+        if cfg.s_sigma_table2d is not None and psi is not None:
+            geo_edges, nu_edges, grid, fb_knots, fb_sig = cfg.s_sigma_table2d
+            nu = ((math.degrees(psi) + cfg.mount_deg - 45.0 + 45.0) % 90.0) - 45.0           # 0 = steepest slope, +-45 = flat (A22)
+            v = grid[int(np.searchsorted(geo_edges, theta_geo))][int(np.searchsorted(nu_edges, abs(nu)))]
+            return float(v) if np.isfinite(v) else float(np.interp(theta_geo, fb_knots, fb_sig))
         knots, sig = cfg.s_sigma_table
         return float(np.interp(theta_geo, knots, sig))
 
-    def _s_R(self, p1, p2, xy=None):
+    def _s_R(self, p1, p2, xy=None, psi=None):
         cfg = self.cfg
         if cfg.s_kind == "rx":
             from qclean_uwb.drivesim.observation import thermal_var_rx_s
             thermal = thermal_var_rx_s(p1, p2, cfg.noise_var_bin, cfg.n_bins) if cfg.noise_var_bin > 0 else 0.0
         else:
             thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
-        return thermal + cfg.s_var_inflation * self._mismatch_sigma(xy) ** 2
+        return thermal + cfg.s_var_inflation * self._mismatch_sigma(xy, psi) ** 2
 
     def update_s(self, z, p1, p2):
         cfg = self.cfg
-        R = self._s_R(p1, p2, xy=self.comps[0].x[:2] if cfg.kind in ("ekf", "iekf") else None)
+        R = self._s_R(p1, p2, xy=self.comps[0].x[:2] if cfg.kind in ("ekf", "iekf") else None, psi=self.comps[0].x[2] if cfg.kind in ("ekf", "iekf") else None)
         if cfg.s_mode == "inverse":
             return self._update_inverse_heading(z, R)
         if cfg.kind == "ukf":
