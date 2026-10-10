@@ -1,0 +1,51 @@
+name: Independent audit of uploaded 12case noisy-probe results
+on:
+  push:
+    branches: [codex/noisy-probe-v2-closedloop-audit-20261011]
+    paths:
+      - '.github/workflows/noisy-probe-independent-audit-20261011.yml'
+      - 'research/HEADING_RELIABILITY_20261010/audit_20261011_uploaded_noisy_probe.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-evidence-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/audit_20261011_uploaded_noisy_probe.py
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/FINAL_CONTROL_SUMMARY_CURRENT.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/NATIVE_FULL_EFFECTIVE_STATUS_FREQUENCY.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/BODY_ADDITIONAL_V2_STATUS.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/ADDITIONAL_INDEPENDENT_CHECK.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/FINAL_SEED_PRIOR_KIND_METRICS.csv
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/NATIVE_LOS_STATUS.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/MOUNT_CASE_MATRIX.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/RECEIVER_COV_STATUS_existing7.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/PLAN.json
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/FP_CLUSTER_RATIO_existing7.csv
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/HARNESS/body_controls.py
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/HARNESS/receiver_existing7.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric packages
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'tabulate==0.9.0'
+      - name: Check audit script syntax
+        run: python -m py_compile research/HEADING_RELIABILITY_20261010/audit_20261011_uploaded_noisy_probe.py
+      - name: Validate uploaded results from source data
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/audit_20261011_uploaded_noisy_probe.py --out research_results/AUDIT_NOISY_PROBE_20261011
+      - name: Archive report even if a test fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: independent-noisy-probe-audit-20261011
+          path: research_results/AUDIT_NOISY_PROBE_20261011
+          if-no-files-found: warn
+          retention-days: 30
