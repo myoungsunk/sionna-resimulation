@@ -30,3 +30,13 @@ Descriptive only: F2 is closer to consistency than F0 on the structured-error ar
 - **With the real nonlinear `s` model and exactly matched data** the same filter is not: by θ_geo, NEES mean/median 114/9.1 (<15°), 30/8.6 (15–25°), 21.7/7.8 (25–40°), 12.6/5.9 (40–60°), 8.3/3.5 (60–90°); heading part ≈ 3 (expected 1) even at 60–90°; β_s z-score sd 1.1–3.1. Excluding θ_geo < 25° the mean is 9.8 (median 4.0). So the inconsistency is not only the few near-anchor collapses.
 - **Iterating the s update does not repair it**: 1 iteration reproduces the 12.46 above (check), 4 iterations give mean 43.7 (heading part 21, β z-sd 4.4). The simple "linearisation error" explanation is therefore not supported; the sign-ambiguous, non-injective dependence of `s` on heading (s = −cos 2·yaw) makes the posterior multi-modal, which a single Gaussian cannot represent. This is an inference from these runs, not a demonstrated cause.
 - **Process note**: the unit-scale world used before the run (NEES 2.93) was easier than the route world; an exactly-matched route-world run with the real LUT, done before the Snowball run, would have shown P1 failing.
+
+## Addendum 2 — the inconsistency depends on the antenna mount (same route, same filter, same exactly-matched error world; `A24_MOUNT=0|45 a24_p1_deep.py`)
+| θ_geo bin | mount 0°: NEES mean / median, heading part, β z-sd | mount 45°: NEES mean / median, heading part, β z-sd |
+|---|---|---|
+| 60–90° (36,420 samples) | 8.27 / 3.48, 3.01, 1.83 | **3.30 / 2.12, 1.06, 1.12** |
+| 40–60° | 12.6 / 5.9, 3.08, 3.09 | 6.9 / 2.5, 1.61, 0.96 |
+| 25–40° | 21.7 / 7.8, 3.95, 2.95 | 9.1 / 3.0, 1.98, 0.98 |
+| 15–25° | 30.0 / 8.6, 4.27, 1.30 | 12.3 / 3.2, 1.98, 1.15 |
+| <15° | 114 / 9.1, 4.38, 1.14 | 46.7 / 3.2, 1.94, 1.22 |
+Excluding θ_geo < 25°: mean 9.82 (mount 0°) vs 4.25 (mount 45°). With mount 45° the augmented filter is nearly consistent away from the anchor; the residual inflation is concentrated within ~25° of vertical. Reading: with mount 0° and the robot heading ≈ 0°/180° on the two lanes the antenna yaw sits at the extremum of s = −cos 2(ψ+mount+180°) (slope zero), where s depends on the heading quadratically and a smooth bias of 0.1 corresponds to a heading change of ≈ 0.22 rad (≈ 13°) with either sign; mount 45° puts the same lanes at the steepest slope. This is an inference supported by the mount comparison, not a separate proof. Stage 1 as registered used mount 0° only.

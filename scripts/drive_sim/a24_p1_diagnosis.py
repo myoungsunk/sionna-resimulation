@@ -1,5 +1,5 @@
 """A24 P1 diagnosis (post-hoc, exploratory): exactly model-matched error worlds on the R2-A route, F0 vs F2."""
-import sys, types, importlib.util, json, math, multiprocessing as mp
+import os, sys, types, importlib.util, json, math, multiprocessing as mp
 import numpy as np, pandas as pd
 from pathlib import Path
 import os
@@ -12,7 +12,7 @@ ARGS = dict(s1=Path(f"{R}/results/DRIVE_SIM_20261007/S1"), h_dir=Path(S + "a24ru
 G = {}
 
 def init():
-    a = types.SimpleNamespace(**ARGS); m.setup(a); G["w"] = m.make_world(a, "R2A", 0.0); G["g"] = m._G
+    a = types.SimpleNamespace(**ARGS); m.setup(a); G["w"] = m.make_world(a, "R2A", float(os.environ.get("A24_MOUNT", "0"))); G["g"] = m._G
 
 def ar(z, phi, var):
     return m.ar1_from(z, 0.0, var, phi)
