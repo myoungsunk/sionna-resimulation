@@ -315,6 +315,8 @@ def run_one(case,level,seed,arm,problem,sources,forced=None,keep_trace=False):
  assert normal_counter+1==len(normal)
  a=np.array(errs,dtype=float)
  assert len(a)>0
+ expected_eval={"R2":829,"R4":592,"R5":1265}[route]
+ assert len(a)==expected_eval,("EVALUATION_MASK_PARITY_FAIL",route,len(a),expected_eval)
  he=np.degrees(a[:,3]);pos=np.hypot(a[:,1],a[:,2]);pvar=a[:,5]
  metrics=dict(case=case,route=route,anchor=case.split("_")[1],mount_deg=int(c["mount_deg"]),drift=level,
    seed=seed,arm=arm,n_progress_matched=int(len(a)),n_normal_samples=len(normal),
