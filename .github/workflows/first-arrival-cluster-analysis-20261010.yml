@@ -1,0 +1,47 @@
+name: First-arrival LP ratio vs sensor-v2 RF-heading correctness
+on:
+  push:
+    branches: [codex/closed-loop-probe-fpcluster-20261010]
+    paths:
+      - '.github/workflows/first-arrival-cluster-analysis-20261010.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_first_arrival_cluster_association.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  first-arrival-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/run_first_arrival_cluster_association.py
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/freqs_hz.npy
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/PROBES/07_PROBE_STATIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R2_HELD_OUT_PREDICTIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R4_HELD_OUT_PREDICTIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R5_HELD_OUT_PREDICTIONS.csv.gz
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'scikit-learn==1.6.1' 'tabulate==0.9.0'
+      - name: Syntax gate
+        run: python -m py_compile research/HEADING_RELIABILITY_20261010/run_first_arrival_cluster_association.py
+      - name: Run frozen original H observation and first cluster analysis
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_first_arrival_cluster_association.py --out research_results/FIRST_CLUSTER_20261010
+      - name: Preserve results and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: first-arrival-cluster-analysis-20261010
+          path: research_results/FIRST_CLUSTER_20261010
+          retention-days: 30
+          if-no-files-found: warn
