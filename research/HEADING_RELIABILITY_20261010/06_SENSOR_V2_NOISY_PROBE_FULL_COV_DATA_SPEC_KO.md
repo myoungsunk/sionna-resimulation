@@ -65,6 +65,8 @@ P6의 xy–yaw, yaw–gyro bias 등 교차항이 반드시 존재해야 한다. 
 - optional cir_amplitude[G,1028,2] with CIR_HARDWARE_SUPPORTED flag and calibration of receiver gain. If not present, mark unavailable (not fill from oracle H).
 - joint RF covariance Sigma_probe_R[S,M,M] for fixed-size or list per station; off-diagonal terms REQUIRED for claimed correlated measurement evaluation, plus covariance fit input IDs. If estimating using sequential update retain full time correlation and propagators, no repeated independent assimilation of same RF.
 
+추가 필수 항목: 같은 RF observation에서 얻는 s와 range 사이의 교차공분산 Cov(s_i,range_j), 서로 다른 yaw sample들의 range–range/s–s 교차항을 포함한 joint covariance Sigma_sr[2M,2M] 및 공분산 PSD 검증 결과. 이전 A23에서 clean range–s lag0 상관이 약 +0.523으로 관찰됐으므로 독립 측정으로 단정하지 않는다. 이 행렬의 추정 소스·훈련 구간·유효 RF 독립 표본 수와 estimator 적용 여부를 명확히 구분한다.
+
 ### D. ORACLE_EVAL_ONLY.npz / csv
 Never accessible to online estimator, model quality input, inverse-root selector or EKF.
 true_xypsi, true_sensor_biases/scale, true_body/head yaw, true slip, exact H and path labels if needed; s_LoS_direct, s_full_clean, s_full_noisy, h_LUT(p_true,psi_true+delta), e_MP=s_full_clean−s_LoS_direct, e_LUT=s_LoS_direct−h_LUT_true, e_total=s_full_clean−h_LUT_true; range bias, heading ground truth errors, harmful-update label. Separate noise error=s_noisy−s_clean.
