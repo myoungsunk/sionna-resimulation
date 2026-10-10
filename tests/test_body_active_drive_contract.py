@@ -155,3 +155,36 @@ def test_simulated_first_arrival_gate_ratio_has_consistent_shared_tap():
     assert abs(packet.s-0.6)<.01
     assert all(abs(v-.6)<.01 for v in packet.first_cluster_s)
     assert packet.selected_tap>=0
+
+
+def test_actual_site_point_mixture_module_is_carried_into_next_drive(monkeypatch):
+    from qclean_uwb.drivesim import body_site_mixture as mix
+    from qclean_uwb.drivesim.body_site_mixture import SitePointMixture6,NominalSitePointCovariance
+    def mock_lut(lut,anchor,robot_z,x,y,psi,mount,with_jac=False):
+        import math
+        value=.50+.02*x-.015*y+.30*math.sin(2*float(psi))
+        jac=np.array([.02,-.015,.60*math.cos(2*float(psi))])
+        return (value,jac) if with_jac else value
+    monkeypatch.setattr(mix,"s_model",mock_lut)
+    driver,backend,quality,singles,_=setup((.2,.9,.9,.9))
+    # This object just activates the synthetic analytic LUT; actual deployment
+    # requires a hash-verified fixed FFD LoS LUT and source-backed covariance.
+    driver.ekf.lut=object()
+    spec=NominalSitePointCovariance(maximum_station_xy_est_change_m=.5)
+    driver.joint_update=SitePointMixture6(spec)
+    res=driver.run([(0.,0.) for _ in range(4)])
+    assert res["n_triggered_probes"]==1
+    joint=res["events"][0]["joint_result"]
+    assert joint["status"]=="APPLIED_UNCALIBRATED_MIXTURE"
+    assert joint["n_used"]==3 and joint["n_modes"]==16
+    assert not joint["scientific_PASS"]
+    assert joint["cross_time_pose_measurement_covariance"]=="UNVERIFIED_APPROXIMATION"
+    assert len(joint["q_point_bad"])==3 and 0<=joint["q_site_bad"]<=1
+    assert np.linalg.eigvalsh(driver.ekf.covariance).min()>=-1e-9
+    last_probe=driver.ekf.records[res["events"][0]["new_ekf_record_count"]-1]
+    first_following=driver.ekf.records[res["events"][0]["new_ekf_record_count"]]
+    from qclean_uwb.drivesim.filter_v2 import transition
+    b=driver.ekf.cfg.wheel_base/(1+driver.ekf.cfg.known_wheelbase_error)
+    expected,*_=transition(last_probe["x_after_RF"],first_following["ds_odom"],
+                           first_following["dtheta_gyro"],first_following["dt_s"],b)
+    assert first_following["x_pred_before_odom"]==pytest.approx(expected,abs=1e-10)
