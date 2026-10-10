@@ -4,6 +4,12 @@ Author: Claude (author side). Branch `claude/cool-dijkstra-hnznhm`. Status: **pr
 Definitions, procedures and interpretation rules below are fixed **before** any A24 filter run. Items marked *(proposed, unapproved)* are the assistant's proposals and are not acceptance criteria until the user approves them in writing; until then results are reported as numbers with no PASS/FAIL label.
 F01, F02 and `scientific_PASS=false` stay OPEN regardless of the outcome of this amendment.
 
+## 0.0 Sensor model, and stage structure (rev1, 2026-10-10, before any A24 code or run; decision by the user)
+
+- **Stages 1 and 2 use the legacy sensor model** (`sensors.py` as in the production S6 and A23: aggregate wheel increments, unsigned Euler integration, per-sample slip, `dt = 0.2 s`, 6-state EKF with `pos_process_std = 0.01`). Reasons: the A0 gate against the stored S6 exists only for legacy; the arms pair with A23; changing the sensor and the measurement-error model together would mix the causes.
+- **Stage 3 repeats F0/F2 under sensor-v2** and is pre-registered in §9. Sensor-v2 is the intended basis for subsequent work, but it is not adopted yet: its code is not committed in any production branch (the user's own re-audit lists it as uncommitted, `commit_push_merge=false`), it has had no independent review, and it has no stored production reference result. Until stage 3 is run and the user fixes the v2 code revision, "new-sensor-model results" are not claimed anywhere.
+- The measurement-error fit (§2) uses the noise-free chain residual and does not depend on the sensor model; the same frozen `A24_FIT_PARAMS.json` is used in stage 3 without refitting.
+
 ## 0. Why this experiment, and what it can and cannot answer
 
 Evidence it builds on (all descriptive, none pre-registered as a mechanism claim):
@@ -111,3 +117,28 @@ Order of the stage 1 run: A0 reproduction (150) → positive control and no-harm
 
 ## 8. Reproducibility items to be implemented after this document is reviewed
 `scripts/drive_sim/fit_measurement_error_model.py` (§2.2/2.3; outputs hashed), subclass `AugmentedDriveFilter` (new file `src/qclean_uwb/drivesim/filters_aug.py`), an `--filter-variant` option in `structured_noise_control.py` writing the variant into the arm key and `RUN_MANIFEST` (fit-param hash included), tests (§6.3), the stage 1 report generator (extends the A23 report), and the data request for stage 2 (§5). Not done in this commit.
+
+
+## 9. Stage 3 — sensor-v2 (pre-registered now; run only after stages 1–2 are reported and the open items below are fixed by the user)
+
+### 9.1 What sensor-v2 changes relative to legacy (from the user's `MODEL_CONTRACT.md` and source, audit branch `codex/drive-sim-audit-integrated-20261010`, `02_sensor_v2_review/source/`)
+Encoder-level generation (left/right angles, common scale, wheel asymmetry, wheelbase mismatch) with signed SE(2) increments; odometry distance/yaw reconstructed from the noisy encoders with correlated left/right noise; gyro `N²dt`; optional bias random walk; time-based slip; `dt` from timestamps; a filter that applies the shared-input correlation update `C = −G Q Bᵀ` (EKF, direct-`s`, 6 states, no new calibration state); `pos_process_std` forced to 0; odometry gate χ² 99.9 %. RF range/`s` update equations are unchanged, and the RF-side correlation and LUT residual are explicitly not handled by v2. **Consequence:** F0-v2 is not expected to reproduce legacy F0; the legacy rows and the v2 rows are different experiments. Differences between them are descriptive and confounded (slack removed, input correlation, SE(2), gate, slip law).
+
+### 9.2 Items that must be fixed by the user before stage 3 (open; none is decided by this document)
+1. **v2 code revision.** v2 exists only as an uncommitted working copy and as a copy under `audits/…/02_sensor_v2_review/source/` with file hashes in `CHANGE_MANIFEST.json`. Proposal *(unapproved)*: the user commits the v2 file set on a `codex/` branch as a single commit; stage 3 uses that commit and records its SHA256 file hashes. No v2 file is imported into this branch by the assistant without that decision.
+2. **Sensor configuration.** Proposal *(unapproved)*: primary `neutral.json` (`common_scale = 0`, `bias_rw = 0`, `slip_mode = time`, condition `all`); sensitivity `assumed_common_scale.json` and `assumed_bias_rw.json`, reported separately, not pooled. Levels 0, 1, 2 ↔ legacy drifts low, mid, high (same three levels).
+3. **Initialisation.** Proposal *(unapproved)*: primary = prior pose uncertainty of the production setting (0.1 m, 5°, calibration priors unchanged); sensitivity = exact initial pose. The v2 limited RF run showed different behaviour for the two (exact init: NEES ≈ 100 with `s`; prior: ≈ 5), so they are never pooled.
+4. **Truth convention.** v2's strict SE(2) extraction rejects the existing Euler-built paths (residual ≤ 1.46e-4 m on the R1 subset). Proposal *(unapproved)*: use the explicit `legacy-euler` increments so that the stored routes and H stores are unchanged, record the evaluation-only mismatch (SE(2) re-integration difference, ≤ 2.7 mm on the R1 subset) per route, and state in the report that the pose truth is the legacy one.
+5. **v2 reference result.** A full-route v2 runner on stored H/timelines does not exist (v2's RF evaluation covers the first 201 R1 samples only). It must be written and unit-tested; it is a new script, not a change to the legacy runner.
+
+### 9.3 Gates
+- **G-V2-0 (legacy untouched):** with the v2 code present and `--model-version legacy`, the stored A0 (150 keys) reproduces to 1e-9, as in G-A24-0.
+- **G-V2-1 (v2 determinism and freeze):** the v2 F0 run on R2-A m0 A0 (150 keys) is executed twice (independent processes) and is bit-identical or ≤ 1e-12; its result file hash is committed as the v2 reference. Any later change to v2 code or settings must reproduce it or open a new amendment.
+- **G-V2-2:** v2 PSD/symmetry checks pass on every run (the v2 filter raises on invalid covariance); failures are listed, not replaced.
+- Fit frozen (G-A24-1) is a prerequisite; no refit.
+
+### 9.4 Design
+Case R2-A, mount 0°, P0, SNR 30, levels 0–2, seeds 0–49. Variants **F0-v2** and **F2-v2** (the v2 filter plus the same β_s, β_r augmentation as §1; implemented as a subclass of `SensorV2Filter`, with the odometry correlation update unchanged and β outside it). Arms: A0, M0, W0, S3, S5, S8, R3, J1 (positive control, no-harm, in-sample real) → 8 × 150 × 2 = **2,400 runs** per sensor configuration. Metrics, traces (seeds 0–4), reading rules, proposed criteria and allowed statements: identical to §3–§4. A stage 3 held-out extension follows §5 only after stage 3 on R2-A is reported.
+
+### 9.5 What stage 3 cannot say
+That sensor-v2 is physically correct (its parameters are assumption-based sensitivity levels, not hardware measurements); that results transfer to a real receiver; that F02 is resolved. The covariance mismatch that remains with real RF `s` in v2's own limited run (NEES ≈ 100 at exact initialisation) is exactly the quantity A24 addresses, so a stage 3 improvement would be attributable to the measurement-error state only if F0-v2 vs F2-v2 is the contrast; F2-v2 vs legacy rows is not.
