@@ -277,7 +277,7 @@ def analyze(outdir):
                  config=CONFIG,provenance=provenance,n_rows=len(df),n_stations=len(rows),n_usable_distinct_sites=int(example.assign(coord=example.route+"_"+example.station_x.round(6).astype(str)+"_"+example.station_y.round(6).astype(str)).coord.nunique()),
                  heading_truth_leakage=False,position_covariance_missing=True,real_rotation_noise_not_modeled=True,
                  F01_F02="OPEN",generalization="NOT_PROVEN",
-                 tables={"models":sm.to_dict("records"),"contrasts":pci.to_dict("records")},
+                 tables={"models":json.loads(sm.to_json(orient="records")),"contrasts":json.loads(pci.to_json(orient="records"))},
                  elapsed_s=time.time()-started)
     (outdir/"EXECUTION_STATUS.json").write_text(json.dumps(summary,ensure_ascii=False,indent=2,allow_nan=False),encoding="utf-8")
     with (outdir/"RESULTS_KO.md").open("w",encoding="utf-8") as f:
