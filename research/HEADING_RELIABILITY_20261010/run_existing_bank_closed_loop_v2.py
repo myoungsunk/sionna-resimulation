@@ -140,7 +140,7 @@ def config(c,meta):
   robot_z=float(c["robot_z"]),bias_rw_std=0.,known_wheelbase_error=0.,
   range_offset=float(meta["range_bias"]["mean_m"]))
  
-def pre_rf_q(f,case,source_idx,obs,input_s,features,pack,c, lut, pids=None,
+def pre_rf_q(f,case,source_idx,obs,input_s,pack,c,lut,
              effective_heading_offset=0.):
  x,P=f.mean_cov()
  h,J=s_model(lut,c["anchor_xyz"],c["robot_z"],float(x[0]),float(x[1]),
@@ -207,8 +207,7 @@ def run_one(case,level,seed,arm,problem,sources,forced=None,keep_trace=False):
    h,J=s_model(lut,c["anchor_xyz"],c["robot_z"],float(x[0]),float(x[1]),
                float(x[2]+offset),c["mount_deg"],with_jac=True)
    pred.append(float(h));H=np.zeros(6);H[:3]=np.asarray(J,float);Js.append(H)
-   q,_,_,_=pre_rf_q(f,case,src,p,sensor["dtheta_gyro"],fmap,pack,c,lut,effective_heading_offset=offset) if False else pre_rf_q(
-      f,case,src,p,sensor,pack,c,lut,effective_heading_offset=offset)
+   q,_,_,_=pre_rf_q(f,case,src,p,sensor,pack,c,lut,effective_heading_offset=offset)
    qs.append(q)
   H=np.stack(Js);residual=np.array(z)-np.array(pred)
   sigma=np.array([.09/max(q,.1) for q in qs])
