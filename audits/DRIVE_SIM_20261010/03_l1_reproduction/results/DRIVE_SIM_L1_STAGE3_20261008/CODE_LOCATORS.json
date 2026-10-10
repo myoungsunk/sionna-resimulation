@@ -1,0 +1,196 @@
+{
+  "scripts/drive_sim/build_hs_lut.py": [
+    {
+      "line": 22,
+      "text": "def main():"
+    },
+    {
+      "line": 48,
+      "text": "rng = np.random.default_rng(20261007)"
+    },
+    {
+      "line": 52,
+      "text": "gate = dict(max=float(err.max()), median=float(np.median(err)), n=args.n_check, passed=bool(err.max() <= 1e-2 and np.median(err) <= 1e-3),"
+    }
+  ],
+  "src/qclean_uwb/drivesim/hs_lut.py": [
+    {
+      "line": 20,
+      "text": "def los_h(banks, d_world, yaw_deg, dist_m: float = D_REF_M):"
+    },
+    {
+      "line": 34,
+      "text": "def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg, measure: str = \"fp\") -> float:"
+    },
+    {
+      "line": 47,
+      "text": "def _rot_z_batch(psi_rad):"
+    },
+    {
+      "line": 54,
+      "text": "def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, theta_max_deg: float = 90.0, progress=None, measure: str = \"fp\") -> dict:"
+    },
+    {
+      "line": 90,
+      "text": "class HsLut:"
+    },
+    {
+      "line": 125,
+      "text": "def geometry_angles(anchor_xyz, robot_xyz, antenna_yaw_deg):"
+    },
+    {
+      "line": 138,
+      "text": "def s_model(lut: HsLut, anchor_xyz, robot_z: float, x, y, theta_rad, mount_deg: float = 0.0, with_jac: bool = False):"
+    },
+    {
+      "line": 165,
+      "text": "def range_bias_from_banks(banks, n_dirs: int = 150, seed: int = 20261007, d_min: float = 2.0, d_max: float = 16.0, d_step: float = 0.01) -> dict:"
+    }
+  ],
+  "src/qclean_uwb/drivesim/observation.py": [
+    {
+      "line": 17,
+      "text": "def hann(n: int) -> np.ndarray:"
+    },
+    {
+      "line": 21,
+      "text": "def free_space_power(distance_m: float = 10.0, freq_hz: float = 6.5e9) -> float:"
+    },
+    {
+      "line": 26,
+      "text": "def noise_var_from_snr(snr_db: float, distance_m: float = 10.0, freq_hz: float = 6.5e9) -> float:"
+    },
+    {
+      "line": 34,
+      "text": "def detection_threshold(noise_var: float, n_branches: int = 2, n_taps: int = 1028, pfa: float = 1e-3) -> float:"
+    },
+    {
+      "line": 39,
+      "text": "def cir_batch(h_col: np.ndarray) -> np.ndarray:"
+    },
+    {
+      "line": 48,
+      "text": "def first_path_batch(cir: np.ndarray, df_hz: float) -> dict:"
+    },
+    {
+      "line": 65,
+      "text": "def observe(h_clean: np.ndarray, freqs_hz: np.ndarray, noise_var: float | None, rng: np.random.Generator | None, tx: int = 0,"
+    },
+    {
+      "line": 88,
+      "text": "def realised_snr_db(h_clean: np.ndarray, noise_var: float, tx: int = 0) -> np.ndarray:"
+    },
+    {
+      "line": 94,
+      "text": "def los_range_bias(freqs_hz: np.ndarray, d_min: float = 2.0, d_max: float = 16.0, step: float = 0.01) -> float:"
+    },
+    {
+      "line": 102,
+      "text": "def rx_energy_s(h_col: np.ndarray, noise_var: float | None = 0.0):"
+    },
+    {
+      "line": 117,
+      "text": "def thermal_var_rx_s(e1: float, e2: float, noise_var: float, n_bin: int) -> float:"
+    }
+  ],
+  "src/qclean_uwb/drivesim/pattern_apply.py": [
+    {
+      "line": 17,
+      "text": "def sph_basis(theta, phi):"
+    },
+    {
+      "line": 23,
+      "text": "def direction(theta, phi):"
+    },
+    {
+      "line": 27,
+      "text": "def jones_from_iso(a_iso, theta_t, phi_t, theta_r, phi_r):"
+    },
+    {
+      "line": 35,
+      "text": "class Bank:"
+    },
+    {
+      "line": 64,
+      "text": "def field_world(bank: Bank, rotation, theta_w, phi_w, bins=None):"
+    },
+    {
+      "line": 79,
+      "text": "def channel_from_jones(jones, tau, freqs_hz, rx_fields, tx_fields):"
+    },
+    {
+      "line": 89,
+      "text": "def canonical_order(tau, theta_t, phi_t, theta_r, phi_r, decimals: int = 3):"
+    },
+    {
+      "line": 99,
+      "text": "def interp_jones(jones_nodes, node_freq_hz, freqs_hz, present=None):"
+    },
+    {
+      "line": 137,
+      "text": "def path_directions(theta_t, phi_t, theta_r, phi_r):"
+    },
+    {
+      "line": 142,
+      "text": "def align_paths(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float = 2e-13):"
+    },
+    {
+      "line": 165,
+      "text": "def match_partial(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float = 2e-13):"
+    }
+  ],
+  "src/qclean_uwb/drivesim/rf_store.py": [
+    {
+      "line": 18,
+      "text": "def tag_of(x: float, y: float) -> str:"
+    },
+    {
+      "line": 22,
+      "text": "def load_banks(bank_dir: Path = ROOT, ports=PORTS) -> list[P.Bank]:"
+    },
+    {
+      "line": 38,
+      "text": "def load_trace(path) -> dict:"
+    },
+    {
+      "line": 45,
+      "text": "def h_for_antenna_yaws(trace: dict, banks: list[P.Bank], antenna_yaws_deg, tx_rotation=ANCHOR_ROTATION) -> np.ndarray:"
+    },
+    {
+      "line": 60,
+      "text": "def assemble(poses: list[dict], trace_dirs: list[Path], banks: list[P.Bank], mount_deg: float, allow_missing: bool = False):"
+    }
+  ],
+  "src/qclean_uwb/features/fp_power.py": [
+    {
+      "line": 13,
+      "text": "def first_path_power(h, frequencies):"
+    },
+    {
+      "line": 27,
+      "text": "def signed_port_ratio(p1, p2):"
+    },
+    {
+      "line": 36,
+      "text": "def first_path_power_single_tx(h, frequencies, tx: int = 0):"
+    },
+    {
+      "line": 55,
+      "text": "def signed_s_single_tx(h, frequencies, tx: int = 0):"
+    }
+  ],
+  "src/qclean_uwb/scenarios/corridor.py": [
+    {
+      "line": 36,
+      "text": "def rot_z(yaw_deg: float) -> np.ndarray:"
+    },
+    {
+      "line": 42,
+      "text": "def is_rotation(matrix: np.ndarray, atol: float = 1e-9) -> bool:"
+    },
+    {
+      "line": 48,
+      "text": "class CorridorSetup:"
+    }
+  ]
+}

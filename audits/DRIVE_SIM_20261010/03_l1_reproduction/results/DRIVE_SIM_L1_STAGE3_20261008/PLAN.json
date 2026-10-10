@@ -1,0 +1,167 @@
+{
+  "head": "2337c33fe25917029c2aa95973e6ae7672386a5e",
+  "branch": "codex/sensor-model-v2-review-20261008",
+  "original_revision": "1b9cf190244f91d0097a82106a02ec1dd5f53220",
+  "source_hashes": {
+    "scripts/drive_sim/build_hs_lut.py": "9b344e164fdba6037fc35322204c37eb124885cc4ade4a69d0f47d378401cb02",
+    "src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+    "src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+    "src/qclean_uwb/drivesim/pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8",
+    "src/qclean_uwb/drivesim/rf_store.py": "f9c19d1025265c3a05b68ca528c215d7758ceb5c057e889399a29e6fa17c3a4b",
+    "src/qclean_uwb/features/fp_power.py": "034b39c7dd2e50bf8d8fb5749ea77a38dabd0ebe0b3b7836e1c17e165b72783c",
+    "src/qclean_uwb/scenarios/corridor.py": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e"
+  },
+  "inputs": {
+    "BANK_MANIFEST.json": {
+      "sha256": "3cc7e3834aa2c8be4b096d4d6151c1b2af42a556bb19577c0d3da589dfbe95f6",
+      "bytes": 24230
+    },
+    "freqs_hz.npy": {
+      "sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+      "bytes": 2184
+    },
+    "hs_lut_2deg.npy": {
+      "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "bytes": 11923328
+    },
+    "hs_lut_manifest.json": {
+      "sha256": "610d9ef309bc1c89582c4605137c7a985d777da45488168998f1468bcc67e2cb",
+      "bytes": 1727
+    },
+    "hs_lut_meta.json": {
+      "sha256": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+      "bytes": 995
+    },
+    "LP_minus45_bank.npz": {
+      "sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+      "bytes": 247743979
+    },
+    "LP_plus45_bank.npz": {
+      "sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "bytes": 247727983
+    }
+  },
+  "bank_schema": {
+    "LP_minus45_bank.npz": {
+      "theta_deg": {
+        "shape": [
+          181
+        ],
+        "dtype": "float64"
+      },
+      "phi_deg": {
+        "shape": [
+          361
+        ],
+        "dtype": "float64"
+      },
+      "freqs_hz": {
+        "shape": [
+          257
+        ],
+        "dtype": "float64"
+      },
+      "e_theta": {
+        "shape": [
+          257,
+          181,
+          361
+        ],
+        "dtype": "complex64"
+      },
+      "e_phi": {
+        "shape": [
+          257,
+          181,
+          361
+        ],
+        "dtype": "complex64"
+      }
+    },
+    "LP_plus45_bank.npz": {
+      "theta_deg": {
+        "shape": [
+          181
+        ],
+        "dtype": "float64"
+      },
+      "phi_deg": {
+        "shape": [
+          361
+        ],
+        "dtype": "float64"
+      },
+      "freqs_hz": {
+        "shape": [
+          257
+        ],
+        "dtype": "float64"
+      },
+      "e_theta": {
+        "shape": [
+          257,
+          181,
+          361
+        ],
+        "dtype": "complex64"
+      },
+      "e_phi": {
+        "shape": [
+          257,
+          181,
+          361
+        ],
+        "dtype": "complex64"
+      }
+    }
+  },
+  "sample_sha256": "ad99e5ead5b66b6490e0e10d13f5564e6c2bc2edf4bfb09a6917c60591941c63",
+  "seed": 20261007,
+  "n": 500,
+  "sampling": "Three sequential rng.uniform vectors: theta [5,85], phi_tx [-180,180], phi_rx [-180,180]",
+  "original_thresholds": {
+    "max": 0.01,
+    "median": 0.001
+  },
+  "options": {
+    "distance_m": 10,
+    "tx": 0,
+    "ports": [
+      "LP_plus45",
+      "LP_minus45"
+    ],
+    "window": "symmetric Hann N",
+    "padding": "4N tail zero padding",
+    "ifft": "ifft * N",
+    "leading_edge_amplitude": 0.3,
+    "detection_threshold": 0,
+    "noise": null,
+    "delay": "index/(4N*df)",
+    "ratio": "(P1-P2)/(P1+P2)"
+  },
+  "diagnostic": {
+    "selection": "top 5 absolute errors; stable sample_id tie break; no sample exclusion",
+    "sweep": "each angle separately +/-2 degrees, 0.05 deg spacing (81 points), 5*3*81=1215",
+    "corners": "8 corners for every original point, cached duplicates; max 4000",
+    "seam": "theta20,50,80; phi other -73,17,123; either azimuth +/-180 around +/-0.001 degree",
+    "pole": "theta 0,0.001,89.999,90; azimuths -180,-90,0,90",
+    "fixed_tap": "center sample index, diagnostic only",
+    "max_unique_los": 6500,
+    "independent": "raw-bank bilinear fields, explicit Cartesian matrices, NumPy Hann/IFFT and ratio; independent eight-weight interpolation",
+    "tolerances": {
+      "grid": 1e-10,
+      "independent_s": 1e-10,
+      "interpolation": 1e-12,
+      "periodicity": 1e-10
+    }
+  },
+  "restrictions": [
+    "no LUT rebuild",
+    "no Sionna",
+    "no RF solver",
+    "no filter",
+    "no tuning"
+  ],
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4"
+}

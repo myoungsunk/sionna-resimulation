@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "D:\SLAM_bot\artifacts\DRIVE_SIM_SENSOR_V2_REVIEW_20261008_01a11a7b\checkout\scripts\drive_sim\validate_l1_stage3.py", line 175, in <module>
+    prepare() if args.mode=='prepare' else run()
+                                           ~~~^^
+  File "D:\SLAM_bot\artifacts\DRIVE_SIM_SENSOR_V2_REVIEW_20261008_01a11a7b\checkout\scripts\drive_sim\validate_l1_stage3.py", line 169, in run
+    for name,data in [('SAMPLES_RESULTS.json',main),('ALL_POINTS.json',rows),('CELL_DECOMPOSITION.json',corners),('SWEEPS.json',sweeps),('BOUNDARIES.json',boundaries),('INDEPENDENT_CHECKS.json',checks)]:write(name,data)
+                                                                                                                                                                                                           ~~~~~^^^^^^^^^^^
+  File "D:\SLAM_bot\artifacts\DRIVE_SIM_SENSOR_V2_REVIEW_20261008_01a11a7b\checkout\scripts\drive_sim\validate_l1_stage3.py", line 22, in write
+    (OUT/name).write_text(json.dumps(x, ensure_ascii=False, indent=2, allow_nan=False), encoding='utf-8')
+                          ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\json\__init__.py", line 242, in dumps
+    **kw).encode(obj)
+          ~~~~~~^^^^^
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\json\encoder.py", line 182, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+                    f'is not JSON serializable')
+TypeError: Object of type int64 is not JSON serializable

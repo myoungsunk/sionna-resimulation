@@ -1,0 +1,216 @@
+diff --git a/scripts/drive_sim/build_hs_lut.py b/scripts/drive_sim/build_hs_lut.py
+index 3eb46e7..5f3dbcd 100644
+--- a/scripts/drive_sim/build_hs_lut.py
++++ b/scripts/drive_sim/build_hs_lut.py
+@@ -24,6 +24,7 @@ def main():
+     ap.add_argument("--out", type=Path, required=True)
+     ap.add_argument("--step", type=float, default=2.0)
+     ap.add_argument("--n-check", type=int, default=500)
++    ap.add_argument("--measure", choices=["fp", "rx"], default="fp", help="fp: first-path power ratio (default); rx: total received power ratio (A11)")
+     ap.add_argument("--range-bias-only", action="store_true", help="recompute only the range offset and merge it into the existing hs_lut_meta.json")
+     args = ap.parse_args()
+     args.out.mkdir(parents=True, exist_ok=True)
+@@ -36,22 +37,23 @@ def main():
+         print(json.dumps(doc["range_bias"]))
+         return
+     t0 = time.monotonic()
+-    lut = build_lut(banks, args.step, args.step, progress=lambda i, n: print(f"theta row {i}/{n}", flush=True) if i % 5 == 0 else None)
++    lut = build_lut(banks, args.step, args.step, measure=args.measure, progress=lambda i, n: print(f"theta row {i}/{n}", flush=True) if i % 5 == 0 else None)
+     build_s = time.monotonic() - t0
+-    npy = args.out / f"hs_lut_{args.step:g}deg.npy"
++    suffix = "" if args.measure == "fp" else "_rx"
++    npy = args.out / f"hs_lut{suffix}_{args.step:g}deg.npy"
+     np.save(npy, lut["s"])
+     meta = dict(theta_deg=lut["theta_deg"].tolist(), phi_deg=[float(lut["phi_deg"][0]), float(lut["phi_deg"][-1]), args.step], d_ref_m=lut["d_ref_m"],
+                 layout="s[theta, phi_tx, phi_rx]; phi grid = -180 + k*step", build_seconds=round(build_s, 1))
+     f = HsLut(lut)
+     rng = np.random.default_rng(20261007)
+     pts = np.column_stack([rng.uniform(5, 85, args.n_check), rng.uniform(-180, 180, args.n_check), rng.uniform(-180, 180, args.n_check)])
+-    err = np.abs(np.array([f(*p) for p in pts]) - np.array([los_s_direct(banks, *p) for p in pts]))
+-    range_bias = range_bias_from_banks(banks)
++    err = np.abs(np.array([f(*p) for p in pts]) - np.array([los_s_direct(banks, *p, measure=args.measure) for p in pts]))
++    range_bias = range_bias_from_banks(banks) if args.measure == "fp" else None
+     gate = dict(max=float(err.max()), median=float(np.median(err)), n=args.n_check, passed=bool(err.max() <= 1e-2 and np.median(err) <= 1e-3),
+                 thresholds=dict(max=1e-2, median=1e-3))
+-    (args.out / "hs_lut_meta.json").write_text(json.dumps(dict(meta=meta, gate_L1_interpolation=gate, range_bias=range_bias), indent=1))
++    (args.out / f"hs_lut{suffix}_meta.json").write_text(json.dumps(dict(meta=meta, gate_L1_interpolation=gate, range_bias=range_bias), indent=1))
+     man = build_manifest(config=dict(meta=meta, gate_L1=gate), inputs=[Path(__file__), ROOT / "src/qclean_uwb/drivesim/hs_lut.py"], outputs=[npy])
+-    (args.out / "hs_lut_manifest.json").write_text(json.dumps(man, indent=1))
++    (args.out / f"hs_lut{suffix}_manifest.json").write_text(json.dumps(man, indent=1))
+     print(json.dumps(gate))
+ 
+ 
+diff --git a/src/qclean_uwb/drivesim/hs_lut.py b/src/qclean_uwb/drivesim/hs_lut.py
+index c9ba766..6d4a6de 100644
+--- a/src/qclean_uwb/drivesim/hs_lut.py
++++ b/src/qclean_uwb/drivesim/hs_lut.py
+@@ -31,7 +31,7 @@ def los_h(banks, d_world, yaw_deg, dist_m: float = D_REF_M):
+     return np.einsum("rbi,tbi->brt", rx_f, tx_f) * (scale * phase)[:, None, None]
+ 
+ 
+-def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg) -> float:
++def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg, measure: str = "fp") -> float:
+     """Reference value (no table): s for one (theta, phi_tx, phi_rx)."""
+     th, pt = np.radians(theta_deg), np.radians(phi_tx_deg)
+     d_local = np.array([np.sin(th) * np.cos(pt), np.sin(th) * np.sin(pt), np.cos(th)])
+@@ -39,6 +39,8 @@ def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg) -> float:
+     v = -d_world
+     yaw = np.degrees(np.arctan2(v[1], v[0])) - phi_rx_deg
+     h = los_h(banks, d_world, yaw)
++    if measure == "rx":
++        return float(O.rx_energy_s(h[None, :, :, 0])[0][0])
+     return float(O.observe(h[None], banks[0].freqs_hz, None, None, tx=0)["s"][0])
+ 
+ 
+@@ -49,7 +51,7 @@ def _rot_z_batch(psi_rad):
+     return r
+ 
+ 
+-def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, theta_max_deg: float = 90.0, progress=None) -> dict:
++def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, theta_max_deg: float = 90.0, progress=None, measure: str = "fp") -> dict:
+     """Vectorised over phi_rx: for a fixed line of sight the antenna yaw only rotates the local frame about z, so the RX field is the bank
+     sampled at (theta, phi_rx) and rotated to the world frame by the yaw."""
+     thetas = np.arange(0.0, theta_max_deg + 1e-9, theta_step_deg)
+@@ -79,10 +81,10 @@ def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, the
+             h = np.einsum("rbpi,bi->pbr", rx, tx_f[0]) * (scale * phase)[None, :, None]
+             h4 = np.zeros((len(phis), len(freqs), 2, 2), complex)
+             h4[..., 0] = h
+-            s[i, j] = O.observe(h4, freqs, None, None, tx=0)["s"]
++            s[i, j] = O.observe(h4, freqs, None, None, tx=0)["s"] if measure == "fp" else O.rx_energy_s(h)[0]
+         if progress:
+             progress(i + 1, len(thetas))
+-    return dict(theta_deg=thetas, phi_deg=phis, s=s, d_ref_m=D_REF_M)
++    return dict(theta_deg=thetas, phi_deg=phis, s=s, d_ref_m=D_REF_M, measure=measure)
+ 
+ 
+ class HsLut:
+diff --git a/src/qclean_uwb/drivesim/observation.py b/src/qclean_uwb/drivesim/observation.py
+index 0e6e993..4182f97 100644
+--- a/src/qclean_uwb/drivesim/observation.py
++++ b/src/qclean_uwb/drivesim/observation.py
+@@ -63,7 +63,7 @@ def first_path_batch(cir: np.ndarray, df_hz: float) -> dict:
+ 
+ 
+ def observe(h_clean: np.ndarray, freqs_hz: np.ndarray, noise_var: float | None, rng: np.random.Generator | None, tx: int = 0,
+-            threshold: float | None = None) -> dict:
++            threshold: float | None = None, return_h: bool = False) -> dict:
+     """Observe a batch of clean channels h_clean (B, n_bin, n_rx, n_tx).  ``noise_var=None`` -> noise-free.
+ 
+     Returns the first-path quantities plus ``detected`` (peak above the detection threshold); undetected samples have s = range = nan.
+@@ -80,6 +80,8 @@ def observe(h_clean: np.ndarray, freqs_hz: np.ndarray, noise_var: float | None,
+     for k in ("s", "range_m", "delay_s"):
+         out[k] = np.where(out["detected"], out[k], np.nan)
+     out["threshold"] = threshold
++    if return_h:
++        out["h_noisy"] = h
+     return out
+ 
+ 
+@@ -95,3 +97,27 @@ def los_range_bias(freqs_hz: np.ndarray, d_min: float = 2.0, d_max: float = 16.0
+     h = np.exp(-2j * np.pi * freqs_hz[None, :] * d[:, None] / C0)[:, :, None] * np.ones((1, 1, 2))
+     out = first_path_batch(cir_batch(h), float(freqs_hz[1] - freqs_hz[0]))
+     return float(np.mean(out["range_m"] - d))
++
++
++def rx_energy_s(h_col: np.ndarray, noise_var: float | None = 0.0):
++    """Signed ratio of the total received power of the two RX ports: ``(E1 - E2) / (E1 + E2)``, ``E_i = sum_f |H_i(f)|^2``.
++
++    ``h_col`` (B, n_bin, 2).  The expected thermal contribution ``n_bin * noise_var`` is subtracted from each energy (clipped at 0).
++    Returns ``(s, E)`` with E of shape (B, 2).
++    """
++    h = np.asarray(h_col)
++    e = (np.abs(h) ** 2).sum(axis=1) - (h.shape[1] * (noise_var or 0.0))
++    e = np.maximum(e, 0.0)
++    den = e.sum(axis=1)
++    with np.errstate(invalid="ignore", divide="ignore"):
++        s = np.where(den > 0, (e[:, 0] - e[:, 1]) / den, np.nan)
++    return s, e
++
++
++def thermal_var_rx_s(e1: float, e2: float, noise_var: float, n_bin: int) -> float:
++    """Delta-method variance of the rx-power ratio: Var(E_i) ~ 2 var E_i + n_bin var^2 (per-bin complex noise variance ``var``)."""
++    tot = e1 + e2
++    if tot <= 0:
++        return float("inf")
++    v1, v2 = 2.0 * noise_var * e1 + n_bin * noise_var ** 2, 2.0 * noise_var * e2 + n_bin * noise_var ** 2
++    return 4.0 * (e2 ** 2 * v1 + e1 ** 2 * v2) / tot ** 4
+diff --git a/src/qclean_uwb/drivesim/pattern_apply.py b/src/qclean_uwb/drivesim/pattern_apply.py
+index 3dcb49b..4733991 100644
+--- a/src/qclean_uwb/drivesim/pattern_apply.py
++++ b/src/qclean_uwb/drivesim/pattern_apply.py
+@@ -96,11 +96,14 @@ def canonical_order(tau, theta_t, phi_t, theta_r, phi_r, decimals: int = 3):
+     return np.lexsort(tuple(keys[:, i] for i in reversed(range(6))) + (np.asarray(tau),))
+ 
+ 
+-def interp_jones(jones_nodes, node_freq_hz, freqs_hz):
++def interp_jones(jones_nodes, node_freq_hz, freqs_hz, present=None):
+     """Interpolate path Jones matrices over frequency: cubic spline of ``J * f`` (removes the 1/f spreading factor).
+ 
+     Measured on x7.0_y0.0 (257 bins, 6.25-6.75 GHz): K=9 nodes 1.0e-5, K=17 nodes 5.4e-7 relative H error (linear: 1.1e-4 / 2.4e-5).
+     With ``node_freq_hz == freqs_hz`` the input is returned unchanged (bin-by-bin trace).
++
++    ``present`` (K, n) marks the nodes at which a path exists (the solver drops some paths inside the band).  Such a path is interpolated by a spline
++    through the nodes where it exists and is exactly zero outside the first/last of them (the bisection node puts that boundary on a bin).
+     """
+     from scipy.interpolate import CubicSpline
+ 
+@@ -112,7 +115,23 @@ def interp_jones(jones_nodes, node_freq_hz, freqs_hz):
+     if len(nodes) == 1:
+         return np.repeat(jones_nodes * nodes[0], len(freqs), axis=0) / freqs[:, None, None, None]
+     scaled = jones_nodes * nodes[:, None, None, None]
+-    return CubicSpline(nodes, scaled, axis=0)(freqs) / freqs[:, None, None, None]
++    out = CubicSpline(nodes, scaled, axis=0)(freqs) / freqs[:, None, None, None]
++    if present is not None:
++        present = np.asarray(present, bool)
++        for i in np.flatnonzero(~present.all(axis=0)):
++            keep = np.flatnonzero(present[:, i])
++            if len(keep) == 0:
++                out[:, i] = 0.0
++                continue
++            lo, hi = nodes[keep[0]], nodes[keep[-1]]
++            inside = (freqs >= lo - 1e-3) & (freqs <= hi + 1e-3)
++            seg = np.zeros((len(freqs),) + jones_nodes.shape[2:], complex)
++            if len(keep) >= 2:
++                seg[inside] = CubicSpline(nodes[keep], scaled[keep, i], axis=0)(freqs[inside]) / freqs[inside][:, None, None]
++            else:
++                seg[inside] = scaled[keep[0], i] / freqs[inside][:, None, None]
++            out[:, i] = seg
++    return out
+ 
+ 
+ def path_directions(theta_t, phi_t, theta_r, phi_r):
+@@ -141,3 +160,21 @@ def align_paths(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float
+     perm = np.empty(len(ref_tau), int)
+     perm[rows] = cols
+     return perm, float(dist[rows, cols].max())
++
++
++def match_partial(ref_tau, ref_dirs, tau, dirs, tol: float = 1e-4, tau_tol: float = 2e-13):
++    """Rectangular version of ``align_paths``: ``(match, extra)`` with ``match[i]`` = index into the new trace for reference path ``i`` (-1 if the
++    path is absent in the new trace) and ``extra`` = indices of new paths that match no reference path."""
++    from scipy.optimize import linear_sum_assignment
++
++    ref_tau, tau = np.asarray(ref_tau, float), np.asarray(tau, float)
++    match = np.full(len(ref_tau), -1, int)
++    if len(ref_tau) and len(tau):
++        dist = np.linalg.norm(ref_dirs[:, None, :] - dirs[None, :, :], axis=-1)
++        dtau = np.abs(ref_tau[:, None] - tau[None, :])
++        rows, cols = linear_sum_assignment(dist + dtau * 1e9)
++        for r, c in zip(rows, cols):
++            if dist[r, c] <= tol and dtau[r, c] <= tau_tol:
++                match[r] = c
++    extra = np.array(sorted(set(range(len(tau))) - set(match[match >= 0].tolist())), int)
++    return match, extra
+diff --git a/src/qclean_uwb/drivesim/rf_store.py b/src/qclean_uwb/drivesim/rf_store.py
+index 4abb117..affc639 100644
+--- a/src/qclean_uwb/drivesim/rf_store.py
++++ b/src/qclean_uwb/drivesim/rf_store.py
+@@ -47,7 +47,7 @@ def h_for_antenna_yaws(trace: dict, banks: list[P.Bank], antenna_yaws_deg, tx_ro
+     if trace["status"] != "OK":
+         raise ValueError(f"TRACE_NOT_USABLE {trace['status']}")
+     freqs = banks[0].freqs_hz
+-    jones = P.interp_jones(trace["jones"], trace["node_freq_hz"], freqs)
++    jones = P.interp_jones(trace["jones"], trace["node_freq_hz"], freqs, present=trace.get("present"))
+     ang, tau = trace["ang"], trace["tau"]
+     tx_f = np.stack([P.field_world(b, tx_rotation, ang[0], ang[1]) for b in banks])
+     out = []
