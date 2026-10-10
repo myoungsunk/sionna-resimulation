@@ -1,0 +1,29 @@
+name: Body Probe EKF Contract Checks
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+  workflow_dispatch:
+jobs:
+  unit-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install unit-test dependencies only
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy scipy pytest
+      - name: Syntax check (no Sionna)
+        run: |
+          python -m compileall -q src/qclean_uwb/drivesim/body_dynamics.py src/qclean_uwb/drivesim/body_sensor_adapter.py src/qclean_uwb/drivesim/body_sensor_stream.py src/qclean_uwb/drivesim/body_probe_controller.py src/qclean_uwb/drivesim/body_ekf_bridge.py src/qclean_uwb/drivesim/body_pose_channel.py src/qclean_uwb/drivesim/body_probe_loop.py src/qclean_uwb/drivesim/filter_v2.py scripts/drive_sim/run_body_probe_v2_native.py
+      - name: Unit contracts only (mock RF; no hardware, no scientific run)
+        run: |
+          python -m pytest -q tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py
