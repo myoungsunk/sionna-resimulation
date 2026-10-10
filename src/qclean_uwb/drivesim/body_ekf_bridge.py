@@ -170,6 +170,7 @@ class ProbeEKF6:
             rec.update(range_H=H,range_innovation=float(y),range_R=float(R),
                        range_S=float(S),range_status=str(status))
             _validate_cov(self.covariance,"after_range",self._initial_scale)
+            self.record_stage_range()
         if self.cfg.use_s and np.isfinite(packet.s):
             _,H=self._model_s()
             y,R,S,status=self.f.s_record(float(packet.s),packet.power)
@@ -218,8 +219,8 @@ class ProbeEKF6:
         rec=self.pending
         x,P=_state_cov(self.f)
         # For no packet and rejected RF, all posterior stages remain after-odom.
-        rec["x_after_range"]=rec.get("x_after_range",x.copy())
-        rec["P_after_range"]=rec.get("P_after_range",P.copy())
+        rec["x_after_range"]=rec.get("x_after_range",rec["x_after_odom"].copy())
+        rec["P_after_range"]=rec.get("P_after_range",rec["P_after_odom"].copy())
         rec["x_before_RF"]=rec["x_after_range"].copy()
         rec["P_before_RF"]=rec["P_after_range"].copy()
         rec["x_after_RF"]=x.copy();rec["P_after_RF"]=P.copy()
