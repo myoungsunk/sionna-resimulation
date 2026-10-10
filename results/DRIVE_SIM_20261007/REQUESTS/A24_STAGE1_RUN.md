@@ -40,3 +40,11 @@ Smoke test done on the assistant's machine (not a result, 3 seeds x 4 arms, not 
 
 ## Not part of this step
 The reading of the results (no PASS/FAIL until the criteria are approved), the held-out stage 2 and the sensor-v2 stage 3.
+
+
+## Reading the package (assistant side, once the package is on a branch)
+```
+python scripts/drive_sim/a24_report.py --f0 <A23>/A0_ARMS.csv <A23>/ARMS_controls.csv <A23>/ARMS_q1.csv <A23>/ARMS_q2.csv <A23>/ARMS_joint.csv \
+    --variant F2=OUT/ARMS_F2.csv F1=OUT/ARMS_F1.csv F3=OUT/ARMS_F3.csv --out OUT_REPORT/A24_STAGE1.json
+```
+Writes per-arm tables and seed-paired variant-minus-F0 contrasts (pairing on common drifts and seeds). No PASS/FAIL until the consistency criteria are approved; the proposed bands appear only as flags marked unapproved. F0 rows are the A23 rows, so the F0 reference and the new variants must come from the same platform (Snowball).
