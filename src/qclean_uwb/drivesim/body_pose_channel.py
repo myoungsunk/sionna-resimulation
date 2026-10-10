@@ -17,7 +17,7 @@ import sys
 
 import numpy as np
 
-from .observation import observe, noise_var_from_snr, realised_snr_db
+from .observation import observe, cir_batch, noise_var_from_snr, realised_snr_db
 
 
 @dataclass(frozen=True)
@@ -73,6 +73,11 @@ class RFFilterPacket:
     realized_snr_db: float = math.nan
     noise_cov_sr: np.ndarray | None = None
     covariance_model_id: str | None = None
+    # Receiver-visible only if amplitude-CIR is exported. These are SIMULATION features.
+    first_cluster_s: tuple[float,float,float] | None = None
+    first_cluster_port_energy: tuple[tuple[float,float],...] | None = None
+    first_cluster_window_taps: tuple[int,int,int] | None = None
+    first_cluster_availability: str = "SIMULATED_AMPLITUDE_CIR_ONLY"
 
 
 class FirstPathReceiver:
@@ -95,7 +100,21 @@ class FirstPathReceiver:
         if H is None:
             raise ValueError("requested LoS native channel unavailable")
         nvar=noise_var_from_snr(self.snr_db)
-        obs=observe(H[None,...],channel.freqs_hz,nvar,self.rng,tx=0)
+        obs=observe(H[None,...],channel.freqs_hz,nvar,self.rng,tx=0,return_h=True)
+        # Only the magnitude/power profile leaves the simulated coherent H domain.
+        # Same strongest-RX first-path leading edge for both orthogonal LP ports.
+        cir_amplitude=np.abs(cir_batch(obs["h_noisy"]))[0]
+        selected_tap=int(obs["index"][0])
+        cluster_s=[]
+        cluster_energy=[]
+        for taps in (4,8,16):
+            if selected_tap<0 or selected_tap+taps>len(cir_amplitude):
+                cluster_s.append(math.nan)
+                cluster_energy.append((math.nan,math.nan))
+                continue
+            e=np.square(cir_amplitude[selected_tap:selected_tap+taps,:]).sum(axis=0)
+            cluster_energy.append((float(e[0]),float(e[1])))
+            cluster_s.append(float((e[0]-e[1])/(e[0]+e[1])) if e.sum()>0 else math.nan)
         dist=float(obs["range_m"][0])
         if bool(obs["detected"][0]):
             dist+=self.range_sigma_m*self.range_rng.standard_normal()
@@ -104,7 +123,10 @@ class FirstPathReceiver:
         packet=RFFilterPacket(packet_id=channel.request.packet_id,t_s=channel.request.t_s,
                               detected=bool(obs["detected"][0]),range_m=dist,
                               s=float(obs["s"][0]),power=p,
-                              selected_tap=int(obs["index"][0]),realized_snr_db=snr)
+                              selected_tap=int(obs["index"][0]),realized_snr_db=snr,
+                              first_cluster_s=tuple(cluster_s),
+                              first_cluster_port_energy=tuple(cluster_energy),
+                              first_cluster_window_taps=(4,8,16))
         # Full complex H and true pose remain evaluation/provenance-only.
         oracle=dict(packet_id=packet.packet_id,physical_pose_xyyaw=channel.request.true_pose_xyyaw,
                     t_s=channel.request.t_s,mount_deg=channel.request.mount_deg,
