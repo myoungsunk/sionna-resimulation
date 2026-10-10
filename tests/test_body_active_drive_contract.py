@@ -188,3 +188,23 @@ def test_actual_site_point_mixture_module_is_carried_into_next_drive(monkeypatch
     expected,*_=transition(last_probe["x_after_RF"],first_following["ds_odom"],
                            first_following["dtheta_gyro"],first_following["dt_s"],b)
     assert first_following["x_pred_before_odom"]==pytest.approx(expected,abs=1e-10)
+
+
+def test_physical_slip_during_continuous_active_probe_moves_actual_rf_request_xy():
+    from qclean_uwb.drivesim.body_dynamics import GroundSlipConfig
+    driver,backend,quality,singles,joints=setup((.2,.9,.9,.9))
+    # Ground slip here changes the actual motor/contact plant, unlike the
+    # fixed-truth sensor-v2 generator's encoder-only slip.
+    driver.plant.slip=GroundSlipConfig(baseline_right=.08,
+                                       baseline_icr_offset_m=.01)
+    result=driver.run([(0.,0.) for _ in range(4)])
+    assert result["n_triggered_probes"]==1
+    assert len(joints)==1
+    pp=[p for p in backend.requests if p.station_id>=0]
+    assert len(pp)==3
+    assert all(p.station_id==0 for p in pp)
+    assert all(pp[i].t_s<pp[i+1].t_s for i in range(2))
+    xy=np.asarray([p.true_pose_xyyaw[:2] for p in pp])
+    assert np.max(np.linalg.norm(xy-xy[0],axis=1))>1e-5
+    assert driver.plant.t_s==pytest.approx(driver.ekf.last_t)
+    assert result["scientific_PASS"] is False
