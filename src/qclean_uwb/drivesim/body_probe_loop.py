@@ -61,6 +61,7 @@ class BodyProbeLoop:
         self.cmd_v=0.;self.cmd_w=0.
         self.rf_oracle=[]
         self.rf_measured=[]
+        self.native_channel_evidence=[]  # exact-pose H; never passed into EKF
         self.body_oracle=[]
         self.control_log=[]
         self.status="NOT_RUN"
@@ -122,6 +123,7 @@ class BodyProbeLoop:
                     if raw.request!=request:
                         raise ValueError("RF_BACKEND_POSE_OR_POINT_MISMATCH")
                     observed,oracle=self.receiver.receive(raw)
+                    self.native_channel_evidence.append(raw)
                     self.rf_oracle.append(oracle)
                     self.rf_measured.append(dict(packet_id=observed.packet_id,
                         point_index=request.point_index,station_id=request.station_id,
@@ -151,6 +153,7 @@ class BodyProbeLoop:
                     measured_rf_packets=list(self.rf_measured),
                     physical_oracle_eval_only=list(self.body_oracle),
                     rf_oracle_eval_only=list(self.rf_oracle),
+                    native_channels_oracle_only=list(self.native_channel_evidence),
                     controller_log=list(self.control_log),
                     scientific_PASS=False,
                     limits=dict(cross_angle_covariance="NOT_IMPLEMENTED",
