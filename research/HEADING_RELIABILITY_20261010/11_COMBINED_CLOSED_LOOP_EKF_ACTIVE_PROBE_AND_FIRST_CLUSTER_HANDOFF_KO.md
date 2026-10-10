@@ -1,18 +1,18 @@
-# 11 — 통합 실행 전달본: 상시 EKF → 신뢰도 저하 정지·2/3각 프로브 → EKF 복귀, mount 0/45, first-arrival LP 비
+# 11 — 통합 실행 전달본: 매시점 EKF → 저신뢰 RF 검출 → 정지 → 동일 위치 2/3각 프로브 → EKF 복귀
 
-2026-10-10 | 상태: SPEC_ONLY / 전체 closed-loop 물리 시뮬레이션 미실행.
+2026-10-10 | 실행 정의 (SPEC_ONLY), 실제 closed-loop 재주행 계산은 미실행.
 
-## 우선 적용 규칙 (필독)
+## 최상위 실행 지시 및 충돌 처리
 
-이 통합본은 06 전체 P6/노이즈 데이터 사양, 08 0°/45° 대칭+first-cluster 편파비 실험계획, 10 **정정된 실제 주행 중 능동 프로브 제어**를 한 번에 전달하기 위한 문서다. 실행자는 10을 제어/필터 **주목표**로 삼고 06/08의 모든 데이터·안테나·실험 요건을 함께 준수한다.
+세 파트(10 controller, 06 full P6 data, 08 mount/polarimetric analysis)를 함께 적용한다. 제어 상태기계는 Part I(10)이 최우선이며 원래 오프라인 프로브 연구는 실제 요구 시스템이 아니다. **주행 중 낮은 신뢰도를 감지한 RF 측정은 보류하고 정지 명령을 실행한다. 브레이크 중 이동한 최종 정지 위치에서 기준 yaw 측정 s0를 새로 취득한 뒤, 같은 최종 위치에서 각도만 변경하여 추가 1~2점 s1,s2를 모은다. 이동 중 트리거 관측을 다른 위치에서 측정한 것으로 간주하고 정지 프로브 묶음에 자동 포함하지 않는다.** 모든 프로브 이후 원래 주행 heading으로 복귀하고 추정 결과는 그 다음의 모든 EKF timestep에 반영한다.
 
-과거 09 통합본은 프로브를 오프라인 정지 위치 결과로만 다뤘다. 이것은 최종 목표가 아니며 **11이 09를 대체**한다. 9.893° full-route RF-off와 7.03° offline MIX3는 참고 값일 뿐, 실제 주행에서 probe 이후 EKF를 계속 전파한 결과가 아니다. **Tnone 전구간 EKF 유지, 저신뢰도 감지 때만 stop/rotate/measure/joint-update/resume**를 반드시 구현해야 한다.
+원 7개 H는 보존, 0/45 균형을 위한 신규 5개 H와 동적 트리거 위치의 실제 RF 시뮬레이션이 별도로 필요하다. 실제 센서가 전체 amplitude-CIR를 출력하는지 미확인이라 first-cluster 특징은 현 시점 simulation-derived 연구 가설로 분리한다. 동일 첫 도착 tap이나 common gate의 power ratio는 정규화 편파 응답으로, 완전한 탈편파도 측정은 아니다. Phase, path oracle, true yaw는 filter inference 입력으로 사용하지 않는다.
 
-기존 H 7개와 보존된 원 RAW를 덮어쓰지 말 것. 대칭 비교에 부족한 mount45 RF 5케이스 및 실시간 trigger 좌표의 RF는 Sionna에서 **실제 해당 좌표·yaw로** 신규 계산해야 하며 최근접 RF 재사용으로 완료 판정 불가. 회전시간, full P6, 공통 각도간 covariance, range-s correlation, ground truth leakage, first-cluster의 별도 모델 h_W 부재 등 blocker들을 결과에 남길 것. Phase나 복소 Jones를 온라인 센서 특징으로 사용 금지.
+이 문서는 과거 09 통합본을 대체한다. 기존 F01/F02 OPEN과 scientific_PASS=false 유지.
 
 ---
 
-# PART I — 매시점 EKF + event-triggered stop/probe/resume (실행 정책의 최우선 규격)
+# Part I — 실제 제어: 매 시점 EKF + 저신뢰 검출/정지/다중각 프로브/주행 재개
 
 # 10 — 요구사항 정정: 주행 중 상시 EKF + 신뢰도 저하 시 제자리 프로브 + first-cluster 이중 LP 분석
 
@@ -24,7 +24,7 @@
 정상 운전에서는 **매 센서 시점 EKF**로 IMU+wheel prediction/correction 및 single-anchor UWB range를 갱신하고, **고신뢰 RF s도 매 시점** 함께 업데이트한다. 주행 중 현재 상태에서 RF 측정이 저신뢰라는 신호가 감지될 때만:
 1. RF 업데이트 이전의 prior와 RF/CIR 특징을 검사하고 low-confidence trigger 결정. 이 관측은 먼저 EKF를 오염시키지 않는다.
 2. 로봇을 **현 위치에 정지** (속도 0, 물리적 stop/settle and any xy deviation recorded).
-3. 같은 위치에서 몸체 yaw(혹은 검증된 독립 head)만 회전해 **추가 1–2개 각도**에서 RF 측정. 최초 triggering s 1개를 포함해 **총 2–3개 yaw 관측**이다. "2–3회 프로브"가 최초 관측 외 2–3회 추가라는 별도 정책이면 그 시나리오를 명시적으로 구분. 여기서는 total 2/3 points를 default로 고정.
+3. 로봇이 실제로 멈춘 **최종 정지 위치**를 고정 station으로 정의하고, 그 위치에서 기준 yaw RF 측정 1개를 **새로 취득**한 뒤 추가 1–2개 yaw 각도에서 RF 측정한다. 총 2–3개 서로 다른 yaw 관측으로 공동 추정한다. **주행 중 트리거를 유발한 측정은 주행 위치에서의 판별자료이며, 정지 중 동일 위치 프로브 묶음에 자동 포함하지 않는다.** 정지거리/위치이탈이 사전 허용치 내인 예외만 별도 paired control에서 허용한다.
 4. 해당 위치 및 각도의 LoS FFD-LUT와 두 포트 first-path/first-cluster 전력비, IMU/odom/회전 불확실성을 이용하여 site-level 및 각 측정점 별 오염확률(q_site/q_i)과 **공동 pose/heading posterior**를 산출. 오염 포인트는 낮은 가중치로 유지, 가장 residual 작은 포인트 하나만 고르지 않는다.
 5. **동일 관측을 두 번 업데이트하지 않고** 한번의 correlated batch or posterior-to-EKF fusion으로 x6/P6를 갱신. Low confidence이면 적절한 공분산을 유지한 채 propagation을 우선하고, 근거 없이 정확한 heading을 강제하지 않는다.
 6. 실측 회전 엔코더/IMU로 원래 주행 heading(경로 기준)을 복원하고 주행을 재개; 갱신된 heading과 공분산은 이후 **모든 EKF 시점에 계속 전파**된다.
@@ -35,10 +35,10 @@
 
 기본 filter: 6-state sensor-v2 [x,y,psi,bias_g,gyro_scale,eps_wheel], 5 Hz dt nominal 0.2s, 주행 0.2m/s, 동일 단일 anchor (A 또는 B). 추적 state/control:
 - DRIVE_NORMAL: 매 tick gyro+wheel predict/odom correction → UWB range correction (available, gated) → pre-s quality (LUT, s, P1/P2, optionally first-cluster amplitude) → quality good인 경우만 일반 scalar s update; low로 판별되면 s를 **보류**, trigger 생성.
-- BRAKE_SETTLE: commanded v=0; 실제 stopping distance/latency/gyro+wheel noise propagation 기록. Range는 계속, RF s는 optional diagnostic/low-weight policy로 사전 고정. Trigger 이전 s를 EKF에 넣고 나서 stop 판단하지 않는다.
+- BRAKE_SETTLE: commanded v=0; 실제 stopping distance/latency/gyro+wheel noise propagation 기록. Range는 계속, RF s는 optional diagnostic/low-weight policy로 사전 고정. Trigger 이전 s를 EKF에 넣고 나서 stop 판단하지 않는다. 실제 정지 직후 기준 위치 (x_stop,y_stop)를 새 station ID로 지정하고 첫 번째 프로브 s0를 이 지점에서 측정한다; 주행 중 트리거한 (x_trigger,y_trigger)와 구별한다.
 - PROBE_TURN_1 / PROBE_TURN_2: 실제 body 또는 독립 head를 상대 목표 offset으로 이동. 경과시간과 실제 각도/위치 이동 기록, 매 0.2초 sensor-v2 계속 예측, 범위 측정도 동일 계약으로 갱신. 로봇이 헤딩을 물리적으로 회전 중이면 이를 **로봇의 실제 psi 변화**로 처리해야 한다.
 - PROBE_MEASURE: 각 각도에서 P1/P2 및 first-cluster power, range, detection, measured yaw offset, pre-measurement x6/P6를 취득; 위치 이동은 stationarity tolerance 0.02m 이하일 때만 same-location 가정(시나리오 제안값).
-- PROBE_JOINT_UPDATE: initial withheld s + 1 or 2 additional s를 correlated update로 **한번만** 반영. Range과 s의 cross covariance가 증명되지 않았다면 별도 승인된 근사 arm으로 분리. Measurement model h(p,psi, mount+delta), Jacobian wrt x,y,psi and relative-angle noise; no true xy/yaw to choose root.
+- PROBE_JOINT_UPDATE: BRAKE_SETTLE 이후 **실제 최종 정지 좌표에서 새로 취득한 기준각 s0와 추가각 s1/s2**를 correlated update로 한번만 반영한다. 이동 중 트리거 측정은 위치가 다른 경우 batch에서 제외(진단/trigger 기록에는 보존). Range와 s의 cross covariance가 증명되지 않았다면 별도 승인된 근사 arm으로 분리. Measurement model h(p,psi,mount+delta), Jacobian wrt x,y,psi and relative-angle noise; no true xy/yaw to choose root.
 - RETURN_HEADING: 실제 방향/회전 센서 기반으로 원래 route heading에 복귀, EKF 계속. body orientation이 물리적으로 이미 바뀐 것이므로 x6/P6로 같은 자세변화를 중복 적용하지 않는다.
 - DRIVE_RESUME, COOLDOWN: 일정 이동거리/시간 안에는 신규 probe를 반복 발동하지 않음(초기 사전등록 후보 2m 또는 10s; 둘 중 어떤 기준을 적용하는지 실행 전 고정). 만성 multipath stretch에는 MAX_PROBES_PER_ROUTE와 fallback/no-probe 악화방지 가드.
 - FAILED/UNAVAILABLE: RF missing, ambiguity, bad all points, unable to stop/turn, no RF H at current pose. 추가 관측이 없으면 없는 것으로 기록; 하드코딩한 clean RF or true angle 사용 금지.
@@ -124,7 +124,7 @@ Entire-route EKF A~E from sensor-v2 performed every update on Tnone routes; old 
 
 ---
 
-# PART II — 전체 Sensor-v2 P6, noisy turn 및 covariance 원천 데이터 규격
+# Part II — 전체 P6·Noisy probe 센서/데이터 사양
 
 # Sensor-v2 전체 공분산·노이즈 포함 2–3점 프로브 데이터 사양서
 버전 1.0 | 작성: 2026-10-10 | 상태: SPEC_ONLY — 후속 실험 미실행
@@ -242,7 +242,7 @@ No parameter adjustment after inspecting held-out result. All 7 existing RF case
 
 ---
 
-# PART III — mount 0°/45°와 first-arrival dual-LP 시뮬레이션 요인 규격
+# Part III — 0°/45° 대칭 및 첫 도착 편파비 실험 요인
 
 # 추가 시뮬레이션 명세서 — Mount 0°/45° 완전 대칭 비교 + First-path 편파 응답 불일치
 버전: 1.0 | 작성: 2026-10-10 | 실행 상태: SPEC_ONLY / 신규 RF·filter 실행 미완료
