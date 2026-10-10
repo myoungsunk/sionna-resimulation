@@ -18,6 +18,7 @@ EXCLUDE_S = 30.0
 WRONG_BRANCH_DEG = 20.0
 CHI2_3_95 = 7.814727903251179        # chi2(3 dof) 95 % point (pose NEES coverage, A17)
 GRID_S = 1.0
+TRACE_HOOK = None                # A23 rev2: optional callable(world, out, err, nees) for raw-trace saving; None = off
 COMMON_FROM_DRIVE_G = 150      # A16: 30 s of drive time at 5 Hz; common stations = non-probe samples from this drive index on
 
 
@@ -148,6 +149,20 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
                s_reject_frac=float(st["s_rejected"] / s_total) if s_total else float("nan"),
                r_reject_frac=float(st["r_rejected"] / max(st["r_updates"] + st["r_rejected"], 1)),
                n_probes=world.n_probes, duration_s=float(t[-1]), n_samples=len(t))
+    # A23 rev2 (additive columns): s / range NIS and rejection on the evaluation mask (t >= EXCLUDE_S), pre-gate and accepted-only
+    for name, key in (("s", "s_log"), ("r", "r_log")):
+        lg = st.get(key) or []
+        if lg:
+            kk = np.array([e[0] for e in lg], int)
+            nn = np.array([e[1] for e in lg], float)
+            aa = np.array([e[2] for e in lg], bool)
+            m = keep[kk]
+            res[f"nis_{name}_eval_pre"] = float(nn[m].mean()) if m.any() else float("nan")
+            res[f"nis_{name}_eval_acc"] = float(nn[m & aa].mean()) if (m & aa).any() else float("nan")
+            res[f"{name}_reject_frac_eval"] = float(1.0 - aa[m].mean()) if m.any() else float("nan")
+            res[f"n_{name}_eval"] = int(m.sum())
+        else:
+            res.update({f"nis_{name}_eval_pre": float("nan"), f"nis_{name}_eval_acc": float("nan"), f"{name}_reject_frac_eval": float("nan"), f"n_{name}_eval": 0})
     # A17 (additive columns): coverage of the filter's own covariance
     sig_psi = np.sqrt(np.maximum(out["cov3"][:, 2, 2], 1e-18))
     res.update(nees_cov95=float(np.mean(nees <= CHI2_3_95)), heading_cov95=float(np.mean(np.abs(F.wrap(err[keep][:, 2])) <= 1.96 * sig_psi[keep])))
@@ -157,6 +172,8 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
     res.update(heading_rmse_common_deg=float(np.sqrt(np.mean(head[common] ** 2))) if common.any() else float("nan"),
                pos_rmse_common_m=float(np.sqrt(np.mean(pos[common] ** 2))) if common.any() else float("nan"),
                heading_rmse_probe_deg=float(np.sqrt(np.mean(head[probe] ** 2))) if probe.any() else float("nan"), n_common_samples=int(common.sum()))
+    if TRACE_HOOK is not None:
+        TRACE_HOOK(world, out, err, nees)
     grid = np.arange(0.0, t[-1] + 1e-9, GRID_S)
     idx = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 1)
     return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))

@@ -87,7 +87,8 @@ class DriveFilter:
         self.cfg, self.lut = cfg, lut
         P = np.diag(np.array(cfg.p0_std, float) ** 2) if P0 is None else P0
         self.comps = [Component(1.0, np.array(x0, float), P)]
-        self.stats = dict(s_updates=0, s_rejected=0, r_updates=0, r_rejected=0, o_updates=0, o_rejected=0, nis_s=[])
+        self.stats = dict(s_updates=0, s_rejected=0, r_updates=0, r_rejected=0, o_updates=0, o_rejected=0, nis_s=[], s_log=[], r_log=[])    # s_log / r_log: (sample k, pre-gate NIS, accepted) for the EKF/IEKF path (A23 rev2 logging only)
+        self.cur_k = -1
         if cfg.kind == "gsf":
             self.reseed()
 
@@ -239,6 +240,7 @@ class DriveFilter:
             H[0], H[1] = (x[0] - a[0]) / d, (x[1] - a[1]) / d
             y = z - (d + cfg.range_offset)
             S = float(H @ c.P @ H + R)
+            self.stats["r_log"].append((self.cur_k, y * y / S, bool(y * y / S <= cfg.gate)))
             if y * y / S > cfg.gate:
                 self.stats["r_rejected"] += 1
                 continue
@@ -297,6 +299,7 @@ class DriveFilter:
             if it == 0:
                 nis = y * y / S
                 self.stats["nis_s"].append(nis)
+                self.stats["s_log"].append((self.cur_k, nis, bool(self._gate_ok(nis))))
                 if not self._gate_ok(nis):
                     self.stats["s_rejected"] += 1
                     return
@@ -432,6 +435,7 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
     cov3 = np.zeros((n, 3, 3))
     turn_prev = False
     for k in range(n):
+        f.cur_k = k
         if k > 0:
             ds, dg, do = inputs["ds_odom"][k], inputs["dtheta_gyro"][k], inputs["dtheta_odom"][k]
             if cfg.kind == "ukf":

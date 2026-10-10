@@ -115,3 +115,15 @@ def test_common_station_metrics_use_the_same_drive_positions_in_every_probe_sche
     assert by.loc["range_s_P0", "n_common_samples"] == by.loc["range_s_P1_T20", "n_common_samples"] == com[None].sum()
     assert np.isnan(by.loc["range_s_P0", "heading_rmse_probe_deg"]) and np.isfinite(by.loc["range_s_P1_T20", "heading_rmse_probe_deg"])
     assert np.isfinite(by[["heading_rmse_common_deg", "pos_rmse_common_m"]].to_numpy()).all()
+
+
+def test_eval_mask_nis_and_rejection_columns_are_logged_for_s_and_range():
+    """A23 rev2: pre-gate / accepted NIS and rejection fractions on the t >= 30 s mask, additive columns."""
+    w, banks = ideal_world(None, 45.0, n=420)
+    lut = L.HsLut(L.build_lut(banks, 6.0, 6.0))
+    rows, _ = E.run_unit({None: w}, lut, sensor=S.SensorNoise(), mismatch_sigma=0.05, anchor_xyz=tuple(SETUP.anchor_position), robot_z=SETUP.robot_antenna_z_m,
+                         range_offset=O.los_range_bias(banks[0].freqs_hz), snr_db=40.0, snr_idx=0, drift_idx=1, seed=4, compare_filters=False, baselines=[b for b in E.BASELINES if b["name"] == "range_s_P0"])
+    r = pd.DataFrame(rows).iloc[0]
+    assert r.n_s_eval > 0 and r.n_r_eval > 0
+    assert np.isfinite([r.nis_s_eval_pre, r.nis_r_eval_pre, r.s_reject_frac_eval, r.r_reject_frac_eval]).all()
+    assert 0.0 <= r.s_reject_frac_eval <= 1.0 and r.nis_s_eval_acc <= r.nis_s_eval_pre + 1e-9 or r.s_reject_frac_eval == 0.0
