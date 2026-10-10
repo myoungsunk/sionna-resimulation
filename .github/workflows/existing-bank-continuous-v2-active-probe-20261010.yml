@@ -1,0 +1,54 @@
+name: Existing-bank continuous Sensor-v2 EKF active-probe pilot
+on:
+  push:
+    branches: [codex/existing-bank-closed-loop-probe-20261010]
+    paths:
+      - '.github/workflows/existing-bank-continuous-v2-active-probe-20261010.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_existing_bank_closed_loop_v2.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fullroute-bank-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/run_existing_bank_closed_loop_v2.py
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R2_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R2_Tnone.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R4_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R4_Tnone.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R5_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R5_Tnone.csv
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R2_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R4_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R5_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical packages
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'scipy==1.15.2' 'scikit-learn==1.6.1' 'tabulate==0.9.0'
+      - name: Syntax and API check
+        run: python -m py_compile research/HEADING_RELIABILITY_20261010/run_existing_bank_closed_loop_v2.py
+      - name: Execute exact-station one-case smoke
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_existing_bank_closed_loop_v2.py --out research_results/BANK_ACTIVE_SMOKE_20261010 --smoke
+      - name: Execute frozen 7-case 3-drift 8-seed 5-arm continuous EKF
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_existing_bank_closed_loop_v2.py --out research_results/BANK_ACTIVE_FULL_20261010 --seeds 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: existing-bank-active-probe-fullroute-20261010
+          path: research_results
+          if-no-files-found: warn
+          retention-days: 30
