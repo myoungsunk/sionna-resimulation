@@ -1,0 +1,911 @@
+{
+  "config_sha256": "c90d0e7375e129e961f8e3cc4dda322358caf2cd9c3e02a5c5744df866ef9d64",
+  "config": {
+    "model_version": "sensor-v2",
+    "filter": {
+      "kind": "ekf",
+      "use_range": true,
+      "use_s": true,
+      "use_odom_heading": true,
+      "s_mode": "direct",
+      "skip_s_in_turn": false,
+      "mount_deg": 0.0,
+      "anchor_xyz": [
+        4.0,
+        0.0,
+        2.65
+      ],
+      "robot_z": 0.45,
+      "dt": 0.2,
+      "wheel_base": 0.287,
+      "p0_std": [
+        0.1,
+        0.1,
+        0.08726646259971647,
+        0.0020943951023931952,
+        0.0104,
+        0.0064
+      ],
+      "bias_rw_std": 0.0,
+      "pos_process_std": 0.0,
+      "s_var_inflation": 1.0,
+      "s_mismatch_sigma": 0.09,
+      "range_extra_sigma": 0.05,
+      "range_quant_var": 0.0018578637133572573,
+      "range_offset": -0.5315983906250129,
+      "arw_var": 1.3707783890401884e-08,
+      "k_s": 2e-05,
+      "k_theta": 0.0001,
+      "k_stheta": 1e-05,
+      "range_sigma": 0.05,
+      "noise_var_cir_tap": 2.555913871003335e-10,
+      "s_kind": "fp",
+      "noise_var_bin": 0.0,
+      "n_bins": 257,
+      "iekf_iters": 3,
+      "gsf_components": 5,
+      "gsf_prune": 0.0001,
+      "ukf_alpha": 0.4,
+      "inverse_min_slope_per_deg": 0.01,
+      "gate": 6.6349,
+      "model_version": "sensor-v2",
+      "known_wheelbase_error": 0.0,
+      "gyro_N_rad_sqrt_s": 0.0002617993877991494
+    },
+    "sensor": {
+      "model_version": "sensor-v2",
+      "level": 1,
+      "condition": "all",
+      "radius_nominal_m": 0.033,
+      "wheelbase_nominal_m": 0.287,
+      "common_scale": 0.0,
+      "bias_rw_rad_s_sqrt_s": 0.0,
+      "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+      "k_distance_m": 2e-05,
+      "k_yaw_rad": 0.0001,
+      "k_yaw_distance_rad2_m": 1e-05,
+      "slip_mode": "time",
+      "slip_rate_per_s": 0.050251679267507204,
+      "slip_probability_per_sample": 0.01,
+      "slip_t3_scale_rad": 0.008726646259971648,
+      "seed_namespace": 2201008,
+      "streams": {
+        "drift": 1,
+        "wheel": 2,
+        "gyro": 3,
+        "bias": 4,
+        "slip": 5,
+        "initial": 6,
+        "observation": 7
+      },
+      "levels": [
+        {
+          "name": "low",
+          "gyro_bias_dps": 0.01,
+          "gyro_sf": 0.005,
+          "wheel_ratio": 0.002,
+          "wheelbase_err": 0.005
+        },
+        {
+          "name": "mid",
+          "gyro_bias_dps": 0.05,
+          "gyro_sf": 0.01,
+          "wheel_ratio": 0.005,
+          "wheelbase_err": 0.0075
+        },
+        {
+          "name": "high",
+          "gyro_bias_dps": 0.2,
+          "gyro_sf": 0.015,
+          "wheel_ratio": 0.01,
+          "wheelbase_err": 0.01
+        }
+      ],
+      "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+      "gyro_definition": "Var(delta_angle)=N^2 dt",
+      "slip_std_rad": 0.015114994701951814,
+      "level_interpretation": "assumption-based sensitivity, not hardware performance"
+    },
+    "seeds": [
+      200,
+      201,
+      202,
+      203,
+      204,
+      205,
+      206,
+      207
+    ],
+    "n_samples": 201,
+    "snr_db": 35.0,
+    "code_revision": "2337c33fe25917029c2aa95973e6ae7672386a5e",
+    "RF_input_provenance": {
+      "source_path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/DRIVE_SIM_20261007/B_RESTART_20261007_01a115bd/S2/H_y0_m0.npy",
+      "source_sha256": "3d6c12a33bc3cb55eb6eb4daa478d405738f4093fc1a7327a0ba3b391c41fe2d",
+      "source_shape": [
+        1223,
+        257,
+        2,
+        2
+      ],
+      "selected_pose_ids": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        188,
+        189,
+        190,
+        191,
+        192,
+        193,
+        194,
+        195,
+        196,
+        197,
+        198,
+        199,
+        200
+      ],
+      "subset_sha256": "05c574ef2b3ec2f7f70b994a9c116a164c421a0fdb0a2093741dc87c500e2b7a",
+      "timeline_sha256": "8e8dea8122973abeb564f296c30fbd80dc04579fe516f0bf0a2e2b9ee6d1b499",
+      "lut_source_path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy",
+      "lut_sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079"
+    },
+    "claim": "connection smoke/limited evaluation only; F01/F02 remain open; no calibration or LUT validation rerun",
+    "truth_motion_convention": "legacy-euler",
+    "filter_motion_convention": "SE2 exponential; discretization mismatch retained",
+    "frequency_grid_source": "existing LP_plus45_bank.npz freqs_hz member; member hash recorded"
+  },
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\scripts\\drive_sim\\evaluate_sensor_v2_rf.py",
+      "sha256": "f10de7a756d3d4b35cd4a804e1daabfb6bfc19677306dbcc83b31f644c48d8b6",
+      "bytes": 6372
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\filter_v2.py",
+      "sha256": "7f6c424d44fa890073b3c8054053795fad374c1bd77db196591c6fec6855f063",
+      "bytes": 7298
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\sensor_v2.py",
+      "sha256": "8dadbdc6e73cff6839c1024334bd2eb0b0b8bc7506bdea49bdbfa938269230b9",
+      "bytes": 9138
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\observation.py",
+      "sha256": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+      "bytes": 6036
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\hs_lut.py",
+      "sha256": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+      "bytes": 10778
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\results\\DRIVE_SIM_20261007\\S1\\timeline_y0_Tnone.csv",
+      "sha256": "8e8dea8122973abeb564f296c30fbd80dc04579fe516f0bf0a2e2b9ee6d1b499",
+      "bytes": 95336
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\results\\SENSOR_V2_20261008\\PREREG_V2.md",
+      "sha256": "3e4e57405af0269272f6f338ebaabb11cf77880b455e2fdc896b562206d0bf2b",
+      "bytes": 5732
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\freqs_hz.npy",
+      "sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+      "bytes": 2184
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\frequency_provenance.json",
+      "sha256": "b8eaf3be0ede8f87ec0c173774a94a6680525d0129977382b9f0a86f2401ec3b",
+      "bytes": 211
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\hs_lut_2deg.npy",
+      "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "bytes": 11923328
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\hs_lut_meta.json",
+      "sha256": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+      "bytes": 995
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\H_selected.npy",
+      "sha256": "05c574ef2b3ec2f7f70b994a9c116a164c421a0fdb0a2093741dc87c500e2b7a",
+      "bytes": 3306176
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\H_y0_m0.manifest.json",
+      "sha256": "a0ee3ecff890f7aaf2743d478f42b125427906bf8a024e8a04df9cc31ba6a0a6",
+      "bytes": 1117
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF_INPUT\\provenance.json",
+      "sha256": "5ec12d744729fb7fa973a957f1b793ed3a04627c54a235b107f7a0bce4011348",
+      "bytes": 2608
+    }
+  ],
+  "outputs": [
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_200_online.npz",
+      "sha256": "5df18d9df32afa800626c146af09814b72f395a0874a7190da1f5fe1f3e8ad5e",
+      "bytes": 143360
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_200_online_range.npz",
+      "sha256": "abae73a2f37f4552a6e261cf21c0f1e495f5dfc5f0e145950cb51bec55b9c1cd",
+      "bytes": 147149
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_200_online_range_s_RF.npz",
+      "sha256": "5e57ed9347c8d41ef82432acc6842ef99a556db626a68af8553b1c04bbb18368",
+      "bytes": 151679
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_201_online.npz",
+      "sha256": "473cd4a044ce216b8a45f02eb687b9b9869cf7ffc1e8bf7aeba8a67ab0f07660",
+      "bytes": 143322
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_201_online_range.npz",
+      "sha256": "1cf7e98edacdd1eadfa9a46aac1a4d677406954fcf5ef363aafcb781f91ca031",
+      "bytes": 147156
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_201_online_range_s_RF.npz",
+      "sha256": "51d38437d4743a79ef9eba66f5d88bde43390f51203a008c183bec5bcb6cb737",
+      "bytes": 151788
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_202_online.npz",
+      "sha256": "42d76fbe64e5efbe583393bb602c5892bd0f70c40fc2853687d305cab136079c",
+      "bytes": 143360
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_202_online_range.npz",
+      "sha256": "664f2826587ba6937535f82314f8a3c44b8583d9328e439f849c22e9f46b31a6",
+      "bytes": 147216
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_202_online_range_s_RF.npz",
+      "sha256": "46c16cc8b9d4e50f7152160f317e2a9fbf2fd533f52de3fbbcd296d3f37229b8",
+      "bytes": 151744
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_203_online.npz",
+      "sha256": "50c0bb6b2620cbc916b8331b68a3b147cc59944d72d78bf24e70d2394e643cd3",
+      "bytes": 143220
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_203_online_range.npz",
+      "sha256": "3fffba40e5165c0529d3b4f19c10778746027d0965f33a0e2aa8bc319b4f0585",
+      "bytes": 147108
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_203_online_range_s_RF.npz",
+      "sha256": "c621abc572475d6c0c12265d7694b9254c0cf082046b843aa86caa04909dee51",
+      "bytes": 151730
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_204_online.npz",
+      "sha256": "fbfec54d88ced6e252ea33b1c48d59bc84da2a8f886a910c30f0a1abd9becb7b",
+      "bytes": 143319
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_204_online_range.npz",
+      "sha256": "00ac98e5dbcf4c164ed314ab1a77bcf681950740a761dc42c30417edda71cfd5",
+      "bytes": 147193
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_204_online_range_s_RF.npz",
+      "sha256": "cad6fd97030c685b78f0fe4e9e72fdfeae60ae45e9f7fa4b2bca7eeb3e6b30bb",
+      "bytes": 152024
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_205_online.npz",
+      "sha256": "a80245ecd237fb093fd964c280796867eaf6f13c6bb02bbe7fad5fff5deedc1e",
+      "bytes": 143239
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_205_online_range.npz",
+      "sha256": "f9abb1bed22e0c16c111c5c11b32b5d492698df7a6f58ef67fcb7ad22a336a3b",
+      "bytes": 147219
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_205_online_range_s_RF.npz",
+      "sha256": "f9d10b757a1ca0940f0e0dbb2fad28d488f3f71038d970a8ad0432c7568354dc",
+      "bytes": 151776
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_206_online.npz",
+      "sha256": "12f1511874fc446097f0bbef4c3a3d0505cbc31713bcaeffa2590ef99145d785",
+      "bytes": 143313
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_206_online_range.npz",
+      "sha256": "0728cd0846abd9cfde78adcb7c2a8472777d9f151da090d24b98942dd6280834",
+      "bytes": 147208
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_206_online_range_s_RF.npz",
+      "sha256": "914cc8a5f9e558da950561f698f2dd3a199c2106b8afdd699bea6aaa5fbb3a4e",
+      "bytes": 151887
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_207_online.npz",
+      "sha256": "97a0553c47b1e7d4651c3bde3cab744a611063a305ad72f48569d30767410237",
+      "bytes": 143302
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_207_online_range.npz",
+      "sha256": "efdc3f7c89ab91f1a16179bb3154e431d5bb86f7bcb84e5edf77fa8bb90c4687",
+      "bytes": 147225
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_matched_207_online_range_s_RF.npz",
+      "sha256": "0e77c437fa77b0a0b3eaa1328195f8642e9bfa4c4340e88aedfb55bad4e43969",
+      "bytes": 151870
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_200_online.npz",
+      "sha256": "71ca3588b52ce4613c32dee6ff679d5dc8f871fc8698a8e12f1a9cf1d6f07187",
+      "bytes": 143408
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_200_online_range.npz",
+      "sha256": "0b6aefadbeeb2fdbc350c58ab2a4431ca3b0a1819bf57d7a913a2aa4f638a441",
+      "bytes": 147184
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_200_online_range_s_RF.npz",
+      "sha256": "9e2869a2683923d7c66192adbf6d946e1476645899355defe827051c986b9de3",
+      "bytes": 151731
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_201_online.npz",
+      "sha256": "af4baa4a12849a05731aec295d9e1c3771e86ddc6f2e5a8bd23de800aaf52619",
+      "bytes": 143406
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_201_online_range.npz",
+      "sha256": "b722cb8b7fe207973178118f3a91ce2d76b242399bcfec4a647a3e82cce37daf",
+      "bytes": 147109
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_201_online_range_s_RF.npz",
+      "sha256": "b5865d6c42dbb9e6468829a3153cc0f43f45f8d94b0015084347040fabfa1747",
+      "bytes": 151742
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_202_online.npz",
+      "sha256": "2b1dc544bd7e10f38c5aad5777ca33bf313810ed96940bf4209e0321fa99abbf",
+      "bytes": 143404
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_202_online_range.npz",
+      "sha256": "b1a742317e067560047aaea6158131da29c9f35fd68b7644f994a9b66a8c62ac",
+      "bytes": 147122
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_202_online_range_s_RF.npz",
+      "sha256": "1a9255ed2f1e1fc1000b93ebdf790f1bd593930f075db9f1cf6b394c11ae09a5",
+      "bytes": 151798
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_203_online.npz",
+      "sha256": "5c5b3f07adfabf62f76c635a8d3a874d4807612071ad61c388b8ce2d5e7511d8",
+      "bytes": 143196
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_203_online_range.npz",
+      "sha256": "64c4fe3fa2cd78453f77b6d383a86c70436d0a9fae3bcb23505724d0b2c450f9",
+      "bytes": 147085
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_203_online_range_s_RF.npz",
+      "sha256": "e811146dcd10930ed9d22af8de66e58049fe064419aeb2600540d208640d4556",
+      "bytes": 151741
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_204_online.npz",
+      "sha256": "872c43442e348adf2a9ff55cfcd3bfc37f07f866086ecb02998cbc4654e6b171",
+      "bytes": 143336
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_204_online_range.npz",
+      "sha256": "5055448ce890f20d7405ddf69d65a1ee5309ca468c6d5bb85f2f3e628b4c3f53",
+      "bytes": 147245
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_204_online_range_s_RF.npz",
+      "sha256": "188af9bff134304dfe4825ed3aebd41733fa6d89cf63348bec9d8912ed107a84",
+      "bytes": 152015
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_205_online.npz",
+      "sha256": "2eb7ba938993c30eb4f85be6328d1c78805867252fbe392626763054079b052b",
+      "bytes": 143293
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_205_online_range.npz",
+      "sha256": "cc7008697ed01f9b1914db2f73a0527ac8ddf49c11b30569fa7ffbb1aef31aa6",
+      "bytes": 147262
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_205_online_range_s_RF.npz",
+      "sha256": "8818a27a095f728596efc6d398f04cd7dcb37fa821455f1dbf94a002701365df",
+      "bytes": 151756
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_206_online.npz",
+      "sha256": "b6c61f5d989155608baec91eac03f3a0b4374aa8bd190301dac5ded880aa0c56",
+      "bytes": 143370
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_206_online_range.npz",
+      "sha256": "9f2316c5bbb4f34fff18dc2f47d48b657e631592cbaa294f0eab9d9ba549bf2b",
+      "bytes": 147200
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_206_online_range_s_RF.npz",
+      "sha256": "449cb2152278324bd466e8b6bef06c245dabd1b9c94f628a21730fed34a0a78c",
+      "bytes": 151802
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_207_online.npz",
+      "sha256": "b3834e19a9f02b21c4ac42e835b7bc7fd32a2ccf924afeebb689eb5bb0349cd5",
+      "bytes": 143338
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_207_online_range.npz",
+      "sha256": "e58ac224e5055e841ca37bdf2dff766c6354de6d620e882ade6f5d007ec736db",
+      "bytes": 147187
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\exact_unknown_207_online_range_s_RF.npz",
+      "sha256": "0c3c0f10d8fd32a218960c8400ae0690f27a00a11233570f6b73a106553e3ec8",
+      "bytes": 151808
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_200_online.npz",
+      "sha256": "57582b1118319212007cc4a6dea6d24c97ebf87ae010d9a4548ac121fe41466d",
+      "bytes": 143329
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_200_online_range.npz",
+      "sha256": "cd4d6031da169c7bb7c1973c5e1992b92f5d54fff82ad1348fa835499e68bbfe",
+      "bytes": 147295
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_200_online_range_s_RF.npz",
+      "sha256": "00d917b9b7544685209c2d65b5f25b11cb232aea74949497312c96da9a6238a8",
+      "bytes": 152246
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_201_online.npz",
+      "sha256": "31617e35c207bf149f690306d46d25eb30ea6a5afa755629a9b3bf592ab0c263",
+      "bytes": 143008
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_201_online_range.npz",
+      "sha256": "be618c885c9d58ec6227268a40683cdccff9a0edc04f4348496b7790f7fd6532",
+      "bytes": 147267
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_201_online_range_s_RF.npz",
+      "sha256": "eccd42505236dbd1984a12cbc510e1164cc855c58ef26b5665afa4d6ae60f7b3",
+      "bytes": 152197
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_202_online.npz",
+      "sha256": "89583e8f0de2e4bb20c45b99dc9b08785bba88fa6499c9d13d7b3d7466dddaf8",
+      "bytes": 143167
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_202_online_range.npz",
+      "sha256": "c277612767d1fd7c2e5b4e740f5fadd13626a66996df94b21ab15b0d18ca83f0",
+      "bytes": 147375
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_202_online_range_s_RF.npz",
+      "sha256": "fd552cc98af1a452cd9ecbb669d9e1e1b133e8d3cd193b8ff57b6213cb08f424",
+      "bytes": 152233
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_203_online.npz",
+      "sha256": "c348316fe0d60a7f2f92bc357650cdf619c94d60e56014a6432e8dc36ee60f90",
+      "bytes": 143076
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_203_online_range.npz",
+      "sha256": "39da1b27488fc82b93eeccaa71f7879682a85e4244c0324165a2805535eeb11d",
+      "bytes": 147345
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_203_online_range_s_RF.npz",
+      "sha256": "2d54436d9b79a20533d7d7ce1914ac36c1905e910223bf71311378ed20ed39e8",
+      "bytes": 152152
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_204_online.npz",
+      "sha256": "5d9ab3bea4b89d0503135ea25ad4fdff02a7a3c826f633a4644eff1759652ce3",
+      "bytes": 143248
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_204_online_range.npz",
+      "sha256": "5576e02f8e065bdfb613060c720ef1d7c4facf086332ff10926092d14f6e1f64",
+      "bytes": 147338
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_204_online_range_s_RF.npz",
+      "sha256": "57cb69933c7452fbd0ac0ce429c29ca8a0395c5e2773da0b1b5fc8dd4a6d71da",
+      "bytes": 152233
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_205_online.npz",
+      "sha256": "230bf0652c14ab09b610718285072aa9afc67c678139ec18d22ed5d7d4f5a8a7",
+      "bytes": 143202
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_205_online_range.npz",
+      "sha256": "d350c1f27d7547f89e743fe0a0b83a3cd1fa3ba42e96b35197c60206ac7fc317",
+      "bytes": 147352
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_205_online_range_s_RF.npz",
+      "sha256": "110ce81e98b0df110c299db1045520a5218961b6e88d753d0184e8cec1da9b21",
+      "bytes": 152342
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_206_online.npz",
+      "sha256": "e0eaee8bd3c08591ba986f2ba7c0d866693513d940d49f93fab8c84edac7bb32",
+      "bytes": 143015
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_206_online_range.npz",
+      "sha256": "03bf1a7c68ac13633d6b7ee4b8812dad87cfe6eee2ebd96e64677ffd12fb2a24",
+      "bytes": 147375
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_206_online_range_s_RF.npz",
+      "sha256": "e85a43013940d66d346da9de83d4b558db9f1877d5f178e7426f80512fe8043d",
+      "bytes": 152154
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_207_online.npz",
+      "sha256": "bfc88db3ac5d5b05098889d7f4833070d384c5af33c66f0979aa239df3344b95",
+      "bytes": 143312
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_207_online_range.npz",
+      "sha256": "2619e124cde9783a309a1c28a4714c13eb41575d660e7837548b073b75aae437",
+      "bytes": 147419
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_matched_207_online_range_s_RF.npz",
+      "sha256": "7e8e6cc85c7685e053ef3a0a3bebcb9a0a8cdfbff73e0b739b4848c881f0e4d9",
+      "bytes": 152283
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_200_online.npz",
+      "sha256": "ddf407281a77136a38d12aad17e28a73ce4c894fc3456d5d404187325d120ab9",
+      "bytes": 143386
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_200_online_range.npz",
+      "sha256": "0464180c58a99a98f267d1c9788a949922f7714c0e13c40bad069b20250ec86a",
+      "bytes": 147378
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_200_online_range_s_RF.npz",
+      "sha256": "78f3c3845e5c78c5ce549b525b032ccd7d2881f5253b0b27983c77291a390ae5",
+      "bytes": 152253
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_201_online.npz",
+      "sha256": "95385d28b43fa5df76c559494d71b9cf66492f4d5e81a6057a51a90d958568b2",
+      "bytes": 143008
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_201_online_range.npz",
+      "sha256": "7a0db65c37d8f4d2e2624efc857e19fb3876bfafa36774607577caf65f727fad",
+      "bytes": 147364
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_201_online_range_s_RF.npz",
+      "sha256": "826aae51c4aca9ef6db11b2de2c5bba275c7bdc9d93a47d43d10b04b499704b2",
+      "bytes": 152186
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_202_online.npz",
+      "sha256": "a8e1bc1d2d59a17b9a0064168bc9585ca06968c11d358d5555eb52654772a8a4",
+      "bytes": 143223
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_202_online_range.npz",
+      "sha256": "40807c2ebe964c2d14657492022d71af668d57742d155d3682efbd301dea946c",
+      "bytes": 147372
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_202_online_range_s_RF.npz",
+      "sha256": "1acf4fe2e52f24da1a76f5ff5a46a85cb6602d8996294f6bf09b6bd246bdd77b",
+      "bytes": 152293
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_203_online.npz",
+      "sha256": "d498bc2463c99689b0f5080743d950607e530879a0d4e2d92a134293a1f91bac",
+      "bytes": 143076
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_203_online_range.npz",
+      "sha256": "71995cf49b6853b001db0b2da7c69096e7a5ef68c775b034bc97fb297f9e8265",
+      "bytes": 147337
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_203_online_range_s_RF.npz",
+      "sha256": "fc9b2b33863eaa35b51e760d79e22d33981797c300c30ac969c01a585c23412e",
+      "bytes": 152116
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_204_online.npz",
+      "sha256": "8ea517318583095a4bde1f957a397e4ab9aa0e7361bba09f522b9479abd4736d",
+      "bytes": 143274
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_204_online_range.npz",
+      "sha256": "d5a9229f2db96e7b4c7a88a47c8b34420be8632e36a518807913156e30146e3f",
+      "bytes": 147366
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_204_online_range_s_RF.npz",
+      "sha256": "529d8759524172ff574c0125dffadffc36dafb730084eca2347f96f8279b27bc",
+      "bytes": 152241
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_205_online.npz",
+      "sha256": "4d06430e1a1735483398cb4d43a39ec13c2c9ba642ac49e612273f43b1c5531e",
+      "bytes": 143215
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_205_online_range.npz",
+      "sha256": "e92889455b9882c2e4deb535742e87f8c563c9ed4b51266294d26437071a9fae",
+      "bytes": 147374
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_205_online_range_s_RF.npz",
+      "sha256": "152deaf32a1cb5b8480ff1e5b85149bb1f3d7f73ab84a3e618cb7d09f24e8b9d",
+      "bytes": 152256
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_206_online.npz",
+      "sha256": "6f5356c838a245dad867e2279b2a9714060a28d77c356e534e8c344655135add",
+      "bytes": 143097
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_206_online_range.npz",
+      "sha256": "11d3927c42bba5d36d4f2d2c111fc05e15712ac64cb60c3635e707ecfa786903",
+      "bytes": 147382
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_206_online_range_s_RF.npz",
+      "sha256": "8bc2035dda149a7511479161ee2f898c482ecfc28a857a886b9472b399957055",
+      "bytes": 152131
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_207_online.npz",
+      "sha256": "1173f6b3913a27d4f6f7eeb477a4f26fbb0bd9843f9a0f4b5d59c87cdaf7309d",
+      "bytes": 143343
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_207_online_range.npz",
+      "sha256": "4e53b5db549f23b07405e08ff61322b3e2fe9cdcbb592b40bf5fd10f3f8109ce",
+      "bytes": 147336
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\raw\\legacy-prior_unknown_207_online_range_s_RF.npz",
+      "sha256": "48515d1bc1c134672e5f51f5e7c0d28ecea601b76d4516a4f3451a4f280e2515",
+      "bytes": 152279
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\RF8_complete\\runs.json",
+      "sha256": "d81b435447d5d4bfab44754a910270fc32d37f2e33cda4c625221944290f1a59",
+      "bytes": 104261
+    }
+  ],
+  "timestamp_utc": "2026-10-08T06:02:53Z",
+  "command": [
+    "scripts/drive_sim/evaluate_sensor_v2_rf.py",
+    "--input",
+    "results/SENSOR_V2_20261008/RF_INPUT",
+    "--out",
+    "results/SENSOR_V2_20261008/RF8_complete"
+  ]
+}

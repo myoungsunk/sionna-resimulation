@@ -1,0 +1,1002 @@
+diff --git a/scripts/drive_sim/run_experiments.py b/scripts/drive_sim/run_experiments.py
+index 9c3344e..77176a2 100644
+--- a/scripts/drive_sim/run_experiments.py
++++ b/scripts/drive_sim/run_experiments.py
+@@ -45,6 +45,7 @@ def work(args):
+ 
+ def main():
+     ap = argparse.ArgumentParser()
++    ap.add_argument("--model-version", choices=("legacy", "sensor-v2"), default="legacy")
+     ap.add_argument("--s1", type=Path, required=True)
+     ap.add_argument("--h-dir", type=Path, required=True)
+     ap.add_argument("--lut", type=Path, required=True)
+@@ -62,6 +63,8 @@ def main():
+     ap.add_argument("--max-samples", type=int, default=0, help="smoke test: truncate every timeline")
+     ap.add_argument("--no-compare-filters", action="store_true")
+     args = ap.parse_args()
++    if args.model_version != "legacy":
++        ap.error("sensor-v2 uses run_sensor_v2.py with separate raw outputs; production launchers are legacy only")
+     args.out.mkdir(parents=True, exist_ok=True)
+     setup = CorridorSetup()
+     meta = json.loads((args.lut.parent / "hs_lut_meta.json").read_text())["meta"]
+diff --git a/scripts/drive_sim/run_route_experiments.py b/scripts/drive_sim/run_route_experiments.py
+index fc27ce9..2256a9e 100644
+--- a/scripts/drive_sim/run_route_experiments.py
++++ b/scripts/drive_sim/run_route_experiments.py
+@@ -46,6 +46,7 @@ def work(args):
+ 
+ def main():
+     ap = argparse.ArgumentParser()
++    ap.add_argument("--model-version", choices=("legacy", "sensor-v2"), default="legacy")
+     ap.add_argument("--s1-routes", type=Path, required=True)
+     ap.add_argument("--h-dir", type=Path, required=True)
+     ap.add_argument("--lut", type=Path, required=True)
+@@ -64,6 +65,8 @@ def main():
+     ap.add_argument("--max-samples", type=int, default=0)
+     ap.add_argument("--no-compare-filters", action="store_true")
+     args = ap.parse_args()
++    if args.model_version != "legacy":
++        ap.error("sensor-v2 uses run_sensor_v2.py with separate raw outputs; production launchers are legacy only")
+     args.out.mkdir(parents=True, exist_ok=True)
+     doc = json.loads((args.lut.parent / "hs_lut_meta.json").read_text())
+     lut = HsLut(dict(theta_deg=np.array(doc["meta"]["theta_deg"]), phi_deg=np.arange(-180.0, 180.0, doc["meta"]["phi_deg"][2]), s=np.load(args.lut)))
+diff --git a/src/qclean_uwb/drivesim/experiment.py b/src/qclean_uwb/drivesim/experiment.py
+index a1a8b3a..00d2b41 100644
+--- a/src/qclean_uwb/drivesim/experiment.py
++++ b/src/qclean_uwb/drivesim/experiment.py
+@@ -125,6 +125,11 @@ def filter_config(base: dict, world: World, obs: dict, sensor: S.SensorNoise, mi
+ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsLut | None, x0) -> dict:
+     flags = dict(turn_phase=world.turn_phase)
+     out = F.run_filter(cfg, lut, inputs, obs, flags, x0)
++    return summarize_output(world, out, cfg.model_version)
++
++
++def summarize_output(world: World, out: dict, model_version="legacy") -> dict:
++    """Shared legacy/v2 evaluation; arithmetic and common-section masks preserved."""
+     truth = world.truth
+     err = out["est"][:, :3] - truth
+     err[:, 2] = F.wrap(err[:, 2])
+@@ -159,7 +164,10 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
+                heading_rmse_probe_deg=float(np.sqrt(np.mean(head[probe] ** 2))) if probe.any() else float("nan"), n_common_samples=int(common.sum()))
+     grid = np.arange(0.0, t[-1] + 1e-9, GRID_S)
+     idx = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 1)
+-    return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))
++    result = dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))
++    if model_version == "sensor-v2":
++        result["raw"] = out
++    return result
+ 
+ 
+ PERIOD_CODE = {None: 0, 10.0: 1, 20.0: 2, 60.0: 3}
+diff --git a/src/qclean_uwb/drivesim/filters.py b/src/qclean_uwb/drivesim/filters.py
+index 8e4f911..48c845b 100644
+--- a/src/qclean_uwb/drivesim/filters.py
++++ b/src/qclean_uwb/drivesim/filters.py
+@@ -61,6 +61,9 @@ class FilterConfig:
+     ukf_alpha: float = 0.4
+     inverse_min_slope_per_deg: float = 0.01
+     gate: float = CHI2_1_99
++    model_version: str = "legacy"
++    known_wheelbase_error: float = 0.0
++    gyro_N_rad_sqrt_s: float = math.radians(0.015)
+ 
+ 
+ def wrap(a):
+@@ -410,6 +413,11 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
+     inputs: dtheta_gyro, ds_odom, dtheta_odom (n,);  obs: s, range_m, detected, power (n,2);  flags: turn_phase (n,) bool.
+     Returns estimates and covariance blocks per sample (+ NEES/NIS statistics when ``truth`` is given).
+     """
++    if cfg.model_version == "sensor-v2":
++        from .filter_v2 import run_filter_v2
++        return run_filter_v2(cfg, lut, inputs, obs, flags, x0)
++    if cfg.model_version != "legacy":
++        raise ValueError("unknown sensor model version")
+     n = len(inputs["ds_odom"])
+     f = DriveFilter(cfg, lut, x0)
+     est = np.zeros((n, N))
+diff --git a/src/qclean_uwb/drivesim/evaluation_v2.py b/src/qclean_uwb/drivesim/evaluation_v2.py
+new file mode 100644
+--- /dev/null
++++ b/src/qclean_uwb/drivesim/evaluation_v2.py
+@@ -0,0 +1,151 @@
++"""Bounded evaluation and raw evidence; synthetic sensors are explicitly labelled."""
++from __future__ import annotations
++from dataclasses import asdict, replace
++import json
++from pathlib import Path
++import subprocess
++import numpy as np
++from . import sensor_v2 as V, filters as F, experiment as E
++from .filter_v2 import run_filter_v2
++from .hs_lut import s_model
++from .config import build_manifest, file_sha256
++
++class IdealRatio:
++    """Analytic synthetic ratio, NOT an FFD/RF-derived LUT or a heading observation."""
++    def __call__(self, theta, phi_tx, phi_rx, with_grad=False):
++        a=np.radians(phi_rx); h=.6*np.cos(a)
++        if not with_grad:return h
++        zeros=np.zeros_like(h)
++        return h,np.stack([zeros,zeros,-.6*np.sin(a)*np.pi/180],axis=-1)
++
++
++def mixed_world(dt=.2):
++    controls=((2,0,0),(12,.2,0),(8,.1,0),(4,0,.25),(8,.15,-.2),(8,-.15,0),(4,0,-.25),(12,.25,0),(6,0,0))
++    ds=[0.];a=[0.]
++    for duration,v,w in controls:
++        if abs(duration/dt-round(duration/dt))>1e-10: raise ValueError('dt must divide segment durations')
++        ds.extend([v*dt]*round(duration/dt));a.extend([w*dt]*round(duration/dt))
++    ds,a=np.array(ds),np.array(a);t=np.arange(len(ds))*dt;pose=V.integrate(ds,a)
++    rows=[dict(idx=k,t_s=float(t[k]),x=float(pose[k,0]),y=float(pose[k,1]),yaw_body_deg=float(np.degrees(pose[k,2])),
++               turn_phase=bool(abs(a[k])>0),drive_g=k,probe_id=-1,phase='drive') for k in range(len(t))]
++    return E.World(rows,np.empty((len(t),0,2,2)),np.empty(0),0.,0.,None,route='synthetic-mixed'),ds,a
++
++
++def directional(truth,est,ds,a,anchor):
++    error=est[:,:2]-truth[:,:2];c=np.cos(truth[:,2]);s=np.sin(truth[:,2])
++    rho=truth[:,:2]-np.array(anchor[:2]);r=np.linalg.norm(rho,axis=1)
++    valid=r>1e-6;unit=np.zeros_like(rho);unit[valid]=rho[valid]/r[valid,None]
++    # Body frame exists during stop/reverse; movement-aligned interpretation is masked.
++    body=np.column_stack([error[:,0]*c+error[:,1]*s,-error[:,0]*s+error[:,1]*c])
++    radial=np.sum(error*unit,axis=1);tangent=-error[:,0]*unit[:,1]+error[:,1]*unit[:,0]
++    radial[~valid]=np.nan;tangent[~valid]=np.nan
++    estimated_a=np.r_[0.,V.wrap(np.diff(est[:,2]))]
++    heading_reintegration=V.integrate(ds,estimated_a,est[0,:3])
++    return dict(body_forward_m=body[:,0],body_lateral_m=body[:,1],anchor_radial_m=radial,anchor_tangential_m=tangent,
++                anchor_direction_valid=valid,body_motion_valid=np.abs(ds)>1e-12,reverse_mask=ds<0,stop_mask=(ds==0)&(a==0),
++                auxiliary_heading_reintegrated_pose=heading_reintegration)
++
++
++def serialize(obj):
++    if isinstance(obj,dict):return {k:serialize(v) for k,v in obj.items()}
++    if isinstance(obj,(list,tuple)):return [serialize(v) for v in obj]
++    if isinstance(obj,np.ndarray):return serialize(obj.tolist())
++    if isinstance(obj,np.generic):return serialize(obj.item())
++    if isinstance(obj,float) and not np.isfinite(obj):return None
++    return obj
++
++
++def plain_output(pose):
++    n=len(pose);est=np.zeros((n,6));est[:,:3]=pose
++    return dict(est=est,cov3=np.full((n,3,3),np.nan),stats=dict(s_updates=0,s_rejected=0,r_updates=0,r_rejected=0,nis_s=[]))
++
++
++def evaluate(outdir,seed_start=200,count=48,initials=('exact','legacy-prior'),wheelbases=('matched','unknown'),condition='all',level=1,dt=.2,sensor_config=None,filter_config=None):
++    outdir=Path(outdir)
++    if outdir.exists() and any(outdir.iterdir()): raise FileExistsError('output directory must be empty')
++    outdir.mkdir(parents=True,exist_ok=True);rawdir=outdir/'raw';rawdir.mkdir()
++    world,ds,a=mixed_world(dt);t=world.t;truth=world.truth;n=len(t);lut=IdealRatio();records=[];files=[]
++    methods=('ideal_increments','wheel_only','wheel_distance_gyro_fixed','wheel_gyro_online','online_range','online_range_s_ideal_ratio')
++    for init in initials:
++        for wb in wheelbases:
++            for seed in range(seed_start,seed_start+count):
++                sensor=sensor_config or V.SensorV2Config(level=level,condition=condition)
++                inputs,ev=V.generate(t,ds,a,sensor,seed,dict(wheelbase=0. if wb=='matched' else .0075))
++                base=filter_config or F.FilterConfig(model_version='sensor-v2',dt=dt,bias_rw_std=0.,use_range=False,use_s=False)
++                x0=np.r_[truth[0],0.,0.,0.];P0=np.diag(np.array(base.p0_std)**2)
++                if init=='exact': P0[:3,:3]=0
++                else: x0[:3]+=V.rng(seed,'initial').normal(size=3)*np.array(base.p0_std[:3])
++                draw=V.rng(seed,'observation')
++                true_range=np.sqrt(np.sum((truth[:,:2]-np.array(base.anchor_xyz[:2]))**2,axis=1)+(base.anchor_xyz[2]-base.robot_z)**2)
++                # No tap quantization, range bias, first-path detector, antenna or RF solver here.
++                obs=dict(detected=np.ones(n,bool),range_m=true_range+draw.normal(0,.05,n),
++                         s=s_model(lut,base.anchor_xyz,base.robot_z,*truth.T)+draw.normal(0,.09,n),power=np.ones((n,2)))
++                flags=dict(turn_phase=world.turn_phase)
++                for method in methods:
++                    cfg=base
++                    if method=='ideal_increments':out=plain_output(V.integrate(ds,a,x0[:3]))
++                    elif method=='wheel_only':out=plain_output(V.integrate(inputs['ds_odom'],inputs['dtheta_odom'],x0[:3]))
++                    elif method=='wheel_distance_gyro_fixed':out=plain_output(V.integrate(inputs['ds_odom'],inputs['dtheta_gyro'],x0[:3]))
++                    else:
++                        cfg=replace(base,use_range=method!='wheel_gyro_online',use_s=method=='online_range_s_ideal_ratio')
++                        out=run_filter_v2(cfg,lut if cfg.use_s else None,inputs,obs,flags,x0,P0)
++                    summary=E.summarize_output(world,out)
++                    m=summary['metrics']
++                    if 'cov_full' not in out:
++                        for key in ('nees_mean','nees_cov95','heading_cov95'):m[key]=None
++                        endpoint_nees=None;endpoint_cov=None
++                    else:
++                        err=out['est'][-1,:3]-truth[-1];err[2]=V.wrap(err[2]);P=out['cov3'][-1]
++                        endpoint_nees=float(err@np.linalg.solve(P,err));endpoint_cov=endpoint_nees<=E.CHI2_3_95
++                    directions=directional(truth,out['est'],ds,a,base.anchor_xyz)
++                    keep=t>=E.EXCLUDE_S
++                    for key in ('body_forward_m','body_lateral_m','anchor_radial_m','anchor_tangential_m'):
++                        values=directions[key][keep];m[key+'_rmse']=float(np.sqrt(np.nanmean(values**2)))
++                    row=dict(seed=seed,initial=init,wheelbase=wb,method=method,condition=sensor.condition,
++                             observation='synthetic_range_ratio' if cfg.use_s else ('synthetic_range' if cfg.use_range else 'none'),
++                             endpoint_pose_nees=endpoint_nees,endpoint_pose_cov95=endpoint_cov,metrics=m)
++                    records.append(row)
++                    archive=dict(time_s=t,evaluation_truth_pose=truth,estimate_state=out['est'],initial_state=x0,initial_prior=P0,
++                                 evaluation_mask=keep,common_mask=(world.probe_id<0)&(world.drive_g>=E.COMMON_FROM_DRIVE_G),seed=np.array(seed))
++                    archive.update({'sensor_'+k:np.asarray(v) for k,v in inputs.items()})
++                    archive.update({'evaluation_'+k:np.asarray(v) for k,v in ev.items()})
++                    archive.update({'observation_'+k:np.asarray(v) for k,v in obs.items()})
++                    archive.update(directions)
++                    effective_distance=inputs['ds_odom']
++                    archive['auxiliary_distance_reintegrated_pose']=V.integrate(effective_distance,a,x0[:3])
++                    # Reintegrations use measured distance/estimated heading separately, never a causal attribution.
++                    if 'cov_full' in out:
++                        archive['estimate_covariance_full']=out['cov_full'];archive.update(out['observation_trace'])
++                    else:archive['covariance_available']=np.array(False)
++                    stem=f'{init}_{wb}_{seed}_{method}';p=rawdir/(stem+'.npz')
++                    with p.open('xb') as f:np.savez_compressed(f,**archive)
++                    files.append(p)
++                print(f'completed {init}/{wb}/seed{seed}',flush=True)
++    results=outdir/'runs.json';results.write_text(json.dumps(serialize(records),indent=2,allow_nan=False),encoding='utf8');files.append(results)
++    aggregated=[]
++    for init in initials:
++        for wb in wheelbases:
++            for method in methods:
++                selected=[r for r in records if r['initial']==init and r['wheelbase']==wb and r['method']==method]
++                nees=[r['endpoint_pose_nees'] for r in selected if r['endpoint_pose_nees'] is not None]
++                rmse=np.array([r['metrics']['pos_rmse_common_m'] for r in selected])
++                aggregated.append(dict(initial=init,wheelbase=wb,method=method,n_runs=len(selected),common_pos_rmse_mean_m=float(rmse.mean()),common_pos_rmse_std_m=float(rmse.std(ddof=1)) if count>1 else None,
++                                       endpoint_nees_mean=float(np.mean(nees)) if nees else None,
++                                       endpoint_coverage95=float(np.mean([r['endpoint_pose_cov95'] for r in selected])) if nees else None,
++                                       inference_claim='synthetic bounded diagnostic; no RF/scientific acceptance gate'))
++    aggregate=outdir/'aggregate.json';aggregate.write_text(json.dumps(serialize(aggregated),indent=2),encoding='utf8');files.append(aggregate)
++    root=Path(__file__).resolve().parents[3]
++    source=[root/'src/qclean_uwb/drivesim'/x for x in ('sensor_v2.py','filter_v2.py','evaluation_v2.py','filters.py','experiment.py','sensors.py','hs_lut.py','observation.py')]
++    prereg=root/'results/SENSOR_V2_20261008/PREREG_V2.md'
++    config=dict(model_version='sensor-v2',sensor=sensor.manifest(),filter=asdict(base),filter_method_overrides={m:dict(use_range=m in ('online_range','online_range_s_ideal_ratio'),use_s=m=='online_range_s_ideal_ratio') for m in methods},dt_s=dt,seed_start=seed_start,n_runs=count,
++                initializations=list(initials),wheelbase_conditions=list(wheelbases),methods=methods,
++                synthetic_observation='range sigma .05m + analytic ratio .6cos(phi_rx) sigma .09; no RF H/LUT used',
++                synthetic_range_filter_R='legacy .05^2 + tap quantization variance + extra .05^2 preserved, intentionally exceeds synthetic generator',
++                evaluation_unit='independent seed/run; times are correlated',calibration_data='none, no fitting or tuning',
++                truth_field_policy='evaluation_* only; generator/controlled initialization and evaluation use truth; EKF receives measurements only',
++                covariance_policy='full covariance only for online EKF; deterministic/fixed baselines do not claim a prior',
++                code_revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
++                modified_source_hashes={str(p.relative_to(root)):file_sha256(p) for p in source})
++    manifest=build_manifest(config=config,inputs=source+[prereg],outputs=files)
++    (outdir/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
++    return aggregated
+diff --git a/src/qclean_uwb/drivesim/filter_v2.py b/src/qclean_uwb/drivesim/filter_v2.py
+new file mode 100644
+--- /dev/null
++++ b/src/qclean_uwb/drivesim/filter_v2.py
+@@ -0,0 +1,140 @@
++"""SE(2) EKF with shared-input prediction/odometry correlation. No truth inputs."""
++from __future__ import annotations
++import numpy as np
++from .filters import DriveFilter, wrap, CHI2_1_999
++from .hs_lut import s_model
++
++
++def transition(x, distance, gyro, dt, b):
++    D=1+x[4]
++    if D <= 0: raise ValueError('invalid gyro scale state')
++    a=(gyro-x[3]*dt)/D
++    u=distance-x[5]*b*a/4
++    half=a/2
++    if abs(half)<1e-5:
++        s=1-half**2/6+half**4/120
++        sp=-half/3+half**3/30
++    else:
++        s=np.sin(half)/half
++        sp=(half*np.cos(half)-np.sin(half))/half**2
++    direction=np.array([np.cos(x[2]+half),np.sin(x[2]+half)])
++    perpendicular=np.array([-direction[1],direction[0]])
++    pu=s*direction; pa=u*(sp*direction+s*perpendicular)/2
++    F=np.eye(6); G=np.zeros((6,3))
++    F[:2,2]=u*s*perpendicular
++    for j, da in ((3,-dt/D),(4,-a/D),(5,0.)):
++        du=-x[5]*b*da/4-(b*a/4 if j==5 else 0.)
++        F[:2,j]=pu*du+pa*da; F[2,j]=da
++    G[:2,0]=pu
++    G[:2,1]=(pa-pu*x[5]*b/4)/D; G[2,1]=1/D
++    out=x.copy(); out[:2]+=u*s*direction; out[2]=wrap(out[2]+a)
++    return out,F,G
++
++
++def odometry_model(x, distance, gyro, dt, b_nom, known_eb=0.):
++    D=1+x[4]; b=b_nom/(1+known_eb); eps=x[5]
++    a=(gyro-x[3]*dt)/D; L=1-eps**2/4; scale=1/(1+known_eb)
++    h=scale*(L*a+eps*distance/b)
++    H=np.zeros(6); H[3]=-scale*L*dt/D; H[4]=-scale*L*a/D
++    H[5]=scale*(distance/b-eps*a/2)
++    hd=scale*eps/b; hg=scale*L/D
++    return h,H,np.array([-hd,-hg,1.])
++
++
++def correlated_update(x,P,H,y,R,C):
++    """e=true-est, Cov(e_minus,v)=C. Returns Joseph covariance and S."""
++    S=float(H@P@H+R+2*H@C)
++    if S <= 1e-20: return x,P,S
++    U=P@H+C; K=U/S; M=np.eye(len(x))-np.outer(K,H)
++    newP=M@P@M.T+R*np.outer(K,K)-np.outer(M@C,K)-np.outer(K,M@C)
++    newx=x+K*y; newx[2]=wrap(newx[2])
++    return newx,(newP+newP.T)/2,S
++
++
++class SensorV2Filter(DriveFilter):
++    def __init__(self,cfg,lut,x0,P0=None):
++        if cfg.model_version!='sensor-v2' or cfg.kind!='ekf' or cfg.s_mode!='direct':
++            raise ValueError('sensor-v2 supports EKF direct-s only; IEKF/UKF/GSF/inverse are unverified')
++        if cfg.known_wheelbase_error <= -1: raise ValueError('invalid known wheelbase')
++        if cfg.pos_process_std != 0: raise ValueError('sensor-v2 position slack is disabled; no tuning to hide mismatch')
++        if cfg.use_s and lut is None: raise ValueError('s update requires an explicit LUT; no implicit synthetic replacement')
++        super().__init__(cfg,lut,x0,P0)
++
++    def step(self,d,g,o,dt):
++        c=self.comps[0]; cfg=self.cfg; xp=c.x.copy()
++        b=cfg.wheel_base/(1+cfg.known_wheelbase_error)
++        c.x,F,G=transition(xp,d,g,dt,b)
++        Q=np.diag([cfg.k_s*abs(d),cfg.gyro_N_rad_sqrt_s**2*dt,
++                   cfg.k_theta*abs(o)+cfg.k_stheta*abs(d)])
++        c.P=F@c.P@F.T+G@Q@G.T
++        h,H,B=odometry_model(xp,d,g,dt,cfg.wheel_base,cfg.known_wheelbase_error)
++        # Odometry identifies the PRE-step calibration state. Pose does not enter h,
++        # and calibration is fixed until the endpoint bias-RW increment below.
++        C=-G@Q@B; R=float(B@Q@B); y=o-h
++        S=float(H@c.P@H+R+2*H@C)
++        status='disabled'
++        if cfg.use_odom_heading:
++            if S<=1e-20: status='zero_variance'
++            elif y*y/S>CHI2_1_999: status='rejected'; self.stats['o_rejected']+=1
++            else:
++                c.x,c.P,_=correlated_update(c.x,c.P,H,y,R,C)
++                status='applied'; self.stats['o_updates']+=1
++        c.P[3,3]+=cfg.bias_rw_std**2*dt
++        return dict(innovation=y,R=R,S=S,status=status,H=H,C=C,Q=Q,F=F,G=G)
++
++    def scalar(self,z,h,H,R,key):
++        c=self.comps[0]; y=float(z-h); S=float(H@c.P@H+R)
++        status='zero_variance' if S<=1e-20 else ('rejected' if y*y/S>self.cfg.gate else 'applied')
++        if key=='s' and S>1e-20: self.stats['nis_s'].append(y*y/S)
++        if status=='applied': self._apply(c,H,y,S,R); self.stats[key+'_updates']+=1
++        if status=='rejected': self.stats[key+'_rejected']+=1
++        return y,R,S,status
++
++    def range_record(self,z):
++        x=self.comps[0].x; a=self.cfg.anchor_xyz; dz=a[2]-self.cfg.robot_z
++        h=np.sqrt((x[0]-a[0])**2+(x[1]-a[1])**2+dz**2)
++        if h<=1e-12: return np.nan,np.nan,np.nan,'undefined_geometry'
++        H=np.zeros(6); H[:2]=(x[:2]-np.array(a[:2]))/h
++        R=self.cfg.range_sigma**2+self.cfg.range_quant_var+self.cfg.range_extra_sigma**2
++        return self.scalar(z,h+self.cfg.range_offset,H,R,'r')
++
++    def s_record(self,z,power):
++        x=self.comps[0].x
++        if np.linalg.norm(x[:2]-np.asarray(self.cfg.anchor_xyz[:2])) <= 1e-6:
++            return np.nan,np.nan,np.nan,'undefined_geometry'
++        h,J=s_model(self.lut,self.cfg.anchor_xyz,self.cfg.robot_z,*x[:3],self.cfg.mount_deg,with_jac=True)
++        H=np.zeros(6); H[:3]=J
++        return self.scalar(z,float(h),H,self._s_R(*power),'s')
++
++
++def run_filter_v2(cfg,lut,inputs,obs,flags,x0,P0=None):
++    required=('dt_s','ds_odom','dtheta_gyro','dtheta_odom')
++    if any(k not in inputs for k in required): raise ValueError('sensor-v2 needs explicit interval times and measurements')
++    n=len(inputs['ds_odom']); dt=np.asarray(inputs['dt_s'])
++    if len(dt)!=n or dt[0]!=0 or np.any(dt[1:]<=0): raise ValueError('invalid interval times')
++    f=SensorV2Filter(cfg,lut,x0,P0)
++    est=np.empty((n,6)); cov=np.empty((n,6,6))
++    raw={f'{m}_{key}':np.full(n,np.nan) for m in ('odom','range','s') for key in ('innovation','R','S')}
++    raw.update({f'{m}_status':np.full(n,'missing',dtype='U24') for m in ('odom','range','s')})
++    for key,shape in (('odom_H',(6,)),('odom_C',(6,)),('input_Q',(3,3)),('transition_F',(6,6)),('input_G',(6,3))):
++        raw[key]=np.zeros((n,)+shape)
++    initial_P=f.comps[0].P.copy()
++    for k in range(n):
++        if k:
++            rec=f.step(inputs['ds_odom'][k],inputs['dtheta_gyro'][k],inputs['dtheta_odom'][k],dt[k])
++            for key in ('innovation','R','S','status','H','C'): raw['odom_'+key][k]=rec[key]
++            for key,src in (('input_Q','Q'),('transition_F','F'),('input_G','G')): raw[key][k]=rec[src]
++        else: raw['odom_status'][k]='initial'
++        detected=bool(obs.get('detected',np.zeros(n,bool))[k])
++        for name,enabled,field in (('range',cfg.use_range,'range_m'),('s',cfg.use_s,'s')):
++            if not enabled: raw[name+'_status'][k]='disabled'; continue
++            if not detected or field not in obs or not np.isfinite(obs[field][k]): continue
++            if name=='s' and cfg.skip_s_in_turn and flags.get('turn_phase',np.zeros(n,bool))[k]:
++                raw['s_status'][k]='skipped_turn'; continue
++            r=f.range_record(obs[field][k]) if name=='range' else f.s_record(obs[field][k],obs['power'][k])
++            for key,value in zip(('innovation','R','S','status'),r): raw[name+'_'+key][k]=value
++        est[k],cov[k]=f.mean_cov()
++        if not np.isfinite(cov[k]).all() or np.max(np.abs(cov[k]-cov[k].T))>1e-12 or np.linalg.eigvalsh(cov[k]).min() < -1e-10:
++            raise FloatingPointError(f'covariance invalid at sample {k}')
++    return dict(est=est,cov_full=cov,cov3=cov[:,:3,:3],stats=f.stats,
++                initial_state=np.asarray(x0).copy(),initial_prior=initial_P,observation_trace=raw)
+diff --git a/src/qclean_uwb/drivesim/sensor_v2.py b/src/qclean_uwb/drivesim/sensor_v2.py
+new file mode 100644
+--- /dev/null
++++ b/src/qclean_uwb/drivesim/sensor_v2.py
+@@ -0,0 +1,162 @@
++"""Versioned wheel/yaw sensor generator. Truth lives only in evaluation output."""
++from __future__ import annotations
++from dataclasses import dataclass, asdict
++import math
++import numpy as np
++from .sensors import DRIFT_LEVELS
++
++NAMESPACE = 2201008
++STREAMS = dict(drift=1, wheel=2, gyro=3, bias=4, slip=5, initial=6, observation=7)
++ERROR_TERMS = ('gyro_bias', 'gyro_sf', 'wheel_asymmetry', 'wheelbase',
++               'common_scale', 'wheel_noise', 'gyro_noise', 'bias_rw', 'slip')
++CONDITIONS = {'none': (), 'all': ERROR_TERMS}
++CONDITIONS.update({s: (s,) for s in ERROR_TERMS})
++CONDITIONS.update(bias_asymmetry=('gyro_bias', 'wheel_asymmetry'),
++                  asymmetry_wheelbase=('wheel_asymmetry', 'wheelbase'),
++                  noise_pair=('wheel_noise', 'gyro_noise'))
++
++@dataclass(frozen=True)
++class SensorV2Config:
++    model_version: str = 'sensor-v2'
++    level: int = 1
++    condition: str = 'all'
++    radius_nominal_m: float = .033
++    wheelbase_nominal_m: float = .287
++    common_scale: float = 0.0             # uncalibrated assumption; neutral default
++    bias_rw_rad_s_sqrt_s: float = 0.0    # fixed residual bias is default
++    gyro_N_rad_sqrt_s: float = math.radians(.015)
++    k_distance_m: float = 2e-5
++    k_yaw_rad: float = 1e-4
++    k_yaw_distance_rad2_m: float = 1e-5
++    slip_mode: str = 'time'             # time | legacy-event | off
++    slip_rate_per_s: float = -math.log1p(-.01)/.2
++    slip_probability_per_sample: float = .01
++    slip_t3_scale_rad: float = math.radians(.5)
++
++    def __post_init__(self):
++        if self.model_version != 'sensor-v2' or self.condition not in CONDITIONS:
++            raise ValueError('unsupported model/condition')
++        if self.level not in range(len(DRIFT_LEVELS)):
++            raise ValueError('unknown sensitivity level')
++        if self.slip_mode not in ('time', 'legacy-event', 'off'):
++            raise ValueError('unsupported slip mode')
++        if self.radius_nominal_m <= 0 or self.wheelbase_nominal_m <= 0 or self.common_scale <= -1:
++            raise ValueError('invalid geometry')
++        nonnegative = (self.bias_rw_rad_s_sqrt_s, self.gyro_N_rad_sqrt_s,
++                       self.k_distance_m, self.k_yaw_rad, self.k_yaw_distance_rad2_m,
++                       self.slip_rate_per_s, self.slip_t3_scale_rad)
++        if min(nonnegative) < 0 or not 0 <= self.slip_probability_per_sample <= 1:
++            raise ValueError('invalid noise/rate')
++
++    def manifest(self):
++        return dict(asdict(self), seed_namespace=NAMESPACE, streams=STREAMS,
++                    levels=[asdict(x) for x in DRIFT_LEVELS],
++                    units='m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)',
++                    gyro_definition='Var(delta_angle)=N^2 dt',
++                    slip_std_rad=math.sqrt(3)*self.slip_t3_scale_rad,
++                    level_interpretation='assumption-based sensitivity, not hardware performance')
++
++
++def rng(seed, stream):
++    return np.random.default_rng([NAMESPACE, int(seed), STREAMS[stream]])
++
++
++def wrap(a):
++    return (a + np.pi) % (2*np.pi) - np.pi
++
++
++def integrate(ds, dtheta, pose0=(0., 0., 0.)):
++    ds, dtheta = np.asarray(ds, float), np.asarray(dtheta, float)
++    if ds.shape != dtheta.shape or ds.ndim != 1 or ds[0] != 0 or dtheta[0] != 0:
++        raise ValueError('increments must be 1D and begin at zero')
++    out = np.empty((len(ds), 3)); out[0] = pose0
++    for k in range(1, len(ds)):
++        p = out[k-1]; a = dtheta[k]
++        out[k, :2] = p[:2] + ds[k]*np.sinc(a/(2*np.pi))*np.array([np.cos(p[2]+a/2), np.sin(p[2]+a/2)])
++        out[k, 2] = p[2]+a
++    return out
++
++
++def motion_increments(t, pose, yaw_unwrapped=False, tolerance=1e-9, convention="se2"):
++    if convention not in ("se2", "legacy-euler"): raise ValueError("unknown motion convention")
++    t, pose = np.asarray(t, float), np.asarray(pose, float)
++    if pose.shape != (len(t), 3) or len(t) < 2 or not np.all(np.diff(t) > 0) or not np.isfinite(pose).all():
++        raise ValueError('invalid timestamps/poses')
++    delta = np.diff(pose[:, 2])
++    a = delta if yaw_unwrapped else wrap(delta)
++    if np.any(np.abs(a) >= np.pi):
++        raise ValueError('ambiguous turn >= pi per interval; resample path')
++    mid = pose[:-1, 2]+(a/2 if convention == "se2" else 0.)
++    dp = np.diff(pose[:, :2], axis=0)
++    lateral = -dp[:, 0]*np.sin(mid)+dp[:, 1]*np.cos(mid)
++    if np.max(np.abs(lateral)) > tolerance:
++        raise ValueError('path does not follow constant-curvature nonholonomic intervals')
++    signed = (dp[:, 0]*np.cos(mid)+dp[:, 1]*np.sin(mid))
++    if convention == "se2": signed /= np.sinc(a/(2*np.pi))
++    return np.r_[0., signed], np.r_[0., a]
++
++
++def wheel_transform(b):
++    return np.array([[.5, .5], [-1/b, 1/b]])
++
++
++def wheel_covariance(q_distance, q_yaw, b):
++    inv = np.linalg.inv(wheel_transform(b))
++    return inv @ np.diag([q_distance, q_yaw]) @ inv.T
++
++
++def generate(t, ds, dtheta, cfg, seed, parameters=None):
++    """Inference inputs contain measurements only; actual drift/variance are evaluation-only.
++
++    e_b convention: b_true=b_nom/(1+e_b). Radius convention: r_true=r_nom/m,
++    m_L=(1+c)(1-eps/2), m_R=(1+c)(1+eps/2). Raw encoder angles are rad.
++    """
++    t, ds, dtheta = map(lambda x: np.asarray(x, float), (t, ds, dtheta))
++    if t.shape != ds.shape or ds.shape != dtheta.shape or len(t)<2 or not np.all(np.diff(t)>0) or ds[0]!=0 or dtheta[0]!=0:
++        raise ValueError('invalid increments/time')
++    enabled = CONDITIONS[cfg.condition]
++    level = DRIFT_LEVELS[cfg.level]
++    signs = rng(seed, 'drift').choice([-1., 1.], 4)
++    p = dict(gyro_bias=signs[0]*math.radians(level.gyro_bias_dps), gyro_sf=signs[1]*level.gyro_sf,
++             wheel_asymmetry=signs[2]*level.wheel_ratio, wheelbase=signs[3]*level.wheelbase_err,
++             common_scale=cfg.common_scale)
++    if parameters:
++        if set(parameters)-set(p): raise ValueError('unknown generated parameter')
++        p.update(parameters)
++    p = {k: (v if k in enabled else 0.) for k,v in p.items()}
++    if 1+p['gyro_sf'] <= 0 or 1+p['wheelbase'] <= 0 or abs(p['wheel_asymmetry']) >= 2 or 1+p['common_scale'] <= 0:
++        raise ValueError('invalid true geometry/scale')
++    dt = np.r_[0., np.diff(t)]
++    b = cfg.wheelbase_nominal_m/(1+p['wheelbase'])
++    m = (1+p['common_scale'])*np.array([1-p['wheel_asymmetry']/2, 1+p['wheel_asymmetry']/2])
++    wheel_true = np.column_stack([ds-b*dtheta/2, ds+b*dtheta/2])
++    nominal_clean = wheel_true*m
++    qd = cfg.k_distance_m*np.abs(ds) if 'wheel_noise' in enabled else np.zeros_like(ds)
++    qt = cfg.k_yaw_rad*np.abs(dtheta)+cfg.k_yaw_distance_rad2_m*np.abs(ds) if 'wheel_noise' in enabled else np.zeros_like(ds)
++    # Generate distance/yaw-independent noise, mapped back to correlated L/R increments.
++    nd = rng(seed, 'wheel').standard_normal((len(t), 2))*np.sqrt(np.column_stack([qd, qt]))
++    measured = nominal_clean + nd @ np.linalg.inv(wheel_transform(cfg.wheelbase_nominal_m)).T
++    slip_rng = rng(seed, 'slip')
++    eligible = (np.abs(ds)<1e-12)&(np.abs(dtheta)>1e-9)
++    probability = -np.expm1(-cfg.slip_rate_per_s*dt) if cfg.slip_mode=='time' else np.full(len(t), cfg.slip_probability_per_sample)
++    event = eligible & (slip_rng.random(len(t))<probability) & ('slip' in enabled) & (cfg.slip_mode!='off')
++    slip = event*slip_rng.standard_t(3, len(t))*cfg.slip_t3_scale_rad
++    measured += np.column_stack([-cfg.wheelbase_nominal_m*slip/2, cfg.wheelbase_nominal_m*slip/2])
++    bias = np.full(len(t), p['gyro_bias'])
++    if 'bias_rw' in enabled:
++        bias += np.cumsum(rng(seed, 'bias').standard_normal(len(t))*cfg.bias_rw_rad_s_sqrt_s*np.sqrt(dt))
++    ngvar = cfg.gyro_N_rad_sqrt_s**2*dt if 'gyro_noise' in enabled else np.zeros_like(dt)
++    gyro = (1+p['gyro_sf'])*dtheta + np.r_[bias[0], bias[:-1]]*dt + rng(seed,'gyro').standard_normal(len(t))*np.sqrt(ngvar)
++    odom = measured @ wheel_transform(cfg.wheelbase_nominal_m).T
++    measured[0]=0; odom[0]=0; gyro[0]=0; event[0]=False; slip[0]=0
++    inputs = dict(t_s=t.copy(), dt_s=dt, ds_odom=odom[:,0], dtheta_odom=odom[:,1], dtheta_gyro=gyro,
++                  encoder_angle_rad=measured/cfg.radius_nominal_m, wheel_nominal_increment_m=measured,
++                  wheel_base_nominal=cfg.wheelbase_nominal_m)
++    evaluation = dict(true_increments=np.column_stack([ds,dtheta]), true_wheel_increment_m=wheel_true,
++                      true_radius_m=cfg.radius_nominal_m/m, true_wheelbase_m=np.array(b),
++                      true_parameters=np.array(list(p.values())), parameter_names=np.array(list(p)),
++                      true_bias_rad_s=bias, slip_event=event, slip_yaw_rad=slip, slip_eligible=eligible,
++                      generated_variance=np.column_stack([qd,ngvar,qt]),
++                      true_wheel_Q=np.stack([np.stack([qd+cfg.wheelbase_nominal_m**2*qt/4, qd-cfg.wheelbase_nominal_m**2*qt/4],axis=-1),
++                                             np.stack([qd-cfg.wheelbase_nominal_m**2*qt/4, qd+cfg.wheelbase_nominal_m**2*qt/4],axis=-1)],axis=-2))
++    return inputs, evaluation
+diff --git a/configs/sensor_v2/assumed_bias_rw.json b/configs/sensor_v2/assumed_bias_rw.json
+new file mode 100644
+--- /dev/null
++++ b/configs/sensor_v2/assumed_bias_rw.json
+@@ -0,0 +1 @@
++{"model_version":"sensor-v2","level":1,"condition":"bias_rw","bias_rw_rad_s_sqrt_s":0.0001,"common_scale":0.0,"slip_mode":"off"}
+diff --git a/configs/sensor_v2/assumed_common_scale.json b/configs/sensor_v2/assumed_common_scale.json
+new file mode 100644
+--- /dev/null
++++ b/configs/sensor_v2/assumed_common_scale.json
+@@ -0,0 +1 @@
++{"model_version":"sensor-v2","level":1,"condition":"common_scale","common_scale":0.01,"bias_rw_rad_s_sqrt_s":0.0,"slip_mode":"off"}
+diff --git a/configs/sensor_v2/filter_fixed_bias.json b/configs/sensor_v2/filter_fixed_bias.json
+new file mode 100644
+--- /dev/null
++++ b/configs/sensor_v2/filter_fixed_bias.json
+@@ -0,0 +1 @@
++{"model_version":"sensor-v2","kind":"ekf","bias_rw_std":0.0,"pos_process_std":0.0,"known_wheelbase_error":0.0,"use_range":false,"use_s":false}
+diff --git a/configs/sensor_v2/neutral.json b/configs/sensor_v2/neutral.json
+new file mode 100644
+--- /dev/null
++++ b/configs/sensor_v2/neutral.json
+@@ -0,0 +1 @@
++{"model_version":"sensor-v2","level":1,"condition":"all","common_scale":0.0,"bias_rw_rad_s_sqrt_s":0.0,"slip_mode":"time"}
+diff --git a/scripts/drive_sim/run_sensor_v2.py b/scripts/drive_sim/run_sensor_v2.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/drive_sim/run_sensor_v2.py
+@@ -0,0 +1,31 @@
++"""Explicit, serial sensor-v2 CPU runner; outputs never overwrite legacy results."""
++import argparse
++import json
++from pathlib import Path
++import sys
++ROOT=Path(__file__).resolve().parents[2]
++sys.path.insert(0,str(ROOT/'src'))
++from qclean_uwb.drivesim.evaluation_v2 import evaluate
++from qclean_uwb.drivesim.sensor_v2 import CONDITIONS, SensorV2Config
++from qclean_uwb.drivesim.filters import FilterConfig
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser()
++    p.add_argument('--model-version',choices=('sensor-v2','legacy'),required=True)
++    p.add_argument('--out',type=Path,required=True)
++    p.add_argument('--seed-start',type=int,default=200)
++    p.add_argument('--runs',type=int,default=48)
++    p.add_argument('--dt',type=float,default=.2)
++    p.add_argument('--sensor-config',type=Path,help='explicit JSON SensorV2Config; defaults are neutral for uncalibrated new terms')
++    p.add_argument('--filter-config',type=Path,help='separate JSON FilterConfig; sensor truth is never copied into inference')
++    p.add_argument('--condition',choices=tuple(CONDITIONS),default='all')
++    p.add_argument('--level',type=int,choices=(0,1,2),default=1)
++    p.add_argument('--initial',choices=('exact','legacy-prior'),nargs='+',default=['exact','legacy-prior'])
++    p.add_argument('--wheelbase',choices=('matched','unknown'),nargs='+',default=['matched','unknown'])
++    a=p.parse_args()
++    if a.model_version=='legacy':p.error('legacy uses run_experiments.py/run_route_experiments.py; this runner requires v2 raw inputs')
++    if a.runs<1:p.error('runs must be positive')
++    sensor=SensorV2Config(**json.loads(a.sensor_config.read_text())) if a.sensor_config else None
++    filt=FilterConfig(**json.loads(a.filter_config.read_text())) if a.filter_config else None
++    if filt and filt.model_version!='sensor-v2':p.error('filter config must explicitly specify sensor-v2')
++    evaluate(a.out,a.seed_start,a.runs,tuple(a.initial),tuple(a.wheelbase),a.condition,a.level,a.dt,sensor,filt)
+diff --git a/scripts/drive_sim/evaluate_sensor_v2_rf.py b/scripts/drive_sim/evaluate_sensor_v2_rf.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/drive_sim/evaluate_sensor_v2_rf.py
+@@ -0,0 +1,77 @@
++"""Read-only RF artifact subset evaluation. Does not validate or retune LUT gates."""
++import argparse
++from dataclasses import asdict, replace
++import json
++from pathlib import Path
++import subprocess
++import sys
++import numpy as np
++ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'src'))
++from qclean_uwb.drivesim import experiment as E, filters as F, sensors as S, sensor_v2 as V
++from qclean_uwb.drivesim.filter_v2 import run_filter_v2
++from qclean_uwb.drivesim.evaluation_v2 import serialize,directional
++from qclean_uwb.drivesim.hs_lut import HsLut
++from qclean_uwb.drivesim.config import build_manifest
++
++
++def evaluate(directory,out):
++    if out.exists():raise FileExistsError(out)
++    out.mkdir(parents=True);(out/'raw').mkdir()
++    timeline=ROOT/'results/DRIVE_SIM_20261007/S1/timeline_y0_Tnone.csv'
++    rows,ids=E.read_timeline(timeline);rows=rows[:201];ids=ids[:201]
++    h=np.load(directory/'H_selected.npy',allow_pickle=False)
++    provenance=json.loads((directory/'provenance.json').read_text())
++    if ids.tolist()!=provenance['selected_pose_ids']:raise ValueError('H/timeline subset mismatch')
++    if h.shape!=(201,257,2,2) or not np.isfinite(h).all():raise ValueError('unexpected selected H shape')
++    # Stored h-store frequency grid is adopted from its production manifest below.
++    Hmanifest=json.loads((directory/'H_y0_m0.manifest.json').read_text())
++    if Hmanifest['outputs'][0]['sha256']!=provenance['source_sha256']:raise ValueError('H-store changed since manifest')
++    freqs=np.load(directory/'freqs_hz.npy',allow_pickle=False)
++    if len(freqs)!=h.shape[1]:raise ValueError('frequency grid mismatch')
++    world=E.World(rows,h,freqs,0.,0.,None)
++    meta=json.loads((directory/'hs_lut_meta.json').read_text())
++    lut=HsLut(dict(theta_deg=np.array(meta['meta']['theta_deg']),phi_deg=np.arange(-180.,180.,meta['meta']['phi_deg'][2]),s=np.load(directory/'hs_lut_2deg.npy',allow_pickle=False)))
++    ds,a=V.motion_increments(world.t,world.truth,convention="legacy-euler");outputs=[];records=[]
++    for init in ('exact','legacy-prior'):
++        for wb in ('matched','unknown'):
++            for seed in range(200,208):
++                scfg=V.SensorV2Config()
++                inputs,ev=V.generate(world.t,ds,a,scfg,seed,dict(wheelbase=0 if wb=='matched' else .0075))
++                # Separate v2 namespace; E.observe_world does NOT use sensor generator streams.
++                obs=E.observe_world(world,35.,(V.NAMESPACE,seed,V.STREAMS['observation']),S.SensorNoise(),meta['range_bias']['mean_m'])
++                cfg=F.FilterConfig(model_version='sensor-v2',use_range=False,use_s=False,bias_rw_std=0.,noise_var_cir_tap=6*obs['noise_var'],range_offset=meta['range_bias']['mean_m'])
++                x0=np.r_[world.truth[0],0.,0.,0.];P0=np.diag(np.array(cfg.p0_std)**2)
++                if init=='exact':P0[:3,:3]=0
++                else:x0[:3]+=V.rng(seed,'initial').normal(size=3)*np.array(cfg.p0_std[:3])
++                for method in ('online','online_range','online_range_s_RF'):
++                    cfg=replace(cfg,use_range=method!='online',use_s=method=='online_range_s_RF')
++                    outfilter=run_filter_v2(cfg,lut if cfg.use_s else None,inputs,obs,dict(turn_phase=world.turn_phase),x0,P0)
++                    result=E.summarize_output(world,outfilter)
++                    error=outfilter['est'][-1,:3]-world.truth[-1];error[2]=V.wrap(error[2])
++                    nees=float(error@np.linalg.solve(outfilter['cov3'][-1],error))
++                    records.append(dict(seed=seed,initial=init,wheelbase=wb,method=method,metrics=result['metrics'],endpoint_pose_nees=nees,endpoint_pose_cov95=nees<=E.CHI2_3_95))
++                    archive=dict(time_s=world.t,evaluation_truth_pose=world.truth,estimate_state=outfilter['est'],estimate_covariance_full=outfilter['cov_full'],
++                                 initial_state=x0,initial_prior=P0,seed=np.array(seed),evaluation_mask=world.t>=30,
++                                 evaluation_integration_mismatch_pose=V.integrate(ds,a,world.truth[0])-world.truth,
++                                 common_mask=(world.probe_id<0)&(world.drive_g>=E.COMMON_FROM_DRIVE_G))
++                    archive.update(outfilter['observation_trace'])
++                    archive.update({'sensor_'+k:np.asarray(v) for k,v in inputs.items()})
++                    archive.update({'evaluation_'+k:np.asarray(v) for k,v in ev.items()})
++                    archive.update({'observation_'+k:np.asarray(v) for k,v in obs.items() if isinstance(v,np.ndarray)})
++                    archive.update(directional(world.truth,outfilter['est'],ds,a,cfg.anchor_xyz))
++                    path=out/'raw'/f'{init}_{wb}_{seed}_{method}.npz'
++                    with path.open('xb') as f:np.savez_compressed(f,**archive)
++                    outputs.append(path)
++    resultpath=out/'runs.json';resultpath.write_text(json.dumps(serialize(records),indent=2,allow_nan=False),encoding='utf8');outputs.append(resultpath)
++    config=dict(model_version='sensor-v2',filter=asdict(cfg),sensor=scfg.manifest(),seeds=list(range(200,208)),n_samples=201,snr_db=35.,
++                code_revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),RF_input_provenance=provenance,
++                claim='connection smoke/limited evaluation only; F01/F02 remain open; no calibration or LUT validation rerun',
++                truth_motion_convention='legacy-euler',filter_motion_convention='SE2 exponential; discretization mismatch retained',
++                frequency_grid_source='existing LP_plus45_bank.npz freqs_hz member; member hash recorded')
++    source=[Path(__file__),ROOT/'src/qclean_uwb/drivesim/filter_v2.py',ROOT/'src/qclean_uwb/drivesim/sensor_v2.py',ROOT/'src/qclean_uwb/drivesim/observation.py',ROOT/'src/qclean_uwb/drivesim/hs_lut.py']
++    manifest=build_manifest(config=config,inputs=source+[timeline,ROOT/'results/SENSOR_V2_20261008/PREREG_V2.md']+list(directory.iterdir()),outputs=outputs)
++    (out/'manifest.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
++    print('completed',len(records),'runs')
++
++if __name__=='__main__':
++    p=argparse.ArgumentParser();p.add_argument('--input',type=Path,required=True);p.add_argument('--out',type=Path,required=True);args=p.parse_args();evaluate(args.input,args.out)
+diff --git a/scripts/drive_sim/ablate_sensor_v2_correlation.py b/scripts/drive_sim/ablate_sensor_v2_correlation.py
+new file mode 100644
+--- /dev/null
++++ b/scripts/drive_sim/ablate_sensor_v2_correlation.py
+@@ -0,0 +1,55 @@
++"""Diagnostic-only correlation ablation; production never exposes partial C modes."""
++import json
++from pathlib import Path
++import sys
++import numpy as np
++ROOT=Path(__file__).resolve().parents[2];sys.path.insert(0,str(ROOT/'src'))
++from qclean_uwb.drivesim import filters as F, sensor_v2 as V, filter_v2 as K, experiment as E
++from qclean_uwb.drivesim.evaluation_v2 import mixed_world, serialize
++from qclean_uwb.drivesim.config import build_manifest
++Original=K.SensorV2Filter
++
++class DiagnosticFilter(Original):
++    mode='none'
++    def step(self,d,g,o,dt):
++        c=self.comps[0];cfg=self.cfg;xp=c.x.copy();b=cfg.wheel_base/(1+cfg.known_wheelbase_error)
++        c.x,Fj,G=K.transition(xp,d,g,dt,b)
++        Q=np.diag([cfg.k_s*abs(d),cfg.gyro_N_rad_sqrt_s**2*dt,cfg.k_theta*abs(o)+cfg.k_stheta*abs(d)])
++        c.P=Fj@c.P@Fj.T+G@Q@G.T
++        h,H,B=K.odometry_model(xp,d,g,dt,cfg.wheel_base,cfg.known_wheelbase_error)
++        C=np.zeros(6) if self.mode=='none' else -G[:,1]*Q[1,1]*B[1]
++        R=float(B@Q@B);y=o-h;S=float(H@c.P@H+R+2*H@C)
++        status='zero_variance'
++        if S>1e-20:
++            if y*y/S>F.CHI2_1_999:status='rejected';self.stats['o_rejected']+=1
++            else:c.x,c.P,_=K.correlated_update(c.x,c.P,H,y,R,C);status='applied';self.stats['o_updates']+=1
++        c.P[3,3]+=cfg.bias_rw_std**2*dt
++        return dict(innovation=y,R=R,S=S,status=status,H=H,C=C,Q=Q,F=Fj,G=G)
++
++if __name__=='__main__':
++    out=ROOT/'results/SENSOR_V2_20261008/CORRELATION_ABLATION'
++    if out.exists():raise FileExistsError(out)
++    out.mkdir();(out/'raw').mkdir();world,ds,a=mixed_world();rows=[];files=[]
++    for seed in range(200,248):
++        inputs,ev=V.generate(world.t,ds,a,V.SensorV2Config(condition='noise_pair'),seed)
++        cfg=F.FilterConfig(model_version='sensor-v2',use_range=False,use_s=False,bias_rw_std=0.)
++        x0=np.r_[world.truth[0],0.,0.,0.];P0=np.diag(np.array(cfg.p0_std)**2);P0[:3,:3]=0
++        for mode in ('full','gyro-only','none'):
++            try:
++                K.SensorV2Filter=Original if mode=='full' else DiagnosticFilter;DiagnosticFilter.mode=mode
++                filtered=K.run_filter_v2(cfg,None,inputs,{},dict(turn_phase=world.turn_phase),x0,P0)
++            finally:K.SensorV2Filter=Original
++            summary=E.summarize_output(world,filtered)['metrics'];err=filtered['est'][-1,:3]-world.truth[-1];err[2]=V.wrap(err[2])
++            nees=float(err@np.linalg.solve(filtered['cov3'][-1],err))
++            rows.append(dict(seed=seed,mode=mode,metrics=summary,endpoint_nees=nees,endpoint_coverage95=nees<=E.CHI2_3_95))
++            p=out/'raw'/f'{seed}_{mode}.npz'
++            archive=dict(time_s=world.t,evaluation_truth_pose=world.truth,estimate_state=filtered['est'],estimate_covariance_full=filtered['cov_full'],initial_state=x0,initial_prior=P0,seed=np.array(seed),evaluation_mask=world.t>=30)
++            archive.update(filtered['observation_trace']);archive.update({'sensor_'+k:np.asarray(v) for k,v in inputs.items()});archive.update({'evaluation_'+k:np.asarray(v) for k,v in ev.items()})
++            with p.open('xb') as f:np.savez_compressed(f,**archive)
++            files.append(p)
++    aggregate=[dict(mode=mode,n_runs=48,common_pos_rmse_mean_m=float(np.mean([r['metrics']['pos_rmse_common_m'] for r in rows if r['mode']==mode])),endpoint_nees_mean=float(np.mean([r['endpoint_nees'] for r in rows if r['mode']==mode])),endpoint_coverage95=float(np.mean([r['endpoint_coverage95'] for r in rows if r['mode']==mode]))) for mode in ('full','gyro-only','none')]
++    for name,obj in (('runs.json',rows),('aggregate.json',aggregate)):
++        p=out/name;p.write_text(json.dumps(serialize(obj),indent=2,allow_nan=False),encoding='utf8');files.append(p)
++    source=[Path(__file__),ROOT/'src/qclean_uwb/drivesim/filter_v2.py',ROOT/'src/qclean_uwb/drivesim/sensor_v2.py',ROOT/'src/qclean_uwb/drivesim/evaluation_v2.py',ROOT/'results/SENSOR_V2_20261008/PREREG_V2.md']
++    man=build_manifest(config=dict(model_version='sensor-v2 diagnostic',seeds=list(range(200,248)),condition='noise_pair',correlation_modes=['full','gyro-only','none'],inference='measurements only; zero generated drift, not oracle calibration',claim='diagnostic; no production acceptance gate'),inputs=source,outputs=files)
++    (out/'manifest.json').write_text(json.dumps(man,indent=2),encoding='utf8');print(aggregate)
+diff --git a/tests/test_sensor_v2.py b/tests/test_sensor_v2.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_sensor_v2.py
+@@ -0,0 +1,231 @@
++"""Independent analytical, stochastic, legacy and correlation checks for sensor-v2."""
++from __future__ import annotations
++import importlib.util
++import json
++import math
++from pathlib import Path
++import subprocess
++import sys
++import unittest
++import numpy as np
++from scipy.stats import chi2
++from qclean_uwb.drivesim import sensors as old, filters as F, experiment as E
++from qclean_uwb.drivesim import sensor_v2 as V
++from qclean_uwb.drivesim.filter_v2 import transition, odometry_model, correlated_update, run_filter_v2
++
++BASE='2337c33fe25917029c2aa95973e6ae7672386a5e'
++RESULTS={}
++
++
++def frozen(file,name):
++    source=subprocess.check_output(['git','show',BASE+':src/qclean_uwb/drivesim/'+file],text=True)
++    spec=importlib.util.spec_from_loader(name,loader=None); m=importlib.util.module_from_spec(spec)
++    sys.modules[name]=m; exec(compile(source,file,'exec'),m.__dict__); return m
++
++
++def fd(fun,x):
++    result=[]
++    for j in range(len(x)):
++        e=np.zeros_like(x);e[j]=1e-6
++        result.append((np.asarray(fun(x+e))-np.asarray(fun(x-e)))/(2e-6))
++    return np.array(result).T
++
++
++class SensorV2Tests(unittest.TestCase):
++    def test_01_legacy_regression(self):
++        legacy=frozen('sensors.py','frozen_sensors'); lf=frozen('filters.py','frozen_filters'); le=frozen('experiment.py','frozen_experiment')
++        for seed in (0,1,5,29,101):
++            ds=np.r_[0.,np.full(180,.04)]; th=np.r_[0.,np.sin(np.arange(180))*.04]
++            current=old.generate_inputs(ds,th,old.draw_drift(old.DRIFT_LEVELS[1],np.random.default_rng(seed)),old.SensorNoise(),.2,np.random.default_rng(seed+100))
++            original=legacy.generate_inputs(ds,th,legacy.draw_drift(legacy.DRIFT_LEVELS[1],np.random.default_rng(seed)),legacy.SensorNoise(),.2,np.random.default_rng(seed+100))
++            for key in current: np.testing.assert_array_equal(current[key],original[key])
++            n=len(ds); obs=dict(detected=np.ones(n,bool),range_m=np.full(n,4.2),s=np.zeros(n),power=np.ones((n,2)))
++            flags=dict(turn_phase=np.abs(th)>.03)
++            for kind in ('ekf','iekf','ukf','gsf'):
++                args=dict(kind=kind,use_s=False,use_range=True)
++                a=F.run_filter(F.FilterConfig(**args),None,current,obs,flags,np.zeros(6))
++                b=lf.run_filter(lf.FilterConfig(**args),None,original,obs,flags,np.zeros(6))
++                for key in ('est','cov3'): np.testing.assert_array_equal(a[key],b[key])
++                for key in a['stats']: np.testing.assert_array_equal(a['stats'][key],b['stats'][key])
++            rows=[dict(t_s=k*.2,x=k*.04,y=0.,yaw_body_deg=0.,turn_phase=False,drive_g=k,probe_id=-1) for k in range(n)]
++            world=E.World(rows,np.empty((n,0,2,2)),np.empty(0),0.,0.,None)
++            a=E.run_one(world,obs,current,F.FilterConfig(use_s=False),None,np.zeros(6))
++            b=le.run_one(world,obs,original,F.FilterConfig(use_s=False),None,np.zeros(6))
++            for key in ('heading_err_deg','pos_err_m'): np.testing.assert_array_equal(a[key],b[key])
++            for key in a['metrics']: np.testing.assert_equal(a['metrics'][key],b['metrics'][key])
++        RESULTS['legacy_regression']='exact sensors, all 4 filters, experiment metrics; 5 seeds'
++
++    def test_02_motion_and_geometry(self):
++        ds=np.r_[0.,np.zeros(5),np.full(10,.1),np.full(10,-.1),np.zeros(10),np.full(10,.1)]
++        a=np.r_[0.,np.zeros(25),np.full(10,.2),np.full(10,-.1)]
++        t=np.arange(len(ds))*.2; pose=V.integrate(ds,a,(1.,2.,3.13))
++        recovered=V.motion_increments(t,np.column_stack([pose[:,:2],V.wrap(pose[:,2])]))
++        np.testing.assert_allclose(recovered[0],ds,atol=1e-10);np.testing.assert_allclose(recovered[1],a,atol=1e-10)
++        np.testing.assert_allclose(V.integrate(*recovered,pose0=pose[0]),pose,atol=1e-10)
++        inputs,ev=V.generate(t,ds,a,V.SensorV2Config(condition='none'),1)
++        np.testing.assert_allclose(inputs['ds_odom'],ds,atol=1e-10)
++        np.testing.assert_allclose(inputs['dtheta_odom'],a,atol=1e-10)
++        np.testing.assert_allclose(V.integrate(inputs['ds_odom'],inputs['dtheta_gyro'],pose[0]),pose,atol=1e-10)
++        for eb in (-.0075,0.,.0075):
++            inp,ev=V.generate(t,ds,a,V.SensorV2Config(condition='asymmetry_wheelbase'),1,dict(wheel_asymmetry=.005,wheelbase=eb))
++            for k in range(1,len(t)):
++                x=np.array([0.,0.,0.,0.,0.,.005])
++                h,_,_=odometry_model(x,inp['ds_odom'][k],inp['dtheta_gyro'][k],.2,.287,eb)
++                self.assertAlmostEqual(h,inp['dtheta_odom'][k],places=12)
++        RESULTS['motion']='stop/reverse/turn/arc/yaw-boundary recovered; known wheelbase measurement exact'
++
++    def test_03_analytical_endpoints(self):
++        T=50.;dt=.2;t=np.arange(251)*dt;ds=np.r_[0.,np.full(250,.2*dt)]
++        values={}
++        for term,omega in (('gyro_bias',math.radians(.05)),('wheel_asymmetry',.005*.2/.287)):
++            a=np.r_[0.,np.full(250,omega*dt)]
++            pred=V.integrate(ds,a)[-1]
++            expected=np.array([.2*np.sin(omega*T)/omega,.2*(1-np.cos(omega*T))/omega,omega*T])
++            np.testing.assert_allclose(pred,expected,atol=1e-9)
++            cfg=V.SensorV2Config(condition=term)
++            params={'gyro_bias':math.radians(.05)} if term=='gyro_bias' else {'wheel_asymmetry':.005}
++            inp,_=V.generate(t,ds,np.zeros(251),cfg,22,params)
++            yaw=inp['dtheta_gyro'] if term=='gyro_bias' else inp['dtheta_odom']
++            np.testing.assert_allclose(V.integrate(inp['ds_odom'],yaw)[-1],expected,atol=1e-9)
++            # Legacy previous-heading Euler is an explicitly different quadrature.
++            theta=np.cumsum(a); xy=np.sum(ds[1:,None]*np.column_stack([np.cos(theta[:-1]),np.sin(theta[:-1])]),axis=0)
++            values[term]=dict(endpoint=pred.tolist(),legacy_euler_endpoint_difference_m=float(np.linalg.norm(xy-pred[:2])))
++        heading=math.radians(5.)
++        np.testing.assert_allclose(V.integrate(ds,np.zeros(251),(0,0,heading))[-1], [10*np.cos(heading),10*np.sin(heading),heading],atol=1e-9)
++        RESULTS['analytical_endpoints']=values
++
++    def test_04_jacobians(self):
++        r=np.random.default_rng(8001);maxima=dict(F=0.,G=0.,H=0.,B=0.)
++        for k in range(100):
++            x=r.normal(size=6)*np.array([1,1,.5,.001,.01,.01]);d=r.uniform(-.1,.1);g=r.uniform(-.2,.2);dt=.2;b=.287
++            if k==0:g=x[3]*dt
++            out,J,G=transition(x,d,g,dt,b)
++            maxima['F']=max(maxima['F'],float(np.max(np.abs(fd(lambda xx:transition(xx,d,g,dt,b)[0],x)-J))))
++            maxima['G']=max(maxima['G'],float(np.max(np.abs(fd(lambda u:transition(x,u[0],u[1],dt,b)[0],np.array([d,g]))-G[:,:2]))))
++            h,H,B=odometry_model(x,d,g,dt,b,.0075)
++            maxima['H']=max(maxima['H'],float(np.max(np.abs(fd(lambda xx:odometry_model(xx,d,g,dt,b,.0075)[0],x)-H))))
++            grad=fd(lambda u:odometry_model(x,u[0],u[1],dt,b,.0075)[0],np.array([d,g]))
++            maxima['B']=max(maxima['B'],float(np.max(np.abs(grad+B[:2]))))
++        for value in maxima.values(): self.assertLess(value,2e-7)
++        RESULTS['jacobian_max_abs_errors']=maxima
++
++    def test_05_shared_noise(self):
++        x=np.array([0.,0.,.2,.001,.01,.005]);_,Fj,G=transition(x,.05,.03,.2,.287)
++        _,H,B=odometry_model(x,.05,.03,.2,.287)
++        P0=np.diag([.01,.01,.01,1e-6,1e-4,1e-4]);Q=np.diag([1e-6,2e-8,1e-6])
++        P=Fj@P0@Fj.T+G@Q@G.T;C=-G@Q@B;R=float(B@Q@B)
++        _,posterior,S=correlated_update(x,P,H,0.,R,C)
++        np.testing.assert_allclose(posterior,P-np.outer(P@H+C,P@H+C)/S,atol=1e-12)
++        _,standard,S0=correlated_update(x,P,H,0.,R,np.zeros(6))
++        np.testing.assert_allclose(standard,P-np.outer(P@H,P@H)/S0,atol=1e-12)
++        draw=np.random.default_rng(88001);count=4096
++        e0=draw.multivariate_normal(np.zeros(6),P0,count);n=draw.multivariate_normal(np.zeros(3),Q,count)
++        em=e0@Fj.T-n@G.T;v=n@B;y=em@H+v
++        ep=em-y[:,None]*(P@H+C)/S
++        sample=np.cov(ep,rowvar=False);relative=float(np.linalg.norm(sample-posterior)/np.linalg.norm(posterior))
++        self.assertLess(relative,.15)
++        nees=np.einsum('ni,ij,nj->n',ep,np.linalg.inv(posterior),ep)
++        mean=float(nees.mean());lo,hi=chi2.ppf([1e-6,1-1e-6],6*count)/count
++        self.assertTrue(lo<=mean<=hi)
++        coverage=float(np.mean(nees<=chi2.ppf(.95,6)));self.assertLess(abs(coverage-.95),6*np.sqrt(.95*.05/count))
++        RESULTS['shared_noise_linear']=dict(covariance_relative_error=relative,mean_nees=mean,coverage95=coverage,interval=[lo,hi],wheel_distance_C_norm=float(np.linalg.norm(-G[:,0]*Q[0,0]*B[0])),gyro_C_norm=float(np.linalg.norm(-G[:,1]*Q[1,1]*B[1])))
++
++    def test_06_variance_slip_sample_rate(self):
++        results=[]
++        for dt in (.1,.2,.4):
++            t=np.arange(round(10/dt)+1)*dt;n=len(t);gyro=[];bias=[];wheels=[];events=0
++            cfg=V.SensorV2Config(condition='all',bias_rw_rad_s_sqrt_s=1e-4)
++            for seed in range(100,4196):
++                inp,ev=V.generate(t,np.zeros(n),np.r_[0.,np.full(n-1,.1*dt)],cfg,seed,dict(gyro_bias=0.,gyro_sf=0.,wheel_asymmetry=0.,wheelbase=0.))
++                # Gyro white noise separated from left-endpoint generated bias.
++                gyro.append(np.sum(inp['dtheta_gyro']-ev['true_increments'][:,1]-np.r_[ev['true_bias_rad_s'][0],ev['true_bias_rad_s'][:-1]]*inp['dt_s']))
++                bias.append(ev['true_bias_rad_s'][-1]);events+=int(ev['slip_event'].sum())
++                noisy,_=V.generate(t,np.r_[0.,np.full(n-1,.2*dt)],np.r_[0.,np.full(n-1,.1*dt)],V.SensorV2Config(condition='wheel_noise'),seed)
++                wheels.append([np.sum(noisy['ds_odom'])-2.,np.sum(noisy['dtheta_odom'])-1.])
++            gv=float(np.var(gyro,ddof=1));bv=float(np.var(bias,ddof=1));wc=np.cov(wheels,rowvar=False)
++            expectg=cfg.gyro_N_rad_sqrt_s**2*10;expectb=cfg.bias_rw_rad_s_sqrt_s**2*10
++            expectw=np.diag([cfg.k_distance_m*2,cfg.k_yaw_rad+cfg.k_yaw_distance_rad2_m*2])
++            self.assertLess(abs(gv/expectg-1),.15);self.assertLess(abs(bv/expectb-1),.15)
++            self.assertTrue(np.all(np.abs(np.diag(wc)/np.diag(expectw)-1)<.15))
++            p=-np.expm1(-cfg.slip_rate_per_s*dt);trials=4096*(n-1);expected_events=trials*p
++            self.assertLess(abs(events-expected_events),6*np.sqrt(trials*p*(1-p)))
++            A=V.wheel_transform(.287);qlr=V.wheel_covariance(expectw[0,0],expectw[1,1],.287)
++            np.testing.assert_allclose(A@qlr@A.T,expectw,atol=1e-12)
++            results.append(dict(dt_s=dt,gyro_variance=gv,gyro_expected=expectg,bias_variance=bv,bias_expected=expectb,wheel_covariance=wc.tolist(),wheel_expected=expectw.tolist(),slip_events=events,slip_expected=expected_events))
++        RESULTS['independent_run_variances']=results
++
++    def test_07_observability_and_refusals(self):
++        def rank(rows):
++            H=np.array([odometry_model(np.zeros(6),d,g,.2,.287)[1][3:] for d,g in rows]);s=np.linalg.svd(H,compute_uv=False)
++            return dict(rank=int(np.linalg.matrix_rank(H,tol=1e-10)),singular_values=s.tolist())
++        cases=dict(stop=[(0,0)]*20,constant_straight=[(.04,0)]*20,speed_change=[(d,0) for d in (.02,.04,.08)]*10,
++                   bidirectional_turn=[(d,g) for d,g in ((0,.1),(0,-.1),(.04,0),(.08,0))]*10)
++        measured={k:rank(v) for k,v in cases.items()}
++        self.assertEqual([measured[k]['rank'] for k in cases],[1,1,2,3])
++        for kind in ('iekf','ukf','gsf'):
++            with self.assertRaisesRegex(ValueError,'supports EKF'):
++                run_filter_v2(F.FilterConfig(model_version='sensor-v2',kind=kind,use_s=False),None,dict(dt_s=[0,.2],ds_odom=[0,0],dtheta_gyro=[0,0],dtheta_odom=[0,0]),{}, {},np.zeros(6))
++        RESULTS['calibration_observability']=measured
++
++    def test_08_configuration_raw_and_limits(self):
++        from qclean_uwb.drivesim.evaluation_v2 import mixed_world, directional, IdealRatio
++        from qclean_uwb.drivesim.hs_lut import s_model
++        endpoints=[]
++        for dt in (.1,.2,.4):
++            world,ds,a=mixed_world(dt);endpoints.append(world.truth[-1])
++            cfg=V.SensorV2Config(condition='wheelbase')
++            inputs,ev=V.generate(world.t,ds,a,cfg,11,dict(wheelbase=.0075))
++            filter_cfg=F.FilterConfig(model_version='sensor-v2',known_wheelbase_error=.0075,use_range=False,use_s=False,bias_rw_std=0.)
++            x0=np.r_[world.truth[0],0.,0.,0.]
++            out=run_filter_v2(filter_cfg,None,inputs,{},dict(turn_phase=world.turn_phase),x0)
++            np.testing.assert_allclose(out['est'][:,:3],world.truth,atol=1e-10)
++            self.assertEqual(out['cov_full'].shape,(len(ds),6,6))
++            self.assertTrue((out['observation_trace']['range_status']=='disabled').all())
++            self.assertLess(np.max(np.abs(out['cov_full']-out['cov_full'].transpose(0,2,1))),1e-12)
++            self.assertGreaterEqual(np.min(np.linalg.eigvalsh(out['cov_full'])),-1e-10)
++        np.testing.assert_allclose(np.array(endpoints),np.broadcast_to(endpoints[0],(3,3)),atol=1e-10)
++        world,ds,a=mixed_world()
++        for term in V.CONDITIONS:
++            inputs,ev=V.generate(world.t,ds,a,V.SensorV2Config(condition=term),1)
++            self.assertTrue(np.isfinite(inputs['encoder_angle_rad']).all())
++        common,_=V.generate(world.t,ds,a,V.SensorV2Config(condition='common_scale',common_scale=.01),1)
++        np.testing.assert_allclose(common['ds_odom'],1.01*ds,atol=1e-12)
++        np.testing.assert_allclose(common['dtheta_odom'],1.01*a,atol=1e-12)
++        timed,te=V.generate(world.t,ds,a,V.SensorV2Config(slip_mode='time'),33)
++        legacy,le=V.generate(world.t,ds,a,V.SensorV2Config(slip_mode='legacy-event'),33)
++        np.testing.assert_array_equal(te['slip_event'],le['slip_event'])
++        np.testing.assert_array_equal(te['slip_yaw_rad'],le['slip_yaw_rad'])
++        pose=np.zeros((3,3));pose[:,0]=[0,.1,.2];pose[:,2]=[0,.2,.4]
++        pose[2,:2]=pose[1,:2]+.1*np.array([np.cos(.2),np.sin(.2)])
++        with self.assertRaises(ValueError):V.motion_increments([0,.2,.4],pose)
++        d,th=V.motion_increments([0,.2,.4],pose,convention='legacy-euler')
++        np.testing.assert_allclose(d,[0,.1,.1],atol=1e-12)
++        self.assertGreater(np.linalg.norm(V.integrate(d,th)[-1,:2]-pose[-1,:2]),1e-3)
++        directions=directional(np.array([[4.,0.,0.],[4.,0.,.1],[3.9,0.,.1]]),np.zeros((3,6)),np.array([0.,0.,-.1]),np.zeros(3),(4.,0.,2.65))
++        np.testing.assert_array_equal(directions['anchor_direction_valid'],[False,False,True])
++        np.testing.assert_array_equal(directions['reverse_mask'],[False,False,True])
++        # Ideal ratio Jacobian independently checked; no claim about physical LUT validity.
++        x=np.array([1.3,.4,.2]);lut=IdealRatio()
++        _,J=s_model(lut,(4.,0.,2.65),.45,*x,with_jac=True)
++        np.testing.assert_allclose(J,fd(lambda xx:s_model(lut,(4.,0.,2.65),.45,*xx),x),atol=2e-7)
++        RESULTS['configuration_raw_limits']='all conditions finite; common scale; known e_b corrected trajectory; PSD; dt path invariance; explicit Euler mismatch; masks; synthetic-s Jacobian'
++
++    def test_09_observation_status(self):
++        cfg=F.FilterConfig(model_version='sensor-v2',use_range=True,use_s=False,bias_rw_std=0.)
++        inputs=dict(dt_s=np.array([0,.2,.2,.2]),ds_odom=np.zeros(4),dtheta_gyro=np.zeros(4),dtheta_odom=np.zeros(4))
++        correct=np.sqrt(4**2+2.2**2)
++        obs=dict(detected=np.array([False,True,False,True]),range_m=np.array([np.nan,100.,np.nan,correct]))
++        out=run_filter_v2(cfg,None,inputs,obs,{},np.zeros(6))
++        np.testing.assert_array_equal(out['observation_trace']['range_status'],['missing','rejected','missing','applied'])
++        self.assertTrue(np.isfinite(out['observation_trace']['range_innovation'][1]))
++        self.assertTrue(np.isnan(out['observation_trace']['range_innovation'][2]))
++        RESULTS['observation_status']='missing/rejected/applied/disabled explicitly verified; R and S retained for rejection'
++
++if __name__=='__main__':
++    output=Path(sys.argv[1]) if len(sys.argv)>1 else None
++    suite=unittest.defaultTestLoader.loadTestsFromTestCase(SensorV2Tests)
++    r=unittest.TextTestRunner(verbosity=2).run(suite)
++    if output:
++        if output.exists(): raise FileExistsError(output)
++        output.write_text(json.dumps(dict(tests_run=r.testsRun,failures=len(r.failures),errors=len(r.errors),results=RESULTS),indent=2),encoding='utf8')
++    sys.exit(not r.wasSuccessful())

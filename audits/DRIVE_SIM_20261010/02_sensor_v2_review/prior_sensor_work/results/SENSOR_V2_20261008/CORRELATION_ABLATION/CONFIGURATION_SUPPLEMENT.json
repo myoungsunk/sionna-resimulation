@@ -1,0 +1,110 @@
+{
+  "code_revision": "2337c33fe25917029c2aa95973e6ae7672386a5e",
+  "dt_s": 0.2,
+  "sensor_config": {
+    "model_version": "sensor-v2",
+    "level": 1,
+    "condition": "noise_pair",
+    "radius_nominal_m": 0.033,
+    "wheelbase_nominal_m": 0.287,
+    "common_scale": 0.0,
+    "bias_rw_rad_s_sqrt_s": 0.0,
+    "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+    "k_distance_m": 2e-05,
+    "k_yaw_rad": 0.0001,
+    "k_yaw_distance_rad2_m": 1e-05,
+    "slip_mode": "time",
+    "slip_rate_per_s": 0.050251679267507204,
+    "slip_probability_per_sample": 0.01,
+    "slip_t3_scale_rad": 0.008726646259971648,
+    "seed_namespace": 2201008,
+    "streams": {
+      "drift": 1,
+      "wheel": 2,
+      "gyro": 3,
+      "bias": 4,
+      "slip": 5,
+      "initial": 6,
+      "observation": 7
+    },
+    "levels": [
+      {
+        "name": "low",
+        "gyro_bias_dps": 0.01,
+        "gyro_sf": 0.005,
+        "wheel_ratio": 0.002,
+        "wheelbase_err": 0.005
+      },
+      {
+        "name": "mid",
+        "gyro_bias_dps": 0.05,
+        "gyro_sf": 0.01,
+        "wheel_ratio": 0.005,
+        "wheelbase_err": 0.0075
+      },
+      {
+        "name": "high",
+        "gyro_bias_dps": 0.2,
+        "gyro_sf": 0.015,
+        "wheel_ratio": 0.01,
+        "wheelbase_err": 0.01
+      }
+    ],
+    "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+    "gyro_definition": "Var(delta_angle)=N^2 dt",
+    "slip_std_rad": 0.015114994701951814,
+    "level_interpretation": "assumption-based sensitivity, not hardware performance"
+  },
+  "filter_config": {
+    "kind": "ekf",
+    "use_range": false,
+    "use_s": false,
+    "use_odom_heading": true,
+    "s_mode": "direct",
+    "skip_s_in_turn": false,
+    "mount_deg": 0.0,
+    "anchor_xyz": [
+      4.0,
+      0.0,
+      2.65
+    ],
+    "robot_z": 0.45,
+    "dt": 0.2,
+    "wheel_base": 0.287,
+    "p0_std": [
+      0.1,
+      0.1,
+      0.08726646259971647,
+      0.0020943951023931952,
+      0.0104,
+      0.0064
+    ],
+    "bias_rw_std": 0.0,
+    "pos_process_std": 0.0,
+    "s_var_inflation": 1.0,
+    "s_mismatch_sigma": 0.09,
+    "range_extra_sigma": 0.05,
+    "range_quant_var": 0.0018578637133572573,
+    "range_offset": 0.0,
+    "arw_var": 1.3707783890401884e-08,
+    "k_s": 2e-05,
+    "k_theta": 0.0001,
+    "k_stheta": 1e-05,
+    "range_sigma": 0.05,
+    "noise_var_cir_tap": 0.0,
+    "s_kind": "fp",
+    "noise_var_bin": 0.0,
+    "n_bins": 257,
+    "iekf_iters": 3,
+    "gsf_components": 5,
+    "gsf_prune": 0.0001,
+    "ukf_alpha": 0.4,
+    "inverse_min_slope_per_deg": 0.01,
+    "gate": 6.6349,
+    "model_version": "sensor-v2",
+    "known_wheelbase_error": 0.0,
+    "gyro_N_rad_sqrt_s": 0.0002617993877991494
+  },
+  "capture_note": "post-run supplemental transcription of literal executed ablation configuration; no parameter changes",
+  "execution_source_sha256": "784d1ee2d5bff5c612054e6cb19b7066d74d7676ce2c5d050a36f30c09f8d000"
+}

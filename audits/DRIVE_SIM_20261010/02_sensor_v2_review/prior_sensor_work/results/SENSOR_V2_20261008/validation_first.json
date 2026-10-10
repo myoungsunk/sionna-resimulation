@@ -1,0 +1,166 @@
+{
+  "tests_run": 7,
+  "failures": 1,
+  "errors": 0,
+  "results": {
+    "motion": "stop/reverse/turn/arc/yaw-boundary recovered; known wheelbase measurement exact",
+    "analytical_endpoints": {
+      "gyro_bias": {
+        "endpoint": [
+          9.996827203920073,
+          0.2181315455647517,
+          0.043633231299858403
+        ],
+        "legacy_euler_endpoint_difference_m": 0.0008725954017516501
+      },
+      "wheel_asymmetry": {
+        "endpoint": [
+          9.949491337002685,
+          0.8688791714253336,
+          0.174216027874564
+        ],
+        "legacy_euler_endpoint_difference_m": 0.0034799158609433527
+      }
+    },
+    "jacobian_max_abs_errors": {
+      "F": 3.453239916240136e-10,
+      "G": 2.531216347634313e-10,
+      "H": 3.1658731192152345e-11,
+      "B": 2.7232771593332927e-11
+    },
+    "shared_noise_linear": {
+      "covariance_relative_error": 0.04330709831825182,
+      "mean_nees": 5.907407886342781,
+      "coverage95": 0.948974609375,
+      "interval": [
+        5.746219027426517,
+        6.2608104446338055
+      ],
+      "wheel_distance_C_norm": 1.74209708677187e-08,
+      "gyro_C_norm": 1.9611923542409273e-08
+    },
+    "independent_run_variances": [
+      {
+        "dt_s": 0.1,
+        "gyro_variance": 6.673439029492974e-07,
+        "gyro_expected": 6.853891945200941e-07,
+        "bias_variance": 1.0231238849287213e-07,
+        "bias_expected": 1e-07,
+        "wheel_covariance": [
+          [
+            4.128799015768541e-05,
+            -1.043550661175959e-06
+          ],
+          [
+            -1.043550661175959e-06,
+            0.0001232432036179366
+          ]
+        ],
+        "wheel_expected": [
+          [
+            4e-05,
+            0.0
+          ],
+          [
+            0.0,
+            0.00012
+          ]
+        ],
+        "slip_events": 2025,
+        "slip_expected": 2053.1457611284663
+      },
+      {
+        "dt_s": 0.2,
+        "gyro_variance": 6.933246030029847e-07,
+        "gyro_expected": 6.853891945200941e-07,
+        "bias_variance": 1.0185335124919504e-07,
+        "bias_expected": 1e-07,
+        "wheel_covariance": [
+          [
+            4.065340134404082e-05,
+            -8.52328676305144e-07
+          ],
+          [
+            -8.52328676305144e-07,
+            0.00012060450371716261
+          ]
+        ],
+        "wheel_expected": [
+          [
+            4e-05,
+            0.0
+          ],
+          [
+            0.0,
+            0.00012
+          ]
+        ],
+        "slip_events": 1973,
+        "slip_expected": 2048.0
+      },
+      {
+        "dt_s": 0.4,
+        "gyro_variance": 6.788925140323571e-07,
+        "gyro_expected": 6.853891945200941e-07,
+        "bias_variance": 9.987626515777456e-08,
+        "bias_expected": 1e-07,
+        "wheel_covariance": [
+          [
+            3.954589087172282e-05,
+            2.2019178379072296e-07
+          ],
+          [
+            2.2019178379072296e-07,
+            0.00011804506184713947
+          ]
+        ],
+        "wheel_expected": [
+          [
+            4e-05,
+            0.0
+          ],
+          [
+            0.0,
+            0.00012
+          ]
+        ],
+        "slip_events": 1985,
+        "slip_expected": 2037.7600000000002
+      }
+    ],
+    "calibration_observability": {
+      "stop": {
+        "rank": 1,
+        "singular_values": [
+          0.8944271909999159,
+          0.0,
+          0.0
+        ]
+      },
+      "constant_straight": {
+        "rank": 1,
+        "singular_values": [
+          1.0901814857698722,
+          1.9841779896429247e-16,
+          0.0
+        ]
+      },
+      "speed_change": {
+        "rank": 2,
+        "singular_values": [
+          1.4455662972389776,
+          0.3607481379920499,
+          0.0
+        ]
+      },
+      "bidirectional_turn": {
+        "rank": 3,
+        "singular_values": [
+          1.4761433769702887,
+          0.6262905958221515,
+          0.44721359549995787
+        ]
+      }
+    }
+  }
+}

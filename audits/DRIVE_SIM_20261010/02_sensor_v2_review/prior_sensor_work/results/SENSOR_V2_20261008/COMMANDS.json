@@ -1,0 +1,77 @@
+[
+  {
+    "command": "py -3 tests/test_sensor_v2.py .../validation_first.json",
+    "exit_code": 1,
+    "meaning": "NaN dict equality test harness error; numeric arrays identical"
+  },
+  {
+    "command": "py -3 tests/test_sensor_v2.py .../validation_final.json",
+    "exit_code": 0,
+    "meaning": "7 groups"
+  },
+  {
+    "command": "py -3 tests/test_sensor_v2.py .../validation_verified.json",
+    "exit_code": 0,
+    "meaning": "9 groups including raw/status/config checks"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/run_sensor_v2.py --model-version sensor-v2 --out results/SENSOR_V2_20261008/MC48_final --runs 48",
+    "exit_code": 0,
+    "meaning": "1152 runs; seeds200..247; all 4 cells x6 baselines"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/evaluate_sensor_v2_rf.py --input results/SENSOR_V2_20261008/RF_INPUT --out results/SENSOR_V2_20261008/RF8",
+    "exit_code": 1,
+    "meaning": "strict SE2 input validation rejected legacy Euler truth before numerical results"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/evaluate_sensor_v2_rf.py --input results/SENSOR_V2_20261008/RF_INPUT --out results/SENSOR_V2_20261008/RF8_complete",
+    "exit_code": 0,
+    "meaning": "96 runs; seeds200..207; original RF subset201 poses"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/ablate_sensor_v2_correlation.py",
+    "exit_code": 0,
+    "meaning": "144 diagnostic runs;48 paired seeds"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/run_sensor_v2.py --model-version sensor-v2 --sensor-config configs/sensor_v2/assumed_common_scale.json --filter-config configs/sensor_v2/filter_fixed_bias.json --initial exact --wheelbase matched --runs 1 --out results/SENSOR_V2_20261008/CONFIG_SMOKE",
+    "exit_code": 0,
+    "meaning": "6 config smoke baselines; condition label checked"
+  },
+  {
+    "command": "py -3 scripts/drive_sim/run_sensor_v2.py --model-version legacy --out .../unsupported",
+    "exit_code": 2,
+    "meaning": "expected explicit unsupported runner rejection"
+  },
+  {
+    "command": "py -3 -m compileall -q src/qclean_uwb/drivesim scripts/drive_sim/run_sensor_v2.py scripts/drive_sim/evaluate_sensor_v2_rf.py tests/test_sensor_v2.py",
+    "exit_code": 0,
+    "meaning": "syntax"
+  },
+  {
+    "command": "git diff --check",
+    "exit_code": 0,
+    "meaning": "no whitespace error"
+  },
+  {
+    "command": "py -3 ../verify_evidence.py",
+    "exit_code": 0,
+    "meaning": "manifest input/output hashes + snapshots, original files & old checkout verified"
+  },
+  {
+    "command": "ssh -o BatchMode=yes -o PasswordAuthentication=no Snowball python3 ...",
+    "exit_code": 1,
+    "meaning": "system Python has no numpy; read-only extraction used standard-library NPY/ZIP parsing"
+  },
+  {
+    "command": "py -3 ../extract_existing_rf.py (first)",
+    "exit_code": 1,
+    "meaning": "remote Python predates hashlib.file_digest; no source/data modification"
+  },
+  {
+    "command": "py -3 ../extract_existing_rf.py (second)",
+    "exit_code": 0,
+    "meaning": "streaming hash fallback; selectedH3.3MB and LUT11.9MB"
+  }
+]

@@ -1,0 +1,277 @@
+{
+  "config_sha256": "877b4ab9efddc777ed81964180d6403afc5c5144a7311143debe9f7728877806",
+  "config": {
+    "model_version": "sensor-v2",
+    "sensor": {
+      "model_version": "sensor-v2",
+      "level": 1,
+      "condition": "common_scale",
+      "radius_nominal_m": 0.033,
+      "wheelbase_nominal_m": 0.287,
+      "common_scale": 0.01,
+      "bias_rw_rad_s_sqrt_s": 0.0,
+      "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+      "k_distance_m": 2e-05,
+      "k_yaw_rad": 0.0001,
+      "k_yaw_distance_rad2_m": 1e-05,
+      "slip_mode": "off",
+      "slip_rate_per_s": 0.050251679267507204,
+      "slip_probability_per_sample": 0.01,
+      "slip_t3_scale_rad": 0.008726646259971648,
+      "seed_namespace": 2201008,
+      "streams": {
+        "drift": 1,
+        "wheel": 2,
+        "gyro": 3,
+        "bias": 4,
+        "slip": 5,
+        "initial": 6,
+        "observation": 7
+      },
+      "levels": [
+        {
+          "name": "low",
+          "gyro_bias_dps": 0.01,
+          "gyro_sf": 0.005,
+          "wheel_ratio": 0.002,
+          "wheelbase_err": 0.005
+        },
+        {
+          "name": "mid",
+          "gyro_bias_dps": 0.05,
+          "gyro_sf": 0.01,
+          "wheel_ratio": 0.005,
+          "wheelbase_err": 0.0075
+        },
+        {
+          "name": "high",
+          "gyro_bias_dps": 0.2,
+          "gyro_sf": 0.015,
+          "wheel_ratio": 0.01,
+          "wheelbase_err": 0.01
+        }
+      ],
+      "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+      "gyro_definition": "Var(delta_angle)=N^2 dt",
+      "slip_std_rad": 0.015114994701951814,
+      "level_interpretation": "assumption-based sensitivity, not hardware performance"
+    },
+    "filter": {
+      "kind": "ekf",
+      "use_range": false,
+      "use_s": false,
+      "use_odom_heading": true,
+      "s_mode": "direct",
+      "skip_s_in_turn": false,
+      "mount_deg": 0.0,
+      "anchor_xyz": [
+        4.0,
+        0.0,
+        2.65
+      ],
+      "robot_z": 0.45,
+      "dt": 0.2,
+      "wheel_base": 0.287,
+      "p0_std": [
+        0.1,
+        0.1,
+        0.08726646259971647,
+        0.0020943951023931952,
+        0.0104,
+        0.0064
+      ],
+      "bias_rw_std": 0.0,
+      "pos_process_std": 0.0,
+      "s_var_inflation": 1.0,
+      "s_mismatch_sigma": 0.09,
+      "range_extra_sigma": 0.05,
+      "range_quant_var": 0.0018578637133572573,
+      "range_offset": 0.0,
+      "arw_var": 1.3707783890401884e-08,
+      "k_s": 2e-05,
+      "k_theta": 0.0001,
+      "k_stheta": 1e-05,
+      "range_sigma": 0.05,
+      "noise_var_cir_tap": 0.0,
+      "s_kind": "fp",
+      "noise_var_bin": 0.0,
+      "n_bins": 257,
+      "iekf_iters": 3,
+      "gsf_components": 5,
+      "gsf_prune": 0.0001,
+      "ukf_alpha": 0.4,
+      "inverse_min_slope_per_deg": 0.01,
+      "gate": 6.6349,
+      "model_version": "sensor-v2",
+      "known_wheelbase_error": 0.0,
+      "gyro_N_rad_sqrt_s": 0.0002617993877991494
+    },
+    "filter_method_overrides": {
+      "ideal_increments": {
+        "use_range": false,
+        "use_s": false
+      },
+      "wheel_only": {
+        "use_range": false,
+        "use_s": false
+      },
+      "wheel_distance_gyro_fixed": {
+        "use_range": false,
+        "use_s": false
+      },
+      "wheel_gyro_online": {
+        "use_range": false,
+        "use_s": false
+      },
+      "online_range": {
+        "use_range": true,
+        "use_s": false
+      },
+      "online_range_s_ideal_ratio": {
+        "use_range": true,
+        "use_s": true
+      }
+    },
+    "dt_s": 0.2,
+    "seed_start": 200,
+    "n_runs": 1,
+    "initializations": [
+      "exact"
+    ],
+    "wheelbase_conditions": [
+      "matched"
+    ],
+    "methods": [
+      "ideal_increments",
+      "wheel_only",
+      "wheel_distance_gyro_fixed",
+      "wheel_gyro_online",
+      "online_range",
+      "online_range_s_ideal_ratio"
+    ],
+    "synthetic_observation": "range sigma .05m + analytic ratio .6cos(phi_rx) sigma .09; no RF H/LUT used",
+    "synthetic_range_filter_R": "legacy .05^2 + tap quantization variance + extra .05^2 preserved, intentionally exceeds synthetic generator",
+    "evaluation_unit": "independent seed/run; times are correlated",
+    "calibration_data": "none, no fitting or tuning",
+    "truth_field_policy": "evaluation_* only; generator/controlled initialization and evaluation use truth; EKF receives measurements only",
+    "covariance_policy": "full covariance only for online EKF; deterministic/fixed baselines do not claim a prior",
+    "code_revision": "2337c33fe25917029c2aa95973e6ae7672386a5e",
+    "modified_source_hashes": {
+      "src\\qclean_uwb\\drivesim\\sensor_v2.py": "8dadbdc6e73cff6839c1024334bd2eb0b0b8bc7506bdea49bdbfa938269230b9",
+      "src\\qclean_uwb\\drivesim\\filter_v2.py": "7f6c424d44fa890073b3c8054053795fad374c1bd77db196591c6fec6855f063",
+      "src\\qclean_uwb\\drivesim\\evaluation_v2.py": "6f9c5e84e126606133f48f2ab8e7675b46752217e86fd39a40d2a330cab220ae",
+      "src\\qclean_uwb\\drivesim\\filters.py": "aa8a77f2d68011234de814c8a6ceed3f7754cf03f4ca4e1143ccff43b08a2715",
+      "src\\qclean_uwb\\drivesim\\experiment.py": "21f8bd9739193abf6feaa65ac5a21b094d8493083184e47e95329e56fa26db43",
+      "src\\qclean_uwb\\drivesim\\sensors.py": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+      "src\\qclean_uwb\\drivesim\\hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+      "src\\qclean_uwb\\drivesim\\observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab"
+    }
+  },
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\sensor_v2.py",
+      "sha256": "8dadbdc6e73cff6839c1024334bd2eb0b0b8bc7506bdea49bdbfa938269230b9",
+      "bytes": 9138
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\filter_v2.py",
+      "sha256": "7f6c424d44fa890073b3c8054053795fad374c1bd77db196591c6fec6855f063",
+      "bytes": 7298
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\evaluation_v2.py",
+      "sha256": "6f9c5e84e126606133f48f2ab8e7675b46752217e86fd39a40d2a330cab220ae",
+      "bytes": 11408
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\filters.py",
+      "sha256": "aa8a77f2d68011234de814c8a6ceed3f7754cf03f4ca4e1143ccff43b08a2715",
+      "bytes": 19543
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\experiment.py",
+      "sha256": "21f8bd9739193abf6feaa65ac5a21b094d8493083184e47e95329e56fa26db43",
+      "bytes": 12690
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\sensors.py",
+      "sha256": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+      "bytes": 4711
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\hs_lut.py",
+      "sha256": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+      "bytes": 10778
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\src\\qclean_uwb\\drivesim\\observation.py",
+      "sha256": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+      "bytes": 6036
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_SENSOR_V2_20261008_01a11a01\\checkout\\results\\SENSOR_V2_20261008\\PREREG_V2.md",
+      "sha256": "3e4e57405af0269272f6f338ebaabb11cf77880b455e2fdc896b562206d0bf2b",
+      "bytes": 5732
+    }
+  ],
+  "outputs": [
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_ideal_increments.npz",
+      "sha256": "e378a271a637ca5d9e3d52c586742f9ad259ddc513b4053bef0155644dd0ff7a",
+      "bytes": 29383
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_wheel_only.npz",
+      "sha256": "82b4f7694a60b9c52bafd08a0cb81972383e4f71aa1c519ed2a1ccba09b80c4c",
+      "bytes": 38325
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_wheel_distance_gyro_fixed.npz",
+      "sha256": "d0c3f94c9eaba4e0be225d82aa9cdd5851f0a8a652d9f9a58300090b893e21fc",
+      "bytes": 35199
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_wheel_gyro_online.npz",
+      "sha256": "79e3b9d94a6fd54c8e6a9028445064f689f1b3a68d210769836ed04048b67699",
+      "bytes": 159079
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_online_range.npz",
+      "sha256": "e65781779064b515e9159ed5e7ef481f381fbcf5f0c9d9611185a60426f876a5",
+      "bytes": 167493
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\raw\\exact_matched_200_online_range_s_ideal_ratio.npz",
+      "sha256": "cb299d9803e6d27832f13c4195ff459c894fee18df16df855cd4fc6ec5bc5842",
+      "bytes": 172263
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\runs.json",
+      "sha256": "e42f2dd39e10d4ba879d27f11e2c844599b9f50868603694fba58d2cdf3f3b4b",
+      "bytes": 7957
+    },
+    {
+      "path": "results\\SENSOR_V2_20261008\\CONFIG_SMOKE\\aggregate.json",
+      "sha256": "ff84274d3c932dd36f020f3fe716ccf55e360e2e94fc9b2a5469eb33cb8c8d05",
+      "bytes": 2209
+    }
+  ],
+  "timestamp_utc": "2026-10-08T06:09:08Z",
+  "command": [
+    "scripts/drive_sim/run_sensor_v2.py",
+    "--model-version",
+    "sensor-v2",
+    "--sensor-config",
+    "configs/sensor_v2/assumed_common_scale.json",
+    "--filter-config",
+    "configs/sensor_v2/filter_fixed_bias.json",
+    "--initial",
+    "exact",
+    "--wheelbase",
+    "matched",
+    "--runs",
+    "1",
+    "--out",
+    "results/SENSOR_V2_20261008/CONFIG_SMOKE"
+  ]
+}
