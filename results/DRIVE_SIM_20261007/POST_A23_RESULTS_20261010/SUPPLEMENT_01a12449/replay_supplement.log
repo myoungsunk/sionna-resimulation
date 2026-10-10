@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/job/replay_supplement.py", line 50, in <module>
+    m.main()
+  File "/job/source/scripts/drive_sim/structured_noise_control.py", line 720, in main
+    {"residuals": cmd_residuals, "check-a0": cmd_check_a0, "run": cmd_run, "report": cmd_report}[a.cmd](a)
+  File "/job/replay_supplement.py", line 9, in run
+    m.setup(a); man=m.base_manifest(a,a.cases,a.mounts,'supplement')
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/job/source/scripts/drive_sim/structured_noise_control.py", line 186, in base_manifest
+    inputs = input_snapshot(a, cases, mounts)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/job/source/scripts/drive_sim/structured_noise_control.py", line 164, in input_snapshot
+    out["H"][f"{c}_m{m:g}"] = sha256(h_path(a, c, m))
+                                     ^^^^^^^^^^^^^^^
+  File "/job/source/scripts/drive_sim/structured_noise_control.py", line 82, in h_path
+    return a.h_dir / (f"H_y{c['lateral']:g}_m{mount:g}.npy" if c["kind"] == "R1" else f"H_{c['route']}_a{c['anchor']}_m{mount:g}.npy")
+                                                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Unknown format code 'g' for object of type 'str'
