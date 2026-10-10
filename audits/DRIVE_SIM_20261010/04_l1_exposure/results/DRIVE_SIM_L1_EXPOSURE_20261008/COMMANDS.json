@@ -1,0 +1,39 @@
+[
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure.py prepare",
+    "exit_code": 0,
+    "log": "PREPARE_L1_EXPOSURE.log"
+  },
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure.py replay",
+    "attempt": 1,
+    "exit_code": 1,
+    "log": "REPLAY_ATTEMPT1.log"
+  },
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure.py replay",
+    "attempt": 2,
+    "exit_code": 1,
+    "log": "REPLAY_ATTEMPT2.log"
+  },
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure.py replay",
+    "attempt": 3,
+    "exit_code": 0,
+    "log": "REPLAY.log"
+  },
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure.py offline",
+    "exit_code": 0,
+    "log": "OFFLINE.log"
+  },
+  {
+    "command": "py -3.10 -X utf8 scripts/drive_sim/l1_exposure_report.py",
+    "exit_code": 0,
+    "log": "REPORT.log"
+  },
+  {
+    "command": "git diff --check",
+    "exit_code": 0
+  }
+]
