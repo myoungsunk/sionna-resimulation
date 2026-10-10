@@ -397,7 +397,7 @@ def main():
   "num_probe_events":len(events),
   "num_active_trigger_events":int(a[a.arm=="F3_ACTIVE"].n_triggered.sum()),
   "n_active_runs_zero_probes":int((a[a.arm=="F3_ACTIVE"].n_triggered==0).sum()),
-  "n_eval_base_steps_per_case":dict(a[a.arm=="D_DEFAULT"].groupby("case").n_progress_matched.first()),
+  "n_eval_base_steps_per_case":{str(k):int(v) for k,v in a[a.arm=="D_DEFAULT"].groupby("case").n_progress_matched.first().items()},
   "source":"sensor-v2 frozen native v2 filter, existing T10 bank, out-of-route DPK q",
   "primary_full_route_not_offline":True,"ideal_station_stop":True,
   "mount45_missing_five_cases":True,"arbitrary_triggered_XY_not_supported":True,
