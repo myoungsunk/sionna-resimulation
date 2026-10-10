@@ -1,0 +1,42 @@
+--- /routes/source/src/qclean_uwb/drivesim/hs_lut.py
++++ /job/source/src/qclean_uwb/drivesim/hs_lut.py
+@@ -31,7 +31,7 @@
+     return np.einsum("rbi,tbi->brt", rx_f, tx_f) * (scale * phase)[:, None, None]
+ 
+ 
+-def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg) -> float:
++def los_s_direct(banks, theta_deg, phi_tx_deg, phi_rx_deg, measure: str = "fp") -> float:
+     """Reference value (no table): s for one (theta, phi_tx, phi_rx)."""
+     th, pt = np.radians(theta_deg), np.radians(phi_tx_deg)
+     d_local = np.array([np.sin(th) * np.cos(pt), np.sin(th) * np.sin(pt), np.cos(th)])
+@@ -39,6 +39,8 @@
+     v = -d_world
+     yaw = np.degrees(np.arctan2(v[1], v[0])) - phi_rx_deg
+     h = los_h(banks, d_world, yaw)
++    if measure == "rx":
++        return float(O.rx_energy_s(h[None, :, :, 0])[0][0])
+     return float(O.observe(h[None], banks[0].freqs_hz, None, None, tx=0)["s"][0])
+ 
+ 
+@@ -49,7 +51,7 @@
+     return r
+ 
+ 
+-def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, theta_max_deg: float = 90.0, progress=None) -> dict:
++def build_lut(banks, theta_step_deg: float = 2.0, phi_step_deg: float = 2.0, theta_max_deg: float = 90.0, progress=None, measure: str = "fp") -> dict:
+     """Vectorised over phi_rx: for a fixed line of sight the antenna yaw only rotates the local frame about z, so the RX field is the bank
+     sampled at (theta, phi_rx) and rotated to the world frame by the yaw."""
+     thetas = np.arange(0.0, theta_max_deg + 1e-9, theta_step_deg)
+@@ -79,10 +81,10 @@
+             h = np.einsum("rbpi,bi->pbr", rx, tx_f[0]) * (scale * phase)[None, :, None]
+             h4 = np.zeros((len(phis), len(freqs), 2, 2), complex)
+             h4[..., 0] = h
+-            s[i, j] = O.observe(h4, freqs, None, None, tx=0)["s"]
++            s[i, j] = O.observe(h4, freqs, None, None, tx=0)["s"] if measure == "fp" else O.rx_energy_s(h)[0]
+         if progress:
+             progress(i + 1, len(thetas))
+-    return dict(theta_deg=thetas, phi_deg=phis, s=s, d_ref_m=D_REF_M)
++    return dict(theta_deg=thetas, phi_deg=phis, s=s, d_ref_m=D_REF_M, measure=measure)
+ 
+ 
+ class HsLut:

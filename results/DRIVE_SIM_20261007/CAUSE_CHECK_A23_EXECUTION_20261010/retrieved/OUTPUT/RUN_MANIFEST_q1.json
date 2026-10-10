@@ -1,0 +1,260 @@
+{
+ "label": "q1",
+ "started_utc": "2026-10-10T04:33:57Z",
+ "argv": [
+  "/job/source/scripts/drive_sim/structured_noise_control.py",
+  "run",
+  "--s1",
+  "/routes/source/results/DRIVE_SIM_20261007/S1",
+  "--h-dir",
+  "/routes/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2",
+  "--lut",
+  "/legacy/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy",
+  "--lut-meta",
+  "/legacy/source/results/DRIVE_SIM_20261007/S4/hs_lut_meta.json",
+  "--bank-freqs",
+  "/job/freqs_hz.npy",
+  "--cases",
+  "R2A",
+  "--mounts",
+  "0",
+  "--drifts",
+  "0",
+  "1",
+  "2",
+  "--seeds",
+  "50",
+  "--seed0",
+  "0",
+  "--nproc",
+  "4",
+  "--trace-seeds",
+  "0",
+  "1",
+  "--out",
+  "/job/OUTPUT",
+  "--arms",
+  "S1_bias",
+  "S2_ar0",
+  "S3_ar1",
+  "S4_iid",
+  "S5_iid0",
+  "S6_realdem",
+  "S7_block",
+  "S8_real",
+  "--label",
+  "q1"
+ ],
+ "args": {
+  "cmd": "run",
+  "s1": "/routes/source/results/DRIVE_SIM_20261007/S1",
+  "h_dir": "/routes/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2",
+  "lut": "/legacy/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy",
+  "lut_meta": "/legacy/source/results/DRIVE_SIM_20261007/S4/hs_lut_meta.json",
+  "bank_freqs": "/job/freqs_hz.npy",
+  "cases": "['R2A']",
+  "mounts": "[0.0]",
+  "drifts": "[0, 1, 2]",
+  "arms": "['S1_bias', 'S2_ar0', 'S3_ar1', 'S4_iid', 'S5_iid0', 'S6_realdem', 'S7_block', 'S8_real']",
+  "label": "q1",
+  "out": "/job/OUTPUT",
+  "csv": "None",
+  "unit_stats": "None",
+  "a0_check": "None",
+  "manifest": "None",
+  "s6_csv": "None",
+  "seeds": "50",
+  "seed0": "0",
+  "nproc": "4",
+  "mismatch_sigma": "0.16095229605409875",
+  "trace_seeds": "[0, 1]",
+  "skip_missing": "False",
+  "allow_unchecked_a0": "False",
+  "dry_run": "False"
+ },
+ "git": {
+  "head": "f81b42d541fdf9a37b6868d4901c2a3bb9d8090e",
+  "branch": "codex/a23-execution-20261010",
+  "dirty_files": [],
+  "runtime_git_available": false,
+  "provenance_method": "git archive of verified local revision; metadata-only wrapper replaces git_info because existing runtime has no git",
+  "archive_sha256": "14f970938fa971c581eb81fe1d4213a274ec0aa132f4a67ba47ef48ff297636f",
+  "local_checkout_dirty_files": [
+   "?? DRIVE_SIM_AUDIT_KO.md",
+   "?? audits/"
+  ]
+ },
+ "python": "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:34:02) [GCC 14.3.0]",
+ "numpy": "2.4.6",
+ "pandas": "3.0.6",
+ "platform": "Linux-4.18.0-553.134.1.el8_10.x86_64-x86_64-with-glibc2.28",
+ "inputs": {
+  "H": {
+   "R2A_m0": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51"
+  },
+  "timelines": {
+   "R2A": {
+    "none": "45bd5b1fa8d204ef013ba987ecd9c98404a16a8c7462cc9bead0cbda06f50f88",
+    "10": "1b7e2a26de81d18ea5314d4694f0596597b432dece5f7a28accf81877ea9954f",
+    "20": "628b4275b849b6dad5ef10621a4b794b48ba65b49da690795a1f0ab0ba945551",
+    "60": "0e53abc76f1180501da3ac8d92259f4d4920cb05195723b4176135ed502eeb43"
+   }
+  },
+  "rf_poses": {
+   "R2A": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e"
+  },
+  "pose_correspondence": {
+   "R2A": {
+    "n_timeline": 979,
+    "n_poses": 1303,
+    "max_id": 978,
+    "max_abs_diff": 4.998187517202268e-07,
+    "ok": true
+   }
+  },
+  "lut": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+  "lut_meta": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+  "freqs": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8"
+ },
+ "source_sha256": {
+  "src/qclean_uwb/drivesim/filters.py": "b9adbfb5c5bcc3e0af1e4efe99b40f187f0f325258a6c8efb22701d85ac95d18",
+  "src/qclean_uwb/drivesim/experiment.py": "28ec80b4c5d2aff049365f8dd8d3087b51dca3dc15fffcd9919591d589659ea9",
+  "src/qclean_uwb/drivesim/sensors.py": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+  "src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+  "src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+  "src/qclean_uwb/drivesim/trajectory.py": "a1da56dc0292786373f897c98e269a02db13ece79e9533cbf4c4056e000c2bab",
+  "src/qclean_uwb/drivesim/routes.py": "a548ff6355f10dc428c4401e9cf59e5b60416de491cdd6d0812d191114681fc6",
+  "src/qclean_uwb/drivesim/pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8",
+  "src/qclean_uwb/scenarios/corridor.py": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e",
+  "scripts/drive_sim/structured_noise_control.py": "d073d3cf76554c8f7171faa9b15d78c9aec9aa3ea3e720d7f9d3cfb950c26261"
+ },
+ "settings": {
+  "filter_config_defaults": {
+   "kind": "ekf",
+   "use_range": true,
+   "use_s": true,
+   "use_odom_heading": true,
+   "s_mode": "direct",
+   "skip_s_in_turn": false,
+   "mount_deg": 0.0,
+   "anchor_xyz": [
+    4.0,
+    0.0,
+    2.65
+   ],
+   "robot_z": 0.45,
+   "dt": 0.2,
+   "wheel_base": 0.287,
+   "p0_std": [
+    0.1,
+    0.1,
+    0.08726646259971647,
+    0.0020943951023931952,
+    0.0104,
+    0.0064
+   ],
+   "bias_rw_std": 1.7453292519943296e-05,
+   "pos_process_std": 0.0,
+   "s_sigma_table": null,
+   "s_sigma_table2d": null,
+   "s_var_inflation": 1.0,
+   "s_mismatch_sigma": 0.09,
+   "range_extra_sigma": 0.05,
+   "range_quant_var": 0.0018578637133572573,
+   "range_offset": 0.0,
+   "arw_var": 1.3707783890401884e-08,
+   "k_s": 2e-05,
+   "k_theta": 0.0001,
+   "k_stheta": 1e-05,
+   "range_sigma": 0.05,
+   "noise_var_cir_tap": 0.0,
+   "s_kind": "fp",
+   "noise_var_bin": 0.0,
+   "n_bins": 257,
+   "iekf_iters": 3,
+   "gsf_components": 5,
+   "gsf_prune": 0.0001,
+   "ukf_alpha": 0.4,
+   "inverse_min_slope_per_deg": 0.01,
+   "gate": 6.6349
+  },
+  "sensor_noise": {
+   "arw_deg_sqrt_s": 0.015,
+   "k_s_m": 2e-05,
+   "k_theta_rad": 0.0001,
+   "k_stheta_rad2_per_m": 1e-05,
+   "slip_probability": 0.01,
+   "slip_scale_deg": 0.5,
+   "range_sigma_m": 0.05
+  },
+  "drift_levels": [
+   {
+    "name": "low",
+    "gyro_bias_dps": 0.01,
+    "gyro_sf": 0.005,
+    "wheel_ratio": 0.002,
+    "wheelbase_err": 0.005
+   },
+   {
+    "name": "mid",
+    "gyro_bias_dps": 0.05,
+    "gyro_sf": 0.01,
+    "wheel_ratio": 0.005,
+    "wheelbase_err": 0.0075
+   },
+   {
+    "name": "high",
+    "gyro_bias_dps": 0.2,
+    "gyro_sf": 0.015,
+    "wheel_ratio": 0.01,
+    "wheelbase_err": 0.01
+   }
+  ],
+  "pos_process_std": 0.01,
+  "exclude_s": 30.0,
+  "snr_db": [
+   30.0
+  ],
+  "mismatch_sigma": 0.16095229605409875,
+  "applied_R": {
+   "range": 0.006857863713357258,
+   "s_mismatch_var": 0.025905641605086252
+  },
+  "gate": 6.6349,
+  "p0_std": [
+   0.1,
+   0.1,
+   0.08726646259971647,
+   0.0020943951023931952,
+   0.0104,
+   0.0064
+  ],
+  "mask": "evaluation mask = samples with t >= EXCLUDE_S (30 s); common stations additionally non-probe",
+  "seed_keys": {
+   "drift": "[seed, drift, 1]",
+   "initial_state": "[seed, 3]",
+   "sensor_inputs": "[seed, drift, 2, period_code]",
+   "observation": "(seed, snr_idx, period_code, round(lateral*100), mount[, route_code])",
+   "synthetic_noise": "[seed, drift, stream_id], stream ids 101..107"
+  },
+  "snr_idx_mapping": "S6 used SNR [30, 10] with snr_idx 0, 1; this tool uses SNR [30] with snr_idx 0"
+ },
+ "fingerprint": "935fa7836dd23c0a139417b2b9dd63757cc00c875c0fa37d0a3496b1d357a17f",
+ "a0_gate": "passed",
+ "n_runs_planned": 1200,
+ "skipped": [],
+ "finished_utc": "2026-10-10T04:35:18Z",
+ "seconds": 81,
+ "n_rows": 1200,
+ "n_failed": 0,
+ "requested_drifts": [
+  0,
+  1,
+  2
+ ],
+ "requested_seeds": [
+  0,
+  50
+ ],
+ "inference_valid_a0_gate": true
+}
