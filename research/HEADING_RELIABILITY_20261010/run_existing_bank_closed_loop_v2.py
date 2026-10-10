@@ -105,7 +105,7 @@ def route_files():
    assert np.allclose(normal[col],none[col],rtol=0,atol=1e-12),(route,col)
   group={}
   for drive_g,g in all_df[all_df.phase=="probe"].groupby("drive_g",sort=True):
-   cc=g[["index","probe_offset_deg","pose_id"]].to_numpy()
+   cc=g[["idx","probe_offset_deg","pose_id"]].to_numpy()
    # group index: original DataFrame row index.
    cs=[(int(v[0]),float(v[1]),int(v[2])) for v in cc]
    def select(n):
