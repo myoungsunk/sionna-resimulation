@@ -136,7 +136,7 @@ def run(args):
     srcs=(H/"body_controls.py").read_text()
     assert "true[:,2]=V.wrap(true[:,2]+yaws)" in control and "ds=np.zeros(n)" in control
     assert "if arm=='C' and m=='s' else obs" in control
-    assert "arm in ['G1','G2']" in control
+    assert "arm not in ['G1','G2']" in control
     assert "enabled=obs_i>=0" in control
     assert "estimator_applied=np.array(False)" in covcode
     assert "np.cov" in covcode
