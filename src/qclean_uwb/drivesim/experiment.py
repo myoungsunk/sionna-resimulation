@@ -18,7 +18,9 @@ EXCLUDE_S = 30.0
 WRONG_BRANCH_DEG = 20.0
 CHI2_3_95 = 7.814727903251179        # chi2(3 dof) 95 % point (pose NEES coverage, A17)
 GRID_S = 1.0
-TRACE_HOOK = None                # A23 rev2: optional callable(world, out, err, nees) for raw-trace saving; None = off
+TRACE_HOOK = None                # A23 rev3: optional callable(world, out, err, nees, inputs, obs) for raw-trace saving; None = off
+TRACE_PARTIAL = None             # A23 rev3: optional dict handed to run_filter; keeps the last valid state if a run fails
+CHI2_3_LO, CHI2_3_HI = 0.215795283, 9.348403604          # chi2(3 dof) 2.5 % / 97.5 % points
 COMMON_FROM_DRIVE_G = 150      # A16: 30 s of drive time at 5 Hz; common stations = non-probe samples from this drive index on
 
 
@@ -125,7 +127,7 @@ def filter_config(base: dict, world: World, obs: dict, sensor: S.SensorNoise, mi
 
 def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsLut | None, x0) -> dict:
     flags = dict(turn_phase=world.turn_phase)
-    out = F.run_filter(cfg, lut, inputs, obs, flags, x0)
+    out = F.run_filter(cfg, lut, inputs, obs, flags, x0, partial=TRACE_PARTIAL)
     truth = world.truth
     err = out["est"][:, :3] - truth
     err[:, 2] = F.wrap(err[:, 2])
@@ -165,6 +167,7 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
             res.update({f"nis_{name}_eval_pre": float("nan"), f"nis_{name}_eval_acc": float("nan"), f"{name}_reject_frac_eval": float("nan"), f"n_{name}_eval": 0})
     # A17 (additive columns): coverage of the filter's own covariance
     sig_psi = np.sqrt(np.maximum(out["cov3"][:, 2, 2], 1e-18))
+    res.update(nees_tail_lo=float(np.mean(nees < CHI2_3_LO)), nees_tail_hi=float(np.mean(nees > CHI2_3_HI)))
     res.update(nees_cov95=float(np.mean(nees <= CHI2_3_95)), heading_cov95=float(np.mean(np.abs(F.wrap(err[keep][:, 2])) <= 1.96 * sig_psi[keep])))
     # A16 (additive columns): the same drive positions in every probe schedule, and the probe samples on their own
     common = (world.probe_id < 0) & (world.drive_g >= COMMON_FROM_DRIVE_G)
@@ -173,7 +176,7 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
                pos_rmse_common_m=float(np.sqrt(np.mean(pos[common] ** 2))) if common.any() else float("nan"),
                heading_rmse_probe_deg=float(np.sqrt(np.mean(head[probe] ** 2))) if probe.any() else float("nan"), n_common_samples=int(common.sum()))
     if TRACE_HOOK is not None:
-        TRACE_HOOK(world, out, err, nees)
+        TRACE_HOOK(world, out, err, nees, inputs, obs)
     grid = np.arange(0.0, t[-1] + 1e-9, GRID_S)
     idx = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 1)
     return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))

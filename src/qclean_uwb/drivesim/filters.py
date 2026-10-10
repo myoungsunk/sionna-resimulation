@@ -240,7 +240,7 @@ class DriveFilter:
             H[0], H[1] = (x[0] - a[0]) / d, (x[1] - a[1]) / d
             y = z - (d + cfg.range_offset)
             S = float(H @ c.P @ H + R)
-            self.stats["r_log"].append((self.cur_k, y * y / S, bool(y * y / S <= cfg.gate)))
+            self.stats["r_log"].append((self.cur_k, y * y / S, bool(y * y / S <= cfg.gate), float(y), S, float(R), float(d + cfg.range_offset), float(z)))
             if y * y / S > cfg.gate:
                 self.stats["r_rejected"] += 1
                 continue
@@ -299,7 +299,7 @@ class DriveFilter:
             if it == 0:
                 nis = y * y / S
                 self.stats["nis_s"].append(nis)
-                self.stats["s_log"].append((self.cur_k, nis, bool(self._gate_ok(nis))))
+                self.stats["s_log"].append((self.cur_k, nis, bool(self._gate_ok(nis)), float(y), S, float(R), float(h), float(z)))
                 if not self._gate_ok(nis):
                     self.stats["s_rejected"] += 1
                     return
@@ -423,7 +423,7 @@ def wrap_vec(v):
     return v
 
 
-def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, flags: dict, x0, truth: dict | None = None) -> dict:
+def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, flags: dict, x0, truth: dict | None = None, partial: dict | None = None) -> dict:
     """Run one filter over a timeline.
 
     inputs: dtheta_gyro, ds_odom, dtheta_odom (n,);  obs: s, range_m, detected, power (n,2);  flags: turn_phase (n,) bool.
@@ -433,6 +433,9 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
     f = DriveFilter(cfg, lut, x0)
     est = np.zeros((n, N))
     cov3 = np.zeros((n, 3, 3))
+    cov6 = np.zeros((n, N, N))
+    if partial is not None:                      # A23 rev3: the arrays are shared so a failing run leaves its last valid state behind (nothing is clamped or hidden)
+        partial.update(est=est, cov3=cov3, cov6=cov6, k_done=-1)
     turn_prev = False
     for k in range(n):
         f.cur_k = k
@@ -453,6 +456,8 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
                     f.update_s(obs["s"][k], obs["power"][k][0], obs["power"][k][1])
         turn_prev = bool(flags["turn_phase"][k])
         m, P = f.mean_cov()
-        est[k], cov3[k] = m, P[:3, :3]
-    out = dict(est=est, cov3=cov3, stats={k: (v if k != "nis_s" else np.array(v)) for k, v in f.stats.items()})
+        est[k], cov3[k], cov6[k] = m, P[:3, :3], P
+        if partial is not None:
+            partial["k_done"] = k
+    out = dict(est=est, cov3=cov3, cov6=cov6, stats={k: (v if k != "nis_s" else np.array(v)) for k, v in f.stats.items()})
     return out
