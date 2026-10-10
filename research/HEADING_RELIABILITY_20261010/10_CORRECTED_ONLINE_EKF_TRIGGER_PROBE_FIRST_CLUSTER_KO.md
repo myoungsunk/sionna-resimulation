@@ -8,7 +8,7 @@
 정상 운전에서는 **매 센서 시점 EKF**로 IMU+wheel prediction/correction 및 single-anchor UWB range를 갱신하고, **고신뢰 RF s도 매 시점** 함께 업데이트한다. 주행 중 현재 상태에서 RF 측정이 저신뢰라는 신호가 감지될 때만:
 1. RF 업데이트 이전의 prior와 RF/CIR 특징을 검사하고 low-confidence trigger 결정. 이 관측은 먼저 EKF를 오염시키지 않는다.
 2. 로봇을 **현 위치에 정지** (속도 0, 물리적 stop/settle and any xy deviation recorded).
-3. 같은 위치에서 몸체 yaw(혹은 검증된 독립 head)만 회전해 **추가 1–2개 각도**에서 RF 측정. 최초 triggering s 1개를 포함해 **총 2–3개 yaw 관측**이다. "2–3회 프로브"가 최초 관측 외 2–3회 추가라는 별도 정책이면 그 시나리오를 명시적으로 구분. 여기서는 total 2/3 points를 default로 고정.
+3. 로봇이 실제로 멈춘 **최종 정지 위치**를 고정 station으로 정의하고, 그 위치에서 기준 yaw RF 측정 1개를 **새로 취득**한 뒤 추가 1–2개 yaw 각도에서 RF 측정한다. 총 2–3개 서로 다른 yaw 관측으로 공동 추정한다. **주행 중 트리거를 유발한 측정은 주행 위치에서의 판별자료이며, 정지 중 동일 위치 프로브 묶음에 자동 포함하지 않는다.** 정지거리/위치이탈이 사전 허용치 내인 예외만 별도 paired control에서 허용한다.
 4. 해당 위치 및 각도의 LoS FFD-LUT와 두 포트 first-path/first-cluster 전력비, IMU/odom/회전 불확실성을 이용하여 site-level 및 각 측정점 별 오염확률(q_site/q_i)과 **공동 pose/heading posterior**를 산출. 오염 포인트는 낮은 가중치로 유지, 가장 residual 작은 포인트 하나만 고르지 않는다.
 5. **동일 관측을 두 번 업데이트하지 않고** 한번의 correlated batch or posterior-to-EKF fusion으로 x6/P6를 갱신. Low confidence이면 적절한 공분산을 유지한 채 propagation을 우선하고, 근거 없이 정확한 heading을 강제하지 않는다.
 6. 실측 회전 엔코더/IMU로 원래 주행 heading(경로 기준)을 복원하고 주행을 재개; 갱신된 heading과 공분산은 이후 **모든 EKF 시점에 계속 전파**된다.
@@ -19,10 +19,10 @@
 
 기본 filter: 6-state sensor-v2 [x,y,psi,bias_g,gyro_scale,eps_wheel], 5 Hz dt nominal 0.2s, 주행 0.2m/s, 동일 단일 anchor (A 또는 B). 추적 state/control:
 - DRIVE_NORMAL: 매 tick gyro+wheel predict/odom correction → UWB range correction (available, gated) → pre-s quality (LUT, s, P1/P2, optionally first-cluster amplitude) → quality good인 경우만 일반 scalar s update; low로 판별되면 s를 **보류**, trigger 생성.
-- BRAKE_SETTLE: commanded v=0; 실제 stopping distance/latency/gyro+wheel noise propagation 기록. Range는 계속, RF s는 optional diagnostic/low-weight policy로 사전 고정. Trigger 이전 s를 EKF에 넣고 나서 stop 판단하지 않는다.
+- BRAKE_SETTLE: commanded v=0; 실제 stopping distance/latency/gyro+wheel noise propagation 기록. Range는 계속, RF s는 optional diagnostic/low-weight policy로 사전 고정. Trigger 이전 s를 EKF에 넣고 나서 stop 판단하지 않는다. 실제 정지 직후 기준 위치 (x_stop,y_stop)를 새 station ID로 지정하고 첫 번째 프로브 s0를 이 지점에서 측정한다; 주행 중 트리거한 (x_trigger,y_trigger)와 구별한다.
 - PROBE_TURN_1 / PROBE_TURN_2: 실제 body 또는 독립 head를 상대 목표 offset으로 이동. 경과시간과 실제 각도/위치 이동 기록, 매 0.2초 sensor-v2 계속 예측, 범위 측정도 동일 계약으로 갱신. 로봇이 헤딩을 물리적으로 회전 중이면 이를 **로봇의 실제 psi 변화**로 처리해야 한다.
 - PROBE_MEASURE: 각 각도에서 P1/P2 및 first-cluster power, range, detection, measured yaw offset, pre-measurement x6/P6를 취득; 위치 이동은 stationarity tolerance 0.02m 이하일 때만 same-location 가정(시나리오 제안값).
-- PROBE_JOINT_UPDATE: initial withheld s + 1 or 2 additional s를 correlated update로 **한번만** 반영. Range과 s의 cross covariance가 증명되지 않았다면 별도 승인된 근사 arm으로 분리. Measurement model h(p,psi, mount+delta), Jacobian wrt x,y,psi and relative-angle noise; no true xy/yaw to choose root.
+- PROBE_JOINT_UPDATE: BRAKE_SETTLE 이후 **실제 최종 정지 좌표에서 새로 취득한 기준각 s0와 추가각 s1/s2**를 correlated update로 한번만 반영한다. 이동 중 트리거 측정은 위치가 다른 경우 batch에서 제외(진단/trigger 기록에는 보존). Range와 s의 cross covariance가 증명되지 않았다면 별도 승인된 근사 arm으로 분리. Measurement model h(p,psi,mount+delta), Jacobian wrt x,y,psi and relative-angle noise; no true xy/yaw to choose root.
 - RETURN_HEADING: 실제 방향/회전 센서 기반으로 원래 route heading에 복귀, EKF 계속. body orientation이 물리적으로 이미 바뀐 것이므로 x6/P6로 같은 자세변화를 중복 적용하지 않는다.
 - DRIVE_RESUME, COOLDOWN: 일정 이동거리/시간 안에는 신규 probe를 반복 발동하지 않음(초기 사전등록 후보 2m 또는 10s; 둘 중 어떤 기준을 적용하는지 실행 전 고정). 만성 multipath stretch에는 MAX_PROBES_PER_ROUTE와 fallback/no-probe 악화방지 가드.
 - FAILED/UNAVAILABLE: RF missing, ambiguity, bad all points, unable to stop/turn, no RF H at current pose. 추가 관측이 없으면 없는 것으로 기록; 하드코딩한 clean RF or true angle 사용 금지.
