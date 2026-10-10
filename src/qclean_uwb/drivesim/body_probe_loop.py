@@ -131,6 +131,12 @@ class BodyProbeLoop:
                         s=observed.s,detected=observed.detected,
                         P1=observed.power[0],P2=observed.power[1],
                         first_path_tap=observed.selected_tap,
+                        first_cluster_s=observed.first_cluster_s,
+                        first_cluster_port_energy=observed.first_cluster_port_energy,
+                        first_cluster_window_taps=observed.first_cluster_window_taps,
+                        first_cluster_availability=observed.first_cluster_availability,
+                        estimated_pose_pre_rf=self.ekf.estimate[:3].tolist(),
+                        P6_pre_rf=self.ekf.covariance.tolist(),
                         estimate_yaw_pre_rf_rad=float(self.ekf.estimate[2])))
                     self.ekf.apply_rf(observed)
                 elif self.ekf.rf_mode!="off":
