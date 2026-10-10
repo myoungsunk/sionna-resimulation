@@ -412,3 +412,6 @@ Correction before any run: the white range variance of F2/F3 is `range_sigma² +
 
 ### A24 rev3 (2026-10-10; stage-2 preparation, no filter result yet)
 Leave-one-case-out fit parameters for stage 2 are frozen (`A24/LOCO/`), using the user's supplement H stores and the unchanged fit rule; training pool = the other five mount-0 route-anchor cases (mount 45° excluded). Descriptive decomposition of the residual into multipath and LoS-chain/LUT parts with native Sionna LoS-only H for all seven cases is added to `DEV_RESULTS/POST_A23_RESIDUAL_DECOMPOSITION/` (multipath ≥ 91 % of the `s` residual variance everywhere; synthesised and native LoS agree to 1.1e-5 in `s` on R2-A m0). No threshold, criterion or code path of the filter changed.
+
+### A24 rev4 (2026-10-10; before any stage-1 outcome)
+Approval by the user of the A24 consistency criteria exactly as proposed in `REQUESTS/A24_MEASUREMENT_ERROR_STATE_PREREG.md` §4 (NEES mean 2.0–5.0; pose and heading coverage 0.90–0.99; both NEES tails ≤ 0.10; accuracy co-requisite; no-harm limits +1.0 NEES / +0.10° heading RMSE). Evaluation rule (arm mean over 50 seeds, each averaged over drifts; verdicts P1–P4) fixed in §13 and implemented in `a24_report.py`. The ACF/F1/F3 variants are secondary and carry no pre-specified pass condition. Nothing else changed; F01/F02 and `scientific_PASS=false` stay open.

@@ -77,12 +77,12 @@ Seed-paired differences (mean over drifts, 50 seeds) with bootstrap 95 % interva
 - P3 (accuracy): F2 − F0 on A0 for `heading_rmse_common_deg` and `pos_rmse_common_m`, paired.
 - P4 (no-harm): F2 − F0 on M0, W0, S5.
 
-**Consistency criteria — *proposed, unapproved* (must be approved or replaced by the user before outcomes are read).** Two-sided, on the seed-mean over drifts:
+**Consistency criteria — APPROVED by the user on 2026-10-10 as proposed (A24 rev4), before any stage-1 outcome was read.** Two-sided, on the seed-mean over drifts:
 - pose NEES mean in [2.0, 5.0] (expected 3; M0 is the one matched reference and sits at 2.3, so the lower side is not required to equal 3);
 - pose NEES ≤ 7.815 coverage in [0.90, 0.99]; heading |err| ≤ 1.96σψ coverage in [0.90, 0.99];
 - NEES lower-tail mass (< 0.2158) and upper-tail mass (> 9.3484) each ≤ 0.10 (nominal 0.025 each; the correlated samples make the sampling spread wider than χ²₃, which M0/W0 illustrate);
-- a variant that passes only because the covariance is inflated while the accuracy is worse than F0 is **not** a mitigation: P3 is a co-requisite *(proposed, unapproved)*: neither heading nor position RMSE worse than F0 with an interval above 0.
-- no-harm *(proposed, unapproved)*: on M0/W0/S5 the paired NEES difference to F0 has an upper bound ≤ +1.0 and the heading RMSE difference an upper bound ≤ +0.10°.
+- a variant that passes only because the covariance is inflated while the accuracy is worse than F0 is **not** a mitigation: P3 is a co-requisite *(approved)*: neither heading nor position RMSE worse than F0 with an interval above 0.
+- no-harm *(approved)*: on M0/W0/S5 the paired NEES difference to F0 has an upper bound ≤ +1.0 and the heading RMSE difference an upper bound ≤ +0.10°.
 
 **Allowed statements per outcome (fixed now).**
 | Outcome | Allowed statement | Not allowed |
@@ -184,3 +184,8 @@ Clarification of §5 fixed here: a *case* is a route-anchor pair at mount 0°; t
 
 ## 12. Sensor-v2 `sensor_v2.py` hash difference resolved (read-only check, 2026-10-10)
 Reconstructing the original `sensor_v2.py` from the `+` lines of `prior_sensor_work/.../REVIEW.patch` and comparing with the review snapshot under `02_sensor_v2_review/source/` (line endings normalised): the snapshot differs by **three added input-validation guards only** (finite check of the numeric `SensorV2Config` fields in `__post_init__`; a finite 1-D check of `t`, `ds`, `dtheta` in `generate`; a finite check of the generated parameters). No model equation, noise law, stream or default differs. The byte-level hash of the reconstruction was not compared (patch text vs file bytes), so this is a content comparison, not a hash proof. Stage-3 item 9.2/1 therefore only needs the user's decision on the commit.
+
+
+## 13. rev4 (2026-10-10): approval of the consistency criteria, and how they are evaluated
+The user approved, as written in §4, before any stage-1 filter result existed: pose NEES mean in [2.0, 5.0]; pose-coverage and heading-coverage in [0.90, 0.99]; NEES lower-tail mass (< 0.2158) and upper-tail mass (> 9.3484) each ≤ 0.10; the accuracy co-requisite (neither heading RMSE nor position RMSE worse than F0 with the paired interval entirely above 0); the no-harm limits on M0/W0/S5 (upper bound of the paired difference to F0 ≤ +1.0 NEES and ≤ +0.10° heading RMSE).
+Evaluation rule fixed here (an implementation of the approved text, not a new criterion): an arm is *consistent* when all five band checks hold for its mean over the 50 seeds (each seed averaged over drifts 0–2); per-drift values and the bootstrap intervals are reported next to it and do not change the verdict. P1 = F2 consistent on S3, R3, J1; P2 = F2 consistent on A0; P3 = co-requisite on A0; P4 = no-harm on M0, W0, S5. The statements allowed per outcome are those of the §4 table; stage 1 still cannot close F02. Implemented in `scripts/drive_sim/a24_report.py` (`--criteria approved`, default).
