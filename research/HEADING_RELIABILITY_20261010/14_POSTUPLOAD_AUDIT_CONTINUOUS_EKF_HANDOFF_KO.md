@@ -63,13 +63,15 @@ F3−E heading RMSE -0.122°, but NEES +23.94 worse; seven case unit bootstrap C
 
 ## 6. 실제 동적 주행 코드 — 검증 가능한 범위
 
+주의: full-route 명령은 아직 외부에서 받은 v/w 시퀀스를 재생한다. 고쳐진 EKF 자세를 이용해 실제 주행 경로 명령을 재계획하는 navigation/path follower는 별도 구현이며, 필터 보정이 로봇의 참 주행 오차를 개선했다는 증거는 아니다.
+
 동적 구동 원형: codex/noisy-probe-ekf-sionna-20261010. 차륜 plant의 motor 속도/가감속 및 물리 slip이 true XY/yaw를 변경하며, streaming gyro/odom, 6state EKF, estimated-heading probe controller, exact-pose native Sionna 호출 어댑터가 연결됐다. 하지만 원 branch는 단일 정지 probe 및 analytical mock test까지였다. 실물 FFD bank/LUT 경로와 native solver 실제 실행은 아직 별도.
 
 신규 codex/continuous-trigger-ekf-bridge-20261011:
 - body_active_drive.py: 상시 구동 물리센서+EKF range→RF confidence→좋으면 s update, 낮으면 RF withheld→실제 body stop/2–3각 RF→site joint callback→return→**동일 EKF x6/P6로 주행 재개**. 주행 중 trigger s를 정지 중 첫 probe로 잘못 재사용하지 않는다.
 - body_pose_channel.py와 body_probe_loop.py: first-arrival 공통 gate 4/8/16 tap P1/P2, s_gate를 phase 없는 측정 RF packet으로 전달; 각 각도마다 estimated x,y,yaw 및 full P6 저장.
 - body_site_mixture.py: 2×2^M site + point clean/dirty hypotheses, 모두의 s를 사용한 full6D Gaussian Joseph posterior와 mode-matched x6/P6, q_site/q_point 산출. **모델 파라미터는 기존 미보정 탐색 가정**, cross-time pose–measurement covariance는 검증되지 않았으므로 추정 성공과 신뢰도 calibration PASS는 구분해야 한다.
-- MOCK-only contract tests 27개, GitHub Actions https://github.com/myoungsunk/sionna-resimulation/actions/runs/38064700458 성공. 첫 도착 gate, 모의 RF, 정지→연속 EKF 복귀, 중복 RF 방지, P6 PSD 검증. 실제 native Sionna/로봇 경로 성능으로 해석 금지.
+- MOCK-only contract tests **28개**, GitHub Actions https://github.com/myoungsunk/sionna-resimulation/actions/runs/38065015568 성공. 실제 body contact slip이 정지 중 발생했을 때 native RF 요청에 전달되는 true XY가 바뀌는 mock contract도 검증됐다. 첫 도착 gate, 모의 RF, 정지→연속 EKF 복귀, 중복 RF 방지, P6 PSD 검증. 실제 native Sionna/로봇 경로 성능으로 해석 금지.
 
 ## 7. 다음 과학 검증의 정확한 우선순위
 
