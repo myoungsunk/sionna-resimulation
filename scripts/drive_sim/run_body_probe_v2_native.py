@@ -175,6 +175,11 @@ def main():
             true_motor_angle_increment_rad=np.array([r["motor_angles_delta_rad"] for r in oracle],float),
             true_yaw_increment_rad=np.array([r["true_yaw_increment_rad"] for r in oracle],float),
             true_body_lateral_m=np.array([r["body_lateral_m"] for r in oracle],float),
+            true_body_forward_m=np.array([r["true_body_forward_m"] for r in oracle],float),
+            true_slip_left_avg=np.array([r["slip_left_avg"] for r in oracle],float),
+            true_slip_right_avg=np.array([r["slip_right_avg"] for r in oracle],float),
+            true_icr_offset_avg_m=np.array([r["icr_offset_avg_m"] for r in oracle],float),
+            true_gyro_bias_rad_s=np.array([r["true_gyro_bias_rad_s"] for r in oracle],float),
             physical_slip_event=np.array([r["slip_event"] for r in oracle],bool))
         (args.out/"PROBE_RF_PACKETS.json").write_text(json.dumps(measured,indent=2),encoding="utf-8")
         (args.out/"RF_ORACLE_RECEIPT.json").write_text(json.dumps(rf_oracle,indent=2,default=str),encoding="utf-8")
