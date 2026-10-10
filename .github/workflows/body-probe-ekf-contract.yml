@@ -11,8 +11,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - name: Checkout code
+      - name: Checkout only source and unit contracts (not large research raw shards)
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            scripts
+            tests
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
