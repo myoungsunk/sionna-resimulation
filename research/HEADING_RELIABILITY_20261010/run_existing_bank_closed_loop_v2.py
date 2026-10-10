@@ -302,12 +302,12 @@ def run_one(case,level,seed,arm,problem,sources,forced=None,keep_trace=False):
   eig=np.linalg.eigvalsh(P)
   if eig.min()<-1e-9:raise FloatingPointError("v2 6x6 covariance not PSD")
   nees=float(err@np.linalg.solve(pv,err)) if np.linalg.eigvalsh(pv).min()>1e-12 else np.nan
-  if float(normal.iloc[normal_counter].t_s)>=EVAL_PROGRESS_T:
+  if float(timeline["none"].iloc[normal_counter].t_s)>=EVAL_PROGRESS_T:
    errs.append((int(normal_counter),float(err[0]),float(err[1]),float(err[2]),nees,
                 float(P[2,2]),float(q),int(row.pose_id)))
   if keep_trace and (normal_counter%10==0 or triggered_now):
    record.append(dict(case=case,arm=arm,drift=level,seed=seed,base_index=normal_counter,
-              original_pose_id=int(row.pose_id),t_progress=float(normal.iloc[normal_counter].t_s),
+              original_pose_id=int(row.pose_id),t_progress=float(timeline["none"].iloc[normal_counter].t_s),
               real_elapsed_s=float(elapsed),x=float(x[0]),y=float(x[1]),yaw=float(x[2]),
               true_x=float(truth[0]),true_y=float(truth[1]),true_yaw=float(truth[2]),
               heading_error_deg=math.degrees(err[2]),pose_nees=nees,P6=json.dumps(P.tolist()),
