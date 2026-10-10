@@ -137,7 +137,8 @@ def correlation(poses,outdir):
 def bootstrap(pred,outdir):
     base=pred.pivot(index=["case","route","pose_id","station_group"],columns="model",
                      values="brier_loss_per_pose").reset_index()
-    base.columns=[a if not b else b for a,b in base.columns]
+    if isinstance(base.columns,pd.MultiIndex):
+        base.columns=[a if not b else b for a,b in base.columns]
     # Add per-pose counts; every repeated seed is already folded into brier losses.
     N=pred.drop_duplicates(["case","pose_id"]).set_index(["case","pose_id"]).n
     base["n"]=[N.loc[(c,p)] for c,p in zip(base["case"],base["pose_id"])]
