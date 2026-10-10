@@ -4,8 +4,8 @@
 
 ## 0. 기준 및 새 업로드의 보존
 
-- 개발 기준: `codex/probe-mixture-reliability-20261010` HEAD `c9488b8be3a1745cd106ae326a67c17e3fed6459`.
-- 해당 기준의 새 자료: `results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/`. `PRE_CORRECTION_ARCHIVE`와 `C_CORRECTION_ARCHIVE`가 별도이며, fixed-truth noisy-body 제한 대조군이다.
+- 최초 개발 시작점: `codex/probe-mixture-reliability-20261010`의 `c9488b8be3a1745cd106ae326a67c17e3fed6459`. **최종 업로드 `574ccf2e4f1a9ffb4f8ea920292e048afea356d0`의 신규 103개 결과 파일은 2부모 Git merge `d3307f89a80238ce715cde9413e2dc102c66a1ea`로 이 개발 브랜치에 보존했다.**
+- 최신 통합 자료: `results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/`. 원래 `PRE_CORRECTION_ARCHIVE`와 `C_CORRECTION_ARCHIVE`뿐 아니라 `RF_PRIORS_ARCHIVE`, `ADDITIONAL_CONTROLS_ARCHIVE`, `SUMMARY_FINAL`, `FINAL_REPORT_KO.md`도 변경 없이 보존했다. 최신 총 53,280행은 실제 물리 noisy-body 실험이 아닌 **fixed-truth 제한 대조군**이며 반복 seed 5개를 53,280개 독립 표본으로 해석하지 않는다.
 - 기존 규격: `06_SENSOR_V2_NOISY_PROBE_FULL_COV_DATA_SPEC_KO.md`, `08_MOUNT_0_45_FIRST_CLUSTER_POLARIZATION_ADDENDUM_KO.md`, `09_COMBINED_HANDOFF_FULL_COV_AND_MOUNT_0_45_KO.md`.
 - v2 출처: `16d22fc3121963743cf7f1bf56233e00083c5518` 감사 폴더의 `sensor_v2.py`, `filter_v2.py` Git blob을 변경 없이 별도 실행 파일로 가져왔다. **주의: `filter_v2.py`는 현재 브랜치의 legacy `filters.py`에서 `DriveFilter`를 상속한다. 두 버전의 독립 수치 parity는 실행 전 추가 확인해야 한다.** 기존 v2의 SE(2) transition, C=-GQBᵀ correlated odometry update 자체는 그대로 사용한다.
 - 이전 physical plant 개발본 `codex/noisy-body-probe-dynamics-20261010`의 6개 신규 파일을 blob 그대로 가져온 뒤 새 streaming/integration 모듈만 추가했다. 기존 결과와 원 raw를 덮어쓰지 않았다.
