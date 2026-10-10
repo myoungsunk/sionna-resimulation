@@ -21,7 +21,7 @@ import platform
 import subprocess
 import sys
 import time
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import numpy as np
@@ -53,7 +53,7 @@ ARMS = {                                                   # arm -> (s model, ra
     "R5_realdem": ("white", "realdem", 2, {}), "R6_distbin": ("white", "distbin", 2, {}), "R7_tapbin": ("white", "tapbin", 2, {}), "R8_real": ("white", "real", 2, {}),
     "J1_ar_indep": ("ar1", "ar1", 3, {}), "J2_ar_corr": ("ar1", "ar1", 3, {"corr": True}), "J3_joint_block": ("jblock", "jblock", 3, {}),
 }
-SOURCES = ["src/qclean_uwb/drivesim/filters.py", "src/qclean_uwb/drivesim/experiment.py", "src/qclean_uwb/drivesim/sensors.py", "src/qclean_uwb/drivesim/observation.py",
+SOURCES = ["src/qclean_uwb/drivesim/filters.py", "src/qclean_uwb/drivesim/filters_aug.py", "src/qclean_uwb/drivesim/experiment.py", "src/qclean_uwb/drivesim/sensors.py", "src/qclean_uwb/drivesim/observation.py",
            "src/qclean_uwb/drivesim/hs_lut.py", "src/qclean_uwb/drivesim/trajectory.py", "src/qclean_uwb/drivesim/routes.py", "src/qclean_uwb/drivesim/pattern_apply.py",
            "src/qclean_uwb/scenarios/corridor.py", "scripts/drive_sim/structured_noise_control.py"]
 _G: dict = {}
@@ -247,10 +247,12 @@ def check_a0(a0, s6, requested, tol=TOL):
     return res
 
 
-def a0_gate(check, manifest_now, run_keys):
+def a0_gate(check, manifest_now, run_keys, required_variant=None):
     """A valid A0 check with the same global fingerprint, the same per-case inputs and a key set that covers every key of this run."""
     if not check or not check.get("inference_valid"):
         return False, "A0_CHECK is missing or inference_valid is false"
+    if required_variant is not None and check.get("filter_variant", "F0") != required_variant:
+        return False, f"the A0 check was made with filter variant {check.get('filter_variant', 'F0')}, this run requires {required_variant}"
     if check.get("fingerprint") != manifest_now["fingerprint"]:
         return False, "LUT / frequency axis / source / settings fingerprint differs from the one that passed the A0 check"
     old = check.get("inputs", {})
@@ -407,11 +409,52 @@ def make_transform(arm, tg, seed, drift, rec):
     return f
 
 
+# ------------------------------------------------------------------ A24 filter variants (measurement-bias states)
+VARIANTS = ("F0", "F0aug", "F1", "F2", "F3")
+
+
+def load_fit(path, which="primary"):
+    """Frozen A24 fit parameters (fit_measurement_error_model.py output); ``which`` = primary | acf_variant."""
+    fit = json.loads(Path(path).read_text())
+    return dict(s=fit["s"][which]["fit"], r=fit["r"][which]["fit"], profile=fit.get("profile_s"), sha256=sha256(Path(path)), which=which)
+
+
+def meas_state_for(variant, fit):
+    if variant == "F0":
+        return None
+    if variant == "F0aug":
+        return dict(aug_s=False, aug_r=False)
+    pick = lambda d: dict(phi=d["phi"], var_beta=d["var_beta"], var_w=d["var_w"])  # noqa: E731
+    ms = dict(aug_s=True, aug_r=variant in ("F2", "F3"), s=pick(fit["s"]), r=pick(fit["r"]))
+    if variant == "F3":
+        ms["s_profile"] = (fit["profile"]["theta_geo_knots_deg"], fit["profile"]["g"])
+    return ms
+
+
+def variant_info(a):
+    info = dict(filter_variant=a.filter_variant)
+    if getattr(a, "fit_params", None):
+        fit = load_fit(a.fit_params, a.fit_variant)
+        info["fit_params"] = dict(path=str(a.fit_params), sha256=fit["sha256"], which=fit["which"], s=fit["s"], r=fit["r"], profile=fit["profile"] if a.filter_variant == "F3" else None)
+    return info
+
+
+def make_cfg_transform(variant, fit):
+    ms = meas_state_for(variant, fit)
+    if ms is None:
+        return None
+    return lambda cfg, base: replace(cfg, meas_state=ms)
+
+
 # ------------------------------------------------------------------ run machinery
 def init_worker(argd):
     a = argparse.Namespace(**argd)
     setup(a)
-    _G.update(worlds={}, targets={}, sigma_mismatch=a.mismatch_sigma, trace_seeds=set(a.trace_seeds), out=a.out)
+    fit = load_fit(a.fit_params, a.fit_variant) if getattr(a, "fit_params", None) else None
+    variant = getattr(a, "filter_variant", "F0")
+    if variant in ("F1", "F2", "F3") and fit is None:
+        raise SystemExit("FIT_PARAMS_REQUIRED: --fit-params is required for F1/F2/F3")
+    _G.update(worlds={}, targets={}, sigma_mismatch=a.mismatch_sigma, trace_seeds=set(a.trace_seeds), out=a.out, variant=variant, ms=meas_state_for(variant, fit), cfg_transform=make_cfg_transform(variant, fit))
     for case in a.cases:
         for m in a.mounts:
             w = make_world(a, case, m)
@@ -428,21 +471,35 @@ def work(args):
     rec, trace, partial = {}, {}, {}
     detailed = seed in g["trace_seeds"]
     E.TRACE_PARTIAL = partial if detailed else None
-    E.TRACE_HOOK = (lambda world, out, err, nees, inputs, obs: trace.update(
-        est=out["est"], cov6=out["cov6"], err=err, nees=nees, t=world.t, truth=world.truth, s_log=np.array(out["stats"]["s_log"], float).reshape(-1, 8), r_log=np.array(out["stats"]["r_log"], float).reshape(-1, 8),
-        gyro=inputs["dtheta_gyro"], ds_odom=inputs["ds_odom"], dth_odom=inputs["dtheta_odom"], obs_s=obs["s"], obs_range=obs["range_m"], detected=obs["detected"], power=obs["power"])) if detailed else None
+    variant = g["variant"]
+
+    def hook(world, out, err, nees, inputs, obs):
+        if "beta_hat" in out and out["beta_hat"].shape[1]:                       # A24: eval-mask summary of the estimated bias states (all runs)
+            ev = world.t >= E.EXCLUDE_S
+            names = (["s"] if g["ms"] and g["ms"].get("aug_s") else []) + (["r"] if g["ms"] and g["ms"].get("aug_r") else [])
+            for j, nm in enumerate(names):
+                b, v = out["beta_hat"][ev, j], out["beta_var"][ev, j]
+                rec[f"beta_{nm}_mean"], rec[f"beta_{nm}_rms"], rec[f"beta_{nm}_sd_mean"] = float(b.mean()), float(np.sqrt((b ** 2).mean())), float(np.sqrt(v).mean())
+        if detailed:
+            trace.update(est=out["est"], cov6=out["cov6"], err=err, nees=nees, t=world.t, truth=world.truth, s_log=np.array(out["stats"]["s_log"], float).reshape(-1, 8), r_log=np.array(out["stats"]["r_log"], float).reshape(-1, 8),
+                         gyro=inputs["dtheta_gyro"], ds_odom=inputs["ds_odom"], dth_odom=inputs["dtheta_odom"], obs_s=obs["s"], obs_range=obs["range_m"], detected=obs["detected"], power=obs["power"])
+            for k in ("beta_hat", "beta_var", "beta_cross"):
+                if k in out:
+                    trace[k] = out[k]
+
+    E.TRACE_HOOK = hook
     try:
         rows, _ = E.run_unit({None: g["worlds"][(case, mount)]}, g["lut"], sensor=S.SensorNoise(), mismatch_sigma=g["sigma_mismatch"], anchor_xyz=ax, robot_z=rz,
                              range_offset=g["range_offset"], snr_db=g["snr"][0], snr_idx=0, drift_idx=drift, seed=seed, compare_filters=False, baselines=[BASE],
-                             obs_transform=make_transform(arm, tg, seed, drift, rec))
+                             obs_transform=make_transform(arm, tg, seed, drift, rec), cfg_transform=g["cfg_transform"])
     finally:
         E.TRACE_HOOK = E.TRACE_PARTIAL = None
-    rows = [dict(r, arm=arm, case=case) for r in rows]
+    rows = [dict(r, arm=arm, case=case, variant=variant) for r in rows]
     unit = {}
     if rec:
         unit = dict(case=case, mount_deg=mount, arm=arm, seed=seed, drift=drift, **{f"fed_s_{k}": rec["fed_s"][k] for k in ("mean", "var", "rms", "phi")},
                     **{f"fed_r_{k}": rec["fed_range"][k] for k in ("mean", "var", "rms", "phi")}, fed_corr_s_r=rec["fed_corr"], fed_n=rec["fed_n"],
-                    noise_corr_pre=rec.get("noise_corr_pre"), j2_target_corr=rec.get("j2_target_corr"), j2_innovation_corr=rec.get("j2_innovation_corr"), j2_clipped=rec.get("j2_clipped"))
+                    noise_corr_pre=rec.get("noise_corr_pre"), variant=variant, **{k: v for k, v in rec.items() if k.startswith("beta_")}, j2_target_corr=rec.get("j2_target_corr"), j2_innovation_corr=rec.get("j2_innovation_corr"), j2_clipped=rec.get("j2_clipped"))
     if detailed and rec:
         tdir = Path(g["out"]) / "TRACES"
         tdir.mkdir(parents=True, exist_ok=True)
@@ -500,11 +557,14 @@ def run_pool(a, units):
 
 def cmd_check_a0(a):
     cm, missing = resolve_inputs(a)
+    if a.filter_variant not in ("F0", "F0aug"):
+        raise SystemExit("CHECK_A0_VARIANT: the A0 reproduction check is made with the stored filter (F0) or the augmentation switched off (F0aug)")
     if not a.s6_csv:
         raise SystemExit("S6_CSV_REQUIRED: the stored S6 rows are required data for the A0 check")
     setup(a)
     a.out.mkdir(parents=True, exist_ok=True)
     man = base_manifest(a, a.cases, a.mounts, "check-a0")
+    man.update(variant_info(a))
     bad_pose = {c: v for c, v in man["inputs"]["pose_correspondence"].items() if not v["ok"]}
     req = requested_keys(a.cases, a.mounts, a.drifts, a.seeds, a.seed0)
     print(f"A0 check: {len(req)} requested keys = {len(a.cases)} cases x {len(a.mounts)} mounts x {len(a.drifts)} drifts x {a.seeds} seeds")
@@ -521,7 +581,7 @@ def cmd_check_a0(a):
         s6 = pd.concat([pd.read_csv(p) for p in a.s6_csv], ignore_index=True)
         res = check_a0(a0, s6, req)
         res["seconds"] = secs
-    res.update(fingerprint=man["fingerprint"], inputs=man["inputs"], requested=[list(r) for r in req.itertuples(index=False, name=None)], skipped=[f"{c}_m{m:g}" for c, m in missing])
+    res.update(filter_variant=a.filter_variant, fingerprint=man["fingerprint"], inputs=man["inputs"], requested=[list(r) for r in req.itertuples(index=False, name=None)], skipped=[f"{c}_m{m:g}" for c, m in missing])
     man["result"] = {k: v for k, v in res.items() if k != "requested"}
     (a.out / "A0_CHECK.json").write_text(json.dumps(res, indent=1, default=str))
     (a.out / "RUN_MANIFEST_check-a0.json").write_text(json.dumps(man, indent=1, default=str))
@@ -533,7 +593,8 @@ def cmd_check_a0(a):
 
 def cmd_run(a):
     cm, missing = resolve_inputs(a)
-    arms = [x for x in expand_arms(a.arms) if x != "A0_real_real"]
+    keep_a0 = a.filter_variant in ("F1", "F2", "F3")             # A24: A0 is also an arm of the augmented variants; F0 / F0aug A0 rows come from check-a0 only
+    arms = [x for x in expand_arms(a.arms) if x != "A0_real_real" or keep_a0]
     if not arms:
         raise SystemExit("NO_ARMS_TO_RUN: A0 is produced by check-a0 only")
     units = [(c, m, arm, a.seed0 + s, d) for c, m in cm for arm in arms for d in a.drifts for s in range(a.seeds)]
@@ -541,11 +602,12 @@ def cmd_run(a):
     print(f"cases x mounts: {cm}\narms ({len(arms)}): {arms}\nruns: {len(units)} = {len(cm)} case-mounts x {len(arms)} arms x {len(a.drifts)} drifts x {a.seeds} seeds", flush=True)
     setup(a)
     man = base_manifest(a, a.cases, a.mounts, a.label)
+    man.update(variant_info(a))
     gate = "bypassed" if a.allow_unchecked_a0 else None
     if gate is None:
         p = a.out / "A0_CHECK.json"
         check = json.loads(p.read_text()) if p.exists() else None
-        ok, why = a0_gate(check, man, keys)
+        ok, why = a0_gate(check, man, keys, required_variant="F0" if a.filter_variant == "F0" else "F0aug")
         if not ok:
             raise SystemExit(f"A0_GATE_BLOCKED: {why}.  Run check-a0 first (same inputs, sources, settings and a key set that covers this run).")
         gate = "passed"
@@ -715,6 +777,9 @@ def main():
     ap.add_argument("--trace-seeds", type=int, nargs="*", default=[], help="seeds (chosen before the run) whose full trace is saved")
     ap.add_argument("--skip-missing", action="store_true")
     ap.add_argument("--allow-unchecked-a0", action="store_true", help="development only: the output is marked NOT VALID FOR INFERENCE")
+    ap.add_argument("--filter-variant", choices=VARIANTS, default="F0", help="A24: F0 stored filter | F0aug subclass with the augmentation off (gate) | F1 +beta_s | F2 +beta_s,beta_r | F3 F2 with the distance profile")
+    ap.add_argument("--fit-params", type=Path, help="A24: frozen output of fit_measurement_error_model.py (required for F1-F3)")
+    ap.add_argument("--fit-variant", choices=("primary", "acf_variant"), default="primary")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     {"residuals": cmd_residuals, "check-a0": cmd_check_a0, "run": cmd_run, "report": cmd_report}[a.cmd](a)

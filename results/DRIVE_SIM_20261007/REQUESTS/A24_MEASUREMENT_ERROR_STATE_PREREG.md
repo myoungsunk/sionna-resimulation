@@ -154,3 +154,23 @@ Case R2-A, mount 0°, P0, SNR 30, levels 0–2, seeds 0–49. Variants **F0-v2**
 
 ### 9.5 What stage 3 cannot say
 That sensor-v2 is physically correct (its parameters are assumption-based sensitivity levels, not hardware measurements); that results transfer to a real receiver; that F02 is resolved. The covariance mismatch that remains with real RF `s` in v2's own limited run (NEES ≈ 100 at exact initialisation) is exactly the quantity A24 addresses, so a stage 3 improvement would be attributable to the measurement-error state only if F0-v2 vs F2-v2 is the contrast; F2-v2 vs legacy rows is not.
+
+
+## 10. rev2 (2026-10-10; after the fit and the implementation, before any F1/F2/F3 filter run): corrections, clarifications and the fit outcome
+
+**Correction of an oversight in §1/§2.2 (implementation review).** The text said `R_r = σ_wr²` for F2/F3. The observation generator adds a known random range component (`range_sigma_m = 0.05 m`) on top of the noise-free chain, which is **not** in the noise-free training residual, so omitting it would have made the filter over-confident in range by construction. Corrected: **`R_r = range_sigma² + σ_wr²`** (σ_wr² = the fitted white remainder, which contains the first-path quantisation). The stored quantisation term and the 'extra' term are replaced by σ_wr², as before. For `s`, `R_s = thermal + σ_ws²` is unchanged (the thermal part is the SNR-30 chain noise, also absent from the noise-free residual). No filter result existed when this was changed.
+
+**Clarifications of §2.2.** `ms` (used for the start values) is the un-demeaned mean square of the series; the start `φ` is the lag-1 autocorrelation of the demeaned series; the ACF in the report is that of the demeaned series (the A19 definition), the model ACF `σ_β² φ^l / (σ_β² + σ_w²)` is that of the fitted process.
+
+**Fit outcome (`results/DRIVE_SIM_20261007/A24/A24_FIT_PARAMS.json`, input `RESIDUAL_R2A_m0.npz` sha256 `3b4e9018…959eea`, = git blob `475990b…` of the user's branch).**
+
+| variable | variant | φ | σ_β² | σ_w² | note |
+|---|---|---|---|---|---|
+| s | primary | 0.9309 | 0.03158 | 1e-8 (lower bound) | at bound |
+| s | acf | 0.8416 | 0.01534 | 1e-8 (lower bound) | at bound; total variance is half the series' mean square 0.0321 |
+| range | primary | 0.9429 | 0.01324 | 0.001734 | σ_w ≈ the tap-quantisation scale (0.149²/12 = 0.00186) |
+| range | acf | 0.8991 | 0.009663 | 0.001511 | |
+
+Reading, fixed before any filter result: (i) the noise-free residual has no white measurement noise by construction (it is a deterministic function of the pose), so a white remainder of zero for `s` is expected and is not treated as a fit failure; the filter's white part for `s` is therefore the thermal term only; (ii) the AR(1) is a poor description of the autocorrelation (sample ACF at lags 5/10/25 = 0.48 / −0.02 / 0.00 against 0.70 / 0.49 / 0.17 for the primary `s` fit) and the stationary variance is a poor description of the amplitude (distance-bin mean squares differ by a factor of ~120, F3 profile g = 0.020 / 0.301 / 2.409 at θ_geo = 42.9° / 72.1° / 80.0°); both were listed as known limitations and are not repaired here; (iii) the fit rule, bounds and start values are unchanged. The bound (σ_w² ≥ 1e-8) is a numerical floor and is unchanged.
+
+**Gate status after implementation (local CPU).** G-A24-2 unit tests: bit-identical output of the augmented subclass with the augmentation off (6 states, same arithmetic) on a synthetic world; a constant `s` offset is absorbed by β_s; covariance symmetric and PSD; a matched AR(1) bias is handled better by the augmented filter (unit-scale world, 10 seeds: NEES 22.0 for the stored filter with the total variance as white noise vs 2.93 for the augmented filter; a sanity check of the implementation, not an acceptance criterion); F3 profile scales the process noise; invalid configurations refused; `F0aug` is identical to the stored path through `run_unit`. G-A24-0 (A0 reproduction of the stored S6 with `--filter-variant F0aug`) and G-A24-1 (fit frozen) — the fit file is committed in the same change as this section; G-A24-0 must be run on the Snowball inputs (the local H store does not reproduce S6) and is the user's step: `REQUESTS/A24_STAGE1_RUN.md`.

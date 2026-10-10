@@ -156,3 +156,45 @@ def test_closure_statuses_and_seed_eligibility_after_a_failed_drift():
     ok_df = ok_df[~((ok_df.arm == "S3_ar1") & (ok_df.seed == 2) & (ok_df.drift == 1))]          # one failed drift of one arm
     seeds, cnt = m.eligible_seeds(ok_df, "R2A", 0.0, ["S3_ar1", "A0_real_real", "W0_white_white"], [0, 1, 2])
     assert seeds == [0, 1, 3]                                                                     # seed 2 is not compared with a partial drift set
+
+
+# ---------------------------------------------------------------- A24 filter variants
+FIT = dict(s=dict(phi=0.93, var_beta=0.02, var_w=0.004), r=dict(phi=0.8, var_beta=0.006, var_w=0.001),
+           profile=dict(theta_geo_knots_deg=[10.0, 40.0, 70.0], g=[0.1, 0.7, 2.0]))
+
+
+def test_variant_mapping_and_gate_variant():
+    m = load()
+    assert m.meas_state_for("F0", FIT) is None
+    assert m.meas_state_for("F0aug", FIT) == dict(aug_s=False, aug_r=False)
+    f1, f2, f3 = (m.meas_state_for(v, FIT) for v in ("F1", "F2", "F3"))
+    assert f1["aug_s"] and not f1["aug_r"] and f2["aug_r"] and "s_profile" not in f2 and f3["s_profile"][1] == [0.1, 0.7, 2.0]
+    assert m.make_cfg_transform("F0", FIT) is None
+    cfg = m.make_cfg_transform("F2", FIT)(m.F.FilterConfig(), {})
+    assert cfg.meas_state == f2
+    check = dict(inference_valid=True, fingerprint="x", inputs={}, requested=[], filter_variant="F0aug")
+    man = dict(fingerprint="x", inputs=dict(H={}, timelines={}, rf_poses={}))
+    assert m.a0_gate(check, man, [], required_variant="F0aug")[0]
+    ok, why = m.a0_gate(check, man, [], required_variant="F0")
+    assert not ok and "F0aug" in why
+    legacy = dict(check, filter_variant=None)
+    legacy.pop("filter_variant")
+    assert m.a0_gate(legacy, man, [], required_variant="F0")[0] and not m.a0_gate(legacy, man, [], required_variant="F0aug")[0]
+
+
+def test_run_unit_f0aug_is_identical_to_stored_and_f2_runs():
+    sys.path.insert(0, str(ROOT / "tests"))
+    from test_drivesim_experiment import SETUP, ideal_world
+    from qclean_uwb.drivesim import experiment as E, hs_lut as L, observation as O, sensors as S
+    m = load()
+    w, banks = ideal_world(None, 45.0, n=300)
+    lut = L.HsLut(L.build_lut(banks, 6.0, 6.0))
+    kw = dict(sensor=S.SensorNoise(), mismatch_sigma=0.05, anchor_xyz=tuple(SETUP.anchor_position), robot_z=SETUP.robot_antenna_z_m, range_offset=O.los_range_bias(banks[0].freqs_hz),
+              snr_db=40.0, snr_idx=0, drift_idx=1, seed=2, compare_filters=False, baselines=[b for b in E.BASELINES if b["name"] == "range_s_P0"])
+    base, _ = E.run_unit({None: w}, lut, **kw)
+    off, _ = E.run_unit({None: w}, lut, cfg_transform=m.make_cfg_transform("F0aug", FIT), **kw)
+    aug, _ = E.run_unit({None: w}, lut, cfg_transform=m.make_cfg_transform("F2", FIT), **kw)
+    assert base[0]["error"] == "" and off[0]["error"] == "" and aug[0]["error"] == ""
+    for k in ("heading_rmse_deg", "pos_rmse_m", "nees_mean", "nis_s_mean", "s_reject_frac", "r_reject_frac"):
+        assert base[0][k] == off[0][k]
+    assert np.isfinite(aug[0]["nees_mean"]) and aug[0]["nees_mean"] != base[0]["nees_mean"]

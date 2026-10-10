@@ -44,6 +44,7 @@ class FilterConfig:
     s_sigma_table: tuple | None = None               # A21: (theta_geo_knots_deg, sigma_knots); None = scalar s_mismatch_sigma
     s_sigma_table2d: tuple | None = None             # A22: (geo_edges[3], nu_edges[2], sigma[4][3] (nan = fallback), fallback_knots, fallback_sigma); uses the estimated heading
     s_var_inflation: float = 1.0                     # A17: multiplies the mismatch variance in R_s (1.0 = stored filter)
+    meas_state: dict | None = None                   # A24: Markov-bias measurement states (see filters_aug.py); None = stored filter, code path untouched
     s_mismatch_sigma: float = 0.09                   # model-mismatch part of R_s (S4 reports the measured value)
     range_extra_sigma: float = 0.05
     range_quant_var: float = (299792458.0 / (1028 * 1.953125e6)) ** 2 / 12.0
@@ -429,6 +430,9 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
     inputs: dtheta_gyro, ds_odom, dtheta_odom (n,);  obs: s, range_m, detected, power (n,2);  flags: turn_phase (n,) bool.
     Returns estimates and covariance blocks per sample (+ NEES/NIS statistics when ``truth`` is given).
     """
+    if cfg.meas_state is not None:               # A24: separate subclass; the stored path below is unchanged when meas_state is None
+        from qclean_uwb.drivesim.filters_aug import run_filter_aug
+        return run_filter_aug(cfg, lut, inputs, obs, flags, x0, truth=truth, partial=partial)
     n = len(inputs["ds_odom"])
     f = DriveFilter(cfg, lut, x0)
     est = np.zeros((n, N))
