@@ -1,47 +1,54 @@
-# 07 — Existing-sensor-v2 ratio/CIR versus multi-yaw-probe reliability: exploratory overlap
+# 07 — 이중 편파 전력비·CIR와 3점 프로브 오염점수 결합 분석
 
-Date: 2026-10-10. Report status EXPLORATORY / NOT CALIBRATED / NO NEW RF. This report cross-links two completed but independently developed experiments. It is NOT the full-P6 noisy probe run specified in 06.
+작성일: 2026-10-10. 판정: **기존 데이터 기반 탐색적 교차 분석 완료 / 확률 보정 미완료 / 신규 Sionna RF 미생성**. 본 문서는 sensor-v2 전체 P6 및 noisy yaw 프로브 실험을 대신하지 않습니다. 해당 후속 실험에 필요한 데이터 사양은 06 문서입니다.
 
-## Existing records
+## 1. 사용한 기존 데이터
 
-Probe: 2026-10-10 GitHub Actions run 38047959200, frozen data and nominal site/point mixture. 5100 run-level MIX3 records, grouped to 34 case-station units from 16 physical XY sites; no actual noisy rotation, no pose cross covariance. Original posterior input: RF-off sensor-v2 heading prior and true yaw offsets from frozen SAMPLES.
+**프로브:** GitHub Actions 실행 38047959200의 3점 MIX 추정 결과. 5,100개 (case,station,drift,seed) 반복 기록을 총 34개 케이스별 위치로 묶었습니다. 서로 다른 물리 좌표는 **16곳**뿐입니다. 관측은 이미 저장된 원본 full-RF H의 noise-free 결과이며, RF-off sensor-v2 heading prior와 원본 trajectory의 정답 yaw 간격을 사용했습니다. 실제 noisy 본체 회전이나 전체 P6/상호공분산을 반영한 필터 갱신은 아닙니다.
 
-Passive: GitHub Actions run 38049158399, same original sensor-v2 RF-off prior + fixed LUT. Leave-one-ROUTE-out logistic models; source output RATIO_MODELS_PREDICTIONS.csv.gz. For each probe case-station, matched the first available pose_id for the same case and route_x_y station_group. 34/34 matched; q_good trained to predict *single-angle inverse heading error<=5deg*, NOT site multipath probability and NOT MIX3 heading accuracy. No ground truth fed to any classifier or mixture inference; ground truth labels only evaluate results.
+**Passive:** GitHub Actions 실행 38049158399의 leave-one-ROUTE-out 모델 결과. 동일 복도의 R2/R4/R5 중 평가 route를 제외하고 나머지 route에서 학습한 로지스틱 모델로, 기존 첫 번째 유효 프로브 위치의 P1/P2 및 amplitude-only 특징으로 단일각 RF heading이 5° 이내에 들어갈 확률을 예측했습니다. 이는 **위치 전체가 multipath로 오염될 확률이 아닙니다**. 모델의 기저 데이터는 RF-off sensor-v2 prior로 inverse LUT heading을 선택한 결과입니다.
 
-Fusion at case-station: q_site = mean of nominal MIX3 q_site_bad across sensor seeds; q_passive_good = held-out route probability at the first probe observation. Exploratory risk score (not a probability) r_fused = 0.5 q_site + 0.5(1-q_passive_good). Evaluate against the **fraction of MIX3 headings with absolute error >5deg** across the same repeated seeds (p_bad5). The 0.5 weights are illustrative, not learned or calibrated.
+이 두 실험을 (case, 경로, 동일 XY 위치)의 첫 번째 유효 RF pose 기준으로 대응했습니다. 34/34 케이스별 위치가 매칭됐습니다. 물리 위치를 연결할 때 evaluation 좌표를 이용했지만 정답 heading 또는 full/LoS 비교 오차는 어느 추정기의 입력 특징에도 넣지 않았습니다.
 
-## Observed Pearson association with station heading failure fraction
+## 2. 비교할 위험도 점수의 의미
 
-34 case-station units, only 16 distinct physical coordinates:
+- q_site: 세 yaw 측정점을 공동으로 설명하는 mixture가 내놓은 **명목상 위치 오염확률**. 물리적 확률로 독립 보정되지 않았습니다.
+- q_passive_good: 기존 held-out 모델의 **단일각 RF heading이 5° 이내일 명목상 확률**. 보정·가용성 한계가 남아 있습니다.
+- q_fused: 0.5×q_site + 0.5×(1−q_passive_good). 이해를 돕기 위해 정한 **탐색적 합성 점수**이며, 서로 다른 target의 두 확률을 엄밀히 합성한 보정된 확률은 아닙니다.
+- 정답: 3점 MIX 결과가 같은 sensor-v2 seed에서 5° heading error를 넘는 비율, 위치별 p_bad5. 별도 multipath 위치 정답은 3점 중 하나라도 oracle e_s 절댓값이 0.1 초과인 경우입니다.
 
-| Predictor | Pearson with p_bad5 |
+## 3. 34개 케이스별 위치의 실제 Heading 위험도 관련성
+
+| 입력 위험도 | 위치별 heading 오류율 p_bad5와 Pearson r |
 | --- | ---: |
-| q_site_bad from three-angle likelihood | +0.322 |
-| 1-q_passive_good (range+total power+signed s+|s|) | +0.414 |
-| 1-q_passive_good (+CIR shape features) | +0.377 |
-| 0.5q_site+0.5(1-q_passive_good WITH CIR) | +0.505 |
-| 0.5q_site+0.5(1-q_passive_good NO CIR) | +0.510 |
+| 프로브 3점으로 계산한 q_site 단독 | +0.322 |
+| Passive: 전력비 s, |s| + 거리 + 총전력 | +0.414 |
+| Passive: 위 특징 + CIR shape | +0.377 |
+| q_site 와 Passive 전력비+전력+CIR 점수를 1:1 합성 | **+0.505** |
+| q_site 와 Passive 전력비+전력 점수를 1:1 합성 (CIR 제외) | **+0.510** |
 
-Cluster bootstrap over 16 distinct physical sites, 3000 replicates (seed 20261010):
-- fused WITH CIR Pearson r=+0.505, 95% CI [+0.242,+0.683].
-- additional correlation from fused versus passive risk WITH CIR: Δr=+0.128, 95% CI [−0.102,+0.359] **contains zero**.
-- change when adding CIR in fused versus fused NO CIR: Δr=−0.005, 95% CI [−0.043,+0.031] **contains zero**.
-These intervals are conditional on ONE corridor and few physical sites, not generalized statistical inference.
+같은 RF로 반복 측정한 5,100개 seed/drift 행을 독립 데이터로 간주하지 않았습니다. 16개 **물리 위치**를 bootstrap 재표본화한 결과(3,000회, seed 20261010):
+- CIR 포함 합성점수 상관 r=+0.505, 물리 위치 단위 95% CI **[+0.242,+0.683]**.
+- 합성점수 vs CIR 포함 Passive 단독 상관 차이 Δr=+0.128, 95% CI **[−0.102,+0.359]**: 0을 포함해 개선 확정 불가.
+- 합성점수에 CIR를 추가함으로써 달라진 상관 Δr=−0.005, 95% CI **[−0.043,+0.031]**: 추가 효과 확인 불가.
 
-For site-multipath truth label based on any of 3 oracle e_s values >0.1:
-q_site alone had descriptive AUC 0.692 across 34 units, passive ratio/power 0.740, passive ratio/power+CIR 0.723, illustrative fused +CIR 0.689. This means the fixed fusion score does NOT improve site-multipath identification in this dataset. Fused site risk must not be described as validated.
+위 수치는 같은 건물/복도에서의 탐색적 Pearson 분석입니다. 16개 독립 geometry를 가진 것이 아니므로 다른 실내 환경에 대한 유의성을 주장하지 않습니다.
 
-## Conclusions and correct next test
+## 4. Heading 위험도와 다중경로 위치 판별은 다름
 
-1. First-path normalized dual-LP ratio s contains information relevant to operational RF-heading correctness beyond distance+total power for the old within-corridor held-out routes (see RATIO_MODELS_HELDOUT.csv). Not physical depolarization detection.
-2. Three-angle nominal site posterior itself is poorly calibrated and missed many true corrupted sites. Fusion's higher descriptive correlation with **post-MIX3 heading errors** is a plausible research lead, not an established gain.
-3. Adding CIR shape to the already ratio/power-based site fusion did not show incremental improvement in 16 physical sites; additional thermal noise, correlated probe motion and new geometry may change this.
-4. Full-P6, actual noisy body yaw, 2/3-angle observation covariance and cross-geometry validation are still missing. Execute 06 data contract before claiming no-harm filter behavior, NEES improvements, meaningful probability calibration or generalization.
+위치의 **진짜 오염(label: 3점 중 oracle |e_s|>0.1)** 여부를 34개 케이스별 위치에서 분별한 AUROC:
+- 프로브 q_site 단독 0.692.
+- Passive 전력비·거리·총전력 0.740.
+- Passive + CIR 0.723.
+- 제안한 임의 1:1 합성 + CIR 0.689.
 
-Never conflate q_site_bad (risk of polarimetric mismatch), q_passive_good (single-angle heading correctness), q_fused heuristic (uncalibrated score), and the actual corrected heading error from MIX3. They are different targets.
+따라서 합성 점수의 heading 오류율 상관이 높아진 것과 별개로, **이 실험에서 다중경로 위치 판별이 개선되었다고 말할 수 없습니다.** 초기 mixture는 오류가 많은 위치를 정상으로 판정한 경우도 많습니다.
 
-Source scripts and artifacts:
-- run_dual_lp_ratio_association.py and workflow dual-lp-ratio-heading-20261010.yml on codex/probe-mixture-reliability-20261010.
-- 06_SENSOR_V2_NOISY_PROBE_FULL_COV_DATA_SPEC_KO.md on same branch.
-- Existing 7 case full RF H and paired LoS H unchanged, source frozen as old.
-- All 7 cases share one corridor; F01/F02 remain OPEN.
+## 5. 결론과 다음 실험
+
+1. 이중 LP 전력비에는 실제 sensor-v2 RF-heading 정확도를 예측하는 추가 정보가 존재할 가능성이 있습니다. 거리+총전력 대비 전력비 추가의 Brier 개선은 기존 3개 held-out route에서 관찰되었습니다. 다만 P1/P2 ratio와 s는 같은 정보의 단조 변환이며 물리적인 탈편파 진단과 동일하지 않습니다.
+2. CIR shape만의 단순 지표 또는 현재의 보조 특징 추가로는 16개 위치에서 추가 이득이 확인되지 않았습니다. 이는 CIR가 보편적으로 무효하다는 결론이 아닙니다.
+3. 세 점의 잠재 오염점수와 Passive 신뢰도를 조합하면 heading 위험도 예측에 도움이 될 가능성이 있지만, **개선 신뢰구간에 0이 포함되므로 미검증**입니다.
+4. 실제 noisy probe와 full-P6, 두 편파의 range–s / yaw 간 교차공분산 및 완전히 다른 geometry가 없으면 RF 관측을 얼마나 정확히 가중해야 하는지와 위치별 오염확률의 보정 정도를 확정할 수 없습니다.
+
+필요 산출물과 실험 대조군, 데이터 구조는 06_SENSOR_V2_NOISY_PROBE_FULL_COV_DATA_SPEC_KO.md에 확정했습니다. 기존 A–E 구현과 F01/F02 실패 상태는 변경하지 않았습니다.
