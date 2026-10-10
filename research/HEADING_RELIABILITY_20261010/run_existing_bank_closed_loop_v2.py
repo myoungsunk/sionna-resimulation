@@ -321,7 +321,7 @@ def run_one(case,level,seed,arm,problem,sources,forced=None,keep_trace=False):
    heading_rmse_deg=float(np.sqrt(np.mean(he**2))),heading_mae_deg=float(np.mean(abs(he))),
    heading_p95_deg=float(np.quantile(abs(he),.95)),pos_rmse_m=float(np.sqrt(np.mean(pos**2))),
    pose_nees_mean=float(np.nanmean(a[:,4])),pose95_coverage=float(np.nanmean(a[:,4]<=chi2.ppf(.95,3))),
-   heading95_coverage=float(np.mean(abs(he)<=math.degrees(1.959963984540054*np.sqrt(pvar)))),
+   heading95_coverage=float(np.mean(abs(he)<=np.degrees(1.959963984540054*np.sqrt(pvar)))),
    real_elapsed_s=float(elapsed),n_triggered=int(len(triggered)),
    n_low_q=int(n_low),n_low_outside_station=int(n_offbank_low),n_s_updated=int(n_s_applied),
    n_s_rejected=int(n_s_rejected),trigger_station_g=json.dumps(triggered),
