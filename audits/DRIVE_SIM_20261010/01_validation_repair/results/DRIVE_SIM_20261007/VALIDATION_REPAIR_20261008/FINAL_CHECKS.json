@@ -1,0 +1,39 @@
+{
+  "recorded_utc": "2026-10-08T07:11:46.217580+00:00",
+  "revision": "991da089e0723644b244fb663b37c519b6e941e2",
+  "checks": {
+    "report_links": 18,
+    "missing_links": [],
+    "report_korean_verified": true,
+    "original_tracked_result_files_preserved": 447,
+    "selected_input_hashes_preserved": true,
+    "numerical_report_crosschecks": true,
+    "git_diff_check_exit": 0
+  },
+  "pytest": [
+    {
+      "command": "py -3.10 -m pytest tests/test_drivesim_filters.py tests/test_drivesim_hs_lut.py tests/test_drivesim_observation.py tests/test_drivesim_experiment.py tests/test_parity_gate_coverage.py tests/test_parity_gate_inputs.py tests/test_drivesim_uncertainty_repair.py -q",
+      "exit_code": 0,
+      "passed": 62,
+      "elapsed_s": 40.4
+    },
+    {
+      "command": "py -3.10 -m pytest tests/test_drivesim_sensors.py tests/test_fp_single_tx.py -q",
+      "exit_code": 0,
+      "passed": 11,
+      "elapsed_s": 1.98
+    }
+  ],
+  "stage7": {
+    "command": "py -3.10 scripts/drive_sim/validation_repair_adoption.py",
+    "first_exit": 1,
+    "reason": "Windows separator KeyError before experiment",
+    "second_exit": 0
+  },
+  "failures_preserved": {
+    "no_gate_cli_expected_exit": 1,
+    "initial_default_exec": "helper_unknown_error: setup refresh had errors; escalated authorized execution succeeded"
+  },
+  "moves": [],
+  "commits": []
+}
