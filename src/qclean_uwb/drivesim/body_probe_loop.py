@@ -101,7 +101,11 @@ class BodyProbeLoop:
                 motor_angles_delta_rad=(sum(q.motor_delta_left_rad for q in ticks),
                                         sum(q.motor_delta_right_rad for q in ticks)),
                 true_yaw_increment_rad=sum(q.true_delta_yaw_rad for q in ticks),
+                true_body_forward_m=sum(q.true_body_forward_m for q in ticks),
                 slip_event=any(q.slip_episode_active for q in ticks),
+                slip_left_avg=float(np.mean([q.slip_left for q in ticks])),
+                slip_right_avg=float(np.mean([q.slip_right for q in ticks])),
+                icr_offset_avg_m=float(np.mean([q.icr_offset_m for q in ticks])),
                 body_lateral_m=sum(q.true_body_lateral_m for q in ticks),
                 true_gyro_bias_rad_s=self.sensors.bias_rad_s))
             if control.rf_fire:
