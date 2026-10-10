@@ -166,6 +166,7 @@ def main():
         trace=result.pop("full_P6_trace")
         oracle=result.pop("physical_oracle_eval_only")
         rf_oracle=result.pop("rf_oracle_eval_only")
+        native_channels=result.pop("native_channels_oracle_only")
         measured=result.pop("measured_rf_packets")
         controls=result.pop("controller_log")
         np.savez_compressed(args.out/"STATE_TRACE.npz",**trace)
@@ -182,19 +183,69 @@ def main():
             true_gyro_bias_rad_s=np.array([r["true_gyro_bias_rad_s"] for r in oracle],float),
             physical_slip_event=np.array([r["slip_event"] for r in oracle],bool))
         (args.out/"PROBE_RF_PACKETS.json").write_text(json.dumps(measured,indent=2),encoding="utf-8")
+        times=np.array([r["t_s"] for r in measured],dtype=float)
+        corresponding=np.searchsorted(trace["t_s"],times,side="left")
+        if len(corresponding) and (
+            (corresponding>=len(trace["t_s"])).any() or
+            not np.allclose(trace["t_s"][corresponding],times,rtol=0,atol=1e-8)
+        ):
+            raise ValueError("RF_SAMPLE_INDEX_NOT_ALIGNED")
+        np.savez_compressed(args.out/"PROBE_RF_PACKETS.npz",
+            time_rf_s=times,corresponding_state_index=corresponding,
+            station_id=np.array([r["station_id"] for r in measured],dtype=int),
+            point_index=np.array([r["point_index"] for r in measured],dtype=int),
+            P1_firstpath=np.array([r["P1"] for r in measured],dtype=float),
+            P2_firstpath=np.array([r["P2"] for r in measured],dtype=float),
+            s_firstpath=np.array([r["s"] for r in measured],dtype=float),
+            range_m=np.array([r["range_m"] for r in measured],dtype=float),
+            detected=np.array([r["detected"] for r in measured],dtype=bool),
+            selected_tap=np.array([r["first_path_tap"] for r in measured],dtype=int),
+            yaw_body_est_before_rf_rad=np.array(
+                [r["estimate_yaw_pre_rf_rad"] for r in measured],dtype=float))
+        if native_channels:
+            # The complex full/LoS channel is an evaluation/provenance-only artifact.
+            # It MUST NOT be used as an online filter feature or fixed-XY lookup.
+            rf_dump=dict(freqs_hz=native_channels[0].freqs_hz,
+                time_rf_s=np.array([r.request.t_s for r in native_channels],float),
+                true_body_pose_xyyaw=np.array(
+                    [r.request.true_pose_xyyaw for r in native_channels],float),
+                rx_mount_deg=np.array([r.request.mount_deg for r in native_channels],float),
+                H_full=np.stack([r.H_full for r in native_channels]),
+                packet_id=np.array([r.request.packet_id for r in native_channels],dtype=str))
+            if all(r.H_los is not None for r in native_channels):
+                rf_dump["H_los"]=np.stack([r.H_los for r in native_channels])
+            np.savez_compressed(args.out/"RF_NATIVE_CHANNELS_ORACLE_ONLY.npz",**rf_dump)
+        (args.out/"COVARIANCE_STATUS.json").write_text(json.dumps(dict(
+            Sigma_sr="NOT_FITTED",Sigma_probe_cross_angle="NOT_FITTED",
+            joint_site_point="NOT_IMPLEMENTED",source_independent_geometry="NOT_VALIDATED",
+            scientific_PASS=False),indent=2),encoding="utf-8")
         (args.out/"RF_ORACLE_RECEIPT.json").write_text(json.dumps(rf_oracle,indent=2,default=str),encoding="utf-8")
         (args.out/"BODY_CONTROL_LOG.json").write_text(json.dumps(controls,indent=2),encoding="utf-8")
         (args.out/"EXECUTION_STATUS.json").write_text(json.dumps(
             dict(result,realization=asdict(realization),filter_config=asdict(filtercfg)),
             indent=2,default=str),encoding="utf-8")
         sources=[args.config]
+        sources += [ROOT/p for p in (
+            "src/qclean_uwb/drivesim/body_dynamics.py",
+            "src/qclean_uwb/drivesim/body_sensor_adapter.py",
+            "src/qclean_uwb/drivesim/body_sensor_stream.py",
+            "src/qclean_uwb/drivesim/body_probe_controller.py",
+            "src/qclean_uwb/drivesim/body_ekf_bridge.py",
+            "src/qclean_uwb/drivesim/filter_v2.py",
+            "src/qclean_uwb/drivesim/sensor_v2.py",
+            "src/qclean_uwb/drivesim/body_pose_channel.py",
+            "src/qclean_uwb/drivesim/body_probe_loop.py",
+            "scripts/drive_sim/run_body_probe_v2_native.py",
+            "scripts/corridor_sionna_run.py"
+        )]
         if cfg["rf"]["mode"]!="off":
             rf=cfg["rf"]; sources += [Path(rf["bank_manifest"])]
             sources += [Path(rf["bank_dir"])/f"{n}_bank.npz" for n in ("LP_plus45","LP_minus45")]
             if rf["lut_npy"]: sources += [Path(rf["lut_npy"]),Path(rf["lut_meta"])]
         targets=[args.out/p for p in ("STATE_TRACE.npz","ORACLE_EVAL_ONLY.npz",
-            "PROBE_RF_PACKETS.json","RF_ORACLE_RECEIPT.json",
-            "BODY_CONTROL_LOG.json","EXECUTION_STATUS.json")]
+            "PROBE_RF_PACKETS.json","PROBE_RF_PACKETS.npz","COVARIANCE_STATUS.json",
+            "RF_ORACLE_RECEIPT.json","BODY_CONTROL_LOG.json","EXECUTION_STATUS.json")]
+        if native_channels:targets.append(args.out/"RF_NATIVE_CHANNELS_ORACLE_ONLY.npz")
         manifest=build_manifest(config=dict(cfg,applied_realization=asdict(realization),
             applied_filter_config=asdict(filtercfg),run_status=result["status"],
             new_physical_RF=True,scientific_PASS=False),
