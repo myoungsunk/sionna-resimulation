@@ -1,0 +1,30 @@
+name: Continuous dynamic drive and conditional RF probe contract tests
+on:
+  push:
+    branches: [codex/continuous-trigger-ekf-bridge-20261011]
+    paths:
+      - '.github/workflows/continuous-trigger-ekf-contract-20261011.yml'
+      - 'src/qclean_uwb/drivesim/body_active_drive.py'
+      - 'tests/test_body_active_drive_contract.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mock-causal-handoff:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            tests
+            scripts
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy scipy pytest
+      - name: Syntax and unit contracts (analytical RF only, not native Sionna)
+        run: |
+          python -m py_compile src/qclean_uwb/drivesim/body_active_drive.py tests/test_body_active_drive_contract.py
+          python -m pytest -q tests/test_body_active_drive_contract.py tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py
