@@ -63,6 +63,12 @@ def setup(quality_series=(.9,.2,.9,.9),joint_delta=.008,
         assert f.pending is None
         assert len(packets)==len(offsets)
         assert all(p["point_index"]==i for i,p in enumerate(packets))
+        assert all(p["first_cluster_window_taps"]==(4,8,16) for p in packets)
+        assert all(p["first_cluster_availability"]=="SIMULATED_AMPLITUDE_CIR_ONLY" for p in packets)
+        assert all(len(p["first_cluster_s"])==3 for p in packets)
+        assert all(np.isfinite(p["first_cluster_s"]).all() for p in packets)
+        assert all(np.shape(p["P6_pre_rf"])==(6,6) for p in packets)
+        assert all(len(p["estimated_pose_pre_rf"])==3 for p in packets)
         joints.append([p["packet_id"] for p in packets])
         if mode=="bad_receipt":
             return {}
@@ -131,3 +137,21 @@ def test_policy_rejects_yaw_only_and_wrong_clock():
         ActiveDrivePolicy(probe_offsets_deg=(0.,)).validate()
     with pytest.raises(ValueError,match="sensor clock"):
         ActiveDrivePolicy(physics_dt_s=.03).validate()
+
+
+def test_simulated_first_arrival_gate_ratio_has_consistent_shared_tap():
+    driver,backend,quality,singles,joints=setup((.97,))
+    result=driver.run([(0.,0.)])
+    assert result["n_triggered_probes"]==0
+    from qclean_uwb.drivesim.body_pose_channel import FirstPathReceiver
+    req=backend.requests[0]
+    channel=backend.generate(req)
+    packet,_=FirstPathReceiver(snr_db=90.,range_sigma_m=0.,seed=13).receive(channel)
+    assert packet.detected
+    assert packet.first_cluster_window_taps==(4,8,16)
+    assert packet.first_cluster_availability=="SIMULATED_AMPLITUDE_CIR_ONLY"
+    assert len(packet.first_cluster_port_energy)==3
+    assert all(len(e)==2 and all(v>0 for v in e) for e in packet.first_cluster_port_energy)
+    assert abs(packet.s-0.6)<.01
+    assert all(abs(v-.6)<.01 for v in packet.first_cluster_s)
+    assert packet.selected_tap>=0
