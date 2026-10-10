@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "spec_revision": "7fefdbbf6c4f36ebff72fb281bbbbc5900fffd25",
+  "spec": "research/HEADING_RELIABILITY_20261010/09_COMBINED_HANDOFF_FULL_COV_AND_MOUNT_0_45_KO.md",
+  "sensor_revision": "16d22fc3121963743cf7f1bf56233e00083c5518",
+  "prior_execution": "01a124ff",
+  "scope": "Backfill original full-P6 station priors; antenna/LoS preflight; recover symmetric legacy full RF, generate five missing native LoS stores only after preflight. No silent replacement of native full-RF generation by legacy Method B.",
+  "seed": {"sensor": [0,49], "drift": [0,1,2], "RF_LoS":42},
+  "eval_mask": "t>=30 and completed",
+  "source_arm_keys": "7 cases x 3 drifts x 50 seeds x A/B/C/D/E = 5250",
+  "backfill_selection": "All contiguous same-XY RF yaw groups length >=5. All matching Tnone rows, including OUTSIDE_MASK. Missing base pose NOT_IN_TNONE. Never use truth to initialize estimator.",
+  "backfill_prediction": "offline reconstruction only: transition(previous saved posterior, saved measured increments); F P F^T+G Q G^T. Preserve supplied after-odom/range/RF bytes; label reconstructed fields DERIVED.",
+  "LoS_preflight": {"xy":[[4,0],[4.001,0],[4,0.001],[8,0.4]],"body_yaw_deg":[0,50,130,180],"mount_deg":[0,45],"bins":[0,128,256],"relative_complex_tolerance":0.0001,"delay_tolerance_s":1e-12},
+  "first_cluster_windows_ns": [2,4,8],
+  "max_RF_batch_calls": 1381,
+  "wall_budget_s": 7200,
+  "new_native_full_RF": "requires input/parity gate and separate recorded launch; not implied by legacy full H presence",
+  "noisy_body_blocker": "Source sensor-v2 generates observations at fixed truth. No actuator acceleration/settling, slip-to-true-pose, arbitrary-yaw/XY RF evaluation or gain/noise floor model is frozen in the handoff. Do not invent true noisy-motion H from stored ideal-angle grid.",
+  "F01":"OPEN", "F02":"OPEN", "scientific_PASS":false
+}

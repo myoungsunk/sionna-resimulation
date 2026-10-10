@@ -1,0 +1,19 @@
+{
+ "user_authorization":"2026-10-10: 기존 고정-truth 회전 대조군으로 진행",
+ "mode":"PROBE_BODY_FIXED_TRUTH_SENSOR_CONTROL",
+ "primary_operational_claim":false,
+ "sensor_seed_range":[0,4],"drifts":[0,1,2],"nominal_snr_db":[30,10],
+ "noise_stream":"SeedSequence([20261010, route_id, anchor_id, drift, sensor_seed, snr, station_pose0, 811]); paired mount and arm common thermal innovations",
+ "thermal_calibration_seed":20261011,"thermal_repeats":32,
+ "arms":["A","B","C","D","G1","G2"],"G3":"exact same update schedule as D: explicit alias; not extra run",
+ "schedule":"all arms traverse 0 -> recorded angle index2 -> recorded angle index4 -> 0. Nominal 25 deg/s; exact fixed-truth increments <=5 deg per 0.2s; settle 0.4s at each waypoint; no acceleration model. Range and s at recorded three RF poses only. B/C/D measure all3; G1/G2 use first1/2 full-RF packets. Same physical clock in all arms.",
+ "motion":"fixed true XY; gyro/wheel observations include sensor-v2 original slip, bias, scale and wheelbase mismatch. Slip does NOT move physical truth. No head model or hardware claim.",
+ "prior":"original A after-odom from matching Tnone sample >=30s, mount0 prior reused identically for mount45. No truth in estimator initialization.",
+ "R":"original default FilterConfig, s_mismatch_std=.09; only thermal CIR variance set from original observer noise reference for this new noise arm; no fitted R/Q/gate/prior tuning",
+ "Sigma_MP":"held-out route excluded, same anchor/mount; exclude calibration sites sharing XY with evaluation site; one residual vector per distinct XY; min8 sites else COV_NOT_VALIDATED. Centered sample covariance of [s0,s1,s2,range0,range1,range2] fullclean - LoSclean. Offline calibration only.",
+ "Sigma_thermal":"32 independent receiver-noise draws per fixed station, nominal SNR; centered covariance, not RMS2; repeats do not increase multipath site count",
+ "mixture_and_H_arms":"BLOCKED until all intermediate-time prior/measurement cross-covariance is propagated and independently checked. Original psi-only mixture is not rebranded full-P6 mixture.",
+ "scope_limit":"limited fixed-truth control; not full-route reintegration, not physical noisy actuation, not cross-geometry validation",
+ "failure":"preserve last valid state and covariance failure, no jitter/clamp",
+ "F01":"OPEN","F02":"OPEN","scientific_PASS":false
+}

@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/job/body_pilot.py", line 1, in <module>
+    import body_controls as C
+  File "/job/body_controls.py", line 9, in <module>
+    P=json.loads((J/'BODY_CONTROL_PREREG.json').read_text());L=Path('/lut');meta=json.loads((L/'hs_lut_meta.json').read_text());mm=meta['meta'];lut=HsLut(dict(theta_deg=mm['theta_deg'],phi_deg=np.arange(mm['phi_deg'][0],mm['phi_deg'][1]+.01,mm['phi_deg'][2]),s=np.load(L/'hs_lut_2deg.npy')));freq=np.load(B/'freqs_hz.npy');OUT=J/'BODY_CONTROLS'
+                                                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/pathlib.py", line 1058, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/lut/hs_lut_meta.json'
