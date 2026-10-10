@@ -1,0 +1,64 @@
+{
+  "schema_version": "body-probe-plant-v1",
+  "status": "IMPLEMENTATION_ASSUMPTIONS_NOT_RUN",
+  "reference": {
+    "branch": "codex/probe-mixture-reliability-20261010",
+    "head": "7fefdbbf6c4f36ebff72fb281bbbbc5900fffd25",
+    "frozen_sensor_v2": "16d22fc3121963743cf7f1bf56233e00083c5518"
+  },
+  "nominal_geometry": {
+    "wheel_radius_m": 0.033,
+    "wheelbase_m": 0.287,
+    "source_status": "ROBOTIS nominal, not calibrated"
+  },
+  "motor": {
+    "motor_time_constant_s": 0.1,
+    "max_wheel_accel_rad_s2": 8,
+    "max_wheel_speed_rad_s": 8,
+    "max_step_s": 0.02,
+    "source_status": "all assumptions"
+  },
+  "ground_slip_neutral": {
+    "baseline_left": 0,
+    "baseline_right": 0,
+    "baseline_icr_offset_m": 0,
+    "event_rate_per_s": 0,
+    "mean_event_duration_s": 0.15,
+    "event_longitudinal_scale": 0,
+    "event_icr_scale_m": 0,
+    "source_status": "neutral physics; not measured"
+  },
+  "ground_slip_stress_not_calibrated": {
+    "event_rate_per_s": 0.0502516793,
+    "mean_event_duration_s": 0.15,
+    "event_longitudinal_scale": 0.02,
+    "event_icr_scale_m": 0.005,
+    "source_status": "scenario ONLY, not physically measured; NOT enabled by default"
+  },
+  "probe": {
+    "offsets_deg": [
+      0,
+      10,
+      20
+    ],
+    "max_angular_speed_deg_s": 25,
+    "max_angular_acceleration_deg_s2": 100,
+    "yaw_tolerance_deg": 0.7,
+    "rate_tolerance_deg_s": 1.5,
+    "settle_duration_s": 0.4,
+    "rf_integration_s": 0.2,
+    "source_status": "angles/spec suggested; all timings/controller response assumed"
+  },
+  "sensor_noise": {
+    "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+    "k_distance_m": 0.00002,
+    "k_yaw_rad": 0.0001,
+    "k_yaw_distance_rad2_m": 0.00001,
+    "source_status": "archived sensor-v2 assumed sensitivity"
+  },
+  "notes": [
+    "physical contact slip and archived encoder slip are not both applied",
+    "RF true-pose channel regeneration is not implemented",
+    "6x6 filter integration and end-to-end simulations are not run"
+  ]
+}
