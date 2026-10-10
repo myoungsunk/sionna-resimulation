@@ -47,7 +47,8 @@ def static_inputs():
  expected="711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079"
  actual=filehash(lutp)
  assert actual==expected,("LUT_HASH_MISMATCH",actual,expected)
- m=json.loads((RUN/"LUT/hs_lut_meta.json").read_text())["meta"]
+ metadata=json.loads((RUN/"LUT/hs_lut_meta.json").read_text())
+ m=metadata["meta"]
  phi=np.arange(m["phi_deg"][0],m["phi_deg"][1]+.01,m["phi_deg"][2])
  lut=HsLut(dict(theta_deg=m["theta_deg"],phi_deg=phi,s=np.load(lutp)))
  cases={c["case"]:c for c in json.loads((B/"CASES.json").read_text())}
@@ -60,7 +61,7 @@ def static_inputs():
  for route in ("R2","R4","R5"):
   with open(RUN/"RELIABILITY"/f"{route}_DPK.pkl","rb") as f:
    packs[route]=compile_model(pickle.load(f))
- return lut,cases,features,packs,m
+ return lut,cases,features,packs,metadata
 
 def compile_model(p):
  cols=list(p["columns"])
