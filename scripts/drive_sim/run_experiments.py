@@ -45,6 +45,7 @@ def work(args):
 
 def main():
     ap = argparse.ArgumentParser()
+    ap.add_argument("--model-version", choices=("legacy", "sensor-v2"), default="legacy")
     ap.add_argument("--s1", type=Path, required=True)
     ap.add_argument("--h-dir", type=Path, required=True)
     ap.add_argument("--lut", type=Path, required=True)
@@ -62,6 +63,8 @@ def main():
     ap.add_argument("--max-samples", type=int, default=0, help="smoke test: truncate every timeline")
     ap.add_argument("--no-compare-filters", action="store_true")
     args = ap.parse_args()
+    if args.model_version != "legacy":
+        ap.error("sensor-v2 uses run_sensor_v2.py with separate raw outputs; production launchers are legacy only")
     args.out.mkdir(parents=True, exist_ok=True)
     setup = CorridorSetup()
     meta = json.loads((args.lut.parent / "hs_lut_meta.json").read_text())["meta"]

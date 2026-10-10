@@ -64,6 +64,9 @@ class FilterConfig:
     ukf_alpha: float = 0.4
     inverse_min_slope_per_deg: float = 0.01
     gate: float = CHI2_1_99
+    model_version: str = "legacy"
+    known_wheelbase_error: float = 0.0
+    gyro_N_rad_sqrt_s: float = math.radians(0.015)
 
 
 def wrap(a):
@@ -430,6 +433,13 @@ def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, fl
     inputs: dtheta_gyro, ds_odom, dtheta_odom (n,);  obs: s, range_m, detected, power (n,2);  flags: turn_phase (n,) bool.
     Returns estimates and covariance blocks per sample (+ NEES/NIS statistics when ``truth`` is given).
     """
+    if cfg.model_version == "sensor-v2":
+        if cfg.meas_state is not None:
+            raise ValueError("A24 measurement-bias states are not implemented for sensor-v2")
+        from .filter_v2 import run_filter_v2
+        return run_filter_v2(cfg, lut, inputs, obs, flags, x0)
+    if cfg.model_version != "legacy":
+        raise ValueError("unknown sensor model version")
     if cfg.meas_state is not None:               # A24: separate subclass; the stored path below is unchanged when meas_state is None
         from qclean_uwb.drivesim.filters_aug import run_filter_aug
         return run_filter_aug(cfg, lut, inputs, obs, flags, x0, truth=truth, partial=partial)

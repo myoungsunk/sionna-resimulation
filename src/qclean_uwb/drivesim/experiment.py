@@ -128,6 +128,11 @@ def filter_config(base: dict, world: World, obs: dict, sensor: S.SensorNoise, mi
 def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsLut | None, x0) -> dict:
     flags = dict(turn_phase=world.turn_phase)
     out = F.run_filter(cfg, lut, inputs, obs, flags, x0, partial=TRACE_PARTIAL)
+    return summarize_output(world, out, cfg.model_version, inputs, obs)
+
+
+def summarize_output(world: World, out: dict, model_version="legacy", inputs=None, obs=None) -> dict:
+    """Shared legacy/v2 evaluation; arithmetic and common-section masks preserved.  ``inputs`` / ``obs`` are only used by the optional TRACE_HOOK."""
     truth = world.truth
     err = out["est"][:, :3] - truth
     err[:, 2] = F.wrap(err[:, 2])
@@ -179,7 +184,10 @@ def run_one(world: World, obs: dict, inputs: dict, cfg: F.FilterConfig, lut: HsL
         TRACE_HOOK(world, out, err, nees, inputs, obs)
     grid = np.arange(0.0, t[-1] + 1e-9, GRID_S)
     idx = np.clip(np.searchsorted(t, grid, side="right") - 1, 0, len(t) - 1)
-    return dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))
+    result = dict(metrics=res, heading_err_deg=head[idx].astype(np.float32), pos_err_m=pos[idx].astype(np.float32))
+    if model_version == "sensor-v2":
+        result["raw"] = out
+    return result
 
 
 PERIOD_CODE = {None: 0, 10.0: 1, 20.0: 2, 60.0: 3, "S10e0": 1, "S10e5": 1, "S10em5": 1}     # A20 steered T10 worlds share the stored T10 noise streams (paired by seed)
