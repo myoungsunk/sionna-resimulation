@@ -1,0 +1,156 @@
+--- /routes/source/src/qclean_uwb/drivesim/filters.py
++++ /job/source/src/qclean_uwb/drivesim/filters.py
+@@ -41,6 +41,9 @@
+     p0_std: tuple = (0.1, 0.1, math.radians(5.0), math.radians(0.12), 0.0104, 0.0064)     # PREREG_AMENDMENTS A5
+     bias_rw_std: float = math.radians(1e-3)          # rad/s/sqrt(s)
+     pos_process_std: float = 0.0                     # extra position random walk per step [m] (slack for unmodelled odometry/range errors)
++    s_sigma_table: tuple | None = None               # A21: (theta_geo_knots_deg, sigma_knots); None = scalar s_mismatch_sigma
++    s_sigma_table2d: tuple | None = None             # A22: (geo_edges[3], nu_edges[2], sigma[4][3] (nan = fallback), fallback_knots, fallback_sigma); uses the estimated heading
++    s_var_inflation: float = 1.0                     # A17: multiplies the mismatch variance in R_s (1.0 = stored filter)
+     s_mismatch_sigma: float = 0.09                   # model-mismatch part of R_s (S4 reports the measured value)
+     range_extra_sigma: float = 0.05
+     range_quant_var: float = (299792458.0 / (1028 * 1.953125e6)) ** 2 / 12.0
+@@ -51,6 +54,9 @@
+     k_stheta: float = 1e-5
+     range_sigma: float = 0.05
+     noise_var_cir_tap: float = 0.0                   # 6 * noise_var of the observation chain (thermal part of R_s); 0 -> none
++    s_kind: str = "fp"                               # fp: first-path power ratio | rx: total received power ratio (A11, exploratory)
++    noise_var_bin: float = 0.0                       # per-bin complex noise variance (used by the rx thermal term)
++    n_bins: int = 257
+     iekf_iters: int = 3
+     gsf_components: int = 5
+     gsf_prune: float = 1e-4
+@@ -81,7 +87,8 @@
+         self.cfg, self.lut = cfg, lut
+         P = np.diag(np.array(cfg.p0_std, float) ** 2) if P0 is None else P0
+         self.comps = [Component(1.0, np.array(x0, float), P)]
+-        self.stats = dict(s_updates=0, s_rejected=0, r_updates=0, r_rejected=0, o_updates=0, o_rejected=0, nis_s=[])
++        self.stats = dict(s_updates=0, s_rejected=0, r_updates=0, r_rejected=0, o_updates=0, o_rejected=0, nis_s=[], s_log=[], r_log=[])    # s_log / r_log: (sample k, pre-gate NIS, accepted) for the EKF/IEKF path (A23 rev2 logging only)
++        self.cur_k = -1
+         if cfg.kind == "gsf":
+             self.reseed()
+ 
+@@ -104,7 +111,14 @@
+         return mean, cov
+ 
+     def reseed(self, std_theta: float | None = None):
+-        """Moment-preserving split of the (collapsed) heading Gaussian into ``gsf_components`` narrower components."""
++        """Moment-preserving split of the (collapsed) Gaussian into ``gsf_components`` components spread along the heading.
++
++        The component means are shifted along ``u = P[:, 2] / sqrt(P[2, 2])`` (heading shift z_i*sigma, correlated position shift), and every
++        component keeps ``P_c = P - t u u^T`` with ``t = sum_i w_i z_i^2`` (capped at 0.95).  ``P - u u^T`` is the Schur complement of the heading
++        variance, hence PSD, so ``P_c`` is PSD for every ``t <= 1`` including the position-heading cross terms (A15: the earlier version shrank
++        only ``P[2, 2]`` and could produce an indefinite matrix).  When the cap is active the shift is scaled by ``sqrt(cap / t)`` so that the
++        mixture mean and covariance still equal the input exactly.
++        """
+         mean, cov = self.mean_cov()
+         if std_theta is not None:
+             cov = cov.copy()
+@@ -115,14 +129,12 @@
+         w /= w.sum()
+         var_between = float((w * z ** 2).sum())
+         sig = math.sqrt(max(cov[2, 2], 1e-12))
+-        comps = []
+-        for zi, wi in zip(z, w):
+-            x = mean.copy()
+-            P = cov.copy()
+-            x[2] = mean[2] + zi * sig
+-            P[2, 2] = cov[2, 2] * max(1.0 - var_between, 0.05)
+-            comps.append(Component(float(wi), x, P))
+-        self.comps = comps
++        u = cov[:, 2] / sig
++        t_cap = 0.95
++        kappa = min(1.0, math.sqrt(t_cap / var_between)) if var_between > 0 else 1.0
++        P_c = cov - var_between * kappa ** 2 * np.outer(u, u)
++        P_c = 0.5 * (P_c + P_c.T)
++        self.comps = [Component(float(wi), mean + zi * kappa * u, P_c.copy()) for zi, wi in zip(z, w)]
+ 
+     # ---------------------------------------------------------------- predict
+     def predict(self, ds_o: float, dth_g: float):
+@@ -228,6 +240,7 @@
+             H[0], H[1] = (x[0] - a[0]) / d, (x[1] - a[1]) / d
+             y = z - (d + cfg.range_offset)
+             S = float(H @ c.P @ H + R)
++            self.stats["r_log"].append((self.cur_k, y * y / S, bool(y * y / S <= cfg.gate), float(y), S, float(R), float(d + cfg.range_offset), float(z)))
+             if y * y / S > cfg.gate:
+                 self.stats["r_rejected"] += 1
+                 continue
+@@ -241,14 +254,32 @@
+         I_KH = np.eye(N) - np.outer(K, H)
+         c.P = I_KH @ c.P @ I_KH.T + R * np.outer(K, K)
+ 
+-    def _s_R(self, p1, p2):
+-        cfg = self.cfg
+-        thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
+-        return thermal + cfg.s_mismatch_sigma ** 2
++    def _mismatch_sigma(self, xy=None, psi=None) -> float:
++        cfg = self.cfg
++        if xy is None or (cfg.s_sigma_table is None and cfg.s_sigma_table2d is None):
++            return cfg.s_mismatch_sigma
++        a = cfg.anchor_xyz
++        theta_geo = math.degrees(math.atan2(math.hypot(xy[0] - a[0], xy[1] - a[1]), a[2] - cfg.robot_z))
++        if cfg.s_sigma_table2d is not None and psi is not None:
++            geo_edges, nu_edges, grid, fb_knots, fb_sig = cfg.s_sigma_table2d
++            nu = ((math.degrees(psi) + cfg.mount_deg - 45.0 + 45.0) % 90.0) - 45.0           # 0 = steepest slope, +-45 = flat (A22)
++            v = grid[int(np.searchsorted(geo_edges, theta_geo))][int(np.searchsorted(nu_edges, abs(nu)))]
++            return float(v) if np.isfinite(v) else float(np.interp(theta_geo, fb_knots, fb_sig))
++        knots, sig = cfg.s_sigma_table
++        return float(np.interp(theta_geo, knots, sig))
++
++    def _s_R(self, p1, p2, xy=None, psi=None):
++        cfg = self.cfg
++        if cfg.s_kind == "rx":
++            from qclean_uwb.drivesim.observation import thermal_var_rx_s
++            thermal = thermal_var_rx_s(p1, p2, cfg.noise_var_bin, cfg.n_bins) if cfg.noise_var_bin > 0 else 0.0
++        else:
++            thermal = thermal_var_s(p1, p2, cfg.noise_var_cir_tap) if cfg.noise_var_cir_tap > 0 else 0.0
++        return thermal + cfg.s_var_inflation * self._mismatch_sigma(xy, psi) ** 2
+ 
+     def update_s(self, z, p1, p2):
+         cfg = self.cfg
+-        R = self._s_R(p1, p2)
++        R = self._s_R(p1, p2, xy=self.comps[0].x[:2] if cfg.kind in ("ekf", "iekf") else None, psi=self.comps[0].x[2] if cfg.kind in ("ekf", "iekf") else None)
+         if cfg.s_mode == "inverse":
+             return self._update_inverse_heading(z, R)
+         if cfg.kind == "ukf":
+@@ -268,6 +299,7 @@
+             if it == 0:
+                 nis = y * y / S
+                 self.stats["nis_s"].append(nis)
++                self.stats["s_log"].append((self.cur_k, nis, bool(self._gate_ok(nis)), float(y), S, float(R), float(h), float(z)))
+                 if not self._gate_ok(nis):
+                     self.stats["s_rejected"] += 1
+                     return
+@@ -391,7 +423,7 @@
+     return v
+ 
+ 
+-def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, flags: dict, x0, truth: dict | None = None) -> dict:
++def run_filter(cfg: FilterConfig, lut: HsLut | None, inputs: dict, obs: dict, flags: dict, x0, truth: dict | None = None, partial: dict | None = None) -> dict:
+     """Run one filter over a timeline.
+ 
+     inputs: dtheta_gyro, ds_odom, dtheta_odom (n,);  obs: s, range_m, detected, power (n,2);  flags: turn_phase (n,) bool.
+@@ -401,8 +433,12 @@
+     f = DriveFilter(cfg, lut, x0)
+     est = np.zeros((n, N))
+     cov3 = np.zeros((n, 3, 3))
++    cov6 = np.zeros((n, N, N))
++    if partial is not None:                      # A23 rev3: the arrays are shared so a failing run leaves its last valid state behind (nothing is clamped or hidden)
++        partial.update(est=est, cov3=cov3, cov6=cov6, k_done=-1)
+     turn_prev = False
+     for k in range(n):
++        f.cur_k = k
+         if k > 0:
+             ds, dg, do = inputs["ds_odom"][k], inputs["dtheta_gyro"][k], inputs["dtheta_odom"][k]
+             if cfg.kind == "ukf":
+@@ -420,6 +456,8 @@
+                     f.update_s(obs["s"][k], obs["power"][k][0], obs["power"][k][1])
+         turn_prev = bool(flags["turn_phase"][k])
+         m, P = f.mean_cov()
+-        est[k], cov3[k] = m, P[:3, :3]
+-    out = dict(est=est, cov3=cov3, stats={k: (v if k != "nis_s" else np.array(v)) for k, v in f.stats.items()})
++        est[k], cov3[k], cov6[k] = m, P[:3, :3], P
++        if partial is not None:
++            partial["k_done"] = k
++    out = dict(est=est, cov3=cov3, cov6=cov6, stats={k: (v if k != "nis_s" else np.array(v)) for k, v in f.stats.items()})
+     return out

@@ -1,0 +1,285 @@
+{
+  "inputs": {
+    "/routes/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/H_R2_aA_m0.npy": {
+      "sha256": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+      "expected": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+      "match": true
+    },
+    "/legacy/source/results/DRIVE_SIM_20261007/S4/hs_lut_2deg.npy": {
+      "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "expected": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "match": true
+    },
+    "/routes/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S6_routes/results_R2_aA_m0.csv": {
+      "sha256": "16428ad0ce782193a90d6c0323fb4be05d6ea825bce835f08c62aea575765c13",
+      "expected": "16428ad0ce782193a90d6c0323fb4be05d6ea825bce835f08c62aea575765c13",
+      "match": true
+    },
+    "/job/freqs_hz.npy": {
+      "sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+      "expected": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+      "match": true
+    },
+    "freq_axis_matches_original_bank": true,
+    "array_contract": {
+      "H_shape": [
+        1303,
+        257,
+        2,
+        2
+      ],
+      "H_dtype": "complex128",
+      "H_finite": true,
+      "LUT_shape": [
+        46,
+        180,
+        180
+      ],
+      "LUT_finite": true,
+      "freq_count": 257,
+      "freq_first": 6250400000.0,
+      "freq_last": 6749600000.0,
+      "freq_step": 1950000.0
+    }
+  },
+  "original_S6_manifest": {
+    "config_sha256": "a87178db44b96b9ce1089c22363416337ca1905045ce7687a26d2db754dec832",
+    "config": {
+      "snr_db": [
+        30.0,
+        10.0
+      ],
+      "seeds": 50,
+      "seed_start": 0,
+      "routes": [
+        "R2",
+        "R4",
+        "R5"
+      ],
+      "anchors": [
+        "A",
+        "B"
+      ],
+      "mounts": [
+        0.0,
+        45.0
+      ],
+      "drifts": [
+        0,
+        1,
+        2
+      ],
+      "mismatch_sigma": 0.16095229605409875,
+      "pos_process_std": 0.01,
+      "sensor": {
+        "arw_deg_sqrt_s": 0.015,
+        "k_s_m": 2e-05,
+        "k_theta_rad": 0.0001,
+        "k_stheta_rad2_per_m": 1e-05,
+        "slip_probability": 0.01,
+        "slip_scale_deg": 0.5,
+        "range_sigma_m": 0.05
+      },
+      "range_offset_m": -0.5315983906250129,
+      "baselines": [
+        {
+          "name": "odom_imu",
+          "period": null,
+          "use_range": false,
+          "use_s": false,
+          "use_odom_heading": true
+        },
+        {
+          "name": "gyro_only",
+          "period": null,
+          "use_range": false,
+          "use_s": false,
+          "use_odom_heading": false
+        },
+        {
+          "name": "range",
+          "period": null,
+          "use_range": true,
+          "use_s": false,
+          "use_odom_heading": true
+        },
+        {
+          "name": "range_s_P0",
+          "period": null,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true
+        },
+        {
+          "name": "range_s_P0_noturn",
+          "period": null,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true,
+          "skip_s_in_turn": true
+        },
+        {
+          "name": "range_s_P1_T10",
+          "period": 10.0,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true
+        },
+        {
+          "name": "range_s_P1_T20",
+          "period": 20.0,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true
+        },
+        {
+          "name": "range_s_P1_T60",
+          "period": 60.0,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true
+        },
+        {
+          "name": "inverse_heading_P0",
+          "period": null,
+          "use_range": true,
+          "use_s": true,
+          "use_odom_heading": true,
+          "s_mode": "inverse"
+        }
+      ],
+      "filters_compared": [
+        "iekf",
+        "ukf",
+        "gsf"
+      ],
+      "max_samples": 0
+    },
+    "inputs": [
+      {
+        "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S4/hs_lut_2deg.npy",
+        "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+        "bytes": 11923328
+      },
+      {
+        "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/H_R2_aA_m0.npy",
+        "sha256": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+        "bytes": 21431872
+      }
+    ],
+    "outputs": [
+      {
+        "path": "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S6_routes/results_R2_aA_m0.csv",
+        "sha256": "16428ad0ce782193a90d6c0323fb4be05d6ea825bce835f08c62aea575765c13",
+        "bytes": 1350281
+      }
+    ],
+    "timestamp_utc": "2026-10-07T13:43:10Z",
+    "command": [
+      "scripts/drive_sim/run_route_experiments.py",
+      "--s1-routes",
+      "/job/source/results/DRIVE_SIM_20261007/S1/routes",
+      "--h-dir",
+      "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2",
+      "--lut",
+      "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S4/hs_lut_2deg.npy",
+      "--out",
+      "/job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S6_routes",
+      "--snr-db",
+      "30",
+      "10",
+      "--mismatch-sigma",
+      "0.16095229605409875",
+      "--pos-process-std",
+      "0.01",
+      "--seeds",
+      "50",
+      "--nproc",
+      "32"
+    ]
+  },
+  "original_source_provenance": {
+    "source": {
+      "repository": "myoungsunk/sionna-resimulation",
+      "branch": "claude/cool-dijkstra-hnznhm",
+      "api_commit": "0d4588f79116e221d874307f233d69ff0b13d99c",
+      "retrieval": "codeload archive, no git on remote",
+      "archive_sha256": "5d72d7dbcab7c767549207c8fa46dff8bdc35d7ae2225b3acec801c63392798c"
+    },
+    "account": "KMS",
+    "image": "rt-dual-engine:s2-deps-r2-20260928",
+    "banks": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    },
+    "prereg_sha256": "db28d1dd0dbb5a7c5695b0bb3ed630f5abaa10eb6c1eb48545c6b14c9a1a1d01",
+    "amendments_sha256": "e608c657c954c0281379a57aafb30293389eef952c443390b2f4f6cc5d1eaf6e",
+    "created_UTC": "2026-10-07T12:53:04.073961+00:00",
+    "RF_nproc": 16,
+    "threads_per_process": 1,
+    "result_root": "results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669",
+    "LUT_reuse": {
+      "parent": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/DRIVE_SIM_20261007/S4",
+      "LUT_sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "source_identical": true,
+      "L1": "FAIL_preserved",
+      "L2": "FAIL_preserved"
+    },
+    "G3_policy": "human_authorized_2e-13_for_R2_R4_R5",
+    "sigma_policy": "measure overall.rms once, register before S6; no performance tuning",
+    "preflight": {
+      "passed": 82,
+      "elapsed_s": 20.77,
+      "exit_code": 0
+    }
+  },
+  "runtime": {
+    "python": "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:34:02) [GCC 14.3.0]",
+    "numpy": "2.4.6"
+  },
+  "source_revision": {
+    "head": "f81b42d541fdf9a37b6868d4901c2a3bb9d8090e",
+    "branch": "codex/a23-execution-20261010",
+    "dirty_files": [
+      "?? DRIVE_SIM_AUDIT_KO.md",
+      "?? audits/"
+    ],
+    "runtime_git_available": false,
+    "provenance_method": "git archive of verified local revision; metadata-only wrapper replaces git_info because existing runtime has no git",
+    "archive_sha256": "14f970938fa971c581eb81fe1d4213a274ec0aa132f4a67ba47ef48ff297636f"
+  },
+  "original_vs_current_source": {
+    "filters.py": {
+      "old_sha256": "c541f7a1f5792569b675a4356537057e3c66bcbd00b3479b1d6bddc494c51657",
+      "new_sha256": "b9adbfb5c5bcc3e0af1e4efe99b40f187f0f325258a6c8efb22701d85ac95d18"
+    },
+    "experiment.py": {
+      "old_sha256": "6ddc0633319ec49b32f5794229f285e1311e62f3582c5d30dd48b0ba98053eff",
+      "new_sha256": "28ec80b4c5d2aff049365f8dd8d3087b51dca3dc15fffcd9919591d589659ea9"
+    },
+    "sensors.py": {
+      "old_sha256": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118",
+      "new_sha256": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab"
+    },
+    "observation.py": {
+      "old_sha256": "aaff7210f950559ab4b6521ef634a1df7c89b0cae348ef62c741642f57c0ac13",
+      "new_sha256": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab"
+    },
+    "hs_lut.py": {
+      "old_sha256": "f21ea031d07a33b27c05a250a2fbfdf3628b581523234174215c70789b75d91d",
+      "new_sha256": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6"
+    },
+    "trajectory.py": {
+      "old_sha256": "d15ede186f673cdce83e59819334d23146a1dcf0ec5943b90818c9b710844728",
+      "new_sha256": "a1da56dc0292786373f897c98e269a02db13ece79e9533cbf4c4056e000c2bab"
+    },
+    "routes.py": {
+      "old_sha256": "b03ae781882017f189c6d25717c001d0dd7657ca924532effe768b85d519c88a",
+      "new_sha256": "a548ff6355f10dc428c4401e9cf59e5b60416de491cdd6d0812d191114681fc6"
+    },
+    "pattern_apply.py": {
+      "old_sha256": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+      "new_sha256": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8"
+    }
+  }
+}

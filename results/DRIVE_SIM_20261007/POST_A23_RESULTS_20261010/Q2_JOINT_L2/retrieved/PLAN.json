@@ -1,0 +1,140 @@
+{
+  "recorded_utc": "2026-10-10T04:49:21.702257+00:00",
+  "revision": "f81b42d541fdf9a37b6868d4901c2a3bb9d8090e",
+  "source_archive_sha256": "14f970938fa971c581eb81fe1d4213a274ec0aa132f4a67ba47ef48ff297636f",
+  "scope": {
+    "case": "R2A",
+    "mount": 0,
+    "drifts": [
+      0,
+      1,
+      2
+    ],
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49
+    ],
+    "Q2": [
+      "R1_bias",
+      "R2_ar0",
+      "R3_ar1",
+      "R4_iid",
+      "R5_realdem",
+      "R6_distbin",
+      "R7_tapbin",
+      "R8_real"
+    ],
+    "joint": [
+      "J1_ar_indep",
+      "J2_ar_corr",
+      "J3_joint_block"
+    ],
+    "new_filter_runs": 1650,
+    "trace_seeds": [
+      0,
+      1
+    ]
+  },
+  "reuse": "previous validated A0/S6 and controls/Q1 without rerun; identical source/input/settings fingerprints required",
+  "fixed": "R Q gate prior sensors mask t>=30 from previous RUN_MANIFEST; no tuning",
+  "L2": {
+    "n_pose": 8,
+    "seed": 20261007,
+    "distribution": "original lut_los_check.py uniform x in CorridorSetup.robot_x_range_m, y[-.7,.7], yaw[-50,230] deg",
+    "max_solver_calls": 2056,
+    "frequencies": 257,
+    "config": {
+      "max_depth": 0,
+      "los": true,
+      "specular_reflection": false,
+      "refraction": false
+    },
+    "threshold_abs_ds_max": 0.005,
+    "timeout_seconds": 600,
+    "diagnostics": "Sionna vs LUT original; direct LoS at actual distance and 10m; save H, path delays/counts, tap,power,angles and samples before run",
+    "interpretation": "original L2 FAIL remains unless reproduced criterion passes; L1/F02/scientificPASS not resolved; no full RF generation"
+  },
+  "input_hashes": {
+    "H": {
+      "R2A_m0": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51"
+    },
+    "timelines": {
+      "R2A": {
+        "none": "45bd5b1fa8d204ef013ba987ecd9c98404a16a8c7462cc9bead0cbda06f50f88",
+        "10": "1b7e2a26de81d18ea5314d4694f0596597b432dece5f7a28accf81877ea9954f",
+        "20": "628b4275b849b6dad5ef10621a4b794b48ba65b49da690795a1f0ab0ba945551",
+        "60": "0e53abc76f1180501da3ac8d92259f4d4920cb05195723b4176135ed502eeb43"
+      }
+    },
+    "rf_poses": {
+      "R2A": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e"
+    },
+    "pose_correspondence": {
+      "R2A": {
+        "n_timeline": 979,
+        "n_poses": 1303,
+        "max_id": 978,
+        "max_abs_diff": 4.998187517202268e-07,
+        "ok": true
+      }
+    },
+    "lut": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "lut_meta": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+    "freqs": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8"
+  },
+  "limitations": [
+    "same route conditional synthetic arms are not independent held-out",
+    "closure threshold .8 not adopted",
+    "no physical causal contribution fractions",
+    "RF direct comparison is offline only"
+  ],
+  "environment": "same pinned image ID and 4 CPU workers/1 BLAS thread; KMS only"
+}

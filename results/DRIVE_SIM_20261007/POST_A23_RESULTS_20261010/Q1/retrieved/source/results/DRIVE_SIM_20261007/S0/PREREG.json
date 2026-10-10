@@ -1,0 +1,305 @@
+{
+ "config_sha256": "1e5addec1db9fccf5cd6ad44906aad454b9f777b8e646c75729f7596002aaddc",
+ "config": {
+  "schema": "DRIVE_SIM_S0_PREREG_v1",
+  "plan": "results/DRIVE_SIM_20261007/PLAN.md",
+  "base_commit": {
+   "value": "c13797a",
+   "status": "adopted",
+   "source": "user decision: base branch determined-turing-vxge0c"
+  },
+  "gates": {
+   "G1_A_reproducibility": {
+    "h_rel_err_max": {
+     "value": 1e-06,
+     "status": "derived",
+     "source": "PLAN §5: determinism check"
+    }
+   },
+   "G2_B_per_bin_trace": {
+    "h_rel_err_median_max": {
+     "value": 0.0001,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "h_rel_err_max": {
+     "value": 0.001,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "fp_index_match_min": {
+     "value": 1.0,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "abs_ds_max": {
+     "value": 0.001,
+     "status": "derived",
+     "source": "1e-3 ~ 0.03 deg at slope 0.03/deg"
+    },
+    "range_diff_max_m": {
+     "value": 0.001,
+     "status": "derived",
+     "source": "PLAN §5"
+    }
+   },
+   "G2p_B_node_interpolation": {
+    "abs_ds_max": {
+     "value": 0.002,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "fp_index_match_min": {
+     "value": 0.995,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "range_diff_max_m": {
+     "value": 0.002,
+     "status": "derived",
+     "source": "PLAN §5"
+    }
+   },
+   "G3_path_continuity": {
+    "unmatched_paths_max": {
+     "value": 0,
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "classify_paths_tol_s": {
+     "value": 5e-14,
+     "status": "adopted",
+     "source": "reflection_attribution.classify_paths default"
+    }
+   },
+   "G4_out_of_range_yaw": {
+    "criteria": {
+     "value": "same as G2",
+     "status": "derived",
+     "source": "PLAN §5"
+    },
+    "positions": {
+     "value": 3,
+     "status": "assumption",
+     "source": "PLAN §4 S2"
+    }
+   }
+  },
+  "los_check": {
+   "cases": {
+    "value": 48,
+    "status": "adopted",
+    "source": "CORRIDOR_SWEEP_20261006/LOS_CHECK.json"
+   },
+   "rel_err_max": {
+    "value": 0.0001,
+    "status": "adopted",
+    "source": "corridor_sionna_run.los_check"
+   },
+   "branch_max_rel_err": {
+    "value": 6.066984088847065e-07,
+    "status": "adopted",
+    "source": "CORRIDOR_SWEEP_20261006/LOS_CHECK.json"
+   }
+  },
+  "trajectory": {
+   "speed_m_s": {
+    "value": 0.2,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "sim_uwb_rate_hz": {
+    "value": 5.0,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "x_range_m": {
+    "value": [
+     1.0,
+     19.0
+    ],
+    "status": "adopted",
+    "source": "CorridorSetup.robot_x_range_m"
+   },
+   "grid_step_m": {
+    "value": 0.04,
+    "status": "derived",
+    "source": "0.2 m/s / 5 Hz"
+   },
+   "lateral_y0_m": {
+    "value": [
+     0.0,
+     0.35
+    ],
+    "status": "assumption",
+    "source": "review item 4: y=0 is a special case (equal side-wall delays)"
+   },
+   "heading_wobble_deg": {
+    "value": {
+     "form": "A*sin(2*pi*t/Tw + phi), phi seeded",
+     "A": 4.0,
+     "Tw_s": 12.0
+    },
+    "status": "assumption",
+    "source": "review item 4: +-3-5 deg; concrete form fixed here"
+   },
+   "initial_pose_sigma": {
+    "value": {
+     "theta_deg": 5.0,
+     "xy_m": 0.1
+    },
+    "status": "assumption",
+    "source": "review item 4"
+   },
+   "turn_at_end": {
+    "value": "in-place 180 deg; turn_phase flag on samples",
+    "status": "assumption",
+    "source": "review item 4"
+   },
+   "lever_arm_m": {
+    "value": 0.0,
+    "status": "assumption",
+    "source": "antenna above base_link rotation centre; nonzero is v2 sensitivity"
+   },
+   "mount_offsets_deg": {
+    "value": [
+     0.0,
+     45.0
+    ],
+    "status": "assumption",
+    "source": "H3; offset = antenna x-axis yaw vs robot forward (not polarisation)"
+   }
+  },
+  "probe": {
+   "rate_deg_s": {
+    "value": 25.0,
+    "status": "assumption",
+    "source": "5 deg per 5 Hz sample = required 5 deg resolution"
+   },
+   "span_deg": {
+    "value": [
+     -45.0,
+     45.0
+    ],
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "step_deg": {
+    "value": 5.0,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "sequence": {
+    "value": "to -45 (1.8 s) -> sweep to +45 (3.6 s, 19 samples) -> back to heading (1.8 s) = 7.2 s",
+    "status": "derived",
+    "source": "rate and span"
+   },
+   "period_T_s": {
+    "value": [
+     10,
+     20,
+     60,
+     null
+    ],
+    "status": "assumption",
+    "source": "None = no probe (P0)"
+   },
+   "station_snap": {
+    "value": "4 cm travel grid",
+    "status": "derived",
+    "source": "lets T sweep reuse the same RF"
+   }
+  },
+  "experiment": {
+   "seeds": {
+    "value": 50,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "drift_levels": {
+    "value": 3,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "snr_levels": {
+    "value": 2,
+    "status": "assumption",
+    "source": "user spec"
+   },
+   "snr_values_db_at_10m_los_copol": {
+    "value": null,
+    "status": "deferred",
+    "source": "fixed in S3 from noise_var_H_bin before any filter run"
+   },
+   "baselines": {
+    "value": [
+     "odom+imu",
+     "+range",
+     "+range+s(P0)",
+     "+range+s+probe(P1)",
+     "inverse_heading",
+     "P0-noturn"
+    ],
+    "status": "assumption",
+    "source": "PLAN §4 S6"
+   },
+   "P2_adaptive_probe": {
+    "value": "out of scope (v2)",
+    "status": "adopted",
+    "source": "user decision"
+   }
+  },
+  "test": {
+   "unit": {
+    "value": "paired by seed within condition (drift x SNR x lateral x mount offset)",
+    "status": "assumption",
+    "source": "PLAN §6"
+   },
+   "metric": {
+    "value": "run heading RMSE excluding first 30 s",
+    "status": "assumption",
+    "source": "PLAN §6"
+   },
+   "test": {
+    "value": "paired two-sided Wilcoxon signed-rank, alpha=0.01, Holm over the conditions of one hypothesis",
+    "status": "assumption",
+    "source": "PLAN §6"
+   },
+   "effect": {
+    "value": "median paired difference with bootstrap 95% CI (10000 resamples)",
+    "status": "assumption",
+    "source": "PLAN §6"
+   },
+   "improvement_rule": {
+    "value": "Holm-significant AND median relative improvement >= 10%",
+    "status": "assumption",
+    "source": "PLAN §6 proposal"
+   },
+   "wrong_branch": {
+    "value": {
+     "threshold_deg": 20.0,
+     "sensitivity_deg": [
+      10.0,
+      30.0
+     ],
+     "excluded_s": 30.0
+    },
+    "status": "assumption",
+    "source": "PLAN §6 proposal"
+   },
+   "H4_X_percent": {
+    "value": 10.0,
+    "status": "adopted",
+    "source": "user decision"
+   }
+  },
+  "hypotheses": {
+   "H1": "range + s has lower heading RMSE than odom+IMU only (per drift level)",
+   "H2": "s as a measurement beats heading inverted from s",
+   "H3": "passive (P0) heading RMSE, straight travel: ideal-curve prediction is that the 45 deg mount is LOWER than 0 deg (s=-cos 2*(heading+mount): slope 0 at antenna yaw 0, maximal at 45).",
+   "H3_alt": "user intuition recorded before any result: the 0 deg mount is preferable for straight travel and the 45 deg mount for 45 deg travel. Two-sided test decides between H3 and H3_alt; the corridor only has heading 0/180 so only half of the intuition is testable here (RF equivalence: only (heading+mount) mod 180 enters s).",
+   "H4": "largest probe period T in {10,20,60} s whose wrong-branch fraction (seed mean) has bootstrap 95% upper bound <= X percent"
+  },
+  "claim_boundary": "simulation only, placeholder parameters, no hardware validation; s is not q_clean and says nothing about range error guarantees"
+ }
+}
