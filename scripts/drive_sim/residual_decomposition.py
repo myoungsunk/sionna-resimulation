@@ -32,7 +32,9 @@ def stats(a):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--inputs", type=Path, required=True, help="A23 INPUTS dir (H, LUT, meta, freqs, timeline)")
-    ap.add_argument("--banks", type=Path, required=True, help="dir with restored LP_plus45_bank.npz / LP_minus45_bank.npz")
+    ap.add_argument("--banks", type=Path, help="dir with restored LP_plus45_bank.npz / LP_minus45_bank.npz (synthesised LoS channel; required unless --h-los is given)")
+    ap.add_argument("--h-los", type=Path, help="native Sionna max_depth=0 H for the same poses (replaces the synthesised LoS channel)")
+    ap.add_argument("--compare-synth", action="store_true", help="with --h-los and --banks: also report native vs synthesised LoS differences")
     ap.add_argument("--h", default="H_R2_aA_m0.npy")
     ap.add_argument("--timeline", default="timeline_R2_Tnone.csv")
     ap.add_argument("--anchor-x", type=float, default=4.0)
@@ -46,24 +48,34 @@ def main():
     lut = HL.HsLut(dict(theta_deg=np.array(meta["meta"]["theta_deg"]), phi_deg=np.arange(-180.0, 180.0, meta["meta"]["phi_deg"][2]), s=np.load(a.inputs / "hs_lut_2deg.npy")))
     off = meta["range_bias"]["mean_m"]
     banks = []
-    for n in ("LP_plus45", "LP_minus45"):
-        with np.load(a.banks / f"{n}_bank.npz") as z:
-            banks.append(P.Bank({k: z[k] for k in z.files}))
-    if not np.array_equal(banks[0].freqs_hz, freqs):
-        raise SystemExit("BANK_FREQS_DIFFER")
+    if a.banks is not None:
+        for n in ("LP_plus45", "LP_minus45"):
+            with np.load(a.banks / f"{n}_bank.npz") as z:
+                banks.append(P.Bank({k: z[k] for k in z.files}))
+        if not np.array_equal(banks[0].freqs_hz, freqs):
+            raise SystemExit("BANK_FREQS_DIFFER")
+    elif a.h_los is None:
+        raise SystemExit("NEED_BANKS_OR_H_LOS")
     tl = pd.read_csv(a.inputs / a.timeline)
     cs = CorridorSetup(anchor_x_m=a.anchor_x)
     A, rz = cs.anchor_position, cs.robot_antenna_z_m
-    x, y, yaw = tl.x.values, tl.y.values, tl.yaw_body_deg.values + a.mount * 0.0
+    x, y, yaw = tl.x.values, tl.y.values, tl.yaw_body_deg.values
     Hs = np.asarray(H[tl.pose_id.values])
     full = O.observe(Hs, freqs, None, None)
     d3 = np.empty(len(tl))
-    Hl = np.empty_like(Hs)
     for i in range(len(tl)):
-        d = np.array([x[i], y[i], rz]) - A
-        d3[i] = np.linalg.norm(d)
-        Hl[i] = HL.los_h(banks, d / d3[i], yaw[i] + a.mount, d3[i])
-    los = O.observe(Hl, freqs, None, None)
+        d3[i] = np.linalg.norm(np.array([x[i], y[i], rz]) - A)
+    synth = None
+    if banks:
+        Hl = np.empty_like(Hs)
+        for i in range(len(tl)):
+            d = np.array([x[i], y[i], rz]) - A
+            Hl[i] = HL.los_h(banks, d / d3[i], yaw[i] + a.mount, d3[i])
+        synth = O.observe(Hl, freqs, None, None)
+    if a.h_los is not None:
+        los = O.observe(np.asarray(np.load(a.h_los, mmap_mode="r")[tl.pose_id.values]), freqs, None, None)
+    else:
+        los = synth
     lut_s = HL.s_model(lut, A, rz, x, y, np.radians(yaw), a.mount)
     keep = (tl.t_s.values >= a.exclude_s) & np.isfinite(full["s"]) & np.isfinite(los["s"])
     tot, mp, lp = (full["s"] - lut_s)[keep], (full["s"] - los["s"])[keep], (los["s"] - lut_s)[keep]
@@ -79,6 +91,12 @@ def main():
         by_distance={f"{lo}-{hi}": dict(n=int(((dk >= lo) & (dk < hi)).sum()), total_rms=float(np.sqrt((tot[(dk >= lo) & (dk < hi)] ** 2).mean())),
                                         multipath_rms=float(np.sqrt((mp[(dk >= lo) & (dk < hi)] ** 2).mean())), multipath_mean=float(mp[(dk >= lo) & (dk < hi)].mean()),
                                         los_chain_rms=float(np.sqrt((lp[(dk >= lo) & (dk < hi)] ** 2).mean()))) for lo, hi in ((0, 5), (5, 10), (10, 99))})
+    out["los_source"] = "native Sionna max_depth=0 H (--h-los)" if a.h_los is not None else "synthesised from FFD banks at the actual link length"
+    out["theta_geo_below_5deg_samples"] = int(((np.degrees(np.arctan2(np.hypot(x - A[0], y - A[1]), A[2] - rz)) < 5.0) & keep).sum())
+    if synth is not None and a.h_los is not None:
+        both = keep & np.isfinite(synth["s"])
+        out["native_vs_synth_los"] = dict(s_max_abs=float(np.abs(los["s"][both] - synth["s"][both]).max()), range_max_abs=float(np.abs(los["range_m"][both] - synth["range_m"][both]).max()),
+                                          first_path_tap_differs=float((los["index"][both] != synth["index"][both]).mean()))
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, indent=1))
     print(json.dumps(out["s"], indent=1))
