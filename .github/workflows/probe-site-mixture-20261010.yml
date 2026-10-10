@@ -1,0 +1,47 @@
+name: Probe 2-3 angle site/point posterior evaluation 20261010
+on:
+  push:
+    branches: [codex/probe-mixture-reliability-20261010]
+    paths:
+      - '.github/workflows/probe-site-mixture-20261010.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_probe_site_mixture.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  matched-probe-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/run_probe_site_mixture.py
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/PROBES/07_PROBE_STATIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numeric dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'scipy==1.15.2' 'scikit-learn==1.6.1' 'tabulate==0.9.0'
+      - name: Verify source syntax and imports
+        run: |
+          python -m py_compile research/HEADING_RELIABILITY_20261010/run_probe_site_mixture.py
+      - name: Evaluate 1/2/3 point mixture and Gaussian baselines
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_probe_site_mixture.py --out research_results/PROBE_SITE_MIXTURE_20261010
+      - name: Upload results even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probe-site-mixture-results-20261010
+          path: research_results/PROBE_SITE_MIXTURE_20261010
+          if-no-files-found: warn
+          retention-days: 30
