@@ -15,15 +15,17 @@
 Linux cloud terminal에서 실행한다. 연구 결과 archive 전체를 받지 않고 필요한 source와 설정만 체크아웃한다.
 
 ```bash
-GIT_LFS_SKIP_SMUDGE=1 git clone --filter=blob:none --no-checkout --single-branch \
+export GIT_LFS_SKIP_SMUDGE=1
+git clone --filter=blob:none --no-checkout --single-branch \
   --branch codex/noisy-probe-ekf-sionna-20261010 \
   https://github.com/myoungsunk/sionna-resimulation.git
 cd sionna-resimulation
 git sparse-checkout init --cone
 git sparse-checkout set src scripts configs tests research .github docker
-GIT_LFS_SKIP_SMUDGE=1 git checkout
+git checkout
 # git-lfs가 설치되어 있어야 한다. 실제 LP±45 두 파일만 받는다.
 git lfs install --local
+unset GIT_LFS_SKIP_SMUDGE
 git lfs pull --include="LP_plus45_bank.npz,LP_minus45_bank.npz" --exclude=""
 git rev-parse HEAD
 ```
