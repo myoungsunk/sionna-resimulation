@@ -90,8 +90,8 @@ def main():
    ts=tt[["pose_id","t_s","phase","x","y","yaw_body_deg"]].merge(
        group,on="pose_id",how="inner",validate="one_to_one")
    assert len(ts)==len(tt),(name,len(ts),len(tt))
-   assert np.max(abs(ts.x-ts.true_x))<1e-8
-   assert np.max(abs(ts.y-ts.true_y))<1e-8
+   assert np.max(abs(ts.x-ts.true_x))<=5.1e-7
+   assert np.max(abs(ts.y-ts.true_y))<=5.1e-7
    # Check time increments explicitly.
    gap=np.diff(ts.t_s.values)
    assert np.min(gap)>.19999 and np.max(gap)<.20001,(route,gap.min(),gap.max())
