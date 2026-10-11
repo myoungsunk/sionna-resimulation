@@ -156,6 +156,15 @@ def run():
        empirical_centered=np.asarray(Cemp).tolist(),
        empirical_MSE=np.asarray(Cmse).tolist())
  df=pd.DataFrame(tab);df.to_csv(o/"POSE_P6_CROSS_TIME_THEORY_VS_MC.csv",index=False)
+ # Store compact independently seeded raw MC tensors for seed-block bootstrap.
+ pairing=[(i,j) for i in range(3) for j in range(i,3)]
+ np.savez_compressed(o/"MONTE_CARLO_STATE_RF_TENSORS.npz",
+     state_error_six=errors,posterior_P6=P_i,
+     RF_residual_range_and_s=radio,
+     predicted_Pij_each_seed=np.asarray([[q[f"{i}:{j}"] for i,j in pairing] for q in theory]),
+     index_pairs=np.asarray(pairing,dtype=int),
+     snapshot_global_indices=np.asarray(idx,dtype=int),
+     snapshot_time_s=np.asarray([context_[1][k] for k in idx],float))
  rv=[]
  for mode in ("range","polarization"):
   iidx=0 if mode=="range" else 1
