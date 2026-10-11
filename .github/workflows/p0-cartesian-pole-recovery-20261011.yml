@@ -5,7 +5,9 @@ on:
     paths:
       - '.github/workflows/p0-cartesian-pole-recovery-20261011.yml'
       - 'research/P0_RESTORE_20261011/pole_safe_model.py'
+      - 'research/P0_RESTORE_20261011/pole_safe_model_v2.py'
       - 'research/P0_RESTORE_20261011/run_v03_pole_recovery.py'
+      - 'research/P0_RESTORE_20261011/run_native_audit.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -39,9 +41,7 @@ jobs:
       - name: Materialize original FFD bytes (hash-checked by runner)
         run: git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
       - name: Pole-safe analytic h/H and full original-data replay
-        run: |
-          python -m py_compile research/P0_RESTORE_20261011/pole_safe_model.py research/P0_RESTORE_20261011/run_v03_pole_recovery.py
-          python research/P0_RESTORE_20261011/run_native_audit.py run_v03_pole_recovery.py --out p0_results/V03 --seeds 8
+        run: python research/P0_RESTORE_20261011/run_native_audit.py run_v03_pole_recovery.py --out p0_results/V03 --seeds 8
       - uses: actions/upload-artifact@v4
         if: always()
         with:
