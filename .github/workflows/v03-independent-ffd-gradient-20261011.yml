@@ -1,0 +1,56 @@
+name: Stage A V03 independent original FFD Jacobian
+on:
+  push:
+    branches: [codex/abc-gated-resume-20261011]
+    paths:
+      - '.github/workflows/v03-independent-ffd-gradient-20261011.yml'
+      - 'research/ABC_RESUME_20261011/V03_direct_ffd_derivative.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-gradient:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /research/P0_RESTORE_20261011/
+            /research/P1_CAUSAL_20261011/common.py
+            /research/ABC_RESUME_20261011/
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Restore only hash-identified original LP FFD fields
+        run: git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
+      - uses: actions/download-artifact@v4
+        with:
+          name: p0-v03-cartesian-pole-recovery-20261011
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38121366509
+          github-token: ${{ github.token }}
+          path: coefficient_evidence
+      - name: Independent raw-FFD finite difference and modeled analytic derivative
+        run: |
+          python -m py_compile research/ABC_RESUME_20261011/V03_direct_ffd_derivative.py
+          python research/ABC_RESUME_20261011/V03_direct_ffd_derivative.py --coeff coefficient_evidence/V03/CARTESIAN_POLE_FIELD_V1.npz --out stageA_derivative
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v03-independent-raw-ffd-gradient-20261011
+          path: stageA_derivative/
+          if-no-files-found: error
+          retention-days: 30
