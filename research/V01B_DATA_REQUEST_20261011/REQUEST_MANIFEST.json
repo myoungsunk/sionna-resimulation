@@ -1,0 +1,178 @@
+{
+  "schema": "V01B_DATA_REQUEST_V1",
+  "date": "2026-10-11",
+  "purpose": "Close Stage A / V01b (propagation source-family equivalence): the five legacy Method-B mount-45 H arrays that are the counterparts of the five Native H arrays are missing.",
+  "base_branch": "codex/abc-gated-resume-20261011",
+  "base_commit_checked": "9a6bc0cd9a08b8fa75de1d5f96cb7ed4e79654f4",
+  "frequency": {
+    "n_bins": 257,
+    "step_hz": 1950000.0,
+    "file": "freqs_hz.npy",
+    "sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8"
+  },
+  "H_format": {
+    "dtype": "complex128",
+    "shape": "[n_poses, 257, 2, 2]",
+    "numpy_header_bytes": 128,
+    "noise": "noise-free channel"
+  },
+  "routes": {
+    "R2": {
+      "n_poses": 1303,
+      "rf_poses_sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+      "rf_poses_file": "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R2.json",
+      "H_bytes": 21431872
+    },
+    "R4": {
+      "n_poses": 922,
+      "rf_poses_sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+      "rf_poses_file": "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R4.json",
+      "H_bytes": 15165184
+    },
+    "R5": {
+      "n_poses": 1883,
+      "rf_poses_sha256": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+      "rf_poses_file": "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R5.json",
+      "H_bytes": 30971712
+    }
+  },
+  "A_missing_legacy_files": [
+    {
+      "case": "R2_aB_m45",
+      "file": "H_R2_aB_m45.npy",
+      "sha256": "fb229e187f9498025847ca550e061d3ab2cd82624f1c6e20ed9b78a5e7a60f75",
+      "shape": [
+        1303,
+        257,
+        2,
+        2
+      ],
+      "bytes": 21431872,
+      "traces_dir": "traces_R2_aB",
+      "m0_counterpart_sha256_present_in_repo": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c"
+    },
+    {
+      "case": "R4_aA_m45",
+      "file": "H_R4_aA_m45.npy",
+      "sha256": "5eabb1e44677bdf82630cdf9eea43cad729af2459b9b790d246310d62b725724",
+      "shape": [
+        922,
+        257,
+        2,
+        2
+      ],
+      "bytes": 15165184,
+      "traces_dir": "traces_R4_aA",
+      "m0_counterpart_sha256_present_in_repo": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956"
+    },
+    {
+      "case": "R4_aB_m45",
+      "file": "H_R4_aB_m45.npy",
+      "sha256": "3f76d713edccf90ed1d20c8e0f65064add3ca5c5340b56d11c1f391ca81c791d",
+      "shape": [
+        922,
+        257,
+        2,
+        2
+      ],
+      "bytes": 15165184,
+      "traces_dir": "traces_R4_aB",
+      "m0_counterpart_sha256_present_in_repo": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0"
+    },
+    {
+      "case": "R5_aA_m45",
+      "file": "H_R5_aA_m45.npy",
+      "sha256": "1e2c2f36c8d4945e3868c418875b6f08e459c669bcdad981318daf4521ecfbc2",
+      "shape": [
+        1883,
+        257,
+        2,
+        2
+      ],
+      "bytes": 30971712,
+      "traces_dir": "traces_R5_aA",
+      "m0_counterpart_sha256_present_in_repo": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80"
+    },
+    {
+      "case": "R5_aB_m45",
+      "file": "H_R5_aB_m45.npy",
+      "sha256": "8f0d87f213a04d6861d6de12f557ce5ce4ae2ba369b9c94e49496bc4f3e154e9",
+      "shape": [
+        1883,
+        257,
+        2,
+        2
+      ],
+      "bytes": 30971712,
+      "traces_dir": "traces_R5_aB",
+      "m0_counterpart_sha256_present_in_repo": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3"
+    }
+  ],
+  "B_legacy_regeneration": {
+    "script": "scripts/drive_sim/rf_b_apply.py",
+    "command_template": "python scripts/drive_sim/rf_b_apply.py --poses results/DRIVE_SIM_20261007/S1/routes/rf_poses_<ROUTE>.json --traces <S2>/traces_<ROUTE>_<ANCHOR> --mount <0|45> --out H_<CASE>.npy",
+    "ffd_banks": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    },
+    "self_check": "Regenerate the m0 file of each requested trace directory; its SHA256 must equal the m0 SHA already verified in the repository before the m45 output is accepted."
+  },
+  "C_native_twelve": {
+    "cases": [
+      "R2_aA_m0",
+      "R2_aA_m45",
+      "R2_aB_m0",
+      "R2_aB_m45",
+      "R4_aA_m0",
+      "R4_aA_m45",
+      "R4_aB_m0",
+      "R4_aB_m45",
+      "R5_aA_m0",
+      "R5_aA_m45",
+      "R5_aB_m0",
+      "R5_aB_m45"
+    ],
+    "native_already_available_full_H": {
+      "R2_aB_m45": "0169155f926bb27d4dbb4ba9ef5d3422e3ec96296ab6e593f81ecfaf43a575d5",
+      "R4_aA_m45": "2587edcdff11747ef78c8e370571fee6a78a6934cc83c29909d9515098ebab82",
+      "R4_aB_m45": "3ac3dffb40b7730bc77ec2fa45e071a835aeffa53595387129eccbe168598226",
+      "R5_aA_m45": "55c886b6b1060bbf9bde9c1681ff9f926aee33e8cc0af62ad9e993625a7a6376",
+      "R5_aB_m45": "d56b8168cac1f10632beeafff6e2ea8b6547831199519f26914bc27197d2ccf7"
+    },
+    "native_to_generate": [
+      "R2_aA_m0",
+      "R2_aA_m45",
+      "R2_aB_m0",
+      "R4_aA_m0",
+      "R4_aB_m0",
+      "R5_aA_m0",
+      "R5_aB_m0"
+    ],
+    "solver_receipt_values": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": true,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924,
+      "threads_per_solver": 1
+    },
+    "values_not_known_to_requester_and_to_be_filled_by_data_owner": [
+      "Sionna / Mitsuba / DrJit / Python / OS versions",
+      "scene file identity (name + SHA256)",
+      "antenna array geometry and mount-rotation convention source",
+      "whether Native LoS-only H exists for the five existing Native cases"
+    ]
+  },
+  "acceptance_preregistered": {
+    "full_channel_relative_complex_error_max": 0.001,
+    "s_absolute_error_max": 0.01,
+    "first_path_tap_match_required": true,
+    "scope": "all stored poses of every compared case; no 7-case or sample substitution"
+  }
+}
