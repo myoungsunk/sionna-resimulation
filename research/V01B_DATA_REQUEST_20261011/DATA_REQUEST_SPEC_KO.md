@@ -46,7 +46,7 @@
 | R4_aA_m0, R4_aB_m0 | 922 | 생성 필요 |
 | R4_aA_m45, R4_aB_m45 | 922 | Native 있음 (`2587edcd…ab82`, `3ac3dffb…8226`) |
 | R5_aA_m0, R5_aB_m0 | 1883 | 생성 필요 |
-| R5_aA_m45, R5_aB_m45 | 1883 | Native 있음 (`55c886b6…a6376`, `d56b8168…f2ccf7`) |
+| R5_aA_m45, R5_aB_m45 | 1883 | Native 있음 (`55c886b6…a6376`, `d56b8168…97d2ccf7`) |
 
 입력 고정값: 포즈 파일 `rf_poses_R2/R4/R5.json`(저장소 `S1/routes/`; SHA는 매니페스트), 주파수 257 bins, Δf 1.95 MHz(`freqs_hz.npy` SHA256 `fe0bcfeb…1169f8`), LP+45/−45 FFD(`LP_plus45_bank.npz` `b29ae471…453b`, `LP_minus45_bank.npz` `39729fe9…eb9`).
 기존 Native 영수증의 solver 설정: `max_depth 3`, `samples_per_src 100000`, `max_num_paths_per_src 1000000`, `synthetic_array true`, LOS·정반사·굴절 켬, 회절(edge 포함)·산란 끔, `seed 20260924`, `threads_per_solver 1`.
@@ -63,7 +63,7 @@
 ## 6. 전달 방법
 - 저장소의 LFS 서버는 이 세션에서 업로드가 거부(`Forbidden`)되었으므로 **LFS 경로(`*.npy`/`*.npz` 푸시)를 쓰지 않는다.**
 - 권장: Drive 링크 또는 GitHub Release 자산, 파일당 95 MB 이하로 분할 가능. 함께 `SHA256SUMS.txt`(`sha256sum` 출력 형식)를 보낸다.
-- 보내기 전에 `python verify_delivery.py <폴더>`로 3.1의 5개를 점검한다(비밀번호 없이 읽기 전용; 모든 파일이 `PASS`여야 종료코드 0).
+- 보내기 전에 `python verify_delivery.py <폴더>`로 3.1의 5개를 점검한다(읽기 전용; 모든 파일이 `PASS`여야 종료코드 0).
 
 ## 7. 회신 양식
 ```
