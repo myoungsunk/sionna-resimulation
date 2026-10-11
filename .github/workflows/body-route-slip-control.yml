@@ -1,0 +1,46 @@
+name: Physical Slip Scheduled Route Segment Control
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+    paths:
+      - ".github/workflows/body-route-slip-control.yml"
+  workflow_dispatch:
+jobs:
+  route-slip-cpu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Source-only checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pure CPU estimator dependencies
+        run: python -m pip install numpy==1.26.4 scipy==1.14.1
+      - name: Run fixed 10-seed x 2-mount x 2 physical-slip-arm controls
+        run: |
+          set -euo pipefail
+          python scripts/drive_sim/run_scheduled_route_slip_sensitivity.py \
+            --out-dir route_control_results \
+            --seeds 0 1 2 3 4 5 6 7 8 9 \
+            --mounts 0 45 \
+            > route_control_results_console.log 2>&1
+          cat route_control_results_console.log
+      - name: Preserve quantitative stress experiment and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-route-physical-slip-cpu-control
+          path: |
+            route_control_results/
+            route_control_results_console.log
+          retention-days: 21
+          if-no-files-found: warn
