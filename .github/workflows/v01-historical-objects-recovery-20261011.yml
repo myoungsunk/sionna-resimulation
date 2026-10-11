@@ -1,0 +1,63 @@
+name: V01 historical exact legacy objects lookup
+on:
+  push:
+    branches: [codex/abc-gated-resume-20261011]
+    paths: ['.github/workflows/v01-historical-objects-recovery-20261011.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  named-history-recovery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout: |
+            research/P0_FINISH_20261011
+      - name: Inspect complete reachable history only for five exact named arrays
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,pathlib,subprocess,hashlib
+          out=pathlib.Path('history_lookup');out.mkdir()
+          items=json.loads(pathlib.Path('research/P0_FINISH_20261011/REQUIRED_LEGACY_COUNTERPARTS.json').read_text())['required_existing_objects']
+          wanted={i['file']:i for i in items}
+          receipt=dict(execution='STARTED',recovered=[],candidates=[],stage_A_PASS=False,stage_B_allowed=False,stage_C_allowed=False)
+          try:
+              f=subprocess.run(['git','fetch','--unshallow','--filter=blob:none','--no-tags','origin','+refs/heads/*:refs/remotes/origin/*'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=450)
+              (out/'fetch_stderr.txt').write_bytes(f.stderr)
+              if f.returncode:raise RuntimeError('Full historical fetch failed '+str(f.returncode))
+              lines=subprocess.check_output(['git','rev-list','--objects','--all'],text=True,timeout=120).splitlines()
+              seen=set()
+              for line in lines:
+                  parts=line.split(' ',1)
+                  if len(parts)!=2 or pathlib.PurePosixPath(parts[1]).name not in wanted:continue
+                  oid,path=parts;name=pathlib.PurePosixPath(path).name
+                  if (oid,name) in seen:continue
+                  seen.add((oid,name));target=wanted[name]
+                  raw=subprocess.check_output(['git','cat-file','blob',oid],timeout=120)
+                  digest=hashlib.sha256(raw).hexdigest()
+                  hit=dict(case=target['case'],path=path,git_object_sha=oid,bytes=len(raw),sha256=digest,expected_sha256=target['expected_sha256'],original_SHA_MATCH=digest==target['expected_sha256'])
+                  receipt['candidates'].append(hit)
+                  if hit['original_SHA_MATCH']:
+                      (out/name).write_bytes(raw);receipt['recovered'].append(target['case'])
+              receipt['execution']='COMPLETE_HISTORICAL_GIT_OBJECT_SCAN'
+              receipt['reachable_named_objects_checked']=len(seen)
+              receipt['all_required_originals_recovered']=len(set(receipt['recovered']))==5
+          except Exception as e:
+              receipt['execution']='LOOKUP_FAILED_OR_INCOMPLETE';receipt['error']=str(e)
+          receipt['missing_cases']=sorted(set(i['case'] for i in items)-set(receipt['recovered']))
+          (out/'STATUS.json').write_text(json.dumps(receipt,indent=2));print(json.dumps(receipt))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v01-historical-original-object-recovery-20261011
+          path: history_lookup/
+          if-no-files-found: error
+          retention-days: 30
