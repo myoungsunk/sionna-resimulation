@@ -65,3 +65,13 @@ Training 15 XY × 3 yaw = 45 관측 / mount. Holdout 7 XY × 3 yaw = 21 관측 /
 4. 개발된 물리 `slip_mode=hypothesis` + 최소 `drive → measured stop → probe → resume` 스케줄 구간은 실물 식별 계수가 아니며, R2/R4/R5 위험 감지 기반 full-route 성능을 대체하지 않는다. 여러 독립 seed와 mount 0/45 실험, 실제 slip calibration은 별도 다음 실행이 필요.
 
 최종 과학 판정: **F01/F02 OPEN, scientific_PASS=false, L1/L2 미완료**. 실험 숫자를 넘는 주장은 하지 않는다.
+
+## 6. 실제 다른-site calibration에서 확인한 cross-angle quantization 상관
+
+`OTHER_SITE_LOS_CALIBRATION.csv`의 training physical XY 15개에 대해 각 0°, 10°, 20°의 동일-site `first_arrival_tap`을 직접 묶어 확인했다.
+
+- Mount 0°: 15/15 XY에서 3개 yaw 모두 **동일한 first-arrival tap**이었다. 같은 XY의 잡음 없는 FFD-LoS `detector_range - geometric_range`도 세 angle 사이에 정확히 같은 값이다.
+- Mount 45°: 14/15 XY에서 동일한 tap이었다. 나머지 1개 XY에서 yaw에 따른 tap이 달라져 detector range/bias가 약 0.1495522588 m 변했다.
+- 따라서 잡음 없는 같은-site 거리 quantization/FFD mismatch를 3개 독립 난수처럼 세면 잘못된 공분산이다. `R_{r_i r_j}`의 site-shared term은 일반적으로 0이 아니다. 신뢰할 수 있는 thermal noise covariance만 반복 측정 독립 가정과 연결해야 한다.
+- 이 검사는 순수 LoS의 detector staircase 상관 증거다. Full multipath RF range/s와의 임의 cross covariance 또는 calibration 적합 값까지 입증하지는 않는다. `q_site/q_point` joint likelihood 및 `Σ_sr[2M,2M]` 추정은 여전히 NOT_IMPLEMENTED.
+- 독립 holdout 21 rows/mount는 실제 독립 XY **7개**에 대한 3회 correlated angle sampling이므로 유효 독립 site N을 21이라고 부르면 안 된다.
