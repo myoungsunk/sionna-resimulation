@@ -41,3 +41,15 @@ def test_offline_paired_replay_has_no_truth_to_filter(tmp_path):
     assert abs(stats["range_only"]["position_rmse_m"]-.02)<1e-10
     assert stats["rf_off_replay"]["position_rmse_m"]<1e-6
     assert result["comparison"].startswith("identical physical path")
+
+def test_standalone_evaluator_can_import_package_without_pytest_pythonpath():
+    import os
+    import subprocess
+    import sys
+    from pathlib import Path
+    root=Path(__file__).resolve().parents[1]
+    env=dict(os.environ)
+    env.pop("PYTHONPATH",None)
+    r=subprocess.run([sys.executable,str(root/"scripts/drive_sim/evaluate_body_probe_physical_trajectory.py"),"--help"],
+        cwd=root,env=env,capture_output=True,text=True)
+    assert r.returncode==0, r.stdout+"\n"+r.stderr
