@@ -4,77 +4,18 @@ on:
     branches: [codex/p0-close-p1-factorial-20261011]
     paths:
       - '.github/workflows/p1-range-polarization-factorial-20261011.yml'
-      - 'research/P1_CAUSAL_20261011/run_factorial.py'
   workflow_dispatch:
 concurrency:
   group: p1-factorial-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: read
-  actions: read
 jobs:
-  factorial:
+  stopped-until-all-P0-pass:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      max-parallel: 7
-      matrix:
-        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
-    env:
-      OPENBLAS_NUM_THREADS: '1'
-      OMP_NUM_THREADS: '1'
-      MKL_NUM_THREADS: '1'
     steps:
-      - uses: actions/checkout@v4
-        with:
-          lfs: false
-          fetch-depth: 1
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            /src/
-            /research/P0_RESTORE_20261011/
-            /research/P1_CAUSAL_20261011/
-            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/
-            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
-            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
-            /results/DRIVE_SIM_20261007/S1/routes/
-            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
-            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/*/SAMPLES.json
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
-      - uses: actions/download-artifact@v4
-        with:
-          name: p0-v03-cartesian-pole-recovery-20261011
-          repository: myoungsunk/sionna-resimulation
-          run-id: 38121366509
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          path: .p0
-      - name: Execute matched whole-route and station controls
+      - name: Enforce user-requested stage order
         run: |
-          python -m py_compile research/P1_CAUSAL_20261011/common.py research/P1_CAUSAL_20261011/run_factorial.py
-          python -X utf8 research/P1_CAUSAL_20261011/run_factorial.py --case '${{ matrix.case }}' --coeff .p0/V03/CARTESIAN_POLE_FIELD_V1.npz --out outputs/${{ matrix.case }} --seeds 4
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: p1-factorial-${{ matrix.case }}
-          path: outputs/${{ matrix.case }}
-          if-no-files-found: warn
-          retention-days: 30
-  combined:
-    if: always()
-    needs: factorial
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: p1-factorial-*
-          path: combined
-      - uses: actions/upload-artifact@v4
-        with:
-          name: p1-factorial-complete-20261011
-          path: combined
-          retention-days: 30
-          if-no-files-found: error
+          echo 'P1 STOPPED: V00 V01 observer+source-family V02 and V03 must ALL pass before a new P1 run.'
+          echo 'Earlier P1 run 38124202873 is PREMATURE_QUARANTINED and must not be used for conclusions.'
+          echo 'No source narrowing or partial P0 completion substitutes for the required full stage A gate.'
