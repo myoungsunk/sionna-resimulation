@@ -1,0 +1,50 @@
+name: Original FFD raw LP pole Cartesian continuity source audit
+on:
+  push:
+    branches: [codex/ffd-pole-origin-audit-20261011]
+    paths:
+      - '.github/workflows/original-ffd-pole-lfs-source-audit-20261011.yml'
+      - 'research/HEADING_RELIABILITY_20261010/audit_raw_ffd_polar_basis.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-ffd-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            LP_plus45_bank.npz
+            LP_minus45_bank.npz
+            research/HEADING_RELIABILITY_20261010/audit_raw_ffd_polar_basis.py
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 tabulate==0.9.0
+      - name: Try materializing only original +45 and -45 LP LFS banks
+        id: lfs
+        continue-on-error: true
+        shell: bash
+        run: |
+          git lfs version
+          git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
+          wc -c LP_plus45_bank.npz LP_minus45_bank.npz
+      - name: Compute original field theta=0 Cartesian continuity if source bank available
+        run: |
+          python -m py_compile research/HEADING_RELIABILITY_20261010/audit_raw_ffd_polar_basis.py
+          python research/HEADING_RELIABILITY_20261010/audit_raw_ffd_polar_basis.py --out results_audit/FFD_RAW_POLE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-ffd-polar-basis-source-audit-20261011
+          path: results_audit/
+          if-no-files-found: warn
+          retention-days: 30
