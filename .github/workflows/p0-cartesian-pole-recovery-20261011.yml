@@ -1,0 +1,51 @@
+name: P0 V03 Cartesian pole-safe observation recovery
+on:
+  push:
+    branches: [codex/p0-foundation-recovery-20261011]
+    paths:
+      - '.github/workflows/p0-cartesian-pole-recovery-20261011.yml'
+      - 'research/P0_RESTORE_20261011/pole_safe_model.py'
+      - 'research/P0_RESTORE_20261011/run_v03_pole_recovery.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pole-field-and-filter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            src/qclean_uwb/
+            research/P0_RESTORE_20261011/
+            LP_plus45_bank.npz
+            LP_minus45_bank.npz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
+            results/DRIVE_SIM_20261007/S1/routes/
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 tabulate==0.9.0
+      - name: Materialize original FFD bytes (hash-checked by runner)
+        run: git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
+      - name: Pole-safe analytic h/H and full original-data replay
+        run: |
+          python -m py_compile research/P0_RESTORE_20261011/pole_safe_model.py research/P0_RESTORE_20261011/run_v03_pole_recovery.py
+          python research/P0_RESTORE_20261011/run_v03_pole_recovery.py --out p0_results/V03 --seeds 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-v03-cartesian-pole-recovery-20261011
+          path: p0_results/
+          if-no-files-found: warn
+          retention-days: 30
