@@ -1,0 +1,46 @@
+name: Stage A V00 complete RF identity and corrected MC receipt
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-v00-complete-identity-20261011.yml'
+      - 'research/P0_FINISH_20261011/V00_complete_request_receipt.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/P0_RESTORE_20261011/rf_pose_index.py
+            /research/P0_FINISH_20261011/V00_complete_request_receipt.py
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/*/SAMPLES.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: p0-v00-v01-recovery-20261011
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38120812381
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .verified_p0
+      - name: Recheck original SAMPLES including complete mount and anchor metadata
+        run: python -X utf8 research/P0_FINISH_20261011/V00_complete_request_receipt.py --parent .verified_p0/V00 --out stageA_results/V00_COMPLETE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage-a-v00-complete-request-identity-20261011
+          path: stageA_results
+          if-no-files-found: warn
+          retention-days: 30
