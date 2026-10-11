@@ -64,6 +64,11 @@ def read_npz(p):
         return {k:f[k] for k in f.files}
 
 
+def finite_or_none(x):
+    val=float(x)
+    return val if math.isfinite(val) else None
+
+
 def make_increment(trace,i,cfg):
     radius=float(cfg["physical"]["nominal_radius_m"])
     return MeasuredIncrement(
@@ -108,8 +113,8 @@ def replay(trace,rf,manifest,base_filter,*,rf_mode,offset):
                 P=np.stack([r["P_after_RF"] for r in recs]),
                 rf_packet_states=[recs[i] for i in index],
                 rf_event_updates=[
-                dict(t_s=float(r["t_s"]),state_index=int(idx),innovation_m=float(r["range_innovation"]),
-                     R_m2=float(r["range_R"]),S_m2=float(r["range_S"]),
+                dict(t_s=float(r["t_s"]),state_index=int(idx),innovation_m=finite_or_none(r["range_innovation"]),
+                     R_m2=finite_or_none(r["range_R"]),S_m2=finite_or_none(r["range_S"]),
                      nis=float(r["range_innovation"]**2/r["range_S"])
                          if r["range_S"]>0 else None,
                      status=r["range_status"])
