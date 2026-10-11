@@ -1,6 +1,6 @@
 # Linux amd64 CPU runtime; no RF solver is invoked by this image build.
 FROM python:3.11-slim-bookworm
-RUN apt-get update && apt-get install -y --no-install-recommends libllvm14 \
+RUN apt-get update && apt-get install -y --no-install-recommends libllvm14 libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 ENV DRJIT_LIBLLVM_PATH=/usr/lib/x86_64-linux-gnu/libLLVM-14.so \
     OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 MPLBACKEND=Agg

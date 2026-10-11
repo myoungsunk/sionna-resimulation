@@ -81,7 +81,7 @@ Docker 없이 검증된 native 환경을 사용할 때:
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install -r configs/body_probe/requirements-native-cloud.txt
-# Linux LLVM backend가 별도로 필요하다. source는 llvm_ad_mono_polarized를 사용한다.
+# Linux LLVM backend와 libatomic.so.1이 필요하다. source는 llvm_ad_mono_polarized를 사용한다.
 export FFD_BANK_DIR=/data/ffd
 # 선택 사항: 원 manifest를 별도 자료 경로에서 제공할 때
 # export FFD_BANK_MANIFEST=/data/ffd/BANK_MANIFEST.json
