@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-"""Read-only recovery of COMPLETED Stage A logs. No source or science mutation.
-The first Native runs printed exact per-point results but hidden output dirs
-were omitted by artifact upload. Preserve this as LOG_ONLY evidence explicitly.
-Fresh V03 raw H/CSV is separately re-executed with non-hidden output.
+"""Read-only COMPLETED Stage A logs; LOG_ONLY where original artifacts were omitted.
+Native V03 raw H is independently preserved by run38126804417. No new simulation.
 """
 from __future__ import annotations
 import argparse,ast,csv,json,re,subprocess
@@ -14,12 +12,12 @@ def main():
  p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
  receipts=[];family=[];near=[]
  for rid,jid,name in RUNS:
-  response=subprocess.check_output(['gh','api',f'repos/{REPO}/actions/runs/{rid}'],text=True)
-  r=json.loads(response);assert r['status']=='completed','Only completed runs may be archived'
-  data=subprocess.check_output(['gh','api',f'repos/{REPO}/actions/jobs/{jid}/logs']);log=data.decode('utf-8-sig')
-  (a.out/(name+'.log')).write_text(log,encoding='utf-8')
+  r=json.loads(subprocess.check_output(['gh','api',f'repos/{REPO}/actions/runs/{rid}'],text=True));assert r['status']=='completed'
+  data=subprocess.check_output(['gh','api','--allow-escape-sequences',f'repos/{REPO}/actions/jobs/{jid}/logs'])
+  log=data.decode('utf-8-sig');(a.out/(name+'.log')).write_text(log,encoding='utf-8')
   rec=dict(run_id=rid,job_id=jid,source_commit=r['head_sha'],workflow_status=r['status'],workflow_conclusion=r['conclusion'],raw_H_artifact_status='NOT_UPLOADED_HIDDEN_DIRECTORY',proof_level='COMPLETED_EXECUTION_LOG_ONLY',stage_B_allowed=False)
   for line in log.splitlines():
+   line=re.sub(r'\x1b\[[0-9;]*[A-Za-z]','',line)
    m=re.match(r'^\d{4}-\d\d-\d\dT\S+Z FAMILY_POINT (\S+) (\d+) (\[.*\])$',line)
    if m:
     for q in ast.literal_eval(m.group(3)):family.append(dict(source_run=rid,**q))
