@@ -1,0 +1,47 @@
+name: P0 V00 V01 input alignment and observer recovery
+on:
+  push:
+    branches: [codex/p0-foundation-recovery-20261011]
+    paths:
+      - '.github/workflows/p0-input-observer-recovery-20261011.yml'
+      - 'research/P0_RESTORE_20261011/run_v00_v01.py'
+      - 'research/P0_RESTORE_20261011/rf_pose_index.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover-inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            src/qclean_uwb/
+            research/P0_RESTORE_20261011/
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv
+            results/DRIVE_SIM_20261007/S1/routes/
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 tabulate==0.9.0
+      - name: Independently reproduce current receiver contract
+        run: python research/P0_RESTORE_20261011/run_v00_v01.py V01 --out p0_results/V01
+      - name: Correct all RF pose rows and replay original 128 seeds
+        run: python research/P0_RESTORE_20261011/run_v00_v01.py V00 --out p0_results/V00 --seeds 128
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-v00-v01-recovery-20261011
+          path: p0_results/
+          if-no-files-found: warn
+          retention-days: 30
