@@ -6,6 +6,9 @@ on:
       - '.github/workflows/p0-close-native-family-pole-20261011.yml'
       - 'research/P1_CAUSAL_20261011/close_p0_native.py'
   workflow_dispatch:
+concurrency:
+  group: p0-closure-native-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
   actions: read
@@ -58,8 +61,8 @@ jobs:
           mkdir -p .result_native
       - name: Source and fresh native solver checks
         run: |
-          docker run --rm --cpus 4 --memory 12g --entrypoint python -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native -m py_compile /workspace/research/P1_CAUSAL_20261011/close_p0_native.py
-          docker run --rm --cpus 4 --memory 12g --entrypoint python -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native /workspace/research/P1_CAUSAL_20261011/close_p0_native.py --coeff /workspace/.p0/V03/CARTESIAN_POLE_FIELD_V1.npz --out /outputs
+          docker run --rm --cpus 4 --memory 12g --entrypoint python -e PYTHONPYCACHEPREFIX=/tmp/pycache -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native -m py_compile /workspace/research/P1_CAUSAL_20261011/close_p0_native.py
+          docker run --rm --cpus 4 --memory 12g --entrypoint python -e PYTHONPYCACHEPREFIX=/tmp/pycache -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native /workspace/research/P1_CAUSAL_20261011/close_p0_native.py --coeff /workspace/.p0/V03/CARTESIAN_POLE_FIELD_V1.npz --out /outputs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
