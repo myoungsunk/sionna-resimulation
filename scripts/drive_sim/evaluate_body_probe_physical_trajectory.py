@@ -12,7 +12,13 @@ import argparse
 import json
 import math
 from pathlib import Path
+import sys
 import numpy as np
+
+# Direct python scripts/drive_sim/... invocation starts with the scripts directory
+# on sys.path, unlike pytest's configured PYTHONPATH. Resolve src explicitly.
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "src"))
 
 from qclean_uwb.drivesim.body_ekf_bridge import ProbeEKF6,V2BodyFilterConfig
 from qclean_uwb.drivesim.body_sensor_stream import MeasuredIncrement
