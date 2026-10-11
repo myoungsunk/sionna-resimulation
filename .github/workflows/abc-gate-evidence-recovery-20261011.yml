@@ -1,0 +1,99 @@
+name: ABC prerequisite evidence recovery
+on:
+  push:
+    branches: [codex/abc-gated-resume-20261011]
+    paths: ['.github/workflows/abc-gate-evidence-recovery-20261011.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  preserve-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout: |
+            src
+            scripts
+            tests
+            configs
+            docker
+            research/P0_FINISH_20261011
+            research/P0_RESTORE_20261011
+            research/P1_CAUSAL_20261011
+            .github/workflows
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Collect source and immutable completed Stage A receipts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY'
+          import os,json,urllib.request,urllib.parse,zipfile,io,pathlib,shutil,hashlib
+          O=pathlib.Path('abc_evidence');O.mkdir(exist_ok=True)
+          for p in ['src','scripts','tests','configs','docker','research/P0_FINISH_20261011','research/P0_RESTORE_20261011','research/P1_CAUSAL_20261011','.github/workflows']:
+              q=pathlib.Path(p)
+              if q.exists(): shutil.copytree(q,O/'source'/q,dirs_exist_ok=True)
+          base='https://api.github.com/repos/myoungsunk/sionna-resimulation'
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'source-backed-abc-evidence-recovery'}
+          def read(url):
+              req=urllib.request.Request(url,headers=headers)
+              with urllib.request.urlopen(req,timeout=90) as r: return r.read()
+          def get(path): return json.loads(read(base+path))
+          out=[]
+          for branch in ['codex/p0-close-p1-factorial-20261011','codex/p0-foundation-recovery-20261011']:
+              runs=get('/actions/runs?per_page=60&branch='+urllib.parse.quote(branch,safe=''))['workflow_runs']
+              for r in runs:
+                  minimal={k:r[k] for k in ['id','name','head_sha','path','status','conclusion','created_at','html_url']}
+                  if r['id']==38124202873 or ('Stage B' in r['name']) or ('P1' in r['name'] and 'Stage A' not in r['name']):
+                      minimal['quarantined']=True;out.append(minimal);continue
+                  D=O/'runs'/str(r['id']);D.mkdir(parents=True,exist_ok=True)
+                  (D/'run.json').write_text(json.dumps(minimal,indent=2))
+                  try:
+                      jobs=get('/actions/runs/'+str(r['id'])+'/jobs')
+                      (D/'jobs.json').write_text(json.dumps(jobs,indent=2))
+                      if r['status']=='completed':
+                          for j in jobs['jobs']:
+                              try:
+                                  log=read(base+'/actions/jobs/'+str(j['id'])+'/logs')
+                                  (D/('job_'+str(j['id'])+'.log')).write_bytes(log)
+                              except Exception as e:(D/('log_error_'+str(j['id'])+'.txt')).write_text(str(e))
+                      arts=get('/actions/runs/'+str(r['id'])+'/artifacts')['artifacts']
+                      (D/'artifacts.json').write_text(json.dumps(arts,indent=2))
+                      for a in arts:
+                          # Collect inspectable receipts, scores and raw small arrays. Large
+                          # raw channel archives remain referenced with original artifact IDs.
+                          if a['expired'] or a['size_in_bytes']>200*1024*1024:continue
+                          try:
+                              b=read(base+'/actions/artifacts/'+str(a['id'])+'/zip')
+                              (D/(str(a['id'])+'.sha256')).write_text(hashlib.sha256(b).hexdigest())
+                              z=zipfile.ZipFile(io.BytesIO(b))
+                              inventory=[{'name':i.filename,'size':i.file_size} for i in z.infolist()]
+                              (D/(str(a['id'])+'_inventory.json')).write_text(json.dumps(inventory,indent=2))
+                              for i in z.infolist():
+                                  p=pathlib.PurePosixPath(i.filename)
+                                  if p.is_absolute() or '..' in p.parts or i.is_dir():continue
+                                  if i.file_size>35*1024*1024:continue
+                                  target=D/'artifact'/str(a['id'])/str(p);target.parent.mkdir(parents=True,exist_ok=True)
+                                  target.write_bytes(z.read(i))
+                          except Exception as e:(D/(str(a['id'])+'_artifact_error.txt')).write_text(str(e))
+                      minimal['artifacts']=[{'id':a['id'],'name':a['name'],'size':a['size_in_bytes']} for a in arts]
+                  except Exception as e:minimal['collection_error']=str(e)
+                  out.append(minimal)
+          (O/'RUNS_INDEX.json').write_text(json.dumps(out,indent=2))
+          print('RECOVERED_RUN_INDEX',json.dumps(out))
+          print('DO_NOT_INFER_GATE_PASS_FROM_WORKFLOW_SUCCESS')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: abc-prerequisite-evidence-and-source-20261011
+          path: abc_evidence/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 30
