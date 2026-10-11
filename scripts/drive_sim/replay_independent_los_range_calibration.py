@@ -161,8 +161,8 @@ def check_paired(run,calibration):
     n=len(trace["t_s"])
     if true.shape!=(n,3):raise ValueError("TRUTH_ALIGNMENT_MISSING")
     sites=meta["train_site_xy"]+meta["holdout_site_xy"]
-    if min(float(np.linalg.norm(np.asarray(site)-true[0,:2])) for site in sites) <=
-            float(meta["min_evaluation_exclusion_m"]):
+    if (min(float(np.linalg.norm(np.asarray(site)-true[0,:2])) for site in sites)
+            <= float(meta["min_evaluation_exclusion_m"])):
         raise ValueError("EVALUATION_POSITION_LEAKED_INTO_CALIBRATION")
     a=replay(trace,rf,cfg,original,rf_mode="range_only",offset=0.)
     # Exact source numeric parity mandatory before accepting any corrected replay.
