@@ -167,8 +167,8 @@ def main():
    "data_n_pose":len(df),"normal_route_pairs":pd.DataFrame(aligned).to_dict("records"),
    "n_case_station_groups":len(pairs),
    "range_filter_offset_m":range_offset,
-   "range_filter_R_m2":float(.05**2+.05**2+(299792458/(1028*1.953125e9))**2/12),
-   "range_filter_sigma_m":float(np.sqrt(.05**2+.05**2+(299792458/(1028*1.953125e9))**2/12)),
+   "range_filter_R_m2":float(.05**2+.05**2+(299792458/(1028*1.953125e6))**2/12),
+   "range_filter_sigma_m":float(np.sqrt(.05**2+.05**2+(299792458/(1028*1.953125e6))**2/12)),
    "known_limits":[
        "No reconstructed true E[e_state(t) RF-noise(t+lag)^T] without per-time, per-seed full estimated state/cross covariance AND independent RF noise realizations.",
        "Spatial covariance of deterministic multipath residuals at different yaw angles is NOT temporal pose-measurement covariance conditional on fixed true pose.",
