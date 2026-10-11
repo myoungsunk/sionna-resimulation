@@ -148,7 +148,7 @@ def check_paired(run,calibration):
     cfg=json.loads((root/"MANIFEST.json").read_text(encoding="utf8"))
     trace=read_npz(root/"STATE_TRACE.npz")
     rf=read_npz(root/"PROBE_RF_PACKETS.npz")
-    oracle=read_npz(root/"ORACLE_EVAL_ONLY.npz")
+    # No evaluation oracle is even opened before all three EKF replays.
     status=json.loads((root/"EXECUTION_STATUS.json").read_text(encoding="utf8"))
     if cfg["config"]["rf"]["mode"]!="range_only" or status["status"]!="CONTROL_COMPLETE_RF_COLLECTED":
         raise ValueError("ONLY_COMPLETED_NATIVE_RANGE_ONLY_SOURCE_SUPPORTED")
@@ -157,11 +157,12 @@ def check_paired(run,calibration):
         raise ValueError("UNMODIFIED_RANGE_OFFSET_ZERO_SOURCE_REQUIRED")
     original=V2BodyFilterConfig(**actual_config)
     meta,model,offset=load_calibration(calibration,float(original.mount_deg))
-    true=oracle["true_xyyaw"]
     n=len(trace["t_s"])
-    if true.shape!=(n,3):raise ValueError("TRUTH_ALIGNMENT_MISSING")
+    # The physical initial-site exclusion is pre-registered in the run config,
+    # not inferred from recorded evaluation outcomes.
+    initial_xy=np.asarray(cfg["config"]["physical"]["init_true_xyyaw_rad"][:2],float)
     sites=meta["train_site_xy"]+meta["holdout_site_xy"]
-    if (min(float(np.linalg.norm(np.asarray(site)-true[0,:2])) for site in sites)
+    if (min(float(np.linalg.norm(np.asarray(site)-initial_xy)) for site in sites)
             <= float(meta["min_evaluation_exclusion_m"])):
         raise ValueError("EVALUATION_POSITION_LEAKED_INTO_CALIBRATION")
     a=replay(trace,rf,cfg,original,rf_mode="range_only",offset=0.)
@@ -172,6 +173,11 @@ def check_paired(run,calibration):
         raise ValueError(f"ORIGINAL_NATIVE_EKF_PARITY_FAILED x={max_x} P={max_p}")
     off=replay(trace,rf,cfg,original,rf_mode="off",offset=0.)
     calibrated=replay(trace,rf,cfg,original,rf_mode="range_only",offset=offset)
+    # Only now read the oracle trace, for evaluation metrics; no online filter
+    # or calibrated prediction has access to its recorded true poses.
+    oracle=read_npz(root/"ORACLE_EVAL_ONLY.npz")
+    true=np.asarray(oracle["true_xyyaw"],float)
+    if true.shape!=(n,3):raise ValueError("TRUTH_ALIGNMENT_MISSING")
     id0=np.asarray(rf["corresponding_state_index"],int)
     after=np.arange(n)>=int(np.min(id0))
     mask=np.ones(n,bool)
