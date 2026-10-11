@@ -1,0 +1,114 @@
+{
+  "schema_version": "body-probe-ekf-native-v1",
+  "status": "CONFIG_ASSUMPTIONS_NOT_EXECUTED",
+  "provenance": {
+    "source_base_commit": "c9488b8be3a1745cd106ae326a67c17e3fed6459",
+    "frozen_sensor_v2": "16d22fc3121963743cf7f1bf56233e00083c5518",
+    "specs": [
+      "06_SENSOR_V2_NOISY_PROBE_FULL_COV_DATA_SPEC_KO.md",
+      "09_COMBINED_HANDOFF_FULL_COV_AND_MOUNT_0_45_KO.md"
+    ],
+    "data_quality": "scientific_PASS=false; F01/F02 OPEN"
+  },
+  "physical": {
+    "init_true_xyyaw_rad": [
+      7,
+      0.1,
+      0
+    ],
+    "nominal_radius_m": 0.033,
+    "nominal_wheelbase_m": 0.287,
+    "motor_time_constant_s": 0.1,
+    "max_wheel_accel_rad_s2": 8,
+    "max_wheel_speed_rad_s": 8,
+    "slip_mode": "neutral",
+    "physical_slip_event_rate_per_s": 0,
+    "physical_slip_mean_duration_s": 0.15,
+    "physical_slip_event_longitudinal_scale": 0,
+    "physical_slip_event_icr_scale_m": 0
+  },
+  "sensor": {
+    "level": 1,
+    "seed": 0,
+    "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+    "bias_rw_rad_s_sqrt_s": 0,
+    "k_distance_m": 2e-05,
+    "k_yaw_rad": 0.0001,
+    "k_yaw_distance_rad2_m": 1e-05
+  },
+  "initial_filter": {
+    "x0": [
+      7,
+      0.1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "P0_diagonal": [
+      0.01,
+      0.01,
+      0.007615435494667713,
+      4.386490844928604e-06,
+      0.00010816,
+      4.096e-05
+    ],
+    "range_offset_m": 0,
+    "known_wheelbase_error": 0,
+    "range_sigma_m": 0.05,
+    "range_extra_sigma_m": 0.05,
+    "s_mismatch_sigma": 0.09
+  },
+  "probe": {
+    "offsets_deg": [
+      0,
+      10,
+      20
+    ],
+    "max_angular_speed_deg_s": 25,
+    "max_angular_acceleration_deg_s2": 100,
+    "proportional_gain_s_inv": 3,
+    "yaw_tolerance_deg": 0.7,
+    "rate_tolerance_deg_s": 1.5,
+    "settle_duration_s": 0.4,
+    "rf_integration_s": 0.2,
+    "max_stage_duration_s": 15,
+    "max_total_duration_s": 90
+  },
+  "clock": {
+    "sensor_dt_s": 0.2,
+    "physics_dt_s": 0.02,
+    "max_duration_s": 90
+  },
+  "rf": {
+    "mode": "range_only",
+    "channel_kind": "full",
+    "anchor_x_m": 4,
+    "mount_deg": 0,
+    "snr_db": 30,
+    "range_sigma_m": 0.05,
+    "bank_dir": "${FFD_BANK_DIR}",
+    "bank_manifest": "${FFD_BANK_MANIFEST}",
+    "lut_npy": null,
+    "lut_meta": null,
+    "native_full_max_depth": 3,
+    "native_full_seed": 20260924,
+    "compute_los": true
+  },
+  "claims": {
+    "physical_slip_calibrated": false,
+    "ffd_los_parity_validated": false,
+    "cross_angle_joint_covariance": "NOT_IMPLEMENTED",
+    "s_range_joint_covariance": "UNAVAILABLE",
+    "hardware": "NOT_TESTED",
+    "scientific_PASS": false
+  },
+  "cloud_assets": {
+    "source_commit": "9e7c3f3881c4e383ceca74c814182a95fb12f387",
+    "bank_sha256": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    },
+    "manifest_sha256": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+  }
+}

@@ -32,4 +32,20 @@ jobs:
           python -m compileall -q src/qclean_uwb/drivesim/body_dynamics.py src/qclean_uwb/drivesim/body_sensor_adapter.py src/qclean_uwb/drivesim/body_sensor_stream.py src/qclean_uwb/drivesim/body_probe_controller.py src/qclean_uwb/drivesim/body_ekf_bridge.py src/qclean_uwb/drivesim/body_pose_channel.py src/qclean_uwb/drivesim/body_probe_loop.py src/qclean_uwb/drivesim/filter_v2.py scripts/drive_sim/run_body_probe_v2_native.py scripts/drive_sim/preflight_body_probe_native.py scripts/drive_sim/audit_body_probe_native_run.py
       - name: Unit contracts only (mock RF; no hardware, no scientific run)
         run: |
-          python -m pytest -q tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py tests/test_body_probe_native_preflight.py tests/test_body_probe_native_run_audit.py
+          python -m pytest -q tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py tests/test_body_probe_cloud_config.py tests/test_body_probe_native_preflight.py tests/test_body_probe_native_run_audit.py
+  native-runtime-import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            scripts
+            configs
+            docker
+      - name: Build CPU runtime and check imports only (no RF solver)
+        run: |
+          git archive HEAD src scripts configs docker | docker build --platform linux/amd64 -t body-probe-native:cloud-v1 -f docker/body-probe-native.Dockerfile -
