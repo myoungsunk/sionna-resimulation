@@ -108,7 +108,7 @@ def main():
  (o/"STATUS.json").write_text(json.dumps(summary,indent=2,allow_nan=False))
  with (o/"REPORT_KO.md").open("w") as f:
   f.write("# 앵커 수직입사 인근 LUT 값/gradient 검증\n\n")
-  f.write(f"기존 9519 native direct LOS labels, rho<0.1m {len(close)} poses, |eLUT|>.1 {int((abs(close.e_LUT)>.1).sum()}.\n\n")
+  f.write(f"기존 9519 native direct LOS labels, rho<0.1m {len(close)} poses, |eLUT|>.1 {int((abs(close.e_LUT)>.1).sum())}.\n\n")
   f.write("## 실제 저장 RF native LOS points\n\n")
   f.write(close[["case","pose_id","rho_m","s_LOS_direct","s_LUT_model","e_LUT","Jxy_norm","jac_fd_x_absdiff","jac_fd_y_absdiff"]].to_markdown(index=False,floatfmt=".5f"))
   f.write("\n\n## 한계\n\nRing sweep은 LUT 연속성의 수치 검사만 가능; 새 위치 LoS FFD reference가 아니므로 root cause가 interpolation인지 실제 physical polar basis인지 확정하려면 추가 native H 또는 직접 FFD bank contraction이 필요.\n")
