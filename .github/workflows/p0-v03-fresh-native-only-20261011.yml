@@ -1,0 +1,60 @@
+name: Stage A V03 fresh Native LOS pole validation
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-v03-fresh-native-only-20261011.yml'
+      - 'research/P0_FINISH_20261011/V03_fresh_native_only.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-los-pole-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /scripts/
+            /configs/
+            /docker/
+            /research/P0_RESTORE_20261011/
+            /research/P0_FINISH_20261011/
+            /research/P1_CAUSAL_20261011/common.py
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/
+      - name: Restore original FFD bytes
+        run: git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
+      - uses: actions/download-artifact@v4
+        with:
+          name: p0-v03-cartesian-pole-recovery-20261011
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38121366509
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .p0
+      - name: Pinned Native environment
+        run: |
+          tar -cf - src scripts configs docker | docker build -f docker/body-probe-native.Dockerfile -t p0-native-los -
+          mkdir -p .native_v03
+          docker image inspect p0-native-los > .native_v03/IMAGE_INSPECT.json
+      - name: Six new physical near-pole LOS points and model derivative regression
+        run: |
+          docker run --rm --cpus 4 --memory 12g --entrypoint python -e PYTHONPYCACHEPREFIX=/tmp/pycache -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.native_v03:/outputs" p0-native-los /workspace/research/P0_FINISH_20261011/V03_fresh_native_only.py --coeff /workspace/.p0/V03/CARTESIAN_POLE_FIELD_V1.npz --out /outputs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage-a-v03-fresh-native-los-pole-20261011
+          path: .native_v03
+          if-no-files-found: warn
+          retention-days: 30
