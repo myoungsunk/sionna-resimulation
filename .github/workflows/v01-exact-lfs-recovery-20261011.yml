@@ -1,0 +1,49 @@
+name: V01 exact legacy counterpart LFS recovery
+on:
+  push:
+    branches: [codex/abc-gated-resume-20261011]
+    paths: ['.github/workflows/v01-exact-lfs-recovery-20261011.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover-original-objects:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout: |
+            research/P0_FINISH_20261011
+      - name: Attempt only five pre-identified original LFS objects
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,pathlib,subprocess,hashlib,math
+          out=pathlib.Path('v01_lfs_receipts');out.mkdir()
+          req=json.loads(pathlib.Path('research/P0_FINISH_20261011/REQUIRED_LEGACY_COUNTERPARTS.json').read_text())
+          rows=[]
+          for item in req['required_existing_objects']:
+              oid=item['expected_sha256'];name=item['file'];n=math.prod(item['shape'])*16+128
+              pointer=('version https://git-lfs.github.com/spec/v1\noid sha256:'+oid+'\nsize '+str(n)+'\n').encode()
+              destination=out/name
+              with destination.open('wb') as f:
+                  run=subprocess.run(['git','lfs','smudge','--',name],input=pointer,stdout=f,stderr=subprocess.PIPE,timeout=100)
+              got=hashlib.sha256(destination.read_bytes()).hexdigest();ok=got==oid
+              log=run.stderr.decode(errors='replace')
+              row=dict(case=item['case'],expected_sha256=oid,returned_sha256=got,returned_bytes=destination.stat().st_size,git_lfs_returncode=run.returncode,original_bytes_recovered=ok,stderr=log[-4000:])
+              if not ok:destination.unlink()
+              rows.append(row)
+              (out/'RESULT.json').write_text(json.dumps(dict(execution='IN_PROGRESS',cases=rows),indent=2))
+          result=dict(execution='COMPLETE_EXACT_OBJECT_LOOKUP',all_five_originals_recovered=all(x['original_bytes_recovered'] for x in rows),n_recovered=sum(x['original_bytes_recovered'] for x in rows),cases=rows,source_family_parity='NOT_RUN_UNTIL_BOTH_IDENTITIES_PRESENT',stage_A_PASS=False,stage_B_allowed=False,stage_C_allowed=False)
+          (out/'RESULT.json').write_text(json.dumps(result,indent=2));print(json.dumps(result))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v01-original-counterpart-lfs-recovery-20261011
+          path: v01_lfs_receipts/
+          if-no-files-found: error
+          retention-days: 30
