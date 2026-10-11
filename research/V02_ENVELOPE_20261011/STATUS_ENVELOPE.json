@@ -1,0 +1,72 @@
+{
+  "id": "V02_ENVELOPE",
+  "execution": "COMPLETE",
+  "seeds": [
+    2000,
+    2511
+  ],
+  "n_per_prior": 512,
+  "family_tests": 40,
+  "alpha_per_test": 0.00125,
+  "envelope": {
+    "CAL_SMALL": {
+      "lam_max": 0.5,
+      "xy_sigma_m": 0.05,
+      "yaw_sigma_deg": 2.5
+    },
+    "CAL_LARGE": {
+      "lam_max": 0.4,
+      "xy_sigma_m": 0.04000000000000001,
+      "yaw_sigma_deg": 2.0
+    }
+  },
+  "failed_checkpoints": [
+    {
+      "cal": "CAL_SMALL",
+      "lam": 0.75,
+      "k": 240,
+      "mean_NEES": 3.5249882923116136,
+      "cov95": 0.91015625
+    },
+    {
+      "cal": "CAL_SMALL",
+      "lam": 1.0,
+      "k": 240,
+      "mean_NEES": 4.766612582118398,
+      "cov95": 0.865234375
+    },
+    {
+      "cal": "CAL_LARGE",
+      "lam": 0.5,
+      "k": 240,
+      "mean_NEES": 3.4072362204466975,
+      "cov95": 0.9140625
+    },
+    {
+      "cal": "CAL_LARGE",
+      "lam": 0.75,
+      "k": 240,
+      "mean_NEES": 4.136429475377822,
+      "cov95": 0.880859375
+    },
+    {
+      "cal": "CAL_LARGE",
+      "lam": 1.0,
+      "k": 240,
+      "mean_NEES": 5.755441411574132,
+      "cov95": 0.833984375
+    }
+  ],
+  "stage_A_PASS": false,
+  "note": "PASS_IN_ENVELOPE only; V02 not promoted to full PASS; outside-envelope failures retained",
+  "versions": {
+    "python": "3.13.16",
+    "numpy": "2.5.3",
+    "pandas": "3.0.5"
+  },
+  "source_sha256": {
+    "run_envelope.py": "2b837e0d1d3a6403fd2c933483217040f68e1a66979950acf991e52cd8069c3d",
+    "filter_v2.py": "af31951dc36ba7dbf5ff13803624eda6ea07866a30224dcf8e566ce1d1d6159f",
+    "sensor_v2.py": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac"
+  }
+}
