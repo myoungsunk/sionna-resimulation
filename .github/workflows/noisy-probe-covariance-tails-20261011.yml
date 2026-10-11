@@ -1,0 +1,37 @@
+name: Independent noisy probe pose covariance tails and A/B/C/D contrasts
+on:
+  push:
+    branches: [codex/noisy-probe-v2-closedloop-audit-20261011]
+    paths:
+      - '.github/workflows/noisy-probe-covariance-tails-20261011.yml'
+      - 'research/HEADING_RELIABILITY_20261010/analyze_20261011_noisy_covariance_tails.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  reproduce-nees-tail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/analyze_20261011_noisy_covariance_tails.py
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/FINAL_SEED_PRIOR_KIND_METRICS.csv
+            results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_FINAL/FINAL_ALL_RESULTS.csv
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'tabulate==0.9.0'
+      - name: Independently calculate NEES / coverage tails by prior
+        run: python research/HEADING_RELIABILITY_20261010/analyze_20261011_noisy_covariance_tails.py --out research_results/NOISY_COV_TAILS_20261011
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: noisy-probe-covariance-tails-20261011
+          path: research_results/NOISY_COV_TAILS_20261011
+          if-no-files-found: warn
+          retention-days: 30
