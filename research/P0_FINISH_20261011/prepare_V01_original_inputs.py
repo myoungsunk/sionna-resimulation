@@ -3,7 +3,7 @@
 No RF regeneration or scientific substitution; missing SHA objects remain blocked.
 """
 from __future__ import annotations
-import argparse,hashlib,json,shutil,subprocess,sys,tarfile
+import argparse,hashlib,json,shutil,subprocess,sys,tarfile,traceback
 from pathlib import Path
 import V01_archive_family_parity as A
 ROOT=A.ROOT;BASE=A.BASE
@@ -16,7 +16,9 @@ def main():
  names={'H_'+c['case']+'.npy' for c in matrix};tree=subprocess.check_output(['git','ls-tree','-r','--name-only','HEAD'],cwd=ROOT,text=True).splitlines()
  paths=[p for p in tree if Path(p).name in names]
  (out/'REPOSITORY_RF_PATH_DISCOVERY.json').write_text(json.dumps(dict(paths=paths,legacy_manifests_contain_historical_absolute_paths=True),indent=2))
- if paths:subprocess.run(['git','checkout','HEAD','--',*paths],cwd=ROOT,check=True)
+ # These exact tracked paths were discovered from the pinned commit tree.
+ # Override sparse skip-worktree bits without broadening to unrelated sources.
+ if paths:subprocess.run(['git','checkout','--ignore-skip-worktree-bits','HEAD','--',*paths],cwd=ROOT,check=True)
  found={};metadata=[];archives=[];recover=out/'recovered';recover.mkdir(exist_ok=True)
  def accept(data,path_note):
   digest=hashlib.sha256(data).hexdigest()
@@ -54,11 +56,15 @@ def main():
    if dest.resolve()!=Path(obj['path']).resolve():shutil.copyfile(obj['path'],dest)
  native={case:obj for (case,kind),obj in found.items() if kind=='native'}
  (out/'ORIGINAL_BYTE_RECOVERY_RECEIPT.json').write_text(json.dumps(dict(expected17_hashes=targets,recovered=[dict(case=c,kind=k,**v) for (c,k),v in found.items()],archives=archives,metadata=metadata),indent=2))
- # Reuse verified archive recovery, without scanning twice. No numeric model changes.
  A.unpack_needed=lambda _o,_e:(native,metadata)
  sys.argv=[str(Path(A.__file__)),'--out',str(out)];A.main()
- # Always save original numerical sources even if an input gate blocked.
  for p in list((ROOT/'src/qclean_uwb/drivesim').glob('*.py'))+list((ROOT/'research/P0_RESTORE_20261011').glob('*.py'))+list(Path(__file__).parent.glob('*.py')):
   q=out/'source_snapshot'/p.relative_to(ROOT);q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes(p.read_bytes())
  for p in recover.glob('*.npy'):p.unlink()
-if __name__=='__main__':main()
+if __name__=='__main__':
+ try:main()
+ except Exception as exc:
+  if '--out' in sys.argv:
+   d=Path(sys.argv[sys.argv.index('--out')+1]);d.mkdir(parents=True,exist_ok=True)
+   (d/'INPUT_RECOVERY_FAILURE.json').write_text(json.dumps(dict(execution='FAILED',gate='NOT_PASS',stage_B_allowed=False,error=str(exc),traceback=traceback.format_exc()),indent=2))
+  raise
