@@ -86,6 +86,9 @@ def build_run(cfg:dict,out:Path):
     if slip_mode not in ("neutral","hypothesis"):
         raise ValueError("SLIP_MODE_MUST_BE_NEUTRAL_OR_HYPOTHESIS")
     slip=GroundSlipConfig(
+        baseline_left=0. if slip_mode=="neutral" else float(p.get("baseline_slip_left",0.)),
+        baseline_right=0. if slip_mode=="neutral" else float(p.get("baseline_slip_right",0.)),
+        baseline_icr_offset_m=0. if slip_mode=="neutral" else float(p.get("baseline_icr_offset_m",0.)),
         event_rate_per_s=0. if slip_mode=="neutral" else float(p["physical_slip_event_rate_per_s"]),
         mean_event_duration_s=float(p["physical_slip_mean_duration_s"]),
         event_longitudinal_scale=0. if slip_mode=="neutral" else float(p["physical_slip_event_longitudinal_scale"]),
