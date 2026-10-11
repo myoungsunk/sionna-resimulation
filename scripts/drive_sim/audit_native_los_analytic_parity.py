@@ -12,6 +12,7 @@ import numpy as np
 from pathlib import Path
 import sys
 ROOT=Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT))
 sys.path.insert(0,str(ROOT/"src"))
 from scripts.drive_sim.calibrate_body_range_los import load_verified_banks
 from qclean_uwb.drivesim.hs_lut import los_h
