@@ -32,10 +32,10 @@ jobs:
           python -m pip install numpy scipy pytest
       - name: Syntax check (no Sionna)
         run: |
-          python -m compileall -q src/qclean_uwb/drivesim/body_dynamics.py src/qclean_uwb/drivesim/body_sensor_adapter.py src/qclean_uwb/drivesim/body_sensor_stream.py src/qclean_uwb/drivesim/body_probe_controller.py src/qclean_uwb/drivesim/body_ekf_bridge.py src/qclean_uwb/drivesim/body_pose_channel.py src/qclean_uwb/drivesim/body_probe_loop.py src/qclean_uwb/drivesim/filter_v2.py scripts/drive_sim/run_body_probe_v2_native.py scripts/drive_sim/preflight_body_probe_native.py scripts/drive_sim/audit_body_probe_native_run.py scripts/drive_sim/evaluate_body_probe_physical_trajectory.py scripts/drive_sim/calibrate_body_range_los.py scripts/drive_sim/replay_independent_los_range_calibration.py
+          python -m compileall -q src/qclean_uwb/drivesim/body_dynamics.py src/qclean_uwb/drivesim/body_sensor_adapter.py src/qclean_uwb/drivesim/body_sensor_stream.py src/qclean_uwb/drivesim/body_probe_controller.py src/qclean_uwb/drivesim/body_ekf_bridge.py src/qclean_uwb/drivesim/body_pose_channel.py src/qclean_uwb/drivesim/body_probe_loop.py src/qclean_uwb/drivesim/filter_v2.py scripts/drive_sim/run_body_probe_v2_native.py scripts/drive_sim/preflight_body_probe_native.py scripts/drive_sim/audit_body_probe_native_run.py scripts/drive_sim/evaluate_body_probe_physical_trajectory.py scripts/drive_sim/calibrate_body_range_los.py scripts/drive_sim/replay_independent_los_range_calibration.py scripts/drive_sim/audit_native_los_analytic_parity.py scripts/drive_sim/prepare_calibrated_native_probe.py
       - name: Unit contracts only (mock RF; no hardware, no scientific run)
         run: |
-          python -m pytest -q tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py tests/test_body_probe_cloud_config.py tests/test_body_probe_native_preflight.py tests/test_body_probe_native_run_audit.py tests/test_body_probe_paired_science_audit.py tests/test_independent_los_detector_calibration.py
+          python -m pytest -q tests/test_body_probe_contract.py tests/test_body_ekf_pose_rf_integration.py tests/test_body_probe_cloud_config.py tests/test_body_probe_native_preflight.py tests/test_body_probe_native_run_audit.py tests/test_body_probe_paired_science_audit.py tests/test_independent_los_detector_calibration.py tests/test_prepare_calibrated_native_probe.py
   native-runtime-import:
     runs-on: ubuntu-latest
     timeout-minutes: 20
