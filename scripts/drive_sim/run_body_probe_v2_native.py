@@ -139,9 +139,21 @@ def build_run(cfg:dict,out:Path):
         receiver=FirstPathReceiver(snr_db=float(rf["snr_db"]),
                                   range_sigma_m=float(rf["range_sigma_m"]),
                                   seed=int(s["seed"]),rf_channel_kind=rf["channel_kind"])
-    loop=BodyProbeLoop(plant=physical,sensors=sensors,ekf=ekf,controller=controller,
-        mount_deg=float(rf["mount_deg"]),rf_backend=native,
-        receiver=receiver,clock=ProbeLoopClock(**cfg["clock"]))
+    if cfg.get("route_phases") is not None:
+        from qclean_uwb.drivesim.body_route_segment import DriveStopProbeResume, ScheduledRouteConfig
+        rc=dict(cfg["route_phases"])
+        if rc.pop("mode",None)!="scheduled_drive_stop_probe_resume":
+            raise ValueError("ONLY_SCHEDULED_MINIMAL_ROUTE_SEGMENT_SUPPORTED")
+        loop=DriveStopProbeResume(plant=physical,sensors=sensors,ekf=ekf,
+            rf_backend=native,receiver=receiver,mount_deg=float(rf["mount_deg"]),
+            route_cfg=ScheduledRouteConfig(**rc),
+            probe_cfg=ProbeMotionConfig(**dict(cfg["probe"],
+                offsets_deg=tuple(cfg["probe"]["offsets_deg"]))),
+            clock=ProbeLoopClock(**cfg["clock"]))
+    else:
+        loop=BodyProbeLoop(plant=physical,sensors=sensors,ekf=ekf,controller=controller,
+            mount_deg=float(rf["mount_deg"]),rf_backend=native,
+            receiver=receiver,clock=ProbeLoopClock(**cfg["clock"]))
     return loop,realization,filtercfg
 
 
@@ -238,6 +250,7 @@ def main():
             "src/qclean_uwb/drivesim/sensor_v2.py",
             "src/qclean_uwb/drivesim/body_pose_channel.py",
             "src/qclean_uwb/drivesim/body_probe_loop.py",
+            "src/qclean_uwb/drivesim/body_route_segment.py",
             "scripts/drive_sim/run_body_probe_v2_native.py",
             "scripts/corridor_sionna_run.py"
         )]
