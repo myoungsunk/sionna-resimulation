@@ -59,3 +59,11 @@ def test_replay_score_reports_not_just_nees_mean():
     assert s["pose_95_coverage_descriptive"]==1.0
     assert s["pose_nees_lower_025_fraction"]==1.0
     assert s["heading_RMSE_deg"]==0.
+
+def test_missing_rf_off_innovations_are_json_safe_null():
+    import math,json
+    result={"RF_off":R.finite_or_none(float("nan")),
+            "no_packet":R.finite_or_none(-float("inf")),
+            "accepted":R.finite_or_none(.25)}
+    assert json.loads(json.dumps(result,allow_nan=False)) == {
+        "RF_off":None,"no_packet":None,"accepted":.25}
