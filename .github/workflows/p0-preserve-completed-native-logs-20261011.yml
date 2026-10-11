@@ -1,0 +1,36 @@
+name: Stage A preserve completed Native numerical logs
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-preserve-completed-native-logs-20261011.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  completed-logs-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/P0_FINISH_20261011/collect_completed_native_logs.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch completed public repository workflow logs through GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python -X utf8 research/P0_FINISH_20261011/collect_completed_native_logs.py --out stageA_results/COMPLETED_NATIVE_LOG_RECEIPTS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage-a-completed-native-log-receipts-20261011
+          path: stageA_results
+          if-no-files-found: error
+          retention-days: 30
