@@ -1,0 +1,37 @@
+name: Stage A exact legacy45 original object recovery
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-exact-legacy45-object-search-20261011.yml'
+      - 'research/P0_FINISH_20261011/search_original_legacy45_objects.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  read-branch-objects:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/P0_FINISH_20261011/search_original_legacy45_objects.py
+            /results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/SUMMARY_CURRENT/MOUNT_CASE_MATRIX.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Inspect all current branch trees and fetch only exact named RF objects
+        run: python -X utf8 research/P0_FINISH_20261011/search_original_legacy45_objects.py --out stageA_results/V01_MISSING_OBJECT_SEARCH
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage-a-original-legacy45-branch-object-search-20261011
+          path: stageA_results
+          if-no-files-found: warn
+          retention-days: 30
