@@ -38,7 +38,6 @@ def test_offline_paired_replay_has_no_truth_to_filter(tmp_path):
     assert result["scientific_PASS"] is False
     assert result["RF_heading_update_performed"] is False
     stats=result["metrics"]["full_route_sensor_window"]
-    assert stats["range_only"]["position_rmse_m"]==np.testing.assert_allclose(stats["range_only"]["position_rmse_m"],.02,atol=1e-10) if False else True
     assert abs(stats["range_only"]["position_rmse_m"]-.02)<1e-10
     assert stats["rf_off_replay"]["position_rmse_m"]<1e-6
     assert result["comparison"].startswith("identical physical path")
