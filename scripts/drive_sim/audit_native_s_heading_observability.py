@@ -70,7 +70,7 @@ def analyze(bank_dir,manifest,run_dir):
         # Do not fit R to the evaluation multipath residuals.
         tap_var=float(cfg["noise_var_cir_tap"])
         thermal=O.thermal_var_rx_s(*powers,float(cfg["noise_var_bin"]),257) if cfg["s_kind"]=="rx" and cfg["noise_var_bin"]>0 else (
-            float(4.*tap_var*(powers[0]**2+powers[1]**2)/(sum(powers)**4))
+            float(8.*tap_var*powers[0]*powers[1]/(sum(powers)**3))
             if tap_var>0 and sum(powers)>0 else 0.0)
         R=float(thermal+cfg["s_var_inflation"]*cfg["s_mismatch_sigma"]**2)
         S=float(J@P@J+R)
