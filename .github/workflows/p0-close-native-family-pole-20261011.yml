@@ -1,0 +1,69 @@
+name: P0 closure native pole and source family audit
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-close-native-family-pole-20261011.yml'
+      - 'research/P1_CAUSAL_20261011/close_p0_native.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  native-independent-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /scripts/
+            /configs/
+            /docker/
+            /research/P0_RESTORE_20261011/
+            /research/P1_CAUSAL_20261011/
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m45.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json
+      - name: Original FFD files
+        run: git lfs pull --include='LP_plus45_bank.npz,LP_minus45_bank.npz' --exclude=''
+      - uses: actions/download-artifact@v4
+        with:
+          name: p0-v03-cartesian-pole-recovery-20261011
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38121366509
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .p0
+      - name: Build pinned native image
+        run: |
+          git archive HEAD src scripts configs docker | docker build -f docker/body-probe-native.Dockerfile -t p0-close-native -
+          mkdir -p .result_native
+      - name: Source and fresh native solver checks
+        run: |
+          docker run --rm --cpus 4 --memory 12g --entrypoint python -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native -m py_compile /workspace/research/P1_CAUSAL_20261011/close_p0_native.py
+          docker run --rm --cpus 4 --memory 12g --entrypoint python -v "$GITHUB_WORKSPACE:/workspace:ro" -v "$GITHUB_WORKSPACE/.result_native:/outputs" p0-close-native /workspace/research/P1_CAUSAL_20261011/close_p0_native.py --coeff /workspace/.p0/V03/CARTESIAN_POLE_FIELD_V1.npz --out /outputs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-closure-native-family-pole-20261011
+          path: .result_native
+          if-no-files-found: warn
+          retention-days: 30
