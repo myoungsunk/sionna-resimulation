@@ -1,0 +1,54 @@
+name: Existing 7case Sensor-v2 covariance consistency and 3yaw soft-mixture ablation
+on:
+  push:
+    branches: [codex/probe-covariance-ablation-20261011]
+    paths:
+      - '.github/workflows/probe-covariance-v2-ablation-20261011.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_covariance_consistency_ablation_v2.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  paired-existing-bank-covariance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/run_covariance_consistency_ablation_v2.py
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R2_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R2_Tnone.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R4_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R4_Tnone.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R5_T10.csv
+            results/DRIVE_SIM_20261007/S1/routes/timeline_R5_Tnone.csv
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R2_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R4_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R5_DPK.pkl
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned packages for frozen DPK model
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'scipy==1.15.2' 'scikit-learn==1.9.1' 'tabulate==0.9.0'
+      - name: Smoke check same P6, original range and full 3yaw mixture
+        run: |
+          python -m py_compile research/HEADING_RELIABILITY_20261010/run_covariance_consistency_ablation_v2.py
+          python -X utf8 research/HEADING_RELIABILITY_20261010/run_covariance_consistency_ablation_v2.py --out research_results/COV_SMOKE --smoke
+      - name: Run all existing 7case 3drift 8seed paired ablations
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_covariance_consistency_ablation_v2.py --out research_results/COV_FULL --seeds 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: covariance-7case-soft-mixture-ablation-20261011
+          path: research_results
+          retention-days: 30
+          if-no-files-found: warn
