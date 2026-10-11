@@ -1,0 +1,104 @@
+name: Real Native Sionna Physical Body Probe
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+    paths:
+      - ".github/workflows/native-body-probe-execution.yml"
+  workflow_dispatch:
+jobs:
+  real-native-single-point:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+    env:
+      GIT_LFS_SKIP_SMUDGE: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - name: Checkout source and two LFS pointers
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /scripts/
+            /configs/
+            /docker/
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+      - name: Retrieve and verify original FFD bank bytes
+        run: |
+          set -euo pipefail
+          git lfs version
+          git lfs install --local
+          git lfs pull --include="LP_plus45_bank.npz,LP_minus45_bank.npz" --exclude=""
+          python - <<'PY'
+          import hashlib,json,pathlib,sys
+          manifest=pathlib.Path("configs/body_probe/FFD_BANK_MANIFEST.json")
+          expected={"LP_plus45_bank.npz":"b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b","LP_minus45_bank.npz":"39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"}
+          assert hashlib.sha256(manifest.read_bytes()).hexdigest()=="6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+          declared=json.loads(manifest.read_text())["npz_sha256"]
+          for name,sha in expected.items():
+              p=pathlib.Path(name)
+              if not p.is_file():sys.exit("LFS_BANK_MISSING "+name)
+              with p.open("rb") as f:
+                  h=hashlib.sha256()
+                  if f.read(64).startswith(b"version https://git-lfs.github.com/spec/v1"):sys.exit("LFS_POINTER_ONLY "+name)
+                  f.seek(0)
+                  for chunk in iter(lambda:f.read(1048576),b""):h.update(chunk)
+              if h.hexdigest()!=sha or declared.get(name)!=sha:sys.exit("BANK_SHA_MISMATCH "+name)
+              print("BANK_VERIFIED",name,p.stat().st_size,sha,flush=True)
+          PY
+      - name: Prepare immutable pilot and docker environment
+        run: |
+          set -euo pipefail
+          mkdir -p .ci_evidence
+          python - <<'PY'
+          import json,pathlib
+          cfg=json.loads(pathlib.Path("configs/body_probe/ekf_native_noisy_body_v1.cloud.json").read_text())
+          cfg["probe"]["offsets_deg"]=[0]
+          cfg["status"]="REAL_257_BIN_SINGLE_POINT_PILOT_NOT_SCIENTIFIC_PASS"
+          pathlib.Path(".ci_evidence/onepoint.json").write_text(json.dumps(cfg,indent=2)+"\n")
+          PY
+          git archive HEAD src scripts configs docker | docker build --platform linux/amd64 -f docker/body-probe-native.Dockerfile -t body-probe-native:experiment -
+          docker image inspect body-probe-native:experiment > .ci_evidence/IMAGE_INSPECT.json
+          docker run --rm --entrypoint python body-probe-native:experiment -m pip freeze > .ci_evidence/PIP_FREEZE.txt
+      - name: Precheck exact SHA assets inside Sionna image
+        run: |
+          docker run --rm --cpus 4 --memory 12g \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:experiment --config /outputs/onepoint.json --bank-dir /data/ffd
+      - name: Execute actual native full and LoS Sionna at physical probe pose
+        run: |
+          set -uo pipefail
+          set +e
+          docker run --rm --cpus 4 --memory 12g \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:experiment --config /outputs/onepoint.json \
+            --bank-dir /data/ffd --out /outputs/REAL_RF_SINGLE_POINT --execute-native \
+            > .ci_evidence/native_solver.log 2>&1
+          status=$?
+          echo "$status" > .ci_evidence/native_solver.exit_code
+          tail -n 100 .ci_evidence/native_solver.log
+          exit "$status"
+      - name: Audit exact pose, 6x6 covariance and RF trace
+        if: success()
+        run: |
+          docker run --rm --entrypoint python \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:experiment scripts/drive_sim/audit_body_probe_native_run.py \
+              --out /outputs/REAL_RF_SINGLE_POINT \
+              --receipt /outputs/NATIVE_SOFTWARE_TRACE_AUDIT.json
+      - name: Publish raw output or failure logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-real-rf-single-point-attempt
+          path: .ci_evidence/
+          retention-days: 14
+          if-no-files-found: warn
