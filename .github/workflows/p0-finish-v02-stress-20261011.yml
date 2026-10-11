@@ -1,0 +1,46 @@
+name: Stage A V02 unresolved stress revalidation
+on:
+  push:
+    branches: [codex/p0-close-p1-factorial-20261011]
+    paths:
+      - '.github/workflows/p0-finish-v02-stress-20261011.yml'
+      - 'research/P0_FINISH_20261011/V02_stress_repair_check.py'
+  workflow_dispatch:
+concurrency:
+  group: p0-v02-stress-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  v02-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /research/P0_RESTORE_20261011/
+            /research/P0_FINISH_20261011/
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Source validation
+        run: python -m py_compile research/P0_FINISH_20261011/V02_stress_repair_check.py
+      - name: Recheck matched and failed ideal sensor filter cases
+        run: python -X utf8 research/P0_FINISH_20261011/V02_stress_repair_check.py --out stageA_results/V02_STRESS --seeds 128 --start-seed 256
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: stage-a-v02-stress-128-independent-seeds-20261011
+          path: stageA_results
+          if-no-files-found: warn
+          retention-days: 30
