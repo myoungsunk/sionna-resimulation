@@ -1,0 +1,20 @@
+{
+  "stage": "A / V02 only",
+  "purpose": "Check whether nonlinear state/shared-input-noise moment approximation contributes to the failed ideal-range and high-prior tests. No RF detector or multipath appears in these experiments.",
+  "source_commit": "3bfcae6715bac5a933cc3b8336b6e6fad846c58a",
+  "source_test": "research/P0_FINISH_20261011/V02_stress_repair_check.py",
+  "prior_validation_seeds": "256 through 383 retained verbatim as failed evidence",
+  "development_smoke_seeds": "512 through 527, not confirmatory",
+  "new_confirmatory_seeds": "640 through 767 (128 per mode and estimator)",
+  "modes": "All 14 original V02 modes, preserving original priors/true noise and parameter distributions",
+  "checkpoints_seconds": [0,12,24,48],
+  "estimators": ["ORIGINAL_FIXED_SENSOR_V2", "JOINT_STATE_INPUT_CUBATURE_GH9_CANDIDATE"],
+  "candidate_definition": "Positive-weight spherical-radial cubature of joint 6D state and 3D distance/gyro/odometry noise for transition plus odometry conditioning; 9x9 Gaussian-Hermite XY integration for nonlinear range observation. Original Q/R laws, original gating thresholds, priors and realizations unchanged. Clip only negative eigenvalues within floating-roundoff PSD tolerance; abort otherwise.",
+  "sample_count": 3584,
+  "familywise_test_count": 112,
+  "test": "Original frozen NEES and binomial coverage familywise 95% bounds, updated only for the two predeclared estimators (112 checkpoints). Also retain original 56-checkpoint bounds in output. Never tune after confirmatory output.",
+  "scope_limits": ["New estimator candidate is not adopted", "Original legacy prior/noise mismatches remain visible; successful candidate rows do not erase them", "Mean and covariance moments and PSD/zero-noise checks are separate from statistical performance", "No stage B result is interpreted", "No native RF or Stage C performance executed"],
+  "stage_A_overall_pass": false,
+  "stage_B_allowed": false,
+  "stage_C_allowed": false
+}
