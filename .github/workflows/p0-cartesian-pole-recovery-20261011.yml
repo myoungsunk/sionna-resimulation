@@ -41,7 +41,7 @@ jobs:
       - name: Pole-safe analytic h/H and full original-data replay
         run: |
           python -m py_compile research/P0_RESTORE_20261011/pole_safe_model.py research/P0_RESTORE_20261011/run_v03_pole_recovery.py
-          python research/P0_RESTORE_20261011/run_v03_pole_recovery.py --out p0_results/V03 --seeds 8
+          python research/P0_RESTORE_20261011/run_native_audit.py run_v03_pole_recovery.py --out p0_results/V03 --seeds 8
       - uses: actions/upload-artifact@v4
         if: always()
         with:
