@@ -1,0 +1,26 @@
+{
+  "schema": "P0_ALL_REQUIRED_GATES_V1",
+  "user_order": "Finish every Stage A V00-V03 requirement first; rerun Stage B only after A passes.",
+  "stage_A_status": "NOT_ALL_PASSED",
+  "stage_B_allowed": false,
+  "premature_stage_B_runs": [{"run_id":38124202873,"status":"PREMATURE_QUARANTINED_DO_NOT_ANALYZE"}],
+  "required_gates": {
+    "V00_full_history_pose_id_mapping": {"status":"PASS_FROM_VERIFIED_P0","run_id":38120812381,"scope":"19038 rows in 7 original cases, corrected whole-history 128-seed comparison"},
+    "V01_same_input_observer": {"status":"PASS_FROM_VERIFIED_P0","run_id":38120812381,"scope":"42 specified observer conditions; primary common gates4/8/16, not5/9/17"},
+    "V01_propagation_source_family": {"status":"NOT_PASSED","reason":"Must complete original7/native5 matched full-channel comparisons and preserve input identities; no7-case scope substitution."},
+    "V02_sensor_filter_prior_noise_consistency": {"status":"NOT_PASSED","prior_run_id":38121351395,"reason":"Large Gaussian prior and legacy high drift failed; independent-seed stress and mechanism checks required."},
+    "V03_pole_safe_value_and_jacobian": {"status":"PENDING_FRESH_NATIVE_CHECK","prior_run_id":38121366509,"coefficient_sha256":"87a38e9cc221244cb8b6ca08ba59afd2090bb64594d486b020c694d06dc76a5e","scope":"Original9519 and1120 directFFD check passed; fresh Native near-pole parity must finish."}
+  },
+  "retest_preregistration": {
+    "V02_seeds":"256 through383 independent of upstream0 through127",
+    "V02_checkpoints_s":[0,12,24,48],
+    "V02_models":14,
+    "V02_coverage_and_NEES":"95% familywise over56 checkpoints; preserve raw failures, no post-hoc R/Q inflation",
+    "V01_full_channel_relative_error_max":0.001,
+    "V01_s_absolute_error_max":0.01,
+    "V01_tap_match_required":true,
+    "V03_new_native_s_absolute_error_max":0.01
+  },
+  "final_model_selection":"UNCONFIRMED",
+  "scientific_PASS":false
+}
