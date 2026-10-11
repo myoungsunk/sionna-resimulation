@@ -30,7 +30,7 @@ from qclean_uwb.drivesim.body_pose_channel import RFFilterPacket
 
 C95_3=7.814727903251179
 LOWER95_3=0.215795282623898
-RANGE_NAMES=("rf_original_zero_offset","rf_off_paired","rf_independent_los_calibrated")
+RANGE_NAMES=("rf_original_zero_offset","rf_off_paired","rf_flat_detector_only_calibrated","rf_independent_los_calibrated")
 
 
 def digest(path):
@@ -172,6 +172,8 @@ def check_paired(run,calibration):
     if max_x>1e-10 or max_p>1e-10:
         raise ValueError(f"ORIGINAL_NATIVE_EKF_PARITY_FAILED x={max_x} P={max_p}")
     off=replay(trace,rf,cfg,original,rf_mode="off",offset=0.)
+    flat_offset=float(model["flat_only_mean_bias_m"])
+    flat_baseline=replay(trace,rf,cfg,original,rf_mode="range_only",offset=flat_offset)
     calibrated=replay(trace,rf,cfg,original,rf_mode="range_only",offset=offset)
     # Only now read the oracle trace, for evaluation metrics; no online filter
     # or calibrated prediction has access to its recorded true poses.
@@ -182,7 +184,7 @@ def check_paired(run,calibration):
     after=np.arange(n)>=int(np.min(id0))
     mask=np.ones(n,bool)
     stats={}
-    for name,dat in zip(RANGE_NAMES,[a,off,calibrated]):
+    for name,dat in zip(RANGE_NAMES,[a,off,flat_baseline,calibrated]):
         stats[name]={"all_probe_ticks":score(dat["x"],dat["P"],true,mask),
                      "first_RF_to_end":score(dat["x"],dat["P"],true,after),
                      "RF_observation_update_records":dat["rf_event_updates"],
@@ -198,6 +200,7 @@ def check_paired(run,calibration):
         calibration_sha256=meta["calibration_sha256"],
         calibration_source="Independent analytic FFD LoS at other XY, never this site's RF or truth",
         calibration_range_offset_m=offset,
+        flat_spectrum_detector_baseline_offset_m=flat_offset,
         calibration_mount_deg=float(original.mount_deg),
         independent_holdout_fit=model,
         frozen_source_parity_max_state_abs_diff=max_x,
