@@ -1,0 +1,15 @@
+{
+ "experiment": "V02_E1E6",
+ "preregistration": ["PREREG_KO.md", "PREREG_AMENDMENT_V2_KO.md", "FREEZE.json"],
+ "confirmatory_seeds": "3000-3511 (n=512)",
+ "executed": true,
+ "V02_gate": "FAIL_MAINTAINED",
+ "scope_passing": "SMALL prior only (EKF, cubature, PF, GSF all inside the chi2 interval at 48 s)",
+ "closing_option": "A for SMALL prior (EKF baseline stays valid); C for LARGE and HIGH priors (no tested estimator is statistically consistent)",
+ "R1_EKF_failure_reproduced": true,
+ "R2_attribution_to_gaussian_approximation": "NOT_ESTABLISHED under the preregistered rule (PF N=20k itself is outside the interval in CONS_LARGE: 3.668 vs [2.792,3.216]); supplementary 64-seed N=100k run gives 3.245 (inside the n=64 interval [2.43,3.63]) but pose95 coverage stays 0.859",
+ "R3_GSF_candidate": "NONE (no M reaches the interval in CONS_LARGE; best M=27 xy-yaw split: 3.732, M=16 xy: 3.829)",
+ "R4_HIGH": "E5 (variance-matched Gaussian) 6.728 and E6 (8-component sign mixture GSF) 5.192 improve on E1 (7.911) but stay outside; PF with the sign-mixture prior is inside (2.924, cov95 0.955)",
+ "stage_B_allowed": false,
+ "scientific_PASS": false
+}
