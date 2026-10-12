@@ -1,0 +1,62 @@
+{
+  "schema": "V01B_CLOSURE_V1",
+  "date": "2026-10-12",
+  "decision_recorded": "User chose the legacy Method-B family as the single RF family and as the Sensor-v2 input (2026-10-12).",
+  "original_V01b_criterion": {
+    "status": "FAIL",
+    "kept": true,
+    "note": "legacy vs Native equivalence is NOT waived; the redefinition below requires explicit user approval before stage_B_allowed changes"
+  },
+  "inventory": {
+    "full_H_verified": "12/12",
+    "LoS_H_present": "7/12",
+    "LoS_H_missing": [
+      "R2_aB_m45",
+      "R4_aA_m45",
+      "R4_aB_m45",
+      "R5_aA_m45",
+      "R5_aB_m45"
+    ],
+    "trace_sets_in_repo": "1/6 (R4_aB)"
+  },
+  "trace_sets_needed": {
+    "covered": [
+      "traces_R4_aB"
+    ],
+    "requested": [
+      "traces_R2_aA",
+      "traces_R2_aB",
+      "traces_R4_aA",
+      "traces_R5_aA",
+      "traces_R5_aB"
+    ],
+    "note": "trace is mount independent; one set serves m0 and m45; R4_aA and R4_aB use the same 547 positions, R2_aA/R2_aB the same R2 positions, R5_aA/R5_aB the same R5 positions"
+  },
+  "frozen_thresholds": {
+    "G3_LoS_and_order1_found_fraction": 1.0,
+    "G3_order23_found_fraction_min": 0.995,
+    "G3_max_missing_per_position": 6,
+    "G3_spurious_paths": 0,
+    "G4_LoS_parity_rel_max": 0.001,
+    "G4_LoS_parity_ds_max": 0.01,
+    "G5_regeneration_rel_max": 1e-12
+  },
+  "threshold_provenance": "G3 order-1 rule is principled (first path and s depend on it). G3 order-2/3 fraction and max-missing were set after seeing R4_aB (99.90%, max 6) and are CALIBRATION values, not independent; they are confirmed on the 5 held-out trace sets with no re-tuning. G4/G5 reuse earlier pre-fixed criteria.",
+  "calibration_case_R4_aB_legacy": {
+    "order0": "547/547",
+    "order1": "3282/3282",
+    "order2_missing": 7,
+    "order3_missing": 23,
+    "order23_found_fraction": 0.99902,
+    "positions_complete": "533/547",
+    "max_missing_per_position": 6,
+    "spurious": 0
+  },
+  "native_reference_R4_aB": {
+    "positions_complete": "12/547",
+    "missing_total": 2174,
+    "order1_missing_instances_in_922_poses": 5,
+    "path_set_depends_on_yaw": "23/23 multi-pose positions",
+    "verdict": "FAILS G3 order-1 rule; Native is not validated for use as input"
+  }
+}
