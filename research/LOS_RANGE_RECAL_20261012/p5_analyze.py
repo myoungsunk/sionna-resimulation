@@ -18,8 +18,8 @@ piv=d.pivot_table(index=K,columns='arm',values=['pos_rmse_m','heading_rmse_deg',
 rng=np.random.default_rng(20261012);res={'label':label,'n_runs_per_arm':n_runs,'clusters':int(d.case.nunique()),'ci_note':'LIMITED: 12 conditions share one corridor scene and 3 routes; seed-level pairs inside a condition are independent sensor/RF-noise draws','comparisons':{}}
 cases=sorted(d.case.unique())
 def cluster_boot(a,b,metric,rel=True):
-    A=piv[metric][a];B=piv[metric][b];df=pd.DataFrame({'a':A,'b':B}).dropna();df['case']=[i[0] for i in df.index]
-    cm=df.groupby('case').mean();point=float((cm.a.mean()/cm.b.mean())-1) if rel else float(cm.a.mean()-cm.b.mean());vals=[]
+    A=piv[metric][a];B=piv[metric][b];df=pd.DataFrame({'a':A,'b':B}).dropna();df['cs']=[i[0] for i in df.index]
+    cm=df.groupby('cs')[['a','b']].mean();point=float((cm.a.mean()/cm.b.mean())-1) if rel else float(cm.a.mean()-cm.b.mean());vals=[]
     for _ in range(4000):
         pick=rng.integers(0,len(cm),len(cm));x=cm.iloc[pick];vals.append((x.a.mean()/x.b.mean()-1) if rel else (x.a.mean()-x.b.mean()))
     try:w=float(wilcoxon(df.a-df.b).pvalue)
