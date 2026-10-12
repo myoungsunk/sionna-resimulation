@@ -1,0 +1,97 @@
+{
+ "tag": "x15.4627_y0.4428",
+ "x": 15.462676,
+ "y": 0.442804,
+ "status": "OK",
+ "flagged_bins": [],
+ "dropped_audit": [
+  {
+   "path": 22,
+   "tau_s": 3.218388400227923e-08,
+   "absent_nodes": [
+    146,
+    148,
+    152,
+    160,
+    176,
+    192,
+    208,
+    224,
+    240,
+    256
+   ],
+   "cut": {
+    "last_present_bin": 145,
+    "first_absent_bin": 146,
+    "present_below": true
+   },
+   "max_rel_amp_where_present": 0.013573355964436418
+  }
+ ],
+ "max_dropped_rel_amp": 0.013573355964436418,
+ "screen_exceeded": true,
+ "n_nodes": 21,
+ "n_paths": 63,
+ "complex_paths": [],
+ "unmatched_paths": 0,
+ "pathsolver_calls": 21,
+ "elapsed_s": 8.33,
+ "versions": {
+  "sionna-rt": "2.0.1",
+  "mitsuba": "3.8.0",
+  "drjit": "1.3.1"
+ },
+ "solver": {
+  "max_depth": 3,
+  "samples_per_src": 100000,
+  "max_num_paths_per_src": 1000000,
+  "synthetic_array": true,
+  "los": true,
+  "specular_reflection": true,
+  "refraction": true,
+  "diffraction": false,
+  "edge_diffraction": false,
+  "diffuse_reflection": false,
+  "seed": 20260924
+ },
+ "materials": [
+  {
+   "object": "floor",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+  },
+  {
+   "object": "ceiling",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+  },
+  {
+   "object": "wall_y_neg",
+   "itu_type": "plasterboard",
+   "thickness_m": 0.0125,
+   "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+  },
+  {
+   "object": "wall_y_pos",
+   "itu_type": "plasterboard",
+   "thickness_m": 0.0125,
+   "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+  },
+  {
+   "object": "end_x_min",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+  },
+  {
+   "object": "end_x_max",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+  }
+ ],
+ "runner_sha256": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+ "command": "scripts/drive_sim/rf_b_trace.py --tasks results/DRIVE_SIM_20261007/S1/routes/rf_tasks_R5_m0.json --out /job/source/results/DRIVE_SIM_20261007/SNOWBALL_ROUTES_01a11669/S2/traces_R5_aB --nodes 17 --anchor-x 10 --shard 26/32"
+}
