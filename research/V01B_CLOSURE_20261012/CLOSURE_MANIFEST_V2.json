@@ -86,7 +86,15 @@
     "bit_reproducible": false
    },
    "artifacts": "research/V01B_CLOSURE_20261012/G7/",
-   "commit": "919367bd"
+   "commit": "919367bd",
+   "split_states": {
+    "G7_FEATURE_LABEL": "PASS",
+    "G7_OBSERVER_PARITY": "PASS (bitwise vs published OBS: NOT_RUN)",
+    "G7_FILTER_BITWISE_REPLAY": "same environment PASS (4200/4200 byte-identical traces); across environments FAIL (309/4200 vs published, 296 kernel swap, 304 +-1ulp input noise)",
+    "G7_FILTER_STATISTICAL_EQUIVALENCE": "PASS under margins fixed before the L3 analysis (after means were known to be tiny); tails: max rel diff 0.41% (kernel), 2.8% (1-ulp input noise)"
+   },
+   "divergence_findings": "no gate accept/reject flips in any diverging run; divergence starts near the anchor nadir (median 0.52 m horizontal distance), mostly arm D (s used); earlier gating-flip hypothesis rejected",
+   "divergence_report": "research/V01B_CLOSURE_20261012/G7/G7_DIVERGENCE_KO.md"
   },
   "release_gate": {
    "status": "PASS",
