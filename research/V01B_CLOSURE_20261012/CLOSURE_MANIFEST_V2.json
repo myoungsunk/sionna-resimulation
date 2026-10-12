@@ -1,61 +1,123 @@
 {
-  "schema": "V01B_CLOSURE_V2",
-  "date": "2026-10-12",
-  "supersedes_nothing": "CLOSURE_MANIFEST.json (V1, commit 6cca770) is preserved unchanged; this file adds results and history.",
-  "decisions_recorded": [
-    "User approved V01b-R as a SEPARATE gate: legacy Method-B 12 conditions = single RF reference family; Native and legacy are not mixed.",
-    "Original V01b (legacy vs Native equivalence) stays FAIL and is not waived.",
-    "G3 criteria 1-3 unchanged. The R2_aA spurious path was approved as a numerical matching defect to fix (not by widening the tolerance alone) -> G3_v2.",
-    "5 new LoS H go to a GitHub Release (not Git/LFS); re-verify SHA/shape/pose mapping after download.",
-    "Even if V01b-R passes, stage_B_allowed=false and scientific_PASS=false until V02 completes."
-  ],
-  "original_V01b": {"status": "FAIL", "kept": true},
-  "gates": {
-    "G1_inventory": {"status": "PASS", "detail": "12/12 full H SHA256+shape; frequency array SHA"},
-    "G2_pose_mapping": {"status": "PASS", "detail": "rf_poses SHA per route matches matrix"},
-    "G3_path_completeness": {
-      "status": "PASS (G3_v2)",
-      "history": [
-        {"version": "G3_v1", "status": "FAIL (criterion 4 only, R2_aA)", "detail": "criteria 1-3 passed on all 6 sets; criterion 4 (spurious=0) failed in R2_aA: 1 spurious path at x3.7036_y-0.5204, delay residual 5.11e-14 s vs frozen window 5e-14 s (7.2 float32 ulp); same path counted as 1 missing + 1 spurious", "artifacts": "research/V01B_TRACE_REQUEST2_20261012/RESULT/g3_all.json, g3_tol.json (unchanged)", "commit": "eb4a2530"},
-        {"version": "G3_v2", "status": "PASS 6/6", "detail": "delay + departure/arrival direction gate, one-to-one Hungarian assignment; tolerances K=16 ulp32, A=1e-2 rad fixed AFTER seeing G3_v1 (post-hoc, disclosed); criteria 1-3 unchanged", "artifacts": "research/V01B_CLOSURE_20261012/G3_V2/", "commit": "ea576961"}
-      ],
-      "v2_results": {"positions": 5083, "order01_missing": 0, "order23_found_fraction_pooled": 0.99911, "max_missing_per_position": 6, "positions_over_6": 0, "spurious": 0, "fully_ambiguous_paths": 0},
-      "sensitivity": "identical verdict for K>=8 and A in [1e-3,1e-1]; fails for K=4 (below observed 7.2 ulp residual) and A=1e-4 (below observed 6.6e-4 rad departure-angle residual)",
-      "caveats": ["tolerances are post-hoc", "criteria 2-3 were calibrated on R4_aB; the other 5 sets are held-out", "departure-angle residual of reflected paths up to 6.6e-4 rad (anchor B) / 3e-4 (anchor A), cause not investigated"]
+ "schema": "V01B_CLOSURE_V2",
+ "date": "2026-10-12",
+ "supersedes_nothing": "CLOSURE_MANIFEST.json (V1, commit 6cca770) is preserved unchanged; this file adds results and history.",
+ "decisions_recorded": [
+  "User approved V01b-R as a SEPARATE gate: legacy Method-B 12 conditions = single RF reference family; Native and legacy are not mixed.",
+  "Original V01b (legacy vs Native equivalence) stays FAIL and is not waived.",
+  "G3 criteria 1-3 unchanged. The R2_aA spurious path was approved as a numerical matching defect to fix (not by widening the tolerance alone) -> G3_v2.",
+  "5 new LoS H go to a GitHub Release (not Git/LFS); re-verify SHA/shape/pose mapping after download.",
+  "Even if V01b-R passes, stage_B_allowed=false and scientific_PASS=false until V02 completes."
+ ],
+ "original_V01b": {
+  "status": "FAIL",
+  "kept": true
+ },
+ "gates": {
+  "G1_inventory": {
+   "status": "PASS",
+   "detail": "12/12 full H SHA256+shape; frequency array SHA"
+  },
+  "G2_pose_mapping": {
+   "status": "PASS",
+   "detail": "rf_poses SHA per route matches matrix"
+  },
+  "G3_path_completeness": {
+   "status": "PASS (G3_v2)",
+   "history": [
+    {
+     "version": "G3_v1",
+     "status": "FAIL (criterion 4 only, R2_aA)",
+     "detail": "criteria 1-3 passed on all 6 sets; criterion 4 (spurious=0) failed in R2_aA: 1 spurious path at x3.7036_y-0.5204, delay residual 5.11e-14 s vs frozen window 5e-14 s (7.2 float32 ulp); same path counted as 1 missing + 1 spurious",
+     "artifacts": "research/V01B_TRACE_REQUEST2_20261012/RESULT/g3_all.json, g3_tol.json (unchanged)",
+     "commit": "eb4a2530"
     },
-    "G4_LoS_H_12of12": {"status": "PASS (numerical); storage pending", "detail": "6 LoS parity checks pass (rel<=8.8e-5, |ds|<=1.05e-5, taps equal); 5 missing mount-45 LoS H generated from traces (R2_aA_m45 parity validates the mount-45 path); NOT stored in Git/LFS", "storage": "see release_gate"},
-    "G5_regeneration": {"status": "PASS 10/10", "detail": "max rel 1.5e-15 (<=1e-12); none bit-exact (environment differs)"},
-    "G6_observer_parity": {"status": "PASS", "detail": "15 conditions, max |ds| = 0"},
-    "G7_sensor_v2_inputs": {
-      "status": "PASS (tables, pre-registered) ; replay NOT bit-reproducible",
-      "tables": {"features_7": "9519x31 worst rel 2.8e-16", "labels_7": "9519x14 worst rel 2.4e-15", "distance_bias_var_7": "18 rows worst rel 1.1e-16", "rows_12": 16432},
-      "replay": {"runs_12_cases": 7200, "failed": 0, "regression_vs_published_7cases": "FAIL at 1e-9/1e-12: 309/4200 runs differ (arm A 0, B 76, C 19, D 214), worst rel 0.017", "attribution": "same code/inputs/lib versions reproduce the same 309; changing only the OpenBLAS kernel on one machine gives 73/14/209 -> hardware (BLAS-kernel) sensitivity amplified by gating; not a pipeline difference", "post_hoc_statistical_equivalence": "PASS (max |mean diff/sd| 6.8e-5)", "bit_reproducible": false},
-      "artifacts": "research/V01B_CLOSURE_20261012/G7/",
-      "commit": "919367bd"
-    },
-    "release_gate": {
-      "status": "OPEN - not done",
-      "detail": "GitHub Release for the 5 LoS H arrays could not be created in this session (GitHub tools offer read-only release access). Package (manifest, SHA256SUMS, notes, verify_release.py) committed; local rehearsal 5/5 PASS is NOT a download verification.",
-      "artifacts": "research/V01B_CLOSURE_20261012/RELEASE_LOS_H/",
-      "commit": "14304e83",
-      "required_action": "user uploads the 5 arrays + SHA256SUMS.txt + RELEASE_MANIFEST.json; then run verify_release.py on the downloaded files (stage 1 and stage 2)"
+    {
+     "version": "G3_v2",
+     "status": "PASS 6/6",
+     "detail": "delay + departure/arrival direction gate, one-to-one Hungarian assignment; tolerances K=16 ulp32, A=1e-2 rad fixed AFTER seeing G3_v1 (post-hoc, disclosed); criteria 1-3 unchanged",
+     "artifacts": "research/V01B_CLOSURE_20261012/G3_V2/",
+     "commit": "ea576961"
     }
+   ],
+   "v2_results": {
+    "positions": 5083,
+    "order01_missing": 0,
+    "order23_found_fraction_pooled": 0.99911,
+    "max_missing_per_position": 6,
+    "positions_over_6": 0,
+    "spurious": 0,
+    "fully_ambiguous_paths": 0
+   },
+   "sensitivity": "identical verdict for K>=8 and A in [1e-3,1e-1]; fails for K=4 (below observed 7.2 ulp residual) and A=1e-4 (below observed 6.6e-4 rad departure-angle residual)",
+   "caveats": [
+    "tolerances are post-hoc",
+    "criteria 2-3 were calibrated on R4_aB; the other 5 sets are held-out",
+    "departure-angle residual of reflected paths up to 6.6e-4 rad (anchor B) / 3e-4 (anchor A), cause not investigated"
+   ]
   },
-  "failure_and_fix_history": [
-    "verifier v1 tag_xy defect (my bug: 4-decimal filename compared numerically to full-precision coords) -> verifier v2, v1 preserved",
-    "LoS summary keys lost leading 'R' (labeling slip) -> fixed in repo copy",
-    "earlier incorrect claim 'paths are not missing, values differ' -> corrected in DIFFERENCE_ANALYSIS_KO.md",
-    "G3_v1 R2_aA spurious path -> G3_v2 (post-hoc matching fix)",
-    "first G3_v2 attempt used angular gate 1e-4 rad and rejected nearly all reflected paths (departure-angle residual up to 6.6e-4 rad) -> gate recalibrated to 1e-2 rad from residual statistics (disclosed as post-hoc)",
-    "G7 replay did not regress bit-exactly against published values -> attributed to BLAS-kernel sensitivity by experiment; recorded as FAIL at 1e-12 + post-hoc statistical equivalence"
-  ],
-  "V01b_R": {
-    "status": "NOT_PASS_YET",
-    "reason": "all numerical gates G1-G7 pass under their stated criteria (G3 as G3_v2, G7 replay only statistically), but the Release upload + post-download verification requested by the user is not done",
-    "will_become_PASS_when": "release_gate is closed by a real download verification; the user may also decide to accept G3_v2's post-hoc tolerances and the G7 replay statistical criterion"
+  "G4_LoS_H_12of12": {
+   "status": "PASS",
+   "detail": "6 LoS parity checks pass (rel<=8.8e-5, |ds|<=1.05e-5, taps equal); 5 missing mount-45 LoS H generated from traces (R2_aA_m45 parity validates the mount-45 path); NOT stored in Git/LFS",
+   "storage": "GitHub Release v01b-r-los-h-m45-20261012 (verified by download)"
   },
-  "stage_B_allowed": false,
-  "scientific_PASS": false,
-  "V02": "OPEN (E1-E6 preregistration awaiting user go-ahead)",
-  "untouched": ["original research sources", "p0 worktree uncommitted files (15 untracked + .gitattributes modification)"]
+  "G5_regeneration": {
+   "status": "PASS 10/10",
+   "detail": "max rel 1.5e-15 (<=1e-12); none bit-exact (environment differs)"
+  },
+  "G6_observer_parity": {
+   "status": "PASS",
+   "detail": "15 conditions, max |ds| = 0"
+  },
+  "G7_sensor_v2_inputs": {
+   "status": "PASS (tables, pre-registered) ; replay NOT bit-reproducible",
+   "tables": {
+    "features_7": "9519x31 worst rel 2.8e-16",
+    "labels_7": "9519x14 worst rel 2.4e-15",
+    "distance_bias_var_7": "18 rows worst rel 1.1e-16",
+    "rows_12": 16432
+   },
+   "replay": {
+    "runs_12_cases": 7200,
+    "failed": 0,
+    "regression_vs_published_7cases": "FAIL at 1e-9/1e-12: 309/4200 runs differ (arm A 0, B 76, C 19, D 214), worst rel 0.017",
+    "attribution": "same code/inputs/lib versions reproduce the same 309; changing only the OpenBLAS kernel on one machine gives 73/14/209 -> hardware (BLAS-kernel) sensitivity amplified by gating; not a pipeline difference",
+    "post_hoc_statistical_equivalence": "PASS (max |mean diff/sd| 6.8e-5)",
+    "bit_reproducible": false
+   },
+   "artifacts": "research/V01B_CLOSURE_20261012/G7/",
+   "commit": "919367bd"
+  },
+  "release_gate": {
+   "status": "PASS",
+   "release": "https://github.com/myoungsunk/sionna-resimulation/releases/tag/v01b-r-los-h-m45-20261012 (uploaded by the user; target_commitish 6982e40c; 7 assets)",
+   "detail": "Assets downloaded over HTTPS in this session: SHA256SUMS all OK, release asset digests equal the manifest SHA, downloaded SHA256SUMS.txt and RELEASE_MANIFEST.json byte-identical to the committed copies. verify_release.py stage 1 (SHA/bytes/dtype/shape/finite/rows==poses/rf_poses SHA/pose_id sequence) PASS 5/5. Stage 2 over ALL rows (R2_aB 1303, R4_aA 922, R4_aB 922, R5_aA 1883, R5_aB 1883 = 6913) regenerated from the delivered traces: max rel error 0.0 (bit-identical); min relative difference to a neighbouring row 6.2e-3 -> a pose-order error would be detected.",
+   "artifacts": "research/V01B_CLOSURE_20261012/RELEASE_LOS_H/DOWNLOAD_VERIFICATION_20261012.txt"
+  }
+ },
+ "failure_and_fix_history": [
+  "verifier v1 tag_xy defect (my bug: 4-decimal filename compared numerically to full-precision coords) -> verifier v2, v1 preserved",
+  "LoS summary keys lost leading 'R' (labeling slip) -> fixed in repo copy",
+  "earlier incorrect claim 'paths are not missing, values differ' -> corrected in DIFFERENCE_ANALYSIS_KO.md",
+  "G3_v1 R2_aA spurious path -> G3_v2 (post-hoc matching fix)",
+  "first G3_v2 attempt used angular gate 1e-4 rad and rejected nearly all reflected paths (departure-angle residual up to 6.6e-4 rad) -> gate recalibrated to 1e-2 rad from residual statistics (disclosed as post-hoc)",
+  "G7 replay did not regress bit-exactly against published values -> attributed to BLAS-kernel sensitivity by experiment; recorded as FAIL at 1e-12 + post-hoc statistical equivalence"
+ ],
+ "V01b_R": {
+  "status": "ALL_GATES_PASS_PENDING_USER_ACCEPTANCE_OF_CAVEATS",
+  "reason": "G1-G7 and the Release gate pass under their stated criteria. Not set to a bare PASS because two caveats need the user's explicit acceptance: (1) G3_v2 tolerances (K=16 ulp32, A=1e-2 rad) were fixed after the G3_v1 result; (2) the G7 sensor-v2 replay is not reproducible at 1e-9/1e-12 against the published values (hardware/BLAS-kernel sensitivity; only a post-hoc statistical equivalence holds). The pre-registered G7 criterion (tables <=1e-12) passes.",
+  "will_become_PASS_when": "user accepts caveats (1) and (2), or supplies a different criterion"
+ },
+ "stage_B_allowed": false,
+ "scientific_PASS": false,
+ "V02": "OPEN (E1-E6 preregistration awaiting user go-ahead)",
+ "untouched": [
+  "original research sources",
+  "p0 worktree uncommitted files (15 untracked + .gitattributes modification)"
+ ],
+ "pending_user_actions": [
+  "accept or reject G3_v2 post-hoc tolerances",
+  "accept or reject G7 replay statistical-equivalence criterion",
+  "V02 E1-E6 preregistration go-ahead"
+ ]
 }
