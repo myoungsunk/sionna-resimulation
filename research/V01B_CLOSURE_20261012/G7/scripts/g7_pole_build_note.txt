@@ -1,0 +1,4 @@
+simulate_pole.py = simulate_div.py (this directory) with, inserted before `class Recorder`:
+  if POLE_SAFE: F.s_model = lambda lut,anchor,z,x,y,psi,mount,with_jac=False: PoleSafeModelV2(LUT, banks)(anchor,z,x,y,psi,mount,with_jac=with_jac)
+PoleSafeModelV2 = research/P0_RESTORE_20261011/pole_safe_model_v2.py (branch codex/abc-gated-resume-20261011), coefficient SHA 87a38e9c..., banks: LP_plus45/LP_minus45 verified against BANK_MANIFEST.
+PLAN.json cases restricted to R2_aA_m0, R5_aA_m0, R5_aB_m0. Run with scripts/g7_pole_run.sh (POLE_SAFE=1).
