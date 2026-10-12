@@ -104,9 +104,13 @@
   "G7 replay did not regress bit-exactly against published values -> attributed to BLAS-kernel sensitivity by experiment; recorded as FAIL at 1e-12 + post-hoc statistical equivalence"
  ],
  "V01b_R": {
-  "status": "ALL_GATES_PASS_PENDING_USER_ACCEPTANCE_OF_CAVEATS",
-  "reason": "G1-G7 and the Release gate pass under their stated criteria. Not set to a bare PASS because two caveats need the user's explicit acceptance: (1) G3_v2 tolerances (K=16 ulp32, A=1e-2 rad) were fixed after the G3_v1 result; (2) the G7 sensor-v2 replay is not reproducible at 1e-9/1e-12 against the published values (hardware/BLAS-kernel sensitivity; only a post-hoc statistical equivalence holds). The pre-registered G7 criterion (tables <=1e-12) passes.",
-  "will_become_PASS_when": "user accepts caveats (1) and (2), or supplies a different criterion"
+  "status": "PASS_WITH_CAVEATS",
+  "caveats": [
+   "G3_v2 tolerances (K=16 ulp32, A=1e-2 rad) chosen post hoc after G3_v1 FAIL (R2_aA, criterion 4); verdict stable over K>=8, A in [1e-3,1e-1]",
+   "G7 sensor-v2 replay: 309/4200 runs (arm A 0, B 76, C 19, D 214) not reproducible vs published at 1e-9; attributed by experiment to BLAS-kernel sensitivity; only post-hoc statistical equivalence holds; extreme per-seed NEES/coverage behaviour is NOT shown to be equivalent by mean agreement",
+   "does not resolve original V01b (legacy vs Native equivalence stays FAIL)"
+  ],
+  "pre_registered_criteria_met": "G1,G2,G4,G5,G6, G7 tables(<=1e-12), Release download verification; G3 criteria 1-3 (and 4 under G3_v2)"
  },
  "stage_B_allowed": false,
  "scientific_PASS": false,
@@ -116,8 +120,12 @@
   "p0 worktree uncommitted files (15 untracked + .gitattributes modification)"
  ],
  "pending_user_actions": [
-  "accept or reject G3_v2 post-hoc tolerances",
-  "accept or reject G7 replay statistical-equivalence criterion",
-  "V02 E1-E6 preregistration go-ahead"
- ]
+  "V02 E1-E6 execution under preregistration (started)"
+ ],
+ "user_decision_recorded_2026-10-12_late": {
+  "G3_v2_post_hoc_tolerances": "conditionally accepted as numerical path-identity verification; G3_v1 FAIL and post-hoc revision history preserved",
+  "G7_bit_reproducibility": "statistical equivalence accepted; strict reproducibility failure (309/4200 runs) is KEPT as a separate environment-reproducibility issue, not erased",
+  "V01b_R": "PASS_WITH_CAVEATS, kept distinct from the original Legacy-vs-Native equivalence FAIL",
+  "note": "Decision text was supplied by the user as a recommendation table in a message whose attached prompt body was missing; recorded as the user's direction. stage_B_allowed and scientific_PASS stay false until V02 completes (earlier explicit user constraint, unchanged)."
+ }
 }
