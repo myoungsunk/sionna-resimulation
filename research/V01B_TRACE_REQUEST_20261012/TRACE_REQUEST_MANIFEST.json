@@ -1,0 +1,58 @@
+{
+  "schema": "V01B_TRACE_REQUEST_V1",
+  "date": "2026-10-12",
+  "case_family": "R4_aB (route R4, anchor B at x=10 m)",
+  "trace_dir_name": "traces_R4_aB",
+  "rf_poses_file": "results/DRIVE_SIM_20261007/S1/routes/rf_poses_R4.json",
+  "rf_poses_sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+  "n_poses": 922,
+  "n_unique_positions": 547,
+  "tag_format": "x{x:.4f}_y{y:.4f}",
+  "files_per_position": [
+    "<tag>_trace.npz",
+    "<tag>_trace_receipt.json"
+  ],
+  "tier1": {
+    "n_tags": 40,
+    "file": "TAGS_TIER1.txt",
+    "selection_rule": "frozen before data arrival: per position score = max over its poses of the legacy-vs-Native relative channel error of R4_aB_m45; take the 20 highest, the 10 lowest and the 10 closest to the median; union",
+    "score_summary": {
+      "top20_min": 0.27322177626086974,
+      "bottom10_max": 4.4924812938328286e-05,
+      "median": 0.024259366488056478
+    }
+  },
+  "tier2": {
+    "n_tags": 547,
+    "file": "TAGS_ALL_547.txt",
+    "purpose": "needed for the bit-exact regeneration self-check (rf_b_apply requires every position)"
+  },
+  "npz_required_keys": [
+    "jones",
+    "tau",
+    "ang",
+    "node_bins",
+    "node_freq_hz",
+    "x",
+    "y",
+    "signature",
+    "unmatched",
+    "status",
+    "flagged_bins",
+    "path_counts",
+    "present",
+    "max_dropped_rel_amp"
+  ],
+  "expected_status": "OK",
+  "frequency_sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+  "required_node_bin": 128,
+  "regeneration_self_check": {
+    "m0_H_sha256": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+    "m45_H_sha256": "3f76d713edccf90ed1d20c8e0f65064add3ca5c5340b56d11c1f391ca81c791d",
+    "procedure": "python scripts/drive_sim/rf_b_apply.py --poses rf_poses_R4.json --traces traces_R4_aB --mount 0 (then 45); both outputs must match the SHA256 above bit for bit; requires the Tier 2 (all 547 positions)"
+  },
+  "legacy_H_available": {
+    "R4_aB_m0": "in repo, SHA above",
+    "R4_aB_m45": "delivered 2026-10-12, SHA above"
+  }
+}
