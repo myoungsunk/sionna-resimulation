@@ -1,9 +1,9 @@
 # 독립 3-State EKF — P0 동결 조건과 근거 (2026-10-13)
 
 ## 현재 상태
-- **실행한 작업:** 새 브랜치 생성, 기존 자료 Git tree 확인, 기존 감사 SHA-256 값 및 정확한 입력 경로를 `P0_INPUT_MANIFEST.json`에 고정.
-- **아직 하지 않은 작업:** 바이너리 파일의 현행 SHA-256 직접 재계산, Tnone–RF pose_id 일치 검사, 신규 observer parity, 독립 3-State 구현 및 A/B/C 실행.
-- **판정:** `P0_SPEC_FROZEN; INTEGRITY_GATE_NOT_RUN; scientific_PASS=false`. 과거 source parity PASS를 새 P0의 실행 PASS라고 쓰지 않는다.
+- **실행한 작업:** 입력 명세 동결 후 P0 무결성 스크립트 실행 완료. 39개 파일, 7개 RF 사례, 3개 경로에서 오류 0건, 종료 코드 0.
+- **아직 하지 않은 작업:** 신규 observer parity, 독립 3-State 구현 및 D0/A/B/C 실행.
+- **판정:** `P0_SPEC_FROZEN; PASS_LOCAL_SHA256_SHAPE_POSE_PREFLIGHT; scientific_PASS=false`. 이번 실행은 P0 입력 무결성 PASS이며, EKF 성능 또는 과학적 PASS가 아니다.
 
 ## 비교를 왜 이렇게 설계했나?
 - 독립 비교군 **D0**는 IMU+Wheel만 이용. **A**는 D0+UWB 다중경로 편파값 `s` 한 개, **B**는 D0+Range 한 개, **C**는 D0+(`s`, Range) 공동 측정.
@@ -41,7 +41,7 @@
 
 ## P0 완료 정의
 1. `P0_INPUT_MANIFEST.json` 기록 및 Git 입력 경로 존재: 완료.
-2. `p0_verify_inputs.py`를 원본 바이트가 있는 checkout에서 실행해 SHA-256, 파일 크기, numpy shape, RF pose_id–Tnone 정렬: **NOT_RUN**.
+2. `p0_verify_inputs.py`로 SHA-256, Git blob, 파일 크기, numpy shape, 시간 순서, RF pose_id–Tnone 정렬: **PASS_LOCAL_SHA256_SHAPE_POSE_PREFLIGHT** (아래 실행 증빙 참조).
 3. observer parity 및 실제 3-State 독립 EKF: P1 이후 단계, **NOT_RUN**.
 4. `scientific_PASS=false`; 기존 F01/F02 및 new-scene gate를 승격시키지 않는다.
 
@@ -50,3 +50,14 @@
 python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py
 ```
 출력의 `status`가 `PASS_LOCAL_SHA256_SHAPE_POSE_PREFLIGHT`가 되기 전에는 후속 P1 실행에 대한 입력 무결성 PASS를 선언하지 않는다.
+
+
+## P0 무결성 실행 기록 — 2026-10-13
+- 검사 대상 커밋: `2f983bc366e381eefcee247eff4ace8bfd9625a5`; 출발 커밋 `a424894a53118231f81ebfb45186211e1adac9b1`의 후손임을 확인.
+- 실행 시각: 2026-10-13 09:47:29–09:47:57 KST (00:47:29–00:47:57 UTC; 입력 준비 및 검사 포함).
+- 실행 환경: Windows, Python 3.13.15, NumPy 2.2.4. 위 명령을 해당 커밋의 별도 sparse checkout에서 실행했다. 로컬 원본과 Git blob이 일치하는 26개 입력을 재사용하고 나머지는 해당 Git 커밋에서 준비했다.
+- 결과: **39개 파일 / 7개 사례 / 3개 경로**, 오류 **0**, 종료 코드 **0**. 동결 SHA-256 기준값이 있는 35개 파일과 Git blob 기준값이 있는 전체 39개 파일이 일치했다. 전체 39개 파일의 현행 SHA-256도 실행 영수증에 기록했다.
+- 검사 전후 전체 입력 SHA-256 동일, 검사 직후 Git 작업 트리 변경 없음. 기존 6-State EKF 및 RF 원자료 수정 없음.
+- 동결 `P0_INPUT_MANIFEST.json`과 검사 코드는 원본 바이트를 보존했다. manifest의 `NOT_RUN` 상태는 명세 작성 당시 기록이며, 현행 실행 상태는 이 문서와 아래 증빙을 따른다.
+- [원본 검사 출력](validation/P0_20261013T004757Z/p0_stdout.json) · [실행·입력 해시 영수증](validation/P0_20261013T004757Z/RUN_RECEIPT.json) · [표준 오류 로그](validation/P0_20261013T004757Z/p0_stderr.log) (빈 파일).
+- 독립 3-State EKF 실행 **0회**. P1, observer parity, D0/A/B/C 성능 검증은 미실행이며 `scientific_PASS=false`를 유지한다. 다음 단계는 별도 지시 후 수행한다.
