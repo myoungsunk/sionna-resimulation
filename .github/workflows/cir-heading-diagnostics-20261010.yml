@@ -1,0 +1,35 @@
+name: Exploratory CIR heading diagnostics (frozen 20261010)
+on:
+  push:
+    branches:
+      - codex/cir-heading-reliability-prereg-20261010
+    paths:
+      - '.github/workflows/cir-heading-diagnostics-20261010.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_channel_diagnostics.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  analyze-paIred-channels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric analysis dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'scikit-learn==1.6.1'
+      - name: Verify raw H and analyze amplitude-CIR features
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_channel_diagnostics.py --out analysis_results/CIR_20261010
+      - name: Preserve computed results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cir-heading-diagnostics-20261010
+          path: analysis_results/CIR_20261010
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,42 @@
+name: Dual LP ratio and heading correctness analysis
+on:
+  push:
+    branches: [codex/probe-mixture-reliability-20261010]
+    paths:
+      - '.github/workflows/dual-lp-ratio-heading-20261010.yml'
+      - 'research/HEADING_RELIABILITY_20261010/run_dual_lp_ratio_association.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dual-lp-ratio-analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            research/HEADING_RELIABILITY_20261010/run_dual_lp_ratio_association.py
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R2_HELD_OUT_PREDICTIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R4_HELD_OUT_PREDICTIONS.csv.gz
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/RELIABILITY/R5_HELD_OUT_PREDICTIONS.csv.gz
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check 'numpy==2.2.4' 'pandas==2.2.3' 'scikit-learn==1.6.1' 'tabulate==0.9.0'
+      - name: Audit Python syntax
+        run: python -m py_compile research/HEADING_RELIABILITY_20261010/run_dual_lp_ratio_association.py
+      - name: Analyze receiver LP contrast
+        run: python -X utf8 research/HEADING_RELIABILITY_20261010/run_dual_lp_ratio_association.py --out research_results/DUAL_LP_RATIO_HEADING_20261010
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dual-lp-heading-association-20261010
+          path: research_results/DUAL_LP_RATIO_HEADING_20261010
+          if-no-files-found: warn
+          retention-days: 30

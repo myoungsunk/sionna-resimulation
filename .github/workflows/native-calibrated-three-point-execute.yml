@@ -1,0 +1,155 @@
+name: Calibrated Native Sionna 3pt Re-execution
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+    paths:
+      - ".github/workflows/native-calibrated-three-point-execute.yml"
+  workflow_dispatch:
+jobs:
+  native-corrected:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GIT_LFS_SKIP_SMUDGE: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /scripts/
+            /configs/
+            /docker/
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+      - name: Verify frozen original FFD files from LFS
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include="LP_plus45_bank.npz,LP_minus45_bank.npz" --exclude=""
+          python - <<'PY'
+          import hashlib,pathlib,sys
+          hashes={'LP_plus45_bank.npz':'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b',
+                  'LP_minus45_bank.npz':'39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9',
+                  'configs/body_probe/FFD_BANK_MANIFEST.json':'6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6'}
+          for name,h in hashes.items():
+              p=pathlib.Path(name)
+              with p.open('rb') as f:
+                  if f.read(64).startswith(b'version https://git-lfs.github.com/spec/v1'):
+                      sys.exit('LFS_POINTER_ONLY: '+name)
+                  f.seek(0);d=hashlib.sha256()
+                  for part in iter(lambda:f.read(1048576),b''):d.update(part)
+              if d.hexdigest()!=h:sys.exit('FFD_HASH_MISMATCH: '+name)
+              print('VERIFIED',name,p.stat().st_size)
+          PY
+      - name: Build unchanged pinned native RF engine
+        run: |
+          set -euo pipefail
+          mkdir -p .ci_evidence
+          git archive HEAD src scripts configs docker | docker build --platform linux/amd64 -f docker/body-probe-native.Dockerfile -t body-probe-native:calibrated -
+          docker image inspect body-probe-native:calibrated > .ci_evidence/IMAGE_INSPECT.json
+          docker run --rm --entrypoint python body-probe-native:calibrated -m pip freeze > .ci_evidence/ENVIRONMENT.txt
+      - name: Download already-frozen independent other-site calibration
+        uses: actions/download-artifact@v4
+        with:
+          name: independent-los-range-calibration-replay
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38115071695
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .ci_evidence/PREREG_CALIBRATION
+      - name: Validate direct FFD LoS complex channels against prior native PathSolver H
+        run: |
+          set -euo pipefail
+          docker run --rm --cpus 4 --memory 12g --entrypoint python \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated scripts/drive_sim/audit_native_los_analytic_parity.py \
+            --bank-dir /data/ffd \
+            --bank-manifest /workspace/configs/body_probe/FFD_BANK_MANIFEST.json \
+            --calibration /outputs/PREREG_CALIBRATION/INDEPENDENT_LOS_CALIBRATION/INDEPENDENT_LOS_CALIBRATION.json \
+            --run-dir /outputs/PREREG_CALIBRATION/PRIOR_NATIVE/REAL_RF_THREE_POINT \
+            --out /outputs/LOSPARITY_PRIOR_NATIVE.json \
+            > .ci_evidence/LOS_PARITY_STDOUT.log 2>&1
+          tail -n 60 .ci_evidence/LOS_PARITY_STDOUT.log
+      - name: Read-only estimate-only dual-LP heading observability from native RF packets
+        run: |
+          docker run --rm --cpus 4 --memory 12g --entrypoint python \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated scripts/drive_sim/audit_native_s_heading_observability.py \
+            --bank-dir /data/ffd \
+            --bank-manifest /workspace/configs/body_probe/FFD_BANK_MANIFEST.json \
+            --run-dir /outputs/PREREG_CALIBRATION/PRIOR_NATIVE/REAL_RF_THREE_POINT \
+            --out /outputs/NATIVE_DUAL_LP_S_SENSITIVITY.json \
+            > .ci_evidence/S_SENSITIVITY_STDOUT.log 2>&1
+          tail -n 35 .ci_evidence/S_SENSITIVITY_STDOUT.log
+      - name: Create new native configuration with strictly independent range offset
+        run: |
+          set -euo pipefail
+          docker run --rm --entrypoint python \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated scripts/drive_sim/prepare_calibrated_native_probe.py \
+            --template /workspace/configs/body_probe/ekf_native_noisy_body_v1.cloud.json \
+            --calibration /outputs/PREREG_CALIBRATION/INDEPENDENT_LOS_CALIBRATION/INDEPENDENT_LOS_CALIBRATION.json \
+            --mount-deg 0 --seed 0 --slip-mode neutral \
+            --out /outputs/CALIBRATED_NATIVE_CONFIG.json
+      - name: EXECUTE full native Sionna PathSolver at new physical poses with calibrated EKF
+        run: |
+          set -uo pipefail
+          set +e
+          docker run --rm --cpus 4 --memory 12g \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated \
+            --config /outputs/CALIBRATED_NATIVE_CONFIG.json \
+            --bank-dir /data/ffd --out /outputs/CALIBRATED_REAL_RF_3PT \
+            --execute-native > .ci_evidence/CALIBRATED_NATIVE_SOLVER.log 2>&1
+          status=$?
+          echo "$status" > .ci_evidence/CALIBRATED_NATIVE_SOLVER.exit_code
+          tail -n 90 .ci_evidence/CALIBRATED_NATIVE_SOLVER.log
+          exit "$status"
+      - name: Audit calibrated 6x6 P and exact RF packet geometry
+        run: |
+          docker run --rm --entrypoint python \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated scripts/drive_sim/audit_body_probe_native_run.py \
+            --out /outputs/CALIBRATED_REAL_RF_3PT \
+            --receipt /outputs/CALIBRATED_NATIVE_AUDIT.json
+      - name: RF-off same physical trajectory performance and NEES
+        run: |
+          docker run --rm --entrypoint python \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:calibrated scripts/drive_sim/evaluate_body_probe_physical_trajectory.py \
+            --run-dir /outputs/CALIBRATED_REAL_RF_3PT \
+            --output /outputs/CALIBRATED_PAIRED_RF_OFF.json
+      - name: Always write evidence SHA and preserve failures
+        if: always()
+        run: |
+          python - <<'PY'
+          import pathlib,hashlib,json,os
+          root=pathlib.Path('.ci_evidence')
+          rows=[]
+          for p in root.rglob('*'):
+              if not p.is_file():continue
+              d=hashlib.sha256()
+              with p.open('rb') as f:
+                  for b in iter(lambda:f.read(1048576),b''):d.update(b)
+              rows.append(dict(path=str(p.relative_to(root)),bytes=p.stat().st_size,sha256=d.hexdigest()))
+          (root/'EVIDENCE_MANIFEST.json').write_text(json.dumps(dict(source_commit=os.environ.get('GITHUB_SHA'),outputs=rows),indent=2))
+          PY
+      - name: Publish immutable calibration, actual H, EKF trace, paired results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: calibrated-native-sionna-three-point-range
+          path: .ci_evidence/
+          include-hidden-files: true
+          retention-days: 21
+          if-no-files-found: error

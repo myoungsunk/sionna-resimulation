@@ -1,0 +1,130 @@
+name: Other-site LoS Range Calibration and Native Revalidation
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+    paths:
+      - ".github/workflows/native-range-calibration-replay.yml"
+  workflow_dispatch:
+jobs:
+  calibrated-native-range:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GIT_LFS_SKIP_SMUDGE: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - name: Checkout immutable source and two original FFD pointers
+        uses: actions/checkout@v4
+        with:
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /scripts/
+            /configs/
+            /docker/
+            /LP_plus45_bank.npz
+            /LP_minus45_bank.npz
+      - name: Materialize frozen FFD banks and verify SHA256
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include="LP_plus45_bank.npz,LP_minus45_bank.npz" --exclude=""
+          python - <<'PY'
+          import hashlib,pathlib,sys
+          expected={'LP_plus45_bank.npz':'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b',
+                    'LP_minus45_bank.npz':'39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9',
+                    'configs/body_probe/FFD_BANK_MANIFEST.json':'6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6'}
+          for name,digest in expected.items():
+              p=pathlib.Path(name)
+              if not p.is_file():sys.exit('REQUIRED_FROZEN_INPUT_MISSING:'+name)
+              with p.open('rb') as f:
+                  if f.read(64).startswith(b'version https://git-lfs.github.com/spec/v1'):sys.exit('LFS_POINTER_ONLY:'+name)
+                  f.seek(0);h=hashlib.sha256()
+                  for b in iter(lambda:f.read(1048576),b''):h.update(b)
+              if h.hexdigest()!=digest:sys.exit('FROZEN_INPUT_HASH_MISMATCH:'+name)
+              print('FROZEN_INPUT_VERIFIED',name,p.stat().st_size,flush=True)
+          PY
+      - name: Build identical pinned CPU FFD/Sionna image
+        run: |
+          set -euo pipefail
+          mkdir -p .ci_evidence
+          git archive HEAD src scripts configs docker | docker build --platform linux/amd64 -f docker/body-probe-native.Dockerfile -t body-probe-native:range-cal -
+          docker image inspect body-probe-native:range-cal > .ci_evidence/IMAGE_INSPECT.json
+          docker run --rm --entrypoint python body-probe-native:range-cal -m pip freeze > .ci_evidence/ENVIRONMENT.txt
+      - name: FIT calibration on fixed independent non-evaluation XY sites
+        run: |
+          set -euo pipefail
+          docker run --rm --cpus 4 --memory 12g --entrypoint python \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:range-cal \
+            scripts/drive_sim/calibrate_body_range_los.py \
+            --bank-dir /data/ffd \
+            --bank-manifest /workspace/configs/body_probe/FFD_BANK_MANIFEST.json \
+            --exclude-evaluation-xy 7.0 0.1 \
+            --anchor-x-m 4.0 --mounts-deg 0 45 \
+            --out /outputs/INDEPENDENT_LOS_CALIBRATION \
+            | tee .ci_evidence/CALIBRATION_STDOUT.json
+      - name: Download frozen previous native three-point RF dataset only AFTER calibration
+        uses: actions/download-artifact@v4
+        with:
+          name: native-real-rf-three-point-attempt
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38111818466
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .ci_evidence/PRIOR_NATIVE
+      - name: Audit direct FFD LoS vs original PathSolver LoS after fit
+        run: |
+          set -euo pipefail
+          docker run --rm --cpus 4 --memory 12g --entrypoint python \
+            -v "$GITHUB_WORKSPACE:/data/ffd:ro" \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:range-cal \
+            scripts/drive_sim/audit_native_los_analytic_parity.py \
+            --bank-dir /data/ffd \
+            --bank-manifest /workspace/configs/body_probe/FFD_BANK_MANIFEST.json \
+            --calibration /outputs/INDEPENDENT_LOS_CALIBRATION/INDEPENDENT_LOS_CALIBRATION.json \
+            --run-dir /outputs/PRIOR_NATIVE/REAL_RF_THREE_POINT \
+            --out /outputs/ANALYTIC_NATIVE_LOS_PARITY.json
+      - name: Replay existing full RF with only calibrated offset changed
+        run: |
+          set -euo pipefail
+          docker run --rm --cpus 2 --memory 8g --entrypoint python \
+            -v "$GITHUB_WORKSPACE/.ci_evidence:/outputs" \
+            body-probe-native:range-cal \
+            scripts/drive_sim/replay_independent_los_range_calibration.py \
+            --calibration /outputs/INDEPENDENT_LOS_CALIBRATION/INDEPENDENT_LOS_CALIBRATION.json \
+            --run-dir /outputs/PRIOR_NATIVE/REAL_RF_THREE_POINT \
+            --out /outputs/INDEPENDENT_CALIBRATED_REPLAY.json
+      - name: Reproducibility receipts and SHA manifest
+        if: always()
+        run: |
+          python - <<'PY'
+          import hashlib,json,pathlib,os
+          root=pathlib.Path('.ci_evidence')
+          items=[]
+          for p in sorted(root.rglob('*')):
+              if not p.is_file():continue
+              h=hashlib.sha256()
+              with p.open('rb') as fp:
+                  for b in iter(lambda:fp.read(1048576),b''):h.update(b)
+              items.append(dict(path=str(p.relative_to(root)),bytes=p.stat().st_size,sha256=h.hexdigest()))
+          (root/'EVIDENCE_FILE_HASHES.json').write_text(json.dumps(dict(github_sha=os.environ.get('GITHUB_SHA'),files=items),indent=2))
+          print('Evidence files:',len(items))
+          PY
+      - name: Upload calibration, original native RF, parity and replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: independent-los-range-calibration-replay
+          path: .ci_evidence/
+          include-hidden-files: true
+          retention-days: 21
+          if-no-files-found: error

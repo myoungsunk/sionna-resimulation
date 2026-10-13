@@ -1,0 +1,64 @@
+name: Independent LoS Calibrated EKF Replay
+# Re-runs strict JSON-safe RF-off null handling, preserving original range packets.
+on:
+  push:
+    branches:
+      - codex/noisy-probe-ekf-sionna-20261010
+    paths:
+      - ".github/workflows/native-range-replay-only.yml"
+  workflow_dispatch:
+jobs:
+  calibrated-ekf-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout source-only without large FFD banks
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+            scripts
+            tests
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install NumPy SciPy
+        run: python -m pip install numpy==1.26.4 scipy==1.14.1
+      - name: Download frozen other-site calibration and saved native three-point dataset
+        uses: actions/download-artifact@v4
+        with:
+          name: independent-los-range-calibration-replay
+          repository: myoungsunk/sionna-resimulation
+          run-id: 38115071695
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: .ci_evidence
+      - name: Replay exact native 6-state EKF, no oracle calibration
+        run: |
+          set -euo pipefail
+          python scripts/drive_sim/replay_independent_los_range_calibration.py \
+            --calibration .ci_evidence/INDEPENDENT_LOS_CALIBRATION/INDEPENDENT_LOS_CALIBRATION.json \
+            --run-dir .ci_evidence/PRIOR_NATIVE/REAL_RF_THREE_POINT \
+            --out .ci_evidence/INDEPENDENT_CALIBRATED_REPLAY_FAST.json
+          python - <<'PY'
+          import json
+          p='.ci_evidence/INDEPENDENT_CALIBRATED_REPLAY_FAST.json'
+          d=json.load(open(p))
+          print('calibration offset=',d['calibration_range_offset_m'])
+          print('strict numerical source parity=',d['frozen_source_parity_max_state_abs_diff'],
+                d['frozen_source_parity_max_P6_abs_diff'])
+          for arm,r in d['metrics'].items():
+              t=r['all_probe_ticks']
+              print(arm,'applied=',r['n_accepted_RF_packets'],'pos_RMSE=',t['position_RMSE_m'],
+                    'yaw_RMSE=',t['heading_RMSE_deg'],'NEES=',t['pose_NEES_df3_mean'])
+          PY
+      - name: Upload independently calibrated real data replay
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: los-calibrated-real-three-point-ekf-replay
+          path: .ci_evidence/INDEPENDENT_CALIBRATED_REPLAY_FAST.json
+          if-no-files-found: warn
+          retention-days: 21

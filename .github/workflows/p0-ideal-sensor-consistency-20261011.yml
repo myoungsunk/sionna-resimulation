@@ -1,0 +1,38 @@
+name: P0 V02 ideal sensor and covariance consistency
+on:
+  push:
+    branches: [codex/p0-foundation-recovery-20261011]
+    paths:
+      - '.github/workflows/p0-ideal-sensor-consistency-20261011.yml'
+      - 'research/P0_RESTORE_20261011/run_v02_ideal_consistency.py'
+      - 'research/P0_RESTORE_20261011/run_native_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ideal-controls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            src
+            research/P0_RESTORE_20261011
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 tabulate==0.9.0
+      - name: Original equations numeric gates and independent MC checkpoints
+        run: python research/P0_RESTORE_20261011/run_native_audit.py run_v02_ideal_consistency.py --out p0_results/V02 --seeds 128
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: p0-v02-ideal-consistency-20261011
+          path: p0_results/
+          if-no-files-found: warn
+          retention-days: 30
