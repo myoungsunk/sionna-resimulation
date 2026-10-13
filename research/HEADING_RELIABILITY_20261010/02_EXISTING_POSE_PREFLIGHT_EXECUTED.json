@@ -1,0 +1,156 @@
+{
+  "status": "METADATA_PREFLIGHT_EXECUTED",
+  "timestamp_date": "2026-10-10",
+  "source_branch": "codex/post-a23-evidence-20261010",
+  "source_sha": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "scope": "Only stored SAMPLES.json; no binary H, LoS LUT or sensor-v2 simulation was executed.",
+  "selected_schedule_frozen": "1-point [0]; 2-point [0,2]; 3-point [0,2,4] from each same-XY consecutive yaw block; filter folds by route.",
+  "routes": {
+    "R2": {
+      "pose_total": 1303,
+      "unique_xy_groups": 943,
+      "eligible_3point_stations": 21,
+      "minimum_sweep_samples": 18,
+      "maximum_sweep_samples": 19,
+      "sample_index_offsets_deg_first3": [
+        [
+          -10,
+          -20
+        ],
+        [
+          -10,
+          -20
+        ],
+        [
+          -10,
+          -20
+        ]
+      ],
+      "selection_indices_1": [
+        0
+      ],
+      "selection_indices_2": [
+        0,
+        2
+      ],
+      "selection_indices_3": [
+        0,
+        2,
+        4
+      ],
+      "labels_available_from_samples": false
+    },
+    "R4": {
+      "pose_total": 922,
+      "unique_xy_groups": 557,
+      "eligible_3point_stations": 23,
+      "minimum_sweep_samples": 16,
+      "maximum_sweep_samples": 18,
+      "sample_index_offsets_deg_first3": [
+        [
+          -9.52,
+          -19.04
+        ],
+        [
+          9.520000000000003,
+          19.040000000000003
+        ],
+        [
+          -9.520000000000003,
+          -19.040000000000003
+        ]
+      ],
+      "selection_indices_1": [
+        0
+      ],
+      "selection_indices_2": [
+        0,
+        2
+      ],
+      "selection_indices_3": [
+        0,
+        2,
+        4
+      ],
+      "labels_available_from_samples": false
+    },
+    "R5": {
+      "pose_total": 1883,
+      "unique_xy_groups": 1369,
+      "eligible_3point_stations": 30,
+      "minimum_sweep_samples": 18,
+      "maximum_sweep_samples": 19,
+      "sample_index_offsets_deg_first3": [
+        [
+          -10,
+          -20
+        ],
+        [
+          -10,
+          -20
+        ],
+        [
+          10,
+          20
+        ]
+      ],
+      "selection_indices_1": [
+        0
+      ],
+      "selection_indices_2": [
+        0,
+        2
+      ],
+      "selection_indices_3": [
+        0,
+        2,
+        4
+      ],
+      "labels_available_from_samples": false
+    }
+  },
+  "case_coverage": [
+    {
+      "case": "R2_aA_m0",
+      "eligible_probe_stations": 21
+    },
+    {
+      "case": "R2_aB_m0",
+      "eligible_probe_stations": 21
+    },
+    {
+      "case": "R2_aA_m45",
+      "eligible_probe_stations": 21
+    },
+    {
+      "case": "R4_aA_m0",
+      "eligible_probe_stations": 23
+    },
+    {
+      "case": "R4_aB_m0",
+      "eligible_probe_stations": 23
+    },
+    {
+      "case": "R5_aA_m0",
+      "eligible_probe_stations": 30
+    },
+    {
+      "case": "R5_aB_m0",
+      "eligible_probe_stations": 30
+    }
+  ],
+  "total_case_station_instances": 169,
+  "total_unique_route_stations": 74,
+  "not_executed": [
+    "CIR-feature extraction",
+    "RF-heading inversion and labels",
+    "feature-vs-heading error correlations",
+    "reliability model CV",
+    "2/3 point probe uplift",
+    "sensor-v2 RF simulation"
+  ],
+  "blockers": [
+    "Full complex RF H and LUT are not available as container files in this execution environment; GitHub connector will not transfer 20+ MiB binary ndarray via decoded text.",
+    "RF-disabled sensor-v2 prior trace is required for operational RF heading labels."
+  ]
+}
