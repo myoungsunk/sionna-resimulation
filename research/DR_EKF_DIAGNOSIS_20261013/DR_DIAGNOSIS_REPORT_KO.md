@@ -4,7 +4,9 @@
 계획: `DIAGNOSIS_PLAN_KO.md`(실행 전 커밋 `3a5344e7`). D6 사전등록: `D6_PREREG_KO.md` + `D6_SPEC.json`(D6 실행 전 커밋).
 상태 표기: `PASS / FAIL / INCONCLUSIVE / NOT_RUN`. 개발 데이터(seed 6000–6299, 8000–8031)와 독립 확증(8100–8399)을 구분한다.
 
-> 작성 중(DRAFT): D5·D6 결과 반영 전. 요약·판정은 D6 완료 후 확정한다.
+> **중간 보고(INTERIM)** — D0–D4 완료, D5 대부분 완료, D6(seed 8100–8399) 진행 중. 최종 요약·원인 판정은 D6 기준(C1–C7, S1)을 스크립트로 판정한 뒤 확정한다. 중간 수치: `out/INTERIM_SNAPSHOT.json`, `out/INTERIM_SNAPSHOT_CELLS.csv`.
+>
+> 현재까지의 잠정 해석(개발 데이터 근거, D6 미판정): 주원인은 보정 상태(특히 gyro bias–wheel asymmetry 혼동)로 커진 heading 불확실성 아래에서 EKF 1차 선형화가 위치–heading 결합(진행방향 2차 오차 −L·δψ²/2)을 표현하지 못하는 것. 보조 원인은 drift 2에서 기본 bias prior(0.12°/s)가 실제(±0.2°/s)보다 좁은 것. C 상관 처리·Jacobian·Q/R 구현·gate는 원인에서 배제.
 
 ## 1. D0 — 기준선 재현 `PASS`
 - 동결 `SensorV2Filter.step`을 그대로 호출하는 wrapper(`dr_harness.run_ekf`)로 R2-2 B0 9셀 × seed 6000–6299 재실행.
@@ -79,8 +81,29 @@ pose NEES = heading 기여 `e_ψ²/P_ψψ`(기대 1) + heading 조건부 XY 기�
 - prior를 drift 크기에 맞추면(A2_2) drift 2의 heading 과신(2.9 → 1.1–1.6)은 고쳐지지만 heading σ가 커져 조건부 XY는 더 나빠진다(R2_d2 169 → 230).
 - 참값 Q(Q_TRUE)는 보정 갱신을 강하게 해 σψ를 줄이는 만큼 일부 완화되지만 0/9.
 
-{{D5}}
+## 4. D5 — EKF vs sigma-point(CKF) vs PF / 비선형 MC (seed 8000–8031, N=32) — 중간
+같은 세계·prior·센서 입력에 추정기만 바꾼다. CKF = 입력잡음 증강 3차 cubature(18점), PF = 20 000 입자, 국소 최적 proposal(odometry 잔차가 x_prev 조건부로 입력잡음에 대해 정확히 선형-Gaussian), ESS < N/2 재표집 + Liu-West(a=0.98).
+ENEES = PF 사후분포가 EKF Gaussian 아래에서 갖는 기대 NEES = `tr(P_EKF⁻¹P_PF) + dᵀP_EKF⁻¹d`(3이면 두 사후분포 일치).
 
-{{D6}}
+| 세계 / prior | EKF ANEES 중앙값 (일관 셀) | CKF | PF | ENEES(EKF vs PF) drift 0 → drift 2 |
+|---|---|---|---|---|
+| 모델 일치, drift 크기 prior (A2_3) | 4.5 (1/9), R2_d2 133, R5_d2 232 | 3.3 (2/9), R2_d2 25, R5_d2 45 | **2.7, 9셀 모두 2.1–3.5** | R2: 3.2 → 125, R5: 3.2 → 262 |
+| 모델 일치, 기본 prior (A2_3D) | 27.6 (0/9) | 9.5 (0/9) | **2.0–2.1** | R2 40, R4 5.4, R5 103 |
+| B0 (동결 세계, 기본 prior) | 17.5 (0/9) | 8.1 (1/9), R2_d2 67, R5_d2 80 | 진행 중 (R2: 1.4–1.9, 보수적) | R2: 36–43 |
 
-{{DECISION}}
+- 모델 일치 세계에서 PF는 EKF가 133–232까지 과신하는 셀에서도 시간평균 ANEES 2.1–3.5. EKF와 PF 사후분포의 **heading 분산비는 9셀 모두 0.99–1.02**로 같고, 차이는 조건부 XY 공분산(PF/EKF 최대 35–39배)과 평균 이동에 있다 → 같은 데이터·모델에서 EKF 근사만이 문제.
+- CKF는 평균 이동(2차 항)을 대부분 잡지만(R2_d2 mean part 37.7 → 2.8) 조건부 공분산은 여전히 12배 좁다. sigma-point만으로는 drift 2를 해결하지 못한다.
+- PF 엄격 기준(R2-2 전체 기준) 개발 결과: A2_3에서 7/9(R2_d2 말기 25 % 5.3, R5_d0 coverage 0.902; N=32). 입자 수 수렴 점검(20k vs 80k) 예정.
+- 남은 arm: PF_B0(6셀), wheel-noise-only CKF/PF, odometry OFF 비선형 MC 3개.
+
+## 5. D6 — 독립 확증 (seed 8100–8399, N=300) — 진행 중, 기준 미판정
+사전등록 `D6_PREREG_KO.md` / `D6_SPEC.json`(커밋 `9bbe217a`, 실행 전). 기준 판정은 모든 arm이 끝난 뒤 `confirm_dr_independent.py`가 기계적으로 수행한다. 아래는 완료된 arm의 서술 수치일 뿐이다.
+
+| arm | 완료 셀 | 수치 |
+|---|---|---|
+| B0 | 9/9 | ANEES 5.2–179(중앙값 26.9), heading 기여 0.42–2.92, 조건부 XY 기여 4.5–176 — 개발 결과와 같은 양상 |
+| ORACLE_CAL | 8/9 | ANEES 3.03–3.12, 말기 3.03–3.11, coverage 0.942–0.950, heading 0.98 (개발 seed의 2.30은 N=32 표본 변동: oracle에서 heading 오차는 초기 2° 오차가 지배) |
+| NO_C, A2_3_GAUSS_LEVEL, A2_3D_GAUSS_DEFAULT, CKF_A2_3, PF_A2_3 | 0/9 | 실행 대기/진행 중 |
+
+## 6. 원인 판정·유효 영역·권고 — D6 완료 후 확정
+(작성 예정: 계획서 §6 판정 표에 따른 최종 분류, EKF 유효 영역(개발 데이터: 모델 일치 세계에서 필터 σψ ≲ 5°는 일관, ≳ 7°는 과신), 남은 위험, 다음 명령.)
