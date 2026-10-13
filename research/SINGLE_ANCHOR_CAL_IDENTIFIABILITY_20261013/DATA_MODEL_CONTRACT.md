@@ -1,5 +1,7 @@
 # I0 데이터·모델 계약
 
+자료 위치에 관한 최초 감사의 공백 설명은 `out/RF_LOCATION_ADDENDUM_KO.md`로 갱신한다. 입력 분리와 단계 중지 계약은 유지한다.
+
 온라인 상태 순서는 [x m, y m, psi rad, bg rad/s, SFg dimensionless, eps dimensionless]. 좌표와 yaw 부호는 동결 MOTION CSV와 sensor_v2 SE(2) 정의를 그대로 사용한다. 임의 TF 변환은 없다. gyro=(1+SFg)*true_dtheta+bg*dt+noise이며 추론은 (gyro-bg*dt)/(1+SFg)를 사용한다. wheel 좌우 배율은 (1+common_scale)*[1-eps/2,1+eps/2]이다.
 
 wheelbase nominal=0.287 m; true=nominal/(1+true wheelbase error). 기본 필터 known_wheelbase_error=0. 참 wheelbase는 scoring 파일에만 있다. I0는 Oracle 입력을 금지한다. 기존 B0에는 slip/wheelbase 등 모델 불일치가 있고 gauss_level은 slip off/wheelbase error 0이다.

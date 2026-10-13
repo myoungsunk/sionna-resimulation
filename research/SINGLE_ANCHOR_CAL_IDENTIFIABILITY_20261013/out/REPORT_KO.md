@@ -1,5 +1,7 @@
 # I0 구현·검증·실행 보고
 
+**자료 위치 후속 정정:** [RF_LOCATION_ADDENDUM_KO.md](RF_LOCATION_ADDENDUM_KO.md). R23 실행기는 데이터 브랜치에서 확보했고, LoS m45 자료는 Release에서 찾았다. 아래 미확보 설명은 최초 감사 시점의 기록이며 현재 상태는 후속 정정을 따른다.
+
 **RF-off 재현 PASS / 전체 I0 INCONCLUSIVE / I1 NOT_RUN.**
 
 신규 연구 폴더에 public/truth 분리 생성기, public-only 재생 CLI, 입력 계약, arm/seed registry, DRAFT 사전등록 spec을 구현했다. 기존 D6/V3/V4 코드는 변경하지 않았다. 실험 대상은 기존 개발 seed 8000 하나, 2개 세계 × 3개 경로 × 3개 drift의 18 episode이다. 표본 독립성이나 과학적 원인에 관한 확증 실험이 아니다.
