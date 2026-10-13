@@ -1,0 +1,55 @@
+{
+  "stage": "D12",
+  "status": "EXPLORATORY_EXECUTION_COMPLETED",
+  "scientific_PASS": false,
+  "independent_rf_scene": false,
+  "config": {
+    "d11": "D:\\SLAM_bot\\artifacts\\EKF3_D15_VALIDATE_20261013\\OBS",
+    "p2_dir": "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\DIAGNOSTICS_701b8d2\\P2_DOWNLOAD\\P2_OUT",
+    "out": "D:\\SLAM_bot\\artifacts\\EKF3_D15_FFD_RESUME_20261013\\FULL",
+    "seed": 0,
+    "baseline_only": false,
+    "cases": [],
+    "stride": 1,
+    "max_eval_per_case": 0,
+    "co_port": "auto"
+  },
+  "input_evidence": {
+    "D11_online_sha256": "aa65c2ecdcec11fd183615e9c4fbab15f0a979bb4df6fa2fad1c421a824dd828",
+    "P2_seed": 0,
+    "baseline_only": false,
+    "bank_manifest_sha256": "3cc7e3834aa2c8be4b096d4d6151c1b2af42a556bb19577c0d3da589dfbe95f6",
+    "bank_sha256": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    }
+  },
+  "warnings": [
+    "Direct reference LoS FFD observation computed from estimated state; not a prebuilt 4D LUT",
+    "Original FP-LUT retained ONLY for W0 frozen baseline, W1/W2/W3/W4 receive matching direct LoS model",
+    "Ground-truth LoS model evaluation used ONLY for scoring and sensitivity",
+    "Finite-difference yaw Jacobian evaluated twice to flag nonsmooth adaptive tap/window decisions",
+    "P2 same-prior one-step only, no recursive EKF proof",
+    "Gate is exploratory and requires ALL 7 cases, stride=1 and no per-case truncation"
+  ],
+  "sha256": {
+    "D12_WINDOW_ONE_STEP.csv": "67a3e6288efbdf6ed4f542ccff3a7b46746cfca4295408d394400ab94a5c43bf",
+    "D12_WINDOW_SUMMARY.csv": "2ce37f035321fcd13dffbeed34c3f5d6addf4181600bdc827dd143c24496d92a",
+    "D12_WINDOW_GATES.json": "6e8eb5144de9c0d574cfaf3be9b97969cc9e8b91911f22b6a6e625cfdf73093b"
+  },
+  "execution_commit": "03931be34b5a9983b117b0554aa213d4c60a0af4",
+  "frozen_D0_D5_reference": "43f755b75a5ac83fd6e7e67c3ef8f1f0da579d5d",
+  "script_sha256": {
+    "d10_d14_core.py": "75df49256337298840e31bcff39ac243cef64139507d56d4bd15f44403ab3b16",
+    "d10_multipath_correlations.py": "0310d3954a13d8e6b08e742963429a94f93713fa908d20480ab2a8de8dab01b5",
+    "d11_adaptive_window.py": "9cb971bcc5a02800035ad15db828bbaaefc9b8fbb72a06475bdc10773527a479",
+    "d12_los_window_model.py": "d17eab13a0925b38b9da6566343e75ee28d3395e0eaaca5f9169a73f2197bdec",
+    "d13_d14_filter_core.py": "04750e7bc157698e73e8c61502884dd4ce2873251ece044a693c858f1f144b33",
+    "d13_heading_uncertainty_bias.py": "77c6a1e712fe894276698b6832b0a8dcd4bc5969ea167d357e26f6247be06c39",
+    "d14_window_fusion_ablation.py": "d52cdb369a3bd2433296a72b7b06a2dc32dd4a753cc84237aaf8a79279c6c557",
+    "d15_dense_core.py": "848bca38c269357c7018de561e3ae6f23d0372394099daba3e6eb1d7d465d085",
+    "d15_dense_los_validation.py": "e2ac3aa73bd098d01604a013783667b1699ddce3124b1a06ece1d1f14e484a71",
+    "d15_dense_observations.py": "64e3264c824cefa357deb31dd9af3ff5eba3531215dbea664751b078f2dccbfa"
+  },
+  "candidate": "DENSE_SINGLE_FIXED_16N_LOCAL_CROSSING"
+}
