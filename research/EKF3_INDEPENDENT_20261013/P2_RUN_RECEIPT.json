@@ -1,0 +1,141 @@
+{
+  "schema": "EKF3_P2_FROZEN_RF_RECEIPT_V1",
+  "created_kst": "2026-10-13",
+  "branch": "research/ekf3-independent-p0-20261013",
+  "github_actions": {
+    "run_id": 38331588521,
+    "run_url": "https://github.com/myoungsunk/sionna-resimulation/actions/runs/38331588521",
+    "trigger_commit": "43825f15daaa50fd49c4dd73f9242bc6aee0fb05",
+    "workflow": ".github/workflows/ekf3-p2-frozen-rf.yml",
+    "status": "completed",
+    "conclusion": "success",
+    "p0_preflight": "PASS_LOCAL_SHA256_SHAPE_POSE_PREFLIGHT",
+    "p0_assets": 39,
+    "p1_tests": "26 passed"
+  },
+  "sources": {
+    "p0_pass_commit": "b0957181e0e5238e160e69a04d052f23559e666c",
+    "p1_ekf_unchanged": true,
+    "p0_originals_unchanged": true
+  },
+  "p2": {
+    "type": "one-step same DR-only xminus/Pminus, NOT recursively fused full-route",
+    "seed": 0,
+    "sensor_condition": "noise_pair",
+    "channel_modes": [
+      "los",
+      "full"
+    ],
+    "case_count": 7,
+    "case_channels": 14,
+    "total_timesteps_all_channel_runs": 14502,
+    "eval_timesteps_per_channel": 6201,
+    "matched_prior_arm_updates": 43506,
+    "Loewner_joint_vs_scalar_pass": 14139,
+    "max_Joseph_abs_residual": 4.163336342344337e-17,
+    "R0": {
+      "Rs": 0.0081,
+      "Rr_m2": 0.0068578637,
+      "Rsr": 0
+    },
+    "pooled_eval": [
+      {
+        "channel": "los",
+        "arm": "D0",
+        "rmse_xy_m": 0.15912,
+        "rmse_yaw_deg": 0.496,
+        "xy_cov_trace_m2": 0.972766,
+        "mean_heading_sigma_deg": 5.003,
+        "accepted": null
+      },
+      {
+        "channel": "los",
+        "arm": "A",
+        "rmse_xy_m": 0.14387,
+        "rmse_yaw_deg": 0.4435,
+        "xy_cov_trace_m2": 0.633138,
+        "mean_heading_sigma_deg": 3.956,
+        "accepted": 6201
+      },
+      {
+        "channel": "los",
+        "arm": "B",
+        "rmse_xy_m": 0.21125,
+        "rmse_yaw_deg": 0.9356,
+        "xy_cov_trace_m2": 0.817363,
+        "mean_heading_sigma_deg": 4.5,
+        "accepted": 6201
+      },
+      {
+        "channel": "los",
+        "arm": "C",
+        "rmse_xy_m": 0.17239,
+        "rmse_yaw_deg": 0.7511,
+        "xy_cov_trace_m2": 0.543524,
+        "mean_heading_sigma_deg": 3.632,
+        "accepted": 6201
+      },
+      {
+        "channel": "full",
+        "arm": "D0",
+        "rmse_xy_m": 0.15912,
+        "rmse_yaw_deg": 0.496,
+        "xy_cov_trace_m2": 0.972766,
+        "mean_heading_sigma_deg": 5.003,
+        "accepted": null
+      },
+      {
+        "channel": "full",
+        "arm": "A",
+        "rmse_xy_m": 0.54528,
+        "rmse_yaw_deg": 2.1886,
+        "xy_cov_trace_m2": 0.660689,
+        "mean_heading_sigma_deg": 4.009,
+        "accepted": 5902
+      },
+      {
+        "channel": "full",
+        "arm": "B",
+        "rmse_xy_m": 0.2733,
+        "rmse_yaw_deg": 1.2025,
+        "xy_cov_trace_m2": 0.821457,
+        "mean_heading_sigma_deg": 4.507,
+        "accepted": 6084
+      },
+      {
+        "channel": "full",
+        "arm": "C",
+        "rmse_xy_m": 0.57352,
+        "rmse_yaw_deg": 2.3454,
+        "xy_cov_trace_m2": 0.577331,
+        "mean_heading_sigma_deg": 3.696,
+        "accepted": 5897
+      }
+    ],
+    "evaluation_caution": "single sensor seed; many correlated trajectory samples; no independent new RF or environment; R0 not proven; pose NEES/coverage statistical pass not claimed"
+  },
+  "artifact": {
+    "github_artifact_id": 11782748118,
+    "github_artifact_url": "https://github.com/myoungsunk/sionna-resimulation/actions/runs/38331588521/artifacts/11782748118",
+    "archive_filename": "ekf3-p2-frozen-rf-one-step.zip",
+    "archive_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+    "summary_file": "P2_OUT/P2_ONE_STEP_SUMMARY.json",
+    "summary_sha256": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634",
+    "traces_count": 14,
+    "trace_sha256_all_verified": true,
+    "zip_crc_all_verified": true
+  },
+  "previous_attempts": [
+    {
+      "run_id": 38331347561,
+      "status_note": "INVALID_SUCCESS: tee pipeline masked ImportError for pattern_apply source; no RF replay"
+    },
+    {
+      "run_id": 38331443014,
+      "status_note": "FAILED: frozen .npy LUT is numerical grid not pickled dict"
+    }
+  ],
+  "P2_math_PASS": true,
+  "P2_fullroute_NOT_RUN": true,
+  "scientific_PASS": false
+}
