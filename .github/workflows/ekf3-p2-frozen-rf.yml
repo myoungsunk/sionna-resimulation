@@ -1,0 +1,70 @@
+name: EKF3 P2 Frozen RF one-step
+on:
+  push:
+    branches:
+      - research/ekf3-independent-p0-20261013
+    paths:
+      - '.github/workflows/ekf3-p2-frozen-rf.yml'
+      - 'research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py'
+      - 'research/EKF3_INDEPENDENT_20261013/ekf3.py'
+      - 'research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  frozen-rf-one-step:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Git partial clone with P0-only frozen files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF3_INDEPENDENT_20261013/**\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
+          patterns=['/research/EKF3_INDEPENDENT_20261013/**']
+          patterns.extend('/'+a['path'] for a in j['assets'])
+          Path('/tmp/ekf3-p2-sparse-patterns').write_text('\n'.join(patterns)+'\n')
+          print('Sparse blob patterns:',len(patterns))
+          PY
+          git sparse-checkout set --no-cone --stdin < /tmp/ekf3-p2-sparse-patterns
+          git status --short
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install numerical test dependencies
+        run: python -m pip install --disable-pip-version-check numpy pytest
+      - name: Verify P0 input hashes, H shapes and pose alignment
+        run: |
+          python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py \
+            | tee research/EKF3_INDEPENDENT_20261013/P2_VERIFY_P0_RUNTIME.json
+      - name: Independently retest P1 mathematics
+        run: |
+          python -m pytest -q \
+            research/EKF3_INDEPENDENT_20261013/test_ekf3.py \
+            research/EKF3_INDEPENDENT_20261013/test_ekf3_smoke.py
+      - name: Execute actual frozen RF H and LoS, same-prior A/B/C matrices
+        run: |
+          python research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py \
+            --seed 0 --channels los full \
+            --out research/EKF3_INDEPENDENT_20261013/P2_OUT \
+            | tee research/EKF3_INDEPENDENT_20261013/P2_EXECUTION.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ekf3-p2-frozen-rf-one-step
+          path: |
+            research/EKF3_INDEPENDENT_20261013/P2_OUT/**
+            research/EKF3_INDEPENDENT_20261013/P2_VERIFY_P0_RUNTIME.json
+            research/EKF3_INDEPENDENT_20261013/P2_EXECUTION.log
+          retention-days: 30
+          if-no-files-found: warn
