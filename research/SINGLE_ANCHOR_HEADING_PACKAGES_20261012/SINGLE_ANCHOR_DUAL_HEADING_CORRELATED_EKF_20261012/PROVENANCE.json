@@ -1,0 +1,131 @@
+{
+  "runs": 1000,
+  "seed": 20261012,
+  "steps": 100,
+  "dt_s": 0.5,
+  "distance_step_m": 0.1,
+  "anchor_xyz_m": [
+    4.0,
+    0.0,
+    2.65
+  ],
+  "tag_z_m": 0.45,
+  "corridor_dims_m": [
+    20.0,
+    2.4,
+    2.7
+  ],
+  "robot_center_ymax_m": 0.7394448724536009,
+  "init_xy_std_m": 0.1,
+  "init_yaw_std_deg": 3.0,
+  "true_actuator_ds_std_m": 0.002,
+  "true_actuator_yaw_std_deg": 0.035,
+  "odom_ds_std_m": 0.008,
+  "range_std_m": 0.08,
+  "dr_yaw_std_deg": 0.23,
+  "rf_heading_std_deg": 1.0,
+  "model_notes": "Synthetic RF world yaw, not a demonstrated radio observable; corridor geometry from GitHub placeholders; no dual LP.",
+  "route_segments": {
+    "straight": [
+      [
+        100,
+        0.0
+      ]
+    ],
+    "rectangle": [
+      [
+        19,
+        0.0
+      ],
+      [
+        6,
+        90.0
+      ],
+      [
+        19,
+        180.0
+      ],
+      [
+        6,
+        -90.0
+      ],
+      [
+        19,
+        0.0
+      ],
+      [
+        6,
+        90.0
+      ],
+      [
+        19,
+        180.0
+      ],
+      [
+        6,
+        -90.0
+      ]
+    ],
+    "rieul": [
+      [
+        31,
+        0.0
+      ],
+      [
+        3,
+        90.0
+      ],
+      [
+        31,
+        180.0
+      ],
+      [
+        3,
+        90.0
+      ],
+      [
+        32,
+        0.0
+      ]
+    ],
+    "zigzag": [
+      [
+        17,
+        21.1
+      ],
+      [
+        16,
+        -21.1
+      ],
+      [
+        17,
+        21.1
+      ],
+      [
+        17,
+        -21.1
+      ],
+      [
+        16,
+        21.1
+      ],
+      [
+        17,
+        -21.1
+      ]
+    ]
+  },
+  "runtime_seconds": 98.58,
+  "study_url": "https://github.com/myoungsunk/sionna-resimulation/blob/codex/range-only-bias-consistency-20261011/src/qclean_uwb/scenarios/corridor.py",
+  "heading_models": {
+    "gyro": "relative delta yaw input, biased and Gaussian",
+    "RF_main": "synthetic WORLD ABSOLUTE yaw (not measured)",
+    "RF_alternative": "synthetic anchor-relative bearing (gauge ambiguity)"
+  },
+  "experiment_counts": {
+    "core": 348,
+    "sparse_heading_update": 48,
+    "simultaneous_crosscorrelation": 8,
+    "total": 404
+  }
+}

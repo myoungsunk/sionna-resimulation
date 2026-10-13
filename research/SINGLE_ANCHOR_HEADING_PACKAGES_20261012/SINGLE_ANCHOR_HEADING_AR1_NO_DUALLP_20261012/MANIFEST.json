@@ -1,0 +1,104 @@
+{
+  "model": "range-only + relative DR + 3-state EKF; optional AR(1) state-augmented 4-state EKF",
+  "no_dual_lp": true,
+  "no_yaw_rf_bias_proxy": true,
+  "synthetic_no_sionna": true,
+  "source_github_repo": "myoungsunk/sionna-resimulation",
+  "source_branch": "codex/range-only-bias-consistency-20261011",
+  "source_file": "src/qclean_uwb/scenarios/corridor.py",
+  "source_blob_sha": "eba1ab64d5e2117bfd519ceb5cac077b24caf3f8",
+  "config": {
+    "runs": 1000,
+    "seed": 20261012,
+    "n_steps": 100,
+    "step_m": 0.1,
+    "dt_s": 0.5,
+    "corridor_length_m": 20.0,
+    "corridor_width_m": 2.4,
+    "corridor_height_m": 2.7,
+    "anchor_x_m": 4.0,
+    "anchor_y_m": 0.0,
+    "anchor_z_m": 2.65,
+    "tag_z_m": 0.45,
+    "robot_body_lwh_m": [
+      0.6,
+      0.4,
+      0.4
+    ],
+    "robot_clearance_m": 0.1,
+    "robot_x_min_m": 1.0,
+    "robot_x_max_m": 19.0,
+    "start_x_m": 4.0,
+    "start_y_m": 0.0,
+    "initial_xy_std_m": 0.1,
+    "initial_yaw_std_deg": 3.0,
+    "dr_step_std_m": 0.008,
+    "dr_yaw_step_std_deg": 0.23,
+    "range_std_m": 0.08,
+    "range_bias_m": 0.2,
+    "independent_calibration_samples": 1000
+  },
+  "seed": 20261012,
+  "runs": 1000,
+  "base_engine_sha256": "0c0fe763aa728f5a580cc46cc76f03173c94ea69a61b892d17c08a01f1ae5401",
+  "scenarios": [
+    {
+      "family": "heading_prior",
+      "case": "initial_sigma_0.5deg"
+    },
+    {
+      "family": "heading_prior",
+      "case": "initial_sigma_1deg"
+    },
+    {
+      "family": "heading_prior",
+      "case": "initial_sigma_3deg"
+    },
+    {
+      "family": "heading_prior",
+      "case": "initial_sigma_6deg"
+    },
+    {
+      "family": "heading_drift",
+      "case": "drift_0deg"
+    },
+    {
+      "family": "heading_drift",
+      "case": "drift_1deg"
+    },
+    {
+      "family": "heading_drift",
+      "case": "drift_3deg"
+    },
+    {
+      "family": "heading_drift",
+      "case": "drift_5deg"
+    },
+    {
+      "family": "range_temporal",
+      "case": "ar1_0"
+    },
+    {
+      "family": "range_temporal",
+      "case": "ar1_0.5"
+    },
+    {
+      "family": "range_temporal",
+      "case": "ar1_0.9"
+    },
+    {
+      "family": "range_temporal",
+      "case": "ar1_0.98"
+    },
+    {
+      "family": "anchor_geometry",
+      "case": "anchor_y_0m"
+    },
+    {
+      "family": "anchor_geometry",
+      "case": "anchor_y_1m"
+    }
+  ],
+  "qa_equal_marginal_range_rmse": true,
+  "notes": "GT and initial XY and motion noises are identical across temporal conditions; global realized ranging RMS standardized to 0.08 m. Walls are not enforced. H_y zero on centerline only for central-anchor layout."
+}

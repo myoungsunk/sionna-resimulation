@@ -1,0 +1,73 @@
+{
+  "created_utc": "2026-10-12T06:49:18.652030+00:00",
+  "reproduced_previous_baseline": true,
+  "source": {
+    "repo": "myoungsunk/sionna-resimulation",
+    "branch": "codex/range-only-bias-consistency-20261011",
+    "geometry_source": "src/qclean_uwb/scenarios/corridor.py",
+    "blob": "eba1ab64d5e2117bfd519ceb5cac077b24caf3f8"
+  },
+  "baseline_source": "SINGLE_ANCHOR_MULTIPATH_CORRIDOR_20261012",
+  "seed": 20261012,
+  "sensor_rng_seed": 20261029,
+  "config": {
+    "runs": 1000,
+    "seed": 20261012,
+    "n_steps": 100,
+    "step_m": 0.1,
+    "dt_s": 0.5,
+    "corridor_length_m": 20.0,
+    "corridor_width_m": 2.4,
+    "corridor_height_m": 2.7,
+    "anchor_x_m": 4.0,
+    "anchor_y_m": 0.0,
+    "anchor_z_m": 2.65,
+    "tag_z_m": 0.45,
+    "robot_body_lwh_m": [
+      0.6,
+      0.4,
+      0.4
+    ],
+    "robot_clearance_m": 0.1,
+    "robot_x_min_m": 1.0,
+    "robot_x_max_m": 19.0,
+    "start_x_m": 4.0,
+    "start_y_m": 0.0,
+    "initial_xy_std_m": 0.1,
+    "initial_yaw_std_deg": 3.0,
+    "dr_step_std_m": 0.008,
+    "dr_yaw_step_std_deg": 0.23,
+    "range_std_m": 0.08,
+    "range_bias_m": 0.2,
+    "independent_calibration_samples": 1000
+  },
+  "sigma_sweep_deg": [
+    0.5,
+    1.0,
+    2.0,
+    3.0,
+    5.0,
+    10.0
+  ],
+  "compared_methods": [
+    "DR only",
+    "DR+range",
+    "DR+absolute heading",
+    "DR+range+absolute heading"
+  ],
+  "heading_sensor_assumption": "independent absolute yaw in common world frame, iid Gaussian noise, sigma matched to filter; no RF/LP heading estimation",
+  "range_sensor_assumption": "independent Gaussian sigma 0.08 m with full 3D Euclidean geometry",
+  "heading_update": "post-prediction, post-range-update; independent scalar H=[0,0,1], circular residual wrap(), Joseph covariance",
+  "heading_quality_sweep": "filter Rpsi matches measurement variance in main sweep",
+  "bias_stress": "constant +2deg/+5deg unmodelled bias with reported Rpsi=1deg^2",
+  "drift_stress": "5deg total applied to true motion increments only; can leave physical corridor",
+  "no_physical_heading_sensor": "These are ASSUMED measurements for upper-bound performance, not actual RF estimates",
+  "illustrative_trajectory_selection": "Run nearest median paired within-run RMSE benefit selected individually per route, see illustrative_run_selection.csv",
+  "preserved_source_files": [
+    "base_corridor_ekf.py",
+    "simulate_routes.py",
+    "previous_route_metrics_20261012.csv"
+  ],
+  "executed_seconds": 20.732,
+  "qa_rerun_skip_plots": true
+}

@@ -1,0 +1,59 @@
+{
+  "config": {
+    "runs": 500,
+    "seed": 20261012,
+    "n_steps": 100,
+    "step_m": 0.1,
+    "dt_s": 0.5,
+    "corridor_length_m": 20.0,
+    "corridor_width_m": 2.4,
+    "corridor_height_m": 2.7,
+    "anchor_x_m": 4.0,
+    "anchor_y_m": 0.0,
+    "anchor_z_m": 2.65,
+    "tag_z_m": 0.45,
+    "robot_body_lwh_m": [
+      0.6,
+      0.4,
+      0.4
+    ],
+    "robot_clearance_m": 0.1,
+    "robot_x_min_m": 1.0,
+    "robot_x_max_m": 19.0,
+    "start_x_m": 4.0,
+    "start_y_m": 0.0,
+    "initial_xy_std_m": 0.1,
+    "initial_yaw_std_deg": 3.0,
+    "dr_step_std_m": 0.008,
+    "dr_yaw_step_std_deg": 0.23,
+    "range_std_m": 0.08,
+    "range_bias_m": 0.2,
+    "independent_calibration_samples": 1000
+  },
+  "checks": {
+    "baseline_match": true,
+    "heading_independent_geometric_ranging": true,
+    "calibration_sanity": true,
+    "finite_metrics": true,
+    "plots_computed": true
+  },
+  "scenarios": 37,
+  "sha256_base_code": "0c0fe763aa728f5a580cc46cc76f03173c94ea69a61b892d17c08a01f1ae5401",
+  "source_git_repo": "myoungsunk/sionna-resimulation",
+  "source_branch": "codex/range-only-bias-consistency-20261011",
+  "source_blob_sha": "eba1ab64d5e2117bfd519ceb5cac077b24caf3f8",
+  "models": "geometric 3D range; synthetically assigned error models; EKF Joseph covariance; no RF ray tracing",
+  "signal_groups": {
+    "H1_initial_heading": 4,
+    "H2_heading_step_noise": 4,
+    "H3_unmodeled_gyro_bias": 4,
+    "H4_hypothetical_heading_RF": 4,
+    "R1_white_gaussian_matched": 4,
+    "R1b_gaussian_R_underestimated": 2,
+    "R2_fixed_bias": 5,
+    "R3_range_scale_bias": 3,
+    "R4_AR1_colored_noise": 3,
+    "R5_positive_outliers": 3,
+    "R6_independent_calibration": 1
+  }
+}

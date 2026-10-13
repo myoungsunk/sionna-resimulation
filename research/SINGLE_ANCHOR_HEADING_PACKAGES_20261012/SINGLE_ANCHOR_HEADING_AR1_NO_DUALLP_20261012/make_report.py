@@ -1,0 +1,162 @@
+from pathlib import Path
+import json
+import pandas as pd
+import numpy as np
+D=Path(__file__).resolve().parent
+x=pd.read_csv(D/'all_scenarios.csv')
+a=pd.read_csv(D/'ar1_aware_vs_unaware.csv')
+b=json.loads((D/'PAIRED_BOOTSTRAP.json').read_text())
+
+def table(fam,columns,labels):
+ d=x[x.family==fam][columns].copy()
+ d.columns=labels
+ return d.to_markdown(index=False,floatfmt='.4f')
+
+heading=table('heading_prior', ['heading_sigma_deg','raw_range_rmse_m','rmse_x_m','rmse_y_m','rmse_2d_m','mean_nis','mean_nees_xy','final_coverage_xy_95_pct'],
+ ['초기 Heading σ (°)','Ranging RMSE (m)','RMSE_x (m)','RMSE_y (m)','RMSE_2D (m)','평균 NIS','평균 2D NEES','최종 95% 포함률 (%)'])
+drift=table('heading_drift',['heading_drift_deg','final_true_position_shift_m','final_true_range_shift_m','rmse_2d_m','mean_nees_xy','final_coverage_xy_95_pct','gt_wall_violation_traj_pct'],
+ ['누적 Heading drift (°)','최종 실제 위치 차이 RMS (m)','최종 실제 기하거리 차이 RMS (m)','EKF RMSE_2D (m)','평균 2D NEES','최종 95% 포함률 (%)','GT 허용영역 이탈 주행 (%)'])
+ar=table('range_temporal',['rho','raw_range_rmse_m','raw_range_acf1','theoretical_Neff_mean100','rmse_x_m','rmse_y_m','rmse_2d_m','mean_nis','nis_innov_acf1','mean_nees_xy','coverage_xy_95_pct','final_coverage_xy_95_pct'],
+ ['ρ','거리 RMSE (m)','측정 ACF(1)','N_eff(평균)','RMSE_x (m)','RMSE_y (m)','RMSE_2D (m)','NIS','Innovation ACF(1)','NEES_2D','전체 95% 포함률 (%)','최종 95% 포함률 (%)'])
+aw=a[['rho','rmse_2d_m','mean_nis','mean_nees_xy','final_coverage_xy_95_pct','nis_innov_acf1']].copy();aw.columns=['ρ','RMSE_2D (m)','NIS','NEES_2D','최종 95% 포함률 (%)','Innovation ACF(1)']
+geom=table('anchor_geometry',['anchor_y_m','rmse_x_m','rmse_y_m','rmse_2d_m','mean_nees_xy','final_coverage_xy_95_pct'],
+ ['Anchor y (m)','RMSE_x (m)','RMSE_y (m)','RMSE_2D (m)','평균 NEES_2D','최종 95% 포함률 (%)'])
+report=f'''# 단일 앵커 Range-only + DR/EKF: Heading 오차·Ranging 시간 상관관계 재검증
+
+## 실험 개요
+
+이 문서는 **Dual-LP orientation 및 임의의 yaw-dependent RF ranging bias 모델을 적용하지 않은**, 합성 2D trajectory + 3D geometric ranging + relative DR EKF 민감도 실험의 실행 결과를 정리한다. 기존 가상 모델 $A(d_{{xy}}/r)\\cos 2(\\psi-\\beta)$는 물리 검증되지 않은 민감도 proxy였으며 여기에서는 완전히 제외한다. UWB 안테나 이득/편파 패턴·CIR·Sionna RT는 적용하지 않았다.
+
+- 원본 환경: [myoungsunk/sionna-resimulation](https://github.com/myoungsunk/sionna-resimulation), `codex/range-only-bias-consistency-20261011`, `src/qclean_uwb/scenarios/corridor.py`, blob `eba1ab64d5e2117bfd519ceb5cac077b24caf3f8`.
+- 저장소가 정의한 복도: 길이 20m, 폭 2.4m, 높이 2.7m; 앵커 $(4,0,2.65)$m, 중심 태그 높이 0.45m. GitHub 설정 수치는 **placeholder이며 실측 데이터 아님**.
+- 로봇 주행: $(4,0)$에서 $(14,0)$으로 명목 10m, 100회 상대 DR 증분, 0.1m/0.5초/step. 방위각 단위 rad로 연산, 표에서는 degree.
+- 잡음: 상대 DR 이동 σ=0.008m/step, 상대 yaw σ=0.23°/step, 초기 XY σ=0.10m, 초기 yaw σ=3°, range σ=0.080m 기본.
+- Monte Carlo **1,000회**, 시드 `20261012`; 시간상관 실험은 실제 관측 noise RMS를 **정확히 0.080m로 global normalization**. 테스트 간 동일 GT/초기상태/DR 노이즈 공유.
+- GT 복도 벽 충돌, 미끄러짐, heading 기반 복도 정렬, 맵 제약은 **모델링하지 않음**. 벽 이탈률은 진단으로 별도 기록.
+- DR 및 EKF 본체는 이전 정상적인 3-state EKF 구현 `base_corridor_ekf.py` 사본을 사용함.
+- 전체 구간 RMSE는 k=1..100 모두 집계; 최종 RMSE·최종 coverage는 k=100만 집계. 95% 2D 신뢰타원 검정은 $\\chi^2_2(0.95)=5.9915$.
+
+## 1. 좌표계
+
+사용자 그림에서 수평 진행축은 $x$, 복도 폭을 가로지르는 상하 방향은 $y$이다. 따라서 횡방향 RMSE는 **$RMSE_y$**. 그림 위: 중심선 앵커/로봇, 그림 아래: 앵커와 로봇의 y 간격 있음. GitHub 원본 앵커 위치는 중심선 `y=0`.
+
+## 2. 기존 가상 RF 방향 편향 수식의 지위
+
+$\\cos(2\\theta)$ 항은 단일 선형편파 전력투영에서 나타날 수 있는 $\\cos^2\\theta=(1+\\cos 2\\theta)/2$의 주기성과 비슷하다. 그러나 수신전력 또는 편파정합 손실은 **ToA/ranging bias의 수학적 직접 모델이 아니다**. Dual LP와 관계없이 채널·first arrival 추정기와의 연결이 없으므로 해당 모델로 ranging 오차 크기를 예측할 수 없다. 이번 연구에서는 **그 수식·가정형 결과 전체를 제거**한다.
+
+## 3. 기하 관측 및 Heading
+
+중심 태그 기준 $r(x,y)=\\sqrt{{(x-4)^2+y^2+2.20^2}}$. 따라서 고정 $(x,y)$에서 $\\partial r/\\partial\\psi=0$. 오직 Heading 오류 때문에 trajectory가 바뀌는 경로를 통해 진짜 측정 거리까지 변화한다. 중심선 $y=0$에서는 $\\partial r/\\partial y=0$이어서 **횡방향 range 민감도가 1차적으로 소실**된다.
+
+예측 모형: $x_{{k+1}}=x_k+\\Delta s_k\\cos(\\psi_k+\\Delta\\psi_k/2)$, $y_{{k+1}}=y_k+\\Delta s_k\\sin(\\psi_k+\\Delta\\psi_k/2)$, $\\psi_{{k+1}}=\\psi_k+\\Delta\\psi_k$. 초기 Heading에 작은 일정 오차 $\\delta\\psi$가 있으면 $\\delta y\\approx L\\delta\\psi$ (rad).
+
+### 3.1 초기 Heading 불확실성 (P0 동일하게 갱신)
+
+{heading}
+
+`3° → 6°` 조건에서 추정 RMSE 증가와 함께 평균 NEES 증가·95% coverage 감소를 관찰함. 이는 현재 단일 앵커 구조/일반 EKF의 **일관성 문제**를 수치로 보여주나 모든 환경의 필연적 결과로 일반화할 수 없음. NIS는 전 조건 거의 1이다.
+
+### 3.2 누적 DR Heading drift (DR 모델에 반영하지 않은 오차)
+
+{drift}
+
+표의 최종 실제 위치·거리 차이는 **drift 없는 실제 궤적을 기준으로 한 displacement**, EKF 위치 오차와 구별해야 한다. 5° 편향은 약 0.436m 실제 최종 위치 변화를 유발하지만 geometric range 차이는 약 0.0043m. 이 약 4mm의 차이는 기본 80mm ranging σ보다 매우 작다. 5° 조건에서 GT의 복도 허용영역 이탈률 {x[(x.family=='heading_drift')&(x.heading_drift_deg==5)].gt_wall_violation_traj_pct.iloc[0]:.1f}%이므로 실제 충돌 없는 주행의 대리로 쓰지 말 것.
+
+## 4. 시간 상관된 Ranging 오류
+
+### 4.1 수식
+
+기존 EKF는 $z_k=r_k+e_k$, $e_k\\sim N(0,\\sigma_r^2)$ 및 서로 다른 $k$에서 독립을 가정. AR(1)은
+
+$$
+e_k=\\rho e_{{k-1}}+\\sqrt{{1-\\rho^2}}\\sigma_r w_k,\\qquad w_k\\sim\\mathcal N(0,1).
+$$
+
+초기 $e_0\\sim\\mathcal N(0,\\sigma_r^2)$일 때 $\\mathrm{{Var}}(e_k)=\\sigma_r^2$, $\\mathrm{{Cov}}(e_i,e_j)=\\sigma_r^2\\rho^{{|i-j|}}$. **동일한 분산/RMSE라도 다른 시점 간 공분산은 다름**. 독립 가정의 관측 covariance는 대각행렬이지만 실제 joint covariance에는 off-diagonal 성분이 있다.
+
+### 4.2 Ranging RMSE 정확히 동일한 실험: naïve EKF
+
+{ar}
+
+- $\\rho=0.98$이면 50초에 걸친 100번 관측 오차 중 양의 바이어스가 꽤 오래 유지됨. EKF는 이를 새로운 독립 정보처럼 업데이트하여 실제 위치 오차에 비해 covariance가 너무 작아질 수 있음.
+- $\\rho=0.98$에서 2D RMSE는 {x[(x.family=='range_temporal')&(x.rho==.98)].rmse_2d_m.iloc[0]:.4f}m으로 다소 악화, 평균 NEES는 {x[(x.family=='range_temporal')&(x.rho==.98)].mean_nees_xy.iloc[0]:.3f}, 최종 coverage {x[(x.family=='range_temporal')&(x.rho==.98)].final_coverage_xy_95_pct.iloc[0]:.1f}%로 크게 악화.
+- **NIS가 1보다 작다고 해서 정상 일관성을 의미하지 않음**. 측정 오차가 지속되며 필터 추정값이 이를 따라가는 상황에서는 innovation 자체가 작아질 수 있다. Lag-1 normalized innovation autocorrelation은 독립 시 -0.001 수준, $\\rho=0.98$에서 약 0.901로 커진다.
+
+### 4.3 유효 독립 표본 개수의 직관적 근사 (N=100)
+
+변하지 않는 평균을 추정한다고 할 때, $\\mathrm{{Var}}(\\bar e)=\\sigma_r^2[N+2\\sum_{{j=1}}^{{N-1}}(N-j)\\rho^j]/N^2$.
+
+$$
+N_{{eff}}=\\frac{{N^2}}{{N+2\\sum_{{j=1}}^{{N-1}}(N-j)\\rho^j}}.
+$$
+
+실제 $N_{{eff}}$는 $\\rho=0$: 100.0, $0.50$: 33.78, $0.90$: 5.81, $0.98$: 1.77이다. **이는 고정 평균 추정의 직관적 정보량이지 trajectory EKF의 관측 랭크나 정확한 정보량 수치가 아님**.
+
+### 4.4 기저 오차의 자기상관을 아는 이상적 EKF
+
+관측 $z_k=r_k+b_k$로 나타내고 $b_{{k+1}}=\\rho b_k+u_k$, $\\mathrm{{Var}}(u_k)=\\sigma_r^2(1-\\rho^2)$의 4번째 상태를 추정하도록 EKF를 확장함. 여기서는 **오차 전부가 AR(1)에서 생성되었음을 알고, ρ·σ를 정확히 지정**한 합성 oracle-parameter control임(실제 GT 위치를 EKF 입력에 주지 않음). 추가 백색 센서 noise는 0으로 가정함.
+
+{aw.to_markdown(index=False,floatfmt='.4f')}
+
+$\\rho=0.98$에서 일반 EKF의 평균 NEES≈11.02, 종료 시 coverage≈49.9%인 데 비해 AR(1)-aware EKF는 평균 NEES≈2.09, 종료 시 coverage≈91.4%로 상당 부분 회복했다. 그러나 95% 목표에 완전히 도달하지 못한 것은 초기 Heading/gauge 및 EKF 선형화 이슈 등이 남아 있음을 시사한다. **이는 물리 데이터에서 ρ를 이미 안다고 전제할 수 있다는 의미가 아니다.**
+
+### 4.5 대응 bootstrap: 독립 단위는 주행 1,000회
+
+2,000번의 paired bootstrap (표본 단위: 전체 주행 1개)을 적용하였다. $\\rho=0.98$ vs $\\rho=0$에서
+
+- 전체 2D RMSE 차이 +{b['overall_rmse_2d_diff_m']['estimate']:.4f}m, 95% 구간 [{b['overall_rmse_2d_diff_m']['bootstrap_95ci'][0]:.4f}, {b['overall_rmse_2d_diff_m']['bootstrap_95ci'][1]:.4f}]m.
+- 최종 95% coverage 차이 {b['final_coverage_diff_percentage_points']['estimate']:.1f}%p, 구간 [{b['final_coverage_diff_percentage_points']['bootstrap_95ci'][0]:.1f}, {b['final_coverage_diff_percentage_points']['bootstrap_95ci'][1]:.1f}]%p.
+- 평균 2D NEES 차이 +{b['overall_mean_nees_2d_diff']['estimate']:.2f}, 구간 [{b['overall_mean_nees_2d_diff']['bootstrap_95ci'][0]:.2f}, {b['overall_mean_nees_2d_diff']['bootstrap_95ci'][1]:.2f}].
+
+이는 **설정한 합성 생성 모형** 안에서의 Monte Carlo 표본 불확실성이며, 실제 로봇 RF 성능에 대한 95% 신뢰구간이 아니다.
+
+## 5. 사용자 그림의 아래 배치: 횡방향 offset control
+
+그림의 2번 배치처럼 앵커를 $y=+1.0$m로 옮겨 같은 GT 주행을 테스트했다. 이 조건은 GitHub 원본 `anchor_y=0`과 구별되는 **가상의 기하 비교 조건**이다.
+
+{geom}
+
+앵커를 중심선에서 옆으로 옮기면 중심 주행선에서 $\\partial r/\\partial y=(y-a_y)/r\\ne 0$이므로 횡방향 정보가 일부 증가한다. 복도 맵/벽 측정은 여전히 필터 입력에 없다.
+
+## 6. 한계 및 결론
+
+1. Heading 오차 자체는 중앙 태그의 기하 range error $z-r_{{true}}$를 바꾸지 않는다. 하지만 DR가 만드는 궤적과 위치 사전정보에는 큰 영향을 준다. 그림의 첫 배치에서는 range로 y 오류를 1차 보정할 수 없다.
+2. **동일한 ranging RMSE라도** 시간 상관과 잘못된 observation covariance 때문에 NEES 및 coverage가 급격히 악화될 수 있다.
+3. 일반 EKF의 NIS 단독 점수는 신뢰성 인증에 충분하지 않다. 외부 GT 기반 NEES, coverage, normalized innovation autocorrelation이 함께 필요하다.
+4. 어떤 Dual-LP 또는 RF orientation-based range 보정도 사용하지 않았다. 벽 충돌, Sionna 채널, 위치 GT 추정과 실측 통계는 적용되지 않았다.
+5. 모델이 맞는 AR(1)-aware EKF는 일관성을 개선했지만 Heading의 절대 관측 불가능성을 해결하지 않는다.
+
+## 7. 재현
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 study.py --runs 1000 --seed 20261012
+python3 qa_checks.py
+```
+
+요약 테이블: `heading_initial.csv`, `heading_drift.csv`, `ranging_temporal_correlation.csv`, `ar1_aware_vs_unaware.csv`, `geometry_comparison.csv`. 그래프: `01_heading_error_vs_localization.png`, `02_ar1_same_ranging_rmse.png`, `03_ar1_time_series_acf.png`. 실험 해시·입력 조건: `MANIFEST.json`.
+'''
+report=report.replace('$\x7f\\rho=0.98$','$\\rho=0.98$')
+(D/'REPORT_KO.md').write_text(report,encoding='utf8')
+(D/'README_KO.md').write_text('''# Single Anchor Heading & Temporal Ranging Study (No Dual-LP)
+
+현재 GitHub 복도 환경(20×2.4×2.7m, 앵커 (4,0,2.65)m, 태그 z=0.45m)의 **합성** range-only + relative DR + EKF 시뮬레이션.
+
+- `REPORT_KO.md`: 수식부터 실험 결과, 표, 검증 한계까지 포함한 한국어 연구 보고서
+- `study.py`: 1,000회 paired Monte Carlo, Heading prior/gyro drift, Gaussian white vs AR(1) colored ranging, 알려진 AR(1) 모델을 사용하는 4-state EKF 대조 실험, 앵커의 횡방향 offset 비교
+- `base_corridor_ekf.py`: 앞선 GitHub 복도 실험의 **변경 없는** range-only 3-state EKF 구현 사본
+- `all_scenarios.csv`: 각 시나리오별 x/y/2D RMSE, NIS, NEES, coverage, ACF, 경계 이탈률
+- `ranging_temporal_correlation.csv`, `ar1_aware_vs_unaware.csv`: **시간 상관관계 실험** 별도 상세 테이블
+- `PAIRED_BOOTSTRAP.json`: 전체 주행을 독립 표본 단위로 2,000번 부트스트랩한 차이와 95% CI
+- `MANIFEST.json`: GitHub 참조, 전체 설정, 시드, 코드 SHA256, 조건 레지스트리
+- `QA_REPORT.json`, `QA_REPORT_KO.md`: 실제 실행한 검사와 수행하지 않은 검증 구분
+
+```bash
+python3 -m pip install -r requirements.txt
+python3 study.py --runs 1000 --seed 20261012
+python3 qa_checks.py
+```
+
+**금지된 해석:** RF 다중경로의 실제 시뮬레이션 결과 아님, Dual-LP orientation 아님, Sionna RT 아님, 벽 충돌 검증 아님. GitHub 기본 치수는 원본 코드가 placeholder라고 명시함.
+''',encoding='utf8')
+print('report written',len(report),'chars')

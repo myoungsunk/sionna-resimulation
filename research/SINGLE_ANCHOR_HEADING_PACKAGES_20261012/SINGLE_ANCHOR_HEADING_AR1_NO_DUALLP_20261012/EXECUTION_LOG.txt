@@ -1,0 +1,35 @@
+BOOTSTRAP {"comparison": "AR1 rho=0.98 minus rho=0.00 (paired by Monte Carlo run)", "n_runs": 1000, "n_bootstrap": 2000, "overall_rmse_2d_diff_m": {"estimate": 0.018251310134742738, "bootstrap_95ci": [0.013665417725759351, 0.022958862654079343]}, "final_coverage_diff_percentage_points": {"estimate": -36.0, "bootstrap_95ci": [-39.5, -32.699999999999996]}, "overall_mean_nees_2d_diff": {"estimate": 8.600563868394195, "bootstrap_95ci": [7.976824629840879, 9.216263305792928]}}
+DR baseline 0.355345330566607 0.5869342109659703
+
+HEADING (initial prior)
+                 case  raw_range_rmse_m  rmse_x_m  rmse_y_m  rmse_2d_m  final_rmse_2d_m  mean_nis  mean_nees_xy  final_coverage_xy_95_pct
+initial_sigma_0.5deg              0.08    0.0408    0.1551     0.1604           0.2545    0.9999        1.9749                      95.2
+  initial_sigma_1deg              0.08    0.0409    0.1780     0.1827           0.2959    0.9999        1.9972                      94.5
+  initial_sigma_3deg              0.08    0.0432    0.3370     0.3397           0.5748    0.9999        2.4145                      85.9
+  initial_sigma_6deg              0.08    0.0686    0.6257     0.6295           1.0783    0.9998        7.1484                      64.1
+
+HEADING (drift)
+       case  final_true_position_shift_m  final_true_range_shift_m  rmse_y_m  rmse_2d_m  mean_nees_xy  final_coverage_xy_95_pct  gt_wall_violation_traj_pct
+drift_0deg                       0.0000                    0.0000    0.3370     0.3397        2.4145                      85.9                         0.0
+drift_1deg                       0.0872                    0.0006    0.3402     0.3429        2.4407                      84.9                         0.2
+drift_3deg                       0.2616                    0.0021    0.3597     0.3623        2.6170                      81.2                         1.4
+drift_5deg                       0.4360                    0.0043    0.3943     0.3966        2.9734                      74.3                         7.7
+
+TEMPORAL
+     case  raw_range_rmse_m  raw_range_acf1  theoretical_Neff_mean100  rmse_x_m  rmse_y_m  rmse_2d_m  final_rmse_2d_m  mean_nis  nis_innov_acf1  mean_nees_xy  coverage_xy_95_pct  final_coverage_xy_95_pct
+   ar1_0              0.08         -0.0008                  100.0000    0.0432    0.3370     0.3397           0.5748    0.9999         -0.0012        2.4145              91.768                      85.9
+ ar1_0.5              0.08          0.4993                   33.7838    0.0540    0.3361     0.3404           0.5739    0.9244          0.4573        3.3354              84.615                      79.9
+ ar1_0.9              0.08          0.9004                    5.8139    0.0830    0.3399     0.3498           0.5836    0.5851          0.8235        7.3649              63.262                      61.5
+ar1_0.98              0.08          0.9803                    1.7700    0.0999    0.3437     0.3580           0.5986    0.2626          0.9005       11.0150              53.693                      49.9
+
+AR1 aware
+  rho     case                  method  rmse_2d_m  rmse_x_m  rmse_y_m  final_rmse_2d_m  mean_nis  mean_nees_xy  coverage_xy_95_pct  final_coverage_xy_95_pct  nis_innov_acf1  final_mean_nees_xy
+0.00    ar1_0 AR1-aware augmented EKF     0.3397    0.0432    0.3370           0.5748    0.9999        2.4145              91.768                      85.9         -0.0012              3.3427
+0.50  ar1_0.5 AR1-aware augmented EKF     0.3409    0.0514    0.3370           0.5753    1.0002        2.2321              92.899                      88.8         -0.0018              2.8086
+0.90  ar1_0.9 AR1-aware augmented EKF     0.3434    0.0665    0.3369           0.5766    0.9948        2.0798              94.159                      91.7         -0.0024              2.3592
+0.98 ar1_0.98 AR1-aware augmented EKF     0.3460    0.0693    0.3390           0.5916    0.9806        2.0866              94.247                      91.4         -0.0029              2.5828
+
+GEOMETRY
+        case  rmse_x_m  rmse_y_m  rmse_2d_m  mean_nees_xy  final_coverage_xy_95_pct
+anchor_y_0m    0.0432    0.3370     0.3397        2.4145                      85.9
+anchor_y_1m    0.0645    0.2882     0.2954        2.1870                      89.2
