@@ -55,7 +55,7 @@ def test_archived_lut_adapter_contract_with_stub(monkeypatch):
     lut_mod=types.ModuleType("qclean_uwb.drivesim.hs_lut")
     captured={}
     def model(lut,anchor,z,x,y,yaw,mount,with_jac=False):
-        captured.update(lut=lut,anchor=anchor,z=z,x=x,y=y,yaw=y,mount=mount,with_jac=with_jac)
+        captured.update(lut=lut,anchor=anchor,z=z,x=x,y=y,yaw=yaw,mount=mount,with_jac=with_jac)
         return .1, np.array([.01,.02,.3])
     lut_mod.s_model=model
     for key,val in [(pkg.__name__,pkg),(drivesim.__name__,drivesim),(lut_mod.__name__,lut_mod)]:
