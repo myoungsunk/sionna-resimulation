@@ -486,7 +486,8 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
                     v=resid[selected]
                     range_error_bins.append(dict(case=identifier,channel=channel,correction=name,distance_bin=label,
                         n=int(len(v)),mean_residual_m=float(np.mean(v)),sd_residual_m=float(np.std(v)),
-                        rms_residual_m=float(np.sqrt(np.mean(v*v))),p95_abs_m=float(np.quantile(np.abs(v),.95))))
+                        rms_residual_m=float(np.sqrt(np.mean(v*v))),p95_abs_m=float(np.quantile(np.abs(v),.95)),
+                        empirical_RMS2_over_R0_Rr=float(np.mean(v*v)/RR)))
         if not example:
             example={"case":identifier,"seed":seed,"method":"P2 existing common prior; offline counterfactual range-only correction"}
         print(f"[{identifier}] paired LoS/Full, flat+FFD+MP, one-step B/C replays verified",flush=True)
@@ -495,6 +496,40 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
     write_csv(output_dir/"D2_HEADING_DECOMPOSITION.csv.gz",per_sample,compressed=True)
     write_csv(output_dir/"D3_FLAT_FFD_MP_AND_POLARIZATION.csv.gz",paired,compressed=True)
     write_csv(output_dir/"D4_RANGE_RESIDUAL_BY_DISTANCE.csv",range_error_bins)
+
+    # D4 s error uses offline true state / frozen LoS LUT for SCORING ONLY.
+    s_residual_rows=[]
+    nis_harm_rows=[]
+    for case in root_rf:
+        subset={channel:[q for q in paired if q["case"]==case["id"] and q["channel"]==channel]
+                for channel in ("los","full")}
+        for channel,grp in subset.items():
+            if not grp:raise RuntimeError("D4 empty RF s paired rows")
+            for a,b,label in ((0,5,"lt5m"),(5,10,"5to10m"),(10,np.inf,"ge10m")):
+                take=[row for row in grp if a<=row["distance_m"]<b]
+                if not take:continue
+                e=np.asarray([row["s_obs"]-row["s_true_lut"] for row in take],float)
+                s_residual_rows.append(dict(case=case["id"],channel=channel,bin=label,
+                    n=len(take),mean_s_model_error=float(np.mean(e)),
+                    rms_s_model_error=float(np.sqrt(np.mean(e*e))),
+                    empirical_RMS2_over_R0_Rs=float(np.mean(e*e)/RS),
+                    tap_switch_rate=float(np.mean([row["tap_switch"] for row in take]))))
+            for low,high,label in ((0,1,"nis_lt1"),(1,3.841458821,"nis_1_to_3p84"),
+                                    (3.841458821,6.634896601,"nis_3p84_to_6p63"),
+                                    (6.634896601,np.inf,"nis_ge6p63")):
+                take=[q for q in grp if q["NIS_s"] is not None
+                      and low<=q["NIS_s"]<high]
+                if not take:continue
+                accepted=[q for q in take if q["accepted_s"]]
+                nis_harm_rows.append(dict(case=case["id"],channel=channel,bin=label,
+                    n=len(take),accepted=len(accepted),
+                    harmed_among_accepted=(
+                        float(np.mean([q["heading_harmed"] for q in accepted])) if accepted else None),
+                    mean_abs_MP_s=(
+                        float(np.mean([abs(q["e_s_mp"]) for q in take]))),
+                    mean_anchor_distance_m=float(np.mean([q["distance_m"] for q in take]))))
+    write_csv(output_dir/"D4_S_RESIDUAL_BY_DISTANCE.csv",s_residual_rows)
+    write_csv(output_dir/"D4_NIS_VS_HEADING_HARM.csv",nis_harm_rows)
 
     # D4: correlation/temporal audit is descriptive within the frozen corridor.
     rows_corr=[]
