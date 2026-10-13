@@ -30,4 +30,14 @@ class GMEKF:
         if y*y/S>self.cfg.gate:self.stats['r_rejected']+=1;return
         K=self.P@H/S;M=np.eye(7)-np.outer(K,H);self.P=M@self.P@M.T+self.rw*np.outer(K,K);self.P=(self.P+self.P.T)/2;self.x=self.x+K*y;self.x[2]=wrap(self.x[2]);self.stats['r_updates']+=1
         return y,S
+    def s_update(self,z,R,lut):
+        """Direct-s update (same model/gate as SensorV2Filter.s_record); the range-bias state does not enter s."""
+        from qclean_uwb.drivesim.hs_lut import s_model
+        a=self.cfg.anchor_xyz
+        if np.linalg.norm(self.x[:2]-np.asarray(a[:2]))<=1e-6:return
+        h,J=s_model(lut,a,self.cfg.robot_z,*self.x[:3],self.cfg.mount_deg,with_jac=True);H=np.zeros(7);H[:3]=J;y=float(z-float(h));S=float(H@self.P@H+R)
+        if S<=1e-20:return
+        if y*y/S>self.cfg.gate:self.stats['s_rejected']=self.stats.get('s_rejected',0)+1;return
+        K=self.P@H/S;M=np.eye(7)-np.outer(K,H);self.P=M@self.P@M.T+R*np.outer(K,K);self.P=(self.P+self.P.T)/2;self.x=self.x+K*y;self.x[2]=wrap(self.x[2]);self.stats['s_updates']=self.stats.get('s_updates',0)+1
+        return y,S
     def mean_cov(self):return self.x[:6].copy(),self.P[:6,:6].copy()
