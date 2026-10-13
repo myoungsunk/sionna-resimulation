@@ -32,3 +32,11 @@
 
 ## 중단점
 R2-0, R2-1, R2-4 완료. 다음은 R2-2(A_DR NEES 실패 분해). 새 scene 시뮬레이션(R2-5)은 위 후보 중 선택과 승인을 기다린다.
+
+## 갱신 (2026-10-13): 오피스 scene 전이 시험 (R2-5b)
+기존 `claude/office-e-layout`의 `full35_stride1`(오피스 10×12×2.7 m, 앵커 (5.0, 2.2), 35 위치 × yaw 19)이 **다른 scene**이며 동일 bank·solver로 생성되어 있어 새 시뮬레이션 없이 range 수준 P4(c)를 수행했다(사전등록 `R25B_OFFICE_PREREG_KO.md`, 코드 `r25b_office_p4c.py`, 결과 `out_R2/R25B_OFFICE_P4C.json`).
+- 사전 동결 gate(LoS-clear 25 위치, noise-free, 점추정 ≤ −10 % & CI 상한 < 0): E1 vs B RMSE **−31.7 % [−44.7, −14.5]** → 통과. 잡음 CIR(snr30 −31.8 %, snr10 −29.5 %)에서도 유지.
+- 판정어: **`ONE_NEW_SCENE_TRANSFER_PASS`** (일반화 확립 아님: scene 1개, 독립 클러스터 25개).
+- 단서: ① 오피스 clear 위치의 절대 오차가 작아(B 0.049 → E1 0.033 m) 개선의 절대량은 1.5 cm; ② 25개 중 17개 위치만 개선, 최악 위치 상대변화 +419 %(B 오차가 매우 작은 위치) → 위치별 분포가 한쪽으로 치우치지 않았다고 말할 수 없음; ③ LoS-blocked 10 위치는 B 평균 오차 +0.37 m로 NLoS 편향이 지배하며 E1 개선은 −6 %뿐 — E1은 NLoS를 고치지 않는다; ④ B 오프셋(−0.5316 m)은 오피스에서도 평균 오차 +0.011 m로 이전된다.
+- 코드 변경 공개: 사전등록 커밋 뒤 스크립트의 오피스 모듈 import 방식만 수정(`importlib` 직접 로드; dataclass용 `sys.modules` 등록). 결과가 나오기 전이었고 판정 기준·모델·데이터는 불변.
+- EKF 수준 오피스 시험·독립 RF 실현·반사실 채널이 필요하면 `OFFICE_SIM_DATA_REQUEST_SPEC_KO.md`(새 시뮬레이션 사양서) 참조.
