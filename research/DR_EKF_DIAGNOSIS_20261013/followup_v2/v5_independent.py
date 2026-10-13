@@ -159,9 +159,6 @@ def validated_artifact(path, seeds, steps):
 def run(spec, folder, procs):
     seeds = C.parse_seed_range(spec["seeds"])
     folder.mkdir(exist_ok=True, parents=True)
-    marker = folder / "FROZEN_SPEC_SHA256.txt"
-    spec_hash = C.sha256(spec_path_marker_to_spec(folder, spec)) if False else None
-    # The caller stores the actual spec file SHA below; never mutate D6 outputs.
     lock = folder / "RUN_LOCK"
     fd = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     os.write(fd, str(os.getpid()).encode())
@@ -195,11 +192,6 @@ def run(spec, folder, procs):
             print("COMPLETED", outfile)
     finally:
         lock.unlink(missing_ok=True)
-
-
-def spec_path_marker_to_spec(folder, spec):
-    # Deliberately unused: no implicit discovery of mutable specs from caches.
-    raise RuntimeError("Use the explicit --spec argument")
 
 
 def assess(arr, route, gates):
@@ -280,16 +272,22 @@ def main():
         return
     spec, src = load_frozen_spec(args.spec)
     folder = run_dir_path(args.run_dir)
-    folder.mkdir(parents=True, exist_ok=True)
     marker = folder / "FROZEN_SPEC_SHA256.txt"
     source_hash = C.sha256(src)
-    if marker.is_file():
-        if marker.read_text().strip() != source_hash:
-            raise RuntimeError("V5 run directory belongs to another frozen spec")
+    if args.command == "run":
+        folder.mkdir(parents=True, exist_ok=True)
+        if marker.is_file():
+            if marker.read_text().strip() != source_hash:
+                raise RuntimeError("V5 directory belongs to another frozen spec")
+        else:
+            if list(folder.iterdir()):
+                raise RuntimeError("V5 directory is not empty and has no spec marker")
+            marker.write_text(source_hash + "\n")
     else:
-        if list(folder.iterdir()):
-            raise RuntimeError("V5 run directory is not empty and has no spec marker")
-        marker.write_text(source_hash + "\n")
+        if not folder.is_dir() or not marker.is_file():
+            raise RuntimeError("No completed V5 run exists: evaluation is read-only until results exist")
+        if marker.read_text().strip() != source_hash:
+            raise RuntimeError("V5 results and committed spec disagree")
     if args.command == "run":
         if args.procs < 1:
             raise ValueError("--procs must be positive")
