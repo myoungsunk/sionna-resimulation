@@ -45,10 +45,28 @@ def audit(cache_root=None, min_age_s=120, official_path=OFFICIAL):
                     recomputed=v.get("status"))
             for k, v in recomputed.items()
             if original.get(k, {}).get("status") != v.get("status")}
+    # Numeric reconciliation as well as statuses. A tampered/partial JSON with
+    # the right PASS labels must NOT pass the audit.
+    def compare(a, b, location="criteria"):
+        if isinstance(a, dict) and isinstance(b, dict):
+            issues = []
+            for k in set(a) | set(b):
+                issues += compare(a.get(k), b.get(k), location + "." + str(k))
+            return issues
+        if isinstance(a, list) and isinstance(b, list):
+            if len(a) != len(b):
+                return [location + ".length"]
+            return [x for i, (aa, bb) in enumerate(zip(a, b))
+                    for x in compare(aa, bb, location + "." + str(i))]
+        if isinstance(a, (float, int)) and isinstance(b, (float, int)):
+            return [] if abs(a - b) <= 1e-8 * max(1., abs(a), abs(b)) else [location]
+        return [] if a == b else [location]
+    value_diffs = compare(original, recomputed)
     answer = official.get("verdict")
-    result.update(status="RECONCILED" if not diff and projected == answer
+    result.update(status="RECONCILED" if not diff and not value_diffs and projected == answer
                   else "MISMATCH_INVESTIGATE",
-                  mismatched_criteria=diff, cause_verdict_equal=answer == projected,
+                  mismatched_criteria=diff, mismatched_values=value_diffs[:100],
+                  cause_verdict_equal=answer == projected,
                   original_cause=answer, recomputed_cause=projected,
                   official_sha256=C.sha256(official_path))
     return result
