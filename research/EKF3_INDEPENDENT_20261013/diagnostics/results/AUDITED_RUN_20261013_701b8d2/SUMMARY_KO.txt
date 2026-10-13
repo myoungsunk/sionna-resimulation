@@ -1,0 +1,61 @@
+감사 및 실제 실행 결과 — 2026-10-13
+
+실행 코드: 701b8d2c29a4b3b879c4e27096168d6be463559b
+판정: AUDIT_AND_EXPLORATORY_EXECUTION_COMPLETE
+scientific_PASS: false
+
+검증
+- P0 입력 자산 39개 무결성 PASS; 진단 단위 테스트 9 PASS.
+- D0-D4: 7조건 x LoS/Full 완료. P2 행렬 재현 최대 차이 6.0285e-14.
+- D5: seed 0/1/2, level 0/1/2, 6개 sensor 조건 실행.
+  LoS B_OLD, Full B_OLD/E1_FULL_LORO: 총 1,134회, 4,536개 arm 지표 행.
+- 모든 실행 종료 코드 0. 504개 지표 행을 저장 trace에서 재계산: 최대 차이 1.819e-12.
+- Range 보정 변경 시 D0/A 지표 756쌍 동일.
+
+감사 보완
+원래 runner의 motion/초기오차 및 전체 시점 pre-gate NIS 기록 누락을
+별도 기록기로 보완했다. 원래 생성기와 FilterStep 반환값은 그대로 사용했다.
+기록기 독립 감사 ACCEPT. 원본 EKF, RF, P0/P1/P2는 변경하지 않았다.
+slip 조건은 ds_odom에서 상쇄되고 미사용 dtheta_odom에 영향을 준다.
+따라서 isolated slip 결과를 실제 미끄러짐 강건성 증거로 해석하지 않는다.
+
+핵심 결과 (RMSE는 평가 t>=30s 표본 수 가중 통합값)
+D0-D4 Full, seed 0, 평가 관측 6,201개:
+보정             거리 잔차 RMS(m)    Joint C Heading RMSE(deg)
+B_OLD            0.137211           2.345435
+D1_FRACTIONAL    0.131112           2.273568
+E1_FULL_LORO     0.106738           2.344770
+
+D5 Full Joint C, 7조건 x 3 sensor seeds:
+조건                B_OLD Heading RMSE -> E1 Heading RMSE(deg)
+noise_pair level1   1.274396 -> 0.941389
+all level1          4.583334 -> 4.575358
+all level2         22.24920  -> 22.48849
+all level1 평균 pose NEES: 610.823 -> 895.231.
+거리 개선이 모든 조건의 Heading/공분산 신뢰성 개선을 보장하지 않는다.
+
+증빙 안내
+AUDIT_FINDINGS.json: 감사 판정 및 제한.
+COMPLETION_RECEIPT.json: 당시 로컬 실행 완료 증빙. github_published=false는
+그 증빙을 만든 시점의 상태이며, 이 게시의 성공 여부를 뜻하지 않는다.
+FINAL_VERIFICATION.json: 산출물 해시와 trace 기반 재계산 결과.
+D04_POOLED_SUMMARY.json, D5_POOLED_METRICS.csv: 통합 결과.
+D5_MULTI_SEED_FULL_ROUTE_METRICS.csv: 모든 조건별 원 지표.
+OUTPUT_D0_D4_SEED0/: D0-D4 상세 결과 및 manifest.
+D5_PARTS/: 14개 실행 묶음의 manifest, 완료 목록, 원 지표.
+LOCAL_TRACE_INDEX.json: GitHub에 올리지 않은 D5 NPZ 1,512개(약 1.73 GB)의 해시.
+D5 full trace 1,134개와 motion 378개는 원래 로컬 경로에 보존되어 있다.
+P2 원본 다운로드 복제본은 중복 게시하지 않았다. 원본 Actions 실행은
+https://github.com/myoungsunk/sionna-resimulation/actions/runs/38331588521 이다.
+
+재현 기록
+*.py는 실제 실행한 로컬 기록기/집계/검증 코드의 변경 없는 snapshot이다.
+BASE.parent/checkout에 대상 저장소를 놓았던 원래 디렉터리 배치를 사용한다.
+각 receipt/manifest에 실제 명령, 시간, 입력 및 출력 해시가 저장돼 있다.
+unit_tests.stdout.log는 sparse checkout 의존 파일 누락으로 발생한 최초 수집 오류를
+보존한 기록이다. 의존 파일 복원 후 unit_tests_r02.stdout.log의 9 PASS가 최종 결과다.
+
+주장 제한
+단일 동결 RF 환경, 개발 seed 3개, 고정 R0, 기존 E1 LORO의 공유 XY 제한이 남는다.
+새 RF scene, 확증 seed, 하드웨어 실험을 수행한 결과가 아니다.
+실행 및 수치 검증 통과는 통계적 일관성/일반화 성능 PASS를 의미하지 않는다.

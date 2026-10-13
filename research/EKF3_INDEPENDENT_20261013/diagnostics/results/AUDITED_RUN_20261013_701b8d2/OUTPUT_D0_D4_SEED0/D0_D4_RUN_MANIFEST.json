@@ -1,0 +1,74 @@
+{
+  "schema": "EKF3_DIAG_D0_D4_V1",
+  "status": "DIAGNOSTIC_EXECUTED_NO_SCIENTIFIC_PASS",
+  "seed": 0,
+  "source_P2": "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\DIAGNOSTICS_701b8d2\\P2_DOWNLOAD\\P2_OUT",
+  "P2_seed": 0,
+  "P0_sha256": "462c0bc89e1b55653d289d8a529c1c7022c17a8d954c5ea5740a99092d367455",
+  "P3_frozen_model_sha256": "10fdb76f0fe0236400afd10cd53d79845582182a79151bec390d3ea968ceca95",
+  "P2_artifact_integrity": {
+    "summary_sha256": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634",
+    "trace_count": 14,
+    "full_artifact_url": "https://github.com/myoungsunk/sionna-resimulation/actions/runs/38331588521/artifacts/11782748118"
+  },
+  "anchor_case_count": 7,
+  "case_channel_count": 14,
+  "replayed_B_C_one_step_count": 116016,
+  "B0_matrix_max_abs_replay_difference": 6.0285110237146e-14,
+  "range_arms": [
+    "B_OLD",
+    "C_CONST_LOS",
+    "D1_FRACTIONAL",
+    "E1_FULL_LORO",
+    "E1_ON_LOS_NEGCTRL"
+  ],
+  "observation_parity": "PASS_ALL_CASES_FULL_AND_LOS",
+  "range_noise_model": "original R0 fixed, Q and DR prior unchanged; diagnostic only",
+  "A_heading_only": "unchanged by any range-only correction; original P2 A",
+  "flat_detector": "oracle-only synthesized flat-spectrum H from truth d; no oracle input into filter",
+  "model_e1": "P3 route-held-out frozen coefficient; online H CIR features; not re-fit",
+  "range_E1_scope": "Full RF; LoS only as explicit negative control",
+  "time_correlation": "lag1 is descriptive under shared RF trajectory, not iid ensemble",
+  "extra_unresolved": [
+    "same corridor",
+    "strong RF site/time correlation",
+    "uncalibrated R_s and R_sr",
+    "same-DR one-step, not recursive EKF",
+    "no independent held-out scene"
+  ],
+  "scientific_PASS": false,
+  "outputs": {
+    "D0_D1_METRICS.csv": {
+      "sha256": "e832915be09686cf36031ee33f51a96eaedc4864759ca7723132d5a752ecf51d",
+      "bytes": 24530
+    },
+    "D0_D4_ARM_SUMMARY_DESCRIPTIVE.csv": {
+      "sha256": "229bbefe975fa19d14e92ba338f52888078cb4e1d01c04991600b9a91c819474",
+      "bytes": 1916
+    },
+    "D2_HEADING_DECOMPOSITION.csv.gz": {
+      "sha256": "5b2a8231410ab2f4222993ac71818213d5ae3844ef7b62f422427098c191143d",
+      "bytes": 19235293
+    },
+    "D3_FLAT_FFD_MP_AND_POLARIZATION.csv.gz": {
+      "sha256": "486fde93f0de34f615bdff383c99588dbcf31ed65a2c522c16159c4ece87d4d8",
+      "bytes": 2171467
+    },
+    "D4_CROSS_CHANNEL_AND_TEMPORAL_AUDIT.csv": {
+      "sha256": "3c75584a172b95e6efd09efd46079dd1be61c3217f084f10269316d29a64a0f2",
+      "bytes": 1018
+    },
+    "D4_NIS_VS_HEADING_HARM.csv": {
+      "sha256": "afecad52df750a49fa347fd77add208f9aaa747540a97ae8df66f6847106a0e0",
+      "bytes": 3041
+    },
+    "D4_RANGE_RESIDUAL_BY_DISTANCE.csv": {
+      "sha256": "b658cef64128013bfc2245fd07dffd8ec69d573b1e61668283fda07485c00b78",
+      "bytes": 19879
+    },
+    "D4_S_RESIDUAL_BY_DISTANCE.csv": {
+      "sha256": "f4ef58524cbe8fdc010d2f49e257ef73509f082a91c309b5d1156f12ec796902",
+      "bytes": 3881
+    }
+  }
+}

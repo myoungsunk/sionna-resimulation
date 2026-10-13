@@ -1,0 +1,35 @@
+{
+  "source_revision": "701b8d2c29a4b3b879c4e27096168d6be463559b",
+  "audit_verdict": "ACCEPT_WITH_RECORDING_SIDECARS_FOR_EXPLORATORY_EXECUTION",
+  "independent_recording_harness_review": "ACCEPT",
+  "source_files_modified": false,
+  "findings": [
+    {
+      "id": "A1",
+      "topic": "Frozen motion provenance",
+      "finding": "Original runner did not persist the complete motion arrays and initialization draw.",
+      "resolution": "Recording-only wrappers save unchanged generator outputs and initialization; D0-D4 regenerates and matches the archived P2 prior."
+    },
+    {
+      "id": "A2",
+      "topic": "Pre-gate and warmup evidence",
+      "finding": "Original optional D5 sample CSV omitted warmup and full FilterStep matrices.",
+      "resolution": "Recording-only wrapper stores original returned FilterStep for all prediction/update times, including NIS before gate decisions."
+    },
+    {
+      "id": "A3",
+      "topic": "Isolated slip interpretation",
+      "finding": "Archived slip adds opposite wheel increments. Its effect cancels in ds_odom and changes dtheta_odom, which this filter does not consume.",
+      "resolution": "Preserve frozen source; do not claim slip robustness from isolated-slip results.",
+      "source": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/sensor_v2.py:150-163; research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py:105-110"
+    }
+  ],
+  "claim_boundaries": [
+    "Single frozen RF scene; sensor seed changes do not create independent RF environments.",
+    "Three development seeds only; no confirmation-seed experiment.",
+    "Fixed R0 and unmodeled sensor errors; numerical covariance validity does not establish statistical consistency.",
+    "Existing E1 LORO shared-XY limitation remains.",
+    "E1 on LoS evaluated only as a D0-D4 negative control; D5 Full only."
+  ],
+  "scientific_PASS": false
+}

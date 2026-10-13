@@ -1,0 +1,3027 @@
+{
+  "started_utc": "2026-10-13T02:24:16.742692+00:00",
+  "finished_utc": "2026-10-13T02:28:13.598422+00:00",
+  "command": [
+    "run_d5_regimes.py",
+    "--out",
+    "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\DIAGNOSTICS_701b8d2\\D5_PARTS\\isolated\\R5_aA_m0\\OUTPUT",
+    "--cases",
+    "R5_aA_m0",
+    "--seeds",
+    "0",
+    "1",
+    "2",
+    "--levels",
+    "0",
+    "1",
+    "2",
+    "--conditions",
+    "gyro_bias",
+    "gyro_sf",
+    "wheel_asymmetry",
+    "slip",
+    "--channels",
+    "los",
+    "full",
+    "--range-models",
+    "B_OLD",
+    "E1_FULL_LORO"
+  ],
+  "code_revision": "701b8d2c29a4b3b879c4e27096168d6be463559b",
+  "harness_sha256": "8b7fbd1c159712ca001535abb6752a298cacc187ce32acf081d52e14e7cc6658",
+  "exit_code": 0,
+  "inputs": {
+    "R5_gyro_bias_L0_seed0": {
+      "array_signature": "f0e7d63964bb102b76b80a06dee1bb3b482b6a7692c78e3e659cd050b3d7017e",
+      "sha256": "e775cdf98db613cb5dd0b1968d28f3993abef89e03ef1e91ac3739a021653641",
+      "file": "R5_gyro_bias_L0_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L0_seed1": {
+      "array_signature": "991580f3b312529f352b3bc0db1fe2ae60aa2c2579cbffe22da6287e6df2b5b3",
+      "sha256": "9f807a7d80ffb8fcae42087db1bddc175329491fba1aa9b5ac062d8817164ad9",
+      "file": "R5_gyro_bias_L0_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L0_seed2": {
+      "array_signature": "38147c7c7d8c310a306ead1281e264f2976db2ce57012f9bc723a739ae45bf48",
+      "sha256": "6c7506c63bd52c370c548643654cb60a71135cb23734bec30ce800a1c18df744",
+      "file": "R5_gyro_bias_L0_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L1_seed0": {
+      "array_signature": "f3ef41fbf53fc752ffb82e64d9decf3da07e8019ef27a9a7eb613eb077988af3",
+      "sha256": "b9b62794eee79f08475e9fd33b20398ec98aaf115808af8f5a3bc9baec9734ce",
+      "file": "R5_gyro_bias_L1_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L1_seed1": {
+      "array_signature": "bee145b35837b32a3d07c0a519b2f1ebc44d6f46432fa7dda8df167a4a28a7f7",
+      "sha256": "c434d888ac289bfdfd8ec94dbc77390313ef54fadae42095c835756749e3f834",
+      "file": "R5_gyro_bias_L1_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L1_seed2": {
+      "array_signature": "cca3ea9a156c9fae450a397f969c741d06987bfc1db882ce8a7555e5528e31bb",
+      "sha256": "b12ecfeb4c990f70cda331dba6b30eb28afe591caf99ff55437f4eab1653a88c",
+      "file": "R5_gyro_bias_L1_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L2_seed0": {
+      "array_signature": "97f285fef751bbb9201bc0df27c2943f1f1846a2fa1eb8a296ca3345c59df5c8",
+      "sha256": "8eb75287a77f1d57f7b5b1026f3824563fc46c548c3232b8d9c9f24f49b3bb7a",
+      "file": "R5_gyro_bias_L2_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L2_seed1": {
+      "array_signature": "4f8ae02817dd631f4e17e787248a14f4a13c5bb9e3fd703df6d84851ad5f8cd0",
+      "sha256": "707da02da9cd8c5af9f7776e9c69f9c80b3bee0ba8dec45180045b5455e41610",
+      "file": "R5_gyro_bias_L2_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_bias_L2_seed2": {
+      "array_signature": "4e88e4ea9a262991f5c45d0c671b2ba09cc8f480c0cf0269df2958354f9c74ff",
+      "sha256": "cff5ee2b2250726df17b9ec0b5cf5824eddd8624a2af28d8d69cce3e21732574",
+      "file": "R5_gyro_bias_L2_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_bias",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L0_seed0": {
+      "array_signature": "5270dd0ba53875ff7360c2d224997731104849da7bd8ef454829ffaf5abac266",
+      "sha256": "8c179a269c775e0c59e5badfaeb2944cd076733af7458fb882a1875cef424749",
+      "file": "R5_gyro_sf_L0_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L0_seed1": {
+      "array_signature": "c1db4f09f663cd016f2a95018e20bca616b586c5121d45c15788cb2d69d201d2",
+      "sha256": "ff57551ba0143fe9f970fbf00eece28ee62d4f80b2e1fc06c42fa1bdd158a1d7",
+      "file": "R5_gyro_sf_L0_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L0_seed2": {
+      "array_signature": "767bf719d7251f31046f79908f13258ec78e1f8bc1b22a9b9e5050dec7d24a87",
+      "sha256": "f97e6c9da22989fa18bd6f82ed7a3fe60b9cf7647f22adae606ffd27a95a408d",
+      "file": "R5_gyro_sf_L0_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L1_seed0": {
+      "array_signature": "b2a7ed7ff08d1cd9d66b343ae0d5f1ff6de7e7ec61263613db5fafc09b25b322",
+      "sha256": "0e825b11a45c022aca4485a56fb9185246a7eb4adc5b5b6423fb188cacb03372",
+      "file": "R5_gyro_sf_L1_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L1_seed1": {
+      "array_signature": "3f14cef1b0e7250d343671c8b35c30716cea3034e66a8a129fac2c6aa06975ef",
+      "sha256": "7a46f28722cccdb5b9a5771f9ceacd78cbae2fc34b5588d36bf887579149e998",
+      "file": "R5_gyro_sf_L1_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L1_seed2": {
+      "array_signature": "ad94a8fb53cf867b86bac2497afe088f2b1defd97daca1d0f0fa52e73939f824",
+      "sha256": "27f5ff39f4d8f78cbfe8f382463b06adb62966e102a578dc3981282741b6826e",
+      "file": "R5_gyro_sf_L1_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L2_seed0": {
+      "array_signature": "dc24465e7bf47de92f879798b34a4135a059a8b0476d47d0d9e0b85401785a63",
+      "sha256": "e12a3fd7d1f768596ea45fa3bbf243f65d1187e9bdf33de40fb78fdcb3422a97",
+      "file": "R5_gyro_sf_L2_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L2_seed1": {
+      "array_signature": "eecded1dfa528ce13923e1f3dc71430ee5dbf1570a29d4bfc0bb86495a76cc16",
+      "sha256": "33e1a5f9624784bf96bf0f7ea9afbe9ece050dd42d405f5824c5c6862da31b00",
+      "file": "R5_gyro_sf_L2_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_gyro_sf_L2_seed2": {
+      "array_signature": "31fa4b4db435a5c04ced25d1d505ff2afd7217901339e5d520cfadb76b0b1bcc",
+      "sha256": "39c811595d34e32e11b592816efe2cdbcc870247aa88a46b4ed70bcf415b2140",
+      "file": "R5_gyro_sf_L2_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "gyro_sf",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L0_seed0": {
+      "array_signature": "8dadd3456c5f55ba1455057b087d1148d25381af94e0ef685636440c872dc806",
+      "sha256": "aeabdd9b12208d1bb70d959944dcac7e656e1b513c9c9bee3d2d6dd5f4228d84",
+      "file": "R5_wheel_asymmetry_L0_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L0_seed1": {
+      "array_signature": "6d4cecd3654502620ef4ff27fe19903f7b5c1682e523654862b37c7d1a571d19",
+      "sha256": "b4082691418fee119a705374fc0d7f3ba439128b6b6c32cceeb302ea5eba496c",
+      "file": "R5_wheel_asymmetry_L0_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L0_seed2": {
+      "array_signature": "97b14185a645291f273dc1a720bdc0242f872f11110ac57c3836d520d1818759",
+      "sha256": "626574d7cbee91ecab065f2ecf5a5927b8d43588131ce1b417bf0496ee97e9c1",
+      "file": "R5_wheel_asymmetry_L0_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L1_seed0": {
+      "array_signature": "2921ce50273bd69857bb14e8759fafa1ace617a5062e1b5d6b32890f7e28b0e4",
+      "sha256": "e216d6cc3c9b651c538b77840f59eee4b513a8927e0eafadc2481e1d4b73e85f",
+      "file": "R5_wheel_asymmetry_L1_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L1_seed1": {
+      "array_signature": "b65836399a44f700a7874988c2ee75bc570aefc4d0f2e00c7cbb95cb571cffbe",
+      "sha256": "c7a5d699fab4ea15be58c04721d1ef38f42976516dc836bdcf77097c55fd6a7a",
+      "file": "R5_wheel_asymmetry_L1_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L1_seed2": {
+      "array_signature": "dc4fad0b0c5c417e5310906230ae4de03d1afb6a86ab4f733030a71a36c27a85",
+      "sha256": "714e814339b1665b7875301f3ba176706da08d6b39982cdcfce70322675857ad",
+      "file": "R5_wheel_asymmetry_L1_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L2_seed0": {
+      "array_signature": "891edb4fec69fc064ea054aef08d6229d669384080229e51b3826112ab80c704",
+      "sha256": "079020bf1cd8a43e359e8adde426b92e23f7b91a47b7d020aca6ed96d4ab55eb",
+      "file": "R5_wheel_asymmetry_L2_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L2_seed1": {
+      "array_signature": "23270c681f5f62aedd0ffb28b17637b5154a0b1a4e5264b1a3c44d3787ae7f6b",
+      "sha256": "e77372a0920bc36484a84c0b40f17dc7ff93e6a21dee5d5b9d2a480b5dd60b98",
+      "file": "R5_wheel_asymmetry_L2_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_wheel_asymmetry_L2_seed2": {
+      "array_signature": "6d803fff6a2bc0f557ed9f8a6f583042f9073126c2d87c889fcc4f9ee24f3336",
+      "sha256": "c0a5cf889b33782bbe96c0d8a86ee46e78da7126f8c4701d70108abdc7607107",
+      "file": "R5_wheel_asymmetry_L2_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "wheel_asymmetry",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L0_seed0": {
+      "array_signature": "2ebb8f7de48e6d13abdf7b30ab9e91244a10c9f30a0612b6d56c7e00154d72e6",
+      "sha256": "2abdb092a03decc4eacf3dfc1bb3791b2ae84573780c11c8acead1ca0657b97b",
+      "file": "R5_slip_L0_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L0_seed1": {
+      "array_signature": "3e17a24fc6ad74609b44c01bd8762bf53a2e92c3922442c01a8828012d3b36f0",
+      "sha256": "2881e04ee8638d2364029440e8dd68734e09e6a019d54ed367a6b7e84143767a",
+      "file": "R5_slip_L0_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L0_seed2": {
+      "array_signature": "46a9c1497a22254c35baad086f750878144624f6d0e9c39a012d912a1815d0d4",
+      "sha256": "fd4339fad3823cad4431947e53ac2635c38d2158fc08ec257b0e74eaf05e685a",
+      "file": "R5_slip_L0_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 0,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L1_seed0": {
+      "array_signature": "2ebb8f7de48e6d13abdf7b30ab9e91244a10c9f30a0612b6d56c7e00154d72e6",
+      "sha256": "2abdb092a03decc4eacf3dfc1bb3791b2ae84573780c11c8acead1ca0657b97b",
+      "file": "R5_slip_L1_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L1_seed1": {
+      "array_signature": "3e17a24fc6ad74609b44c01bd8762bf53a2e92c3922442c01a8828012d3b36f0",
+      "sha256": "2881e04ee8638d2364029440e8dd68734e09e6a019d54ed367a6b7e84143767a",
+      "file": "R5_slip_L1_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L1_seed2": {
+      "array_signature": "46a9c1497a22254c35baad086f750878144624f6d0e9c39a012d912a1815d0d4",
+      "sha256": "fd4339fad3823cad4431947e53ac2635c38d2158fc08ec257b0e74eaf05e685a",
+      "file": "R5_slip_L1_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 1,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L2_seed0": {
+      "array_signature": "2ebb8f7de48e6d13abdf7b30ab9e91244a10c9f30a0612b6d56c7e00154d72e6",
+      "sha256": "2abdb092a03decc4eacf3dfc1bb3791b2ae84573780c11c8acead1ca0657b97b",
+      "file": "R5_slip_L2_seed0_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L2_seed1": {
+      "array_signature": "3e17a24fc6ad74609b44c01bd8762bf53a2e92c3922442c01a8828012d3b36f0",
+      "sha256": "2881e04ee8638d2364029440e8dd68734e09e6a019d54ed367a6b7e84143767a",
+      "file": "R5_slip_L2_seed1_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    },
+    "R5_slip_L2_seed2": {
+      "array_signature": "46a9c1497a22254c35baad086f750878144624f6d0e9c39a012d912a1815d0d4",
+      "sha256": "fd4339fad3823cad4431947e53ac2635c38d2158fc08ec257b0e74eaf05e685a",
+      "file": "R5_slip_L2_seed2_MOTION.npz",
+      "config": {
+        "model_version": "sensor-v2",
+        "level": 2,
+        "condition": "slip",
+        "radius_nominal_m": 0.033,
+        "wheelbase_nominal_m": 0.287,
+        "common_scale": 0.0,
+        "bias_rw_rad_s_sqrt_s": 0.0,
+        "gyro_N_rad_sqrt_s": 0.0002617993877991494,
+        "k_distance_m": 2e-05,
+        "k_yaw_rad": 0.0001,
+        "k_yaw_distance_rad2_m": 1e-05,
+        "slip_mode": "time",
+        "slip_rate_per_s": 0.050251679267507204,
+        "slip_probability_per_sample": 0.01,
+        "slip_t3_scale_rad": 0.008726646259971648,
+        "seed_namespace": 2201008,
+        "streams": {
+          "drift": 1,
+          "wheel": 2,
+          "gyro": 3,
+          "bias": 4,
+          "slip": 5,
+          "initial": 6,
+          "observation": 7
+        },
+        "levels": [
+          {
+            "name": "low",
+            "gyro_bias_dps": 0.01,
+            "gyro_sf": 0.005,
+            "wheel_ratio": 0.002,
+            "wheelbase_err": 0.005
+          },
+          {
+            "name": "mid",
+            "gyro_bias_dps": 0.05,
+            "gyro_sf": 0.01,
+            "wheel_ratio": 0.005,
+            "wheelbase_err": 0.0075
+          },
+          {
+            "name": "high",
+            "gyro_bias_dps": 0.2,
+            "gyro_sf": 0.015,
+            "wheel_ratio": 0.01,
+            "wheelbase_err": 0.01
+          }
+        ],
+        "units": "m, s, rad; bias rad/s; gyro N rad/sqrt(s); bias RW rad/s/sqrt(s)",
+        "gyro_definition": "Var(delta_angle)=N^2 dt",
+        "slip_std_rad": 0.015114994701951814,
+        "level_interpretation": "assumption-based sensitivity, not hardware performance"
+      }
+    }
+  },
+  "runs": [
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed0",
+      "motion_key": "R5_gyro_bias_L0_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed0_FILTER.npz",
+      "sha256": "03b6812dab621c50f99fab2acab8010e8ca001d95bcd7628db2dacee78fa706a",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed1",
+      "motion_key": "R5_gyro_bias_L0_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed1_FILTER.npz",
+      "sha256": "e9afcb1cf276d8a47620bb08916c31769ae288aca28a390c2abcca86ee5c9647",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed2",
+      "motion_key": "R5_gyro_bias_L0_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L0_seed2_FILTER.npz",
+      "sha256": "758efc763ad69179e5dda2ce3d82af81625f92e29da0d1229fc5fc9161ae9538",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed0",
+      "motion_key": "R5_gyro_bias_L1_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed0_FILTER.npz",
+      "sha256": "41fa975fbf030eb42d7887f5365ff5740f84ed97d3a275776db8fe5beaf37926",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed1",
+      "motion_key": "R5_gyro_bias_L1_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed1_FILTER.npz",
+      "sha256": "f08d0a1ada0bb08d1f7caa2d5d60ab0c5e173c408e5e553e5e2d4824742ca092",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed2",
+      "motion_key": "R5_gyro_bias_L1_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L1_seed2_FILTER.npz",
+      "sha256": "5eeaa417f94502c8b63a6b4b99ca57347bedf70ab0b504f78f425d66106c4162",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed0",
+      "motion_key": "R5_gyro_bias_L2_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed0_FILTER.npz",
+      "sha256": "e5904019a2428ee4a3af25740a974987f05baa66f18f0bec1e89ea3c62b22e9b",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed1",
+      "motion_key": "R5_gyro_bias_L2_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed1_FILTER.npz",
+      "sha256": "3debbed71564deed94f5ddd407440d3e3e3c053828236caa7363e49540e245d2",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed2",
+      "motion_key": "R5_gyro_bias_L2_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_bias_L2_seed2_FILTER.npz",
+      "sha256": "b406fcfa303549bf6773086d7146f78c9e62a360d0894221f807d1e7d91c0d85",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed0",
+      "motion_key": "R5_gyro_sf_L0_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed0_FILTER.npz",
+      "sha256": "1caac3f2bd3f9a20d441c7999bd3794004dbc56ee62b60092b28848ef6738753",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed1",
+      "motion_key": "R5_gyro_sf_L0_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed1_FILTER.npz",
+      "sha256": "c452ef61f00fe5eef5d87dba36d48630cd12adcb045092b7b269deefa9c95341",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed2",
+      "motion_key": "R5_gyro_sf_L0_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L0_seed2_FILTER.npz",
+      "sha256": "ffca0d7f460779c83da98e44585d74b40287330ec2761aea92da23dd67b7c1d7",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed0",
+      "motion_key": "R5_gyro_sf_L1_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed0_FILTER.npz",
+      "sha256": "d8d69b4e33a223533c18bf24c70ce291eff8b65b7ca28aeb469f9be8a5591e94",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed1",
+      "motion_key": "R5_gyro_sf_L1_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed1_FILTER.npz",
+      "sha256": "0effc2b707b64ad5c077bb2c9cb41f7121c478d2b4ff29d2832bb99f69d1e033",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed2",
+      "motion_key": "R5_gyro_sf_L1_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L1_seed2_FILTER.npz",
+      "sha256": "82148a6c81db1b90ca0932ab9518b17c046a28d8e99e96cd0b8d55c64920180d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed0",
+      "motion_key": "R5_gyro_sf_L2_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed0_FILTER.npz",
+      "sha256": "bbe70684c4ae8a8a97f74cbe3e63274805c8840a991d4357d4d876ca894404ac",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed1",
+      "motion_key": "R5_gyro_sf_L2_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed1_FILTER.npz",
+      "sha256": "7d1b8294156ad6afba95d7ad57be23bfa8bd68eeb9f11b4b1707f2c073b0b140",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed2",
+      "motion_key": "R5_gyro_sf_L2_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_gyro_sf_L2_seed2_FILTER.npz",
+      "sha256": "f18ce550d7002f79e0742a3db4b06ae53e0aae0e664fbb64fa5390f91231c0be",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed0",
+      "motion_key": "R5_wheel_asymmetry_L0_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed0_FILTER.npz",
+      "sha256": "2ad45d86c60403f0e1b01b7a8f7e8e83823fc6ba5ee019dd91cae9470e1f24da",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed1",
+      "motion_key": "R5_wheel_asymmetry_L0_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed1_FILTER.npz",
+      "sha256": "44b49c3f300774da5f9b97640fef9cc236a7a06797c6ad520b3caf565429498d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed2",
+      "motion_key": "R5_wheel_asymmetry_L0_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L0_seed2_FILTER.npz",
+      "sha256": "9167b1561424604d0bb113deb3eb75331d0440ff4cecddd65cff2fc3e8fc744e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed0",
+      "motion_key": "R5_wheel_asymmetry_L1_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed0_FILTER.npz",
+      "sha256": "059b8b1cf17551f1d5beb7b9f67da3503dc432b14f3b2ed7da67094097c6f78b",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed1",
+      "motion_key": "R5_wheel_asymmetry_L1_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed1_FILTER.npz",
+      "sha256": "3cc37127b19bc5fc617ab7f36e56c5024b9885f0cb32cf305b7fb4b3f7771714",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed2",
+      "motion_key": "R5_wheel_asymmetry_L1_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L1_seed2_FILTER.npz",
+      "sha256": "cad3b04edab64d99c4a36b48e0edb538a15b5b0ce5f06290344f7c7c39a8d999",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed0",
+      "motion_key": "R5_wheel_asymmetry_L2_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed0_FILTER.npz",
+      "sha256": "3e7b1476a576e8e649bce82828a2ae1c72c48b5122e307884bd0563daeda1360",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed1",
+      "motion_key": "R5_wheel_asymmetry_L2_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed1_FILTER.npz",
+      "sha256": "475c3157a9ef0298dc7a93a1f16e918674104514ca3911a8346068a763b4fe70",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed2",
+      "motion_key": "R5_wheel_asymmetry_L2_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_wheel_asymmetry_L2_seed2_FILTER.npz",
+      "sha256": "c900d63470abb6413c0fec2c3ad50562fbbaa43335e4367fc119f2351f94e400",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L0_seed0",
+      "motion_key": "R5_slip_L0_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L0_seed0_FILTER.npz",
+      "sha256": "662c27d483b7b0e4856a44a03dc0deb76e6b659d1d036e3090c42da97a6306ec",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L0_seed1",
+      "motion_key": "R5_slip_L0_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L0_seed1_FILTER.npz",
+      "sha256": "915f54ae71334a9733b89be32987ce3a15b0e43c88eefbcbde7d63d595fa7424",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L0_seed2",
+      "motion_key": "R5_slip_L0_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L0_seed2_FILTER.npz",
+      "sha256": "7eb7ede3f90f01ba3641a83089cfb23a7ffec27ec2f109b7ad0d7e2f36d6fa2d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L1_seed0",
+      "motion_key": "R5_slip_L1_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L1_seed0_FILTER.npz",
+      "sha256": "662c27d483b7b0e4856a44a03dc0deb76e6b659d1d036e3090c42da97a6306ec",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L1_seed1",
+      "motion_key": "R5_slip_L1_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L1_seed1_FILTER.npz",
+      "sha256": "915f54ae71334a9733b89be32987ce3a15b0e43c88eefbcbde7d63d595fa7424",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L1_seed2",
+      "motion_key": "R5_slip_L1_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L1_seed2_FILTER.npz",
+      "sha256": "7eb7ede3f90f01ba3641a83089cfb23a7ffec27ec2f109b7ad0d7e2f36d6fa2d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L2_seed0",
+      "motion_key": "R5_slip_L2_seed0",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L2_seed0_FILTER.npz",
+      "sha256": "662c27d483b7b0e4856a44a03dc0deb76e6b659d1d036e3090c42da97a6306ec",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L2_seed1",
+      "motion_key": "R5_slip_L2_seed1",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L2_seed1_FILTER.npz",
+      "sha256": "915f54ae71334a9733b89be32987ce3a15b0e43c88eefbcbde7d63d595fa7424",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_los_B_OLD_slip_L2_seed2",
+      "motion_key": "R5_slip_L2_seed2",
+      "trace_file": "R5_aA_m0_los_B_OLD_slip_L2_seed2_FILTER.npz",
+      "sha256": "7eb7ede3f90f01ba3641a83089cfb23a7ffec27ec2f109b7ad0d7e2f36d6fa2d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed0",
+      "motion_key": "R5_gyro_bias_L0_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed0_FILTER.npz",
+      "sha256": "2d0a3015a94ac66f4b5060adbae07c3aaf26d300d497addb567664d6fa2139c6",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed1",
+      "motion_key": "R5_gyro_bias_L0_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed1_FILTER.npz",
+      "sha256": "3eed015b5e3b19c3a461ca161cfa08434c83946965189379e66effb52c3aefef",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed2",
+      "motion_key": "R5_gyro_bias_L0_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L0_seed2_FILTER.npz",
+      "sha256": "03d0960ec72583bfa893ee0cd84b2d7973dfd7e64b4e1e1dd265f6509a5b8385",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed0",
+      "motion_key": "R5_gyro_bias_L1_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed0_FILTER.npz",
+      "sha256": "b72da804a48f3a8c57b2bd109a6ca6e9364276a2b049004db2848fe09b35af98",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed1",
+      "motion_key": "R5_gyro_bias_L1_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed1_FILTER.npz",
+      "sha256": "7cabdb330033ada1ecc16be774f0b53f4e6ada66ff667c82a1294af401408ad7",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed2",
+      "motion_key": "R5_gyro_bias_L1_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L1_seed2_FILTER.npz",
+      "sha256": "44e854cffc19fba239a9cb3f1014ab0340b95f45e0880b8ab473169b06d2ca29",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed0",
+      "motion_key": "R5_gyro_bias_L2_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed0_FILTER.npz",
+      "sha256": "736b6af5c8fdf38b00b56aad325409dbb930480ea4bb0596b84148086bad8992",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed1",
+      "motion_key": "R5_gyro_bias_L2_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed1_FILTER.npz",
+      "sha256": "ba02216f360555815a23fc7cf278158eee566908d86a42db77b7b761b96f6a8e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed2",
+      "motion_key": "R5_gyro_bias_L2_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_bias_L2_seed2_FILTER.npz",
+      "sha256": "cb1881b16bd65e4b0a76a13ffc9548ee8119708c59da5251706226d26afb9ea6",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed0",
+      "motion_key": "R5_gyro_sf_L0_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed0_FILTER.npz",
+      "sha256": "6c9a4dc3d982753365776dd723f14745d2142205fbd31c5fca533f497306b1a7",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed1",
+      "motion_key": "R5_gyro_sf_L0_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed1_FILTER.npz",
+      "sha256": "131c63955d6af2641fc0a1cbbfd835c23088e76f0b0d0503c69e1fde78653b65",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed2",
+      "motion_key": "R5_gyro_sf_L0_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L0_seed2_FILTER.npz",
+      "sha256": "ba941b542b8f011373f8e28590858283cab19ea135be904641074b208d85843e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed0",
+      "motion_key": "R5_gyro_sf_L1_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed0_FILTER.npz",
+      "sha256": "9783cf919cbee7927f38838324d5f6a420d2954e20a808d29a1ed3636a64b597",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed1",
+      "motion_key": "R5_gyro_sf_L1_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed1_FILTER.npz",
+      "sha256": "c1013eb1a85f06c889e932c6385afdd8b4ff757da84455768b87481a5e9fb8f9",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed2",
+      "motion_key": "R5_gyro_sf_L1_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L1_seed2_FILTER.npz",
+      "sha256": "96020903e683224c1e03f01b7710e66d5e7b4d36177be84274dddc8def1cb3f1",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed0",
+      "motion_key": "R5_gyro_sf_L2_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed0_FILTER.npz",
+      "sha256": "d13622f050e016213c4b293ea3ff34007155834228edc0c97118bf270f4aba2d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed1",
+      "motion_key": "R5_gyro_sf_L2_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed1_FILTER.npz",
+      "sha256": "b4391e06e95676bd109e0afd97ef75f8bf935767ed89365691b21360835d22eb",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed2",
+      "motion_key": "R5_gyro_sf_L2_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_gyro_sf_L2_seed2_FILTER.npz",
+      "sha256": "83df276500d8ed6918a9bc892b2ed3760583b332ce70eeefa7e6f97247e165c1",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed0",
+      "motion_key": "R5_wheel_asymmetry_L0_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed0_FILTER.npz",
+      "sha256": "9410e9e36a4332f34fdc0f84eb8bc8069d81da47cc0c9b3b9a3e9df84d1d0e31",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed1",
+      "motion_key": "R5_wheel_asymmetry_L0_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed1_FILTER.npz",
+      "sha256": "c0ab0c7af9dda32fd66af9480dd636b88b9dfb7ab56b28f9f080f5477004cdca",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed2",
+      "motion_key": "R5_wheel_asymmetry_L0_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L0_seed2_FILTER.npz",
+      "sha256": "85823427d6afd0e9c30acf78299d0a144b7ac3b62c23a54c9b04d065cf556500",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed0",
+      "motion_key": "R5_wheel_asymmetry_L1_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed0_FILTER.npz",
+      "sha256": "4d3f18a59bb55cd396c281dd4b72e54325b4a13a5770dc4f02834955baa9fd52",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed1",
+      "motion_key": "R5_wheel_asymmetry_L1_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed1_FILTER.npz",
+      "sha256": "fd0923ae4da94bbb0f235e1b87a8d4cc9fec0b09720477101b32da5268f0fd45",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed2",
+      "motion_key": "R5_wheel_asymmetry_L1_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L1_seed2_FILTER.npz",
+      "sha256": "45785cdfaa92837937c73720c26501a6773097441ff7d076e7109c326295f6d1",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed0",
+      "motion_key": "R5_wheel_asymmetry_L2_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed0_FILTER.npz",
+      "sha256": "f2320a9189f7219d3093ca97a684775d09a1b99f814ea37014fa8410a3972824",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed1",
+      "motion_key": "R5_wheel_asymmetry_L2_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed1_FILTER.npz",
+      "sha256": "ccc45a02bf937aef0afd0e1b50a67d2533eba9f1d88a713becab4e6b78784d4f",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed2",
+      "motion_key": "R5_wheel_asymmetry_L2_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_wheel_asymmetry_L2_seed2_FILTER.npz",
+      "sha256": "724a692876c5221d50af249264893dcd46f9471b31402fed98f50a16f005ca10",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L0_seed0",
+      "motion_key": "R5_slip_L0_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L0_seed0_FILTER.npz",
+      "sha256": "182b1165e027407436f6a927e3754f9a1ff600f12e220cfbeb5bf58ac9da3da0",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L0_seed1",
+      "motion_key": "R5_slip_L0_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L0_seed1_FILTER.npz",
+      "sha256": "8efdf82b218a0bde8b104a22886181beaf9258f21fa8515c4046be7c6b4fe0cd",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L0_seed2",
+      "motion_key": "R5_slip_L0_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L0_seed2_FILTER.npz",
+      "sha256": "ca0aef4a545f2ebc721dde70488892cd5aa695f29eda94a5d7fc33406a868682",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L1_seed0",
+      "motion_key": "R5_slip_L1_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L1_seed0_FILTER.npz",
+      "sha256": "182b1165e027407436f6a927e3754f9a1ff600f12e220cfbeb5bf58ac9da3da0",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L1_seed1",
+      "motion_key": "R5_slip_L1_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L1_seed1_FILTER.npz",
+      "sha256": "8efdf82b218a0bde8b104a22886181beaf9258f21fa8515c4046be7c6b4fe0cd",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L1_seed2",
+      "motion_key": "R5_slip_L1_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L1_seed2_FILTER.npz",
+      "sha256": "ca0aef4a545f2ebc721dde70488892cd5aa695f29eda94a5d7fc33406a868682",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L2_seed0",
+      "motion_key": "R5_slip_L2_seed0",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L2_seed0_FILTER.npz",
+      "sha256": "182b1165e027407436f6a927e3754f9a1ff600f12e220cfbeb5bf58ac9da3da0",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L2_seed1",
+      "motion_key": "R5_slip_L2_seed1",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L2_seed1_FILTER.npz",
+      "sha256": "8efdf82b218a0bde8b104a22886181beaf9258f21fa8515c4046be7c6b4fe0cd",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_B_OLD_slip_L2_seed2",
+      "motion_key": "R5_slip_L2_seed2",
+      "trace_file": "R5_aA_m0_full_B_OLD_slip_L2_seed2_FILTER.npz",
+      "sha256": "ca0aef4a545f2ebc721dde70488892cd5aa695f29eda94a5d7fc33406a868682",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed0",
+      "motion_key": "R5_gyro_bias_L0_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed0_FILTER.npz",
+      "sha256": "e6cfea3037f495337ab03b56a8d0b0e58746b2ca7cef79577f2772124a963c6a",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed1",
+      "motion_key": "R5_gyro_bias_L0_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed1_FILTER.npz",
+      "sha256": "3465b5bd50fcf7ab912846557d57abf6dcbf8283e10000bbc6f85aa5b2e0b6c3",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed2",
+      "motion_key": "R5_gyro_bias_L0_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L0_seed2_FILTER.npz",
+      "sha256": "775e25149a44c3f0fc1752abac7f1f60140190e4445ac0e76d9c3e8a043b59cd",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed0",
+      "motion_key": "R5_gyro_bias_L1_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed0_FILTER.npz",
+      "sha256": "123f01cbd9f8a4dc2054402de3512cf8a311bc4dd77d7f9371cc2d8e4c7838ef",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed1",
+      "motion_key": "R5_gyro_bias_L1_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed1_FILTER.npz",
+      "sha256": "768da4d7ea0e1f081dc881790e05dde6fea92e99b8ece44d8dc01f541835316d",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed2",
+      "motion_key": "R5_gyro_bias_L1_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L1_seed2_FILTER.npz",
+      "sha256": "f502decad3b040285fdad8815121d7b345680f51e13ce0cbf8ebb08049312410",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed0",
+      "motion_key": "R5_gyro_bias_L2_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed0_FILTER.npz",
+      "sha256": "89834acb3184fa5dce62d54ed214f5fc6c1dbdd9419094cf9032e87ed95ac85e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed1",
+      "motion_key": "R5_gyro_bias_L2_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed1_FILTER.npz",
+      "sha256": "ae94797e9c740b567abe4087a31a60a28a9349ec78e0adfc438cbf9f6025eeb8",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed2",
+      "motion_key": "R5_gyro_bias_L2_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_bias_L2_seed2_FILTER.npz",
+      "sha256": "a511a979dafbb7795f00b8200a4c357341faa923e9451a0c611dac7ac33bf9b4",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed0",
+      "motion_key": "R5_gyro_sf_L0_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed0_FILTER.npz",
+      "sha256": "e0eb57e6ecfc01342a6520a1a6bd9a775c74d64d6894077288273c1b725eeb6e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed1",
+      "motion_key": "R5_gyro_sf_L0_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed1_FILTER.npz",
+      "sha256": "ebc6a94050f9591f411e89cd19804104db73f51777746ceefb5c6b43699e7477",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed2",
+      "motion_key": "R5_gyro_sf_L0_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L0_seed2_FILTER.npz",
+      "sha256": "1c364ca4e30392410e8cabc0b5ade6459a5050a1f5ba662f4c57a558eb19b216",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed0",
+      "motion_key": "R5_gyro_sf_L1_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed0_FILTER.npz",
+      "sha256": "31db1f1f65498cdb36eccc5b3262d6628b4abb0efc3db9e05ad53e78ace0694c",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed1",
+      "motion_key": "R5_gyro_sf_L1_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed1_FILTER.npz",
+      "sha256": "19351ac10a11d1fbea0c4aa239ff13505ba24e27999a64ae21c6f5bb20991da4",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed2",
+      "motion_key": "R5_gyro_sf_L1_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L1_seed2_FILTER.npz",
+      "sha256": "dda30486cd999fb66464d740988e6bf800c0efc9791fbc28c157ff09ed9e8ad7",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed0",
+      "motion_key": "R5_gyro_sf_L2_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed0_FILTER.npz",
+      "sha256": "9479cd342e61140c3b8319be70fea323e9b1cff1561d3fa3c69356fadf0e2f7e",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed1",
+      "motion_key": "R5_gyro_sf_L2_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed1_FILTER.npz",
+      "sha256": "bd911adcada15e6c0352319ccb39f1b8f2ba556643be61726c85f2d9a8bbc54b",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed2",
+      "motion_key": "R5_gyro_sf_L2_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_gyro_sf_L2_seed2_FILTER.npz",
+      "sha256": "b501565a5d3d45cda214a093c495a5a2884ce3e5682d2efca7a39c34e244c5c9",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed0",
+      "motion_key": "R5_wheel_asymmetry_L0_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed0_FILTER.npz",
+      "sha256": "7bdc649ae057114c4cfd95655ed55e2008c14b8eeac3a752c9d3d9d44df0af0c",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed1",
+      "motion_key": "R5_wheel_asymmetry_L0_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed1_FILTER.npz",
+      "sha256": "4b1f0ed63852355a170ee466828cc59e9b1b09fe712c4be60e7d53a650467026",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed2",
+      "motion_key": "R5_wheel_asymmetry_L0_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L0_seed2_FILTER.npz",
+      "sha256": "06b446327841a4d0924debcbb906bf0e8dbbdbafb76992f916b69ae2a8cd86d0",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed0",
+      "motion_key": "R5_wheel_asymmetry_L1_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed0_FILTER.npz",
+      "sha256": "9b182cd2c308550c8f63fa69a6aeaf88eb2603b9aa061fbc25551604a0b7835f",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed1",
+      "motion_key": "R5_wheel_asymmetry_L1_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed1_FILTER.npz",
+      "sha256": "3753f7f511ce300579975ea30bcb1694c58cfb2de05f61c68725ac1810a6694a",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed2",
+      "motion_key": "R5_wheel_asymmetry_L1_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L1_seed2_FILTER.npz",
+      "sha256": "8d17fcaad8132348bffafc75ade77c7cbe50aa083a04a876a1916a910bd0ed96",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed0",
+      "motion_key": "R5_wheel_asymmetry_L2_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed0_FILTER.npz",
+      "sha256": "5c23e4ed11171c70dfd952246c2710154c7f35f33694ee8b09eef2975ff3b95c",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed1",
+      "motion_key": "R5_wheel_asymmetry_L2_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed1_FILTER.npz",
+      "sha256": "a8b5953f8a247167c40e87c505059793816da714cb3603fe3284d3bc150cb888",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed2",
+      "motion_key": "R5_wheel_asymmetry_L2_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_wheel_asymmetry_L2_seed2_FILTER.npz",
+      "sha256": "2a795da447736c39f71bcbfc6426023a77d30d2ebf5ecf1ba5cb1d9f1b4deba5",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed0",
+      "motion_key": "R5_slip_L0_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed0_FILTER.npz",
+      "sha256": "e5414f733ee1813fa7a57393889bca6e4c0d83f8d115c16f3770ec7b5eff735f",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed1",
+      "motion_key": "R5_slip_L0_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed1_FILTER.npz",
+      "sha256": "f81d42d255abf6d778361975fd8a8fcedd6e3bd74a3350ad97a179f135f1e476",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed2",
+      "motion_key": "R5_slip_L0_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L0_seed2_FILTER.npz",
+      "sha256": "7b3614b8a4239b9913319a066ac5dc5f262622166c7d1b766edb43b9e0e9ba00",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed0",
+      "motion_key": "R5_slip_L1_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed0_FILTER.npz",
+      "sha256": "e5414f733ee1813fa7a57393889bca6e4c0d83f8d115c16f3770ec7b5eff735f",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed1",
+      "motion_key": "R5_slip_L1_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed1_FILTER.npz",
+      "sha256": "f81d42d255abf6d778361975fd8a8fcedd6e3bd74a3350ad97a179f135f1e476",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed2",
+      "motion_key": "R5_slip_L1_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L1_seed2_FILTER.npz",
+      "sha256": "7b3614b8a4239b9913319a066ac5dc5f262622166c7d1b766edb43b9e0e9ba00",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed0",
+      "motion_key": "R5_slip_L2_seed0",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed0_FILTER.npz",
+      "sha256": "e5414f733ee1813fa7a57393889bca6e4c0d83f8d115c16f3770ec7b5eff735f",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed1",
+      "motion_key": "R5_slip_L2_seed1",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed1_FILTER.npz",
+      "sha256": "f81d42d255abf6d778361975fd8a8fcedd6e3bd74a3350ad97a179f135f1e476",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    },
+    {
+      "key": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed2",
+      "motion_key": "R5_slip_L2_seed2",
+      "trace_file": "R5_aA_m0_full_E1_FULL_LORO_slip_L2_seed2_FILTER.npz",
+      "sha256": "7b3614b8a4239b9913319a066ac5dc5f262622166c7d1b766edb43b9e0e9ba00",
+      "n_steps": 1415,
+      "pre_gate_NIS_count": 4245
+    }
+  ],
+  "recording_only": true,
+  "scientific_PASS": false
+}
