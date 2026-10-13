@@ -1,0 +1,125 @@
+[
+  {
+    "stage": "D7_SMOKE",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d7_cir_multipath_audit.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_SMOKE",
+      "--cases",
+      "R2_aA_m0"
+    ],
+    "started": "2026-10-13T04:43:02.627761+00:00",
+    "elapsed_s": 2.5939999999827705,
+    "exit_code": 0
+  },
+  {
+    "stage": "D7_FULL",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d7_cir_multipath_audit.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_FULL"
+    ],
+    "started": "2026-10-13T04:43:05.220128+00:00",
+    "elapsed_s": 11.64000000001397,
+    "exit_code": 0
+  },
+  {
+    "stage": "D8_FULL",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d8_polarization_quality.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D8_FULL",
+      "--d7",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_FULL"
+    ],
+    "started": "2026-10-13T04:43:16.864606+00:00",
+    "elapsed_s": 16.76600000000326,
+    "exit_code": 0
+  },
+  {
+    "stage": "D9_R5_REGRESSION",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d9_quality_aware_fusion.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D9_R5_REGRESSION",
+      "--d7",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_FULL",
+      "--d8",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D8_FULL",
+      "--seeds",
+      "0",
+      "--levels",
+      "1",
+      "--conditions",
+      "noise_pair",
+      "--cases",
+      "R5_aB_m0",
+      "--channels",
+      "full",
+      "--methods",
+      "F0_ORIGINAL",
+      "--save-trace"
+    ],
+    "started": "2026-10-13T04:43:33.625472+00:00",
+    "elapsed_s": 4.125,
+    "exit_code": 0
+  },
+  {
+    "stage": "D9_7CASE",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d9_quality_aware_fusion.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D9_7CASE",
+      "--d7",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_FULL",
+      "--d8",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D8_FULL",
+      "--seeds",
+      "0",
+      "--levels",
+      "1",
+      "--conditions",
+      "noise_pair",
+      "--methods",
+      "F0_ORIGINAL",
+      "F1_UT",
+      "F2_BIAS4"
+    ],
+    "started": "2026-10-13T04:43:37.749790+00:00",
+    "elapsed_s": 61.437999999994645,
+    "exit_code": 0
+  },
+  {
+    "stage": "D9_E1_7CASE",
+    "command": [
+      "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+      "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\d9_quality_aware_fusion.py",
+      "--out",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D9_E1_7CASE",
+      "--d7",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D7_FULL",
+      "--d8",
+      "D:\\SLAM_bot\\artifacts\\EKF3_D6_D9_PARITY_FIX\\D8_FULL",
+      "--seeds",
+      "0",
+      "--levels",
+      "1",
+      "--conditions",
+      "noise_pair",
+      "--channels",
+      "full",
+      "--range-model",
+      "E1_FULL_LORO",
+      "--methods",
+      "F0_ORIGINAL"
+    ],
+    "started": "2026-10-13T04:44:39.195256+00:00",
+    "elapsed_s": 13.14000000001397,
+    "exit_code": 0
+  }
+]

@@ -1,0 +1,303 @@
+{
+  "schema": "D6_D9_EXPLORATORY_HYPOTHESIS_VERDICT_V1",
+  "scientific_PASS": false,
+  "independent_rf_scene": false,
+  "new_confirmatory_seed_validation": false,
+  "hypotheses": [
+    {
+      "hypothesis": "H1_EKF_LINEARIZATION",
+      "status": "PARTIALLY_SUPPORTED",
+      "evidence": {
+        "straight_grid_points": 12,
+        "mean_mc_over_ekf_forward_variance": 166.94866322238715,
+        "fraction_second_order_closer_than_ekf": 1.0
+      },
+      "boundary": "Only exact noise-free pure-SE2 initial-heading synthetic grid; no RF"
+    },
+    {
+      "hypothesis": "H1_UNMODELLED_GYRO_BIAS",
+      "status": "PARTIALLY_SUPPORTED",
+      "evidence": {
+        "paired_case_seed_cells": 1,
+        "biased_to_unbiased_heading_rmse_ratio": 13.615143758729223
+      },
+      "boundary": "Same archived sensor simulation and frozen scene; bias not estimated in EKF3"
+    },
+    {
+      "hypothesis": "D6_D5_PRIOR_POSTERIOR_AUDIT",
+      "status": "PARTIALLY_SUPPORTED",
+      "evidence": {
+        "audited_rows": 4536
+      },
+      "boundary": "Recomputed source traces, not an independent RF scene"
+    },
+    {
+      "hypothesis": "H2_MP_TAP_AND_SAME_TAP_INTERFERENCE",
+      "status": "PARTIALLY_SUPPORTED",
+      "evidence": {
+        "n_full_samples": 6201,
+        "rms_tap_effect_s": 0.10632363400289727,
+        "rms_same_tap_interference_s": 0.11862026280442747,
+        "identity_max_error": 2.220446049250313e-16
+      },
+      "boundary": "D7 uses offline Full+LoS counterfactual only for attribution"
+    },
+    {
+      "hypothesis": "H3_CIR_QUALITY_PREDICTION",
+      "status": "NOT_SUPPORTED",
+      "evidence": {
+        "paired_heldout_route_channel_targets": 18,
+        "required_Q1_cells_missing": 0,
+        "scope_comparisons": [
+          {
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "r",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 0.6666666666666666,
+            "fraction_Q3_lower_NLL_than_Q1": 0.6666666666666666,
+            "fraction_improves_both_and_calibrated": 0.3333333333333333
+          },
+          {
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "s",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 0.6666666666666666,
+            "fraction_Q3_lower_NLL_than_Q1": 1.0,
+            "fraction_improves_both_and_calibrated": 0.0
+          },
+          {
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "r",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 0.3333333333333333,
+            "fraction_Q3_lower_NLL_than_Q1": 1.0,
+            "fraction_improves_both_and_calibrated": 0.0
+          },
+          {
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "s",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 0.6666666666666666,
+            "fraction_Q3_lower_NLL_than_Q1": 1.0,
+            "fraction_improves_both_and_calibrated": 0.0
+          },
+          {
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "r",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 1.0,
+            "fraction_Q3_lower_NLL_than_Q1": 1.0,
+            "fraction_improves_both_and_calibrated": 0.6666666666666666
+          },
+          {
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "s",
+            "heldout_route_cells": 3,
+            "fraction_Q3_lower_NLL_than_Q0": 0.6666666666666666,
+            "fraction_Q3_lower_NLL_than_Q1": 0.6666666666666666,
+            "fraction_improves_both_and_calibrated": 0.3333333333333333
+          }
+        ],
+        "cell_comparisons": [
+          {
+            "heldout_route": "R2",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 1.7630936036239184,
+            "Q1_minus_Q3_NLL": 0.08506367402431536,
+            "Q3_calibration_ratio": 0.5967669820109517,
+            "additional_CIR_information_supported": true
+          },
+          {
+            "heldout_route": "R2",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 1.3363020620088557,
+            "Q1_minus_Q3_NLL": 1.335609631973289,
+            "Q3_calibration_ratio": 1.9563301006529952,
+            "additional_CIR_information_supported": true
+          },
+          {
+            "heldout_route": "R2",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 0.6586354864383197,
+            "Q1_minus_Q3_NLL": 2.5422146985350684,
+            "Q3_calibration_ratio": 3.7898464951782356,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R2",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 0.1981129168500757,
+            "Q1_minus_Q3_NLL": 0.6669004554560614,
+            "Q3_calibration_ratio": 3.7509314475185827,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R2",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 0.6586354864383197,
+            "Q1_minus_Q3_NLL": 2.5422146985350684,
+            "Q3_calibration_ratio": 3.7898464951782356,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R2",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "r",
+            "Q0_minus_Q3_NLL": -0.5175391793825168,
+            "Q1_minus_Q3_NLL": 1.0907261112223332,
+            "Q3_calibration_ratio": 4.001525620816534,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 1.8829029444148069,
+            "Q1_minus_Q3_NLL": 0.15862044043032775,
+            "Q3_calibration_ratio": 0.3697510350942465,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 1.4878202822213886,
+            "Q1_minus_Q3_NLL": 1.7503764817703886,
+            "Q3_calibration_ratio": 1.736373568231108,
+            "additional_CIR_information_supported": true
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": -0.09464107864522764,
+            "Q1_minus_Q3_NLL": 3.8445488376613293,
+            "Q3_calibration_ratio": 5.129367109045589,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 0.8230562741352638,
+            "Q1_minus_Q3_NLL": 1.4678145232662754,
+            "Q3_calibration_ratio": 1.199306040033347,
+            "additional_CIR_information_supported": true
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "s",
+            "Q0_minus_Q3_NLL": -0.09464107864522764,
+            "Q1_minus_Q3_NLL": 3.8445488376613293,
+            "Q3_calibration_ratio": 5.129367109045589,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R4",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 0.06946910307403997,
+            "Q1_minus_Q3_NLL": 1.469826476926272,
+            "Q3_calibration_ratio": 2.9202410096974316,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": -0.1229961354252227,
+            "Q1_minus_Q3_NLL": -0.39397855472460064,
+            "Q3_calibration_ratio": 3.3764125674175673,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "los",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": 1.384729610065499,
+            "Q1_minus_Q3_NLL": 1.3563557889574063,
+            "Q3_calibration_ratio": 2.879563242284353,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 0.2836410511038441,
+            "Q1_minus_Q3_NLL": 0.5148754494180687,
+            "Q3_calibration_ratio": 3.9205691892920744,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "full",
+            "range_model": "B_OLD",
+            "target": "r",
+            "Q0_minus_Q3_NLL": -3.2269961077497507,
+            "Q1_minus_Q3_NLL": -1.127478695974933,
+            "Q3_calibration_ratio": 9.456800928549237,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "s",
+            "Q0_minus_Q3_NLL": 0.2836410511038441,
+            "Q1_minus_Q3_NLL": 0.5148754494180687,
+            "Q3_calibration_ratio": 3.9205691892920744,
+            "additional_CIR_information_supported": false
+          },
+          {
+            "heldout_route": "R5",
+            "channel": "full",
+            "range_model": "E1_FULL_LORO",
+            "target": "r",
+            "Q0_minus_Q3_NLL": -1.820245168831637,
+            "Q1_minus_Q3_NLL": 3.848853530747499,
+            "Q3_calibration_ratio": 10.210698979440746,
+            "additional_CIR_information_supported": false
+          }
+        ]
+      },
+      "boundary": "Q3 must improve Q0 AND s-only Q1 within each channel/correction/target scope; LORO on one scene; frozen E1 family selection not nested"
+    },
+    {
+      "hypothesis": "H3_RECURSIVE_RF_FUSION_UTILITY",
+      "status": "INCONCLUSIVE",
+      "evidence": {
+        "paired_F0_F3_joint_cells": 1,
+        "F3_heading_RMSE_win_fraction": 1.0
+      },
+      "boundary": "Ablation only; no independent confirmation-scene or calibrated consistency test"
+    }
+  ],
+  "interpretation": "Descriptive, no causal attribution from model performance alone"
+}

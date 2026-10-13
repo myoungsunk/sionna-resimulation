@@ -1,0 +1,69 @@
+{
+  "baseline_commit": "6e40ec919fba1637db1c2019d2745d6a1113ff81",
+  "fixed_code_commit": "fd2f1180232dd56eed261a59d1e994955222f45c",
+  "cause": "D9 initial P .01 versus frozen D5 .1**2 differs by one ULP",
+  "old_position_variance": 0.01,
+  "old_hex": "0x1.47ae147ae147bp-7",
+  "frozen_position_variance": 0.010000000000000002,
+  "frozen_hex": "0x1.47ae147ae147cp-7",
+  "ULP_difference": 1.0,
+  "absolute_NEES_parity_tolerance_before_and_after": 1e-08,
+  "counterfactuals": [
+    {
+      "variant": "original_D5_current",
+      "differences": {
+        "D0": 0.0,
+        "A": 0.0,
+        "B": 0.0,
+        "C": 0.0
+      }
+    },
+    {
+      "variant": "covFalse_obsFalse_metricFalse",
+      "differences": {
+        "D0": 5.551115123125783e-17,
+        "A": 3.5364204720167436e-07,
+        "B": -6.572520305780927e-14,
+        "C": -2.4868995751603507e-14
+      }
+    },
+    {
+      "variant": "covTrue_obsFalse_metricFalse",
+      "differences": {
+        "D0": 0.0,
+        "A": 0.0,
+        "B": 0.0,
+        "C": 0.0
+      }
+    },
+    {
+      "variant": "covFalse_obsTrue_metricFalse",
+      "differences": {
+        "D0": 5.551115123125783e-17,
+        "A": 3.5364204720167436e-07,
+        "B": -6.572520305780927e-14,
+        "C": -2.4868995751603507e-14
+      }
+    },
+    {
+      "variant": "covFalse_obsFalse_metricTrue",
+      "differences": {
+        "D0": 5.551115123125783e-17,
+        "A": 3.5364204720167436e-07,
+        "B": -6.572520305780927e-14,
+        "C": -2.4868995751603507e-14
+      }
+    },
+    {
+      "variant": "covTrue_obsTrue_metricTrue",
+      "differences": {
+        "D0": 0.0,
+        "A": 0.0,
+        "B": 0.0,
+        "C": 0.0
+      }
+    }
+  ],
+  "original_frozen_files_changed": false,
+  "scope": "R5_aB_m0/full/noise_pair/level1/seed0/B_OLD all four arms"
+}
