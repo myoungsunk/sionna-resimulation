@@ -1,0 +1,127 @@
+{
+  "timestamp_utc": "2026-10-13T09:46:54.229016+00:00",
+  "design": {
+    "version": "repair-v1",
+    "status": "FROZEN_DEVELOPMENT_EXECUTION_CONTRACT_NOT_I7_PREREGISTRATION",
+    "scope": "R0 then R1 then short Range then gated larger repair; never I3/I7",
+    "target": {
+      "coordinates": "rho>=0, delta on circle, c=(bg,SF,eps) whitened by frozen prior std, latent z standard normal",
+      "density": "pi(rho,delta,c,z|y) proportional to p0(rho|r0) * 1/(2pi) * phi3(c) * phi(z) * L_odo(c) * L_range_after_0(rho,delta,c,z)",
+      "joint_MH": "logalpha=logpi(new)-logpi(old)+logq(old|new)-logq(new|old); if eta=log(rho), include +eta Jacobian in transformed target",
+      "independent_radial_only": "p0 cancels only when q(rho_new)=p0 and other variables fixed",
+      "pCN_only": "latent Gaussian prior cancels only for its reversible Gaussian-prior proposal",
+      "physical_model_claim": false,
+      "invalid_support": "density zero if 1+SF<=0 or 1-eps^2/4<=0; Gaussian prior otherwise; no covariance repair"
+    },
+    "dr": {
+      "cells": [
+        "A2_3_GAUSS_LEVEL_R2_d2_s8000",
+        "A2_3_GAUSS_LEVEL_R4_d2_s8000"
+      ],
+      "arm": "DR",
+      "orders": [
+        96,
+        192,
+        384
+      ],
+      "standard_prior_bounds": [
+        6,
+        8,
+        10
+      ],
+      "integrate_bg_analytically": true,
+      "normalization_relative_change_max": 1e-06,
+      "quantile_change_in_sd_max": 0.01,
+      "domain_normalization_relative_change_max": 1e-06,
+      "domain_quantile_change_in_sd_max": 0.01,
+      "density_absolute_log_error_max": 1e-08,
+      "posterior_omitted_mass_upper_max": 1e-06,
+      "tail_claim": "nested domain stability only; omitted posterior tail needs independently bounded evidence before unbounded reference approval",
+      "on_failure": "stop dependent short Range and large experiments; preserve failure"
+    },
+    "short_range": {
+      "case": "explicit synthetic one-transition toy, then observed first transition R2/R4; not physical route replacement",
+      "independent_reference": "independent density and randomized Sobol integration of joint rho/delta/calibration/2 latent noises",
+      "sobol_powers": [
+        17,
+        19
+      ],
+      "independent_scrambles": 4,
+      "chains": 4,
+      "burn": 4000,
+      "retained_initial": 8000,
+      "retained_max": 32000,
+      "short_range_required": "full joint density, first-range single use, MH reversibility tests, joint moments/CDF/mode agreement; DR PASS alone insufficient"
+    },
+    "agreement": {
+      "pooled_sd": "sqrt((sd1^2+sd2^2)/2)",
+      "mean": "(abs(mean1-mean2)+1.96*sqrt(mcse_mean1^2+mcse_mean2^2))/pooled_sd <= 0.25",
+      "sd_ratio": "exp(abs(log(sd1/sd2))+1.96*sqrt(mcse_logsd1^2+mcse_logsd2^2)) <= 1.25",
+      "zero_sd": "INCONCLUSIVE unless both analytically fixed same quantity; never divide by zero",
+      "quantiles": "abs(q1-q2)+1.96*sqrt(mcse_q1^2+mcse_q2^2) <= 0.1*pooled_sd at p=.025,.5,.975",
+      "cdf": "maximum absolute CDF difference plus 95% Monte Carlo upper error <= .05 on frozen reference quantile grid p=.01:.01:.99",
+      "joint_regions": "compare masses in frozen reference 50/90/95% joint regions; abs difference plus 95% Monte Carlo upper error <= .05; no unimodal ellipse substituted for HPD",
+      "mode_masses": "12 fixed delta sectors width pi/6 starting -pi; compare each sector and disconnected density basins identified on independent toy grid; abs difference plus 95% Monte Carlo upper error <= .05",
+      "mc_error": "independent replicates for integrator/SMC; autocorrelation-aware MCSE for MCMC; simultaneous CDF/region/mode errors via independent-replicate maximum statistic; if unavailable INCONCLUSIVE",
+      "rhat_max_exclusive": 1.01,
+      "bulk_tail_ess_min": 400,
+      "mean_mcse_sd_max": 0.05,
+      "quantile_mcse_sd_max": 0.1,
+      "unvisited_modes_excluded": false
+    },
+    "large": {
+      "requires": [
+        "DR_REFERENCE_VALIDATED",
+        "SHORT_RANGE_KERNEL_VALIDATED"
+      ],
+      "cells": [
+        "R2_DR",
+        "R4_DR",
+        "R2_RANGE_0.05_5",
+        "R4_RANGE_0.05_5"
+      ],
+      "pf_sizes": [
+        20000,
+        80000
+      ],
+      "replicates": 4,
+      "wall_memory_limits": "freeze after R1 cost measurement and before production; UNRESOLVED_CONFIG until then",
+      "prior_sensitivity": [
+        "area",
+        "radius",
+        "halfnormal10",
+        "halfnormal100"
+      ],
+      "cutoff_sigma": [
+        6,
+        10,
+        12
+      ],
+      "static_parameter_jitter": "FORBIDDEN; prefix-posterior invariant moves only"
+    },
+    "operational_precision": "UNRESOLVED_CONFIG; no practical sufficient/insufficient verdict",
+    "reference_status": "REFERENCE_NOT_VALIDATED",
+    "I3": "NOT_RUN",
+    "I7": "NOT_RUN"
+  },
+  "sha256": {
+    "I2_REFERENCE_REPAIR_DESIGN.json": "241ea8fcdbb57d83efb364850a64de551fa84f0961c0f0fe08ad30d599b0dad3",
+    "repair_target.py": "7bba19de6d827a653f948612dff171204ec86e8faa8ab3f9c2e2ded5dbd00b34",
+    "repair_r1_dr.py": "6e20d9810915538a8c8e6b79d8b7b440786be0c9b66e87ce7ae3d9081395bd2e",
+    "run_repair_r0_r1.py": "3a662eaae100da64b457535c30a9d3b28fa28b5542d15ecd47b4531d7e0cea0f",
+    "tests\\test_repair_target.py": "2e63c20a8e82f26c2f45406bb139f59b856bb828a9bf4451f2548fb3fb76566e",
+    "tests\\test_repair_r1_dr.py": "73cdaeb604a14953c673a2110ea5d663cdafb1ce8eeac5cb9ab29004982022df",
+    "out\\i2_s0_run_01\\A2_3_GAUSS_LEVEL_R2_d2_s8000\\DR_public.npz": "948f78d19dd6cfab02fb76712f2f3acb722ec692e8479b2e8f40e9e3c7956389",
+    "out\\i2_s0_run_01\\A2_3_GAUSS_LEVEL_R2_d2_s8000\\DR_config.json": "9ed26176ce6c0fc9816b1c22b1ef8489a23c17e7a14a3f6db522554cd35fb0b0",
+    "out\\i2_s0_run_01\\A2_3_GAUSS_LEVEL_R4_d2_s8000\\DR_public.npz": "ae9700fc32c217967adbece553656bb4b388fc1efe758beb2ea16def477f1a70",
+    "out\\i2_s0_run_01\\A2_3_GAUSS_LEVEL_R4_d2_s8000\\DR_config.json": "9ed26176ce6c0fc9816b1c22b1ef8489a23c17e7a14a3f6db522554cd35fb0b0"
+  },
+  "command": [
+    "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "D:/SLAM_bot/artifacts/dr_ekf_followup_audit_20261013/research/SINGLE_ANCHOR_CAL_IDENTIFIABILITY_20261013/run_repair_r0_r1.py"
+  ],
+  "environment": {
+    "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+    "platform": "Windows-10-10.0.26200-SP0"
+  }
+}

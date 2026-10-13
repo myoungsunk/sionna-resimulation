@@ -1,0 +1,17 @@
+{
+  "status": "FROZEN_DEVELOPMENT_ONLY",
+  "scope": "same three one-transition Range cases plus explicitly labelled separated-mode numerical challenge; I3/I7 NOT_RUN",
+  "cases": ["SYNTHETIC", "R2 first transition", "R4 first transition", "SEPARATED_TOY dt=.2 ds=.4 gyro=.015 odo=.014 r0=4 r1=4 sigma=.05 sameR2prior/noise"],
+  "target": "unchanged p0(rho|r0) Uniform(delta) phi3(cal) phi2(latent) Lodo Lrange1, finite legacy12sigma domain, no truth",
+  "QMC": "powers17/19,16 independent scrambles each; original fixed9301+100*power+rep seed scheme",
+  "PF": "16 independent80000-particle importance clouds; original production target/proposal correction; seeds25000+caseIndex*100+rep",
+  "Batch": "16 independent chains burn4000 retain32000; SeedSequence[15000+caseIndex,5421,chain]; original independence/.5 wrapped eta-RW mixture and exact sameproposal corrections",
+  "reflection": "independent Bernoulli .5 after eachMH: delta'=-delta-a(otherparameters) wrapped; involution detabs1 and unchangedfulltarget; MHaccept includes actualtargetdifference; one-transitionguard",
+  "mode_evidence": "heading periodicmidpoint grids72/144; nuisanceSobol2^13/14,4replicas; basinminima from designated72/2^13grid frozen before independentfinegrid/samplers; basinmass agreement and perchainexactreflectionbranchvisits; exactbranchmass1/2; nofull7Dabsenceclaim",
+  "unchanged_thresholds": {"mean_upper_sd": 0.25,"sd_ratio_upper": 1.25,"quantile_upper_sd":0.1,"sector_mass_upper":0.05,"cdf_upper":0.05,"joint_HPD_mass_upper":0.05,"mode_mass_upper":0.05,"rank_folded_split_Rhat":1.01,"bulk_tail_ESS":400,"normalized_mean_MCSE":0.05,"normalized_quantile_MCSE":0.1},
+  "MC_method": "same independent-replicate SE withmaxwithin16block/chainSE; means/SD/quantiles1.96, simultaneousCDF/HPD/masses Bonferroni t95%; actualsamplecounts fordenominators and df=min(nr,no)-1; reference0 freezesregions andheldout1..15evaluates",
+  "gate": "allnumericmandatorycomparisons including directPF-Batch, projectedmodegridresolution andexactbranchmass/crossings; PASS limited to testedone-transitionkernel. I2wholeREFERENCE_NOT_VALIDATED; unvisited_modes_excluded false",
+  "budget_seconds":7200,
+  "legacy": "existingV1 files immutable; frozeninput/source/outputSHA256 andexecutionreceipt required",
+  "limitations": ["conditional measuredinput model", "finite12sigma target", "heading projection cannotexclude general7Dseparatedmodes", "MCintervals approximate conditionalonmixing", "practicalrequirements undefined"]
+}

@@ -1,0 +1,60 @@
+{
+  "status": "FROZEN_DEVELOPMENT_ONLY",
+  "scope": "short one-transition Range kernel; no I3, no larger experiment",
+  "cases": [
+    "explicit synthetic increments dt=.2 ds=.04 gyro=.015 odo=.014 r0=4 r1=4.02 using R2 frozen noise/prior",
+    "R2 first transition",
+    "R4 first transition"
+  ],
+  "input": "existing S0 RANGE_0.05_5 seed8000 observed first2 samples only; no truth",
+  "target": "p0(rho|r0)*UniformCircle(delta)*phi3(cal)*phi2(latent)*Lodo*Lrange1; zero invalid physics support",
+  "radial_support": "same legacy 12sigma finite numerical domain, not unbounded posterior approval",
+  "independent_reference": "separate vector density from covariance conditional inversion; independent analytic slant-area primitive inverse; no existing target call",
+  "sobol_powers": [
+    17,
+    19
+  ],
+  "scrambles": 4,
+  "MH": "4chains burn4000 retain8000; mixture .5 fullprior independent joint proposal explicit reverse/forward density, .5 symmetric eta/delta/cal/latent RW with eta Jacobian and wrapped delta",
+  "RW_scales": [
+    0.01,
+    0.8,
+    0.6,
+    0.6,
+    0.6,
+    0.6,
+    0.6
+  ],
+  "PF": "4 independent replicates 80000 particles; weighted prefix and final; no resampling for one transition; production likelihood",
+  "statistics": [
+    "rho,sin(delta),cos(delta),bg/SF/eps whitened,latent moments/covariance/quantiles",
+    "12 delta sector masses",
+    "CDF .01:.01:.99 reference grid",
+    "50/90/95 density HPD in drho ddelta dc dz coordinates"
+  ],
+  "heldout": "reference replica0 defines grid/regions; replicas1to3 evaluate masses; Bonferroni t df2 bounds; MCMC betweenchain error conditional on mixing",
+  "gates": "all R0 contract mandatory; rank folded splitRhat<1.01 bulk/tailESS>=400; missing disconnected-basins evidence INCONCLUSIVE",
+  "limitations": [
+    "finite numerical radial target",
+    "conditional measured-input model only",
+    "no unvisited mode exclusion",
+    "no practical sufficiency threshold"
+  ],
+  "I3": "NOT_RUN",
+  "I7": "NOT_RUN",
+  "seeds": {
+    "QMC": "9301+100*power+rep",
+    "Batch": "SeedSequence[14000+caseIndex,4421,chain]",
+    "PF": "24000+10*caseIndex+rep"
+  },
+  "retention_extension": "rerun identical deterministic prefixes at16000 then32000 only if main diagnostics fail at8000; no tuning",
+  "wall_budget_seconds": 7200,
+  "mcse": "16 nonoverlapping batches/chain; max within autocorrelation-aware and betweenchain SE; conditional validity requires mixing",
+  "proposal_correction": "Actual interpolated inverse radial proposal is piecewise constant; jointMH q includes it; PF/QMC importance weights include analytic target radial density minus actual proposal logdensity",
+  "density_checks": {
+    "seed": "35000+caseIndex",
+    "points": 64,
+    "max_logdensity_error": 1e-08,
+    "max_log_flux_balance_error": 1e-10
+  }
+}

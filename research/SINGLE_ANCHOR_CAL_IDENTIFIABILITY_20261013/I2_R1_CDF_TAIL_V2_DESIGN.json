@@ -1,0 +1,20 @@
+{
+ "version":"R1_CDF_TAIL_V2",
+ "scope":"R1 only; no Range experiment/I3/I7",
+ "frozen_before_new_results":true,
+ "cells":["A2_3_GAUSS_LEVEL_R2_d2_s8000","A2_3_GAUSS_LEVEL_R4_d2_s8000"],
+ "cdf_method":"nested adaptive quadrature; direct marginal CDF; bg transition splits; no interpolation of discrete posterior atoms",
+ "settings":[{"bound":32,"epsabs":1e-6,"epsrel":1e-6},{"bound":32,"epsabs":1e-8,"epsrel":1e-8},{"bound":40,"epsabs":1e-8,"epsrel":1e-8}],
+ "quantile_probabilities":[0.025,0.5,0.975],
+ "quantile_change_sd_max":0.01,
+ "normalization_relative_change_max":1e-6,
+ "posterior_tail_bound_max":1e-6,
+ "tail_method":"global likelihood upper from S>=qo times Gaussian prior outside SF/eps box divided by analytic lower evidence on a small 3D calibration box; interval arithmetic for lower and upper likelihood bounds",
+ "evidence_lower_box":"center old finite-box posterior mean divided by frozen prior std; halfwidth 0.0001 in each whitened calibration coordinate; center is only a positive-mass integration subset, not new prior",
+ "tail_prior_upper":"union bound 4*Phi(-B) <= 4*exp(-B^2/2)/(B*sqrt(2*pi)) via Mills bound",
+ "interval_precision_digits":50,
+ "integration_error_claim":"QUADPACK error estimates and refinement are numerical evidence, not formal certification of all CDF errors",
+ "runtime_limit_seconds_per_case":1800,
+ "stop":"any mandatory failure keeps REFERENCE_NOT_VALIDATED; no automatic parameter enlargement",
+ "legacy_results":"preserve all v1 and existing I2 outputs"
+}
