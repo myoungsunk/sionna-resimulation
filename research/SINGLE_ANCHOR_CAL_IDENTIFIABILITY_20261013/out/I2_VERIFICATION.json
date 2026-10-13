@@ -1,0 +1,34 @@
+{
+  "start": "2026-10-13T08:42:25.041452+00:00",
+  "end": "2026-10-13T08:42:29.401891+00:00",
+  "command": [
+    "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "-m",
+    "pytest",
+    "-q",
+    "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\SINGLE_ANCHOR_CAL_IDENTIFIABILITY_20261013\\tests"
+  ],
+  "test_exit_code": 0,
+  "checks": {
+    "tests": true,
+    "execution_exit_zero": true,
+    "output_hashes": true,
+    "source_hashes": true,
+    "common_public_inputs": true,
+    "i0_exact_reuse": true,
+    "i0_reused_episodes": true,
+    "primary_runs": true,
+    "snapshot_rows": true,
+    "batch_runs": true,
+    "high_pf_runs": true
+  },
+  "status": "PASS",
+  "independent_pre_execution_review": "ACCEPT; implementation only, not scientific outcome",
+  "finalization_first_attempt": {
+    "exit_code": 1,
+    "error": "ValueError: Out of range float values are not JSON compliant: inf",
+    "cause": "zero PF variance in derived ratio",
+    "repair": "undefined ratio stored null, convergence check false; no changes to PF samples"
+  },
+  "finalization_second_attempt_exit_code": 0
+}

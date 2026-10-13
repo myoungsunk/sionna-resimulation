@@ -1,0 +1,23 @@
+{
+  "stage": "I2", "status": "FROZEN_DEVELOPMENT_DESIGN", "not_I7_preregistration": true,
+  "routes": ["R2", "R4"], "worlds": ["B0", "A2_3_GAUSS_LEVEL"], "level": 2,
+  "seeds": [8000,8001,8002,8003], "seed_role": "existing development seeds; not independent confirmation",
+  "sigma_m": [0.03,0.05,0.10,0.20], "rates_hz": [1,5],
+  "pose": "S1", "S0": "UNRESOLVED_CONFIG: user will provide gauge and position integration domain",
+  "practical_requirement": "UNRESOLVED_CONFIG: user requested performance curves only",
+  "anchor_xyz": [4,0,2.65], "robot_z": 0.45,
+  "selection": "R2 has weaker DR effective information than R4 in I1. Fixed high drift d2 stress/control comparison. R5, other drift levels, anchor B and S0 excluded from this bounded development run before I2 outcomes.",
+  "primary_particles": 4096, "primary_runs": 144,
+  "pf_validation": {"worlds": ["A2_3_GAUSS_LEVEL"], "routes": ["R2","R4"], "seed":8000, "arms":["DR","RANGE_0.05_5"], "particles":16384,"repeats":2},
+  "batch": {"same_cells_as_pf_validation":true,"chains":4,"burn":1000,"retained":1000,"thin":1,"pCN_beta":0.03,"parameter_step":0.08},
+  "snapshots_fraction": [0,0.1,0.25,0.5,0.75,1],
+  "range_rng_namespace": [20261013,2202], "pf_rng_namespace": [20261013,2203],
+  "pairing": "identical sensors and initial prior across arms; common normal range noise across sigma; 1Hz nested in 5Hz; independent PF streams",
+  "target": "static calibration conditional measured-input Gaussian likelihood, exact SE2 propagation; no gating, inflation, covariance repair or parameter jitter",
+  "target_limit": "measured-increment Q is a conditional approximation, not exact physical generator likelihood; B0 also has slip/wheelbase mismatch",
+  "reference_rules": {"all_state_classical_split_rhat_max":1.05,"all_state_within_chain_ess_min":400,"pf_final_ancestors_min":100,"max_pairwise_cal_mean_gap_in_pooled_sd":0.25,"max_cal_sd_ratio":1.25,"note":"necessary diagnostics only; unseen modes remain possible, approval requires all diagnostics plus independent agreement; failures are REFERENCE_NOT_VALIDATED"},
+  "joint_region": "posterior-mass calibrated Mahalanobis ellipse for bg/eps; 95th weighted empirical radius, not HPD; singular covariance invalid",
+  "statistics": "episode-level paired summaries; 4 seeds exploratory, bootstrap percentile intervals descriptive; no practical sufficiency or lack-of-information claim",
+  "batch_horizon": "terminal full supplied horizon; only terminal PF comparison; intermediate batch samples are smoothers",
+  "I3":"NOT_RUN", "I7":"NOT_RUN"
+}
