@@ -1,0 +1,28 @@
+{
+ "name": "D6 independent confirmation of the DR EKF inconsistency diagnosis",
+ "seeds": "8100:8400",
+ "procs": 4,
+ "arms": ["B0", "ORACLE_CAL", "NO_C", "A2_3_GAUSS_LEVEL", "A2_3D_GAUSS_DEFAULT", "CKF_A2_3", "PF_A2_3"],
+ "criteria": [
+  {"id": "C1_PHENOMENON", "kind": "condxy_dominates", "arm": "B0", "min_cond_per_dof": 1.5,
+   "claim": "In every B0 cell the over-confidence sits in the heading-conditional XY term: its per-dof mean (t>=30 s) exceeds 1.5 and exceeds the heading term."},
+  {"id": "C2_CALIBRATION_NECESSARY", "kind": "not_overconfident_all_cells", "arm": "ORACLE_CAL",
+   "claim": "With the true calibration and wheelbase known (control), no B0-world cell is over-confident: ANEES <= 3.6, late-25% ANEES <= 3.6 and coverage >= 0.92 in all 9 cells."},
+  {"id": "C3_MISMATCH_NOT_NECESSARY", "kind": "overconfident_cells", "arm": "A2_3_GAUSS_LEVEL", "cells": ["R2_d2", "R5_d2"], "max_heading": 1.5,
+   "claim": "In the exactly model-matched world (calibration drawn from the filter prior, no wheelbase error, no slip) the EKF is still over-confident (ANEES > 3.6) in the large-heading-uncertainty cells R2_d2 and R5_d2 while its heading term stays <= 1.5."},
+  {"id": "C4_EXACT_POSTERIOR_FIXES", "kind": "reference_beats_ekf", "ekf_arm": "A2_3_GAUSS_LEVEL", "ref_arm": "PF_A2_3",
+   "cells": ["R2_d1", "R2_d2", "R4_d2", "R5_d1", "R5_d2"], "ref_max_anees": 3.6,
+   "claim": "On the same model-matched worlds and seeds, the particle filter (near-exact posterior) has time-mean ANEES <= 3.6 and closer to 3 (log scale) than the EKF in every cell where the EKF was over-confident in development."},
+  {"id": "C5_EKF_POSTERIOR_ERROR", "kind": "posterior_agreement", "ekf_arm": "A2_3_GAUSS_LEVEL", "ref_arm": "PF_A2_3",
+   "cells_disagree": ["R2_d2", "R5_d2"], "enees_min": 10.0, "cells_agree": ["R2_d0", "R4_d0", "R5_d0"], "enees_max_agree": 4.0,
+   "heading_var_ratio_range": [0.9, 1.1],
+   "claim": "Directly against the particle posterior from the same data: the EKF posterior disagrees (ENEES > 10) in R2_d2/R5_d2, agrees (ENEES <= 4) in the drift-0 cells, and its heading variance matches the particle heading variance (ratio 0.9-1.1) in all 9 cells."},
+  {"id": "C6_C_TERM_IRRELEVANT", "kind": "paired_no_effect", "arm": "NO_C", "reference": "B0", "max_abs_log_ratio": 0.05,
+   "claim": "Removing the shared-input cross-covariance C from the odometry update changes the B0 ANEES by less than 5% in every cell."},
+  {"id": "C7_VALIDITY_REGION", "kind": "validity_region", "arm": "A2_3D_GAUSS_DEFAULT", "max_sigma_deg": 5.0, "min_sigma_deg": 7.0,
+   "min_frac_inside": 0.9, "min_frac_outside": 0.9,
+   "claim": "In the model-matched world with the code-default prior, per-time ensemble ANEES_k (t>=10 s) is <= 3.6 for >= 90% of samples whose ensemble-mean filter heading sigma is <= 5 deg, and > 3.6 for >= 90% of samples with sigma >= 7 deg."},
+  {"id": "S1_PF_STRICT_GATE", "kind": "consistent_count", "arm": "PF_A2_3", "min": 9, "max": 9,
+   "claim": "SECONDARY: the particle filter passes the full R2-2 consistency gate (ANEES 2.4-3.6, coverage 0.92-0.98, late 2.4-3.6) in all 9 model-matched cells. A FAIL here limits the PF as a deployable fix, not the causal conclusion."}
+ ]
+}

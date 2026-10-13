@@ -156,6 +156,8 @@ ARMS = {a.name: a for a in (
     Arm('PF_A2_3', world='gauss_level', prior='level', estimator='pf', role='particle filter, model-matched'),
     Arm('PF_A2_3D', world='gauss_default', prior='default', estimator='pf', role='particle filter, model-matched default prior'),
     Arm('PF_WN_ONLY', world='wheel_noise_only', estimator='pf', role='particle filter, wheel noise only'),
+    Arm('PF_A2_3_N80K', world='gauss_level', prior='level', estimator='pf', n_particles=80000,
+        role='particle-count convergence check for PF_A2_3 (4x particles)'),
     Arm('MC_A2_3_ODOM_OFF', world='gauss_level', prior='level', odom=False, estimator='pf',
         role='nonlinear MC propagation reference for A2_3_ODOM_OFF (uniform weights, no resampling)'),
     Arm('MC_A2_3D_ODOM_OFF', world='gauss_default', prior='default', odom=False, estimator='pf',
