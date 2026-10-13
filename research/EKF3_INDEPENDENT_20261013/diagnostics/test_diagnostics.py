@@ -3,7 +3,12 @@ from __future__ import annotations
 
 import json
 import math
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT.parent))
 
 import numpy as np
 import pytest
