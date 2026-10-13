@@ -74,6 +74,27 @@ def checked_path(p0: dict, field: str) -> Path:
     return path
 
 
+def verify_p2_artifact_integrity(p2_dir: Path, seed: int) -> dict:
+    """D0 fail-closed: compare each trace and summary to frozen P2 receipt hashes."""
+    receipt_path = PROJECT / "P2_RUN_RECEIPT.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    expected = receipt["artifact"]["summary_sha256"]
+    summary_path = p2_dir / "P2_ONE_STEP_SUMMARY.json"
+    if not summary_path.is_file() or hash_file(summary_path) != expected:
+        raise RuntimeError("P2 summary absent/changed: download the verified Actions 38331588521 artifact")
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    if summary.get("seed") != seed or summary.get("schema") != "EKF3_P2_FROZEN_RF_ONE_STEP_V1":
+        raise RuntimeError("unexpected P2 seed or summary schema")
+    if summary.get("num_case_channel_runs") != 14:
+        raise RuntimeError("P2 requires seven cases x Full/LoS channels")
+    for trace in summary["per_case"]:
+        file = p2_dir / trace["trace_file"]
+        if not file.is_file() or hash_file(file) != trace["trace_sha256"]:
+            raise RuntimeError(f"P2 trace hash absent/mismatch: {file}")
+    return dict(summary_sha256=expected,trace_count=len(summary["per_case"]),
+                full_artifact_url=receipt["artifact"]["github_artifact_url"])
+
+
 def load_p2_one_step(p2_dir: Path, case: str, channel: str, seed: int) -> dict:
     file = p2_dir / f"{case}_{channel}_seed{seed}_ONE_STEP.npz"
     if not file.is_file():
@@ -250,6 +271,7 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
         raise FileExistsError(f"output exists, preserving previous diagnostic: {output_dir}")
     if not p2_dir.is_dir():
         raise FileNotFoundError(f"P2_OUT directory missing: {p2_dir}")
+    verified_p2=verify_p2_artifact_integrity(p2_dir, seed)
     p0=read_p0()
     if hash_file(P3_MODEL)!=P3_SHA256:
         raise RuntimeError("Frozen P3 E1 model hash does not match freeze addendum")
@@ -463,6 +485,7 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
         "status":"DIAGNOSTIC_EXECUTED_NO_SCIENTIFIC_PASS",
         "seed":seed,"source_P2":str(p2_dir),"P2_seed":seed,
         "P0_sha256":hash_file(P0_PATH),"P3_frozen_model_sha256":hash_file(P3_MODEL),
+        "P2_artifact_integrity":verified_p2,
         "anchor_case_count":len(root_rf),
         "case_channel_count":len(root_rf)*2,
         "replayed_B_C_one_step_count":n_replays,
