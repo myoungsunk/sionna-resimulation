@@ -1,0 +1,125 @@
+{
+  "status": "SWEEP_COMPLETE_ANALYSED",
+  "positions": 4,
+  "per_position": [
+    {
+      "position": 0,
+      "finite": true,
+      "shape": [
+        19,
+        257,
+        2,
+        2
+      ],
+      "one_los_path_every_call": true,
+      "first_path_delay_error_s": 2.1459470530846842e-16,
+      "mean_paths": 51.0,
+      "los_power_fraction_median": 0.9212501618724925,
+      "range_m": 2.2,
+      "anchor_off_boresight_deg": 0.0
+    },
+    {
+      "position": 1,
+      "finite": true,
+      "shape": [
+        19,
+        257,
+        2,
+        2
+      ],
+      "one_los_path_every_call": true,
+      "first_path_delay_error_s": 8.098147496858649e-16,
+      "mean_paths": 63.0,
+      "los_power_fraction_median": 0.9077764010776196,
+      "range_m": 3.737,
+      "anchor_off_boresight_deg": 53.93
+    },
+    {
+      "position": 2,
+      "finite": true,
+      "shape": [
+        19,
+        257,
+        2,
+        2
+      ],
+      "one_los_path_every_call": true,
+      "first_path_delay_error_s": 1.6761356297658807e-16,
+      "mean_paths": 63.0,
+      "los_power_fraction_median": 0.5930998106208392,
+      "range_m": 7.355,
+      "anchor_off_boresight_deg": 72.59
+    },
+    {
+      "position": 3,
+      "finite": true,
+      "shape": [
+        19,
+        257,
+        2,
+        2
+      ],
+      "one_los_path_every_call": true,
+      "first_path_delay_error_s": 1.2039831529646542e-15,
+      "mean_paths": 63.0,
+      "los_power_fraction_median": 0.0851783054003343,
+      "range_m": 11.218,
+      "anchor_off_boresight_deg": 78.69
+    }
+  ],
+  "on_axis_los_vs_ideal": {
+    "LP_plus45": {
+      "max_abs_deviation_db": 0.8443188543325579,
+      "yaws_compared": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0
+      ],
+      "los_only_null_yaw_deg": 130.0,
+      "los_only_peak_yaw_deg": 40.0,
+      "ideal_null_yaw_deg": 140.0,
+      "ideal_peak_yaw_deg": 50.0
+    },
+    "LP_minus45": {
+      "max_abs_deviation_db": 0.9265414101933231,
+      "yaws_compared": [
+        0.0,
+        10.0,
+        20.0,
+        30.0,
+        60.0,
+        70.0,
+        80.0,
+        90.0,
+        100.0,
+        110.0,
+        120.0,
+        150.0,
+        160.0,
+        170.0,
+        180.0
+      ],
+      "los_only_null_yaw_deg": 50.0,
+      "los_only_peak_yaw_deg": 140.0,
+      "ideal_null_yaw_deg": 50.0,
+      "ideal_peak_yaw_deg": 140.0
+    }
+  },
+  "metric": "abs(p1-p2)/abs(p1+p2); p1=robot RX +45 port, p2=robot RX -45 port, per anchor TX port; median over 257 bins",
+  "notes": [
+    "Ideal curve assumes ideal +45/-45 ports with aligned boresights; real FFD banks and the 8 degree port phase offset shift it.",
+    "Ratio is unbounded at nulls of p1+p2; medians are over bins, nulls can move with frequency."
+  ]
+}
