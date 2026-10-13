@@ -281,10 +281,16 @@ def run(seed: int, modes: list[str], output_dir: Path, cases: list[str]) -> dict
     freq_path=REPO / "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy"
     freeze_assert(lut_path)
     freeze_assert(freq_path)
-    loaded=np.load(lut_path,allow_pickle=True)
-    if loaded.shape!=() or not isinstance(loaded.item(),dict):
-        raise RuntimeError("LUT contract mismatch")
-    lut=HsLut(loaded.item())
+    meta_path=ARCHIVE/"LUT/hs_lut_meta.json"
+    freeze_assert(meta_path)
+    meta=json.loads(meta_path.read_text(encoding="utf-8"))["meta"]
+    loaded=np.load(lut_path,allow_pickle=False,mmap_mode="r")
+    theta=np.asarray(meta["theta_deg"],float)
+    phi_start,phi_end,phi_step=map(float,meta["phi_deg"])
+    phi=np.arange(phi_start,phi_end+phi_step/2,phi_step)
+    if loaded.shape!=(len(theta),len(phi),len(phi)):
+        raise RuntimeError(f"LUT shape/metadata mismatch: {loaded.shape}")
+    lut=HsLut(dict(theta_deg=theta,phi_deg=phi,s=loaded))
     frequencies=np.load(freq_path,allow_pickle=False)
     if len(frequencies)!=257 or not np.all(np.diff(frequencies)>0):
         raise RuntimeError("frequency grid invalid")

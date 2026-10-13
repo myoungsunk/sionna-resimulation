@@ -45,6 +45,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check numpy pytest
       - name: Verify P0 input hashes, H shapes and pose alignment
         run: |
+          set -euo pipefail
           python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py \
             | tee research/EKF3_INDEPENDENT_20261013/P2_VERIFY_P0_RUNTIME.json
       - name: Independently retest P1 mathematics
