@@ -6,4 +6,5 @@
 | D5_NONLINEAR_s8000-8031.log | `compare_dr_nonlinear.py --seeds 8000:8032 --procs 4 --reuse` (중간 수정 전 코드로 실행; 요약 JSON은 이후 strict writer로 재생성) | 완료 |
 | D5_PF_VALIDATION_V2-V4.log | `validate_dr_pf.py --parts V2 V3 V4 --procs 4` (V1은 별도 실행) | 완료 |
 | D6_RUN_EKF_CKF_ARMS_s8100-8399.log | `confirm_dr_independent.py --only-arms B0 ORACLE_CAL NO_C A2_3_GAUSS_LEVEL A2_3D_GAUSS_DEFAULT CKF_A2_3` (구버전 실행 모드; 계산만, 판정 없음) | 완료 |
-| D6_RUN_PF_A2_3_s8100-8399.PARTIAL.log | `confirm_dr_independent.py --run-arms PF_A2_3 --procs 4` | 진행 중 — 완료 시 최종 로그로 교체 |
+| D6_RUN_PF_A2_3_s8100-8399.log | `confirm_dr_independent.py --run-arms PF_A2_3 --procs 4` | 완료 (9셀) |
+| D6_EVALUATE_s8100-8399.log | `confirm_dr_independent.py --evaluate` (load-only, 63셀 검증 후 판정) | 완료 — 판정 `UNRESOLVED` (C3, C4 FAIL; S1 FAIL) |

@@ -1,0 +1,19 @@
+C1_PHENOMENON PASS - In every B0 cell the over-confidence sits in the heading-conditional XY term: its per-dof mean (t>=30 s) exceeds 1.5 and exceeds the heading term.
+C2_CALIBRATION_NECESSARY PASS - With the true calibration and wheelbase known (control), no B0-world cell is over-confident: ANEES <= 3.6, late-25% ANEES <= 3.6 and coverage >= 0.92 in all 9 cells.
+C3_MISMATCH_NOT_NECESSARY FAIL - In the exactly model-matched world (calibration drawn from the filter prior, no wheelbase error, no slip) the EKF is still over-confident (ANEES > 3.6) in the large-heading-uncertainty cells R2_d2 and R5_d2 while its heading term stays <= 1.5.
+C4_EXACT_POSTERIOR_FIXES FAIL - On the same model-matched worlds and seeds, the particle filter (near-exact posterior) has time-mean ANEES <= 3.6 and closer to 3 (log scale) than the EKF in every cell where the EKF was over-confident in development.
+C5_EKF_POSTERIOR_ERROR PASS - Directly against the particle posterior from the same data: the EKF posterior disagrees (ENEES > 10) in R2_d2/R5_d2, agrees (ENEES <= 4) in the drift-0 cells, and its heading variance matches the particle heading variance (ratio 0.9-1.1) in all 9 cells.
+C6_C_TERM_IRRELEVANT PASS - Removing the shared-input cross-covariance C from the odometry update changes the B0 ANEES by less than 5% in every cell.
+C7_VALIDITY_REGION PASS - In the model-matched world with the code-default prior, per-time ensemble ANEES_k (t>=10 s) is <= 3.6 for >= 90% of samples whose ensemble-mean filter heading sigma is <= 5 deg, and > 3.6 for >= 90% of samples with sigma >= 7 deg.
+S1_PF_STRICT_GATE FAIL - SECONDARY: the particle filter passes the full R2-2 consistency gate (ANEES 2.4-3.6, coverage 0.92-0.98, late 2.4-3.6) in all 9 model-matched cells. A FAIL here limits the PF as a deployable fix, not the causal conclusion.
+verdict {
+ "cause_verdict": "UNRESOLVED",
+ "primary_failed": [
+  "C3_MISMATCH_NOT_NECESSARY",
+  "C4_EXACT_POSTERIOR_FIXES"
+ ],
+ "withdrawn_statements": [],
+ "secondary": {
+  "S1_PF_STRICT_GATE": "FAIL"
+ }
+}
