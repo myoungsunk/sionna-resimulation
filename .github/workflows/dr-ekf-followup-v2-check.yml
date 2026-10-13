@@ -1,0 +1,26 @@
+name: DR EKF followup V0-V5 checks
+on:
+  push:
+    branches:
+      - codex/dr-ekf-causal-followup-v2-20261013
+    paths:
+      - 'research/DR_EKF_DIAGNOSIS_20261013/followup_v2/**'
+      - 'tests/test_dr_ekf_followup_v2.py'
+      - '.github/workflows/dr-ekf-followup-v2-check.yml'
+  workflow_dispatch:
+
+jobs:
+  offline-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install CPU-only dependencies
+        run: python -m pip install --disable-pip-version-check numpy pandas scipy pytest
+      - name: Verify syntax
+        run: python -m compileall -q research/DR_EKF_DIAGNOSIS_20261013/followup_v2 tests/test_dr_ekf_followup_v2.py
+      - name: Test V0-V5 without running D6
+        run: python -m pytest -q tests/test_dr_ekf_followup_v2.py
