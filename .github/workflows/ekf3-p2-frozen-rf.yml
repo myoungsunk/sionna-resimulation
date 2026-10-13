@@ -31,7 +31,7 @@ jobs:
           import json
           from pathlib import Path
           j=json.loads(Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
-          patterns=['/research/EKF3_INDEPENDENT_20261013/**']
+          patterns=['/research/EKF3_INDEPENDENT_20261013/**', '/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**']
           patterns.extend('/'+a['path'] for a in j['assets'])
           Path('/tmp/ekf3-p2-sparse-patterns').write_text('\n'.join(patterns)+'\n')
           print('Sparse blob patterns:',len(patterns))
@@ -54,6 +54,7 @@ jobs:
             research/EKF3_INDEPENDENT_20261013/test_ekf3_smoke.py
       - name: Execute actual frozen RF H and LoS, same-prior A/B/C matrices
         run: |
+          set -euo pipefail
           python research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py \
             --seed 0 --channels los full \
             --out research/EKF3_INDEPENDENT_20261013/P2_OUT \
