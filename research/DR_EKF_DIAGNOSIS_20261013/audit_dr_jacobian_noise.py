@@ -19,6 +19,7 @@ import math
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 import dr_consistency as DC
 from dr_harness import F, V
 
@@ -257,7 +258,7 @@ def main():
                observability=observability())
     doc['status'] = dict(jacobian=doc['jacobian']['status'], noise=doc['noise']['status'])
     path = OUT / 'D3_MODEL_AUDIT.json'
-    path.write_text(json.dumps(doc, indent=1, default=float))
+    path.write_text(IO.json_text(doc))
     H.write_manifest(OUT, 'D3_MODEL_AUDIT', dict(draws=a.draws), [path], started)
     print(json.dumps(doc['status']))
     for r in doc['linearisation']['rows']:

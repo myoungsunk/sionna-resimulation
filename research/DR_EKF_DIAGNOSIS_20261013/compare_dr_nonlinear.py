@@ -18,6 +18,7 @@ import json
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 import dr_consistency as DC
 import dr_plot as PL
 from ablate_dr_calibration import ensure, arm_summary, strip_figure
@@ -89,7 +90,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     FIG.mkdir(parents=True, exist_ok=True)
     js = OUT / f'D5_NONLINEAR_{tag}.json'
-    js.write_text(json.dumps(doc, indent=1, default=float))
+    js.write_text(IO.json_text(doc))
     csv_path = OUT / f'D5_NONLINEAR_{tag}_CELLS.csv'
     write_rows([r for arm in arms for r in rows[arm]], csv_path)
     fig1 = strip_figure(rows, arms, FIG / f'D5_estimators_{tag}.png', f'D5 estimator comparison (seeds {seeds[0]}-{seeds[-1]})')

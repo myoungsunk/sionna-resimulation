@@ -12,6 +12,7 @@ import json
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 import dr_plot as PL
 from diagnose_dr_trace import run_arm, cache_path, load_cell, seed_range, seed_tag, write_rows
 
@@ -26,16 +27,18 @@ REFERENCE = {'A2_2_PRIOR_MATCHED': 'B0', 'A2_2C_MATCHED_CLEAN': 'A2_2_PRIOR_MATC
 
 
 def ensure(arms, seeds, procs, reuse):
+    """reuse=True: per-cell reuse of validated caches; only missing cells are computed, nothing is overwritten."""
+    return {arm: run_arm(arm, seeds, procs, reuse=reuse) for arm in arms}
+
+
+def load_rows(arms, seeds):
+    """Load-only: summaries from validated caches; raises if any cell is missing or invalid (never computes)."""
     rows = {}
     for arm in arms:
-        have = all(cache_path(arm, seeds, r, lv).exists() for r, lv in H.CELLS)
-        if reuse and have:
-            rr = []
-            for r, lv in H.CELLS:
-                arr = load_cell(arm, seeds, r, lv)
-                rr.append(dict(arm=arm, cell=H.cell_name(r, lv), n=len(seeds), **H.cell_summary(arr, r)))
-        else:
-            rr = run_arm(arm, seeds, procs)
+        rr = []
+        for r, lv in H.CELLS:
+            arr = load_cell(arm, seeds, r, lv)
+            rr.append(dict(arm=arm, cell=H.cell_name(r, lv), n=len(seeds), **H.cell_summary(arr, r)))
         rows[arm] = rr
     return rows
 
@@ -100,7 +103,7 @@ def main():
     OUT.mkdir(exist_ok=True)
     FIG.mkdir(parents=True, exist_ok=True)
     js = OUT / f'D4_ABLATION_{tag}.json'
-    js.write_text(json.dumps(doc, indent=1, default=float))
+    js.write_text(IO.json_text(doc))
     csv_path = OUT / f'D4_ABLATION_{tag}_CELLS.csv'
     write_rows([r for arm in a.arms for r in rows[arm]], csv_path)
     fig = strip_figure(rows, list(a.arms), FIG / f'D4_ablation_{tag}.png', f'D4 interventions (seeds {seeds[0]}-{seeds[-1]})')

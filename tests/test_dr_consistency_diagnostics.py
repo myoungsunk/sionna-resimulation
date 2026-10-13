@@ -162,3 +162,21 @@ print(float(d@np.linalg.solve(P,d)), float(np.abs(np.linalg.eigvalsh(np.linalg.s
     # EKF moments agree (they separate later as the second-order along-track term grows)
     maha, eig_dev = (float(v) for v in out.split())
     assert maha < 0.01 and eig_dev < 0.01
+
+
+def test_particle_filter_single_step_matches_independent_bootstrap():
+    """Locally-optimal proposal + marginal likelihood (PF) vs a bootstrap importance sampler that only weights by the
+    odometry-noise density. Exaggerated input noise makes the input-noise conditioning dominate; the negative control
+    (conditioning switched off) must be clearly detected by the same comparison."""
+    out = _run_isolated('''
+import validate_dr_pf as V
+r=V.v1_single_step(n_pf=100000, n_ref=1000000)
+for k in ('drive','spin'):
+    a=r[k]['pf_vs_reference']; print(a['whitened_mean_diff_sq'], a['cov_eig_min'], a['cov_eig_max'])
+b=r['drive']['unconditioned_noise_vs_reference']; print(b['whitened_mean_diff_sq'], b['cov_eig_min'], b['cov_eig_max'])
+''')
+    lines = [[float(x) for x in ln.split()] for ln in out.strip().splitlines()]
+    for mean_sq, lo, hi in lines[:2]:
+        assert mean_sq < 0.005 and 0.96 < lo and hi < 1.04
+    mean_sq, lo, hi = lines[2]
+    assert mean_sq > 0.05 or hi > 1.3

@@ -12,6 +12,7 @@ import time
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 from compare_dr_nonlinear import posterior_agreement
 from diagnose_dr_trace import CACHE, write_rows
 
@@ -68,9 +69,9 @@ def main():
     csv_path = OUT / 'INTERIM_SNAPSHOT_CELLS.csv'
     write_rows(rows, csv_path)
     js = OUT / 'INTERIM_SNAPSHOT.json'
-    js.write_text(json.dumps(dict(status='INTERIM', written_utc=H.utc_now(),
+    js.write_text(IO.json_text(dict(status='INTERIM', written_utc=H.utc_now(),
                                   note='D5 and D6 runs in progress; D6 criteria are NOT evaluated here',
-                                  arms=arms, posterior_agreement_dev=agreement), indent=1, default=float))
+                                  arms=arms, posterior_agreement_dev=agreement)))
     H.write_manifest(OUT, 'INTERIM_SNAPSHOT', dict(note='interim snapshot of cached arms'), [csv_path, js], started)
     for k, v in arms.items():
         print(f"{k:40s} cells {v['cells_complete']} consistent {v['n_consistent']} ANEESmed {v['anees_median']:.2f} "

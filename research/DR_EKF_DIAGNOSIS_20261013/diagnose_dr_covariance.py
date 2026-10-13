@@ -15,6 +15,7 @@ import json
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 import dr_consistency as DC
 import dr_plot as PL
 from diagnose_dr_trace import load_cell, seed_range, seed_tag
@@ -259,7 +260,7 @@ def main():
               f"angle {cp['cond']['thin_angle_from_long_deg']:.0f}deg | corr lat-psi pred {cp['corr_pred_lat_psi']:.3f} act {cp['corr_actual_lat_psi']:.3f}")
     OUT.mkdir(exist_ok=True)
     js = OUT / f'D2_COVARIANCE_{tag}.json'
-    js.write_text(json.dumps(dict(arm=a.arm, seeds=[seeds[0], seeds[-1]], cells=doc), indent=1, default=float))
+    js.write_text(IO.json_text(dict(arm=a.arm, seeds=[seeds[0], seeds[-1]], cells=doc)))
     figs = [] if a.no_figures else figures(results, tag, a.figure_cells, cache)
     H.write_manifest(OUT, f'D2_COVARIANCE_{tag}', dict(arm=a.arm, seeds=a.seeds), [js] + figs, started)
 

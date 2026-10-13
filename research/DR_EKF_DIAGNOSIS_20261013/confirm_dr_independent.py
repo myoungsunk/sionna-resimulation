@@ -4,18 +4,27 @@ The spec (arms, seeds, criteria, thresholds) must be committed before this scrip
 if D6_SPEC.json has uncommitted changes. Each criterion is evaluated mechanically and reported PASS/FAIL; nothing is
 tuned after the run.
 
-usage: confirm_dr_independent.py [--procs 4] [--only-arms ...] [--evaluate-only]
+Two separate modes (evaluation never computes):
+  --run-arms ARM ...   compute the missing cells of these spec arms; valid cached cells are reused and never
+                       overwritten, an invalid cache aborts the run
+  --evaluate           load-only: every spec arm/cell must exist and pass the content check (seed list, route length,
+                       finite errors); then the criteria are evaluated and the verdict is derived with the decision
+                       rules of D6_PREREG_KO.md (C1-C7 primary, S1 secondary and never part of the cause verdict)
+
+usage: confirm_dr_independent.py --run-arms B0 ... [--procs 4] | --evaluate
 """
 import argparse
 import json
 import subprocess
+import sys
 
 import numpy as np
 
 import dr_harness as H
-from ablate_dr_calibration import ensure, arm_summary
+import dr_io as IO
+from ablate_dr_calibration import ensure, load_rows, arm_summary
 from compare_dr_nonlinear import posterior_agreement
-from diagnose_dr_trace import load_cell, seed_range, seed_tag, write_rows
+from diagnose_dr_trace import load_cell, cell_status, seed_range, seed_tag, write_rows
 
 OUT = H.HERE / 'out'
 SPEC = H.HERE / 'D6_SPEC.json'
@@ -107,36 +116,71 @@ def evaluate(spec, rows, seeds):
     return res
 
 
+PRIMARY = ('C1_PHENOMENON', 'C2_CALIBRATION_NECESSARY', 'C3_MISMATCH_NOT_NECESSARY', 'C4_EXACT_POSTERIOR_FIXES',
+           'C5_EKF_POSTERIOR_ERROR', 'C6_C_TERM_IRRELEVANT', 'C7_VALIDITY_REGION')
+CAUSE_CRITICAL = ('C2_CALIBRATION_NECESSARY', 'C3_MISMATCH_NOT_NECESSARY', 'C4_EXACT_POSTERIOR_FIXES', 'C5_EKF_POSTERIOR_ERROR')
+STATEMENT_ONLY = {'C1_PHENOMENON': 'phenomenon scope (cond-XY dominance in every B0 cell)',
+                  'C6_C_TERM_IRRELEVANT': 'irrelevance of the C term', 'C7_VALIDITY_REGION': 'validity-region threshold'}
+
+
+def verdict(res):
+    """Decision rules of D6_PREREG_KO.md section 'Pan-jeong-eo'. S1 is reported separately."""
+    failed = [c for c in PRIMARY if res[c]['status'] != 'PASS']
+    if not failed:
+        cause = 'CAUSE_CONFIRMED: EKF_LINEARISATION_UNDER_CALIBRATION_DRIVEN_HEADING_UNCERTAINTY'
+        withdrawn = []
+    elif any(c in CAUSE_CRITICAL for c in failed):
+        cause = 'UNRESOLVED'
+        withdrawn = []
+    else:
+        cause = 'CAUSE_RETAINED_WITH_WITHDRAWN_STATEMENTS: EKF_LINEARISATION_UNDER_CALIBRATION_DRIVEN_HEADING_UNCERTAINTY'
+        withdrawn = [STATEMENT_ONLY[c] for c in failed]
+    return dict(cause_verdict=cause, primary_failed=failed, withdrawn_statements=withdrawn,
+                secondary=dict(S1_PF_STRICT_GATE=res['S1_PF_STRICT_GATE']['status']))
+
+
 def main():
     ap = argparse.ArgumentParser()
+    mode = ap.add_mutually_exclusive_group(required=True)
+    mode.add_argument('--run-arms', nargs='+', default=None)
+    mode.add_argument('--evaluate', action='store_true')
     ap.add_argument('--procs', type=int, default=4)
-    ap.add_argument('--only-arms', nargs='*', default=None)
-    ap.add_argument('--evaluate-only', action='store_true')
     a = ap.parse_args()
     if not spec_committed():
         raise SystemExit('D6_SPEC.json must be committed (unchanged) before the confirmation run')
     spec = json.loads(SPEC.read_text())
-    started = H.utc_now()
     seeds = seed_range(spec['seeds'])
-    arms = a.only_arms or spec['arms']
-    rows = ensure(arms, seeds, a.procs, reuse=True)
-    if a.only_arms and not a.evaluate_only:
-        print('ran arms', arms)
+    if a.run_arms:
+        unknown = [x for x in a.run_arms if x not in spec['arms']]
+        if unknown:
+            raise SystemExit(f'not spec arms: {unknown}')
+        ensure(a.run_arms, seeds, a.procs, reuse=True)
+        print('computed/verified arms', a.run_arms)
         return
-    rows = ensure(spec['arms'], seeds, a.procs, reuse=True)
+    started = H.utc_now()
+    status = {f'{arm}/{H.cell_name(r, lv)}': cell_status(arm, seeds, r, lv) for arm in spec['arms'] for r, lv in H.CELLS}
+    bad = {k: v for k, v in status.items() if v != 'valid'}
+    if bad:
+        print('EVALUATION REFUSED - incomplete or invalid caches (nothing was computed):', file=sys.stderr)
+        for k, v in bad.items():
+            print(f'  {k}: {v}', file=sys.stderr)
+        raise SystemExit(2)
+    rows = load_rows(spec['arms'], seeds)
     res = evaluate(spec, rows, seeds)
     tag = seed_tag(seeds)
     doc = dict(spec=spec, spec_sha256=H.sha256(SPEC), seeds=[seeds[0], seeds[-1]], n=len(seeds),
+               cache_check='all spec cells present and valid', verdict=verdict(res),
                arms={k: dict(summary=arm_summary(v), cells=v) for k, v in rows.items()}, criteria=res,
-               overall='ALL_PASS' if all(r['status'] == 'PASS' for r in res.values()) else 'NOT_ALL_PASS')
+               notes=['A2_3D_GAUSS_DEFAULT does not depend on the drift level: its 9 cells are 3 distinct routes in triplicate '
+                      '(C7 fractions are unaffected; sample counts are 3x the distinct counts).'])
     js = OUT / f'D6_CONFIRMATION_{tag}.json'
-    js.write_text(json.dumps(doc, indent=1, default=float))
+    js.write_text(IO.json_text(doc))
     csv_path = OUT / f'D6_CONFIRMATION_{tag}_CELLS.csv'
     write_rows([r for arm in spec['arms'] for r in rows[arm]], csv_path)
     H.write_manifest(OUT, f'D6_CONFIRMATION_{tag}', spec, [js, csv_path], started, extra_inputs=[SPEC])
     for cid, r in res.items():
         print(cid, r['status'], '-', r['claim'])
-    print('overall', doc['overall'])
+    print('verdict', json.dumps(doc['verdict'], indent=1))
 
 
 if __name__ == '__main__':

@@ -15,6 +15,7 @@ import json
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 import dr_consistency as DC
 import dr_plot as PL
 from diagnose_dr_trace import load_cell, seed_range, seed_tag
@@ -208,7 +209,7 @@ def main():
                pooled_clock_test=pooled_clock_test(series))
     OUT.mkdir(exist_ok=True)
     js = OUT / f'D1_ANEES_{tag}.json'
-    js.write_text(json.dumps(doc, indent=1, default=float))
+    js.write_text(IO.json_text(doc))
     csv_path = OUT / f'D1_ANEES_TIMESERIES_{tag}.csv'
     write_timeseries_csv(series, csv_path)
     figs = figures(series, len(seeds), tag)

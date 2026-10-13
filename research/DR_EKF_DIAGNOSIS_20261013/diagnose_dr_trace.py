@@ -18,6 +18,7 @@ from pathlib import Path
 import numpy as np
 
 import dr_harness as H
+import dr_io as IO
 
 OUT = H.HERE / 'out'
 CACHE = H.HERE / 'cache'
@@ -36,26 +37,57 @@ def cache_path(arm, seeds, route, level):
     return CACHE / f'{arm}_{seed_tag(seeds)}' / f'{H.cell_name(route, level)}.npz'
 
 
-def load_cell(arm, seeds, route, level):
-    with np.load(cache_path(arm, seeds, route, level), allow_pickle=False) as z:
-        return {k: z[k] for k in z.files}
+def load_cell(arm, seeds, route, level, validate=True):
+    """Load a cached cell; with validate=True the content must match the requested seeds and route length."""
+    arr = IO.load_cache(cache_path(arm, seeds, route, level))
+    if validate:
+        problems = IO.validate_cell(arr, seeds, len(H.MOT[route]['t']))
+        if problems:
+            raise RuntimeError(f'invalid cache {arm} {H.cell_name(route, level)}: {problems}')
+    return arr
 
 
-def run_arm(arm, seeds, procs, cells=H.CELLS, verbose=True):
+def cell_status(arm, seeds, route, level):
+    """'missing' | 'valid' | 'invalid: ...' (never modifies the file)."""
+    p = cache_path(arm, seeds, route, level)
+    if not p.exists():
+        return 'missing'
+    try:
+        problems = IO.validate_cell(IO.load_cache(p), seeds, len(H.MOT[route]['t']))
+    except Exception as exc:  # unreadable / partially written legacy file
+        return f'invalid: {exc}'
+    return 'valid' if not problems else 'invalid: ' + '; '.join(problems)
+
+
+def provenance():
+    return dict(harness_sha256=H.sha256(H.HERE / 'dr_harness.py'), runner_sha256=H.sha256(Path(__file__)),
+                git_head=H.git_state()['head'], written_utc=H.utc_now())
+
+
+def run_arm(arm, seeds, procs, cells=H.CELLS, verbose=True, reuse=False):
+    """Run an arm cell by cell. reuse=True: a valid cached cell is loaded, never recomputed or overwritten; an
+    invalid one aborts (it must be inspected, not silently replaced). reuse=False: every cell is recomputed."""
     rows = []
     for route, level in cells:
         t0 = time.time()
-        acc, runs = H.run_cell(arm, route, level, seeds, procs=procs)
-        arr = H.cell_arrays(runs, acc)
         p = cache_path(arm, seeds, route, level)
-        p.parent.mkdir(parents=True, exist_ok=True)
-        np.savez(p, **arr)
+        status = cell_status(arm, seeds, route, level) if reuse else 'missing'
+        if status.startswith('invalid'):
+            raise RuntimeError(f'refusing to overwrite {p}: {status}')
+        if status == 'valid':
+            arr = load_cell(arm, seeds, route, level)
+            how = 'cached'
+        else:
+            acc, runs = H.run_cell(arm, route, level, seeds, procs=procs)
+            arr = H.cell_arrays(runs, acc)
+            IO.save_cache(p, arr, provenance())
+            how = f'{time.time() - t0:.0f}s'
         m = H.cell_summary(arr, route)
         rows.append(dict(arm=arm, cell=H.cell_name(route, level), n=len(seeds), **m))
         if verbose:
             print(f"{arm:22s} {H.cell_name(route, level)} ANEES {m['anees']:8.2f} late {m['anees_late25']:8.2f} "
                   f"cov {m['coverage95']:.3f} head {m['mean_nees_heading']:.2f} condXY {m['mean_nees_cond_xy']:.2f} "
-                  f"({time.time() - t0:.0f}s)", flush=True)
+                  f"({how})", flush=True)
     return rows
 
 
@@ -169,7 +201,7 @@ def main():
             doc['r22_reproduction'] = check_r22(rows)
             print('R2-2 reproduction:', doc['r22_reproduction']['status'], doc['r22_reproduction']['max_relative_difference'])
         js = OUT / f'TRACE_{arm}_{seed_tag(seeds)}.json'
-        js.write_text(json.dumps(doc, indent=1, default=float))
+        js.write_text(IO.json_text(doc))
         outputs += [csv_path, js]
     for spec in a.dump:
         route, level, seed = spec.split(':')
