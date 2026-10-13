@@ -26,7 +26,7 @@
 
 ```powershell
 git fetch origin
-git switch research/ekf3-d6-d9-diagnostic-code-20261013
+git switch research/ekf3-independent-p0-20261013
 python -m pip install numpy pytest
 python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py
 ```
