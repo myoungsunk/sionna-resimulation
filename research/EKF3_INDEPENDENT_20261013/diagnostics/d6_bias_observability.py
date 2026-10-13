@@ -16,10 +16,9 @@ from d6_d9_common import (B_OLD, DiagnosticFilter, EVAL_START, RR, RS,
                           check_inputs, case_motion, eval_covariance, finish,
                           initial_state, make_out, original_lut, range_h, rf_case,
                           sensor_rng, spectrum, write_csv, wrap, arc,
-                          sinc_with_derivative, s_model)
+                          sinc_with_derivative, s_model, THRESHOLD_2D_95)
 from ekf3 import archived_direct_s_model
-from qclean_uwb.drivesim.sensor_v2 import SensorV2Config, generate
-from qclean_uwb.drivesim.sensors import motion_increments
+from qclean_uwb.drivesim.sensor_v2 import SensorV2Config, generate, motion_increments
 
 SCENARIOS = {
     'M0_NO_BIAS_D0': ('none', 'D0', 'none'),
@@ -100,26 +99,35 @@ def local_observability(t, truth, case, model):
 
 
 def run_case(case, t, truth, meas0, measb, bias_inc, obs_los, obs_full,
-             model, level, seed, bias_std_dps):
-    rows=[]
+             model, level, seed, bias_std_dps, save_trace=False):
+    rows=[];steps=[]
     start=initial_state(truth[0], seed)
     for scen, (bias_mode, arm, rf) in SCENARIOS.items():
         meas = measb if bias_mode=='bias' else meas0
-        for variant in ('EKF3','UT3','BIAS4','BIAS4_UT','ORACLE_GYRO_DEBIASED'):
+        for variant in ('EKF3','UT3','BIAS4','BIAS4_UT','ORACLE_GYRO_DEBIASED','WHEEL_YAW3'):
             if variant=='ORACLE_GYRO_DEBIASED' and bias_mode!='bias':
+                continue
+            if variant=='WHEEL_YAW3' and rf=='oracle':
                 continue
             tracker = DiagnosticFilter(start, nonlinear=variant in ('UT3','BIAS4_UT'),
                                       bias_state=variant in ('BIAS4','BIAS4_UT'),
                                       bias_std_dps=bias_std_dps)
-            sum_pos2=[];sum_heading2=[];sum_nees=[];sum_cov=[];sum_sigpsi=[]
-            sum_forward_err=[];sum_forward_var=[]
+            sum_pos2=[];sum_heading2=[];sum_nees=[];sum_cov=[]
+            sum_prior_sigpsi=[];sum_post_sigpsi=[]
+            sum_prior_forward_var=[];sum_post_forward_var=[]
+            sum_xy95=[];sum_xyabs=[];sum_headabs=[]
+            sum_forward_err=[]
             for k in range(len(t)):
                 if k:
                     gyro = float(meas['dtheta_gyro'][k])
                     if variant=='ORACLE_GYRO_DEBIASED':
                         gyro -= float(bias_inc[k])
+                    if variant=='WHEEL_YAW3':
+                        gyro = float(meas['dtheta_odom'][k])
                     tracker.predict(float(meas['ds_odom'][k]), gyro,
                                     float(meas['dt_s'][k]))
+                prior_pose=tracker.pose.copy()
+                Pprior=tracker.Ppose.copy()
                 if rf != 'none':
                     if rf=='oracle':
                         s_value,_ = model(truth[k])
@@ -141,22 +149,46 @@ def run_case(case, t, truth, meas0, measb, bias_inc, obs_los, obs_full,
                 sum_heading2.append(float(math.degrees(e[2])**2))
                 sum_nees.append(n3)
                 sum_cov.append(float(cover))
-                sum_sigpsi.append(math.degrees(math.sqrt(P[2,2])))
+                sum_prior_sigpsi.append(math.degrees(math.sqrt(Pprior[2,2])))
+                sum_post_sigpsi.append(math.degrees(math.sqrt(P[2,2])))
+                sum_prior_forward_var.append(float(tangent@Pprior[:2,:2]@tangent))
+                sum_post_forward_var.append(float(tangent@P[:2,:2]@tangent))
                 sum_forward_err.append(float(e[:2]@tangent))
-                sum_forward_var.append(float(tangent@P[:2,:2]@tangent))
+                sum_xyabs.append(float(np.linalg.norm(e[:2])))
+                sum_headabs.append(float(abs(math.degrees(e[2]))))
+                nxy=float(e[:2]@np.linalg.solve(P[:2,:2],e[:2]))
+                sum_xy95.append(int(nxy<=THRESHOLD_2D_95))
+                if save_trace:
+                    steps.append(dict(case=case['id'],scenario=scen,variant=variant,
+                        seed=seed,level=level,t_s=float(t[k]),
+                        xprior=float(prior_pose[0]),yprior=float(prior_pose[1]),
+                        psiprior=float(prior_pose[2]),
+                        Ppsi_prior_rad2=float(Pprior[2,2]),
+                        Ppsi_post_rad2=float(P[2,2]),
+                        Pforward_prior_m2=float(tangent@Pprior[:2,:2]@tangent),
+                        Pforward_post_m2=float(tangent@P[:2,:2]@tangent),
+                        ex_m=float(e[0]),ey_m=float(e[1]),e_psi_rad=float(e[2]),
+                        oracle_control=int(rf=='oracle' or variant=='ORACLE_GYRO_DEBIASED')))
             rows.append(dict(case=case['id'],route=case['route'],seed=seed,
                 level=level,scenario=scen,variant=variant,n=len(sum_pos2),
                 heading_rmse_deg=math.sqrt(np.mean(sum_heading2)),
                 xy_rmse_m=math.sqrt(np.mean(sum_pos2)),
                 mean_pose_nees=float(np.mean(sum_nees)),
                 pose95=float(np.mean(sum_cov)),
-                mean_predict_heading_std_deg=float(np.mean(sum_sigpsi)),
+                mean_predict_heading_std_deg=float(np.mean(sum_prior_sigpsi)),
+                mean_posterior_heading_std_deg=float(np.mean(sum_post_sigpsi)),
+                pose_xy95=float(np.mean(sum_xy95)),
+                position_error_p95_m=float(np.percentile(sum_xyabs,95)),
+                absolute_heading_error_p95_deg=float(np.percentile(sum_headabs,95)),
                 mean_forward_bias_m=float(np.mean(sum_forward_err)),
                 empirical_forward_rms_m=float(np.sqrt(np.mean(np.square(sum_forward_err)))),
-                mean_predict_forward_std_m=float(np.sqrt(np.mean(sum_forward_var))),
+                mean_predict_forward_std_m=float(np.sqrt(np.mean(sum_prior_forward_var))),
+                mean_posterior_forward_std_m=float(np.sqrt(np.mean(sum_post_forward_var))),
+                yaw_source='wheel_delta' if variant=='WHEEL_YAW3' else 'gyro_increment',
                 online_oracle_input=(rf=='oracle' or variant=='ORACLE_GYRO_DEBIASED'),
+                slip_robustness_evaluated=False,
                 interpretation='EXPLORATORY_SAME_SCENE'))
-    return rows
+    return rows,steps
 
 
 def main():
@@ -166,6 +198,8 @@ def main():
     ap.add_argument('--levels',type=int,nargs='+',default=[0,1,2])
     ap.add_argument('--cases',nargs='*',default=[])
     ap.add_argument('--bias-prior-std-dps',type=float,default=.1)
+    ap.add_argument('--save-step-trace',action='store_true',
+                    help='Save full per-step prior/post prediction covariance CSV')
     args=ap.parse_args()
     if args.bias_prior_std_dps <= 0 or any(x not in (0,1,2) for x in args.levels):
         raise ValueError('Invalid settings')
@@ -176,7 +210,7 @@ def main():
     names=args.cases or list(ts)
     if len(names)!=len(set(names)) or any(n not in ts for n in names):
         raise ValueError('Unknown/duplicate cases')
-    all_rows=[]; obs_rows=[]
+    all_rows=[]; obs_rows=[]; trace_rows=[];kinematic=[]
     from run_d5_regimes import timelines
     trajectories=timelines(p0)
     for name in names:
@@ -189,20 +223,41 @@ def main():
         obs_rows.append(dict(case=name,route=case['route'],
                              max_nominal_se2_vs_archived_legacy_m=model_vs_legacy_truth(t,truth),
                              **local_observability(t,truth,case,model)))
+        ds_geom,da_geom=motion_increments(t,truth,convention='legacy-euler')
+        path_se2=truth[0].copy()
+        for k in range(len(t)):
+            if k:path_se2=arc(path_se2,ds_geom[k],da_geom[k])
+            kinematic.append(dict(case=name,route=case['route'],t_s=float(t[k]),
+                x_legacy_m=float(truth[k,0]),y_legacy_m=float(truth[k,1]),
+                x_integrated_se2_m=float(path_se2[0]),
+                y_integrated_se2_m=float(path_se2[1]),
+                kinematic_displacement_error_m=float(np.linalg.norm(path_se2[:2]-truth[k,:2])),
+                rf_observation_kinematic_shift_not_permitted=True))
         for level in args.levels:
             for seed in args.seeds:
                 meas0,measb,incs=generate_paired(t,truth,level,seed)
-                all_rows+=run_case(case,t,truth,meas0,measb,incs,lo,fu,
-                                   model,level,seed,args.bias_prior_std_dps)
+                aggregate,steps=run_case(case,t,truth,meas0,measb,incs,lo,fu,
+                                   model,level,seed,args.bias_prior_std_dps,
+                                   save_trace=args.save_step_trace)
+                all_rows.extend(aggregate);trace_rows.extend(steps)
     out=make_out(args.out)
     f1=out/'D6_BIAS_ROUTE_ABLATION.csv'
     f2=out/'D6_BIAS_OBSERVABILITY.csv'
     write_csv(f1,all_rows);write_csv(f2,obs_rows)
-    finish(out,'D6_BIAS',vars(args)|{'out':str(out)},[f1,f2],caveats=[
+    kinematic_path=out/'D6_KINEMATIC_CONTRACT.csv'
+    write_csv(kinematic_path,kinematic)
+    files=[f1,f2,kinematic_path]
+    if args.save_step_trace:
+        trace_path=out/'D6_PRIOR_POSTERIOR_STEP_TRACE.csv'
+        write_csv(trace_path,trace_rows);files.append(trace_path)
+    finish(out,'D6_BIAS',vars(args),files,caveats=[
         'Bias injected additively into identical base noise streams; generator source unmodified',
         'Oracle RF/bias subtraction are counterfactual offline upper controls',
         '4-state observability ranks assume oracle linearization and iid R0',
         'BIAS4 without an independent yaw constraint does not guarantee bias observability',
+        'WHEEL_YAW3 REPLACES gyro increment rather than combining two correlated sensors; no slip robustness claim',
+        'SE2-vs-legacy truth diagnostic is only model mismatch; frozen RF may not be shifted',
+        'prior and posterior pose covariance recorded separately',
         'Same frozen RF scene; no scientific PASS'])
     print('D6_BIAS_EXPLORATORY_DONE',str(out))
 

@@ -10,7 +10,11 @@ import csv
 import hashlib
 import json
 import math
+import os
+import subprocess
 import sys
+import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable
 
@@ -30,13 +34,22 @@ from run_d0_d4 import (RR, RS, read_p0, checked_path, original_lut, P3_MODEL,
 from qclean_uwb.drivesim import observation as OBS  # noqa: E402
 from qclean_uwb.drivesim.hs_lut import s_model  # noqa: E402
 from qclean_uwb.drivesim.sensor_v2 import (SensorV2Config, generate,
-                                           rng as sensor_rng)  # noqa: E402
-from qclean_uwb.drivesim.sensors import motion_increments  # noqa: E402
+                                           rng as sensor_rng, motion_increments)  # noqa: E402
 from run_d5_regimes import timelines  # noqa: E402
 
 SOURCE_REVISION = '701b8d2c29a4b3b879c4e27096168d6be463559b'
+# Git blob SHA-1 values from the published D0-D5 research baseline 43f755b.
+# This checks ORIGINAL code invariance, not newly added diagnostic files.
+FROZEN_BLOB_SHA1 = {
+    'research/EKF3_INDEPENDENT_20261013/ekf3.py': 'c010981d387cf9b50c2f50911ac37624e80318ec',
+    'research/EKF3_INDEPENDENT_20261013/diagnostics/run_d0_d4.py': 'f0421d0d7013bbb6b1a5940a5f3819e7fffef696',
+    'research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py': 'c327952fdd169cff2fa31977aded0e6f87991d54',
+    'research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json': '8bf216cf606f5e3c11139cacbf42f15a44556feb',
+    'research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py': '69e02f89b64792ceafe2dc01e4b92794109fb487',
+} 
 PUBLISHED_BASELINE = '43f755b75a5ac83fd6e7e67c3ef8f1f0da579d5d'
 THRESHOLD_3D_95 = 7.814727903251179
+THRESHOLD_2D_95 = 5.991464547107979
 THRESHOLD_1D_95 = 3.841458820694124
 GATE_1D_99 = 6.6348966010212145
 GATE_2D_99 = 9.21034037197618
@@ -51,8 +64,31 @@ def file_sha(path: Path) -> str:
     return digest.hexdigest()
 
 
+def frozen_git_blob(path: Path) -> str:
+    if not path.is_file():
+        raise FileNotFoundError(path)
+    size = path.stat().st_size
+    digest = hashlib.sha1()
+    digest.update(b'blob ' + str(size).encode('ascii') + b'\0')
+    with path.open('rb') as stream:
+        for block in iter(lambda: stream.read(1024*1024), b''):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def check_frozen_baseline_files() -> dict:
+    results = {}
+    for relative, expected in FROZEN_BLOB_SHA1.items():
+        actual = frozen_git_blob(REPO / relative)
+        if actual != expected:
+            raise RuntimeError(f'Frozen code drift: {relative}: {actual} != {expected}')
+        results[relative] = actual
+    return results
+
+
 def check_inputs(*, full_p0: bool = True) -> dict:
     """Fail closed.  Caller explicitly invokes this before any diagnostic run."""
+    check_frozen_baseline_files()
     p0 = read_p0()
     if hash_file(P3_MODEL) != P3_SHA256:
         raise RuntimeError('P3 frozen LORO coefficient SHA mismatch')
@@ -303,6 +339,88 @@ class DiagnosticFilter:
         return 'applied', NIS
 
 
+def json_safe(value):
+    """JSON contract; never silently stringify arbitrary objects/nonfinite values."""
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, np.generic):
+        return json_safe(value.item())
+    if isinstance(value, np.ndarray):
+        return json_safe(value.tolist())
+    if isinstance(value, (str, bool, int)) or value is None:
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError('Nonfinite value in provenance manifest')
+        return value
+    if isinstance(value, (list, tuple)):
+        return [json_safe(v) for v in value]
+    if isinstance(value, dict):
+        if any(not isinstance(k, str) for k in value):
+            raise TypeError('Only string keys allowed in manifest')
+        return {k: json_safe(v) for k, v in value.items()}
+    raise TypeError(f'Unsupported manifest value {type(value).__name__}')
+
+
+def atomic_json(path: Path, obj: dict) -> None:
+    """A complete manifest appears only after JSON validation and atomic replace."""
+    payload = json.dumps(json_safe(obj), indent=2, ensure_ascii=False, allow_nan=False)
+    if path.exists():
+        raise FileExistsError(f'Will not overwrite existing evidence: {path}')
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile('w', encoding='utf-8', dir=path.parent,
+                                         prefix='.'+path.name+'.', suffix='.part',
+                                         delete=False) as handle:
+            temporary = Path(handle.name)
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        # Re-read and validate before the atomic publication.
+        if json.loads(temporary.read_text(encoding='utf-8')) != json_safe(obj):
+            raise RuntimeError('Manifest readback differs from source object')
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
+def repo_revision() -> dict:
+    """Record the actual checked-out code revision; never substitute source baseline."""
+    def git(*args):
+        try:
+            p = subprocess.run(['git', '-C', str(REPO), *args],
+                               capture_output=True, text=True, check=False)
+        except FileNotFoundError:
+            return None
+        return p.stdout.strip() if p.returncode == 0 else None
+    head = git('rev-parse', 'HEAD')
+    changes = git('status', '--porcelain', '--',
+                  'research/EKF3_INDEPENDENT_20261013/diagnostics')
+    return {'execution_commit': head, 'diagnostic_worktree_clean':
+            changes == '' if changes is not None else None,
+            'code_revision_available': bool(head)}
+
+
+def code_hashes() -> dict:
+    # Hash every diagnostic script and the frozen EKF file, not only the driver.
+    names = ['d6_d9_common.py', 'd6_nonlinearity_mc.py',
+             'd6_d5_trace_audit.py', 'd6_bias_observability.py',
+             'd7_cir_multipath_audit.py', 'd8_polarization_quality.py',
+             'd9_quality_aware_fusion.py', 'd6_d9_verdict.py', 'test_d6_d9.py',
+             'test_d6_d9_contracts.py', 'D6_D9_RUN_KO.md',
+             'AUDIT_REDIRECT_RESOLUTION_KO.md']
+    result = {name: file_sha(HERE/name) for name in names if (HERE/name).is_file()}
+    for name, path in [('frozen_ekf3.py', PROJECT/'ekf3.py'),
+                       ('frozen_run_d5_regimes.py', HERE/'run_d5_regimes.py'),
+                       ('frozen_sensor_v2.py', ARCHIVE/'qclean_uwb/drivesim/sensor_v2.py'),
+                       ('frozen_P0_INPUT_MANIFEST.json', PROJECT/'P0_INPUT_MANIFEST.json'),
+                       ('frozen_P3_E1_coefficients.json', P3_MODEL)]:
+        if path.is_file():
+            result[name] = file_sha(path)
+    return result
+
+
 def make_out(path: Path) -> Path:
     path = path.resolve()
     path.mkdir(parents=True, exist_ok=False)
@@ -310,15 +428,29 @@ def make_out(path: Path) -> Path:
 
 
 def write_csv(path: Path, rows: list[dict]) -> None:
+    """No partial final CSV; new destination only and fsync before rename."""
     if not rows:
         raise RuntimeError('Refusing to write an empty diagnostic CSV: '+path.name)
     fields = list(rows[0])
     if any(set(row) != set(fields) for row in rows):
         raise RuntimeError('Inconsistent diagnostic CSV row schema')
-    with path.open('w', newline='', encoding='utf-8') as f:
-        w = csv.DictWriter(f, fieldnames=fields)
-        w.writeheader()
-        w.writerows(rows)
+    if path.exists():
+        raise FileExistsError(path)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile('w', newline='', encoding='utf-8',
+                                         dir=path.parent, prefix='.'+path.name+'.',
+                                         suffix='.part', delete=False) as f:
+            temporary = Path(f.name)
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            w.writerows(rows)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
 
 
 def read_csv(path: Path) -> list[dict]:
@@ -330,13 +462,22 @@ def read_csv(path: Path) -> list[dict]:
 
 def finish(out: Path, stage: str, config: dict, files: list[Path],
            *, caveats: list[str] | None = None) -> None:
+    if not files or len({f.name for f in files}) != len(files):
+        raise RuntimeError('Output evidence must be unique and nonempty')
+    paths = [Path(f) for f in files]
+    if any(not p.is_file() or p.parent.resolve() != out.resolve() for p in paths):
+        raise RuntimeError('All manifest outputs must exist inside new run directory')
+    digests = {p.name: file_sha(p) for p in paths}
+    if any(file_sha(p) != digests[p.name] for p in paths):
+        raise RuntimeError('Output hash changed before manifest publication')
     receipt = dict(stage=stage, status='EXECUTED_EXPLORATORY_ONLY',
-                   source_revision=SOURCE_REVISION,
+                   reference_frozen_code_revision=SOURCE_REVISION,
                    published_base=PUBLISHED_BASELINE,
+                   **repo_revision(),
+                   executed_utc=datetime.now(timezone.utc).isoformat(),
+                   code_sha256=code_hashes(),
                    scientific_PASS=False,
                    independent_rf_scene=False,
-                   config=config,
-                   caveats=caveats or [],
-                   sha256={f.name: file_sha(f) for f in files})
-    (out/(stage+'_MANIFEST.json')).write_text(
-        json.dumps(receipt, indent=2, ensure_ascii=False), encoding='utf-8')
+                   config=json_safe(config), caveats=caveats or [],
+                   sha256=digests)
+    atomic_json(out/(stage+'_MANIFEST.json'), receipt)

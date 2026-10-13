@@ -15,7 +15,7 @@ import numpy as np
 
 from d6_d9_common import (B_OLD, OBS, EVAL_START, check_inputs,
                           checked_path, finish, make_out, original_lut,
-                          spectrum, tap_metres, write_csv, s_model, file_sha)
+                          spectrum, tap_metres, write_csv, s_model, file_sha, P3_MODEL, corrected_ranges)
 from p3_compat import frozen_detector
 from run_d0_d4 import flat_eval_range
 from run_d5_regimes import timelines
@@ -102,7 +102,7 @@ def one_feature(cir: np.ndarray, detected: dict, pos: int,
         rx1_first_tap=port_indices[0],rx2_first_tap=port_indices[1])
 
 
-def case_receiver(p0, case, channel, freqs, indices, guard, chunk_size):
+def case_receiver(p0, case, channel, freqs, indices, guard, chunk_size, e1_fold=None):
     H = np.load(checked_path(p0,case[f'{channel}_path']),
                 allow_pickle=False,mmap_mode='r')
     if tuple(H.shape) != tuple(case['H_shape']):
@@ -111,12 +111,16 @@ def case_receiver(p0, case, channel, freqs, indices, guard, chunk_size):
         raise ValueError('chunk-size must be positive')
     tm = tap_metres(freqs)
     features=[]; previous=None
-    raw_s=[]; raw_r=[]; raw_idx=[]
+    raw_s=[]; raw_r=[]; raw_idx=[]; e1_physical=[]
     for begin in range(0,len(indices),chunk_size):
         sample_indices=indices[begin:begin+chunk_size]
         batch=np.asarray(H[sample_indices],complex)
         det=frozen_detector(batch,freqs,float(case['mount_deg']),OBS,
                             chunk_size=len(batch))
+        if e1_fold is not None:
+            e1 = corrected_ranges(det, e1_fold, channel='full',
+                                  allow_e1_on_los=False)['E1_FULL_LORO']
+            e1_physical.extend(e1.tolist())
         cir=OBS.cir_batch(batch[...,0])
         raw=OBS.first_path_batch(cir,float(freqs[1]-freqs[0]))
         if not (np.array_equal(det['index'],raw['index']) and
@@ -133,7 +137,8 @@ def case_receiver(p0, case, channel, freqs, indices, guard, chunk_size):
             features.append(feat)
             raw_s.append(float(det['s'][j])); raw_r.append(float(det['range_raw_m'][j]))
             raw_idx.append(int(det['index'][j]));previous=int(det['index'][j])
-    return features,np.asarray(raw_s),np.asarray(raw_r),np.asarray(raw_idx)
+    return (features,np.asarray(raw_s),np.asarray(raw_r),np.asarray(raw_idx),
+            np.asarray(e1_physical,float))
 
 
 def at_tap_s(H: np.ndarray, fr: np.ndarray, indices: np.ndarray,
@@ -155,8 +160,14 @@ def build_case(p0,case,fr,t,truth,pids,*,guard,chunk,alphas):
     index_by_id={int(s['pose_id']):i for i,s in enumerate(poses)}
     if len(index_by_id)!=len(poses):raise RuntimeError('Duplicate frozen RF pose id')
     ids=np.asarray([index_by_id[int(pid)] for pid in pids],int)
-    lo, sl, rl, kl=case_receiver(p0,case,'los',fr,ids,guard,chunk)
-    fu, sf, rf, kf=case_receiver(p0,case,'full',fr,ids,guard,chunk)
+    p3 = json.loads(P3_MODEL.read_text(encoding='utf-8'))
+    if p3.get('chosen') != 'E1_on_B' or case['route'] not in p3['loro_fold_params']:
+        raise RuntimeError('Frozen E1 route-held-out coefficient contract changed')
+    fold = p3['loro_fold_params'][case['route']]
+    lo, sl, rl, kl, _=case_receiver(p0,case,'los',fr,ids,guard,chunk)
+    fu, sf, rf, kf, e1_full=case_receiver(p0,case,'full',fr,ids,guard,chunk,e1_fold=fold)
+    if len(e1_full) != len(t) or not np.isfinite(e1_full).all():
+        raise RuntimeError('Frozen E1 range label generation failed')
     if not len(lo)==len(fu)==len(t):raise RuntimeError('timeline observation length mismatch')
     # True geometry and LoS LUT are scoring-only.  None are present in online.
     anc=np.asarray(case['anchor'],float)
@@ -192,6 +203,8 @@ def build_case(p0,case,fr,t,truth,pids,*,guard,chunk,alphas):
                true_range_m=float(d[k]),s_model_at_truth=float(s_true[k]),
                error_s=float(s_obs-s_true[k]),
                error_range_B_OLD_m=float(r_obs-B_OLD-d[k]),
+               error_range_E1_FULL_LORO_m=(float(e1_full[k]-d[k])
+                   if channel=='full' else None),
                e_flat_m=float(e_flat[k]),e_ffd_m=float(e_ffd[k]),e_mp_m=float(e_mp[k]),
                full_minus_los_s=float(sf[k]-sl[k]),
                tap_selection_effect_s=float(tap_effect[k]),
@@ -260,6 +273,8 @@ def main():
     finish(out,'D7',vars(args)|{'out':str(out)},artifacts,caveats=[
         'Two physical RX +/-45 channels are not invariant co/cross labels',
         'Additional CIR attributes are not separate independent RF sensors',
+        'E1 range residual is offline-only label from frozen route-held-out E1; LoS field is blank',
+        'phase_valid is NUMERICAL only, not SNR or phase hardware-calibration evidence',
         'Delay spread/late energy include Hann sidelobes and finite bandwidth',
         'Oracle labels and Full-at-LoS-tap may only be used for OFFLINE scoring',
         'Synthetic H alpha mixtures are numerical attribution probes, not new scenes'])

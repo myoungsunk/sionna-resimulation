@@ -7,10 +7,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from d6_d9_common import DiagnosticFilter, arc, eval_covariance, range_h, ut_propagate
+from d6_d9_common import (DiagnosticFilter, B_OLD, RR, RS, arc,
+                          eval_covariance, range_h, ut_propagate)
+from ekf3 import EKF3
 from d6_nonlinearity_mc import commands
 from d7_cir_multipath_audit import NUMERIC_FEATURES, ONLINE_KEYS, one_feature
-from d8_polarization_quality import (QUALITY_FEATURES, fit_ridge,
+from d8_polarization_quality import (QUALITY_FEATURES, RANGE_LABELS, fit_ridge,
                                       online_vector, predict_variance,
                                       split_exclude_overlap)
 from d9_quality_aware_fusion import covariance_for, METHODS
@@ -94,28 +96,50 @@ def test_route_holdout_xy_neighbor_bins_removed():
 
 
 def test_ridge_predictor_uses_train_only_and_clips():
-    train=[{'s_fp':str(x/50.),'error_s':str(.1+x/200.)}
-           for x in range(100)]
-    p=fit_ridge(train,'s','Q1_S_ONLY',10.)
-    result=predict_variance({'s_fp':'.3'},p)
-    assert 1e-4<=result<=4.
-    params={'models':{'Q3_CIR_POL':{'s':{'feature_names':[],
-      'intercept':math.log(.0081),'floor':1e-4,'cap':4.},
-      'r':{'feature_names':[],'intercept':math.log(.0068578637),
-           'floor':1e-5,'cap':9.}, 'rho_sr_train_centered':.3}}}
-    R=covariance_for({},params,'F3_CIR_R',True)
-    assert R[0]*R[1] - R[2]**2 >0
+    train = [{'s_fp':str(x/50.), 'error_s':str(.1+x/200.),
+              'error_range_B_OLD_m':str(.10+x/100.),
+              'error_range_E1_FULL_LORO_m':str(-.1+x/150.)}
+             for x in range(100)]
+    p = fit_ridge(train,'s','Q1_S_ONLY',10.)
+    result = predict_variance({'s_fp':'.3'},p)
+    assert 1e-4 <= result <= 4.
+    p_range=fit_ridge(train,'r','Q1_S_ONLY',10.,range_model='E1_FULL_LORO')
+    assert p_range['target_label']=='error_range_E1_FULL_LORO_m'
+    assert p_range['range_model']=='E1_FULL_LORO'
+    assert RANGE_LABELS['E1_FULL_LORO']==p_range['target_label']
     assert METHODS['F0_ORIGINAL']==(False,False,False)
 
 
-def test_3state_frozen_baseline_update_equivalent_to_clone():
+def test_3state_diagnostic_matches_independent_original_EKF3_all_arms():
     x=np.array([1.,.2,0.1])
-    f=DiagnosticFilter(x)
-    f2=DiagnosticFilter(x)
+    P=np.diag([.01,.01,math.radians(5.)**2])
     def obs(y):
         return float(.25+.02*y[0]+.5*y[2]),np.array([.02,0.,.5])
-    for fobj in (f,f2):
-        fobj.predict(.12,.003,.2)
-        fobj.update('C',.3,3.5,obs,(4.,0.,2.65),.45)
-    assert np.array_equal(f.f.x,f2.f.x)
-    assert np.array_equal(f.f.P,f2.f.P)
+    anchor=(4.,0.,2.65)
+    for arm in ('D0','A','B','C'):
+        baseline=EKF3(x,P)
+        diagnostic=DiagnosticFilter(x)
+        for ds,gyro in [(.12,.003),(.04,-.002),(.21,.008)]:
+            baseline.predict(ds,gyro,.2)
+            diagnostic.predict(ds,gyro,.2)
+            s=float(obs(baseline.x)[0]+.01)
+            physical_r=float(range_h(baseline.x,anchor,.45)[0]+.02)
+            if arm=='D0':
+                expected='DR_only';nis=None
+            elif arm=='A':
+                step=baseline.update_heading(s,RS,s_model=obs)
+                expected,nis=step.status,step.NIS
+            elif arm=='B':
+                step=baseline.update_range(physical_r+B_OLD,RR,
+                        anchor_xyz_m=anchor,tag_height_m=.45,range_offset_m=B_OLD)
+                expected,nis=step.status,step.NIS
+            else:
+                step=baseline.update_joint(s,physical_r+B_OLD,RS,RR,0.,
+                        s_model=obs,anchor_xyz_m=anchor,tag_height_m=.45,
+                        range_offset_m=B_OLD)
+                expected,nis=step.status,step.NIS
+            status,new_nis=diagnostic.update(arm,s,physical_r,obs,anchor,.45)
+            assert status==expected
+            assert new_nis==nis
+            assert np.array_equal(baseline.x,diagnostic.f.x)
+            assert np.array_equal(baseline.P,diagnostic.f.P)

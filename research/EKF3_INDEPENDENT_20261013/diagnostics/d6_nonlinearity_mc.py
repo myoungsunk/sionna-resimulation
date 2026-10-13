@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from d6_d9_common import (EKF3, arc, eval_covariance, finish, make_out,
-                          ut_propagate, wrap, write_csv, THRESHOLD_3D_95)
+                          ut_propagate, wrap, write_csv, THRESHOLD_3D_95, THRESHOLD_2D_95)
 
 
 def commands(path: str, distance: float, count: int = 40) -> list[tuple[float, float]]:
@@ -75,6 +75,34 @@ def one_grid(path: str, distance: float, sigma_deg: float, draws: int, seed: int
     actual[:, 2] = np.arctan2(np.sin(actual[:, 2]), np.cos(actual[:, 2]))
     mu_e = np.mean(actual, axis=0)
     measured_cov = np.cov(actual.T, ddof=1)
+    # Exact nonlinear mean/covariance of R(delta-yaw)*nominal displacement
+    # with independent initial x/y Gaussian noise and zero process noise.
+    D = truth[:2].copy()
+    turn = np.array([-D[1], D[0]])
+    q = math.exp(-sigma**2)
+    exact_mean_xy = math.exp(-sigma**2/2)*D
+    exact_cov_xy = (.01*np.eye(2) +
+                    (.5*(1+q*q)-q)*np.outer(D,D) +
+                    (.5*(1-q*q))*np.outer(turn,turn))
+    exact_estimate = np.r_[exact_mean_xy,truth[2]]
+    # Second-order Taylor moment propagation; NOT a Gaussian truth label.
+    second_estimate = np.r_[D*(1-.5*sigma**2),truth[2]]
+    second_cov = P0.copy()
+    second_cov[:2,:2] = (.01*np.eye(2) + sigma**2*np.outer(turn,turn) +
+                          .5*sigma**4*np.outer(D,D))
+    second_cov[:2,2] = sigma**2*turn
+    second_cov[2,:2] = second_cov[:2,2]
+    def pos_coverage(estimate, cov):
+        diff=samples[:,:2]-np.asarray(estimate)[:2]
+        P=np.asarray(cov)[:2,:2]
+        nees=np.einsum('ni,ni->n',diff,np.linalg.solve(P,diff.T).T)
+        return float(np.mean(nees<=THRESHOLD_2D_95))
+    def skew(arr):
+        centered=arr-np.mean(arr)
+        sd=np.std(centered)
+        return float(np.mean((centered/sd)**3)) if sd>1e-14 else 0.
+    mc_forward=np.asarray(actual[:,:2]@np.array([math.cos(truth[2]),math.sin(truth[2])]))
+    mc_lateral=np.asarray(actual[:,:2]@np.array([-math.sin(truth[2]),math.cos(truth[2])]))
     axes = {'forward': np.array([math.cos(truth[2]), math.sin(truth[2])]),
             'lateral': np.array([-math.sin(truth[2]), math.cos(truth[2])])}
     def project(P, a):
@@ -95,9 +123,18 @@ def one_grid(path: str, distance: float, sigma_deg: float, draws: int, seed: int
                   ekf_forward_mean_m=float((f.x-truth)[:2]@axes['forward']),
                   ut_forward_mean_m=float((u_x-truth)[:2]@axes['forward']),
                   mc_pose95_under_ekf=float(cover_ekf),
-                  mc_pose95_under_ut=float(cover_ut))
+                  mc_pose95_under_ut=float(cover_ut),
+                  mc_position95_under_ekf=pos_coverage(f.x,f.P),
+                  mc_position95_under_ut=pos_coverage(u_x,u_P),
+                  mc_position95_under_second_order=pos_coverage(second_estimate,second_cov),
+                  mc_position95_under_analytic=pos_coverage(exact_estimate,exact_cov_xy),
+                  mc_forward_skewness=skew(mc_forward),
+                  mc_lateral_skewness=skew(mc_lateral),
+                  mc_forward_second_order_mean_m=float((second_estimate-truth)[:2]@axes['forward']),
+                  analytic_forward_mean_m=float((exact_estimate-truth)[:2]@axes['forward']))
     for axis_name, a in axes.items():
-        for label, C in [('mc', measured_cov), ('ekf', f.P), ('ut', u_P)]:
+        for label, C in [('mc', measured_cov), ('ekf', f.P), ('ut', u_P),
+                         ('second_order', second_cov), ('analytical', exact_cov_xy)]:
             output[f'{label}_{axis_name}_variance_m2'] = project(C, a)
     output['mc_over_ekf_forward_var'] = (
         output['mc_forward_variance_m2']/max(output['ekf_forward_variance_m2'], 1e-20))
@@ -126,6 +163,7 @@ def main() -> None:
     write_csv(file, rows)
     finish(out, 'D6_MC', vars(args)|{'out':str(out)}, [file], caveats=[
         'Pure model-consistent initial-heading experiment, no RF or gyro bias',
+        'Includes 2D position-ellipse coverage, analytical and Taylor second-order moments',
         'Individual Monte Carlo particles are NOT independent RF environments'])
     print('D6_MC_EXPLORATORY_DONE', str(file))
 
