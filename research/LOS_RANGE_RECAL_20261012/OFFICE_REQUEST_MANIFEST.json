@@ -1,0 +1,54 @@
+{
+ "title": "OFFICE-ROUTES v1 data request",
+ "created": "2026-10-13",
+ "scene_config_sha256": "7b48fc6682d1bc8a500913273722babcfb54166a71fae81ba097f421a30c5a41",
+ "source_branch": "origin/claude/office-e-layout",
+ "source_commit": "819fa93b152ca3cdf66297af09ff073880bd9d9b",
+ "routes": [
+  "O1_straight_x3.3",
+  "O2_cross_partitions",
+  "O3_loop"
+ ],
+ "anchors": {
+  "oA": [
+   5.0,
+   2.2,
+   2.65
+  ],
+  "oB": [
+   5.0,
+   9.0,
+   2.65
+  ]
+ },
+ "mounts": [
+  0,
+  45
+ ],
+ "variants": {
+  "V0": "nominal",
+  "V1_V3": "desk +-0.1..0.3 m, material eps/sigma +-15%, seeds recorded"
+ },
+ "bins": 257,
+ "df_hz": 1950000.0,
+ "outputs_per_condition": [
+  "H_full",
+  "H_LoS"
+ ],
+ "optional": [
+  "H_direct",
+  "path_npz"
+ ],
+ "acceptance": [
+  "format/sha",
+  "geom LoS vs sionna LoS mismatch=0",
+  "6 positions cross-check vs full35: rel complex err<=1e-3,|ds|<=0.01,same first tap",
+  "same solver/inputs for all conditions"
+ ],
+ "priority": [
+  "1 O1-3 x oA x V0",
+  "2 oB V0",
+  "3 oA V1-V3"
+ ],
+ "timing_pilot_poses": 20
+}

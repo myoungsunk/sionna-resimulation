@@ -6,8 +6,8 @@ from pathlib import Path
 import numpy as np,pandas as pd
 HERE=Path(__file__).resolve().parent;sys.path.insert(0,str(HERE));import p3_common as P
 OFF=Path(sys.argv[1]);fz=json.load(open(sys.argv[3]));freq=np.load(sys.argv[4])
-sys.path.insert(0,str(OFF/'src'))
-from qclean_uwb.scenarios.office import OfficeSetup
+import importlib.util as _iu,qclean_uwb.scenarios.corridor  # noqa: F401  (office.py needs corridor.ANCHOR_ROTATION/rot_z from the already-loaded package)
+_sp=_iu.spec_from_file_location('office_scn',OFF/'src/qclean_uwb/scenarios/office.py');_m=_iu.module_from_spec(_sp);sys.modules['office_scn']=_m;_sp.loader.exec_module(_m);OfficeSetup=_m.OfficeSetup
 cs=OfficeSetup();anc=np.asarray(cs.anchor_position)
 RUN=OFF/'results/OFFICE_SNOWBALL_20261008_819fa93/full35_stride1';geo={(g['x'],g['y']):g for g in json.load(open(OFF/'results/OFFICE_SNOWBALL_20261008_819fa93/geom_check/GEOM_LOS_CHECK.json'))}
 assert len(geo)==35
