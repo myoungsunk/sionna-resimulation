@@ -1,6 +1,7 @@
 # DR-only EKF 인과 진단 V0–V5 — 실행 패키지
 
-**상태: CODE_READY / EXPERIMENT_NOT_RUN** (본 패키지의 V3–V5 실험은 아직 실행하지 않음)  
+**상태: V0–V2 감사 및 V3–V4 전체 개발 실행 완료 / V5 NOT_RUN**  
+최신 결과: [V3–V4 실행 보고서](development_20261013/REPORT_KO.md), [D6 최종 감사](audit_20261013/evidence/remote_f1d6d9fc/FINAL_AUDIT_KO.md). 개발 진단 완료는 원인 확증 또는 배포 합격을 의미하지 않는다.  
 **기준:** 원래 중간 보고 4266cc9e, 이후 안전 실행기·PF 검사 반영 bfbbead3.  
 **별도 개발 브랜치:** codex/dr-ekf-causal-followup-v2-20261013
 
