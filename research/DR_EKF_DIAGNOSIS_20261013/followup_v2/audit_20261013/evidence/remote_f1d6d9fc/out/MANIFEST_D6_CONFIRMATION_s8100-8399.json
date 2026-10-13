@@ -1,0 +1,146 @@
+{
+ "name": "D6_CONFIRMATION_s8100-8399",
+ "command": "python3 confirm_dr_independent.py --evaluate",
+ "started_utc": "2026-10-13T04:50:00Z",
+ "finished_utc": "2026-10-13T04:50:25Z",
+ "git": {
+  "head": "3f96a165a89078d02039723d2956a6459cb0dd46",
+  "research_dir_dirty": true
+ },
+ "python": "3.13.16",
+ "numpy": "2.5.3",
+ "scipy": "1.18.1",
+ "config": {
+  "name": "D6 independent confirmation of the DR EKF inconsistency diagnosis",
+  "seeds": "8100:8400",
+  "procs": 4,
+  "arms": [
+   "B0",
+   "ORACLE_CAL",
+   "NO_C",
+   "A2_3_GAUSS_LEVEL",
+   "A2_3D_GAUSS_DEFAULT",
+   "CKF_A2_3",
+   "PF_A2_3"
+  ],
+  "criteria": [
+   {
+    "id": "C1_PHENOMENON",
+    "kind": "condxy_dominates",
+    "arm": "B0",
+    "min_cond_per_dof": 1.5,
+    "claim": "In every B0 cell the over-confidence sits in the heading-conditional XY term: its per-dof mean (t>=30 s) exceeds 1.5 and exceeds the heading term."
+   },
+   {
+    "id": "C2_CALIBRATION_NECESSARY",
+    "kind": "not_overconfident_all_cells",
+    "arm": "ORACLE_CAL",
+    "claim": "With the true calibration and wheelbase known (control), no B0-world cell is over-confident: ANEES <= 3.6, late-25% ANEES <= 3.6 and coverage >= 0.92 in all 9 cells."
+   },
+   {
+    "id": "C3_MISMATCH_NOT_NECESSARY",
+    "kind": "overconfident_cells",
+    "arm": "A2_3_GAUSS_LEVEL",
+    "cells": [
+     "R2_d2",
+     "R5_d2"
+    ],
+    "max_heading": 1.5,
+    "claim": "In the exactly model-matched world (calibration drawn from the filter prior, no wheelbase error, no slip) the EKF is still over-confident (ANEES > 3.6) in the large-heading-uncertainty cells R2_d2 and R5_d2 while its heading term stays <= 1.5."
+   },
+   {
+    "id": "C4_EXACT_POSTERIOR_FIXES",
+    "kind": "reference_beats_ekf",
+    "ekf_arm": "A2_3_GAUSS_LEVEL",
+    "ref_arm": "PF_A2_3",
+    "cells": [
+     "R2_d1",
+     "R2_d2",
+     "R4_d2",
+     "R5_d1",
+     "R5_d2"
+    ],
+    "ref_max_anees": 3.6,
+    "claim": "On the same model-matched worlds and seeds, the particle filter (near-exact posterior) has time-mean ANEES <= 3.6 and closer to 3 (log scale) than the EKF in every cell where the EKF was over-confident in development."
+   },
+   {
+    "id": "C5_EKF_POSTERIOR_ERROR",
+    "kind": "posterior_agreement",
+    "ekf_arm": "A2_3_GAUSS_LEVEL",
+    "ref_arm": "PF_A2_3",
+    "cells_disagree": [
+     "R2_d2",
+     "R5_d2"
+    ],
+    "enees_min": 10.0,
+    "cells_agree": [
+     "R2_d0",
+     "R4_d0",
+     "R5_d0"
+    ],
+    "enees_max_agree": 4.0,
+    "heading_var_ratio_range": [
+     0.9,
+     1.1
+    ],
+    "claim": "Directly against the particle posterior from the same data: the EKF posterior disagrees (ENEES > 10) in R2_d2/R5_d2, agrees (ENEES <= 4) in the drift-0 cells, and its heading variance matches the particle heading variance (ratio 0.9-1.1) in all 9 cells."
+   },
+   {
+    "id": "C6_C_TERM_IRRELEVANT",
+    "kind": "paired_no_effect",
+    "arm": "NO_C",
+    "reference": "B0",
+    "max_abs_log_ratio": 0.05,
+    "claim": "Removing the shared-input cross-covariance C from the odometry update changes the B0 ANEES by less than 5% in every cell."
+   },
+   {
+    "id": "C7_VALIDITY_REGION",
+    "kind": "validity_region",
+    "arm": "A2_3D_GAUSS_DEFAULT",
+    "max_sigma_deg": 5.0,
+    "min_sigma_deg": 7.0,
+    "min_frac_inside": 0.9,
+    "min_frac_outside": 0.9,
+    "claim": "In the model-matched world with the code-default prior, per-time ensemble ANEES_k (t>=10 s) is <= 3.6 for >= 90% of samples whose ensemble-mean filter heading sigma is <= 5 deg, and > 3.6 for >= 90% of samples with sigma >= 7 deg."
+   },
+   {
+    "id": "S1_PF_STRICT_GATE",
+    "kind": "consistent_count",
+    "arm": "PF_A2_3",
+    "min": 9,
+    "max": 9,
+    "claim": "SECONDARY: the particle filter passes the full R2-2 consistency gate (ANEES 2.4-3.6, coverage 0.92-0.98, late 2.4-3.6) in all 9 model-matched cells. A FAIL here limits the PF as a deployable fix, not the causal conclusion."
+   }
+  ]
+ },
+ "config_sha256": "c916ae1d564c1380d0a320f95f1b1488e3cba64b51b56441936167c53ac17e33",
+ "inputs": {
+  "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/filter_v2.py": "af31951dc36ba7dbf5ff13803624eda6ea07866a30224dcf8e566ce1d1d6159f",
+  "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/sensor_v2.py": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+  "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/filters.py": "aa8a77f2d68011234de814c8a6ceed3f7754cf03f4ca4e1143ccff43b08a2715",
+  "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/sensors.py": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+  "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+  "research/LOS_RANGE_RECAL_20261012/inputs_R2/MOTION_R2.csv": "52de83fcd8a19e4b64665b79a4052352dec3fa68b2b9d22283735200176c30f3",
+  "research/LOS_RANGE_RECAL_20261012/inputs_R2/MOTION_R4.csv": "8298da25913466ce023c99801fc0ac1f77568f35b1ab5ecc1da903e21126926e",
+  "research/LOS_RANGE_RECAL_20261012/inputs_R2/MOTION_R5.csv": "215924ee8e278bd2ca354bebcc56fd21720ddeac5e4c55b59c15a2b93cd98bb0",
+  "research/DR_EKF_DIAGNOSIS_20261013/ablate_dr_calibration.py": "1972bf528710e9fb460693724a4c8c9999205c7bee38cc7e9cf2e527670833f7",
+  "research/DR_EKF_DIAGNOSIS_20261013/audit_dr_jacobian_noise.py": "771adbfa8e9d6ea1928bf97f6a8fc91e09e606a5b5d87705296566da2494e983",
+  "research/DR_EKF_DIAGNOSIS_20261013/compare_dr_nonlinear.py": "f61deedb3780ea0e14638f6367c1531e92cfed923c5c4fbafcb2ab110373e11f",
+  "research/DR_EKF_DIAGNOSIS_20261013/confirm_dr_independent.py": "c834981b5d9f2468601efabad84ec677d15736b5d0b9697aef43c799c5a06300",
+  "research/DR_EKF_DIAGNOSIS_20261013/diagnose_dr_anees.py": "948ed1e14d763a93cb74fe24c4b8669784cf5b0c346aec1667ddf29ccfaf5c5e",
+  "research/DR_EKF_DIAGNOSIS_20261013/diagnose_dr_covariance.py": "7b59b7d821fd552440302f46561101c4a21b534cd051680af20acd2220fb8559",
+  "research/DR_EKF_DIAGNOSIS_20261013/diagnose_dr_trace.py": "f8bb929f2a1499a289fc8a676803e60ef5a87948252d7e372cb0f35bf62410c5",
+  "research/DR_EKF_DIAGNOSIS_20261013/dr_consistency.py": "922b67efe4f1435b30346fcb729fdc9aa8c006ec9ed0f3e6a092742d2f6a0f94",
+  "research/DR_EKF_DIAGNOSIS_20261013/dr_harness.py": "892628eb04fd813c6560e5dbec0cc081a281eb8ed4d409d9976b6d7d4b27f416",
+  "research/DR_EKF_DIAGNOSIS_20261013/dr_io.py": "9432ddccdc6b82d815a5d11a61b0abb6b99a669fbc08aa1eb1b332218a4eee68",
+  "research/DR_EKF_DIAGNOSIS_20261013/dr_plot.py": "91b520b6d2956ffff3c235b7403c27e110bfa6c567ca42c97631202e096b1e07",
+  "research/DR_EKF_DIAGNOSIS_20261013/package_d6_cache.py": "ae80c86ae2ff74ea49bc1c862e354cdfac2c7123bf4933e2e223e54c990a1671",
+  "research/DR_EKF_DIAGNOSIS_20261013/snapshot_interim.py": "7bf8df79ca9ab15d06f13681e1bad7e2960c76cf18952d6b704de2e4adf30f1f",
+  "research/DR_EKF_DIAGNOSIS_20261013/validate_dr_pf.py": "f4beef55088a2f2b4d9c8f34033daf4c880fcbcd9bbee1f4e0f899b9f69a35dd",
+  "research/DR_EKF_DIAGNOSIS_20261013/D6_SPEC.json": "2d1404828a8e130a7f501c2a23abcf092232a65119feee82128694b5e7f591c3"
+ },
+ "outputs": {
+  "research/DR_EKF_DIAGNOSIS_20261013/out/D6_CONFIRMATION_s8100-8399.json": "80534bbf34303c632382c9122c21871189097da6f4ba6c76f23b605fec08504d",
+  "research/DR_EKF_DIAGNOSIS_20261013/out/D6_CONFIRMATION_s8100-8399_CELLS.csv": "b34525e73dbe51589053c45a23847bafdf43266bb29ac7354fc849c1a28259f6"
+ }
+}

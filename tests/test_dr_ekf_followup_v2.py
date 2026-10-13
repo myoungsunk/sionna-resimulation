@@ -109,3 +109,56 @@ def test_v5_evaluation_is_read_only_when_no_run(tmp_path):
 def test_v2_missing_file_is_not_pass(tmp_path):
     result = V2.audit(tmp_path / "no_pf_results.json")
     assert result["status"] == "NOT_RUN"
+
+
+@pytest.mark.parametrize("seeds", ["8100:8101", "9000:9001", "8032:8033"])
+def test_development_seed_quarantine(seeds):
+    with pytest.raises(ValueError):
+        C.development_seeds(seeds)
+    assert C.development_seeds("8000:8002") == [8000, 8001]
+
+
+def test_v5_hashes_bind_world_scoring_and_motion():
+    hashes = V5.expected_hashes()
+    for path in (C.DIAG / "dr_consistency.py",
+                 C.H.FROZEN_SRC / "qclean_uwb/drivesim/sensors.py",
+                 C.H.FROZEN_SRC / "qclean_uwb/drivesim/filters.py",
+                 C.H.MOTION_DIR / "MOTION_R2.csv",
+                 C.H.MOTION_DIR / "SHA256SUMS_CSV.txt"):
+        assert hashes[path.relative_to(C.ROOT).as_posix()] == C.sha256(path)
+
+
+@pytest.mark.parametrize("corruption", [None, "asymmetric", "heading", "sigma"])
+def test_cache_scientific_fields_are_validated(tmp_path, monkeypatch, corruption):
+    monkeypatch.setitem(C.H.MOT, "R2", {"t": np.arange(2)})
+    P = np.broadcast_to(np.eye(3), (1, 2, 3, 3)).copy()
+    arr = dict(seeds=np.array([8100]), E_post=np.ones((1, 2, 6)),
+               P3_post=P, sigma_psi_post=np.ones((1, 2)),
+               nees_pose_post=np.full((1, 2), 3.),
+               nees_heading_post=np.ones((1, 2)),
+               nees_cond_xy_post=np.full((1, 2), 2.),
+               status=np.zeros((1, 2), dtype=int))
+    if corruption == "asymmetric":
+        P[0, 0, 0, 1] = .5
+    elif corruption == "heading":
+        arr["nees_heading_post"][0, 0] = 20.
+    elif corruption == "sigma":
+        arr["sigma_psi_post"][0, 0] = 3.
+    p = tmp_path / "cache.npz"
+    np.savez(p, **arr)
+    report, _ = C.validated_cache(p, [8100], "R2", min_age_s=0, full_psd=True)
+    assert report["status"] == ("VALID" if corruption is None else "INVALID")
+
+
+def test_hessian_heading_curvature_against_analytic_derivatives():
+    cfg = C.H.make_cfg(C.H.ARMS["A2_3_GAUSS_LEVEL"], 1, dict(wheelbase=0.))
+    x = np.array([2., .3, math.pi - .001, .001, .005, .004])
+    d, gyro, dt = .04, .007, .2
+    Sigma = np.diag([1e-6] * 9)
+    f = lambda u: V3.transform(u, x, d, gyro, dt, cfg.wheel_base,
+                               cfg.wheel_base, 0.)
+    _, h = V3.hessian_numeric(f, Sigma, f(np.zeros(9)))
+    D = 1 + x[4]
+    assert h[2, 3, 4] == pytest.approx(dt / D**2, rel=2e-4)
+    assert h[2, 4, 4] == pytest.approx(2 * (gyro-x[3]*dt) / D**3, rel=2e-4)
+    assert h[2, 4, 7] == pytest.approx(1 / D**2, rel=2e-4)

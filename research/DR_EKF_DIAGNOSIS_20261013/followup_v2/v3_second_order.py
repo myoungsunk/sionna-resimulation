@@ -213,9 +213,9 @@ def main():
     ap.add_argument("--steps", type=int, default=80,
                     help="0 = full route; >0 = limited development smoke")
     a = ap.parse_args()
-    seeds = C.parse_seed_range(a.seeds)
-    if set(seeds) & set(C.D6_SEEDS):
-        raise SystemExit("D6 seeds forbidden for post-hoc V3 model selection")
+    seeds = C.development_seeds(a.seeds)
+    if a.steps < 0:
+        raise ValueError("--steps must be zero (full route) or positive")
     C.git_frozen_spec()
     out = C.new_dir(a.out)
     rows = []

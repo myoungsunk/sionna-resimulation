@@ -80,6 +80,14 @@ def parse_seed_range(text: str) -> list[int]:
     return list(range(lo, hi))
 
 
+def development_seeds(text: str) -> list[int]:
+    """Keep all follow-up model selection inside the declared development pool."""
+    seeds = parse_seed_range(text)
+    if not set(seeds).issubset(DEV_SEEDS):
+        raise ValueError("V3/V4 development seeds must stay within 8000:8032")
+    return seeds
+
+
 def cache_path(arm: str, seeds: list[int], route: str, level: int,
                cache_root: Path | None = None):
     from diagnose_dr_trace import cache_path as old_cache_path
@@ -120,11 +128,14 @@ def validated_cache(path: Path, seeds: list[int], route: str,
             elif arr[k].shape != sh:
                 issues.append(f"{k}: expected {sh}, got {arr[k].shape}")
         for k in ("E_post", "P3_post", "nees_pose_post",
-                  "nees_heading_post", "nees_cond_xy_post"):
+                  "nees_heading_post", "nees_cond_xy_post", "sigma_psi_post"):
             if k in arr and not np.isfinite(arr[k]).all():
                 issues.append(f"non-finite {k}")
         if not issues:
             P = arr["P3_post"]
+            if not np.allclose(P, P.swapaxes(-1, -2), atol=1e-10, rtol=1e-6):
+                issues.append("asymmetric pose covariance")
+        if not issues:
             chosen = np.arange(T) if full_psd else np.unique(
                 np.r_[0, np.linspace(0, T-1, min(T, 12)).astype(int)])
             eig = np.linalg.eigvalsh(P[:, chosen])
@@ -140,6 +151,16 @@ def validated_cache(path: Path, seeds: list[int], route: str,
                 result["max_nees_recalc_abs"] = float(np.max(np.abs(v - got)))
                 if not np.allclose(v, got, atol=3e-3, rtol=3e-4):
                     issues.append("pose NEES incompatible with stored errors/covariance")
+                split = H.DC.heading_conditional_split(E, P[:, chosen])
+                for field, key in (("nees_heading_post", "heading"),
+                                   ("nees_cond_xy_post", "cond_xy")):
+                    if not np.allclose(split[key], arr[field][:, chosen],
+                                       atol=3e-3, rtol=3e-4):
+                        issues.append(f"{field} incompatible with errors/covariance")
+                if not np.allclose(np.sqrt(P[:, chosen, 2, 2]),
+                                   arr["sigma_psi_post"][:, chosen],
+                                   atol=1e-6, rtol=3e-4):
+                    issues.append("heading sigma incompatible with pose covariance")
         result["errors"] = issues
         result["seeds_n"] = n
         result["status"] = "VALID" if not issues else "INVALID"

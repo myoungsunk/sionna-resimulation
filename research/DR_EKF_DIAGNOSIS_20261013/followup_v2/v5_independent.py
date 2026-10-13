@@ -61,11 +61,17 @@ def run_dir_path(s):
 
 
 def expected_hashes():
-    paths = {p: HERE / p for p in SOURCE_FILES}
-    paths["dr_harness.py"] = C.DIAG / "dr_harness.py"
-    paths["filter_v2.py"] = H.FROZEN_SRC / "qclean_uwb/drivesim/filter_v2.py"
-    paths["sensor_v2.py"] = H.FROZEN_SRC / "qclean_uwb/drivesim/sensor_v2.py"
-    return {k: C.sha256(v) for k, v in paths.items()}
+    # Bind world generation, estimator, scoring, transitive frozen source,
+    # and motion inputs; a CSV plus a changed checksum must not evade the seal.
+    paths = list(HERE.glob("*.py"))
+    paths += [C.DIAG / name for name in
+              ("dr_harness.py", "dr_consistency.py", "dr_io.py",
+               "D6_SPEC.json", "D6_PREREG_KO.md")]
+    paths += list(H.FROZEN_SRC.rglob("*.py"))
+    paths += [H.MOTION_DIR / f"MOTION_{r}.csv" for r in H.ROUTES]
+    paths += [H.MOTION_DIR / "SHA256SUMS_CSV.txt"]
+    return {p.relative_to(C.ROOT).as_posix(): C.sha256(p)
+            for p in sorted(set(paths))}
 
 
 def initialize(spec_name, world, candidate, seeds_text):

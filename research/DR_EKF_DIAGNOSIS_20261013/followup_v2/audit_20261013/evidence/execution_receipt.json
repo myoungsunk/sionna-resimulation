@@ -1,0 +1,151 @@
+{
+  "records": [
+    {
+      "stage": "compile",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-m",
+        "compileall",
+        "-q",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\tests\\test_dr_ekf_followup_v2.py"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 0.16646432876586914,
+      "utc": "2026-10-13T03:56:18.892369+00:00"
+    },
+    {
+      "stage": "tests",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_dr_ekf_followup_v2.py"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 3.2484889030456543,
+      "utc": "2026-10-13T03:56:22.148858+00:00"
+    },
+    {
+      "stage": "v0",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2\\v0_cache_audit.py",
+        "--out",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\audit_evidence\\v0_local",
+        "--full-psd",
+        "--hash-ready"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 2.362326145172119,
+      "utc": "2026-10-13T03:56:24.520347+00:00"
+    },
+    {
+      "stage": "v1",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2\\v1_verdict_audit.py",
+        "--out",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\audit_evidence\\v1_local"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 4.3515214920043945,
+      "utc": "2026-10-13T03:56:28.881382+00:00"
+    },
+    {
+      "stage": "v2",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2\\v2_pf_reference_audit.py",
+        "--out",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\audit_evidence\\v2_github"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 2.3659517765045166,
+      "utc": "2026-10-13T03:56:31.257340+00:00"
+    },
+    {
+      "stage": "v3_smoke",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2\\v3_second_order.py",
+        "--out",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\audit_evidence\\v3_smoke",
+        "--world",
+        "gauss_level",
+        "--routes",
+        "R2",
+        "--levels",
+        "0",
+        "2",
+        "--seeds",
+        "8000:8002",
+        "--steps",
+        "80"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 5.723439931869507,
+      "utc": "2026-10-13T03:56:36.993546+00:00"
+    },
+    {
+      "stage": "v4_pilot",
+      "command": [
+        "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\research\\DR_EKF_DIAGNOSIS_20261013\\followup_v2\\v4_calibration.py",
+        "--out",
+        "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\audit_evidence\\v4_pilot",
+        "--world",
+        "gauss_level",
+        "--routes",
+        "R2",
+        "--levels",
+        "2",
+        "--seeds",
+        "8000:8004"
+      ],
+      "exit_code": 0,
+      "elapsed_s": 4.6225831508636475,
+      "utc": "2026-10-13T03:56:41.624632+00:00"
+    }
+  ],
+  "protected_hashes_before": {
+    "research\\DR_EKF_DIAGNOSIS_20261013\\ablate_dr_calibration.py": "1972bf528710e9fb460693724a4c8c9999205c7bee38cc7e9cf2e527670833f7",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\audit_dr_jacobian_noise.py": "771adbfa8e9d6ea1928bf97f6a8fc91e09e606a5b5d87705296566da2494e983",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\compare_dr_nonlinear.py": "f61deedb3780ea0e14638f6367c1531e92cfed923c5c4fbafcb2ab110373e11f",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\confirm_dr_independent.py": "c834981b5d9f2468601efabad84ec677d15736b5d0b9697aef43c799c5a06300",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_anees.py": "948ed1e14d763a93cb74fe24c4b8669784cf5b0c346aec1667ddf29ccfaf5c5e",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_covariance.py": "7b59b7d821fd552440302f46561101c4a21b534cd051680af20acd2220fb8559",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_trace.py": "f8bb929f2a1499a289fc8a676803e60ef5a87948252d7e372cb0f35bf62410c5",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_consistency.py": "922b67efe4f1435b30346fcb729fdc9aa8c006ec9ed0f3e6a092742d2f6a0f94",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_harness.py": "892628eb04fd813c6560e5dbec0cc081a281eb8ed4d409d9976b6d7d4b27f416",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_io.py": "9432ddccdc6b82d815a5d11a61b0abb6b99a669fbc08aa1eb1b332218a4eee68",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_plot.py": "91b520b6d2956ffff3c235b7403c27e110bfa6c567ca42c97631202e096b1e07",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\snapshot_interim.py": "7bf8df79ca9ab15d06f13681e1bad7e2960c76cf18952d6b704de2e4adf30f1f",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\validate_dr_pf.py": "f4beef55088a2f2b4d9c8f34033daf4c880fcbcd9bbee1f4e0f899b9f69a35dd",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\D6_PREREG_KO.md": "bf720b8b9350dcacbb2dd629725b10f89461cc75a73e72d94ae37c7f756ae82a",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\D6_SPEC.json": "2d1404828a8e130a7f501c2a23abcf092232a65119feee82128694b5e7f591c3",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\out\\D5_PF_VALIDATION.json": "afb4d4b0e4b87d39901a1ddae268cfee29d8eedcc0c33d0bb9a7deada154da0d",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\out\\MANIFEST_D5_PF_VALIDATION.json": "a48fbb0482ea7f955664e911e80ed929627023316715f01798b7818dd621c886"
+  },
+  "protected_hashes_after": {
+    "research\\DR_EKF_DIAGNOSIS_20261013\\ablate_dr_calibration.py": "1972bf528710e9fb460693724a4c8c9999205c7bee38cc7e9cf2e527670833f7",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\audit_dr_jacobian_noise.py": "771adbfa8e9d6ea1928bf97f6a8fc91e09e606a5b5d87705296566da2494e983",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\compare_dr_nonlinear.py": "f61deedb3780ea0e14638f6367c1531e92cfed923c5c4fbafcb2ab110373e11f",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\confirm_dr_independent.py": "c834981b5d9f2468601efabad84ec677d15736b5d0b9697aef43c799c5a06300",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_anees.py": "948ed1e14d763a93cb74fe24c4b8669784cf5b0c346aec1667ddf29ccfaf5c5e",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_covariance.py": "7b59b7d821fd552440302f46561101c4a21b534cd051680af20acd2220fb8559",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\diagnose_dr_trace.py": "f8bb929f2a1499a289fc8a676803e60ef5a87948252d7e372cb0f35bf62410c5",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_consistency.py": "922b67efe4f1435b30346fcb729fdc9aa8c006ec9ed0f3e6a092742d2f6a0f94",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_harness.py": "892628eb04fd813c6560e5dbec0cc081a281eb8ed4d409d9976b6d7d4b27f416",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_io.py": "9432ddccdc6b82d815a5d11a61b0abb6b99a669fbc08aa1eb1b332218a4eee68",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\dr_plot.py": "91b520b6d2956ffff3c235b7403c27e110bfa6c567ca42c97631202e096b1e07",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\snapshot_interim.py": "7bf8df79ca9ab15d06f13681e1bad7e2960c76cf18952d6b704de2e4adf30f1f",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\validate_dr_pf.py": "f4beef55088a2f2b4d9c8f34033daf4c880fcbcd9bbee1f4e0f899b9f69a35dd",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\D6_PREREG_KO.md": "bf720b8b9350dcacbb2dd629725b10f89461cc75a73e72d94ae37c7f756ae82a",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\D6_SPEC.json": "2d1404828a8e130a7f501c2a23abcf092232a65119feee82128694b5e7f591c3",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\out\\D5_PF_VALIDATION.json": "afb4d4b0e4b87d39901a1ddae268cfee29d8eedcc0c33d0bb9a7deada154da0d",
+    "research\\DR_EKF_DIAGNOSIS_20261013\\out\\MANIFEST_D5_PF_VALIDATION.json": "a48fbb0482ea7f955664e911e80ed929627023316715f01798b7818dd621c886"
+  },
+  "protected_unchanged": true
+}

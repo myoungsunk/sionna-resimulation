@@ -143,9 +143,7 @@ def main():
     ap.add_argument("--masks", nargs="+", choices=MASKS, default=list(MASKS))
     ap.add_argument("--known-wheelbase", action="store_true")
     a = ap.parse_args()
-    seeds = C.parse_seed_range(a.seeds)
-    if set(seeds) & set(C.D6_SEEDS):
-        raise SystemExit("Do not use the frozen D6 confirmation seeds for V4 selection")
+    seeds = C.development_seeds(a.seeds)
     C.git_frozen_spec()
     out = C.new_dir(a.out)
     rows = []

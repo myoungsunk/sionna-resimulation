@@ -1,0 +1,162 @@
+--- a/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/common.py
++++ b/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/common.py
+@@ -80,6 +80,14 @@
+     return list(range(lo, hi))
+ 
+ 
++def development_seeds(text: str) -> list[int]:
++    """Keep all follow-up model selection inside the declared development pool."""
++    seeds = parse_seed_range(text)
++    if not set(seeds).issubset(DEV_SEEDS):
++        raise ValueError("V3/V4 development seeds must stay within 8000:8032")
++    return seeds
++
++
+ def cache_path(arm: str, seeds: list[int], route: str, level: int,
+                cache_root: Path | None = None):
+     from diagnose_dr_trace import cache_path as old_cache_path
+@@ -120,11 +128,14 @@
+             elif arr[k].shape != sh:
+                 issues.append(f"{k}: expected {sh}, got {arr[k].shape}")
+         for k in ("E_post", "P3_post", "nees_pose_post",
+-                  "nees_heading_post", "nees_cond_xy_post"):
++                  "nees_heading_post", "nees_cond_xy_post", "sigma_psi_post"):
+             if k in arr and not np.isfinite(arr[k]).all():
+                 issues.append(f"non-finite {k}")
+         if not issues:
+             P = arr["P3_post"]
++            if not np.allclose(P, P.swapaxes(-1, -2), atol=1e-10, rtol=1e-6):
++                issues.append("asymmetric pose covariance")
++        if not issues:
+             chosen = np.arange(T) if full_psd else np.unique(
+                 np.r_[0, np.linspace(0, T-1, min(T, 12)).astype(int)])
+             eig = np.linalg.eigvalsh(P[:, chosen])
+@@ -140,6 +151,16 @@
+                 result["max_nees_recalc_abs"] = float(np.max(np.abs(v - got)))
+                 if not np.allclose(v, got, atol=3e-3, rtol=3e-4):
+                     issues.append("pose NEES incompatible with stored errors/covariance")
++                split = H.DC.heading_conditional_split(E, P[:, chosen])
++                for field, key in (("nees_heading_post", "heading"),
++                                   ("nees_cond_xy_post", "cond_xy")):
++                    if not np.allclose(split[key], arr[field][:, chosen],
++                                       atol=3e-3, rtol=3e-4):
++                        issues.append(f"{field} incompatible with errors/covariance")
++                if not np.allclose(np.sqrt(P[:, chosen, 2, 2]),
++                                   arr["sigma_psi_post"][:, chosen],
++                                   atol=1e-6, rtol=3e-4):
++                    issues.append("heading sigma incompatible with pose covariance")
+         result["errors"] = issues
+         result["seeds_n"] = n
+         result["status"] = "VALID" if not issues else "INVALID"
+--- a/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v3_second_order.py
++++ b/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v3_second_order.py
+@@ -213,9 +213,9 @@
+     ap.add_argument("--steps", type=int, default=80,
+                     help="0 = full route; >0 = limited development smoke")
+     a = ap.parse_args()
+-    seeds = C.parse_seed_range(a.seeds)
+-    if set(seeds) & set(C.D6_SEEDS):
+-        raise SystemExit("D6 seeds forbidden for post-hoc V3 model selection")
++    seeds = C.development_seeds(a.seeds)
++    if a.steps < 0:
++        raise ValueError("--steps must be zero (full route) or positive")
+     C.git_frozen_spec()
+     out = C.new_dir(a.out)
+     rows = []
+--- a/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v4_calibration.py
++++ b/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v4_calibration.py
+@@ -143,9 +143,7 @@
+     ap.add_argument("--masks", nargs="+", choices=MASKS, default=list(MASKS))
+     ap.add_argument("--known-wheelbase", action="store_true")
+     a = ap.parse_args()
+-    seeds = C.parse_seed_range(a.seeds)
+-    if set(seeds) & set(C.D6_SEEDS):
+-        raise SystemExit("Do not use the frozen D6 confirmation seeds for V4 selection")
++    seeds = C.development_seeds(a.seeds)
+     C.git_frozen_spec()
+     out = C.new_dir(a.out)
+     rows = []
+--- a/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v5_independent.py
++++ b/research/DR_EKF_DIAGNOSIS_20261013/followup_v2/v5_independent.py
+@@ -61,11 +61,17 @@
+ 
+ 
+ def expected_hashes():
+-    paths = {p: HERE / p for p in SOURCE_FILES}
+-    paths["dr_harness.py"] = C.DIAG / "dr_harness.py"
+-    paths["filter_v2.py"] = H.FROZEN_SRC / "qclean_uwb/drivesim/filter_v2.py"
+-    paths["sensor_v2.py"] = H.FROZEN_SRC / "qclean_uwb/drivesim/sensor_v2.py"
+-    return {k: C.sha256(v) for k, v in paths.items()}
++    # Bind world generation, estimator, scoring, transitive frozen source,
++    # and motion inputs; a CSV plus a changed checksum must not evade the seal.
++    paths = list(HERE.glob("*.py"))
++    paths += [C.DIAG / name for name in
++              ("dr_harness.py", "dr_consistency.py", "dr_io.py",
++               "D6_SPEC.json", "D6_PREREG_KO.md")]
++    paths += list(H.FROZEN_SRC.rglob("*.py"))
++    paths += [H.MOTION_DIR / f"MOTION_{r}.csv" for r in H.ROUTES]
++    paths += [H.MOTION_DIR / "SHA256SUMS_CSV.txt"]
++    return {p.relative_to(C.ROOT).as_posix(): C.sha256(p)
++            for p in sorted(set(paths))}
+ 
+ 
+ def initialize(spec_name, world, candidate, seeds_text):
+--- a/tests/test_dr_ekf_followup_v2.py
++++ b/tests/test_dr_ekf_followup_v2.py
+@@ -109,3 +109,56 @@
+ def test_v2_missing_file_is_not_pass(tmp_path):
+     result = V2.audit(tmp_path / "no_pf_results.json")
+     assert result["status"] == "NOT_RUN"
++
++
++@pytest.mark.parametrize("seeds", ["8100:8101", "9000:9001", "8032:8033"])
++def test_development_seed_quarantine(seeds):
++    with pytest.raises(ValueError):
++        C.development_seeds(seeds)
++    assert C.development_seeds("8000:8002") == [8000, 8001]
++
++
++def test_v5_hashes_bind_world_scoring_and_motion():
++    hashes = V5.expected_hashes()
++    for path in (C.DIAG / "dr_consistency.py",
++                 C.H.FROZEN_SRC / "qclean_uwb/drivesim/sensors.py",
++                 C.H.FROZEN_SRC / "qclean_uwb/drivesim/filters.py",
++                 C.H.MOTION_DIR / "MOTION_R2.csv",
++                 C.H.MOTION_DIR / "SHA256SUMS_CSV.txt"):
++        assert hashes[path.relative_to(C.ROOT).as_posix()] == C.sha256(path)
++
++
++@pytest.mark.parametrize("corruption", [None, "asymmetric", "heading", "sigma"])
++def test_cache_scientific_fields_are_validated(tmp_path, monkeypatch, corruption):
++    monkeypatch.setitem(C.H.MOT, "R2", {"t": np.arange(2)})
++    P = np.broadcast_to(np.eye(3), (1, 2, 3, 3)).copy()
++    arr = dict(seeds=np.array([8100]), E_post=np.ones((1, 2, 6)),
++               P3_post=P, sigma_psi_post=np.ones((1, 2)),
++               nees_pose_post=np.full((1, 2), 3.),
++               nees_heading_post=np.ones((1, 2)),
++               nees_cond_xy_post=np.full((1, 2), 2.),
++               status=np.zeros((1, 2), dtype=int))
++    if corruption == "asymmetric":
++        P[0, 0, 0, 1] = .5
++    elif corruption == "heading":
++        arr["nees_heading_post"][0, 0] = 20.
++    elif corruption == "sigma":
++        arr["sigma_psi_post"][0, 0] = 3.
++    p = tmp_path / "cache.npz"
++    np.savez(p, **arr)
++    report, _ = C.validated_cache(p, [8100], "R2", min_age_s=0, full_psd=True)
++    assert report["status"] == ("VALID" if corruption is None else "INVALID")
++
++
++def test_hessian_heading_curvature_against_analytic_derivatives():
++    cfg = C.H.make_cfg(C.H.ARMS["A2_3_GAUSS_LEVEL"], 1, dict(wheelbase=0.))
++    x = np.array([2., .3, math.pi - .001, .001, .005, .004])
++    d, gyro, dt = .04, .007, .2
++    Sigma = np.diag([1e-6] * 9)
++    f = lambda u: V3.transform(u, x, d, gyro, dt, cfg.wheel_base,
++                               cfg.wheel_base, 0.)
++    _, h = V3.hessian_numeric(f, Sigma, f(np.zeros(9)))
++    D = 1 + x[4]
++    assert h[2, 3, 4] == pytest.approx(dt / D**2, rel=2e-4)
++    assert h[2, 4, 4] == pytest.approx(2 * (gyro-x[3]*dt) / D**3, rel=2e-4)
++    assert h[2, 4, 7] == pytest.approx(1 / D**2, rel=2e-4)
