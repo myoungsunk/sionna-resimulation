@@ -1,0 +1,56 @@
+{
+  "schema": "EKF3_P1_UNIT_RECEIPT_V1",
+  "date_kst": "2026-10-13",
+  "branch": "research/ekf3-independent-p0-20261013",
+  "p0_pass_commit": "b0957181e0e5238e160e69a04d052f23559e666c",
+  "p0_stdout_path": "research/EKF3_INDEPENDENT_20261013/validation/P0_20261013T004757Z/p0_stdout.json",
+  "p0_status": "PASS_LOCAL_SHA256_SHAPE_POSE_PREFLIGHT",
+  "p1_scope": "standalone EKF3 class; SE2 prediction; heading/direct-s scalar; 3D range scalar; 2D joint; independent 3x3 covariance and Joseph implementation; pure synthetic unit and smoke checks",
+  "status": "CODE_COMPLETE_LOCAL_UNIT_TESTS_PASS",
+  "test_execution": {
+    "environment": "isolated model execution container, NOT GitHub Actions and NOT a checkout of frozen large RF H",
+    "python": "3.13.5",
+    "numpy": "2.3.5",
+    "pytest": "9.0.2",
+    "command": "python -m pytest -q test_ekf3.py test_ekf3_smoke.py",
+    "stdout": ".......................... [100%]\\n26 passed in 0.28s",
+    "passed": 26,
+    "failed": 0,
+    "errors": 0,
+    "math_tests": 24,
+    "synthetic_smoke_and_api_contract_tests": 2,
+    "local_files_identical_to_GitHub_blobs": true,
+    "verification_method": "local git hash-object SHA-1 exactly matched GitHub fetch_file blob sha for each committed file"
+  },
+  "files": [
+    {
+      "path": "research/EKF3_INDEPENDENT_20261013/ekf3.py",
+      "git_blob_sha1": "c010981d387cf9b50c2f50911ac37624e80318ec",
+      "sha256_local": "427ad65987f586daee8656cdd3f79b38316fc79f29008eb2624f4257ec94599a",
+      "bytes": 13538
+    },
+    {
+      "path": "research/EKF3_INDEPENDENT_20261013/test_ekf3.py",
+      "git_blob_sha1": "b5f949dae3237aa7ebf5782b0cabd12acab09bb8",
+      "sha256_local": "3c32559f712504039189c67cd5e8cad2996870b64caaa49b69f8774b4ae8dcc4",
+      "bytes": 9962
+    },
+    {
+      "path": "research/EKF3_INDEPENDENT_20261013/test_ekf3_smoke.py",
+      "git_blob_sha1": "a10e103bd0be10205a143a10d00e701cac85341b",
+      "sha256_local": "8fa12f2b455acce625bf8ff41f0e808350811c6403d22c5756d44c92c9aabe5b",
+      "bytes": 2955
+    }
+  ],
+  "not_run": [
+    "archived H and LUT runtime parity",
+    "frozen Sensor-v2 full-route integration",
+    "full-route D0/A/B/C Monte Carlo",
+    "realistic RF multipath covariance calibration",
+    "real robot hardware"
+  ],
+  "original_sources_modified": false,
+  "p0_assets_modified": false,
+  "p2_performance_not_claimed": true,
+  "scientific_PASS": false
+}
