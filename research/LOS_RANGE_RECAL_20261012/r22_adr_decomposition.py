@@ -12,7 +12,10 @@ from qclean_uwb.drivesim import sensor_v2 as V,filter_v2 as F
 from qclean_uwb.drivesim.filters import FilterConfig
 from qclean_uwb.drivesim.sensors import DRIFT_LEVELS
 ROUTES=('R2','R4','R5');LEVELS=(0,1,2);SEED0=6000
-MOT={r:dict(np.load(HERE/f'inputs_R2/MOTION_{r}_legacy-euler.npz')) for r in ROUTES}
+def load_motion(route):
+    import pandas as _pd
+    d=_pd.read_csv(HERE/f'inputs_R2/MOTION_{route}.csv',float_precision='round_trip');return dict(t=d.t.to_numpy(),pose=d[['x','y','theta']].to_numpy(),ds=d.ds.to_numpy(),dtheta=d.dtheta.to_numpy(),pose_id=d.pose_id.to_numpy())
+MOT={r:load_motion(r) for r in ROUTES}
 CONFIGS={'B0':dict(),
  'G_none':dict(cond='none'),'G_gyro_bias':dict(cond='gyro_bias'),'G_gyro_sf':dict(cond='gyro_sf'),'G_wheel_asym':dict(cond='wheel_asymmetry'),'G_wheelbase':dict(cond='wheelbase'),
  'G_wheel_noise':dict(cond='wheel_noise'),'G_gyro_noise':dict(cond='gyro_noise'),'G_slip':dict(cond='slip'),

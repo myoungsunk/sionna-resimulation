@@ -26,3 +26,6 @@ P5에서 RF를 쓰지 않는 A_DR(IMU+wheel EKF)조차 pose NEES 평균 62.9(중
 - 합법 집합 모두 불일치 → **`DR_MODEL_MISMATCH_UNRESOLVED`**: 이후 RF 일관성 주장을 보류하고 R2-3 일관성 비교는 "상대 비교(A_DR 대비)"로 제한, R2-6은 정확도 비교만.
 - F1(oracle)만 통과 → "wheelbase 식별 불가능 한계; 절대 pose 일관성은 RF/실측 없이는 불가"로 기록 (DR 단독으로는 해결 아님).
 - 결과를 본 후 기준·허용오차·구성 변경 금지. 추가 구성은 "탐색(사후)"로 구분해 별도 표기.
+
+## 부록 (실행 후 기록): 입력 저장 형식 변경
+사전등록 커밋 시점의 `inputs_R2/MOTION_*_legacy-euler.npz`는 이 저장소의 `*.npz` LFS 규칙 때문에 업로드가 거부(`lfs.github.com … Forbidden`)되어 푸시 전 로컬 커밋에서 제거했다. 동일 배열을 `inputs_R2/MOTION_R{2,4,5}.csv`로 저장했고 원본 npz와 **비트 단위로 같음**을 확인했다(`float_precision='round_trip'`). 원본 npz의 SHA256은 `inputs_R2/SHA256SUMS.txt`, CSV의 SHA256은 `inputs_R2/SHA256SUMS_CSV.txt`. 스크립트(`r22_*`, `r23_*`)의 로더만 npz→CSV로 바뀌었고, R2-2 실행은 npz로, R2-3 실행은 npz로 수행했다(결과 파일 생성 시점). 변경 후 동일 task의 NEES 시계열 재현을 확인했다(B0, R2, drift 2, seed 6000). 판정 기준·구성은 불변.

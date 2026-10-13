@@ -16,7 +16,8 @@ ap=argparse.ArgumentParser();ap.add_argument('out');ap.add_argument('frozen');ap
 ap.add_argument('--snr',type=int,default=30);ap.add_argument('--seeds',type=int,default=32);ap.add_argument('--procs',type=int,default=4);ap.add_argument('--n-train-seeds',type=int,default=4);A=ap.parse_args()
 FZ=json.load(open(A.frozen));FOLD=FZ['loro_fold_params'];FREQ=np.load(A.freqs)
 G7=ROOT/'research/V01B_CLOSURE_20261012/G7/out';LAB=pd.read_csv(G7/'02_LABELS_EVAL_ONLY_12.csv',usecols=['case','pose_id','true_distance_m'])
-CASES=sorted(LAB.case.unique());CIDX={c:i for i,c in enumerate(CASES)};MOT={r:dict(np.load(HERE/f'inputs_R2/MOTION_{r}_legacy-euler.npz')) for r in ('R2','R4','R5')}
+CASES=sorted(LAB.case.unique());CIDX={c:i for i,c in enumerate(CASES)};from r22_adr_decomposition import load_motion
+MOT={r:load_motion(r) for r in ('R2','R4','R5')}
 DTRUE={c:g.sort_values('pose_id').true_distance_m.to_numpy() for c,g in LAB.groupby('case')}
 find=lambda n:next(p for dd in A.h_full_dirs for p in [Path(dd)/n] if p.exists());HM={}
 def hfile(c):
