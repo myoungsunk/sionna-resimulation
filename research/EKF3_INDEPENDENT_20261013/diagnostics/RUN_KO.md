@@ -81,6 +81,12 @@ python research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py --out re
 
 아직 개발 seed 20개/확증 50개를 돌리기 전, 위 3개 seed로 각 팔 데이터의 수학·재현성·종료 코드를 먼저 확인한다. 완료 후 동일 명령에 개발/확증 seed 목록을 독립적으로 넣어 실행하며, 새로운 출력 디렉터리를 사용한다.
 
+특정 DR 오차의 영향을 분리하려면 user-run smoke 성공 후 다음처럼 조건을 독립적으로 선택할 수 있다.
+
+```powershell
+python research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py --out research/EKF3_INDEPENDENT_20261013/diagnostics/OUTPUT_D5_ISOLATED --seeds 0 1 2 --levels 0 1 2 --conditions noise_pair gyro_bias gyro_sf wheel_asymmetry slip all --channels los full --range-models B_OLD E1_FULL_LORO
+```
+
 D5는 전 시점 posterior를 다음 시점 Prediction으로 전달하는 **재귀적 Full-route EKF**이다. D0–D4는 P2 저장 DR-only prior에서 단 한 번만 보정하는 **One-step Counterfactual**이므로 두 수치를 섞지 않는다.
 
 주요 출력: `D5_MULTI_SEED_FULL_ROUTE_METRICS.csv`, `D5_RUN_MANIFEST.json`. `--save-full-sample-trace`를 사용하면 시점별 전체 추정 궤적 CSV를 추가 저장할 수 있다.
