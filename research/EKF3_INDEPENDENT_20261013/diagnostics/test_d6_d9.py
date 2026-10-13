@@ -112,7 +112,7 @@ def test_ridge_predictor_uses_train_only_and_clips():
 
 def test_3state_diagnostic_matches_independent_original_EKF3_all_arms():
     x=np.array([1.,.2,0.1])
-    P=np.diag([.01,.01,math.radians(5.)**2])
+    P=np.diag([.1**2,.1**2,math.radians(5.)**2])
     def obs(y):
         return float(.25+.02*y[0]+.5*y[2]),np.array([.02,0.,.5])
     anchor=(4.,0.,2.65)

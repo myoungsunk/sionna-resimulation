@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from collections import defaultdict
 import json
+import hashlib
 import math
 from pathlib import Path
 
@@ -17,7 +18,7 @@ import numpy as np
 from d6_d9_common import (B_OLD, DiagnosticFilter, EVAL_START, RR, RS,
                           check_inputs, eval_covariance, file_sha, finish,
                           initial_state, make_out, original_lut, rf_case,
-                          spectrum, write_csv, read_csv, corrected_ranges, wrap)
+                          spectrum, write_csv, read_csv, corrected_ranges, wrap, P3_SHA256, P3_MODEL)
 from d8_polarization_quality import predict_mean, predict_variance, RANGE_LABELS
 from d7_cir_multipath_audit import ONLINE_KEYS
 from ekf3 import archived_direct_s_model
@@ -68,6 +69,21 @@ def source_evidence(d7: Path, d8: Path):
         if key in mapping:raise RuntimeError('Duplicate D7 online sample index')
         mapping[key]=row
     return mapping,folds
+
+
+def validate_e1_outer_fold(contract, fold, heldout_route):
+    """Reject old per-row E1 labels even when exploratory quality is requested."""
+    frozen = json.loads(P3_MODEL.read_text(encoding="utf-8"))
+    params = frozen["loro_fold_params"][heldout_route]["E1"]
+    expected_sha = hashlib.sha256(json.dumps(params, sort_keys=True,
+        separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+    if (fold.get("e1_outer_coefficients_sha256") != expected_sha or
+        contract.get('e1_outer_fold_contract') !=
+            'SINGLE_OUTER_ROUTE_EXCLUDED_FOLD_FOR_ALL_LABELS' or
+        contract.get('e1_frozen_model_sha256') != P3_SHA256 or
+        contract.get('e1_model_family_selection_nested') is not False or
+        fold.get('e1_label_outer_excluded_route') != heldout_route):
+        raise RuntimeError('E1 outer-fold provenance mismatch: regenerate D7/D8')
 
 
 def covariance_for(row, fold, method, use_corr=False):
@@ -296,6 +312,8 @@ def main():
             if expected_range not in fold_root['range_models']:
                 raise RuntimeError('No D8 model trained for selected correction '+expected_range)
             fold=fold_root['range_models'][expected_range]
+            if expected_range=='E1_FULL_LORO':
+                validate_e1_outer_fold(folds, fold, case['route'])
             if fold['range_target']!=RANGE_LABELS[expected_range]:
                 raise RuntimeError('D8 range residual target mismatch')
             if (any(METHODS[m][2] for m in args.methods) and
@@ -351,6 +369,7 @@ def main():
                      'D8 gate is scene-internal exploratory, not independent-scene confirmation',
                      'If exploratory-unvalidated-quality is requested, heldout gate may have failed',
                     'Time-correlated Multipath and observation mean biases remain',
+                    'E1 family was selected on the frozen scene; no nested family-selection claim; D9 scores all requested positions',
                     'Single frozen RF scene, no independent confirmation seeds or scientific PASS'])
     print('D9_EXPLORATORY_DONE',str(out))
 

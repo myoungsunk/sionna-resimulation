@@ -93,7 +93,7 @@ python research/EKF3_INDEPENDENT_20261013/diagnostics/d7_cir_multipath_audit.py 
 python research/EKF3_INDEPENDENT_20261013/diagnostics/d8_polarization_quality.py --d7 artifacts/ekf3_D7_FULL --out artifacts/ekf3_D8_LORO
 ```
 
-D8은 B_OLD와 Full RF용 E1을 **서로 다른 Range 학습 label**로 학습한다. `D8_FOLD_MODELS.json`의 각 route/channel/`range_model`에 별도 `s,r` 모델과 조건부 편향·중심화 오차 규모를 저장한다. 모든 route 단위 heldout gate는 정해진 Q3 vs Q0 NLL 개선 및 오차분산 비율 임계값을 저장한다.
+D8은 B_OLD와 Full RF용 E1을 **서로 다른 Range 학습 label**로 학습한다. `D8_FOLD_MODELS.json`의 각 route/channel/`range_model`에 별도 `s,r` 모델과 조건부 편향·중심화 오차 규모를 저장한다. 모든 route 단위 heldout gate는 정해진 Q3 vs Q0 및 Q1 NLL 개선 및 오차분산 비율 임계값을 저장한다.
 
 `Q4_COMPLEX_PHASE`는 독립 보정 증빙 미제공 시 `NOT_RUN...MISSING`으로 명시됨. Phase 모델을 시험하려면 실제 독립 수신기 위상/잡음 보정 원본 파일을 함께 제공하고, 그 SHA 및 캘리브레이션 값을 기록한 `--phase-evidence path.json`이 필요하다. 하드웨어 독립 증빙 없이 수치상의 위상비만으로 Q4를 구동하지 않음.
 
@@ -141,3 +141,12 @@ python research/EKF3_INDEPENDENT_20261013/diagnostics/d6_d9_verdict.py --d6-mc a
 - D8 보정별 Range 타깃 계약, phase Q4 차단, R_sr 차단.
 - 매니페스트의 실제 실행 Git commit과 코드 SHA 및 결과 해시.
 - 위 조건 완료 전 `code_audit=REDIRECT`, `execution_ready=false`, `D6_D9_full_experiment=NOT_RUN`, `scientific_PASS=false`.
+
+
+## 11. Parity 및 outer-fold 보완
+
+D9 초기 pose 공분산은 동결 D5 P0_COV를 복사한다. `.01`과 `.1**2`의 1 ULP 차이가 R5 Full A 재귀 NEES 차이의 원인이었다. parity 절대 허용치 1e-8은 유지한다.
+
+D7 detector 벡터 8개 추가로 이전 CSV는 재생성이 필요하다. D8 E1 라벨은 각 outer 평가 경로를 제외한 동일 계수로 모든 학습/평가 행을 재계산한다. E1 보정 학습 경로와 XY가 겹치는 평가 위치는 제외한다. D9은 outer 경로 및 계수/원본 모델 해시를 검사한다. 과거 E1 모델군 선정은 전체 동결 scene에 의존했으므로 완전 nested 모델선정 또는 독립 scene 검증이 아니다. D9은 요청된 전체 경로를 평가하며 D8 공간 중복 제외 집합과 동일한 평가집합이 아니다.
+
+H3는 Q0와 Q1 s-only 모두에 대한 Q3 개선 및 기존 calibration 범위를 요구한다. Q1 누락은 INCONCLUSIVE이며 channel/correction/target별 실패를 평균으로 가리지 않는다. 신규 회귀 검사: test_d6_d9_parity_regression.py, test_d8_outer_fold.py.

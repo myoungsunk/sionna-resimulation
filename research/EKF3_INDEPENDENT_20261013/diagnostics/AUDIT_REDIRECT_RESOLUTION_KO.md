@@ -28,3 +28,12 @@
 ## 재감사 판정 원칙
 
 `code_audit=REDIRECT`, `execution_ready=false`, `D6_D9_full_experiment=NOT_RUN`, `scientific_PASS=false` 유지. 원본 의존 환경 테스트, Full route 결과/trace/manifest 수집과 독립 감사 후에만 REDIRECT 해소 여부를 판정한다.
+
+
+## 추가 재감사 수정 (2026-10-13)
+
+D9의 `.01` 초기 분산을 원본 `.1**2` 값인 P0_COV 복사로 교체했다. 원인 분리에서 이 변경만으로 실패 셀 네 arm의 NEES 차이가 모두 0이었다. 허용치 1e-8 유지.
+
+E1은 동일 outer 경로 제외 계수로 모든 내부 학습/외부 평가 라벨을 계산하고 계수 해시·경로 계약을 검사한다. H3는 Q0와 Q1을 모두 비교한다. 동결 모델군 선정의 scene 의존 한계는 유지한다.
+
+독립 소스 재감사 ACCEPT. 실제 실행 재검증과 GitHub 게시 증빙은 results/의 해당 실행 보고서 및 manifest에 기록한다. scientific_PASS=false 유지.

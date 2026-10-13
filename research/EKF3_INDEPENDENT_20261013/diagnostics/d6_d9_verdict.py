@@ -102,21 +102,46 @@ def summary(d6_mc, d6_bias, d6_d5, d7, d8, d9):
     if d8:
         grp={}
         for r in d8:
-            if r['variant'] not in ('Q0_FIXED','Q3_CIR_POL'):continue
+            if r['variant'] not in ('Q0_FIXED','Q1_S_ONLY','Q3_CIR_POL'):continue
             key=(r['heldout_route'],r['channel'],r['range_model'],r['target'])
+            if r['variant'] in grp.setdefault(key,{}):
+                raise RuntimeError('Duplicate D8 variant/held-out scoring cell')
             grp.setdefault(key,{})[r['variant']]=r
-        paired=[(key,rec['Q0_FIXED'],rec['Q3_CIR_POL'])
-                for key,rec in grp.items() if set(rec)=={'Q0_FIXED','Q3_CIR_POL'}]
-        if paired:
-            gains=[float(a['zero_mean_gaussian_nll_proxy'])-
-                   float(b['zero_mean_gaussian_nll_proxy']) for _,a,b in paired]
-            gain_rate=float(np.mean(np.asarray(gains)>0))
+        expected={'Q0_FIXED','Q1_S_ONLY','Q3_CIR_POL'}
+        paired=[(key,rec) for key,rec in grp.items() if set(rec)==expected]
+        complete=bool(grp) and len(paired)==len(grp)
+        if grp:
+            cells=[]
+            for key, rec in paired:
+                if len({int(r['n_test']) for r in rec.values()}) != 1:
+                    raise RuntimeError('D8 Q0/Q1/Q3 test populations differ')
+                q3=rec['Q3_CIR_POL']
+                g0=float(rec['Q0_FIXED']['zero_mean_gaussian_nll_proxy'])-float(q3['zero_mean_gaussian_nll_proxy'])
+                g1=float(rec['Q1_S_ONLY']['zero_mean_gaussian_nll_proxy'])-float(q3['zero_mean_gaussian_nll_proxy'])
+                ratio=float(q3['calibration_empirical_over_predict_var'])
+                if not all(map(math.isfinite,(g0,g1,ratio))):
+                    raise RuntimeError('Nonfinite D8 H3 comparison evidence')
+                cells.append({'heldout_route':key[0], 'channel':key[1],
+                    'range_model':key[2],'target':key[3],
+                    'Q0_minus_Q3_NLL':g0,'Q1_minus_Q3_NLL':g1,
+                    'Q3_calibration_ratio':ratio,
+                    'additional_CIR_information_supported':g0>0 and g1>0 and .5<=ratio<=2.})
+            scopes=[]
+            for channel, range_model, target in sorted({(c['channel'],c['range_model'],c['target']) for c in cells}):
+                subset=[c for c in cells if (c['channel'],c['range_model'],c['target'])==(channel,range_model,target)]
+                scopes.append({'channel':channel,'range_model':range_model,'target':target,
+                    'heldout_route_cells':len(subset),
+                    'fraction_Q3_lower_NLL_than_Q0':float(np.mean([c['Q0_minus_Q3_NLL']>0 for c in subset])),
+                    'fraction_Q3_lower_NLL_than_Q1':float(np.mean([c['Q1_minus_Q3_NLL']>0 for c in subset])),
+                    'fraction_improves_both_and_calibrated':float(np.mean([c['additional_CIR_information_supported'] for c in subset]))})
+            support=bool(scopes) and all(s['fraction_improves_both_and_calibrated']>=.75 for s in scopes)
             findings.append({'hypothesis':'H3_CIR_QUALITY_PREDICTION',
-                'status':'PARTIALLY_SUPPORTED' if gain_rate>=.75 else 'NOT_SUPPORTED',
+                'status':('INCONCLUSIVE' if not complete else
+                          'PARTIALLY_SUPPORTED' if support else 'NOT_SUPPORTED'),
                 'evidence':{'paired_heldout_route_channel_targets':len(paired),
-                            'fraction_Q3_lower_NLL_than_Q0':gain_rate,
-                            'mean_Q0_minus_Q3_NLL':float(np.mean(gains))},
-                'boundary':'LORO on one scene, not calibrated R or unseen-scene proof'})
+                            'required_Q1_cells_missing':len(grp)-len(paired),
+                            'scope_comparisons':scopes,'cell_comparisons':cells},
+                'boundary':'Q3 must improve Q0 AND s-only Q1 within each channel/correction/target scope; LORO on one scene; frozen E1 family selection not nested'})
     if d9:
         cells=[r for r in d9 if r['method'] in ('F0_ORIGINAL','F3_CIR_R') and r['arm']=='C']
         bycell={}

@@ -23,6 +23,7 @@ from run_d5_regimes import timelines
 # All values in this schema are available from observed Full RF H (or LoS H
 # in the control arm).  The D8 estimator and D9 runtime explicitly whitelist
 # numeric FEATURES and cannot access labels/truth.
+E1_DETECTOR_FEATURES = tuple('e1_detector_x'+str(i) for i in range(8))
 NUMERIC_FEATURES = (
     's_fp','range_raw_m','mount_deg','fp_tap','rx1_fp_power','rx2_fp_power',
     'log_fp_power','peak_fp_ratio','peak_minus_fp_m',
@@ -30,7 +31,7 @@ NUMERIC_FEATURES = (
     'rx_port_first_tap_delta_m','s_neighborhood_std',
     'phase_fp_rad','phase_late_shift_rad','phase_valid',
     'tap_step_delta_m', 'rx1_first_tap','rx2_first_tap',
-)
+) + E1_DETECTOR_FEATURES
 GEOMETRY_BASE = ('case','route','channel','sample_index','pose_id','t_s','eval_after_30s')
 ONLINE_KEYS = GEOMETRY_BASE + NUMERIC_FEATURES
 
@@ -130,6 +131,10 @@ def case_receiver(p0, case, channel, freqs, indices, guard, chunk_size, e1_fold=
         for j in range(len(batch)):
             feat=one_feature(cir[j],det,j,previous,tm,guard=guard)
             feat['mount_deg']=float(case['mount_deg'])
+            # Preserve the exact frozen detector design vector. D8 must
+            # reapply ONE outer-route-excluded E1 fold to all inner training
+            # labels, rather than reuse each row's own LORO correction.
+            feat.update(zip(E1_DETECTOR_FEATURES, map(float, det['features'][j])))
             if not np.isclose(feat['s_fp'],det['s'][j],atol=1e-12):
                 raise RuntimeError('CIR signed power ratio parity failed')
             if not np.isclose(feat['range_raw_m'],det['range_raw_m'][j],atol=1e-10):

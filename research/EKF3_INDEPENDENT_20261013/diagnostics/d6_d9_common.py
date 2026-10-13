@@ -35,7 +35,7 @@ from qclean_uwb.drivesim import observation as OBS  # noqa: E402
 from qclean_uwb.drivesim.hs_lut import s_model  # noqa: E402
 from qclean_uwb.drivesim.sensor_v2 import (SensorV2Config, generate,
                                            rng as sensor_rng, motion_increments)  # noqa: E402
-from run_d5_regimes import timelines  # noqa: E402
+from run_d5_regimes import timelines, P0_COV  # noqa: E402
 
 SOURCE_REVISION = '701b8d2c29a4b3b879c4e27096168d6be463559b'
 # Git blob SHA-1 values from the published D0-D5 research baseline 43f755b.
@@ -233,10 +233,13 @@ class DiagnosticFilter:
         self.bias_rw = math.radians(bias_rw_dps_sqrt_s)
         if bias_std_dps <= 0:
             raise ValueError('bias prior std must be positive')
-        self.f = EKF3(x0, np.diag([.01, .01, math.radians(5.)**2])) if not bias_state else None
+        # Use the frozen array exactly: .01 and .1**2 differ by one ULP.
+        self.f = EKF3(x0, P0_COV.copy()) if not bias_state else None
         if bias_state:
             self.x = np.r_[x0, 0.]
-            self.P = np.diag([.01, .01, math.radians(5.)**2, math.radians(bias_std_dps)**2])
+            self.P = np.zeros((4, 4))
+            self.P[:3, :3] = P0_COV
+            self.P[3, 3] = math.radians(bias_std_dps)**2
 
     @property
     def pose(self) -> np.ndarray:
@@ -408,8 +411,9 @@ def code_hashes() -> dict:
              'd6_d5_trace_audit.py', 'd6_bias_observability.py',
              'd7_cir_multipath_audit.py', 'd8_polarization_quality.py',
              'd9_quality_aware_fusion.py', 'd6_d9_verdict.py', 'test_d6_d9.py',
-             'test_d6_d9_contracts.py', 'D6_D9_RUN_KO.md',
+             'test_d6_d9_contracts.py', 'test_d8_outer_fold.py', 'D6_D9_RUN_KO.md',
              'AUDIT_REDIRECT_RESOLUTION_KO.md']
+    names = sorted(set(names) | {p.name for p in HERE.glob("test_d6_d9*.py")})
     result = {name: file_sha(HERE/name) for name in names if (HERE/name).is_file()}
     for name, path in [('frozen_ekf3.py', PROJECT/'ekf3.py'),
                        ('frozen_run_d5_regimes.py', HERE/'run_d5_regimes.py'),

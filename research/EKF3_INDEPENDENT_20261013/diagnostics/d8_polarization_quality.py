@@ -10,15 +10,17 @@ relative-RX phase and receiver-noise evidence and is disabled by default.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 from pathlib import Path
 
 import numpy as np
 
-from d6_d9_common import (RR, RS, atomic_json, file_sha, finish, make_out,
+from d6_d9_common import (RR, RS, P3_MODEL, P3_SHA256, atomic_json, file_sha, finish, make_out,
                           read_csv, write_csv, wrap)
-from d7_cir_multipath_audit import NUMERIC_FEATURES, ONLINE_KEYS
+from d7_cir_multipath_audit import E1_DETECTOR_FEATURES, NUMERIC_FEATURES, ONLINE_KEYS
+from p3_compat import predict_e1_bias
 
 QUALITY_FEATURES = {
     'Q0_FIXED': (),
@@ -56,6 +58,26 @@ def target_config(target: str, range_model: str):
     column, baseline, floor, cap = TARGETS[target]
     return (RANGE_LABELS[range_model] if target == 'r' else column,
             baseline, floor, cap)
+
+
+def outer_e1_labels(rows: list[dict], holdout: str, frozen: dict) -> list[dict]:
+    """Use only coefficients fit WITHOUT the outer route for every label.
+
+    Reusing each training row's own route-excluded fold would introduce the
+    outer evaluation route's truth through that fold's fitted coefficients.
+    No coefficients are retrained, and model-family selection remains an
+    earlier scene-internal exploratory choice rather than nested validation.
+    """
+    if frozen.get('chosen') != 'E1_on_B' or holdout not in frozen['loro_fold_params']:
+        raise RuntimeError('Missing frozen outer-route-excluded E1 fold')
+    fold = frozen['loro_fold_params'][holdout]
+    vectors = np.asarray([[float(row[key]) for key in E1_DETECTOR_FEATURES]
+                          for row in rows], float)
+    bias = predict_e1_bias(vectors, fold)
+    return [row | {'error_range_E1_FULL_LORO_m':
+                   float(row['error_range_B_OLD_m'])-float(b),
+                   'e1_label_outer_excluded_route': holdout}
+            for row, b in zip(rows, bias)]
 
 
 def online_vector(row: dict, names: tuple[str, ...]) -> list[float]:
@@ -244,12 +266,17 @@ def score_model(rows, params):
             'zero_mean_gaussian_nll_proxy': float(np.mean(.5*(np.log(var)+res**2/var)))}
 
 
-def calibration_gate(q0: dict, q3: dict, lo=.5, hi=2., min_gain=0.):
+def calibration_gate(q0: dict, q3: dict, lo=.5, hi=2., min_gain=0., *, q1: dict | None = None):
     improvement = q0['zero_mean_gaussian_nll_proxy']-q3['zero_mean_gaussian_nll_proxy']
+    q1_improvement = (q1['zero_mean_gaussian_nll_proxy']-q3['zero_mean_gaussian_nll_proxy']
+                      if q1 is not None else None)
     ratio = q3['calibration_empirical_over_predict_var']
-    passed = math.isfinite(improvement) and improvement >= min_gain and lo <= ratio <= hi
+    passed = (math.isfinite(improvement) and improvement >= min_gain and
+              q1_improvement is not None and math.isfinite(q1_improvement) and
+              q1_improvement >= min_gain and lo <= ratio <= hi)
     return {'status': 'EXPLORATORY_HELDOUT_GATE_PASS' if passed else 'EXPLORATORY_HELDOUT_GATE_FAIL',
             'nll_improvement_vs_Q0': improvement, 'calibration_ratio': ratio,
+            'nll_improvement_vs_Q1': q1_improvement,
             'calibration_min': lo, 'calibration_max': hi, 'minimum_nll_gain': min_gain}
 
 
@@ -273,6 +300,9 @@ def main():
         len(set(args.range_models)) != len(args.range_models)):
         raise ValueError('Invalid D8 training/gate settings')
     records, hashes = load_paired(args.d7)
+    if file_sha(P3_MODEL) != P3_SHA256:
+        raise RuntimeError('Frozen E1 coefficient checksum mismatch')
+    frozen_e1 = json.loads(P3_MODEL.read_text(encoding='utf-8'))
     records = [row for row in records if int(row['eval_after_30s'])]
     if any(not math.isfinite(float(r['error_s'])) for r in records):
         raise RuntimeError('Invalid D8 polarization scoring label')
@@ -302,27 +332,41 @@ def main():
             for range_model in args.range_models:
                 if channel=='los' and range_model!='B_OLD':
                     continue  # E1 is FULL RF only. No invented LoS label.
+                model_train, model_test = train, test
+                e1_test_overlap_dropped = 0
+                if range_model == 'E1_FULL_LORO':
+                    # Original E1 coefficients saw all non-outer routes,
+                    # including cross-route shared XY. Those sites cannot
+                    # count as held-out E1 evaluation. Match its original
+                    # no-shared-site scoring boundary before relabelling.
+                    model_test, e1_test_overlap_dropped = split_exclude_overlap(
+                        test, candidates, args.xy_buffer_m)
+                    if not model_test:
+                        raise RuntimeError('No spatially unseen E1 held-out rows: '+holdout)
+                    model_train = outer_e1_labels(train, holdout, frozen_e1)
+                    model_test = outer_e1_labels(model_test, holdout, frozen_e1)
                 range_target = RANGE_LABELS[range_model]
-                all_rows = train+test
+                all_rows = model_train+model_test
                 if any(r.get(range_target) in (None,'') or not math.isfinite(float(r[range_target]))
                        for r in all_rows):
                     raise RuntimeError('Missing correction-specific D7 label: '+range_target)
                 models = {}; saved_scores = {}
                 for variant in variants:
-                    model = {target: fit_ridge(train,target,variant,args.ridge,range_model)
+                    model = {target: fit_ridge(model_train,target,variant,args.ridge,range_model)
                              for target in ('s','r')}
                     models[variant] = model
                     saved_scores[variant] = {}
                     for target, params in model.items():
-                        score = score_model(test,params)
+                        score = score_model(model_test,params)
                         saved_scores[variant][target]=score
                         summary.append({'heldout_route':holdout,'channel':channel,
                             'range_model':range_model,'range_target':range_target,
                             'variant':variant,'target':target,
-                            'n_test':len(test),'n_train_unique':len(train),
+                            'n_test':len(model_test),'n_train_unique':len(model_train),
                             'xy_overlap_train_dropped':dropped,
+                            'e1_shared_xy_test_dropped':e1_test_overlap_dropped,
                             **score})
-                        for row in test:
+                        for row in model_test:
                             predictions.append({'case':row['case'],'channel':channel,
                                'route':holdout,'sample_index':row['sample_index'],
                                'range_model':range_model,'target':target,'variant':variant,
@@ -332,16 +376,17 @@ def main():
                 gates = {target: calibration_gate(saved_scores['Q0_FIXED'][target],
                                   saved_scores['Q3_CIR_POL'][target],
                                   args.gate_calibration_min,args.gate_calibration_max,
-                                  args.gate_min_nll_gain)
+                                  args.gate_min_nll_gain,
+                                  q1=saved_scores['Q1_S_ONLY'][target])
                          for target in ('s','r')}
                 passed = all(g['status']=='EXPLORATORY_HELDOUT_GATE_PASS' for g in gates.values())
                 # Same-time s/r centered residual covariance, TRAIN ROUTES ONLY.
                 # Not applied to EKF until an independent R_sr calibration.
                 q3=models['Q3_CIR_POL']
                 residual_s=np.asarray([float(r['error_s'])-predict_mean(r,q3['s'])
-                                       for r in train])
+                                       for r in model_train])
                 residual_r=np.asarray([float(r[range_target])-predict_mean(r,q3['r'])
-                                       for r in train])
+                                       for r in model_train])
                 train_cov_sr=float(np.mean((residual_s-residual_s.mean())*
                                            (residual_r-residual_r.mean())))
                 if np.std(residual_s)>0 and np.std(residual_r)>0:
@@ -352,6 +397,12 @@ def main():
                 # independent-scene calibration.
                 by_model[range_model] = {'range_model':range_model,
                     'range_target':range_target,'models':models,
+                    'e1_label_outer_excluded_route':holdout if range_model=='E1_FULL_LORO' else None,
+                    'e1_outer_coefficients_sha256':hashlib.sha256(json.dumps(
+                        frozen_e1['loro_fold_params'][holdout]['E1'],
+                        sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+                        if range_model=='E1_FULL_LORO' else None,
+                    'e1_shared_xy_test_dropped':e1_test_overlap_dropped,
                     'q3_heldout_gate':{'status':'EXPLORATORY_GATE_PASS' if passed
                                       else 'EXPLORATORY_GATE_FAIL','targets':gates},
                     'conditional_rsr_unvalidated':True,
@@ -363,7 +414,7 @@ def main():
                 for distance_bin, mask in [('lt5m',lambda d:d<5),
                                            ('5to10m',lambda d:5<=d<10),
                                            ('ge10m',lambda d:d>=10)]:
-                    segment=[r for r in test if mask(float(r['true_range_m']))]
+                    segment=[r for r in model_test if mask(float(r['true_range_m']))]
                     if not segment:continue
                     for target, params in models['Q3_CIR_POL'].items():
                         strata.append({'heldout_route':holdout,'channel':channel,
@@ -387,6 +438,9 @@ def main():
                 'models_trained_for':args.range_models,
                 'separate_centered_bias_and_variance':True,
                 'train_never_uses_heldout_truth':True,
+                'e1_outer_fold_contract': 'SINGLE_OUTER_ROUTE_EXCLUDED_FOLD_FOR_ALL_LABELS',
+                'e1_frozen_model_sha256':file_sha(P3_MODEL),
+                'e1_model_family_selection_nested':False,
                 'phase_q4':{'status':'Q4_EXPLORATORY_ONLY_WITH_CALIBRATION' if phase
                             else 'NOT_RUN_INDEPENDENT_PHASE_SNR_EVIDENCE_MISSING',
                             'evidence':phase},
@@ -398,6 +452,8 @@ def main():
         'Range target and conditional residual scale tied to identical B_OLD or E1 correction',
         'Train-only residual mean and residual second moment remain unconfirmed noise model',
         'LORO in same frozen corridor is not independent-scene confirmation',
+        'E1 labels use one outer-route-excluded coefficient fold for train and test; shared-XY E1 test sites excluded',
+        'Frozen E1 family was selected using prior scene-wide LORO; selection is not nested; train E1 residuals remain in-sample',
         'RX phase Q4 is disabled without independent calibrated phase AND noise floor',
         'Q3 heldout gates are exploratory, not scientific_PASS'])
     print('D8_EXPLORATORY_DONE',str(out))
