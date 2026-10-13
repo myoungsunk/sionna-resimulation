@@ -97,9 +97,10 @@ MOT = {r: load_motion(r) for r in ROUTES}
 
 
 def snapshot_indices(t):
+    """Indices of SNAPSHOT_TIMES (a time beyond the route maps to its last sample, so R4 repeats 'end')."""
     out = []
     for s in SNAPSHOT_TIMES:
-        out.append(len(t) - 1 if s == 'end' else int(np.searchsorted(t, s)))
+        out.append(len(t) - 1 if s == 'end' else min(int(np.searchsorted(t, s)), len(t) - 1))
     return np.array(out)
 
 
@@ -378,7 +379,10 @@ class ParticleFilter:
     """Particle filter with the locally optimal proposal for the shared input noise (n_d, n_g).
 
     Adapted from research/V02_E1E6_20261012/run_e1e6.py:PF (range update removed, wheelbase handling added,
-    log-likelihood of each odometry innovation uses the exact linear-Gaussian marginal given x_prev).
+    particles stored as contiguous rows X[6, N]). The odometry residual is exactly linear in the input noise given
+    x_prev: y = o - h(x_prev, d, g) = B1 n_d + B2 n_g + n_o, so each particle is weighted by N(y; 0, S) and its
+    (n_d, n_g) drawn from the Gaussian conditional (Matheron update). Resampling: systematic when ESS < N/2, then a
+    Liu-West shrinkage kernel (a = 0.98) that preserves the cloud mean and covariance.
     With use_odom_heading=False there is no weighting or resampling (plain nonlinear Monte Carlo propagation).
     """
     JIT_A = 0.98
@@ -389,39 +393,54 @@ class ParticleFilter:
         self.rng = rng
         self.b_nom = cfg.wheel_base
         self.b = cfg.wheel_base / (1 + cfg.known_wheelbase_error)
-        self.x = np.asarray(x0, float) + rng.standard_normal((n_part, 6)) @ _sqrt_psd(np.asarray(P0, float)).T
+        self.X = (np.asarray(x0, float)[:, None] + _sqrt_psd(np.asarray(P0, float)) @ rng.standard_normal((6, n_part)))
         self.lw = np.full(n_part, -math.log(n_part))
         self.stats = dict(o_updates=0, o_rejected=0, resamples=0, ess_min=float(n_part))
 
+    @staticmethod
+    def _transition_rows(X, d, g, dt, b):
+        D = 1 + X[4]
+        a = (g - X[3] * dt) / D
+        u = d - X[5] * b * a / 4
+        half = a / 2
+        us = u * np.sinc(half / np.pi)
+        ang = X[2] + half
+        out = np.empty_like(X)
+        out[0] = X[0] + us * np.cos(ang)
+        out[1] = X[1] + us * np.sin(ang)
+        out[2] = DC.wrap(X[2] + a)
+        out[3:] = X[3:]
+        return out
+
     def step(self, d, g, o, dt):
         c = self.cfg
-        n, x, rng = self.n, self.x, self.rng
+        n, X, rng = self.n, self.X, self.rng
         ke = 1 + c.known_wheelbase_error
         Qd = c.k_s * abs(d)
         Qg = c.gyro_N_rad_sqrt_s ** 2 * dt
         Qo = c.k_theta * abs(o) + c.k_stheta * abs(d)
-        D = 1 + x[:, 4]
-        eps = x[:, 5]
-        L = 1 - eps ** 2 / 4
-        z1 = rng.standard_normal(n) * math.sqrt(Qd)
-        z2 = rng.standard_normal(n) * math.sqrt(Qg)
+        z = rng.standard_normal((3, n))
+        z1, z2 = z[0] * math.sqrt(Qd), z[1] * math.sqrt(Qg)
         if c.use_odom_heading:
-            h0 = odometry_h_vec(x, d, g, dt, self.b_nom, c.known_wheelbase_error)
-            B1 = -eps / self.b / ke          # dh/dd * (-1): y = o - h(d - nd) ~ -(dh/dd)nd ...
+            D = 1 + X[4]
+            eps = X[5]
+            L = 1 - eps ** 2 / 4
+            h0 = (L * (g - X[3] * dt) / D + eps * d * ke / self.b_nom) / ke
+            B1 = -eps / self.b_nom
             B2 = -L / D / ke
             S = B1 * B1 * Qd + B2 * B2 * Qg + Qo
             y = o - h0
-            self.lw += -0.5 * y * y / S - 0.5 * np.log(S)
-            nos = rng.standard_normal(n) * math.sqrt(Qo)
-            r = (y - (B1 * z1 + B2 * z2 + nos)) / S
+            self.lw = self.lw - 0.5 * y * y / S - 0.5 * np.log(S)
+            r = (y - (B1 * z1 + B2 * z2 + z[2] * math.sqrt(Qo))) / S
             nd = z1 + Qd * B1 * r
             ng = z2 + Qg * B2 * r
             self.stats['o_updates'] += 1
         else:
             nd, ng = z1, z2
-        self.x = transition_vec(x, d - nd, g - ng, dt, self.b)
+        self.X = self._transition_rows(X, d - nd, g - ng, dt, self.b)
         if c.use_odom_heading:
-            self.lw -= np.logaddexp.reduce(self.lw)
+            m = self.lw.max()
+            self.lw -= m + math.log(np.exp(self.lw - m).sum())
             self._maybe_resample()
         return dict(status='applied' if c.use_odom_heading else 'disabled')
 
@@ -434,25 +453,25 @@ class ParticleFilter:
         self.stats['resamples'] += 1
         pos = (self.rng.random() + np.arange(self.n)) / self.n
         idx = np.minimum(np.searchsorted(np.cumsum(w), pos), self.n - 1)
-        th = self.x[idx].copy()
-        ref = th[0, 2]
-        th[:, 2] = DC.wrap(th[:, 2] - ref)
-        m = th.mean(0)
-        Lc = _sqrt_psd(np.cov(th.T) + 1e-30 * np.eye(6))
+        th = self.X[:, idx]
+        ref = th[2, 0]
+        th[2] = DC.wrap(th[2] - ref)
+        m = th.mean(1, keepdims=True)
+        Lc = _sqrt_psd(np.cov(th) + 1e-30 * np.eye(6))
         A = self.JIT_A
-        new = A * th + (1 - A) * m + math.sqrt(1 - A * A) * (self.rng.standard_normal((self.n, 6)) @ Lc.T)
-        new[:, 2] = DC.wrap(new[:, 2] + ref)
-        self.x = new
+        new = A * th + (1 - A) * m + math.sqrt(1 - A * A) * (Lc @ self.rng.standard_normal((6, self.n)))
+        new[2] = DC.wrap(new[2] + ref)
+        self.X = new
         self.lw = np.full(self.n, -math.log(self.n))
 
     def mean_cov(self):
         w = np.exp(self.lw)
-        x = self.x
-        m = w @ x
-        m[2] = math.atan2(w @ np.sin(x[:, 2]), w @ np.cos(x[:, 2]))
-        dx = x - m
-        dx[:, 2] = DC.wrap(x[:, 2] - m[2])
-        return m, (dx * w[:, None]).T @ dx
+        X = self.X
+        m = X @ w
+        m[2] = math.atan2(w @ np.sin(X[2]), w @ np.cos(X[2]))
+        dX = X - m[:, None]
+        dX[2] = DC.wrap(X[2] - m[2])
+        return m, (dX * w) @ dX.T
 
 
 def run_sigma_or_particle(arm, cfg, inputs, x0, P0, seed):
@@ -545,6 +564,7 @@ def _chunk_worker(task):
         runs.append(dict(seed=seed, params=r['params'], zodom=r['zodom'].astype(np.float32), status=r['status'],
                          stats=r['stats'],
                          E={ph: r['E_' + ph].astype(np.float32) for ph in ('pre', 'post') if 'E_' + ph in r},
+                         P3={ph: r['P_' + ph][:, :3, :3].copy() for ph in ('pre', 'post') if 'E_' + ph in r},
                          diag={ph: {k: r['diag_' + ph][k].astype(np.float32) for k in PER_RUN_KEYS}
                                for ph in ('pre', 'post') if 'diag_' + ph in r},
                          P_snap=r['P_post'][snap]))
@@ -577,6 +597,7 @@ def cell_arrays(runs, acc):
         if ph not in runs[0]['E']:
             continue
         out[f'E_{ph}'] = np.stack([r['E'][ph] for r in runs])
+        out[f'P3_{ph}'] = np.stack([r['P3'][ph] for r in runs])
         for k in PER_RUN_KEYS:
             out[f'{k}_{ph}'] = np.stack([r['diag'][ph][k] for r in runs])
         for k, v in acc[ph].items():
