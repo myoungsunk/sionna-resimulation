@@ -142,6 +142,41 @@ def flat_eval_range(distances: np.ndarray, freqs: np.ndarray, chunk_size: int = 
     return np.concatenate(output)
 
 
+def full_s_at_los_tap(
+    p0: dict, case: dict, pose_ids: np.ndarray,
+    los_taps: np.ndarray, *, batch_size: int = 128,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Offline counterfactual: full-channel polarization sampled at LoS-selected tap.
+
+    This is not a deployable online feature because LoS-channel tap would not
+    normally be known from a real Full RF measurement. It separates selection
+    effects from channel interference in the RF-s difference exactly.
+    """
+    full_path = checked_path(p0, case["full_path"])
+    sample_path = checked_path(p0, case["samples_path"])
+    samples = json.loads(sample_path.read_text(encoding="utf-8"))
+    mapping = {int(s["pose_id"]): k for k,s in enumerate(samples)}
+    if len(mapping) != len(samples):
+        raise RuntimeError("duplicate RF sample position")
+    positions = np.asarray([mapping[int(pid)] for pid in pose_ids], int)
+    H = np.load(full_path, mmap_mode="r", allow_pickle=False)
+    reference = np.asarray(los_taps, dtype=int)
+    ratios=[];powers=[]
+    for offset in range(0,len(positions),batch_size):
+        ids=positions[offset:offset+batch_size]
+        taps=reference[offset:offset+batch_size]
+        cir=O.cir_batch(np.asarray(H[ids,...,0]))
+        if np.any((taps<0)|(taps>=cir.shape[1])):
+            raise RuntimeError("LoS tap out of full-channel CIR range")
+        port_power=np.abs(cir[np.arange(len(ids)),taps,:])**2
+        den=port_power.sum(axis=1)
+        valid=(den>0)&np.isfinite(den)
+        ratio=np.full(len(ids),np.nan)
+        ratio[valid]=(port_power[valid,0]-port_power[valid,1])/den[valid]
+        ratios.append(ratio);powers.append(den)
+    return np.concatenate(ratios),np.concatenate(powers)
+
+
 def yaw_error(est: np.ndarray,truth: np.ndarray) -> np.ndarray:
     return (est - truth + np.pi)%(2*np.pi)-np.pi
 
@@ -330,6 +365,17 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
         if not np.allclose(s_mp+s_lut,full["z_s"]-s_true,atol=1e-12):
             raise RuntimeError("Full/LoS/LUT s identity failed")
         tap_switch=f["index"]!=l["index"]
+        s_full_at_los_tap, power_full_at_los_tap = full_s_at_los_tap(
+            p0,case,full["pose_id"],l["index"]
+        )
+        s_tap_effect=full["z_s"]-s_full_at_los_tap
+        s_channel_same_tap=s_full_at_los_tap-los["z_s"]
+        finite_counterfactual=np.isfinite(s_full_at_los_tap)
+        if finite_counterfactual.any() and not np.allclose(
+            s_tap_effect[finite_counterfactual]+s_channel_same_tap[finite_counterfactual],
+            s_mp[finite_counterfactual],atol=1e-12,rtol=0
+        ):
+            raise RuntimeError("counterfactual tap vs channel s identity failed")
         case_models={}
         for channel in ("los","full"):
             p2=bycase[identifier,channel]
@@ -412,6 +458,11 @@ def run(*,p2_dir:Path,output_dir:Path,seed:int=0,include_los_e1_control:bool=Tru
                     e_raw_full_m=float(full["z_r_m"][i]-dist[i]),e_raw_los_m=float(los["z_r_m"][i]-dist[i]),
                     e_range_B_full_m=float(full["z_r_m"][i]-B_OLD-dist[i]),
                     e_s_mp=float(s_mp[i]),e_s_lut=float(s_lut[i]),e_s_full_model=float(full_s-s_true[i]),
+                    s_full_at_los_tap=safe_float(s_full_at_los_tap[i]),
+                    s_tap_selection_effect=safe_float(s_tap_effect[i]),
+                    s_channel_interference_same_tap=safe_float(s_channel_same_tap[i]),
+                    full_power_at_los_tap=safe_float(power_full_at_los_tap[i]),
+                    s_tap_counterfactual_valid=int(finite_counterfactual[i]),
                     s_obs=float(p2["z_s"][i]),s_loS=los_s,s_true_lut=float(s_true[i]),
                     h_s_prior=float(h_s_prior),s_innovation=float(p2["z_s"][i]-h_s_prior),
                     H_s_x=float(p2["H"][i,0,0,0]),H_s_y=float(p2["H"][i,0,0,1]),H_s_psi=float(p2["H"][i,0,0,2]),
