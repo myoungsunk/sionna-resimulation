@@ -73,7 +73,7 @@ def observed_case(p0:dict,case:dict,channel:str,freqs:np.ndarray,pose_ids:np.nda
 
 def run_one(
     case:dict,channel:str,level:int,condition:str,seed:int,
-    time:np.ndarray,truth:np.ndarray,obs:dict,range_model:str,
+    time:np.ndarray,truth:np.ndarray,pose_ids:np.ndarray,obs:dict,range_model:str,
     range_physical:np.ndarray,lut:object,
 ) -> tuple[list[dict],dict]:
     ds_true,dyaw_true=motion_increments(time,truth,convention="legacy-euler")
@@ -126,7 +126,7 @@ def run_one(
                     d["improvement_heading"].append(abs(e[2])<err_prior)
             outputs.append(dict(
                 case=case["id"],channel=channel,level=level,condition=condition,seed=seed,
-                range_model=range_model,arm=name,t_s=float(time[k]),pose_id=k,
+                range_model=range_model,arm=name,t_s=float(time[k]),pose_id=int(pose_ids[k]),
                 x=float(f.x[0]),y=float(f.x[1]),yaw_rad=float(f.x[2]),
                 yaw_error_deg=math.degrees(e[2]),
                 Pxx=float(f.P[0,0]),Pyy=float(f.P[1,1]),Ppsi=float(f.P[2,2]),
@@ -181,7 +181,7 @@ def main()->int:
                 for condition in args.conditions:
                     for level in args.levels:
                         for seed in args.seeds:
-                            trace,rows=run_one(case,channel,level,condition,seed,t,truth,det,
+                            trace,rows=run_one(case,channel,level,condition,seed,t,truth,pids,det,
                                                 range_model,correction[range_model],lut)
                             arms.extend(rows)
                             if args.save_full_sample_trace:traces.extend(trace)
