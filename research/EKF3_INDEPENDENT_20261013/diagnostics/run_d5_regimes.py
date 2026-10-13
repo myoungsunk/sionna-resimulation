@@ -29,7 +29,7 @@ sys.path.insert(0,str(ARCHIVED))
 sys.path.insert(0,str(PROJECT))
 from ekf3 import EKF3,archived_direct_s_model,wrap  # noqa: E402
 from qclean_uwb.drivesim.sensor_v2 import (  # noqa: E402
-    SensorV2Config, generate, motion_increments, rng as sensor_rng
+    SensorV2Config, CONDITIONS, generate, motion_increments, rng as sensor_rng
 )
 from qclean_uwb.drivesim.observation import observe  # noqa: E402
 from run_d0_d4 import (  # noqa: E402
@@ -155,7 +155,8 @@ def main()->int:
     a.add_argument("--seeds",type=int,nargs="+",required=True,
                    help="e.g. development 0 1 2; confirmation 10000...10049")
     a.add_argument("--levels",type=int,nargs="+",choices=[0,1,2],default=[0,1,2])
-    a.add_argument("--conditions",nargs="+",choices=["noise_pair","all"],default=["noise_pair","all"])
+    a.add_argument("--conditions",nargs="+",choices=sorted(CONDITIONS),default=["noise_pair","all"],
+                   help="Noise-only then isolated gyro_bias/gyro_sf/wheel_asymmetry/wheelbase/slip and all")
     a.add_argument("--channels",nargs="+",choices=["los","full"],default=["los","full"])
     a.add_argument("--cases",nargs="*",default=[])
     a.add_argument("--range-models",nargs="+",choices=["B_OLD","D1_FRACTIONAL","E1_FULL_LORO"],default=["B_OLD","E1_FULL_LORO"])
