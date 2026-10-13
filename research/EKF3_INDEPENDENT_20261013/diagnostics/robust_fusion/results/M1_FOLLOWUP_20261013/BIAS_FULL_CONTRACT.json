@@ -1,0 +1,66 @@
+{
+  "synthetic_only": true,
+  "scientific_PASS": false,
+  "dt_s": 0.2,
+  "steps": 300,
+  "trials_noisy": 100,
+  "trials_noiseless": 1,
+  "paths": [
+    "straight",
+    "turn",
+    "return"
+  ],
+  "actual_bias_dps": [
+    0.0,
+    0.05
+  ],
+  "initial_bias_mean_dps": 0.0,
+  "bias_prior_std_dps": 0.1,
+  "bias_rw_dps_sqrt_s": 0.0,
+  "noise_cov": "diag(2e-5*abs(ds), radians(.015)^2*dt)",
+  "R0": [
+    0.0081,
+    0.0068578637
+  ],
+  "pose_prior": [
+    [
+      0.010000000000000002,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.010000000000000002,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      0.007615435494667714
+    ]
+  ],
+  "gate": [
+    6.6348966010212145,
+    9.21034037197618
+  ],
+  "coverage_interpretation": "conditional on fixed true bias, not unconditional prior calibration",
+  "D0": "unobservable bias; no convergence requirement",
+  "noiseless_zero_bias_invariance_tolerance": 1e-10,
+  "noisy_initialization": "truth initial pose drawn from N(x0,P0); estimate initialized at x0",
+  "stochastic_motion": "truth arc(measured_ds+eta_ds, measured_gyro-true_bias*dt+eta_yaw)",
+  "noiseless_mode": "noise draws disabled; filter retains R0/Q and uncertain prior; nominal invariance only, not stochastic calibration",
+  "trace_scope": "all noiseless trials and first noisy trial per scenario; metrics all trials",
+  "started_utc": "2026-10-13T10:24:27.399105+00:00",
+  "command": [
+    "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python310\\python.exe",
+    "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\robust_fusion\\followup\\bias_synthetic.py",
+    "--out",
+    "D:\\SLAM_bot\\artifacts\\EKF3_M1_FOLLOWUP_20261013\\BIAS_FULL"
+  ],
+  "expected_cells": 4848,
+  "source_sha256": {
+    "bias_synthetic.py": "5972c193696f4f557ca6a5cf49fa758b805706742e1711e82d80629de9b8ffd8",
+    "d6_d9_common.py": "59c5c8672243298a9fc3b0a2fbd696c041df549082fd311abf7e9aaf8f0609d1",
+    "ekf3.py": "427ad65987f586daee8656cdd3f79b38316fc79f29008eb2624f4257ec94599a"
+  }
+}

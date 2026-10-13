@@ -1,0 +1,100 @@
+{
+  "contract": {
+    "schema": "RF_COMPONENT_ISOLATION_V1",
+    "condition": "noise_pair",
+    "models": [
+      "M0",
+      "RF_MEAN_ONLY",
+      "RF_VAR_ONLY",
+      "RF_HUBER_ONLY",
+      "RF_GATE_OFF",
+      "M1B_REPRO"
+    ],
+    "arms": [
+      "D0",
+      "A",
+      "B",
+      "C"
+    ],
+    "channels": [
+      "los",
+      "full"
+    ],
+    "range_models": [
+      "B_OLD",
+      "E1_FULL_LORO"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "level": 1,
+    "eval_start_s": 30,
+    "cells_per_model": 252,
+    "smoke_cells_per_model": 12,
+    "smoke_case": "R2_aA_m0",
+    "smoke_seed": 0,
+    "parity_abs_tolerance": 1e-08,
+    "bias_prior_std_dps": 0.1,
+    "bias_rw_dps_sqrt_s": 0.0,
+    "huber_delta": 1.345,
+    "receiver": "ORIGINAL_FP",
+    "M0_M1A_RF": "FROZEN_R0_NIS_GATE",
+    "M1B_M1C_RF": "EXISTING_OUTER_ROUTE_MEAN_SAMPLE_COV_DIAGONAL_BLOCK_HUBER",
+    "M1B_state": "TRUE_3_STATE_ORIGINAL_EKF3_PREDICTION",
+    "M1C": "EXACT_EXISTING_ROBUST_BIAS_EKF",
+    "parameter_retuning": false,
+    "scientific_PASS": false,
+    "E1_scope": "WHOLE_ROUTE_EXPLORATORY_NOT_SPATIALLY_INDEPENDENT",
+    "comparisons": "EACH_COMPONENT_STARTS_FROM_M0_NOT_CUMULATIVE",
+    "bias_state": false,
+    "huber_gate": "UNWEIGHTED_PRIOR_NIS_ONCE_BEFORE_HUBER",
+    "variance_floor": null,
+    "learned_covariance": "FROZEN_DIAGONAL_SAMPLE_DDOF1"
+  },
+  "command": [
+    "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\robust_fusion\\followup\\rf_components.py",
+    "--inputs",
+    "D:/SLAM_bot/artifacts/EKF3_ROBUST_FUSION_20261013/M0",
+    "--structure",
+    "D:/SLAM_bot/artifacts/EKF3_ROBUST_FUSION_20261013/STRUCTURE",
+    "--reference",
+    "D:\\SLAM_bot\\artifacts\\EKF3_P0_VERIFY_20261013_01a132b7\\checkout\\research\\EKF3_INDEPENDENT_20261013\\diagnostics\\robust_fusion\\results\\NOISE_PAIR_ABLATION_20261013",
+    "--out",
+    "D:\\SLAM_bot\\artifacts\\EKF3_M1_FOLLOWUP_20261013\\RF_FULL"
+  ],
+  "started_utc": "2026-10-13T10:24:28.914821+00:00",
+  "reference_manifest_sha256": "fa825c93cd974bce12c44b370ec91c0b77ffdc3cd7722895fa7944a06ab7db9e",
+  "input_manifest_sha256": "ace6594e2997af1dcc222091c05f1e2b2b3eaa35fc77b4b2bf294253d751d156",
+  "reference_sha256": {
+    "ABLATION_METRICS.csv": "ad695b26c6c3c05d26662967c432c6f43f2cc6334423591fdbfad887bb29fcc6"
+  },
+  "rf_contract": {
+    "source_sha256": "b434f7f72b9dc169608bba137f3b8de2b89395b9b43d38d1c04144360a68a260",
+    "off_diagonal": "ZERO_UNVALIDATED",
+    "total_scale": "diagonal of ddof=1 training residual covariance",
+    "loss": "block Huber whitened residual norm",
+    "delta": 1.345,
+    "mean": "constant outer-route training mean",
+    "full_likelihood_equality_claimed": false,
+    "scientific_PASS": false
+  },
+  "source_sha256": {
+    "followup\\rf_components.py": "aff42c207c08d06a5671c43dc811b8ededc6e9419d16125c09e82658d3398115",
+    "followup\\test_rf_components.py": "d8489e0892d3a036afbcb7eb195bca16f3bdc725c2e2047cf7ff52e623aaaee2",
+    "covariance_checks.py": "bacc710cf24a89566a75b306e7386b36c6913d1340aabded3397736e62405912",
+    "evaluate_results.py": "72baac0e06054955a9092cdc6af57f55225547dc1aaa4b90ea07155792a3badf",
+    "gtsam_preflight.py": "9b024af736548cccee7f8fabd7f8eca71cc4b6d524e2f8b0ea821f1165971565",
+    "m0_adapter.py": "c40ff8e5c71ae418a5ac6e1ea4bea18ae80f7392d4e1266d191595e360420968",
+    "m1_bias_robust_ekf.py": "28d96e68b8e30c5391d593ffc642ebca2cb14be2c32ba136f54a1120c1c92268",
+    "observability_checks.py": "4858793eea279903e8f4ced44a4de8b666ec0ce3cafa6140e121c35fa711cade",
+    "rf_error_model.py": "a8cb1da92a72118ce1a8184ba83173aed4e14f81238306772884d39daf555de1",
+    "rf_residual_structure.py": "2674a46db5500686e4ad1324137d3a2a100cdf7abb5292f7a67ed3dbfa542ddd",
+    "run_comparison.py": "2ead2bb28698320034c6b05eab9b76bf623682e1c6a915b144f111422c7e9346",
+    "ablation\\analyze_ablation.py": "7d4f97007631697ccd4b28f1b71e23065928ea946051cbaf70db839c2752dc18",
+    "ablation\\robust_pose_ekf.py": "c6c3a6ef5154ba9fbee68f01d173b79aec5f5e8c0090bda8d05239bed5dc69e4",
+    "ablation\\run_ablation.py": "9450771b5a4bc95ebb69b736e65467cdf0e7bda13ced7e10c702d4365a1febae",
+    "ablation\\test_ablation.py": "22f20b42f6c9bb4e414d4561fa0150e3c82f69d479dab5dec4d9e9302fb1f737"
+  }
+}
