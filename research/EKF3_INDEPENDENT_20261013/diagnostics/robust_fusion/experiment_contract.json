@@ -1,0 +1,58 @@
+{
+  "schema": "ROBUST_FUSION_V1",
+  "base_commit": "991d511b56b1aed3657cee4dbd1fef6bc291197a",
+  "created_utc": "2026-10-13T09:00:15.201046+00:00",
+  "models": [
+    "M0",
+    "M1",
+    "M2-T0",
+    "M2-T1_CONDITIONAL"
+  ],
+  "arms": [
+    "D0",
+    "A",
+    "B",
+    "C"
+  ],
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "levels": [
+    1
+  ],
+  "conditions": [
+    "noise_pair",
+    "gyro_bias"
+  ],
+  "channels": [
+    "los",
+    "full"
+  ],
+  "range_models": [
+    "B_OLD",
+    "E1_FULL_LORO"
+  ],
+  "E1_los": "NOT_APPLICABLE",
+  "eval_start_s": 30,
+  "parity_abs_tolerance": 1e-08,
+  "receiver": "ORIGINAL_FP",
+  "pose_prior": "FROZEN_P0_EXACT",
+  "bias_prior_std_dps": 0.1,
+  "bias_rw_dps_sqrt_s": 0.0,
+  "RF_mean": "outer-route training constant",
+  "RF_covariance": "training centered sample covariance ddof=1; offdiagonal disabled until validated",
+  "huber_delta": 1.345,
+  "huber_selection": "fixed conventional standardized threshold, no evaluation tuning",
+  "lag_s": 2.0,
+  "lag_selection": "preselected bounded implementation window, no performance tuning; T1 adequacy checked after structure gate",
+  "fold_buffer_m": 0.25,
+  "student_t": "DEFERRED",
+  "covariance": "local IRLS Gaussian marginal, empirically checked; not exact robust posterior",
+  "M2_T1_requires": "RF_RESIDUAL_STRUCTURE_GATE_PASS and identifiability",
+  "motion_Q": "EXACT_FROZEN_INPUT_NOISE_NO_JITTER",
+  "scientific_PASS": false,
+  "independent_scene": "NOT_AVAILABLE",
+  "metadata_correction": "population wording corrected to ddof=1; numerical RF models unchanged"
+}

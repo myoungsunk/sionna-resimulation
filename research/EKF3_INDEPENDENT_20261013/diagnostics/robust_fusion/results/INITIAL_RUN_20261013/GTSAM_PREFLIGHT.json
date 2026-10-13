@@ -1,0 +1,24 @@
+{
+  "python": "/home/myoungsunkim/ekf3_robust_gtsam_20261013/bin/python3",
+  "python_version": "3.10.12",
+  "gtsam": "4.2",
+  "numpy": "1.26.4",
+  "status": "NOT_READY",
+  "scientific_PASS": false,
+  "linear_fixedlag": {
+    "status": "PASS",
+    "updates": 50,
+    "lag": 2.0,
+    "max_active_values": 3,
+    "max_mean_error": 0.0,
+    "max_covariance_error": 1.1102230246251565e-16,
+    "covariance_api": "getISAM2().marginalCovariance(key)",
+    "max_update_seconds": 0.0013699289999991038,
+    "mean_update_seconds": 0.00016319295999991823
+  },
+  "exact_motion": {
+    "status": "FAIL",
+    "error": "RuntimeError(\"Exact motion estimate failed at update 3, t=0.6000000000000001: Requested variable 'p0' is not in this VectorValues.\")",
+    "traceback": "Traceback (most recent call last):\n  File \"/mnt/d/SLAM_bot/artifacts/EKF3_P0_VERIFY_20261013_01a132b7/checkout/research/EKF3_INDEPENDENT_20261013/diagnostics/robust_fusion/gtsam_preflight.py\", line 138, in exact_motion_check\n    estimate=smooth.getISAM2().calculateEstimateVector(key)\nIndexError: Requested variable 'p0' is not in this VectorValues.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/mnt/d/SLAM_bot/artifacts/EKF3_P0_VERIFY_20261013_01a132b7/checkout/research/EKF3_INDEPENDENT_20261013/diagnostics/robust_fusion/gtsam_preflight.py\", line 170, in main\n    report[name]=fun()\n  File \"/mnt/d/SLAM_bot/artifacts/EKF3_P0_VERIFY_20261013_01a132b7/checkout/research/EKF3_INDEPENDENT_20261013/diagnostics/robust_fusion/gtsam_preflight.py\", line 140, in exact_motion_check\n    raise RuntimeError(f'Exact motion estimate failed at update {k}, t={k*dt}: {e}') from e\nRuntimeError: Exact motion estimate failed at update 3, t=0.6000000000000001: Requested variable 'p0' is not in this VectorValues.\n"
+  }
+}
