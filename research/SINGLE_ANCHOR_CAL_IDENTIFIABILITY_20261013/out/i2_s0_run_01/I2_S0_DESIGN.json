@@ -1,0 +1,149 @@
+{
+  "status": "FROZEN_DEVELOPMENT_DESIGN_BEFORE_S0_RESULTS",
+  "stage": "I2_S0",
+  "source_commit": "ed1dc86221c54553e50b1204aab3129d95e1cbef",
+  "input_root": "out/i2_run_01",
+  "public_keys": [
+    "t_s",
+    "dt_s",
+    "ds_odom",
+    "dtheta_gyro",
+    "dtheta_odom",
+    "range_m",
+    "range_mask"
+  ],
+  "routes": [
+    "R2",
+    "R4"
+  ],
+  "worlds": [
+    "B0",
+    "A2_3_GAUSS_LEVEL"
+  ],
+  "level": 2,
+  "seeds": [
+    8000,
+    8001,
+    8002,
+    8003
+  ],
+  "sigma_m": [
+    0.05,
+    0.2
+  ],
+  "rates_hz": [
+    1,
+    5
+  ],
+  "primary_particles": 8192,
+  "selection": "Reuse I2 S1 development inputs; d2 R2/R4 weak/strong DR information contrast. Two sigma endpoints of a bounded low/moderate-noise comparison. Exclude 0.03/0.10, R5, other drifts and anchorB before outcomes to focus on S0 prior/convergence.",
+  "baseline_prior": "area",
+  "calibration_prior": "same zero-mean Gaussian calibration standard deviations as each frozen I2 config; no initial pose prior",
+  "gauge": "DR initial pose exactly gauge0; RANGE anchor horizontal0, initial position(rho,0), delta uniform(-pi,pi]",
+  "range_initialization": "p(rho|z0) proportional to area rho times first Gaussian range likelihood; consumed once, later updates start k=1",
+  "prior_sensitivity": {
+    "priors": [
+      "radius",
+      "halfnormal10",
+      "halfnormal100"
+    ],
+    "world": "A2_3_GAUSS_LEVEL",
+    "routes": [
+      "R2",
+      "R4"
+    ],
+    "seeds": [
+      8000,
+      8001
+    ],
+    "sigma_m": [
+      0.05,
+      0.2
+    ],
+    "rate_hz": 5,
+    "note": "halfnormal alternatives are deliberate sensitivity priors, not claimed no-information defaults"
+  },
+  "domain_sensitivity": {
+    "world": "A2_3_GAUSS_LEVEL",
+    "routes": [
+      "R2",
+      "R4"
+    ],
+    "seed": 8000,
+    "sigma_m": 0.2,
+    "rate_hz": 5,
+    "prior": "area",
+    "upper_range_cutoff_sigma": [
+      6,
+      10
+    ],
+    "note": "relative to max(abs(dz),z0); numerical domain check only; baseline integrates unbounded rho with tail control"
+  },
+  "pf_reference": {
+    "world": "A2_3_GAUSS_LEVEL",
+    "routes": [
+      "R2",
+      "R4"
+    ],
+    "seed": 8000,
+    "arms": [
+      "DR",
+      "RANGE_0.05_5"
+    ],
+    "particle_counts": [
+      20000,
+      80000
+    ],
+    "repeats": 2
+  },
+  "batch": {
+    "world": "A2_3_GAUSS_LEVEL",
+    "routes": [
+      "R2",
+      "R4"
+    ],
+    "seed": 8000,
+    "arms": [
+      "DR",
+      "RANGE_0.05_5"
+    ],
+    "range_priors": [
+      "area",
+      "radius",
+      "halfnormal100"
+    ],
+    "chains": 4,
+    "burn": 2000,
+    "retained": 2000,
+    "thin": 1,
+    "pCN_beta": 0.03
+  },
+  "snapshots_fraction": [
+    0,
+    0.1,
+    0.25,
+    0.5,
+    0.75,
+    1
+  ],
+  "randomness": "sensor/range files reused; PF seed namespace20261013,2301; prior/domain variants use common random draws; reference repeats independent; batch namespace separate",
+  "reference_necessary_checks": {
+    "all_reported_split_rhat_max": 1.05,
+    "all_reported_within_chain_ess_min": 400,
+    "pf_final_ancestors_min": 100,
+    "max_cal_mean_gap_pooled_sd": 0.25,
+    "max_cal_sd_ratio": 1.25,
+    "note": "passing necessary checks alone cannot exclude unvisited modes"
+  },
+  "numerical_checks": {
+    "radial_tail_probability_max": 1e-12,
+    "radial_quadrature_relative_tolerance": 1e-09,
+    "inverse_cdf_resolution_quantile_absolute_tolerance_m": 1e-05
+  },
+  "sensitivity_interpretation": "Report initial rho distributions and paired terminal calibration shifts for every prior/domain variant. No robustness claim unless numerical accuracy AND reference convergence pass; MC spread is a confounder.",
+  "target": "same conditional measured-input Gaussian static-calibration model as I2 S1; exact SE2; no calibration jitter/inflation/PSD repair; B0 generator mismatch retained",
+  "scoring": "Calibration error gauge-invariant. No absolute XY RMSE. Empirical 95% marginal intervals and calibrated joint ellipse with invalid rank marked. Seed-level summaries, 4 seeds exploratory.",
+  "practical_sufficiency": "INCONCLUSIVE: operation requirements unspecified",
+  "I3": "NOT_RUN",
+  "I7": "NOT_RUN"
+}
