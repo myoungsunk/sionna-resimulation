@@ -32,7 +32,7 @@
 - LoS: 직접 전파파만 있고 FFD/기하 기반 `h_s(x,y,psi)`에 상대적으로 가까움.
 - Full: 직접파 + 반사·산란 성분의 복소 합; LP 포트별 반사 편파 응답, 위상 간섭, 지연로브/first-path crossing 변화가 생김.
 - 진단 분해 1: `s_Full-h_LUT(true)=(s_Full-s_LoS)+(s_LoS-h_LUT(true))`. 각각 multipath/channel 효과와 LoS-LUT 예측 불일치를 분리.
-- 진단 분해 2 (**검출 tap 선택 효과를 더 정확히 식별**): `s_Full(tap_Full)-s_LoS(tap_LoS) = [s_Full(tap_Full)-s_Full(tap_LoS)] + [s_Full(tap_LoS)-s_LoS(tap_LoS)]`. 첫 항은 **Full H 내 tap 위치 변화**에 따른 s 변화, 둘째 항은 **동일 tap에서 Full–LoS 채널 간섭/편파 변화**. 두 번째 항이 클 경우 detector의 integer tap 시점이 같아도 s/Heading이 다를 수 있다. `s_Full(tap_LoS)`는 LoS tap을 알아야 하므로 오직 offline oracle-free counterfactual 분석에만 사용하고 온라인 품질 판단에 직접 사용하지 않는다.
+- 진단 분해 2 (**검출 tap 선택 효과를 더 정확히 식별**): `s_Full(tap_Full)-s_LoS(tap_LoS) = [s_Full(tap_Full)-s_Full(tap_LoS)] + [s_Full(tap_LoS)-s_LoS(tap_LoS)]`. 첫 항은 **Full H 내 tap 위치 변화**에 따른 s 변화, 둘째 항은 **동일 tap에서 Full–LoS 채널 간섭/편파 변화**. 두 번째 항이 클 경우 detector의 integer tap 시점이 같아도 s/Heading이 다를 수 있다. `s_Full(tap_LoS)`는 LoS tap을 알아야 하므로 오직 offline counterfactual 분석에만 사용(LoS tap은 실측 Full RF에서 직접 알 수 없는 시뮬레이션 참조값)하고 온라인 품질 판단에 직접 사용하지 않는다.
 - 진단 분해 3: `nu_s=(s_Full-s_LoS)+(s_LoS-h(true))+(h(true)-h(xprior))`. 다중경로 모델오차·기준 LUT 오차·상태 예측 오차의 차이를 분리한다. Truth는 offline 평가에만 사용.
 - 측정 이득 `K_psi,s = (P_psi,x h_x +P_psi,y h_y+P_psi,psi h_psi)/S_s`을 각 항으로 분해. **s error가 크다는 사실만으로 heading gain이 커지는 것은 아니며** EKF prior geometry와 Jacobian에 따라 전파되는 보정량이 달라진다.
 
