@@ -23,10 +23,12 @@ CODES = (
     'core.py', 'stable_descent.py', 'synthetic.py', 'validate.py',
     'test_core.py', 'test_solver_regression.py', 'test_solver_r2.py',
     'solver_regression.py', 'record_r2.py', 'p2_v2.py',
-    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py', 'r3_four_regression.py'
+    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py', 'r3_four_regression.py',
+    'r4_five_regression.py', 'r4_full_receipt.py'
 )
 DOCS = ('P2_SPEC.json', 'FAILURE_SNAPSHOT.json', 'RESUME_FAILURE_SNAPSHOT.json',
-        'P2_V2_PREEXECUTION_CONTRACT_KO.md', 'P2_V2_CHANGE_RECONCILIATION.json')
+        'P2_V2_PREEXECUTION_CONTRACT_KO.md', 'P2_V2_CHANGE_RECONCILIATION.json',
+        'R4_FULL_P2_PRE_RUN_AUDIT_20261014_KO.md')
 VARIABLE_BRANCH_LOG = {'curvature_ratio', 'gradient_integral_difference',
                        'step_acceptance', 'gradient_new_inf',
                        'direct_cost_difference'}
@@ -184,8 +186,18 @@ def main():
             first = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py')
             test = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/validate.py')
             exp = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py')
-            if not (first >= 0 and first < test < exp):
-                errors.append({'id':'AUDIT_NOT_FIRST_IN_WORKFLOW'})
+            frozen_five = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/r4_five_regression.py')
+            rep = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight')
+            full = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase full')
+            check = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/r4_full_receipt.py')
+            if not (first >= 0 and first < test < frozen_five < rep < full < check):
+                errors.append({'id':'AUDIT_ORDER_INCLUDING_FIVE_AND_FULL'})
+            if not ('11892566974' in workflow
+                    and '931ee7cd8552820f3b6311877bb6ccc4ecc910669231290efb82e5868756c9b4' in workflow
+                    and '${{ runner.temp }}/p2_full/**' in workflow):
+                errors.append({'id':'MISSING_FIVE_FIXTURE_OR_FULL_RAW_ARCHIVAL'})
+            if 'r4_full_receipt.py' not in workflow:
+                errors.append({'id':'MISSING_INDEPENDENT_FINAL_RECEIPT'})
             report['workflow_sha256'] = digest(REPO/'.github/workflows/ekf4-range-s-staged.yml')
             report['warnings'].append({
                 'id':'PRE_RUN_AUDIT_IS_STATIC_NOT_INDEPENDENT_PROOF',
