@@ -73,3 +73,13 @@ SA-004 **DIAGNOSTIC_DEFECT_OR_WARNING**: missing optional plots/route table does
 SA-005 **HARD_EXECUTION_BLOCK**: exact input zip SHA, DR covariance variance split, RF duplicate/pose-time/source sign identity mismatch. Stage-specific dependent evaluation stops.
 
 Before each cloud phase, b_gate.py verifies the *approved source Git blob hashes* against actual runner bytes and creates a separate PRE_RUN audit receipt. Approval file creation alone triggers Actions; code pushes do not trigger a science run. If hypothesis fails, report opposite evidence and stop without retuning.
+
+## 6. 첫 클라우드 결과 및 범위 제한형 재감사 (B-REPAIR-01)
+- 실패 실행: https://github.com/myoungsunk/sionna-resimulation/actions/runs/38545120474
+- 원본 데이터 SHA 확인 PASS, source-bound PRE_RUN fixture/acquire/evaluate PASS, 독립 math fixture B_MATH_AUDIT PASS.
+- 실패 발생: RF_HELDOUT_BY_ROUTE.csv의 보고서 한 행을 dict으로 조립할 때 train_n 필드가 직접 정의와 one_sided() 반환값에 중복 포함되어 TypeError를 발생시킴.
+- 분류: **DIAGNOSTIC_DEFECT_OR_WARNING**, 영향을 받는 범위는 heldout-route 출력 조립 및 그 뒤의 B data phase. 성공한 독립 math는 보존한다.
+- 수정: 오직 중복 선언 train_n 한 개 삭제. sign/Range/DR error 계산식, Gaussian probability 수식, prior, 훈련 범위, threshold, 입력은 그대로 유지.
+- 수정 코드 commit: 6ca9b9cf6d1471e9d9e0dddffdc47b14b1c6734f.
+- 수정후 Git blob과 amended REVIEW/APPROVAL를 새로 고정한 뒤 cloud에서 전체 B-only 단계만 재실행한다.
+- 실패 실행은 남기고 다음 성공을 소급해서 원래 run에 적용하지 않는다.
