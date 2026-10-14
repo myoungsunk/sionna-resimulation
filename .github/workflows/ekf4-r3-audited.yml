@@ -17,7 +17,7 @@ concurrency:
 jobs:
   audit-then-numerics-then-p2-representative:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 90
     env:
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
@@ -83,6 +83,17 @@ jobs:
         run: |
           set -euo pipefail
           python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight --out "$RUNNER_TEMP/p2_preflight" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
+      - name: Mandatory NEW full-600-trial source and decision audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py --phase full --workflow-path .github/workflows/ekf4-r3-audited.yml --out "$RUNNER_TEMP/full_audit" | tee "$RUNNER_TEMP/full_audit.log"
+          echo "EKF4_AUDIT_RECEIPT=$RUNNER_TEMP/full_audit/PRE_RUN_AUDIT.json" >> "$GITHUB_ENV"
+      - name: Full frozen P2 original 600 paired synthetic trials
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase full --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_full.log"
       - name: Preserve all evidence even if an earlier stage fails
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -94,6 +105,9 @@ jobs:
             ${{ runner.temp }}/r1/**
             ${{ runner.temp }}/r2/**
             ${{ runner.temp }}/r3/**
+            ${{ runner.temp }}/full_audit/**
+            ${{ runner.temp }}/p2_full/**
+            ${{ runner.temp }}/p2_full.log
             ${{ runner.temp }}/archive_audit/**
             ${{ runner.temp }}/p2_preflight/**
             ${{ runner.temp }}/four_original.zip
