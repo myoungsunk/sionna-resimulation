@@ -1,0 +1,71 @@
+{
+  "schema": "G2G3_BF_STAGED_AMENDMENT_20261014_01",
+  "base_commit": "eec309b0f69214f4032033c43ffb50054432dd92",
+  "source_artifact": {
+    "run_id": 38523237789,
+    "artifact_id": 11875206058,
+    "sha256": "56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5"
+  },
+  "audit_policy": {
+    "commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+    "blob": "df9ec6121f3f0c953e58ef8e85ce436ed9a79334"
+  },
+  "stages": [
+    "B",
+    "C",
+    "D",
+    "E0",
+    "F"
+  ],
+  "thresholds": {
+    "rf_dominance": 0.95,
+    "rf_gate_NIS": 6.634896601,
+    "posterior_tv": 0.001,
+    "map_deg": 0.1,
+    "hpd_width_deg": 1,
+    "radial_synthetic_reference_abs": 1e-8
+  },
+  "B": {
+    "split": "heldout_route",
+    "spatial_buffer_m": 0.5,
+    "negative_tail_q": 0.01,
+    "independence_requirement": "pre-existing H3 spatial feasibility: R2/R5 excluded all training samples; independent scene calibration claim blocked"
+  },
+  "C": {
+    "control_fixtures": [
+      "C1_nominal",
+      "C2_DR_drift",
+      "C3_RF_overcorrection",
+      "C4_RF_long_path"
+    ],
+    "guard_formula": "apply scalar radial mixture posterior mean only if d>z AND NIS>6.6349 AND P(|z-r|<|d-r||observed)>0.95; otherwise keep DR",
+    "min_improvement_C2_m": 0.5,
+    "no_unnecessary_move_C1_C3_C4": 1e-12
+  },
+  "D": {
+    "old_failed_sample": "R2_aA_m0/gyro_bias_L2/seed0/LoS/B_OLD/978",
+    "joint_original_gh_tv": 0.38706501555739936,
+    "tilted_GH_orders": [
+      9,
+      17,
+      25,
+      41
+    ],
+    "independent_rqmc_n": 8192,
+    "independent_seed": [
+      1069,
+      2099
+    ],
+    "crosscheck": "joint posterior TV <0.001 and MAP <0.1°; independent evidence agreement required"
+  },
+  "E0": {
+    "scope": "signed radial-only guarded shadow on archived paired RF traces, not full G2/G3",
+    "data_leakage": "truth scoring only after decisions",
+    "require": "B/C source/input parity and C calculation valid"
+  },
+  "F": {
+    "require": "B validated source calibration, C safe lowbias, D real case numeric reference valid, E full one-step actual pose passed",
+    "otherwise": "NOT_RUN_DEPENDENCY_CLAIM_BLOCK"
+  },
+  "scientific_PASS": false
+}
