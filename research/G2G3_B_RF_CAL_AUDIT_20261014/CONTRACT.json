@@ -1,0 +1,46 @@
+{
+  "schema": "G2G3_B_RF_ERROR_CALIBRATION_DIAGNOSTIC_V1",
+  "purpose": "Verify which RF signed-error metrics can inform a probabilistic RF-vs-DR distance advantage decision; B stage ONLY.",
+  "baseline_commit": "1e325da186355533fc585ed9d8bffe12d02d0604",
+  "source": {
+    "run_id": 38523237789,
+    "artifact_id": 11875206058,
+    "zip_sha256": "56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5",
+    "unique_rf_n": 18603,
+    "dr_pairs_n": 223236
+  },
+  "original_r_r": 0.0068578637,
+  "nis99": 6.6348966010212145,
+  "trial_fault_probability": 0.05,
+  "trial_fault_sigma_m": 2,
+  "math_atol": 1e-8,
+  "diagnostic_probability_threshold": 0.95,
+  "rf_likelihood_fit": "Gaussian signed error by channel/calibration fitted from other routes only; THIS IS A MODEL DIAGNOSTIC, NOT independent calibrated emission likelihood",
+  "route_holdout": [
+    "R2",
+    "R4",
+    "R5"
+  ],
+  "observed_range_bins_m": [
+    "<5",
+    "5-10",
+    ">=10"
+  ],
+  "evaluation_scope": "Route holdout metrics are exploratory: overlapping RF positions, 0.5m spatial split R2/R5 infeasible",
+  "repeated_seed_note": "RF scene repeats across gyro conditions and seeds; not independent RF environments.",
+  "statistical_hypotheses": {
+    "H1": "Signed RF residual bias/tail and conditional dispersion vary across observable range groups",
+    "H2": "RF-only quality cannot uniquely determine RF>DR superiority; model requires DR error distribution and observed delta",
+    "H3": "Source-uncalibrated fault-prior assumptions may produce poor group calibration despite math-consistent posterior",
+    "H4": "Fully independent RF signed distribution calibration is not established by current overlapping three routes"
+  },
+  "claim_limits": [
+    "No online CIR-quality fit from archived signed dataset",
+    "No independent scene calibration",
+    "No production RF likelihood from observed-range-conditioned residual bins",
+    "No 3D G2/G3 filter/state updates",
+    "No G2/G3 numerical/recursive performance claim"
+  ],
+  "policy": "Preflight source SHA and frozen artifact SHA; independent numeric scalar integration in fixture, then read-only archived audit.",
+  "scientific_PASS": false
+}
