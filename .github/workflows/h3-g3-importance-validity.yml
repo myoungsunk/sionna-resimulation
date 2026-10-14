@@ -1,0 +1,90 @@
+name: G3 adaptive importance numerical validity ONLY
+on:
+  push:
+    branches:
+      - research/g3-range-aware-qmc-audit-20261014
+    paths:
+      - .github/workflows/h3-g3-importance-validity.yml
+      - research/EKF3_INDEPENDENT_20261013/diagnostics/h3_qmc_validity.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: g3-importance-validity-single-branch
+  cancel-in-progress: false
+
+jobs:
+  frozen-single-case-validity:
+    name: Frozen G3 sample 978 / two RQMC seeds vs independent deterministic reference
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Sparse checkout frozen source and required RF inputs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/SMOKE_PARTIAL.csv
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/D0_PARITY.csv
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+      - name: Python 3.11 numerical environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned core dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Compile only the validity audit source
+        run: python -m py_compile research/EKF3_INDEPENDENT_20261013/diagnostics/h3_qmc_validity.py
+      - name: Audit adaptive importance, synthetic identity and independent reference
+        run: |
+          python research/EKF3_INDEPENDENT_20261013/diagnostics/h3_qmc_validity.py \
+             --out outputs/g3_importance_validity
+      - name: Preserve every output even when numerical hypothesis fails
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g3-adaptive-importance-validity
+          path: outputs/g3_importance_validity/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish explicit validity verdict
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          src=Path('outputs/g3_importance_validity/VALIDITY_AUDIT.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# Frozen G3 adaptive importance numerical validity audit\n\n')
+              if src.is_file():
+                  data=json.loads(src.read_text())
+                  for field in ('status','synthetic_identity','reference_last_pair',
+                                'qmc_evaluations','confirmed','contradicted',
+                                'unresolved','next_action'):
+                      f.write('**'+field+'**: '+str(data.get(field))+'\n\n')
+              else:
+                  f.write('BLOCKED: validity audit output was not generated.\n')
+          PY
