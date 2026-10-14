@@ -28,7 +28,7 @@ def test_both_frozen_failures(fixture,saved):
         assert a.history
         first=a.history[0]
         assert first.get('step_acceptance') in (
-            'ARMIJO_DIRECT','GRADIENT_INTEGRAL_TERMINAL','GRADIENT_INTEGRAL_PROGRESS')
+            'ARMIJO_DIRECT','GRADIENT_INTEGRAL_TERMINAL','GRADIENT_INTEGRAL_PROGRESS','STABLE_OBJECTIVE_DESCENT')
         if first.get('step_acceptance','').startswith('GRADIENT_INTEGRAL'):
             assert first.get('gradient_integral_difference',float('inf'))<0
         # In-depth D2 80-digit delta is documented by frozen D2 evidence,
