@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/h3-g3-staged.yml
       - research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud_stage1.py
+      - research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud_stage2.py
       - research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud/**
   workflow_dispatch:
 
@@ -81,4 +82,74 @@ jobs:
                       f.write('**'+key+':** '+str(report.get(key))+'\n\n')
               else:
                   f.write('BLOCKED: No stage receipt; checkout or setup failed.\n')
+          PY
+
+  phase2-reference:
+    name: Phase 2 / Independent polar G3 reference convergence
+    needs: phase1
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout original research inputs and stages
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/SMOKE_PARTIAL.csv
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/D0_PARITY.csv
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Verify syntax
+        run: python -m py_compile research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud_stage2.py
+      - name: Run independent polar quadrature
+        run: |
+          python research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud_stage2.py --out outputs/g3_stage2
+      - name: Store evidence including failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g3-stage2-polar-evidence
+          path: outputs/g3_stage2/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish Phase 2 verdict
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          f=Path('outputs/g3_stage2/STAGE2_REPORT.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as dest:
+              dest.write('# Phase 2 independent polar integration\n\n')
+              if f.exists():
+                  result=json.loads(f.read_text())
+                  for key in ('status','checks','confirmed','contradicted','unresolved','next_action'):
+                      dest.write('**'+key+':** '+str(result.get(key))+'\n\n')
+              else:
+                  dest.write('BLOCKED: stage report not produced\n')
           PY
