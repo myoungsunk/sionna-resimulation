@@ -1,0 +1,120 @@
+name: G2/G3 staged B-F source-audited validation
+on:
+  push:
+    branches: [research/g2g3-bf-audited-20261014]
+    paths:
+      - research/G2G3_BF_STAGED_20261014/APPROVAL.json
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: g2g3-bf-staged-frozen
+  cancel-in-progress: false
+
+jobs:
+  B_to_F_audited:
+    name: Source-audited B C D E0 plus full E/F gate verdict
+    runs-on: ubuntu-24.04
+    timeout-minutes: 42
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_BF_STAGED_20261014/
+            /research/G2G3_AUDITED_MINIMAL_20261014/
+            /.github/workflows/g2g3-bf-audited.yml
+            /.github/workflows/g2g3-audited-minimal.yml
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/SMOKE_PARTIAL.csv
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/D0_PARITY.csv
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/SPATIAL_HOLDOUT_FEASIBILITY.csv
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source-bound audit before installing dependencies
+        run: python research/G2G3_BF_STAGED_20261014/audit.py environment
+      - name: Install frozen numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Reuse prior audited immutable artifact acquisition
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py acquire
+          python research/G2G3_AUDITED_MINIMAL_20261014/acquire.py
+      - name: B pre-audit then route-heldout RF calibration evidence
+        run: |
+          python research/G2G3_BF_STAGED_20261014/audit.py B
+          python research/G2G3_BF_STAGED_20261014/stages.py B
+      - name: C pre-audit then four guarded radial synthetic controls
+        if: always()
+        run: |
+          python research/G2G3_BF_STAGED_20261014/audit.py C
+          python research/G2G3_BF_STAGED_20261014/stages.py C
+      - name: D pre-audit then frozen 195s tilted GH and independent RQMC
+        if: always()
+        run: |
+          python research/G2G3_BF_STAGED_20261014/audit.py D
+          python research/G2G3_BF_STAGED_20261014/tilted_g3.py
+      - name: E0 pre-audit then exploratory independent radial-only shadow
+        if: always()
+        run: |
+          python research/G2G3_BF_STAGED_20261014/audit.py E0
+          python research/G2G3_BF_STAGED_20261014/stages.py E0
+      - name: F pre-audit and full-state recursive eligibility verdict
+        if: always()
+        run: |
+          python research/G2G3_BF_STAGED_20261014/audit.py F
+          python research/G2G3_BF_STAGED_20261014/stages.py F
+      - name: Preserve new receipts even on errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-staged-bf-audit-evidence
+          path: |
+            outputs/g2g3_bf/
+            outputs/g2g3_minimal/PRE_RUN_acquire.json
+            inputs/range_audit/ACQUISITION.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Summarize four verdicts and full state scope
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          folder=Path("outputs/g2g3_bf")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("# G2/G3 B-F audited staged verdict\n\n")
+              for stage in ("B","C","D","E0","F"):
+                  file=folder/(stage+"_RESULT.json")
+                  if not file.exists():
+                      f.write(f"## {stage}: MISSING receipt (do not infer PASS)\n\n")
+                      continue
+                  row=json.loads(file.read_text())
+                  f.write(f"## {stage}\n\n")
+                  for k in ("execution","calculation","hypothesis","scientific_claim","actual_G3_reference","next"):
+                      if k in row:f.write(f"**{k}:** {row[k]}\n\n")
+          PY
