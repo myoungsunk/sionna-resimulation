@@ -1,0 +1,105 @@
+name: Audited physical G2/G3 P0-P3 pose posterior validation
+on:
+  push:
+    branches: [research/g2g3-full-integration-staged-20261014]
+    paths:
+      - research/G2G3_FULL_STAGED_20261014/APPROVAL.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g2g3-physical-p0-p3
+  cancel-in-progress: false
+jobs:
+  P0-P3:
+    name: Frozen H3 full-state P0 source / P1 Bayes / P2 G3 / P3 paired pilot
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Checkout audited source and ORIGINAL observed RF bins
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_FULL_STAGED_20261014/
+            /.github/workflows/g2g3-physical-p0-p3.yml
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/D0_PARITY.csv
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/SMOKE_PARTIAL.csv
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/*/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_*.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_*.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: First source review gate before numerical dependencies
+        run: |
+          python research/G2G3_FULL_STAGED_20261014/gate.py P0
+          python -m py_compile research/G2G3_FULL_STAGED_20261014/pipeline.py
+      - name: Pinned numerical runtime
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: P0 original immutable RF and DR parity
+        run: python research/G2G3_FULL_STAGED_20261014/pipeline.py P0
+      - name: P1 source-factor audit, Range counted once, archived G2X Range gate
+        run: |
+          python research/G2G3_FULL_STAGED_20261014/gate.py P1
+          python research/G2G3_FULL_STAGED_20261014/pipeline.py P1
+      - name: P2 independent GH and QMC full 3state G3 numerical posterior
+        run: |
+          python research/G2G3_FULL_STAGED_20261014/gate.py P2
+          python research/G2G3_FULL_STAGED_20261014/pipeline.py P2
+      - name: P3 five pre-registered physical one-step cases, full 3state covariance
+        run: |
+          python research/G2G3_FULL_STAGED_20261014/gate.py P3
+          python research/G2G3_FULL_STAGED_20261014/pipeline.py P3
+      - name: Persist unfiltered outputs and scoped audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-physical-P0-P3-evidence
+          path: |
+            outputs/G2G3_FULL_P0_P3/
+            research/G2G3_FULL_STAGED_20261014/CONTRACT.json
+            research/G2G3_FULL_STAGED_20261014/PRE_RUN_REVIEW_KO.md
+            research/G2G3_FULL_STAGED_20261014/APPROVAL.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Write visible stage outcomes
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path('outputs/G2G3_FULL_P0_P3')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# Physical G2/G3 staged P0–P3\n\n')
+              for stage in ('P0','P1','P2','P3'):
+                  a=p/(stage+'_RESULT.json')
+                  f.write('## '+stage+'\n\n')
+                  if not a.exists():
+                      f.write('NOT_RUN or dependent failure; inspect ERROR and PRE_RUN receipts.\n\n')
+                      continue
+                  obj=json.loads(a.read_text())
+                  for key in ('status','n_requested','n_valid','n_unresolved','numerical_comparisons','source_revision','scientific_PASS'):
+                      if key in obj:f.write('**'+key+'**: '+str(obj[key])+'\n\n')
+          PY
