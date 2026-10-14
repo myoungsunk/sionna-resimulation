@@ -1,0 +1,64 @@
+{
+  "schema": "G2G3_BF_APPROVAL_V1",
+  "audit_id": "G2G3_BF_SOURCE_REVIEW_20261014_A01",
+  "review_decision": "GO_WITH_CLAIM_LIMITATION",
+  "reviewed_source_commit": "fe84da70542dec8268fe529905da3aaafb9c841d",
+  "audit_method": "assistant source review and math derivation; cloud independents GH vs RQMC for G3",
+  "independent_reviewer": false,
+  "authorized_stages": [
+    "environment",
+    "B",
+    "C",
+    "D",
+    "E0",
+    "F"
+  ],
+  "source_git_blobs": {
+    "research/G2G3_BF_STAGED_20261014/CONTRACT.json": "acc24fc0e6a2ce461c3fc1320c6dc33bbe1e4479",
+    "research/G2G3_BF_STAGED_20261014/stages.py": "c2c72ba8177d4be75ebb0d00924ec0672049ee62",
+    "research/G2G3_BF_STAGED_20261014/tilted_g3.py": "0da6e35d0a38656bc3408d5bb986f494ca3a807a",
+    "research/G2G3_BF_STAGED_20261014/audit.py": "37d6b963ef2009fdedeb6fb8c09b2bc93249dc00",
+    "research/G2G3_BF_STAGED_20261014/PRE_RUN_REVIEW_KO.md": "7a84771cc2cc5811edb36a640130b668bee4eeaa",
+    ".github/workflows/g2g3-bf-audited.yml": "ad94f872b7949742581c796f1e04346ab2d98e8a",
+    "research/G2G3_AUDITED_MINIMAL_20261014/model.py": "1b13e7fa1909168f3f7cb2d35d2d86d4c00cb5b9",
+    "research/G2G3_AUDITED_MINIMAL_20261014/gate.py": "a9c0bc2c4003f4f63c58fb0d3b83aeff408d1fde",
+    "research/G2G3_AUDITED_MINIMAL_20261014/acquire.py": "b5ca3ee79f225212106457c82c321aac422f9be2",
+    "research/G2G3_AUDITED_MINIMAL_20261014/CONTRACT.json": "eaa43a8cc33f8b32af0e033e439277401f0b56c2",
+    ".github/workflows/g2g3-audited-minimal.yml": "2c443cff84525bb5712e4e44c2ea35222f91285c"
+  },
+  "reused_evidence": [
+    {
+      "run_id": 38523237789,
+      "artifact_id": 11875206058,
+      "sha256": "56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5",
+      "scope": "original signed RF range and DR D0 only"
+    },
+    {
+      "run_id": 38526264898,
+      "scope": "analytic scalar radial/linear3 math only"
+    },
+    {
+      "run_id": 38527848155,
+      "scope": "direct P_RF_better CDF/independent integral only"
+    }
+  ],
+  "findings": [
+    {
+      "severity": "CLAIM_BLOCK",
+      "scope": "B independent probability calibration",
+      "reason": "R2/R5 spatial buffer zero"
+    },
+    {
+      "severity": "CASE_RESULT_INVALID",
+      "scope": "original frozen G3 reference",
+      "reason": "GH TV=.387>0.001"
+    },
+    {
+      "severity": "CLAIM_BLOCK",
+      "scope": "full pose E and recursive F",
+      "reason": "requires independent B and D numerical pass"
+    }
+  ],
+  "reviewed_code_matches_execution_sha": false,
+  "scientific_PASS": false
+}
