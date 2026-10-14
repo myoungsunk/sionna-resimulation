@@ -16,8 +16,10 @@ HERE=Path(__file__).resolve().parent
 
 
 def main():
-    ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,required=True);args=ap.parse_args()
+    ap=argparse.ArgumentParser();ap.add_argument('--out',type=Path,required=True);ap.add_argument('--audit',type=Path,required=True);args=ap.parse_args()
     assert os.environ.get('GITHUB_ACTIONS')=='true'
+    from pre_run_audit import require_audit_receipt
+    require_audit_receipt(args.audit)
     out=args.out.resolve();out.mkdir(parents=True,exist_ok=False)
     s=json.loads((HERE/'FAILURE_SNAPSHOT.json').read_text())
     mu=np.asarray(s['prior_x']);P=np.asarray(s['prior_P']);z=np.asarray(s['z']);R=np.asarray(s['R'])

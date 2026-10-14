@@ -79,8 +79,10 @@ def analyze(path):
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--out',type=Path,required=True);p.add_argument('--audit',type=Path,required=True);a=p.parse_args()
     if os.environ.get('GITHUB_ACTIONS')!='true':raise RuntimeError('cloud diagnosis only')
+    from pre_run_audit import require_audit_receipt
+    require_audit_receipt(a.audit)
     out=a.out.resolve();out.mkdir(parents=True,exist_ok=False)
     result={'stage':'D2','started_utc':datetime.now(timezone.utc).isoformat(),'git_sha':os.environ['GITHUB_SHA'],
             'run_id':os.environ['GITHUB_RUN_ID'],'python':platform.python_version(),'status':'STARTED',

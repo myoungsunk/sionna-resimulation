@@ -27,7 +27,10 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument('--out',type=Path,required=True)
     ap.add_argument('--until',choices=['P0','P1'],default='P1')
+    ap.add_argument('--audit',type=Path,required=True)
     args=ap.parse_args()
+    from pre_run_audit import require_audit_receipt
+    audit=require_audit_receipt(args.audit)
     if os.environ.get('GITHUB_ACTIONS')!='true':
         raise RuntimeError('Scientific execution is restricted to GitHub Actions by user contract')
     out=args.out.resolve()
@@ -40,7 +43,8 @@ def main():
              'python':platform.python_version(),'packages':{p:importlib.metadata.version(p) for p in ['numpy','scipy','pytest']},
              'source_sha256':source,'command':sys.argv,
              'stages':{f'P{i}':'NOT_RUN' for i in range(7)},
-             'scientific_PASS':False,'scope':'mathematics and local solver only; no RF or recursive experiment'}
+             'scientific_PASS':False,'scope':'mathematics and local solver only; no RF or recursive experiment',
+             'pre_run_audit_sha256':sha(args.audit),'audit_decision':audit['decision']}
     write(out/'START.json',receipt)
     exit_code=0
     for stage in ['P0','P1'][:1 if args.until=='P0' else 2]:

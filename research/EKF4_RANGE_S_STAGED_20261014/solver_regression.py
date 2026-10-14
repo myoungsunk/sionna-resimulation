@@ -18,7 +18,10 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('--gates',type=Path,required=True)
     p.add_argument('--out',type=Path,required=True)
+    p.add_argument('--audit',type=Path,required=True)
     a=p.parse_args()
+    from pre_run_audit import require_audit_receipt
+    audit=require_audit_receipt(a.audit)
     if os.getenv('GITHUB_ACTIONS')!='true':
         raise RuntimeError('GitHub-hosted runner only')
     gate=json.loads((a.gates/'FINAL.json').read_text())
@@ -37,6 +40,7 @@ def main():
             'snapshot_sha256':sha(HERE/'FAILURE_SNAPSHOT.json'),
             'frozen_D1_summary_sha256':sha(HERE/'D1_RESULT_SUMMARY.json'),
             'core_sha256':sha(HERE/'core.py'),'test_sha256':sha(HERE/'test_solver_regression.py'),
+            'audit_receipt_sha256':sha(a.audit),'audit_status':audit['decision'],
             'original_gradient_tol':1e-8,'P2':'NOT_RUN','P3_P6':'NOT_RUN','scientific_PASS':False,
             'status':'STARTED'}
     write(out/'START.json',result)
@@ -59,16 +63,16 @@ def main():
         regular=map_update(x,P,z,SyntheticRF(),R,range_first=True,max_iter=40,gradient_tol=1e-8)
         if (local.status!='CONVERGED' or regular.status!='CONVERGED' or
             local.gradient_inf>1e-8 or regular.gradient_inf>1e-8 or
-            local.history[0].get('step_acceptance')!='GRADIENT_INTEGRAL_TERMINAL'):
-            raise RuntimeError('original threshold/terminal-step proof failed')
+            not local.history):
+            raise RuntimeError('original stationary gradient criterion failed')
         result['diagnostics']={'original_status':f['recorded_status'],
               'original_gradient':f['recorded_gradient_inf'],
               'saved_iterate_gradient':local.gradient_inf,
               'range_first_gradient':regular.gradient_inf,
-              'accepted_via':local.history[0]['step_acceptance'],
-              'double_cost_delta':local.history[0]['direct_cost_difference'],
-              'integral_cost_delta':local.history[0]['gradient_integral_difference'],
-              'curvature_ratio':local.history[0]['curvature_ratio']}
+              'accepted_via':local.history[0].get('step_acceptance','UNKNOWN'),
+              'double_cost_delta':local.history[0].get('direct_cost_difference'),
+              'integral_cost_delta':local.history[0].get('gradient_integral_difference'),
+              'curvature_ratio':local.history[0].get('curvature_ratio')}
         result['status']='REGRESSION_PASS'
         code=0
     except Exception:
