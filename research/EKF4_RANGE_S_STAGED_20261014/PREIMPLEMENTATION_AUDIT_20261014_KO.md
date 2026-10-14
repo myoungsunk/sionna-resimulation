@@ -1,0 +1,125 @@
+# EKF4 사전등록·가정·실행 게이트 전수 감사 — 2026-10-14
+
+> **판정: 기존 구현의 연구·수학 성과를 폐기할 근거는 없지만, 현재 통과/차단 계약은 의사결정 용도에 맞게 개정이 필요함.**
+> 본 문서는 코드·실험 수정이 아닌 읽기 전용 감사와 **개정 제안**이다. 기등록 원본 PLAN/P2_SPEC/D1/D2/R1/R2, 원 실험 파일 및 FAIL 결과를 변경하지 않는다. 타인에 의한 독립 peer review 완료를 주장하지 않는다.
+
+## 감사 범위·기준
+
+감사 시점 브랜치 소스 `3da9672041c2ac9054e27161b267d907b365549a` 기준.
+등록 계약 7개 전수: `PLAN_KO.md` (최초 `1e841933`), `P2_SPEC.json` (최초 `753f8c5b`), `D1_PLAN_KO.md`, `SOLVER_R1_DECISION_KO.md`, `P2_RESUME_20261014_KO.md`, `D2_PLAN_KO.md`, `R2_PLAN_KO.md`.
+외부 연결 계약: 저장소 `AGENTS.md`의 증거/원본 보호, EKF3 `P0_INPUT_MANIFEST.json`의 원본 관측 정의·scene 범위, 이전 H3/G3 `CONTRACT.json`의 TV 수렴 검증.
+대응 소스 11개 `core.py,stable_descent.py,test_core.py,test_solver_regression.py,test_solver_r2.py,synthetic.py,validate.py,solver_regression.py,record_r2.py,diagnose.py,diagnose_resume.py`와 `.github/workflows/ekf4-range-s-staged.yml`; 원시 로그 `evidence/R2_TESTS.log`, `P2_RESUME_STOP.json`, `P2_RESUME_FINAL_KO.md` 및 기존 실행 영수증도 확인.
+사전등록은 '최초 사용자 요구'와 같지 않다. 사용자 요구에 없던 수치 허용치, all-route 효과 게이트, 전역 stage 차단은 구현자가 추후 지정한 **추가 조건**으로 별도 감사한다.
+**수행 방식:** 저장소 문서·소스·기록의 정적 교차검토. 이 감사에서 새 solver/모델/실험을 실행하지 않음.
+
+## 1. 수용·수정 판단표
+
+| ID | 기존 등록 항목 | 실제 코드/증거·해석 | 판정 | 필요한 조치 |
+|---|---|---|---|---|
+| C01 | 상태 `[px,py,psi,bg]`, bias rad/s | `core.transition` 4상태·3상태 | 유지 | 변경하지 않음 |
+| C02 | `alpha=dtheta_g-bg*dt`, 원호·중간방향 | `transition`, P0 수치차분/독립 원호 대조 | 유지 | P0 결과 재사용 허용 |
+| C03 | 전체 P, `F/G`·bias random walk | `predict`, 테스트에서 P교차·t² 전달 확인 | 유지 | 연속시간 bias noise 적분이라고 과장 금지 |
+| C04 | 원시 `[r,s]`, 독립 RF Heading 의사측정 금지 | `gaussian_update`·`SyntheticRF` | 유지 | 실제 RF 적용 전 LUT adapter만 별도 감사 |
+| C05 | 공동 Gaussian R 및 s|r 분해 | `conditional_rf`, `sequential_affine` 선형 대조 | 유지 | real Full RF 독립성/적합성은 미확정 표시 |
+| C06 | Range-first는 시작점, 원 운동 prior·관측은 한 번 | `map_update`·최적화 목적함수 | 유지 | 이 식을 P2 모델 오류로 단정하지 않음 |
+| C07 | 3/4상태 비교 기준선 | `synthetic.run_model` | 유지 | 비교 실패는 방법별/사례별 상태로 기록 |
+| C08 | 각도 wrap·국소 Gaussian·GN P의 한계 | `map_update`, P1 단위 검증 | 유지/범위 명시 | 전체 posterior의 coverage 보장 아님 |
+| C09 | 불변 입력·원본 보존 | SHA 및 문서 읽기 확인, 원 archive 보존 | 필수 차단 | 실제 입력 불일치·누수·변경이면 실행 차단 |
+| C10 | P0 Jacobian 1e-6·선형대조 1e-9 | P0 16 tests, 수식 단위 계약 | 유지 | 동일 소스·환경·입력 재사용, 관련 코드 변경 시만 재검증 |
+| C11 | P1 noiseless·SciPy/다른 초기값/각도 경계 | P1 8 tests | 유지+보완 | SciPy `success` 자체가 gradient 1e-8 증명 아님; 참값 gradient 독립 확인 |
+| C12 | P1 solver 종료를 동일 gradient 무한대 norm 1e-8로 판정 | R1/R2 반올림 진단에서 near-optimum 비용 차 난해 | **재검토 필요** | 재현용 1e-8 고정; 미래 계약에는 단위/스케일·FP 정체를 분리. 검증 없이 완화·성공 처리 금지 |
+| C13 | '한 미수렴 → 전체 stage 차단' | `synthetic.run_model` 예외와 첫 trial에서 전역 종료 | **과도** | 실패 후보/쌍은 무효로 분류, 나머지 분석 가능성은 별도 판정. 결과의 silent fallback 금지는 유지 |
+| C14 | 네 추정기 동일 입력·P0 | `synthetic.generate` 한 입력 생성 후 네 모델 적용 | 유지 | 공정성·oracle 누수 감사 필요 |
+| C15 | 진단·실험 코드 실행 전에 별도 감사 | 등록 문서·workflow에 사전 코드 감사 단계/receipt 미확인 | **신규 필수 요구** | 모든 diagnostic 및 experiment 변경의 pre-run 의사결정 감사. 근거 변경분만 검토 |
+| C16 | 모든 stage는 앞 stage 과학 PASS 선행 | PLAN P2→P3→P5→P6 전역 체인 | **부적절** | source-ready, method-valid, experiment-complete, scientific-claim 각각 따로 상태/의존성 |
+| C17 | scientific_PASS=false 기본 | 과거 결과가 synthetic/단일 scene 한계 명시 | 유지하되 분리 | 해당 주장의 독립 검증만 제한, 수학·기술 실행 허용 여부와 혼합 금지 |
+| E01 | P2 straight/turn/return, bias0/.05, 각 100, 60s/0.5s | P2_SPEC·generate 동일 조건 | 유지 | 동결 P2 원본을 사후 수정 금지 |
+| E02 | 'return' 경로 이름 | 실제 `v` 부호 전환, turn-around가 아닌 후진 | 유지/명확화 | 물리적 회전 왕복과 오해하지 않게 표기 |
+| E03 | P2 matched `SyntheticRF` | `s=.8*sin(yaw)+.15*sin(az)`, Full multipath 미모사 | 제한된 적합성 | P2 성공을 실 FFD/Full RF 성공의 통과 증거로 사용 금지 |
+| E04 | P2 bias prior mean0, SD 0.1deg/s, Qb=0 | 실제 bias는 고정 0 또는 .05 | 유지/한계 | 'fixed-truth coverage'를 prior predictive 일관성으로 주장 금지 |
+| E05 | P2 100 independent trial / bootstrap per trial | seed는 같은 path/trial에서 bias 조건 사이 재사용 | 유지/표현 개선 | 같은 RF scene·paired bias 조건을 독립 증거 수로 과대계수하지 않음 |
+| E06 | P2 주요 효과는 모든 3경로 MAP4–MAP3 MSE CI 상한<0 | `synthetic.summarize`의 `all(verdict==SUPPORT)` | **원문보다 과도한 주장 게이트** | route별 효과는 전부 보고하되, 종합 효과·이질성·'어떤 조건에서 개선'을 별개 주장으로 명시; 어떤 신뢰구간도 임의 PASS 변경 금지 |
+| E07 | P2에서 비지지면 후속 stage 모두 정지 | `HYPOTHESIS_REVIEW_REQUIRED` exit=2 + PLAN 전역 차단 | **수정** | bias 개선 주장만 보류하고, 독립 RF input auditing(P3) 또는 대조 실험 준비 가능. 새 과학 가설 실행은 사용자 확인 |
+| E08 | P2 단일 MAP3 미수렴에서 즉시 전체 실험 종료 | 원 4.5s, 재개 6.0s, completed paired trial=0 | **수정** | 프리플라이트는 대표 실패·경계 샘플 먼저; 이후 trial 실패는 성공률과 실패 사례로 보존. 과학적 paired RMSE는 완전 쌍만 사용하며 누락 편향 명시 |
+| E09 | 원시 실패 스냅샷·trace 저장 | `FAILED_STEP.npz`, `FAILURE.json`, 모델 부분 NPZ | 유지+보완 | 첫 실패 때 모든 guard 계산·step acceptance·history를 원시 보존. 이후 실패를 찾아 전체 재실행 불필요하게 함 |
+| E10 | JSON/CSV 독립 재집계·SHA 전수 | 성공 trial은 read-back, output hashes | 유지+비용 최적화 | 우선 관련 파일·변경분/representative; 최종 과학 주장 때 전수 감사 |
+| R01 | R1 비용 반올림 문제를 terminal line-integral로 회피 | D1 당시 실제 ΔJ<0, double 차이>0 | 원인 증거 유지 | 당시 고정 입력의 해결과 일반 수렴 보장은 구별 |
+| R02 | R1 GN 곡률과 실제 기울기 5% 일치 | D2 신규 입력 실제 6.40%로 차단, 정확 Hessian은 양수 | **근거 부족** | 고정 5%를 비매끄러움의 물리/수학 증거로 사용 금지; 실제 gradient/독립 비용 비교 |
+| R03 | 3/5점 적분·64eps·tiny-step 등의 R2 보호 조건 | `stable_descent` heuristic indicator, certified bound 아님 | **재설계 대상** | 진단 지표로 분리하고 오탐/미탐 테스트; 출처 없는 숫자를 물리 모델 통과조건으로 격상 금지 |
+| R04 | R1 첫 iterate는 특정 `GRADIENT_INTEGRAL_TERMINAL` branch를 써야 함 | `test_solver_regression.py`, `solver_regression.py`에서 강제 | **취약한 테스트** | 상태·gradient·동일 objective/covariance가 본 판정, 특정 branch 사용 여부는 분리된 instrumented branch test |
+| R05 | R2 첫 iterate에 `curvature_ratio`가 반드시 존재 | `test_solver_r2.py:27` KeyError | **확인된 테스트 결함** | optional field 조회 또는 branch-specific 테스트로 격리. 해결 후 테스트 결과를 새 run으로 남기고 이전 FAIL 보존 |
+| R06 | R2 전체 10개가 전부 PASS해야 P2 실행 가능 | `record_r2.py` 가 JUnit 전체 pass 필수, workflow 다음 step skipped | **차단 범위 부적절** | '목적함수/상태 올바름' 필수 vs '로그 branch 재현' 진단을 별도 outcome으로. 결함 무시·거짓 PASS 금지 |
+| R07 | R2의 고정 두 입력은 수렴됨 | 4개 시작점 중 3개 숫자, 1개는 메타키 이전 수치 assert 통과 | **기존 증거 활용** | 해당 assert 증거는 국소적으로 유효하나 R2 '전체 채택'은 미승인 유지 |
+| R08 | 각 수정 후 전체 P0/P1/R1 자동 재실행 | 비용은 짧으나 무관한 경로 실패가 전체 차단 가능 | 조건부 유지 | 변경 영향표: 동일 SHA/환경이면 receipt 재사용; 직접 영향받은 회귀 필수. 저비용 sanity run은 선택 가능 |
+| R09 | '한 수정 trial 실패 시 STOP' | 사용자 요청에 근거한 중단, 마지막에는 diagnostic test bug | **해석 수정** | 동일 결함의 검증 오탈자 수정 vs 새 과학 가설 해결 trial 분리. 중단 규칙은 실제 unresolved scientific/semantic failure에 적용 |
+| F01 | P3 동결 RF 입력·observer·LUT SHA parity | frozen P0_INPUT_MANIFEST의 직접 의존 조건 | 필수 차단 | source/shape/pose/label/time mismatch는 해당 RF 실행 차단 |
+| F02 | P2 과학 미지지를 P3 RF 데이터 적격성의 불합격으로 연결 | PLAN P2→P3 선형 gate | **의존관계 오류** | P3의 파일·좌표/기하 감사는 P2 연구 가설 결론과 독립 실행 |
+| F03 | 기존 trajectory legacy-Euler ↔ SE2 오차 유지·기록 | frozen manifest에 사전 명시 | 유지 | RF 성능 attribution에 포함, 조용히 truth 경로 변경 금지 |
+| F04 | P4 동결 RF 동일 prior/동일 gate-mask 비교 | PLAN의 원인 분리 의도 | 유지 | gate 정책/위치재선형화/likelihood 변경을 독립 축으로 비교 |
+| F05 | P5 G3 적분의 TV≤0.001 | H3 stage4 기존 0.387 미수렴 | **적용 범위 수정** | 해당 G3 reference 숫자 신뢰/과학 주장은 차단, 무관한 P4 비교와 local MAP 개발까지 전역 차단 금지. 동결 TV 값을 완화하라는 뜻 아님 |
+| F06 | P5 held-out spatial buffer 0.5m | 이전 H3 일부 경로 학습 불가 | **적용 범위 수정** | 독립 학습·일반화 claim만 제한, 동결 R0-only 진단은 실행 가능 |
+| F07 | P6 '독립 RF scene 없으면 scientific PASS 불가' | frozen 하나의 RF scene + 여러 noise seed | 유지(주장용) | 동일 scene 내 재현·조건별 비교를 수행하지 못하게 막지는 말 것 |
+| W01 | 모든 코드는 Github Actions cloud 실행 | 사용자 명시, workflow 충족 | 유지 | 정적 코드 감사는 실행 전 수행하며 cloud stage job과 구분 |
+| W02 | Git SHA/asset hash/코드·환경 receipt | workflow, validate, record_r2 | 유지 | Git SHA 동일성과 종속 import SHA 검사를 구분, 변경 영향에 맞게 reuse |
+| W03 | on push가 곧바로 진단/P2 실행 | 전용 workflow의 auto push trigger | **실행 전 감사 결여** | manual stage dispatch 또는 증빙된 PRE_RUN_AUDIT receipt 의존 job으로 분리; 감사 전에 cloud 실행 금지 |
+| W04 | 검사 프로그램 자체 사전 감사 | R2의 예상치 못한 KeyError로 미검토 입증 | **신규 필수 요구** | 모든 진단/실행 스크립트·테스트 분기/출력 계약/데이터 참조를 감사 |
+| W05 | 모든 FAIL을 단일 상태로 노출 | `FAIL_CLOSED`, run exit=1, `scientific_PASS=false` 뒤섞임 | **분해 필요** | ENGINEERING_BLOCK / CASE_INVALID / HYPOTHESIS_UNSUPPORTED / CLAIM_NOT_VALIDATED / DIAGNOSTIC_FAILED 별도 verdict |
+| W06 | 실패의 자료 삭제·silent fallback 방지 | artifact upload if always; 원 FAIL 보존 | 필수 유지 | 새 결과가 이전 실패를 'PASS'로 덮어쓰지 않음 |
+| W07 | 매 결과마다 전체 독립 감사 요구 | 실제 SHA·집계 검증은 필요에 따라 반복 | 조건부 | source·raw data·leakage·scientific claims 고위험 때 독립 검산; 로그/문서 재포장은 경량 검산 |
+| W08 | 유한 실행/진단 예산 사전 지정 없음 | 4.5s→6s→D1/D2→R2 반복 | **개선** | 최초 재현/영향범위/전수실행의 각 budget·STOP 조건을 결정 전 명시 |
+
+## 2. 우선 수정 사항 — 과학 원리와 구현 불량의 분리
+
+### P0: 다음 실행 이전에 바로잡아야 할 검증 계약
+**A. R2 test 요구와 실제 단계 출력 API를 일치시키기.**
+`test_solver_r2.py`의 특정 `history[0]['curvature_ratio']` 접근은 branch-specific diagnostics를 일반 solver API로 가정했다. 이 값이 없는 것만으로 `CONVERGED`, gradient, objective, covariance를 뒤집으면 안 된다. 먼저 해당 수학 결과 검사를 중심 계약으로 분리하고, branch-specific 로그는 강제로 해당 branch를 호출하는 별도 instrumented test로 분리한다. R1 `test_solver_regression.py`도 특정 `step_acceptance` 필수·`curvature_ratio` 조회를 동일하게 재검토한다. **테스트가 틀렸다는 사실과 전체 R2 방법 채택을 자동 승인하는 것은 다르다.**
+
+**B. `record_r2.py`와 GitHub workflow의 결과 차단 범위 분리.**
+중요 수학·원본 정합성 FAIL은 본 실험 중단. 부가 진단 메타데이터 누락이면 `DIAGNOSTIC_FAILED`로 보존하고, 그 데이터가 본 가설 판정에 쓰이는지 명시. 동일 목적함수, 상태/covariance, 수렴 여부를 독립적으로 검증해야 다음 단계가 유효하다. 오류 결과를 그냥 무시하는 정책도 금지.
+
+**C. 실행 전 감사 receipt 의무화.**
+`P2_SPEC`·source 동결 이외에 **감사자가 '이 검사 결과가 어떤 실행/주장 결정을 바꾸는가'를 검토하는 단계**를 필수로 둔다. 자신이 작성한 검사라면 자체 점검만으로 '독립 감사'라 주장하지 않는다. 단순 문서 기록도 감사 이유·변경 범위를 적되 cloud 실험으로 만들지 않는다.
+
+### P1: 현재 연구 질문의 gate 개정
+**D. 과도한 P2 hypothesis gate를 주장 범위로 되돌리기.**
+P2는 'synthetic 조건에서 bias4 효과'와 '실행 가능성'을 분리한다. all-three CI는 **'모든 경로에서 개선'이라는 강한 주장에만** 연결해야 한다. 경로별 부정 결과를 공개하되, P3의 원본 RF 입력 감사나 P4의 다른 알고리즘 비교까지 결과 없음으로 만들지 않는다. 변경된 사전등록은 `P2_SPEC_V2`로 신규 버전화하여 기존 원칙·기존 run과 구분하고 사후 유리한 threshold로 재단하지 않는다.
+
+**E. 한 numerical failure와 전체 집계의 관계 명시.**
+단일 MAP 실패로 그 추정기/그 trial의 출력은 무효다. 하지만 다른 알고리즘/독립 입력에 대한 실행 가능성은 별도 결정이다. 여러 실패를 건너뛰고 성공한 subset만 RMSE를 내는 것은 선택 편향이므로 금지; 실패율·분모·paired completeness를 함께 표시한다. 최초 known-failure→경계 샘플→규모 확대 순으로 비용 제한.
+
+**F. 수치 정지와 과학적 실패 분리.**
+`1e-8`은 원 P2 비교의 고정 숫자로 보존하되 '유일한 과학적 정확도 기준'으로 해석하지 않는다. near-roundoff에서 objective difference 기반 step gate가 실패해도 `NUMERICALLY_STALLED`/gradient objective check/독립 high precision source를 구분한다. 실제 P2 기존 verdict는 변경하지 않음.
+
+### P2: 후속 RF 연구의 의미를 지키기
+**G. P3/P4/P5/P6 의존성 graph 재설계.**
+파일·관측 계약 P3는 P2 효과판정과 무관. P4 동결 RF equal-prior 비교는 관련 모델 code&input 적격성만 선행. P5 reference TV fail은 해당 적분 reference만 invalid; P6 안에서도 local EKF/robust baseline 등 별도 비교 가능하되 reference 없는 posterior-calibration 주장은 보류. 새 scene 없는 한 일반화 주장 금지.
+
+**H. synthetic matched 세계와 실제 Full RF를 분리.**
+P2 RF `s=.8*sin(yaw)+.15*sin(az)`는 반사/비유일한 현장 테이블 오차를 나타내지 않는다. P2 pass/negative 중 어느 것도 실제 Full LoS/NLoS 성능으로 확대 금지. bias true 고정, bias prior 샘플링의 구분을 포함률 지표에 유지.
+
+## 3. 새 필수 사전 감사 프로토콜의 결론
+
+상세 템플릿과 gate 정의는 별도 문서 `PRE_RUN_AUDIT_POLICY_20261014_KO.md`에 기재한다.
+1. **Decision sentence**: 이번 검사가 바꾸는 선택 1개를 한 문장으로.
+2. **Scope/Impact**: 계약·코드·입력·패키지·의존성 중 변경점과 기존 PASS 재사용 여부.
+3. **Code/data review**: 물리 단위, bias 부호, LUT 각도/shape, truth leakage, fail-open, 상태/covariance, 테스트 branch별 optional metadata, 출력 schema를 실행 전 점검.
+4. **Failure categorization**: hard block, case-invalid, claim-block, diagnostic-only로 분류하고 실행/주장 영향 별도.
+5. **Budget**: representative input→영향 범위→필요한 전체 반복, 무관한 전수 재수행 금지.
+6. **Independent check only at consequential boundary**: 참값 라벨·데이터 분할·물리 계산·핵심 과학 결과에 한해 다른 구현/리뷰어로 확인. 자체 검사와 독립 감사의 범위 분리.
+7. **Audit receipt**: 감사를 마친 코드와 계획의 Git SHA·검토자/방법·근거/분류·GO/HOLD만 기록. 테스트가 작성자 본인에 의해 검증됐다면 independent=true 표시 금지.
+
+## 4. 기존 결과에 대한 엄격한 유지 판정
+
+기존 `P0=16 PASS`, `P1=8 PASS`, `R1=5 PASS`는 각자의 좁은 기술 계약에 따라 유효하며 새 코드에서 영향받는 부분만 재검증한다. D2의 6초 조건은 double ΔJ 양수, 80자리 실제 ΔJ 음수였고 직접적 수치 결함의 근거다. R2의 **9 PASS / 1 FAIL**은 재분류하더라도 과거 기록은 FAIL을 유지한다. 당시 오류는 최적화 상태 자체가 아니라 회귀검사의 `KeyError: curvature_ratio`이다. R2 전체 P2 `NOT_RUN`, bias 개선 `NOT_EVALUATED`, P3–P6 `NOT_RUN`은 그대로다.
+
+## 5. 수행·미수행 범위
+
+- 본 감사에서 **실행 코드, 테스트, 구 계약, 원본 결과, workflow를 수정하거나 실행하지 않았다**.
+- 이 감사 보고서의 GitHub 추가는 과거 contract를 수정하는 효력이 없다. 실제 게이트 변경 전에 별도 새 버전 계약과 검토 결과가 필요하다.
+- 독립 외부 감사 완료가 아니다. GitHub 문서/코드와 이전 실행 기록에 대한 정적 교차감사이며, 원시 ZIP 전체 재계산이나 새 수학/실험 실행을 완료했다고 표시하지 않는다.
+- 다음 실행은 본 감사의 제안된 `PRE_RUN_AUDIT`을 적용·승인한 후 결정한다.
+
+참고 원문:
+- [원 P0–P6 PLAN](PLAN_KO.md), [P2 동결 실험 계약](P2_SPEC.json)
+- [D1](D1_PLAN_KO.md), [R1 solver 결정](SOLVER_R1_DECISION_KO.md), [P2 재개 계약](P2_RESUME_20261014_KO.md), [D2](D2_PLAN_KO.md), [R2](R2_PLAN_KO.md)
+- [R2 결과/KeyError](P2_RESUME_FINAL_KO.md), [정확한 실패 로그](evidence/R2_TESTS.log)
