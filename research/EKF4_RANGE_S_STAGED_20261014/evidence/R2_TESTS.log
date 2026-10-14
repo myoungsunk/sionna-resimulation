@@ -1,0 +1,34 @@
+R2_CASE {"fixture": "FAILURE_SNAPSHOT.json", "saved": false, "status": "CONVERGED", "gradient_inf": 5.739052566511305e-10, "iterations": 4}
+.R2_CASE {"fixture": "RESUME_FAILURE_SNAPSHOT.json", "saved": false, "status": "CONVERGED", "gradient_inf": 7.806982282865249e-10, "iterations": 7}
+.R2_CASE {"fixture": "FAILURE_SNAPSHOT.json", "saved": true, "status": "CONVERGED", "gradient_inf": 5.739139719018738e-10, "iterations": 1}
+.F......
+=================================== FAILURES ===================================
+_________ test_both_frozen_failures[True-RESUME_FAILURE_SNAPSHOT.json] _________
+
+fixture = 'RESUME_FAILURE_SNAPSHOT.json', saved = True
+
+    @pytest.mark.parametrize('fixture',['FAILURE_SNAPSHOT.json','RESUME_FAILURE_SNAPSHOT.json'])
+    @pytest.mark.parametrize('saved',[False,True])
+    def test_both_frozen_failures(fixture,saved):
+        s=json.loads((HERE/fixture).read_text())
+        mu,P,z,R=(np.asarray(s[k]) for k in ('prior_x','prior_P','z','R'))
+        kw={'range_first':not saved}
+        if saved:kw['initial_delta']=np.asarray(s['prior_delta'])
+        a=map_update(mu,P,z,SyntheticRF(),R,max_iter=80,gradient_tol=1e-8,**kw)
+        assert a.status=='CONVERGED',(fixture,saved,a.status,a.gradient_inf)
+        assert a.gradient_inf<=1e-8
+        Lp=np.linalg.cholesky(P);Lr=np.linalg.cholesky(R);y=np.linalg.solve(Lp,a.prior_delta)
+        h,H=SyntheticRF()(mu+a.prior_delta);v=np.linalg.solve(Lr,z-h);B=np.linalg.solve(Lr,H@Lp)
+        assert abs(a.cost-.5*(y@y+v@v))<1e-12
+        assert np.max(np.abs(y-B.T@v))<=1e-8
+        np.testing.assert_allclose(a.P,Lp@np.linalg.solve(np.eye(len(mu))+B.T@B,Lp.T),rtol=1e-9,atol=1e-12)
+        if saved and fixture.startswith('RESUME'):
+            first=a.history[0]
+>           assert first['curvature_ratio']>.05
+E           KeyError: 'curvature_ratio'
+
+research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py:27: KeyError
+----------- generated xml file: /home/runner/work/_temp/r2/TESTS.xml -----------
+=========================== short test summary info ============================
+FAILED research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py::test_both_frozen_failures[True-RESUME_FAILURE_SNAPSHOT.json] - KeyError: 'curvature_ratio'
+1 failed, 9 passed in 0.11s
