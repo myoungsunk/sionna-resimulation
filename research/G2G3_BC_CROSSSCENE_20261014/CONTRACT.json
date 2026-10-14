@@ -1,0 +1,91 @@
+{
+  "schema": "G2G3_BC_CROSS_SCENE_V1_20261014",
+  "original_B_contract": "research/G2G3_B_RF_CAL_AUDIT_20261014/B_EXECUTED_RESULT_KO.md",
+  "source_branch": "claude/office-e-layout",
+  "source_commit": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+  "prior_BOLD_offset_m": -0.5315983906250129,
+  "office_positions_expected": 35,
+  "office_clear_expected": 25,
+  "office_blocked_expected": 10,
+  "alternate_anchor_positions_expected": {
+    "A2": 15,
+    "A2B": 14
+  },
+  "anchor_scene_path_patterns": [
+    "results/CORRIDOR_ANCHOR2_20261007/a2_x*_y-0.4/*_H.npy",
+    "results/CORRIDOR_ANCHOR2B_20261007/a2b_x*_y0.0/*_H.npy"
+  ],
+  "original_observer_match": "TX0 strongest of 2 RX with Hann, 4x zero padding, 30%-peak earliest threshold; independent office parity uses strongest of 4 ports separately",
+  "frequency_hz": {
+    "start": 6250400000,
+    "step": 1950000,
+    "count": 257
+  },
+  "correction": "r_corrected=r_raw - (-0.5315983906250129), NEVER use office-internally-estimated LoS median",
+  "rf_error_model": "Predeclared 2-component, normalized full-source TX0 signed error: Normal(LoS-clear positional data) and Student-t(df=3, blocked positional data), with weights by counts 25/35 and 10/35. No performance parameter fitting on anchor holdouts.",
+  "calibration_groups": {
+    "fit": "OFFICE LoS-clear 25 and NLoS-blocked 10 unique positions, RF fit source office only",
+    "heldout": [
+      "A2 15 unique geometric positions",
+      "A2B 14 positions: geometrically paired with A2, NOT 14 extra independent RF scenes"
+    ],
+    "scope": "independent office-vs-corridor scene transfer; no external actual measurement certification"
+  },
+  "dr_fault_prior": {
+    "p_fault": 0.05,
+    "fault_extra_sigma_m": 2,
+    "origin": "prior synthetic fixed trial; NOT independently calibrated DR fault prior",
+    "control_sigma_DR_m": 0.1,
+    "drift_sigma_DR_m": 0.245318414
+  },
+  "controls": [
+    {
+      "id": "C1_nominal",
+      "truth_m": 5,
+      "dr_m": 5,
+      "rf_m": 5.04,
+      "sigma_dr_m": 0.1
+    },
+    {
+      "id": "C2_DR_drift",
+      "truth_m": 3.608730597,
+      "dr_m": 6.414651253,
+      "rf_m": 3.672195826,
+      "sigma_dr_m": 0.245318414
+    },
+    {
+      "id": "C3_RF_overcorrection",
+      "truth_m": 5,
+      "dr_m": 5.03,
+      "rf_m": 4.5,
+      "sigma_dr_m": 0.1
+    },
+    {
+      "id": "C4_RF_long_path",
+      "truth_m": 5,
+      "dr_m": 5.03,
+      "rf_m": 7,
+      "sigma_dr_m": 0.1
+    }
+  ],
+  "rule": {
+    "p_win_threshold": 0.95,
+    "nis_threshold": 6.634896601,
+    "guard": "if DR>RF and NIS>6.634896601 and p_RF_closer>=0.95, radial estimate=RF corrected by inlier bias; else exactly DR; test post-mean vs guarded action separately",
+    "calibration": "threshold and action are experimental and NOT independently probability calibrated",
+    "outlier_unknown": "Observe false-rescues and do not retune based on heldout labels"
+  },
+  "math": {
+    "absolute_tolerance": 1e-7,
+    "log_evidence_relative_tolerance": 0.005,
+    "range_truth_nonleak": true,
+    "office_parity_mean_tol_m": 1e-7
+  },
+  "success_criteria": {
+    "B": "Input parity + measured external holdout likelihood scores; independent calibration claim only if uncertainty/tail coverage and correct sensor port contract hold. Low n blocks 99% guarantee.",
+    "C": "C2 absolute error improves >0.5m, C1/C3/C4 guarded action does not worsen DR more than 1e-9, no truth used in online inference; if unmet, hypothesis CONTRADICTED and no posterior retuning."
+  },
+  "validation_scope": "B and C only. Full nonlinear G2/G3, joint pose/Heading and recursive F NOT_RUN. Scientific independent calibration of DR Fault prior NOT ESTABLISHED.",
+  "audit_protocol_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "scientific_PASS": false
+}
