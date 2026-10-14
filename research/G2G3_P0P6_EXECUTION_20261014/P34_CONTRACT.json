@@ -1,0 +1,127 @@
+{
+  "schema": "G2G3_P3_P4_FROZEN_R0_PHYSICAL_ONE_STEP_20261014",
+  "goal": "Full 3-state one-step posterior in P3; entire archived trajectory one-step factorial of EKF approximations in P4; numerical nonlinear G3 evaluated separately",
+  "source_branch": "research/g2g3-p0-p6-execution-20261014",
+  "original_h3_commit": "32ee990b0d9dfc3bf3010e5ccabf404fa9d3aa20",
+  "frozen_model": "R0 joint diagonal Rs=0.0081 RR=0.0068578637, old corrected B_OLD and E1 with frozen P3 fold",
+  "dr": "same D0 gyro/odo motion+initial sample, no RF recursive feedback in one-step",
+  "p3": {
+    "sample_conditions": [
+      [
+        "R2_aA_m0",
+        "gyro_bias",
+        2,
+        0,
+        978,
+        "los",
+        "B_OLD"
+      ],
+      [
+        "R2_aA_m0",
+        "gyro_bias",
+        0,
+        0,
+        978,
+        "los",
+        "B_OLD"
+      ],
+      [
+        "R4_aA_m0",
+        "gyro_bias",
+        0,
+        0,
+        550,
+        "full",
+        "E1_FULL_LORO"
+      ]
+    ],
+    "methods": [
+      "G2_EKF_S",
+      "G3_JOINT"
+    ],
+    "gh_joint_orders": [
+      25,
+      41
+    ],
+    "gh_Sonly_orders": [
+      9,
+      17
+    ],
+    "heading_grid": 1440,
+    "tolerances": {
+      "heading_TV": 0.001,
+      "MAP_angle_deg": 0.1,
+      "HPD_width_deg": 1,
+      "relative_evidence": 0.005
+    },
+    "output": "Posterior mean (x,y,wrapped ψ), full PSD 3x3 covariance, heading marginal, MAP, HPD, spatial/heading errors and Pose NEES; no truth in solver",
+    "original_failed_cell_expected": "Original R0 G3 Heading MAP err~52.58 vs original G2X~24.56, current G3 joint physical numeric reference should be checked without claiming a performance win."
+  },
+  "p4": {
+    "cases": [
+      "R2_aA_m0",
+      "R2_aA_m45",
+      "R2_aB_m0",
+      "R4_aA_m0",
+      "R4_aB_m0",
+      "R5_aA_m0",
+      "R5_aB_m0"
+    ],
+    "DR_conditions": [
+      [
+        "noise_pair",
+        1
+      ],
+      [
+        "gyro_bias",
+        0
+      ],
+      [
+        "gyro_bias",
+        1
+      ],
+      [
+        "gyro_bias",
+        2
+      ]
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "rf_models": [
+      [
+        "los",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "E1_FULL_LORO"
+      ]
+    ],
+    "methods": [
+      "DR",
+      "G0_S_EKF",
+      "G2_RANGE_S_EKF",
+      "G3_JOINT_EKF_GATE",
+      "G3_JOINT_EKF_NOGATE"
+    ],
+    "purpose": "All post-30 s frozen case/seed/condition samples for FAST EKF one-step G2/G3 approximations; not nonlinear exact G3.",
+    "distinction": "G3_joint_EKF (linearized Jacobian) is not G3_Exact tilted nonlinear integration; claim must not merge the two."
+  },
+  "policy_ref": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "branch_source_audit": "approval hashes code and reviewer notes. Original P0/LUT/H source SHA independently checked at cloud preflight.",
+  "prohibitions": [
+    "Truth enters only scoring",
+    "No same range twice",
+    "No cap/gate relaxation without versioned contract",
+    "Per method numerical failure does not destroy unrelated methods",
+    "No claim that P3/P4 is recursive or signed-B2 validated"
+  ],
+  "scientific_PASS": false
+}
