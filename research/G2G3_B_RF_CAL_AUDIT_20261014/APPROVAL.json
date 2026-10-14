@@ -1,0 +1,49 @@
+{
+  "audit_id": "G2G3_B_RF_CAL_AUDIT_20261014_01",
+  "audit_policy_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "review_reference_commit": "ba67b52e69a0f17d5c67561002382525234c2a8d",
+  "review_decision": "GO_WITH_CLAIM_LIMITATION",
+  "audit_method": "assistant source/mathematical review + pinned runner git blobs + independent analytic/direct-integral fixture",
+  "independent_reviewer": false,
+  "authorized_stages": [
+    "bootstrap",
+    "fixture",
+    "acquire",
+    "evaluate"
+  ],
+  "source_git_blobs": {
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/b_audit.py": "77af007da45061587feb6dabcab0df0fb9e7affa",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py": "ffbc0ca9e92902a7615980929a42ae851808b6b4",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/b_acquire.py": "c6c179c52616552159064cc42e87b3a0dfd4f201",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/CONTRACT.json": "8f4e839b2dd6b645b5ca08f0887ce433b0e2ba9a",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/SOURCE_REVIEW_KO.md": "9608bd3779ef8cb0bb7390d0bebae331f7291281",
+    ".github/workflows/g2g3-B-rf-cal-audit.yml": "79c351b5684d8253d3a338702d106e26cd72baa4"
+  },
+  "review_findings": [
+    {
+      "id": "SA-001",
+      "severity": "HARD_EXECUTION_BLOCK_FIXED_BEFORE_RUN",
+      "message": "Undefined fault weight fixed; zero-weight gaussian components explicitly skipped."
+    },
+    {
+      "id": "SA-002",
+      "severity": "CLAIM_BLOCK",
+      "message": "Routes overlap spatially; R2 and R5 lack >=0.5m independently buffered calibration."
+    },
+    {
+      "id": "SA-003",
+      "severity": "CLAIM_BLOCK",
+      "message": "No online CIR feature observations or gyro fault calibration available in archived RF/DR input."
+    },
+    {
+      "id": "SA-004",
+      "severity": "CLAIM_BLOCK",
+      "message": "Observed z-bins are descriptive only, not normalized generative measurement likelihood."
+    }
+  ],
+  "input_archive_id": 11875206058,
+  "input_zip_sha256": "56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5",
+  "claim_scope": "B numerical/descriptive, route-out diagnostic; NOT scientifically independent calibration",
+  "scientific_PASS": false,
+  "audited_code_matches_execution_sha": false
+}
