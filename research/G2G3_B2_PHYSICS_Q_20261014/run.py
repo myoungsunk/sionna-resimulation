@@ -101,10 +101,16 @@ def clean_pdf(e,m):
     return np.maximum((norm.cdf((e-mu+bw/2)/sd)-norm.cdf((e-mu-bw/2)/sd))/bw,1e-300)
 
 def ecdf(e,m,weight):
-    return (1-weight)*clean_cdf(e,m)+weight*student.cdf(e,df=3,loc=m["blocked_loc"],scale=m["blocked_scale"])
+    defense=float(C["defensive_negative_outlier"]["weight"])
+    neg=C["defensive_negative_outlier"]
+    base=(1-weight)*clean_cdf(e,m)+weight*student.cdf(e,df=3,loc=m["blocked_loc"],scale=m["blocked_scale"])
+    return (1-defense)*base+defense*student.cdf(e,df=neg["df"],loc=neg["loc_m"],scale=neg["scale_m"])
 
 def epdf(e,m,weight):
-    return (1-weight)*clean_pdf(e,m)+weight*student.pdf(e,df=3,loc=m["blocked_loc"],scale=m["blocked_scale"])
+    defense=float(C["defensive_negative_outlier"]["weight"])
+    neg=C["defensive_negative_outlier"]
+    base=(1-weight)*clean_pdf(e,m)+weight*student.pdf(e,df=3,loc=m["blocked_loc"],scale=m["blocked_scale"])
+    return (1-defense)*base+defense*student.pdf(e,df=neg["df"],loc=neg["loc_m"],scale=neg["scale_m"])
 
 def cv_quantile(prob,m,weight):
     return float(brentq(lambda v:ecdf(v,m,weight)-prob,-20,20,xtol=1e-11))
@@ -179,6 +185,7 @@ def stage_B2():
       labels_used_for_training=["office geometric blocked label","office signed error ground truth"],
       test_truth_used_in_prediction=False,
       clean_convolution_assumption="Gaussian residual plus independent uniform +/- half FFT tap-spacing; conservative physics-inspired assumption, NOT proven exact detector noise",
+      defensive_negative_component="Frozen prior C3 exploratory overcorrection branch, NOT fitted to Office/A2/A2B; signed likelihood is 3-component",
       fit=m,rows=rows,baseline=baseline,
       office_LOOCV_95_coverage=float(np.mean([x["in_95"] for x in loocv])),
       office_LOOCV_99_coverage=float(np.mean([x["in_99"] for x in loocv])),
