@@ -1,0 +1,74 @@
+name: EKF4 R3 five original P2 failures - audit-first independent numeric diagnosis
+on:
+  push:
+    branches: ['research/ekf4-r3-five-fixture-diagnostics-20261014']
+    paths:
+      - '.github/workflows/ekf4-r3-five-failure-diagnostic.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/r3five_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  immutable-fixture-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Sparse checkout exact source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=2 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/.github/workflows/ekf4-r3-five-failure-diagnostic.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory code and frozen source audit BEFORE any diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r3five_audit.py "$RUNNER_TEMP/r3five_pre_audit" | tee "$RUNNER_TEMP/audit.log"
+      - name: Fetch and verify exact original failed preflight artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11892566974/zip > "$RUNNER_TEMP/r3_five_original.zip"
+          echo '931ee7cd8552820f3b6311877bb6ccc4ecc910669231290efb82e5868756c9b4  '"$RUNNER_TEMP/r3_five_original.zip" | sha256sum -c
+      - name: Install numerics only after audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt mpmath==1.3.0
+      - name: Diagnose all five original failed updates with independent 80-digit objective
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r3five_diag.py --artifact "$RUNNER_TEMP/r3_five_original.zip" --audit "$RUNNER_TEMP/r3five_pre_audit/PRE_AUDIT.json" --out "$RUNNER_TEMP/r3five_results" | tee "$RUNNER_TEMP/diagnostic.log"
+      - name: Preserve receipts and every numerical trace even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r3-five-forensics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r3five_pre_audit/**
+            ${{ runner.temp }}/r3five_results/**
+            ${{ runner.temp }}/audit.log
+            ${{ runner.temp }}/diagnostic.log
+            research/EKF4_RANGE_S_STAGED_20261014/r3five_*.py
+            .github/workflows/ekf4-r3-five-failure-diagnostic.yml
+          if-no-files-found: warn
+          retention-days: 30
