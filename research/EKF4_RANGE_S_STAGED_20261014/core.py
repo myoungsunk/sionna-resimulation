@@ -263,26 +263,41 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             actual_step = t*step
             candidate = y+actual_step
             new_cost, new_grad, _ = evaluate(candidate)
-            roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
+            # R3: never infer descent by subtracting two O(1) costs.
+            # Use J(y+d)-J(y) = rho(y).Delta_rho + .5||Delta_rho||^2
+            # for the ORIGINAL Gaussian posterior. No roundoff slack.
+            if new_grad is None or not np.isfinite(new_cost):
+                continue
+            h0, _ = model(mu + Lp@y)
+            h1, _ = model(mu + Lp@candidate)
+            v0 = np.linalg.solve(Lr, z-np.asarray(h0, float))
+            dv = np.linalg.solve(Lr, np.asarray(h0, float)-np.asarray(h1, float))
+            drho = np.r_[actual_step, dv]
+            rho = np.r_[y, v0]
+            from math import fsum
+            stable_delta = fsum(float(u)*float(v) for u,v in zip(rho, drho))
+            stable_delta += .5*float(drho@drho)
+            # Use the true-gradient line integral only near the cancellation
+            # floor where h(x+d)-h(x) itself can become inaccurate.
+            near_floor = abs(new_cost-cost) <= 256*np.finfo(float).eps*max(1., abs(cost))
+            if near_floor:
+                _, ghalf, _ = evaluate(y+.5*actual_step)
+                if ghalf is not None:
+                    integral = fsum(float(a)*float(d) for a,d in zip(
+                        (grad+4*ghalf+new_grad)/6., actual_step))
+                    # Both are algebraically the same objective. Divergence at
+                    # roundoff is handled conservatively; never fake success.
+                    if np.isfinite(integral) and integral < 0.:
+                        if stable_delta >= 0. or abs(stable_delta-integral) > max(
+                            1e-14*abs(integral), 100*np.finfo(float).eps*abs(integral)):
+                            stable_delta = integral
+                            history[-1]['stable_method'] = 'GRADIENT_INTEGRAL'
+            if stable_delta <= 1e-4*t*directional and stable_delta < 0.:
                 y = candidate
                 history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
-                accepted = True
-                break
-            # R2: test the true gradient along the segment, not agreement
-            # with the Gauss-Newton Hessian approximation. The latter also
-            # differs on perfectly smooth nonlinear residuals (D2, 6s).
-            from stable_descent import integrated_descent
-            proof = integrated_descent(evaluate, y, actual_step, cost, grad,
-                                       new_cost, new_grad, info)
-            if proof is not None:
-                y = candidate
-                history[-1].update(proof)
-                history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = (
-                    'GRADIENT_INTEGRAL_TERMINAL' if proof['gradient_new_inf'] <= gradient_tol
-                    else 'GRADIENT_INTEGRAL_PROGRESS')
+                history[-1]['step_acceptance'] = 'STABLE_OBJECTIVE_DESCENT'
+                history[-1]['stable_delta'] = stable_delta
+                history[-1]['candidate_gradient_inf'] = float(np.max(np.abs(new_grad)))
                 accepted = True
                 break
         if not accepted:
