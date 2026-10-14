@@ -1,0 +1,103 @@
+name: EKF4 R4 P3 audit-first frozen RF input and adapter parity
+on:
+  push:
+    branches: ['research/ekf4-r4-p3-frozen-rf-20261014']
+    paths:
+      - '.github/workflows/ekf4-r4-p3-frozen-rf.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p3_*.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_p3_adapter.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/P3_R4_IMPLEMENTATION_PLAN_20261014_KO.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ekf4-r4-p3-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-then-frozen-input-then-model-parity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout exact source commit and frozen metadata/LUT
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r4-p3-frozen-rf.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory code and source audit BEFORE any numerical diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p3_pre_run_audit.py --out "$RUNNER_TEMP/p3_pre_run" | tee "$RUNNER_TEMP/p3_audit.log"
+          echo "EKF4_P3_AUDIT_RECEIPT=$RUNNER_TEMP/p3_pre_run/P3_PRE_AUDIT.json" >> "$GITHUB_ENV"
+      - name: Download original EKF3 one-step frozen RF artifact and verify SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/frozen_rf_one_step.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/frozen_rf_one_step.zip" | sha256sum -c
+      - name: Install PINNED NumPy and pytest AFTER audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 pytest==8.3.5
+      - name: P3 source integrity - 14 frozen case-channel traces, 14502 samples
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p3_frozen_inputs.py --archive "$RUNNER_TEMP/frozen_rf_one_step.zip" --audit "$EKF4_P3_AUDIT_RECEIPT" --out "$RUNNER_TEMP/p3_source" | tee "$RUNNER_TEMP/p3_input.log"
+      - name: P3 canonical EKF4 range-s observation and full 14502-step parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p3_parity.py --archive "$RUNNER_TEMP/frozen_rf_one_step.zip" --audit "$EKF4_P3_AUDIT_RECEIPT" --inputs "$RUNNER_TEMP/p3_source/P3_SOURCE_RECEIPT.json" --out "$RUNNER_TEMP/p3_parity" | tee "$RUNNER_TEMP/p3_parity.log"
+      - name: P3 strict numerical semantic and adversarial unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/p3_tests"
+          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p3_adapter.py --junitxml="$RUNNER_TEMP/p3_tests/P3_TESTS.xml" | tee "$RUNNER_TEMP/p3_tests.log"
+      - name: P3 complete adapter source and P4 handoff receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p3_export.py --audit "$EKF4_P3_AUDIT_RECEIPT" --source "$RUNNER_TEMP/p3_source/P3_SOURCE_RECEIPT.json" --parity "$RUNNER_TEMP/p3_parity/P3_PARITY_FINAL.json" --junit "$RUNNER_TEMP/p3_tests/P3_TESTS.xml" --out "$RUNNER_TEMP/p3_final" | tee "$RUNNER_TEMP/p3_final.log"
+      - name: Preserve audit parity raw traces and test evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r4-p3-frozen-parity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p3_pre_run/**
+            ${{ runner.temp }}/p3_source/**
+            ${{ runner.temp }}/p3_parity/**
+            ${{ runner.temp }}/p3_tests/**
+            ${{ runner.temp }}/p3_final/**
+            ${{ runner.temp }}/p3_audit.log
+            ${{ runner.temp }}/p3_input.log
+            ${{ runner.temp }}/p3_parity.log
+            ${{ runner.temp }}/p3_tests.log
+            ${{ runner.temp }}/p3_final.log
+            research/EKF4_RANGE_S_STAGED_20261014/p3_*.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_p3_adapter.py
+            research/EKF4_RANGE_S_STAGED_20261014/P3_R4_IMPLEMENTATION_PLAN_20261014_KO.md
+            .github/workflows/ekf4-r4-p3-frozen-rf.yml
+          if-no-files-found: warn
+          retention-days: 30
