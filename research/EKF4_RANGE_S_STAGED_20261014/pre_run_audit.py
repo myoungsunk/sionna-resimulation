@@ -23,7 +23,7 @@ CODES = (
     'core.py', 'stable_descent.py', 'synthetic.py', 'validate.py',
     'test_core.py', 'test_solver_regression.py', 'test_solver_r2.py',
     'solver_regression.py', 'record_r2.py', 'p2_v2.py',
-    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py'
+    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py', 'r3_four_regression.py'
 )
 DOCS = ('P2_SPEC.json', 'FAILURE_SNAPSHOT.json', 'RESUME_FAILURE_SNAPSHOT.json',
         'P2_V2_PREEXECUTION_CONTRACT_KO.md', 'P2_V2_CHANGE_RECONCILIATION.json')
