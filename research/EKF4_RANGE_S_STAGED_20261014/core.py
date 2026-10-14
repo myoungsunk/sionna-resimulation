@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from typing import Callable
 import math
 import numpy as np
+from solver_r3 import resolved_armijo, exact_newton_direction
+from stable_descent import integrated_descent
 
 Model = Callable[[np.ndarray], tuple[np.ndarray, np.ndarray]]
 
@@ -186,9 +188,11 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
     """Local joint MAP in prior-whitened coordinates, with safeguarded GN.
 
     The fixed Gaussian negative-log-posterior and gradient_tol are unchanged.
-    R2 uses embedded true-gradient quadrature at the cost cancellation
-    floor. Gradient stationarity, the objective and the iteration limit
-    are unchanged. This is a local safeguard, not a convergence proof.
+    R3 never accepts uphill double-cost steps using a positive roundoff
+    allowance. Near cancellation, it tries independent true-gradient
+    quadrature before a carefully guarded local exact-Newton fallback.
+    Same fixed objective, convergence threshold, and iteration limit.
+    This remains a local numerical safeguard, not a convergence proof.
 
     x=mu+chol(P)*y; prior residual is ALWAYS y. Angles supplied to the
     periodic model may be unwrapped. Restrict yaw delta to (-pi,pi) for
@@ -255,38 +259,80 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             break
         if it == max_iter:
             break
-        step = np.linalg.solve(info, -grad)
-        directional = float(grad@step)
         accepted = False
-        for j in range(max_step_halvings+1):
-            t = 2.**(-j)
-            actual_step = t*step
-            candidate = y+actual_step
-            new_cost, new_grad, _ = evaluate(candidate)
-            roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
-                y = candidate
-                history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
-                accepted = True
-                break
-            # R2: test the true gradient along the segment, not agreement
-            # with the Gauss-Newton Hessian approximation. The latter also
-            # differs on perfectly smooth nonlinear residuals (D2, 6s).
-            from stable_descent import integrated_descent
-            proof = integrated_descent(evaluate, y, actual_step, cost, grad,
-                                       new_cost, new_grad, info)
-            if proof is not None:
-                y = candidate
-                history[-1].update(proof)
-                history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = (
-                    'GRADIENT_INTEGRAL_TERMINAL' if proof['gradient_new_inf'] <= gradient_tol
-                    else 'GRADIENT_INTEGRAL_PROGRESS')
-                accepted = True
+        last_rejected = []
+        # The original R2 would accept a slightly *increased* double cost
+        # via "+ roundoff", bypassing its integrated-descent safeguard.
+        # All R3 decisions must have a signed descent witness.
+        for direction_type in ('GAUSS_NEWTON', 'EXACT_NEWTON_FALLBACK'):
+            if direction_type == 'GAUSS_NEWTON':
+                direction = np.linalg.solve(info, -grad)
+            else:
+                # Use the original objective and true gradient. An exact
+                # Hessian via central differences is a local fallback only.
+                if gn > 1e-5:
+                    continue
+                direction = exact_newton_direction(evaluate, y, grad)
+                if direction is None:
+                    last_rejected.append({'direction': direction_type,
+                                          'reason': 'HESSIAN_NOT_VERIFIED_PD'})
+                    continue
+            slope = float(math.fsum(float(a)*float(b)
+                                   for a, b in zip(grad, direction)))
+            if not np.isfinite(direction).all() or not np.isfinite(slope) or slope >= 0:
+                last_rejected.append({'direction': direction_type,
+                                      'reason': 'NON_DESCENT_OR_NONFINITE'})
+                continue
+            for j in range(max_step_halvings+1):
+                t = 2.**(-j)
+                d = t*direction
+                candidate = y+d
+                new_cost, new_grad, _ = evaluate(candidate)
+                if new_grad is None or not np.isfinite(new_cost) or not np.isfinite(new_grad).all():
+                    last_rejected.append({'direction': direction_type, 'halvings': j,
+                                          'reason': 'OUTSIDE_CHART_OR_NONFINITE'})
+                    continue
+                # DIRECT acceptance now needs a decrease resolved *beyond*
+                # a conservative floating-point uncertainty margin, AND
+                # unrelaxed Armijo. There is no positive noise allowance.
+                if resolved_armijo(cost, new_cost, t*slope):
+                    y = candidate
+                    history[-1].update({
+                        'step_fraction': t, 'step_acceptance': 'ARMIJO_DIRECT',
+                        'step_direction': direction_type,
+                        'direct_cost_difference': float(new_cost-cost),
+                        'new_gradient_inf': float(np.max(np.abs(new_grad)))})
+                    accepted = True
+                    break
+                # Cost subtraction at the cancellation floor is unreliable.
+                # Test the actual gradient integral rather than permissive
+                # double-cost comparisons or GN curvature-proxy agreement.
+                proof = integrated_descent(evaluate, y, d, cost, grad,
+                                           new_cost, new_grad, info)
+                if proof is not None:
+                    y = candidate
+                    history[-1].update(proof)
+                    history[-1].update({
+                        'step_fraction': t,
+                        'step_direction': direction_type,
+                        'step_acceptance': ('GRADIENT_INTEGRAL_TERMINAL'
+                            if proof['gradient_new_inf'] <= gradient_tol
+                            else 'GRADIENT_INTEGRAL_PROGRESS')})
+                    accepted = True
+                    break
+                if j in (0, max_step_halvings):
+                    last_rejected.append({
+                        'direction': direction_type, 'halvings': j,
+                        'reason': 'UNRESOLVED_COST_AND_NO_INTEGRAL_WITNESS',
+                        'direct_cost_difference': float(new_cost-cost),
+                        'new_gradient_inf': float(np.max(np.abs(new_grad)))})
+            if accepted:
                 break
         if not accepted:
-            status = 'LINE_SEARCH_FAILED'
+            # A nonstationary, numerically unresolved local update is INVALID
+            # for the affected case; it is not silently a converged update.
+            history[-1]['rejected_candidates'] = last_rejected[-8:]
+            status = 'NUMERICALLY_STALLED'
             break
     cost, grad, info = evaluate(y)
     if info is None:

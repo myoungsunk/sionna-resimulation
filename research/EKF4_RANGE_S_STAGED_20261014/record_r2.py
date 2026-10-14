@@ -29,12 +29,12 @@ def main():
             assert result.status=='CONVERGED' and result.gradient_inf<=1e-8
             cases.append({'snapshot':f,'saved_start':saved,'status':result.status,'gradient_inf':result.gradient_inf,
                           'iterations':result.iterations,'state':result.x.tolist(),'covariance':result.P.tolist(),'history':result.history})
-    rec={'stage':'R2_REGRESSION','status':'PASS','tests':counts,'cases':cases,'git_sha':os.environ['GITHUB_SHA'],
+    rec={'stage':'R2_R3_REGRESSION','status':'PASS','tests':counts,'cases':cases,'git_sha':os.environ['GITHUB_SHA'],
          'run_id':os.environ['GITHUB_RUN_ID'],'ended_utc':datetime.now(timezone.utc).isoformat(),
          'source_sha256':{p.name:sha(p) for p in HERE.glob('*.py')},'scientific_PASS':False,'P2':'NOT_RUN_YET',
          'output_sha256':{p.name:sha(p) for p in a.out.iterdir() if p.is_file()},
          'audit_receipt_sha256':sha(a.audit),'audit_status':audit['decision']}
     write(a.out/'FINAL.json',rec)
-    print('R2_REGRESSION '+json.dumps({'status':'PASS','tests':counts,'cases':[{k:c[k] for k in ('snapshot','saved_start','gradient_inf','iterations')} for c in cases]}),flush=True)
+    print('R2_R3_REGRESSION '+json.dumps({'status':'PASS','tests':counts,'cases':[{k:c[k] for k in ('snapshot','saved_start','gradient_inf','iterations')} for c in cases]}),flush=True)
 
 if __name__=='__main__':main()

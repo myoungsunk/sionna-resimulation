@@ -16,7 +16,7 @@ concurrency:
 jobs:
   audit-then-numerics-then-p2-representative:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 180
     env:
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
@@ -62,13 +62,24 @@ jobs:
         run: |
           set -euo pipefail
           mkdir "$RUNNER_TEMP/r2"
-          python -m pytest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py --junitxml="$RUNNER_TEMP/r2/TESTS.xml" | tee "$RUNNER_TEMP/r2/TESTS.log"
+          python -m pytest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py research/EKF4_RANGE_S_STAGED_20261014/test_solver_r3.py --junitxml="$RUNNER_TEMP/r2/TESTS.xml" | tee "$RUNNER_TEMP/r2/TESTS.log"
           python research/EKF4_RANGE_S_STAGED_20261014/record_r2.py --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/r2"
       - name: Audited representative P2 only; do not run whole 600-trial matrix
         shell: bash
         run: |
           set -euo pipefail
           python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight --out "$RUNNER_TEMP/p2_preflight" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
+      - name: Mandatory fresh full-stage static source audit BEFORE full P2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py --phase full --out "$RUNNER_TEMP/pre_run_full" | tee "$RUNNER_TEMP/pre_run_full_audit.log"
+          echo "EKF4_FULL_AUDIT=$RUNNER_TEMP/pre_run_full/PRE_RUN_AUDIT.json" >> "$GITHUB_ENV"
+      - name: R3 full P2 - frozen 600 paired trials, 4 estimators each
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase full --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_FULL_AUDIT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_full.log"
       - name: Preserve all evidence even if an earlier stage fails
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -80,10 +91,14 @@ jobs:
             ${{ runner.temp }}/r1/**
             ${{ runner.temp }}/r2/**
             ${{ runner.temp }}/p2_preflight/**
+            ${{ runner.temp }}/pre_run_full/**
+            ${{ runner.temp }}/p2_full/**
             ${{ runner.temp }}/pre_run_audit.log
             ${{ runner.temp }}/p0p1.log
             ${{ runner.temp }}/r1.log
             ${{ runner.temp }}/p2_preflight.log
+            ${{ runner.temp }}/pre_run_full_audit.log
+            ${{ runner.temp }}/p2_full.log
             research/EKF4_RANGE_S_STAGED_20261014/*.py
             research/EKF4_RANGE_S_STAGED_20261014/*.json
             research/EKF4_RANGE_S_STAGED_20261014/*_KO.md

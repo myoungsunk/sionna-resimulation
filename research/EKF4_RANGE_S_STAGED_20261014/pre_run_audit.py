@@ -20,7 +20,7 @@ FROZEN = {
     'synthetic.py': 'c3fc54d9726beab176971aa8652c0b6f61353f55f596613e4c8150351c4d9643',
 }
 CODES = (
-    'core.py', 'stable_descent.py', 'synthetic.py', 'validate.py',
+    'core.py', 'stable_descent.py', 'solver_r3.py', 'test_solver_r3.py', 'synthetic.py', 'validate.py',
     'test_core.py', 'test_solver_regression.py', 'test_solver_r2.py',
     'solver_regression.py', 'record_r2.py', 'p2_v2.py',
     'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py'
@@ -166,7 +166,7 @@ def main():
             report['estimator_truth_access'] = labels
             if not safe:
                 errors.append({'id':'TRUTH_LEAKAGE_IN_FROZEN_ESTIMATOR_ENTRY'})
-            for name in ('test_solver_regression.py','test_solver_r2.py'):
+            for name in ('test_solver_regression.py','test_solver_r2.py','test_solver_r3.py'):
                 fragile = branch_telemetry_assumptions(parsed[name])
                 if fragile:
                     errors.append({'id':'UNCONDITIONAL_BRANCH_TELEMETRY','path':name,'cases':fragile})
@@ -184,7 +184,8 @@ def main():
             first = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py')
             test = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/validate.py')
             exp = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py')
-            if not (first >= 0 and first < test < exp):
+            r3 = workflow.find('test_solver_r3.py')
+            if not (first >= 0 and first < test < r3 < exp):
                 errors.append({'id':'AUDIT_NOT_FIRST_IN_WORKFLOW'})
             report['workflow_sha256'] = digest(REPO/'.github/workflows/ekf4-range-s-staged.yml')
             report['warnings'].append({
