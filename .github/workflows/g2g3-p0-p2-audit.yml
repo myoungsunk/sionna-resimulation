@@ -1,0 +1,64 @@
+name: G2G3 P0-P2 source and numerical reuse audit
+on:
+  push:
+    branches: [research/g2g3-p0-p6-execution-20261014]
+    paths:
+      - research/G2G3_P0P6_EXECUTION_20261014/APPROVAL.json
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  initial-audits:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_P0P6_EXECUTION_20261014/
+            /research/G2G3_BF_STAGED_20261014/CONTRACT.json
+            /research/G2G3_BF_STAGED_20261014/tilted_g3.py
+            /research/G2G3_BF_STAGED_20261014/EXECUTION_SUMMARY.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/h3_offline.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/STAGE4_SMOKE_01/SMOKE_PARTIAL.csv
+            /.github/workflows/g2g3-p0-p2-audit.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python source compilation
+        run: python -m py_compile research/G2G3_P0P6_EXECUTION_20261014/preflight.py
+      - name: P0 source audit
+        run: python research/G2G3_P0P6_EXECUTION_20261014/preflight.py P0
+      - name: P1 original observer implementation and safe reuse audit
+        run: python research/G2G3_P0P6_EXECUTION_20261014/preflight.py P1
+      - name: P2 original failure and independent numerical recovery evidence verification
+        run: python research/G2G3_P0P6_EXECUTION_20261014/preflight.py P2
+      - name: Archive audit receipts regardless of failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-P0-P2-preflight
+          path: outputs/g2g3_p0p6/
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Stage outcome summary
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          root=Path("outputs/g2g3_p0p6")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("# G2G3 P0–P2 preflight and evidence reuse\n\n")
+              for stage in ("P0","P1","P2"):
+                  p=root/(stage+".json")
+                  if p.exists():
+                      r=json.loads(p.read_text())
+                      f.write(f"**{stage}:** {r['calculation']} / {r['scientific_claim']}\n\n")
+                  else:f.write(f"**{stage}:** NOT_RUN\n\n")
+          PY
