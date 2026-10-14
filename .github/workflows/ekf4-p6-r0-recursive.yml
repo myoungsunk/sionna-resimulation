@@ -1,0 +1,73 @@
+name: EKF4 P6 audit-first local Gaussian R0 recursive validation
+on:
+  push:
+    branches: ['research/ekf4-r3-p6-staged-20261014']
+    paths:
+      - '.github/workflows/ekf4-p6-r0-recursive.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p6_r0_recursive.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p6_pre_audit.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  p6-audited-r0-local:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - name: Read-only frozen source and 39 data assets checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/**\n/.github/workflows/ekf4-p6-r0-recursive.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
+          lines=['/research/EKF4_RANGE_S_STAGED_20261014/**',
+                 '/research/EKF3_INDEPENDENT_20261013/**',
+                 '/.github/workflows/ekf4-p6-r0-recursive.yml',
+                 '/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**']
+          lines.extend('/'+a['path'] for a in j['assets'])
+          Path('/tmp/p6sparse').write_text('\n'.join(lines)+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin < /tmp/p6sparse
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory p6_pre_audit.py before ANY mathematical execution
+        run: python research/EKF4_RANGE_S_STAGED_20261014/p6_pre_audit.py
+      - name: Install pinned libraries after audit
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: P0 complete RF hashes shapes and pose validation
+        run: python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py | tee "$RUNNER_TEMP/P6_P0_VERIFICATION.json"
+      - name: P6 real RF R0 local Gaussian recursive 3/4state and MAP
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p6_r0_recursive.py --out "$RUNNER_TEMP/p6_r0" | tee "$RUNNER_TEMP/p6_r0.log"
+      - name: Preserve raw complete/invalid traces, input receipts and source
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-p6-r0-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/P6_PRE_RUN.json
+            ${{ runner.temp }}/P6_P0_VERIFICATION.json
+            ${{ runner.temp }}/p6_r0/**
+            ${{ runner.temp }}/p6_r0.log
+            research/EKF4_RANGE_S_STAGED_20261014/p6_r0_recursive.py
+            research/EKF4_RANGE_S_STAGED_20261014/p6_pre_audit.py
+            research/EKF4_RANGE_S_STAGED_20261014/P5_P6_SCOPE_AND_PRE_RUN_AUDIT_KO.md
+          if-no-files-found: warn
+          retention-days: 30
