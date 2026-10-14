@@ -1,7 +1,7 @@
-name: EKF4 audit-first P2 staged validation
+name: EKF4 audited R3 and P2 preflight
 on:
   push:
-    branches: ['research/ekf4-range-s-staged-20261014']
+    branches: ['research/ekf4-r3-p2-p6-20261014']
     paths:
       - '.github/workflows/ekf4-range-s-staged.yml'
       - 'research/EKF4_RANGE_S_STAGED_20261014/*.py'
@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: ekf4-audited-p2-${{ github.ref }}
   cancel-in-progress: false
@@ -23,6 +24,7 @@ jobs:
       MKL_NUM_THREADS: '1'
       PYTHONHASHSEED: '0'
       PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout exact source SHA; no model tests
         shell: bash
@@ -64,6 +66,16 @@ jobs:
           mkdir "$RUNNER_TEMP/r2"
           python -m pytest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py --junitxml="$RUNNER_TEMP/r2/TESTS.xml" | tee "$RUNNER_TEMP/r2/TESTS.log"
           python research/EKF4_RANGE_S_STAGED_20261014/record_r2.py --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/r2"
+      - name: Download original P2 failure input artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/vnd.github+json" /repos/myoungsunk/sionna-resimulation/actions/artifacts/11875912063/zip > "$RUNNER_TEMP/P2_ORIGINAL.zip"
+      - name: R3 regression against four archived failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r3_four_regression.py --audit "$EKF4_AUDIT_RECEIPT" --artifact "$RUNNER_TEMP/P2_ORIGINAL.zip" --out "$RUNNER_TEMP/r3"
       - name: Audited representative P2 only; do not run whole 600-trial matrix
         shell: bash
         run: |
@@ -79,6 +91,7 @@ jobs:
             ${{ runner.temp }}/p0p1/**
             ${{ runner.temp }}/r1/**
             ${{ runner.temp }}/r2/**
+            ${{ runner.temp }}/r3/**
             ${{ runner.temp }}/p2_preflight/**
             ${{ runner.temp }}/pre_run_audit.log
             ${{ runner.temp }}/p0p1.log
