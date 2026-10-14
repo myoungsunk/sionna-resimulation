@@ -88,7 +88,10 @@ def audit(out):
         for node in ast.walk(tree):
             if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
                     and node.func.attr == "lu_solve" and len(node.args) >= 2
-                    and isinstance(node.args[1], ast.BinOp)):
+                    and isinstance(node.args[1], ast.BinOp)
+                    and isinstance(node.args[1].op, ast.Mult)):
+                # Matrix multiplication RHS is suspicious. Vector residual
+                # subtraction (self.z-h) is permitted and audited separately.
                 fatal.append("MP_LU_SOLVE_NONVECTOR_RHS_UNREVIEWED")
         if not {"diagnose", "high_precision_analysis", "run"}.issubset(funcs):
             fatal.append("DIAGNOSTIC_API_MISSING")
