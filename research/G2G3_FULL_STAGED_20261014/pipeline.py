@@ -249,7 +249,7 @@ def stage_p0():
     audit("P0")
     started=time.time()
     snap,p0,lut,x,P,zs,zr=prev.frozen_snapshot()
-    if abs(snap["t_s"]-195.6)>1e-9:raise RuntimeError("HARD_EXECUTION_BLOCK: frozen time mismatch")
+    if abs(snap["time_s"]-195.6)>1e-9:raise RuntimeError("HARD_EXECUTION_BLOCK: frozen time mismatch")
     meta=dict(stage="P0",status="PASS_SOURCE_AND_D0_G0_PARITY",case=snap["case"],
       snapshot=snap,input_valid=True,scientific_PASS=False,
       source_revision=subprocess.check_output(["git","rev-parse","HEAD"],cwd=REPO,text=True).strip(),
