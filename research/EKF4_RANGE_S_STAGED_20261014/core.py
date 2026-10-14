@@ -264,7 +264,42 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             candidate = y+actual_step
             new_cost, new_grad, _ = evaluate(candidate)
             roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
+            # R3: the original P2 archived failures all have an objectively
+            # descent full GN step, but subtracting two O(1) double costs
+            # gives an erroneous positive delta O(1e-14). For the local
+            # terminal step, use stationarity plus the *gradient path*
+            # instead of comparing two nearly identical costs. This never
+            # lowers the original gradient_tol or admits a large step.
+            if (new_grad is not None and np.isfinite(new_cost)
+                    and np.isfinite(new_grad).all()
+                    and directional < 0.
+                    and float(np.max(np.abs(new_grad))) <= gradient_tol
+                    and float(np.linalg.norm(new_grad, np.inf)) <
+                        float(np.linalg.norm(grad, np.inf))
+                    and float(np.max(np.abs(actual_step))) <= 1e-5*max(1.,float(np.max(np.abs(y))))
+                    and abs(new_cost-cost) <= 256*np.finfo(float).eps*max(1.,abs(new_cost),abs(cost))):
+                _, gmid, _ = evaluate(y+.5*actual_step)
+                if gmid is not None and np.isfinite(gmid).all():
+                    slope0=float(grad@actual_step)
+                    slopem=float(gmid@actual_step)
+                    slope1=float(new_grad@actual_step)
+                    area=(slope0+4*slopem+slope1)/6
+                    if (slope0<0 and area<0 and
+                            abs(slope1)<abs(slope0) and
+                            abs(area-(slope0+slope1)/2) <
+                              .1*abs(area)+1e-23):
+                        y=candidate
+                        history[-1]['step_fraction']=t
+                        history[-1]['step_acceptance']='R3_GRADIENT_VERIFIED_TERMINAL'
+                        history[-1]['gradient_integral_difference']=area
+                        history[-1]['gradient_new_inf']=float(np.max(np.abs(new_grad)))
+                        accepted=True
+                        break
+            # Direct Armijo only when descent dominates the cost
+            # comparison uncertainty. Never accept a step merely because
+            # a positive roundoff cushion overwhelms its tiny decrease.
+            if (np.isfinite(new_cost) and
+                    new_cost < cost+1e-4*t*directional-roundoff):
                 y = candidate
                 history[-1]['step_fraction'] = t
                 history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
