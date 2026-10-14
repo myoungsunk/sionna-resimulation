@@ -1,0 +1,113 @@
+name: G2G3 B2 quantization-CIR calibration / C2 controls / D0 math
+on:
+  push:
+    branches:
+      - research/g2g3-b2-physics-q-c2-staged-20261014
+    paths:
+      - research/G2G3_B2_PHYSICS_Q_20261014/APPROVAL.json
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: g2g3-b2-physics-q-c2
+  cancel-in-progress: false
+jobs:
+  B2-C2-D0:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout exact source and legacy validated extractor
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_B2_PHYSICS_Q_20261014/
+            /research/G2G3_BC_CROSSSCENE_20261014/
+            /.github/workflows/g2g3-b-crossscene-c.yml
+            /.github/workflows/g2g3-b2-physics-q-c2.yml
+      - name: Install Python interpreter
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit source before data acquisition
+        run: |
+          python research/G2G3_B2_PHYSICS_Q_20261014/gate.py BOOTSTRAP
+          python research/G2G3_BC_CROSSSCENE_20261014/gate.py BOOTSTRAP
+      - name: Checkout immutable Office and alternative Anchor H data
+        uses: actions/checkout@v4
+        with:
+          ref: b05af070a87981f8712fdd41eac4c1bbb882e9c7
+          path: externalOffice
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          lfs: false
+          sparse-checkout: |
+            /results/OFFICE_RANGING_20261008/OFFICE_RANGING.json
+            /results/OFFICE_SNOWBALL_20261008_819fa93/full35_stride1/*/*_H.npy
+            /results/CORRIDOR_ANCHOR2_20261007/SHIFT_FIT_ANCHOR2.json
+            /results/CORRIDOR_ANCHOR2_20261007/a2_*/*_H.npy
+            /results/CORRIDOR_ANCHOR2B_20261007/SHIFT_FIT_ANCHOR2B.json
+            /results/CORRIDOR_ANCHOR2B_20261007/a2b_*/*_H.npy
+      - name: Install pinned scientific libraries
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Pre-audit and independently reconstruct 64 external RF positions
+        run: |
+          python research/G2G3_BC_CROSSSCENE_20261014/gate.py EXTRACT
+          python research/G2G3_BC_CROSSSCENE_20261014/run.py extract
+      - name: B2 source+input audit, training and independent scene transfer
+        run: |
+          python research/G2G3_B2_PHYSICS_Q_20261014/gate.py B2
+          python research/G2G3_B2_PHYSICS_Q_20261014/run.py B2
+      - name: C2 source+posterior audit, four synthetic controls
+        run: |
+          python research/G2G3_B2_PHYSICS_Q_20261014/gate.py C2
+          python research/G2G3_B2_PHYSICS_Q_20261014/run.py C2
+      - name: D0 source+input audit and signed RF exact Bayes factorization
+        run: |
+          python research/G2G3_B2_PHYSICS_Q_20261014/gate.py D0
+          python research/G2G3_B2_PHYSICS_Q_20261014/run.py D0
+      - name: Preserve scoped receipts even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-b2-c2-d0-reviewed-evidence
+          path: |
+            outputs/B2_PHYSICS_Q/
+            outputs/BC_CROSSSCENE/H_EXTRACTION.json
+            research/G2G3_B2_PHYSICS_Q_20261014/CONTRACT.json
+            research/G2G3_B2_PHYSICS_Q_20261014/PRE_RUN_REVIEW_KO.md
+            research/G2G3_B2_PHYSICS_Q_20261014/APPROVAL.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Separate four verdicts in Actions summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path("outputs/B2_PHYSICS_Q")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as fd:
+              fd.write("# B2 / C2 / D0 staged audit\n\n")
+              for name in ("B2_REPORT.json","C2_REPORT.json","D0_REPORT.json"):
+                  path=root/name
+                  fd.write("## "+name+"\n\n")
+                  if not path.is_file():
+                      fd.write("NOT_RUN or scoped failure: check stage audit and logs\n\n")
+                      continue
+                  doc=json.loads(path.read_text())
+                  for k in ("execution","calculation","hypothesis_result","hypothesis",
+                            "C2_rescued","C1_C3_C4_guarded","full_scientific_calibration",
+                            "actual_full_G2_G3","scientific_PASS"):
+                      if k in doc:fd.write("**"+k+"**: "+str(doc[k])+"\n\n")
+          PY
