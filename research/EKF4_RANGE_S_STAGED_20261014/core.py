@@ -186,8 +186,8 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
     """Local joint MAP in prior-whitened coordinates, with safeguarded GN.
 
     The fixed Gaussian negative-log-posterior and gradient_tol are unchanged.
-    R2 uses embedded true-gradient quadrature at the cost cancellation
-    floor. Gradient stationarity, the objective and the iteration limit
+    R3 treats a float64 cost change within its cancellation floor as
+    unresolved, using embedded gradient quadrature before acceptance. Gradient stationarity, the objective and the iteration limit
     are unchanged. This is a local safeguard, not a convergence proof.
 
     x=mu+chol(P)*y; prior residual is ALWAYS y. Angles supplied to the
@@ -263,16 +263,24 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             actual_step = t*step
             candidate = y+actual_step
             new_cost, new_grad, _ = evaluate(candidate)
-            roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
-                y = candidate
-                history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
-                accepted = True
-                break
-            # R2: test the true gradient along the segment, not agreement
-            # with the Gauss-Newton Hessian approximation. The latter also
-            # differs on perfectly smooth nonlinear residuals (D2, 6s).
+            if new_grad is None or not np.isfinite(new_cost):
+                continue
+            # R3: a direct difference of two nearly equal float64 costs
+            # can have a WRONG SIGN (four fixed D3 failures). Never accept
+            # an unresolved difference merely by adding an epsilon slack.
+            ambiguity = 1024*np.finfo(float).eps*max(1.,abs(cost),abs(new_cost))
+            cost_change = float(new_cost-cost)
+            if abs(cost_change) > ambiguity:
+                if cost_change <= 1e-4*t*directional:
+                    y = candidate
+                    history[-1]['step_fraction'] = t
+                    history[-1]['step_acceptance'] = 'ARMIJO_RESOLVED'
+                    accepted = True
+                    break
+                continue
+            # Near cancellation, use the directional derivative of the
+            # *same* fixed negative-log posterior. This is a numerical
+            # approximation, not an independent RF observation.
             from stable_descent import integrated_descent
             proof = integrated_descent(evaluate, y, actual_step, cost, grad,
                                        new_cost, new_grad, info)

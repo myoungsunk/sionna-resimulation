@@ -23,9 +23,10 @@ CODES = (
     'core.py', 'stable_descent.py', 'synthetic.py', 'validate.py',
     'test_core.py', 'test_solver_regression.py', 'test_solver_r2.py',
     'solver_regression.py', 'record_r2.py', 'p2_v2.py',
-    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py'
+    'pre_run_audit.py', 'conftest.py', 'diagnose.py', 'diagnose_resume.py',
+    'r3_archive_audit.py', 'r3_frozen_regression.py','test_r3.py'
 )
-DOCS = ('P2_SPEC.json', 'FAILURE_SNAPSHOT.json', 'RESUME_FAILURE_SNAPSHOT.json',
+DOCS = ('R3_TO_P6_EXECUTION_CONTRACT_KO.md','P2_SPEC.json', 'FAILURE_SNAPSHOT.json', 'RESUME_FAILURE_SNAPSHOT.json',
         'P2_V2_PREEXECUTION_CONTRACT_KO.md', 'P2_V2_CHANGE_RECONCILIATION.json')
 VARIABLE_BRANCH_LOG = {'curvature_ratio', 'gradient_integral_difference',
                        'step_acceptance', 'gradient_new_inf',
@@ -91,7 +92,11 @@ def require_audit_receipt(audit_path):
     for name,expected in a['source_sha256'].items():
         if digest(HERE/name) != expected:
             raise RuntimeError('Source changed since pre-run audit: '+name)
-    workflow=REPO/'.github/workflows/ekf4-range-s-staged.yml'
+    rel=a.get('workflow_path','.github/workflows/ekf4-range-s-staged.yml')
+    if rel not in ('.github/workflows/ekf4-range-s-staged.yml',
+                   '.github/workflows/ekf4-r3-audited.yml'):
+        raise RuntimeError('Unapproved workflow path in audit receipt')
+    workflow=REPO/rel
     if a['workflow_sha256'] != digest(workflow):
         raise RuntimeError('Workflow changed since pre-run audit')
     return a
@@ -100,6 +105,7 @@ def require_audit_receipt(audit_path):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--phase', choices=['preflight','full'], required=True)
+    parser.add_argument('--workflow-path',default='.github/workflows/ekf4-range-s-staged.yml')
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
     if os.getenv('GITHUB_ACTIONS') != 'true':
@@ -180,13 +186,16 @@ def main():
                           if isinstance(node, ast.FunctionDef)}
             if not {'run_phase','main'}.issubset(v2_defined):
                 errors.append({'id':'P2_RUNNER_ENTRY_MISSING'})
-            workflow = (REPO/'.github/workflows/ekf4-range-s-staged.yml').read_text()
+            if args.workflow_path not in ('.github/workflows/ekf4-range-s-staged.yml','.github/workflows/ekf4-r3-audited.yml'):
+                raise RuntimeError('Invalid audit workflow path')
+            workflow = (REPO/args.workflow_path).read_text()
             first = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py')
             test = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/validate.py')
             exp = workflow.find('python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py')
             if not (first >= 0 and first < test < exp):
                 errors.append({'id':'AUDIT_NOT_FIRST_IN_WORKFLOW'})
-            report['workflow_sha256'] = digest(REPO/'.github/workflows/ekf4-range-s-staged.yml')
+            report['workflow_path'] = args.workflow_path
+            report['workflow_sha256'] = digest(REPO/args.workflow_path)
             report['warnings'].append({
                 'id':'PRE_RUN_AUDIT_IS_STATIC_NOT_INDEPENDENT_PROOF',
                 'scope':'LUT, measured multipath, numerical optimality and scientific claims remain unverified'
