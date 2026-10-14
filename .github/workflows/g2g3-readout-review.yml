@@ -1,0 +1,57 @@
+name: G2G3 audited probability-readout review
+on:
+  push:
+    branches: [research/g2g3-audited-minimal-20261014]
+    paths: [research/G2G3_AUDITED_MINIMAL_20261014/READOUT_APPROVAL.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  readout-review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_AUDITED_MINIMAL_20261014/
+            /.github/workflows/g2g3-audited-minimal.yml
+            /.github/workflows/g2g3-readout-review.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Reuse source audit of unchanged environment and acquisition helpers
+        run: python research/G2G3_AUDITED_MINIMAL_20261014/gate.py environment
+      - name: Install identical numerical environment
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Audit and acquire immutable original input
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py acquire
+          python research/G2G3_AUDITED_MINIMAL_20261014/acquire.py
+      - name: New source-bound audit then independent readout verification and diagnosis
+        run: python research/G2G3_AUDITED_MINIMAL_20261014/readout_review.py
+      - name: Preserve scoped repair evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-readout-review-evidence
+          path: |
+            outputs/readout_review/
+            research/G2G3_AUDITED_MINIMAL_20261014/READOUT_APPROVAL.json
+            research/G2G3_AUDITED_MINIMAL_20261014/READOUT_PRE_REVIEW_KO.md
+            research/G2G3_AUDITED_MINIMAL_20261014/readout_review.py
+            inputs/range_audit/ACQUISITION.json
+          retention-days: 30
+          if-no-files-found: error
