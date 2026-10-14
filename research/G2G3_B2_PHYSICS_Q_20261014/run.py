@@ -42,13 +42,11 @@ def audited(stage):
 
 def features(df):
     # These are observable from the RF signal; no labels, true range, route or XY.
-    zr=df["true_range_m"].to_numpy(float)+df["signed_error_mean_m"].to_numpy(float)
     gap=df["median_peak_gap_m"].to_numpy(float)
     energy=df["median_FP_energy_fraction"].to_numpy(float)
     ratio=df["median_fp_peak_ratio"].to_numpy(float)
     # Frozen dimensionless transforms; NO prior knowledge of heldout truth used.
     return np.stack([
-        np.clip((zr-5.)/5.,-1.5,2.5),
         np.clip(gap/3.,0.,2.),
         np.clip(-np.log(np.maximum(energy,1e-8)) - 3.5,-2.,3.),
         np.clip((.4-ratio)*5.,-3.,3.),
@@ -75,7 +73,7 @@ def fit(training):
     def jac(w):
         q=expit(XX@w)
         return XX.T@(q-y)+np.r_[0.,penalty*w[1:]]
-    fit=minimize(obj,np.r_[np.log(y.mean()/(1-y.mean())),np.zeros(4)],jac=jac,method="BFGS",
+    fit=minimize(obj,np.r_[np.log(y.mean()/(1-y.mean())),np.zeros(3)],jac=jac,method="BFGS",
                  options=dict(gtol=1e-9,maxiter=300))
     if not np.isfinite(fit.x).all() or np.linalg.norm(jac(fit.x))>1e-5:
         raise RuntimeError("CASE_RESULT_INVALID: logistic quality-score optimization failed")
