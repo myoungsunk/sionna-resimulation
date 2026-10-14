@@ -1,10 +1,7 @@
 name: EKF4 R3 audit-first P2 full and staged follow-up
 on:
-  push:
-    branches: ['research/ekf4-r3-p6-staged-20261014']
-    paths:
-      - '.github/workflows/ekf4-range-s-staged.yml'
-      - 'research/EKF4_RANGE_S_STAGED_20261014/*.py'
+  # Full P2 is expensive and immutable evidence is already verified.
+  # Do not rerun it on unrelated P3/P4/P6 source commits.
   workflow_dispatch:
 permissions:
   contents: read
