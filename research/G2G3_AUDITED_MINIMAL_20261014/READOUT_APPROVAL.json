@@ -1,14 +1,15 @@
 {
-  "audit_id":"G2G3_READOUT_SCOPE_REPAIR_20261014_A02",
-  "reviewed_source_commit":"69b84f179b96fcbc16cb3f6177a07cb22d6ac04b",
+  "audit_id":"G2G3_READOUT_EXPORT_REPAIR_20261014_A03",
+  "reviewed_source_commit":"67e2f1967268310a466f81256ba6b1b14d13d4ce",
   "review_decision":"GO_WITH_CLAIM_LIMITATION",
-  "audit_method":"source review, exact event-inequality derivation, CDF versus independent direct-integral verification",
+  "audit_method":"source delta review for JSON native scalar export; unchanged exact event derivation and CDF versus independent direct-integral verification",
   "independent_reviewer":false,
   "reused_run_id":38526264898,
-  "scope":"One bounded diagnosis of two probability readouts using the same unchanged posterior. No new estimator adopted.",
+  "failed_diagnostic_run_id":38527288934,
+  "scope":"Same bounded probability-readout diagnosis, repairing NumPy group labels serialization only. No new estimator adopted.",
   "reference_zip_sha256":"56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5",
   "source_git_blobs":{
-    "research/G2G3_AUDITED_MINIMAL_20261014/readout_review.py":"a5f0620548f29a25fa3a3248564d43cbd98bfba3",
+    "research/G2G3_AUDITED_MINIMAL_20261014/readout_review.py":"5cc1f4da71d50d540eedea5a6607bf1291d7c46c",
     "research/G2G3_AUDITED_MINIMAL_20261014/model.py":"1b13e7fa1909168f3f7cb2d35d2d86d4c00cb5b9",
     "research/G2G3_AUDITED_MINIMAL_20261014/CONTRACT.json":"eaa43a8cc33f8b32af0e033e439277401f0b56c2",
     "research/G2G3_AUDITED_MINIMAL_20261014/gate.py":"a9c0bc2c4003f4f63c58fb0d3b83aeff408d1fde",
@@ -16,10 +17,12 @@
     ".github/workflows/g2g3-readout-review.yml":"aa0e235751934b40674de1d407afa05a2d85a04b"
   },
   "findings":[
-    {"severity":"DIAGNOSTIC_DEFECT_OR_WARNING","scope":"equating fault event with distance advantage","action":"derive and independently verify the direct distance event probability"},
+    {"severity":"DIAGNOSTIC_DEFECT_OR_WARNING","scope":"JSON report export only","action":"convert NumPy group key scalars without changing numbers; preserve prior failed run; compare preexisting CSV after rerun"},
+    {"severity":"DIAGNOSTIC_DEFECT_OR_WARNING","scope":"equating fault event with distance advantage","action":"retain direct event CDF versus independent integral verification"},
     {"severity":"CLAIM_BLOCK","scope":"zero mistakes with zero activation","action":"report undefined precision as null"},
     {"severity":"CLAIM_BLOCK","scope":"C4 flag-based success versus continuous point estimate","action":"report actual point-estimate harm without invalidating its valid calculation"}
   ],
+  "implementation_repair_count":1,
   "parameter_changes":0,
   "threshold_changes":0,
   "new_model_trials":0,
