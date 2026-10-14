@@ -1,15 +1,23 @@
-name: EKF4 D2 fixed-input diagnosis
+name: EKF4 R2 repair trial then frozen P2
 on:
   push:
     branches: ['research/ekf4-range-s-staged-20261014']
-    paths: ['.github/workflows/ekf4-range-s-staged.yml', 'research/EKF4_RANGE_S_STAGED_20261014/diagnose_resume.py']
+    paths:
+      - '.github/workflows/ekf4-range-s-staged.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/core.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/stable_descent.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/record_r2.py'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ekf4-staged-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
-  diagnose-before-repair:
+  bounded-repair-trial:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
@@ -17,7 +25,7 @@ jobs:
       PYTHONHASHSEED: '0'
       PYTHONUNBUFFERED: '1'
     steps:
-      - name: Sparse checkout fixed event commit
+      - name: Checkout fixed event source and check frozen experiment
         shell: bash
         run: |
           set -euo pipefail
@@ -29,27 +37,54 @@ jobs:
           printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/.github/workflows/ekf4-range-s-staged.yml\n' > .git/info/sparse-checkout
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          cd research/EKF4_RANGE_S_STAGED_20261014
+          printf '548258a444c02a3a1d0c2d210b470489560b1bd56ad911cc9ee93d7631b36ce7  P2_SPEC.json\nc3fc54d9726beab176971aa8652c0b6f61353f55f596613e4c8150351c4d9643  synthetic.py\n46746402e3a40e4acf673ae4fa2ab86dd293f62004632108374349f838ff5ffe  core.py\n' | sha256sum --check
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11.11'
-      - name: Install pinned diagnostic dependencies
-        run: python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt mpmath==1.3.0
-      - name: Diagnose both immutable snapshots; no P2
+      - name: Install pinned dependencies
+        run: python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
+      - name: Original P0 and P1 regression
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/diagnose_resume.py --out "$RUNNER_TEMP/d2" | tee "$RUNNER_TEMP/d2.log"
-      - name: Preserve read-only diagnostic evidence
+          python research/EKF4_RANGE_S_STAGED_20261014/validate.py --until P1 --out "$RUNNER_TEMP/p0p1" | tee "$RUNNER_TEMP/p0p1.log"
+      - name: Original R1 regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/solver_regression.py --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/r1" | tee "$RUNNER_TEMP/r1.log"
+      - name: R2 old and new failure regression and safeguards
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/r2"
+          python -m pytest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py --junitxml="$RUNNER_TEMP/r2/TESTS.xml" | tee "$RUNNER_TEMP/r2/TESTS.log"
+          python research/EKF4_RANGE_S_STAGED_20261014/record_r2.py --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/r2"
+      - name: Same frozen P2 from first trial; stop on next unresolved failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/synthetic.py --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/p2_r2" | tee "$RUNNER_TEMP/p2_r2.log"
+      - name: Preserve complete trial evidence on PASS or FAIL
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ekf4-d2-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ekf4-r2-p2-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/d2/**
-            ${{ runner.temp }}/d2.log
+            ${{ runner.temp }}/p0p1/**
+            ${{ runner.temp }}/r1/**
+            ${{ runner.temp }}/r2/**
+            ${{ runner.temp }}/p2_r2/**
+            ${{ runner.temp }}/p0p1.log
+            ${{ runner.temp }}/r1.log
+            ${{ runner.temp }}/p2_r2.log
             research/EKF4_RANGE_S_STAGED_20261014/*.py
             research/EKF4_RANGE_S_STAGED_20261014/*.json
             research/EKF4_RANGE_S_STAGED_20261014/*.md
+            research/EKF4_RANGE_S_STAGED_20261014/pytest.ini
             research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
+            .github/workflows/ekf4-range-s-staged.yml
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 30

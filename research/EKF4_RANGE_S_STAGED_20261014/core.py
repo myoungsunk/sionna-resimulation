@@ -186,8 +186,9 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
     """Local joint MAP in prior-whitened coordinates, with safeguarded GN.
 
     The fixed Gaussian negative-log-posterior and gradient_tol are unchanged.
-    Near the cost cancellation floor only, a locally smooth terminal GN
-    step may use a 3-point gradient line-integral to verify descent.
+    R2 uses embedded true-gradient quadrature at the cost cancellation
+    floor. Gradient stationarity, the objective and the iteration limit
+    are unchanged. This is a local safeguard, not a convergence proof.
 
     x=mu+chol(P)*y; prior residual is ALWAYS y. Angles supplied to the
     periodic model may be unwrapped. Restrict yaw delta to (-pi,pi) for
@@ -269,39 +270,19 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
                 history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
                 accepted = True
                 break
-            # At the floating-point cancellation floor, compare the SAME
-            # objective via J(y+d)-J(y) = integral_0^1 grad J(y+t*d).d dt.
-            # A separate stationarity check uses the UNCHANGED gradient_tol.
-            if not (new_grad is not None and np.isfinite(new_cost)
-                    and np.isfinite(new_grad).all()
-                    and float(np.max(np.abs(new_grad))) <= gradient_tol
-                    and directional < 0.
-                    and float(np.max(np.abs(actual_step))) <= 1e-6*max(1., float(np.max(np.abs(y))))
-                    and abs(new_cost-cost) <= 64*np.finfo(float).eps*max(1., abs(cost), abs(new_cost))):
-                continue
-            # Exclude discontinuous LUT branches: local GN curvature must
-            # agree with the gradient change before using 3-point Simpson.
-            expected_change = info@actual_step
-            curv_ratio = float(np.linalg.norm(new_grad-grad-expected_change, ord=np.inf)
-                               /max(float(np.linalg.norm(expected_change, ord=np.inf)), 1e-30))
-            if not np.isfinite(curv_ratio) or curv_ratio > .05:
-                continue
-            _, half_grad, _ = evaluate(y+.5*actual_step)
-            if half_grad is None:
-                continue
-            area = float(math.fsum(float(a)*float(b) for a,b in zip(
-                (grad+4*half_grad+new_grad)/6.,actual_step)))
-            trapezoid = float(math.fsum(float(a)*float(b) for a,b in zip(
-                (grad+new_grad)/2.,actual_step)))
-            if (area < 1e-4*t*directional
-                    and abs(area-trapezoid) <= .001*abs(area)+1e-20):
+            # R2: test the true gradient along the segment, not agreement
+            # with the Gauss-Newton Hessian approximation. The latter also
+            # differs on perfectly smooth nonlinear residuals (D2, 6s).
+            from stable_descent import integrated_descent
+            proof = integrated_descent(evaluate, y, actual_step, cost, grad,
+                                       new_cost, new_grad, info)
+            if proof is not None:
                 y = candidate
+                history[-1].update(proof)
                 history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = 'GRADIENT_INTEGRAL_TERMINAL'
-                history[-1]['direct_cost_difference'] = float(new_cost-cost)
-                history[-1]['gradient_integral_difference'] = area
-                history[-1]['gradient_new_inf'] = float(np.max(np.abs(new_grad)))
-                history[-1]['curvature_ratio'] = curv_ratio
+                history[-1]['step_acceptance'] = (
+                    'GRADIENT_INTEGRAL_TERMINAL' if proof['gradient_new_inf'] <= gradient_tol
+                    else 'GRADIENT_INTEGRAL_PROGRESS')
                 accepted = True
                 break
         if not accepted:
