@@ -86,7 +86,7 @@ def main():
      raise RuntimeError('Frozen asset SHA256 mismatch: '+a['path'])
     if 'sha256' not in a:
      b=path.read_bytes()
-     blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\\0'+b).hexdigest()
+     blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
      if blob!=a.get('git_blob_sha1'):
       raise RuntimeError('Frozen lineage blob SHA1 mismatch: '+a['path'])
     row={'path':a['path'],'kind':a['kind'],'bytes':length,'SHA256_computed':digest,
