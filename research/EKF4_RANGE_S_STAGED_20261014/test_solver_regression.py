@@ -44,8 +44,8 @@ def test_saved_failed_terminal_iterate_repaired_at_original_threshold():
     assert np.linalg.eigvalsh(a.P)[0]>0
     assert np.max(np.abs(a.prior_delta-np.asarray(s['prior_delta'])))<1e-6
     print('R1_TERMINAL',json.dumps({'status':a.status,'old_gradient':s['recorded_gradient_inf'],
-           'new_gradient':a.gradient_inf,'float_delta':first['direct_cost_difference'],
-           'integral_delta':first['gradient_integral_difference']}))
+           'new_gradient':a.gradient_inf,'float_delta':first.get('direct_cost_difference'),
+           'integral_delta':first.get('gradient_integral_difference')}))
 
 @pytest.mark.regression
 def test_integral_difference_matches_previously_frozen_80_digit_reference():
