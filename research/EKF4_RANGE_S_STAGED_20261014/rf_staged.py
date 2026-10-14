@@ -121,6 +121,20 @@ def heading_pdf(lut,x,P,zs,case,n):
   lp=-.5*(delta*delta/var+ds*ds/RS)
   logs.append(lp)
  L=np.asarray(logs);v=np.exp(L-np.max(L));return v/v.sum(),angles
+def rebin_periodic_mass(fine):
+ """Align fine grid-node centered cells with coarse centered cells.
+
+ Each coarse cell contains its aligned fine center (full cell) and
+ half of each adjacent fine cell. Periodic seam must wrap. The result
+ preserves unit mass and does not shift a comparison by half a bin.
+ """
+ f=np.asarray(fine,float)
+ if len(f)%2:raise ValueError('even fine grid required')
+ aligned=f[::2]+.5*(np.roll(f,1)[::2]+np.roll(f,-1)[::2])
+ if abs(float(aligned.sum())-float(f.sum()))>1e-12:
+  raise RuntimeError('P5 periodic rebin lost probability mass')
+ return aligned
+
 def P5(lut,entries):
  checks=[]
  for desc,data in entries:
@@ -129,8 +143,8 @@ def P5(lut,entries):
   for k in inds:
    seq=[heading_pdf(lut,data['xminus'][k],data['Pminus'][k],
                     data['z_s'][k],desc['case'],n)[0] for n in (720,1440,2880)]
-   tv01=.5*float(np.sum(np.abs(seq[0]-(seq[1][::2]+seq[1][1::2]))))
-   tv12=.5*float(np.sum(np.abs(seq[1]-(seq[2][::2]+seq[2][1::2]))))
+   tv01=.5*float(np.sum(np.abs(seq[0]-(rebin_periodic_mass(seq[1])))))
+   tv12=.5*float(np.sum(np.abs(seq[1]-(rebin_periodic_mass(seq[2])))))
    checks.append({'case':desc['case'],'channel':desc['channel'],
                   'k':k,'t_s':float(data['t_s'][k]),'TV_720_1440':tv01,'TV_1440_2880':tv12,
                   'within_0p001':tv12<=.001})
@@ -197,7 +211,11 @@ def P6(lut,entries):
         r=map_update(x,P,obs,Hmodel,R0,range_first=True,max_iter=80,gradient_tol=1e-8)
         if r.status!='CONVERGED':
          invalid={'index':k,'time_s':float(t[k]),'reason':r.status,
-                  'gradient':r.gradient_inf,'cost':r.cost,'history':r.history}
+                  'gradient':r.gradient_inf,'cost':r.cost,'history':r.history,
+                  'frozen_input_z':obs.tolist(),'R0':R0.tolist(),
+                  'prior_x_before_RF':x.tolist(),'prior_P_before_RF':P.tolist(),
+                  'observed_h_at_prior':h.tolist(),'observed_H_at_prior':H.tolist(),
+                  'source_note':'Saved for read-only fixed-input solver diagnosis; not an accepted MAP result'}
          break
         x,P=r.x,r.P;accepted+=1
        else:rejected+=1
