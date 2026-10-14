@@ -1,4 +1,4 @@
-name: EKF4 audited R3 and P2 preflight
+name: EKF4 audited R3 and full P2
 on:
   push:
     branches: ['research/ekf4-r3-p2-p6-20261014']
@@ -17,7 +17,7 @@ concurrency:
 jobs:
   audit-then-numerics-then-p2-representative:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 120
     env:
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py --phase preflight --out "$RUNNER_TEMP/pre_run" | tee "$RUNNER_TEMP/pre_run_audit.log"
+          python research/EKF4_RANGE_S_STAGED_20261014/pre_run_audit.py --phase full --out "$RUNNER_TEMP/pre_run" | tee "$RUNNER_TEMP/pre_run_audit.log"
           echo "EKF4_AUDIT_RECEIPT=$RUNNER_TEMP/pre_run/PRE_RUN_AUDIT.json" >> "$GITHUB_ENV"
       - name: Install pinned numerical dependencies AFTER audit
         run: python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
@@ -76,11 +76,11 @@ jobs:
         run: |
           set -euo pipefail
           python research/EKF4_RANGE_S_STAGED_20261014/r3_four_regression.py --audit "$EKF4_AUDIT_RECEIPT" --artifact "$RUNNER_TEMP/P2_ORIGINAL.zip" --out "$RUNNER_TEMP/r3"
-      - name: Audited representative P2 only; do not run whole 600-trial matrix
+      - name: Audited FULL P2 frozen 600 paired trials
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight --out "$RUNNER_TEMP/p2_preflight" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
+          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
       - name: Preserve all evidence even if an earlier stage fails
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
