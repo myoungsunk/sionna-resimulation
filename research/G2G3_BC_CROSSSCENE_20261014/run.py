@@ -255,14 +255,21 @@ def pwin_quad(d,z,sd_dr,p):
 def independent_grid(d,z,sd_dr,p):
     de=d-z
     e=np.linspace(-12,12,24001)
-    fp=pdf(e,p)
-    ga=(1-C["dr_fault_prior"]["p_fault"])*norm.pdf(e+de,0,sd_dr)+C["dr_fault_prior"]["p_fault"]*norm.pdf(e+de,0,math.hypot(sd_dr,C["dr_fault_prior"]["fault_extra_sigma_m"]))
-    w=fp*ga
-    den=float(simpson(w,x=e))
+    if de==0:return 0.
+    def direct_density(x):
+        fr=(p["w_clean"]*norm.pdf(x,p["mu_clean"],p["sd_clean"])+
+            p["w_blocked"]*student.pdf(x,df=3,loc=p["loc_blocked"],scale=p["scale_blocked"]))
+        fd=((1-C["dr_fault_prior"]["p_fault"])*norm.pdf(x+de,0,sd_dr)+
+            C["dr_fault_prior"]["p_fault"]*norm.pdf(x+de,0,math.hypot(sd_dr,C["dr_fault_prior"]["fault_extra_sigma_m"])))
+        return fr*fd
+    den=float(simpson(direct_density(e),x=e))
     if den<=1e-230:raise RuntimeError("CASE_RESULT_INVALID: independent grid evidence underflow")
-    cond=e>(-de/2) if de>0 else e<(-de/2) if de<0 else np.zeros_like(e,dtype=bool)
-    # analytic boundary correction via Simpson fine grid error:
-    prob=float(simpson(np.where(cond,w,0),x=e)/den)
+    cutoff=-de/2
+    if de>0:
+        numerator_grid=np.linspace(cutoff,12,24001)
+    else:
+        numerator_grid=np.linspace(-12,cutoff,24001)
+    prob=float(simpson(direct_density(numerator_grid),x=numerator_grid)/den)
     return prob
 
 def action(dr,z,pwin,sd_dr,p):
@@ -291,8 +298,7 @@ def test_C():
             guarded_error_m=abs(corrected-r),
             guarded_range_m=corrected,rf_selected=selected,
             model_RF_win_probability=out["pwin"],independent_RF_win_probability=indep,
-            NIS_trial=nis,
-            C2_rescued=(abs(corrected-r)<abs(d-r)-C["success_criteria"]["C"].count("C2")) if False else None))
+            NIS_trial=nis))
     # Model and threshold never updated in response to fixture truths.
     c1c3c4=all(row["guarded_error_m"]<=row["dr_error_m"]+1e-9 for row in rr if row["fixture"]!="C2_DR_drift")
     c2=next(r for r in rr if r["fixture"]=="C2_DR_drift")
