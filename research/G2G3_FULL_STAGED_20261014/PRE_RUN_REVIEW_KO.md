@@ -40,3 +40,10 @@ Approval must pin exact source blobs; every stage is gated by strict stdlib SOUR
 ## Expected conclusions
 P0 and P1 should pass if source bundle complete. P2 original L2 GH/QMC Heading posterior expected to converge but full 3state covariance may not; actual result determines certification of that one cell. P3 execution proceeds with fail-closed per cell, records numerical rates and performance deterioration, *does not claim full One-step exhaustive or recursive*.
 All later P4/P5/P6 require separate stage implementation + reviewed source. No scientific PASS until physical full actual one-step and recursive route coverage and independent model claims are measured.
+
+## 첫 클라우드 진단 인터페이스 결함 및 한정 재감사
+
+- 최초 실행 https://github.com/myoungsunk/sionna-resimulation/actions/runs/38568973851 에서 P0 사전 소스 감사 및 원본 frozen_snapshot() 내부 계산을 수행한 뒤, 새 호출자가 반환 필드 `time_s` 대신 `t_s`를 읽어 KeyError를 발생시켰다.
+- 분류 DIAGNOSTIC_DEFECT_OR_WARNING / P0 result receipt 미완성. 원본 RF/Gyro/LUT/수치 target/원본 참조 및 G3 결과를 변경하지 않았다. P1–P3는 실제 실행되지 않았다.
+- 수정 commit 4a4996f6a0032acdff876ad4b047a1e6e0e3711b, 정확히 한 키 이름만 변경. 새 Git blob과 본 문서의 SHA를 수정 승인 영수증에 고정하여 전체 P0부터 재실행한다.
+- 실행 실패를 PASS로 소급 변경하지 않으며 원래 실패 증빙 및 출력 아티팩트를 보존한다.
