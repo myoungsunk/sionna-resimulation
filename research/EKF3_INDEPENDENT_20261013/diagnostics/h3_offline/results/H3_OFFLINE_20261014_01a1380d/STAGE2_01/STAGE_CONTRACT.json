@@ -1,0 +1,39 @@
+{
+  "scope": "STAGE2_ONLY_STOP_AFTER_RESULT_REVIEW",
+  "parent_contract_sha256": "9dd15328f8f1204da49b1de5a9b3de4f56841f76b275381b5ef064810484d44c",
+  "prior": "SAME_FROZEN_D0_FOR_ALL_METHODS",
+  "position": "FIXED_DR_XY",
+  "measurement_model": "FROZEN_LOS_LUT",
+  "Rs": 0.0081,
+  "RF_mean": 0.0,
+  "training": "NONE",
+  "methods": [
+    "EXACT_INTERPOLANT_NEAREST_PRIOR_ROOT",
+    "LEGACY_0.5_DEG_NEAREST_ROOT",
+    "LEGACY_INVERSE_CORRECTED_WITH_ORIGINAL_GATE",
+    "WHOLE_CIRCLE_LIKELIHOOD_MAP",
+    "ORACLE_EXACT_ROOT_DIAGNOSTIC_ONLY"
+  ],
+  "exact_inverse": "enumerate every periodic phi_RX LUT segment at fixed XY; linear crossing within segment",
+  "exact_root_residual_tolerance": 1e-10,
+  "opposite_branch_error_deg": 90,
+  "MAP": "whole circle grid convergence and local refinement with original wrapped normal prior",
+  "angle_grids": [
+    720,
+    1440,
+    2880,
+    5760,
+    11520,
+    23040
+  ],
+  "angle_TV_tolerance": 0.001,
+  "MAP_angle_convergence_deg": 0.1,
+  "internal_HPD_width_convergence_deg": 1.0,
+  "legacy_gate": "ORIGINAL_FILTERCONFIG_UNCHANGED",
+  "Range": "NOT_AN_INPUT_NO_DUPLICATE_FULL_ROWS_FOR_B_OLD_E1",
+  "no_root": "MISSING_EXACT_ROOT; LEGACY_FALLBACK_PRIOR; MAP_STILL_DEFINED",
+  "root_disappearance": "previous sampled frame had >=1 exact root and current has zero",
+  "workers": 4,
+  "stages_3_5": "NOT_RUN",
+  "scientific_PASS": false
+}

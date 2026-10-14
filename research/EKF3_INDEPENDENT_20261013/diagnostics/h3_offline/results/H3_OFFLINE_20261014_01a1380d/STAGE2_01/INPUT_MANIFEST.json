@@ -1,0 +1,77 @@
+{
+  "command": [
+    "D:/SLAM_bot/artifacts/EKF3_H3_OFFLINE_20261014_01a1380d/run_stage2.py"
+  ],
+  "started_utc": "2026-10-14T02:13:05.503460+00:00",
+  "contract": {
+    "scope": "STAGE2_ONLY_STOP_AFTER_RESULT_REVIEW",
+    "parent_contract_sha256": "9dd15328f8f1204da49b1de5a9b3de4f56841f76b275381b5ef064810484d44c",
+    "prior": "SAME_FROZEN_D0_FOR_ALL_METHODS",
+    "position": "FIXED_DR_XY",
+    "measurement_model": "FROZEN_LOS_LUT",
+    "Rs": 0.0081,
+    "RF_mean": 0.0,
+    "training": "NONE",
+    "methods": [
+      "EXACT_INTERPOLANT_NEAREST_PRIOR_ROOT",
+      "LEGACY_0.5_DEG_NEAREST_ROOT",
+      "LEGACY_INVERSE_CORRECTED_WITH_ORIGINAL_GATE",
+      "WHOLE_CIRCLE_LIKELIHOOD_MAP",
+      "ORACLE_EXACT_ROOT_DIAGNOSTIC_ONLY"
+    ],
+    "exact_inverse": "enumerate every periodic phi_RX LUT segment at fixed XY; linear crossing within segment",
+    "exact_root_residual_tolerance": 1e-10,
+    "opposite_branch_error_deg": 90,
+    "MAP": "whole circle grid convergence and local refinement with original wrapped normal prior",
+    "angle_grids": [
+      720,
+      1440,
+      2880,
+      5760,
+      11520,
+      23040
+    ],
+    "angle_TV_tolerance": 0.001,
+    "MAP_angle_convergence_deg": 0.1,
+    "internal_HPD_width_convergence_deg": 1.0,
+    "legacy_gate": "ORIGINAL_FILTERCONFIG_UNCHANGED",
+    "Range": "NOT_AN_INPUT_NO_DUPLICATE_FULL_ROWS_FOR_B_OLD_E1",
+    "no_root": "MISSING_EXACT_ROOT; LEGACY_FALLBACK_PRIOR; MAP_STILL_DEFINED",
+    "root_disappearance": "previous sampled frame had >=1 exact root and current has zero",
+    "workers": 4,
+    "stages_3_5": "NOT_RUN",
+    "scientific_PASS": false
+  },
+  "source_sha256": {
+    "run_stage2.py": "c3713c661331a5fb88a48d2c919dfccc3158e2aafdc817666bd3d0b280da1253",
+    "h3_offline.py": "b0e65d39b7ec103a03ed1368bbeb9365581925bb15ca8ab9a63998716221ad05",
+    "run_full.py": "dfc3c5d8a2b634dccd3e2a3d1eb519abb781156d63d7d7e8b2c582ab89b5ef7b"
+  },
+  "cache_sha256": {
+    "CASES.json": "6f8d27b0290f0a67eb92ea78a4a6505412cebaa77dbb5bce8325cfea8294dc70",
+    "M0_METRICS.csv": "ae860b3fca78923a46a05541a12cbb9fcafc5d8257bda92c090b47e21dc37c69",
+    "M0_PARITY.json": "4251055352de45a978e53792d10e67d893af87378a29dbc86e6ec0727b808a1f",
+    "R2_aA_m0_full.npz": "d493abcd764b2c2413b4425ad4d98294db9700e8f6cf8bbf39dc752456b8ccbf",
+    "R2_aA_m0_los.npz": "d153e21e31e60ef9fa1227f6131010c24a89407cbcc92bb44c3c3c67c75f5585",
+    "R2_aA_m45_full.npz": "3975a37d2e1a312a8aea5da722d3a109accf321b97c72c5e06b672a2fdfbe6ab",
+    "R2_aA_m45_los.npz": "242634756113b557422b3a5f03721147b687964ab82355c73fd0fe8c64b034ac",
+    "R2_aB_m0_full.npz": "41e6e45f7657f3a433c9713b011fab6b618268cc4a37aac2d1f901755a1c1c0a",
+    "R2_aB_m0_los.npz": "8db96e4ade98572fdf86ae4af204bf0ce76b949079d63d55e94693e468f06e56",
+    "R4_aA_m0_full.npz": "f62504fd5b6f2194dc17372a2a834c86bb1cb9cfc49bda5cd06d97b91d8234be",
+    "R4_aA_m0_los.npz": "85b292513428af5ba557204fb55a3fbb72b66bdc4db8e934a2271c1b7a97f9d2",
+    "R4_aB_m0_full.npz": "ae8ec793a6fa246c65fc56ad7f2ea0201793828e70aa6748ec85697186ce77bd",
+    "R4_aB_m0_los.npz": "53e3bcdb70b34e205a99a7e3b3e57115d92caea7be486cd83b874a1a08c0d5b5",
+    "R5_aA_m0_full.npz": "92f9054edb2f73c12647b8c159e3169eea807afa790453e470c2277ccc5e8ab8",
+    "R5_aA_m0_los.npz": "d5d15856b0d5ca9a69dc3355ab330c7e75fbe19db53b3fcad27ab3f8cea3f338",
+    "R5_aB_m0_full.npz": "f64c79adc661fda2994a3a899dad0ff3fb7fc1747931bbbe0de4e697b91d7162",
+    "R5_aB_m0_los.npz": "0f43c9e5e4a1ef50bea4986dde55ab3907ef96db4a23009968ed02aaa550aec5"
+  },
+  "frozen_blobs": {
+    "research/EKF3_INDEPENDENT_20261013/ekf3.py": "c010981d387cf9b50c2f50911ac37624e80318ec",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d0_d4.py": "f0421d0d7013bbb6b1a5940a5f3819e7fffef696",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py": "c327952fdd169cff2fa31977aded0e6f87991d54",
+    "research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json": "8bf216cf606f5e3c11139cacbf42f15a44556feb",
+    "research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py": "69e02f89b64792ceafe2dc01e4b92794109fb487"
+  },
+  "repository_revision": "fc8b6c1ca56540570fdbe5e4d228a0e23fdcc00b"
+}

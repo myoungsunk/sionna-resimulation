@@ -1,0 +1,746 @@
+{
+  "input_sha256": {
+    "CASES.json": "6f8d27b0290f0a67eb92ea78a4a6505412cebaa77dbb5bce8325cfea8294dc70",
+    "M0_METRICS.csv": "ae860b3fca78923a46a05541a12cbb9fcafc5d8257bda92c090b47e21dc37c69",
+    "M0_PARITY.json": "4251055352de45a978e53792d10e67d893af87378a29dbc86e6ec0727b808a1f",
+    "R2_aA_m0_full.npz": "d493abcd764b2c2413b4425ad4d98294db9700e8f6cf8bbf39dc752456b8ccbf",
+    "R2_aA_m0_los.npz": "d153e21e31e60ef9fa1227f6131010c24a89407cbcc92bb44c3c3c67c75f5585",
+    "R2_aA_m45_full.npz": "3975a37d2e1a312a8aea5da722d3a109accf321b97c72c5e06b672a2fdfbe6ab",
+    "R2_aA_m45_los.npz": "242634756113b557422b3a5f03721147b687964ab82355c73fd0fe8c64b034ac",
+    "R2_aB_m0_full.npz": "41e6e45f7657f3a433c9713b011fab6b618268cc4a37aac2d1f901755a1c1c0a",
+    "R2_aB_m0_los.npz": "8db96e4ade98572fdf86ae4af204bf0ce76b949079d63d55e94693e468f06e56",
+    "R4_aA_m0_full.npz": "f62504fd5b6f2194dc17372a2a834c86bb1cb9cfc49bda5cd06d97b91d8234be",
+    "R4_aA_m0_los.npz": "85b292513428af5ba557204fb55a3fbb72b66bdc4db8e934a2271c1b7a97f9d2",
+    "R4_aB_m0_full.npz": "ae8ec793a6fa246c65fc56ad7f2ea0201793828e70aa6748ec85697186ce77bd",
+    "R4_aB_m0_los.npz": "53e3bcdb70b34e205a99a7e3b3e57115d92caea7be486cd83b874a1a08c0d5b5",
+    "R5_aA_m0_full.npz": "92f9054edb2f73c12647b8c159e3169eea807afa790453e470c2277ccc5e8ab8",
+    "R5_aA_m0_los.npz": "d5d15856b0d5ca9a69dc3355ab330c7e75fbe19db53b3fcad27ab3f8cea3f338",
+    "R5_aB_m0_full.npz": "f64c79adc661fda2994a3a899dad0ff3fb7fc1747931bbbe0de4e697b91d7162",
+    "R5_aB_m0_los.npz": "0f43c9e5e4a1ef50bea4986dde55ab3907ef96db4a23009968ed02aaa550aec5"
+  },
+  "frozen_blobs": {
+    "research/EKF3_INDEPENDENT_20261013/ekf3.py": "c010981d387cf9b50c2f50911ac37624e80318ec",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d0_d4.py": "f0421d0d7013bbb6b1a5940a5f3819e7fffef696",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py": "c327952fdd169cff2fa31977aded0e6f87991d54",
+    "research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json": "8bf216cf606f5e3c11139cacbf42f15a44556feb",
+    "research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py": "69e02f89b64792ceafe2dc01e4b92794109fb487"
+  },
+  "p0": {
+    "schema": "EKF3_P0_FREEZE_V1",
+    "created_date_kst": "2026-10-13",
+    "repository": "myoungsunk/sionna-resimulation",
+    "branch": "research/ekf3-independent-p0-20261013",
+    "base_commit": "a424894a53118231f81ebfb45186211e1adac9b1",
+    "source_revision": "16d22fc3121963743cf7f1bf56233e00083c5518",
+    "latest_calibration_reference": {
+      "commit": "fad6f8a2090c45f763798ffb907444add20a1734",
+      "branch": "claude/practical-goodall-wnsjv4",
+      "paths": [
+        "research/LOS_RANGE_RECAL_20261012/ERRATA_R2_KO.md",
+        "research/LOS_RANGE_RECAL_20261012/R2_STATUS_KO.md"
+      ],
+      "status": "reference_only; not merged into primary R0"
+    },
+    "status": {
+      "spec_frozen": true,
+      "repository_asset_paths_checked": true,
+      "archived_hashes_imported": true,
+      "local_binary_hash_recheck": "NOT_RUN",
+      "local_pose_alignment": "NOT_RUN",
+      "independent_3state_code": "NOT_STARTED",
+      "EKF_runs": 0,
+      "scientific_PASS": false
+    },
+    "physical_contract": {
+      "state": [
+        "x_m",
+        "y_m",
+        "yaw_rad"
+      ],
+      "time_column": "t_s",
+      "dt_nominal_s": 0.2,
+      "Tnone_only": true,
+      "anchor_A_m": [
+        4,
+        0,
+        2.65
+      ],
+      "anchor_B_m": [
+        10,
+        0,
+        2.65
+      ],
+      "robot_z_m": 0.45,
+      "wheelbase_m": 0.287,
+      "wheel_radius_m": 0.033,
+      "frequency_bins": 257,
+      "frequency_hz": [
+        6250400000,
+        6749600000
+      ],
+      "antenna": "TX0 (+45LP), RX ±45LP",
+      "observer": "Hann; 4N zero-pad; IFFT x N; 30% stronger-RX peak integer first edge; common tap P1/P2; s=(P1-P2)/(P1+P2)",
+      "RF_H_noise": "noise-free frozen channel per case; sensor seed is not an independent RF realization",
+      "motion_truth_contract": "legacy-Euler; exact SE2 predictor has known small lateral residual"
+    },
+    "experiment": {
+      "arms": {
+        "D0": [
+          "IMU gyro increment",
+          "wheel odom distance"
+        ],
+        "A": [
+          "D0",
+          "direct-s only (RF heading information; no range)"
+        ],
+        "B": [
+          "D0",
+          "UWB range only (no s)"
+        ],
+        "C": [
+          "D0",
+          "joint s+range measurement"
+        ]
+      },
+      "direct_s_primary": true,
+      "inverse_RF_heading_pseudomeasurement": "diagnostic only; inverse root depends on estimated pose/yaw; no unjustified H=[0,0,1]",
+      "sensor_generator": "archived sensor_v2.py; use identical generated motion and initial-error samples per (case,condition,seed) across D0/A/B/C",
+      "wheel_yaw_increment": "record for diagnostics only; no initial extra wheel-yaw measurement",
+      "worlds": {
+        "W0": "independent math sanity model-consistent synthetic measurement (no RT)",
+        "W1": "archived LoS H + noise_pair motion",
+        "W2": "archived FULL H + noise_pair motion and all stress low/mid/high"
+      },
+      "sensor_settings": {
+        "noise_condition": "noise_pair",
+        "stress_condition": "all",
+        "stress_levels": [
+          0,
+          1,
+          2
+        ],
+        "common_scale": 0,
+        "bias_rw_rad_s_sqrt_s": 0,
+        "gyro_N_deg_per_sqrt_s": 0.015,
+        "k_distance_m": 2e-05,
+        "slip_mode": "time (only under all)",
+        "unmodeled_bias_in_3state": "report, do not silently zero ground truth"
+      },
+      "initial_prior_std": [
+        "0.1m",
+        "0.1m",
+        "5deg"
+      ],
+      "initial_heading_reference": "same global starting axis",
+      "initial_errors": "one seeded perturbation shared across arms",
+      "seeds": {
+        "dev_start": 0,
+        "dev_end_inclusive": 19,
+        "confirm_start": 10000,
+        "confirm_end_inclusive": 10049,
+        "paired": true
+      },
+      "eval_mask": "Tnone route progress t_s >=30s; filter from t0",
+      "calibration_split": "leave-one-ROUTE-out R2/R4/R5, remove coincident heldout XY from train; heldout truth scoring only",
+      "coincident_XY_tolerance_m": 0.0001,
+      "analysis_units": "route/site blocks; repeated time/seed not independent RF environments",
+      "R0": {
+        "range_offset_m": -0.5315983906250129,
+        "Rr_m2": 0.0068578637,
+        "Rs": "R_thermal(P1,P2) + 0.09**2, zero thermal in stored noiseless H",
+        "Rsr": 0,
+        "Rsr_interpretation": "unchecked assumption for R0, not evidence of independence",
+        "Q_model_marginal": "0 for noise-only sanity; full drift mismatch kept visible",
+        "Q_motion": "input wheel distance and gyro angle covariance propagated by SE2 Jacobian",
+        "gate_scalar_chi2_99": 6.6349,
+        "gate_joint_chi2_99": 9.21034,
+        "missing_packets": "no truth replacement; use available subset only",
+        "pole": "flag estimated horizontal range <=0.1m; retain cases; optional estimated-state guard reported separately"
+      },
+      "later_R_models": [
+        "R1 train-only residual mean+conditional variance",
+        "R2 calibrated same-time s/r covariance",
+        "R3 calibrated time correlation"
+      ],
+      "trace_required": [
+        "timestamp",
+        "case",
+        "route",
+        "mount",
+        "seed",
+        "motion inputs",
+        "pre/post x3",
+        "pre/post P3",
+        "H_r",
+        "H_s",
+        "Rr",
+        "Rs",
+        "Rsr",
+        "innovation",
+        "S",
+        "K",
+        "NIS pre-gate",
+        "gate status",
+        "near-pole flag",
+        "truth evaluation only"
+      ],
+      "metrics": [
+        "heading_RMSE",
+        "heading_P95",
+        "2D_RMSE",
+        "radial/tangential error",
+        "heading/pose NEES",
+        "95% heading/pose coverage",
+        "NIS and innovation ACF",
+        "Pxy_psi cross terms",
+        "update accepted/rejected"
+      ],
+      "one_step_and_full_route": "both required"
+    },
+    "known_unresolved": [
+      "F01/F02 still OPEN",
+      "single-scene generalization unavailable",
+      "Tnone legacy-Euler vs SE2 dynamics mismatch",
+      "prior-calibration mismatch under all stress",
+      "s/r multipath residual bias and time correlation",
+      "near-pole LUT instability",
+      "conditional s/r covariance and cross-time RF/pose covariance not calibrated"
+    ],
+    "cases": [
+      {
+        "id": "R2_aA_m0",
+        "route": "R2",
+        "anchor": [
+          4,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 1303,
+        "H_shape": [
+          1303,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json"
+      },
+      {
+        "id": "R2_aB_m0",
+        "route": "R2",
+        "anchor": [
+          10,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 1303,
+        "H_shape": [
+          1303,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json"
+      },
+      {
+        "id": "R2_aA_m45",
+        "route": "R2",
+        "anchor": [
+          4,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 45,
+        "robot_z_m": 0.45,
+        "rf_count": 1303,
+        "H_shape": [
+          1303,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m45.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json"
+      },
+      {
+        "id": "R4_aA_m0",
+        "route": "R4",
+        "anchor": [
+          4,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 922,
+        "H_shape": [
+          922,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aA_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aA_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json"
+      },
+      {
+        "id": "R4_aB_m0",
+        "route": "R4",
+        "anchor": [
+          10,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 922,
+        "H_shape": [
+          922,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json"
+      },
+      {
+        "id": "R5_aA_m0",
+        "route": "R5",
+        "anchor": [
+          4,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 1883,
+        "H_shape": [
+          1883,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aA_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aA_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aA_m0/SAMPLES.json"
+      },
+      {
+        "id": "R5_aB_m0",
+        "route": "R5",
+        "anchor": [
+          10,
+          0,
+          2.6500000000000004
+        ],
+        "mount_deg": 0,
+        "robot_z_m": 0.45,
+        "rf_count": 1883,
+        "H_shape": [
+          1883,
+          257,
+          2,
+          2
+        ],
+        "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy",
+        "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy",
+        "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json"
+      }
+    ],
+    "routes": [
+      {
+        "id": "R2",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R2_Tnone.csv",
+        "samples": 979,
+        "duration_s": 195.6,
+        "legacy_euler_valid": true,
+        "exact_se2_valid": false,
+        "exact_se2_max_lateral_residual_m": 0.00014599738433443332
+      },
+      {
+        "id": "R4",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv",
+        "samples": 742,
+        "duration_s": 148.20000000000002,
+        "legacy_euler_valid": true,
+        "exact_se2_valid": false,
+        "exact_se2_max_lateral_residual_m": 0.00014599738433590873
+      },
+      {
+        "id": "R5",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R5_Tnone.csv",
+        "samples": 1415,
+        "duration_s": 282.8,
+        "legacy_euler_valid": true,
+        "exact_se2_valid": false,
+        "exact_se2_max_lateral_residual_m": 0.0001459973843340718
+      }
+    ],
+    "assets": [
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m0.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "31f8c9e959c09b6357b46b184b2a6a5ec97d2264",
+        "sha256": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "03c757894093590fe7e04771672e4dbdd7dfe769",
+        "sha256": "159da2d5234a5de84e4b011ec44b113bf5f2991b3d6021466f7a161334cfb9ce",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json",
+        "bytes": 89383,
+        "git_blob_sha1": "cb51065dabc3dc60473a48ed5458bca284c2ff97",
+        "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "799fccd4169a7eb452205badb7795deb4326921d",
+        "sha256": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "21bbb02c29e36eee10c6255234553135edc31aef",
+        "sha256": "811bdfb1b152839f85c6378faafc0f94619601416084a0995f2d79caa997c467",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json",
+        "bytes": 89383,
+        "git_blob_sha1": "cb51065dabc3dc60473a48ed5458bca284c2ff97",
+        "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m45.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "4747bb6392d742eef41f17c492cb91d3061167f2",
+        "sha256": "dd0264c1d004d78ff0f0d39f5f0c613b084ea89ad558ac448ecbfd0b3e177ea1",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy",
+        "bytes": 21431872,
+        "git_blob_sha1": "f5f14043804ac01e840a2b12c3efd3d5b32ec190",
+        "sha256": "c2b8e51ac2e2f55d1f557f2d45d58a3bed19ce8d435875a044f9c01fd1e8fe0a",
+        "shape": [
+          1303,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json",
+        "bytes": 89383,
+        "git_blob_sha1": "cb51065dabc3dc60473a48ed5458bca284c2ff97",
+        "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aA_m0.npy",
+        "bytes": 15165184,
+        "git_blob_sha1": "a39ce1df5ad6883401feb18051b8299b9b0ef401",
+        "sha256": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956",
+        "shape": [
+          922,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aA_m0.npy",
+        "bytes": 15165184,
+        "git_blob_sha1": "a86ff2220bcba4de6d27d8a5f259ef25d672a98e",
+        "sha256": "167852538d336a332a2b7c9d5702b26ab0df8f79bc66af3df2b16ddc2d8afec5",
+        "shape": [
+          922,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json",
+        "bytes": 62617,
+        "git_blob_sha1": "4e0ef31074f6627cdc81c9f0a15a805563d40500",
+        "sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy",
+        "bytes": 15165184,
+        "git_blob_sha1": "fcf4a5c0c53af0f4a58f3ae7ab49f73fb41b3ac2",
+        "sha256": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+        "shape": [
+          922,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy",
+        "bytes": 15165184,
+        "git_blob_sha1": "86a259d30143b2e1e98a3b9a61ebec4bb8d58ea2",
+        "sha256": "bebfb0a1e300a047a9ac52b21576a692c38cfa11ca9652b6fae1b53dc8d2ede2",
+        "shape": [
+          922,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json",
+        "bytes": 62617,
+        "git_blob_sha1": "4e0ef31074f6627cdc81c9f0a15a805563d40500",
+        "sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aA_m0.npy",
+        "bytes": 30971712,
+        "git_blob_sha1": "f4dcc21830aaa8541f270198cffc6a8c56465b09",
+        "sha256": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80",
+        "shape": [
+          1883,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aA_m0.npy",
+        "bytes": 30971712,
+        "git_blob_sha1": "5701d2bfdb00152dd201e7388f192b69e233701a",
+        "sha256": "89d13cca088eef9806e0d085250aeb487d59340badd21bbc2ca30a7727d27ae4",
+        "shape": [
+          1883,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aA_m0/SAMPLES.json",
+        "bytes": 128681,
+        "git_blob_sha1": "c4e4fbfe06115444077dee263c6dc96367251c40",
+        "sha256": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a"
+      },
+      {
+        "kind": "FULL_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy",
+        "bytes": 30971712,
+        "git_blob_sha1": "071d28605c465f9be6ae9fc7feeb618ae14c1d47",
+        "sha256": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+        "shape": [
+          1883,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "LOS_H",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy",
+        "bytes": 30971712,
+        "git_blob_sha1": "3d7ae8dde2f5fa801e123cf9765f0462db9c10bf",
+        "sha256": "eaf870120a16f14811198198046a6054037ebd5f44ec3a21e5800178cb951aad",
+        "shape": [
+          1883,
+          257,
+          2,
+          2
+        ]
+      },
+      {
+        "kind": "SAMPLES",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json",
+        "bytes": 128681,
+        "git_blob_sha1": "c4e4fbfe06115444077dee263c6dc96367251c40",
+        "sha256": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a"
+      },
+      {
+        "kind": "TIMELINE_TNONE",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R2_Tnone.csv",
+        "bytes": 97278,
+        "git_blob_sha1": "c1aed2e95d9a9be2af32e854f9eb7a2d239e1222",
+        "sha256": "45bd5b1fa8d204ef013ba987ecd9c98404a16a8c7462cc9bead0cbda06f50f88"
+      },
+      {
+        "kind": "TIMELINE_TNONE",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv",
+        "bytes": 72944,
+        "git_blob_sha1": "b7f3d57466f1916a8178b8f0fe32191c6717d93c",
+        "sha256": "1fabcd0aa53ef54e57bef18c739d20df9b4788ba84992a99eafc266e226fbb7b"
+      },
+      {
+        "kind": "TIMELINE_TNONE",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R5_Tnone.csv",
+        "bytes": 142189,
+        "git_blob_sha1": "aad6c2097342e2d937e89a4a1cc273036ae3fafc",
+        "sha256": "d86ad9616fdcd9b9f32cefee06de9044ca383b5cb532f494afa2e100e476152f"
+      },
+      {
+        "kind": "FREQUENCY",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy",
+        "bytes": 2184,
+        "git_blob_sha1": "5a85ddfa5490a0fb50495d09cd3f9d718ae23e6b",
+        "sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+        "shape": [
+          257
+        ]
+      },
+      {
+        "kind": "HS_LUT",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy",
+        "bytes": 11923328,
+        "git_blob_sha1": "9a53057f6f646f63574574b9a70186452cb5aca9",
+        "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079"
+      },
+      {
+        "kind": "HS_LUT_META",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json",
+        "bytes": 995,
+        "git_blob_sha1": "5a24bf5f371eb3ad49b77e972b2bc77abecd679f",
+        "sha256": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/filter_v2.py",
+        "bytes": 8849,
+        "git_blob_sha1": "be4f8d083f0ab191161d8c7b9f002269a04bfb38",
+        "sha256": "af31951dc36ba7dbf5ff13803624eda6ea07866a30224dcf8e566ce1d1d6159f"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/sensor_v2.py",
+        "bytes": 9898,
+        "git_blob_sha1": "87ce04aa3c43130f3499008840fa395174f1124e",
+        "sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/hs_lut.py",
+        "bytes": 10778,
+        "git_blob_sha1": "a205e43bb381fbbdf3a41f9bb029ede0d4293231",
+        "sha256": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/observation.py",
+        "bytes": 6036,
+        "git_blob_sha1": "3571cb12face26d58fdc8a273c191a128990cb27",
+        "sha256": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/filters.py",
+        "bytes": 19543,
+        "git_blob_sha1": "bb6d3bc073fbb9db290ac9ab36c1ca62af0a0fdb",
+        "sha256": "aa8a77f2d68011234de814c8a6ceed3f7754cf03f4ca4e1143ccff43b08a2715"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/routes.py",
+        "bytes": 4822,
+        "git_blob_sha1": "b8a32115041daa35b83894a003b93f3550108618",
+        "sha256": "a548ff6355f10dc428c4401e9cf59e5b60416de491cdd6d0812d191114681fc6"
+      },
+      {
+        "kind": "AUDITED_SOURCE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/trajectory.py",
+        "bytes": 7315,
+        "git_blob_sha1": "177d40c877e51c914f964458ac8394a98b7d640a",
+        "sha256": "a1da56dc0292786373f897c98e269a02db13ece79e9533cbf4c4056e000c2bab"
+      },
+      {
+        "kind": "SENSOR_CONFIG",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/configs/sensor_v2/neutral.json",
+        "bytes": 124,
+        "git_blob_sha1": "90983a85a07c08dba233083e92a96c8fcb7b89aa",
+        "sha256": "17ed7bb6167521adac5b9cea230cadd78971a53791b17fc8ad70273f17806345"
+      },
+      {
+        "kind": "LINEAGE",
+        "path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json",
+        "bytes": 14108,
+        "git_blob_sha1": "09f312aaca2b1ebbba04dd58bfd8f9ee5296e76a"
+      },
+      {
+        "kind": "LINEAGE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/00_INPUT_AUDIT.json",
+        "bytes": 9516,
+        "git_blob_sha1": "7cddca54de94590b0bfa4fcb693755124af20a9f"
+      },
+      {
+        "kind": "LINEAGE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/SOURCE_MANIFEST.json",
+        "bytes": 13045,
+        "git_blob_sha1": "928893b6b019d1fdb812a7b253e505b46a092bc0"
+      },
+      {
+        "kind": "LINEAGE",
+        "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/PLAN.json",
+        "bytes": 3726,
+        "git_blob_sha1": "5efb68849079e10b3251c190cb6077bbe2ff2ac2"
+      }
+    ]
+  }
+}

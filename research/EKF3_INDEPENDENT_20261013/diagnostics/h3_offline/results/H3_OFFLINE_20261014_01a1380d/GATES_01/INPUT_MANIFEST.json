@@ -1,0 +1,100 @@
+{
+  "command": [
+    "D:/SLAM_bot/artifacts/EKF3_H3_OFFLINE_20261014_01a1380d/run_gates.py"
+  ],
+  "started_utc": "2026-10-14T01:43:18.455654+00:00",
+  "contract": {
+    "schema": "H3_OFFLINE_PAIRED_V1",
+    "base_commit": "fc8b6c1ca56540570fdbe5e4d228a0e23fdcc00b",
+    "scope": "STAGES_1_4_ONLY_NO_RECURSIVE_RF_FUSION",
+    "conditions": [
+      [
+        "noise_pair",
+        1
+      ],
+      [
+        "gyro_bias",
+        0
+      ],
+      [
+        "gyro_bias",
+        1
+      ],
+      [
+        "gyro_bias",
+        2
+      ]
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "RF_pairs": [
+      [
+        "los",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "E1_FULL_LORO"
+      ]
+    ],
+    "evaluation_start_s": 30.0,
+    "prior": "FROZEN_D0_DR_ONLY_3_STATE_MEAN_FULL_COVARIANCE",
+    "heading_prior": "WRAPPED_NORMAL_FROM_D0_HEADING_MARGINAL",
+    "inverse_reference": "FROZEN_DRIVEFILTER_0.5_DEG_GRID_NEAREST_PRIOR_MIN_SLOPE_0.01_PER_DEG_ORIGINAL_GATE",
+    "stage2_likelihood": "ZERO_MEAN_GAUSSIAN_FROZEN_RS_0.0081_FIXED_POSITION",
+    "stage3": "SAME_STAGE2_POSTERIOR_CIRCULAR_HPD_95_AND_MAP_LOCAL_GAUSSIAN",
+    "truth_neighborhood_deg": 5.0,
+    "opposite_branch_error_deg": 90.0,
+    "mode_min_mass": 0.01,
+    "weak_heading_derivative_per_rad": 0.001,
+    "parity_absolute_tolerance": 1e-08,
+    "jacobian_absolute_tolerance": 1e-05,
+    "finite_difference_step": 1e-06,
+    "angle_grids": [
+      720,
+      1440,
+      2880,
+      5760,
+      11520,
+      23040
+    ],
+    "posterior_TV_tolerance": 0.001,
+    "MAP_angle_convergence_deg": 0.1,
+    "HPD_width_convergence_deg": 1.0,
+    "position_quadrature_orders": [
+      3,
+      5,
+      9,
+      17,
+      25,
+      41,
+      65
+    ],
+    "position_quadrature_TV_tolerance": 0.001,
+    "local_Gaussian_Hessian_relative_agreement": 0.1,
+    "training_spatial_buffer_m": 0.5,
+    "training": "HELD_OUT_WHOLE_ROUTE_AND_BUFFER_NO_SENSOR_SEED_DUPLICATES",
+    "stage4_RF_models": [
+      "FROZEN_R0_ZERO_MEAN",
+      "OOF_GAUSSIAN_JOINT_MEAN_COVARIANCE"
+    ],
+    "G3_target": "HEADING_MARGINAL_MAP_POSITION_INTEGRATED_NOT_JOINT_MAP",
+    "position_prior": "GAUSSIAN_P_XY_GIVEN_WRAPPED_HEADING_FULL_CROSS_COVARIANCE",
+    "G2": "ONE_RANGE_EKF_UPDATE_WITH_ORIGINAL_R0_GATE_THEN_CONDITIONAL_S_LIKELIHOOD_NO_SECOND_RANGE_FACTOR",
+    "numerical_gate_policy": "FAIL_CLOSED_NO_RETUNING_OR_INTERPRETATION_OF_FAILED_QUADRATURE",
+    "scientific_PASS": false
+  },
+  "source_sha256": {
+    "D:\\SLAM_bot\\artifacts\\EKF3_H3_OFFLINE_20261014_01a1380d\\h3_offline.py": "b3e609407ff61c19653b92000b7c4c1ea2b190af3bac95daa5964af49d69cbeb",
+    "D:\\SLAM_bot\\artifacts\\EKF3_H3_OFFLINE_20261014_01a1380d\\run_gates.py": "671ec96e1c532d46e084f50ff9d022bb8bf1a3a1bbe69a7428e3c518ad71f619",
+    "D:\\SLAM_bot\\artifacts\\EKF3_H3_OFFLINE_20261014_01a1380d\\CONTRACT.json": "9dd15328f8f1204da49b1de5a9b3de4f56841f76b275381b5ef064810484d44c"
+  },
+  "repository_revision": "fc8b6c1ca56540570fdbe5e4d228a0e23fdcc00b"
+}

@@ -1,0 +1,47 @@
+{
+  "scope": "STAGE4_FROZEN_R0_PREFLIGHT_ONLY",
+  "parent_contract_sha256": "9dd15328f8f1204da49b1de5a9b3de4f56841f76b275381b5ef064810484d44c",
+  "case": "R2_aA_m0",
+  "seed": 0,
+  "conditions": [
+    [
+      "noise_pair",
+      1
+    ],
+    [
+      "gyro_bias",
+      0
+    ],
+    [
+      "gyro_bias",
+      1
+    ],
+    [
+      "gyro_bias",
+      2
+    ]
+  ],
+  "RF_pairs": [
+    [
+      "los",
+      "B_OLD"
+    ],
+    [
+      "full",
+      "B_OLD"
+    ],
+    [
+      "full",
+      "E1_FULL_LORO"
+    ]
+  ],
+  "samples": "FIRST_MIDDLE_LAST_EVALUATION_INDEX",
+  "order": "CONDITION_THEN_SAMPLE_THEN_RF_PAIR_THEN_G0_G1_G2H_G2X_G3",
+  "additional_numeric_check": "ADJACENT_HIGHER_GH_ORDER_ON_FINAL_ANGULAR_GRID_OR_PREVIOUS_IF_MAX_ORDER",
+  "tolerance": 0.001,
+  "full_stage4": "NOT_COMPLETE_BY_SMOKE",
+  "recursive_fusion": "REQUIRES_FULL_STAGE4_REVIEW_GATE",
+  "learned_RF_model": "BLOCKED_EXISTING_SPATIAL_BUFFER",
+  "R_sr": 0,
+  "scientific_PASS": false
+}

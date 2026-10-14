@@ -1,0 +1,154 @@
+{
+  "started_utc": "2026-10-14T02:06:12.021071+00:00",
+  "command": [
+    "D:/SLAM_bot/artifacts/EKF3_H3_OFFLINE_20261014_01a1380d/run_stage1.py",
+    "--out",
+    "STAGE1_01"
+  ],
+  "contract": {
+    "scope": "STAGE_1_ONLY_STOP_AFTER_RESULTS_REVIEW",
+    "parent_contract_sha256": "9dd15328f8f1204da49b1de5a9b3de4f56841f76b275381b5ef064810484d44c",
+    "training": "NOT_USED",
+    "RF_updates": "NOT_USED",
+    "covariance_and_initial_state": "FROZEN_D0",
+    "position_error": "DR_POSITION_MINUS_GROUND_TRUTH_POSITION",
+    "evaluation_heading": "DR_HEADING_FIXED_WHILE_COMPARING_POSITIONS",
+    "linear_compensation": "minus_sum_grad_s_delta_position_divided_by_Hpsi",
+    "boundary_and_clipping": "FLAG_SEPARATELY_EXCLUDE_FROM_SMOOTH_NUMERICAL_GATE",
+    "weak_Hpsi_threshold_per_rad": 0.001,
+    "jacobian_absolute_tolerance": 1e-05,
+    "chain_sum_tolerance": 1e-10,
+    "squared_identity_tolerance": 1e-10,
+    "parity_absolute_tolerance": 1e-08,
+    "heading_sensitivity_division": "OMITTED_WHEN_WEAK",
+    "RF_channel_and_range": "NOT_INPUTS_TO_STAGE1_NO_DUPLICATE_GEOMETRY_ROWS",
+    "stages_2_5": "NOT_RUN",
+    "scientific_PASS": false
+  },
+  "parent_contract": {
+    "schema": "H3_OFFLINE_PAIRED_V1",
+    "base_commit": "fc8b6c1ca56540570fdbe5e4d228a0e23fdcc00b",
+    "scope": "STAGES_1_4_ONLY_NO_RECURSIVE_RF_FUSION",
+    "conditions": [
+      [
+        "noise_pair",
+        1
+      ],
+      [
+        "gyro_bias",
+        0
+      ],
+      [
+        "gyro_bias",
+        1
+      ],
+      [
+        "gyro_bias",
+        2
+      ]
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "RF_pairs": [
+      [
+        "los",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "B_OLD"
+      ],
+      [
+        "full",
+        "E1_FULL_LORO"
+      ]
+    ],
+    "evaluation_start_s": 30.0,
+    "prior": "FROZEN_D0_DR_ONLY_3_STATE_MEAN_FULL_COVARIANCE",
+    "heading_prior": "WRAPPED_NORMAL_FROM_D0_HEADING_MARGINAL",
+    "inverse_reference": "FROZEN_DRIVEFILTER_0.5_DEG_GRID_NEAREST_PRIOR_MIN_SLOPE_0.01_PER_DEG_ORIGINAL_GATE",
+    "stage2_likelihood": "ZERO_MEAN_GAUSSIAN_FROZEN_RS_0.0081_FIXED_POSITION",
+    "stage3": "SAME_STAGE2_POSTERIOR_CIRCULAR_HPD_95_AND_MAP_LOCAL_GAUSSIAN",
+    "truth_neighborhood_deg": 5.0,
+    "opposite_branch_error_deg": 90.0,
+    "mode_min_mass": 0.01,
+    "weak_heading_derivative_per_rad": 0.001,
+    "parity_absolute_tolerance": 1e-08,
+    "jacobian_absolute_tolerance": 1e-05,
+    "finite_difference_step": 1e-06,
+    "angle_grids": [
+      720,
+      1440,
+      2880,
+      5760,
+      11520,
+      23040
+    ],
+    "posterior_TV_tolerance": 0.001,
+    "MAP_angle_convergence_deg": 0.1,
+    "HPD_width_convergence_deg": 1.0,
+    "position_quadrature_orders": [
+      3,
+      5,
+      9,
+      17,
+      25,
+      41,
+      65
+    ],
+    "position_quadrature_TV_tolerance": 0.001,
+    "local_Gaussian_Hessian_relative_agreement": 0.1,
+    "training_spatial_buffer_m": 0.5,
+    "training": "HELD_OUT_WHOLE_ROUTE_AND_BUFFER_NO_SENSOR_SEED_DUPLICATES",
+    "stage4_RF_models": [
+      "FROZEN_R0_ZERO_MEAN",
+      "OOF_GAUSSIAN_JOINT_MEAN_COVARIANCE"
+    ],
+    "G3_target": "HEADING_MARGINAL_MAP_POSITION_INTEGRATED_NOT_JOINT_MAP",
+    "position_prior": "GAUSSIAN_P_XY_GIVEN_WRAPPED_HEADING_FULL_CROSS_COVARIANCE",
+    "G2": "ONE_RANGE_EKF_UPDATE_WITH_ORIGINAL_R0_GATE_THEN_CONDITIONAL_S_LIKELIHOOD_NO_SECOND_RANGE_FACTOR",
+    "numerical_gate_policy": "FAIL_CLOSED_NO_RETUNING_OR_INTERPRETATION_OF_FAILED_QUADRATURE",
+    "scientific_PASS": false
+  },
+  "repository_revision": "fc8b6c1ca56540570fdbe5e4d228a0e23fdcc00b",
+  "cache_sha256": {
+    "CASES.json": "6f8d27b0290f0a67eb92ea78a4a6505412cebaa77dbb5bce8325cfea8294dc70",
+    "M0_METRICS.csv": "ae860b3fca78923a46a05541a12cbb9fcafc5d8257bda92c090b47e21dc37c69",
+    "M0_PARITY.json": "4251055352de45a978e53792d10e67d893af87378a29dbc86e6ec0727b808a1f",
+    "R2_aA_m0_full.npz": "d493abcd764b2c2413b4425ad4d98294db9700e8f6cf8bbf39dc752456b8ccbf",
+    "R2_aA_m0_los.npz": "d153e21e31e60ef9fa1227f6131010c24a89407cbcc92bb44c3c3c67c75f5585",
+    "R2_aA_m45_full.npz": "3975a37d2e1a312a8aea5da722d3a109accf321b97c72c5e06b672a2fdfbe6ab",
+    "R2_aA_m45_los.npz": "242634756113b557422b3a5f03721147b687964ab82355c73fd0fe8c64b034ac",
+    "R2_aB_m0_full.npz": "41e6e45f7657f3a433c9713b011fab6b618268cc4a37aac2d1f901755a1c1c0a",
+    "R2_aB_m0_los.npz": "8db96e4ade98572fdf86ae4af204bf0ce76b949079d63d55e94693e468f06e56",
+    "R4_aA_m0_full.npz": "f62504fd5b6f2194dc17372a2a834c86bb1cb9cfc49bda5cd06d97b91d8234be",
+    "R4_aA_m0_los.npz": "85b292513428af5ba557204fb55a3fbb72b66bdc4db8e934a2271c1b7a97f9d2",
+    "R4_aB_m0_full.npz": "ae8ec793a6fa246c65fc56ad7f2ea0201793828e70aa6748ec85697186ce77bd",
+    "R4_aB_m0_los.npz": "53e3bcdb70b34e205a99a7e3b3e57115d92caea7be486cd83b874a1a08c0d5b5",
+    "R5_aA_m0_full.npz": "92f9054edb2f73c12647b8c159e3169eea807afa790453e470c2277ccc5e8ab8",
+    "R5_aA_m0_los.npz": "d5d15856b0d5ca9a69dc3355ab330c7e75fbe19db53b3fcad27ab3f8cea3f338",
+    "R5_aB_m0_full.npz": "f64c79adc661fda2994a3a899dad0ff3fb7fc1747931bbbe0de4e697b91d7162",
+    "R5_aB_m0_los.npz": "0f43c9e5e4a1ef50bea4986dde55ab3907ef96db4a23009968ed02aaa550aec5"
+  },
+  "frozen_blobs": {
+    "research/EKF3_INDEPENDENT_20261013/ekf3.py": "c010981d387cf9b50c2f50911ac37624e80318ec",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d0_d4.py": "f0421d0d7013bbb6b1a5940a5f3819e7fffef696",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/run_d5_regimes.py": "c327952fdd169cff2fa31977aded0e6f87991d54",
+    "research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json": "8bf216cf606f5e3c11139cacbf42f15a44556feb",
+    "research/EKF3_INDEPENDENT_20261013/p2_frozen_rf_one_step.py": "69e02f89b64792ceafe2dc01e4b92794109fb487"
+  },
+  "source_sha256": {
+    "h3_offline.py": "b0e65d39b7ec103a03ed1368bbeb9365581925bb15ca8ab9a63998716221ad05",
+    "run_full.py": "dfc3c5d8a2b634dccd3e2a3d1eb519abb781156d63d7d7e8b2c582ab89b5ef7b",
+    "run_stage1.py": "586079ea7c3b116238a28d710d7ddce07dc7ed750b02b60e47eb786e59bde3cd"
+  },
+  "reference_metrics_sha256": {
+    "NOISE": "92c04d7132ad51d753672a8fe146ee2fb55824b630dcb33351ec16f8c6727e1f",
+    "L0": "79aed9d57aaadee29e15f2e5a75af767f63f777c80b1c8f4b634b1090e5264d4",
+    "L1": "32c17bf78198633dd0ce89ae83b7b589cd08c97d2051acfae46e92991879f09d",
+    "L2": "2c769d44d27d491c1a278087ada36cb51e0d9611b2fe8e54a2129767e9c3a54b"
+  }
+}
