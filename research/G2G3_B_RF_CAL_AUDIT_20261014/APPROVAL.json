@@ -1,7 +1,7 @@
 {
-  "audit_id": "G2G3_B_RF_CAL_AUDIT_20261014_01",
+  "audit_id": "G2G3_B_RF_CAL_AUDIT_20261014_02_REVIEWED_REPORT_KEY_REPAIR",
   "audit_policy_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
-  "review_reference_commit": "ba67b52e69a0f17d5c67561002382525234c2a8d",
+  "review_reference_commit": "5d918fc121751292f603fbf89b823f3f078a4d5a",
   "review_decision": "GO_WITH_CLAIM_LIMITATION",
   "audit_method": "assistant source/mathematical review + pinned runner git blobs + independent analytic/direct-integral fixture",
   "independent_reviewer": false,
@@ -12,11 +12,11 @@
     "evaluate"
   ],
   "source_git_blobs": {
-    "research/G2G3_B_RF_CAL_AUDIT_20261014/b_audit.py": "77af007da45061587feb6dabcab0df0fb9e7affa",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/b_audit.py": "af533bc113537ffad8358a6230375a47712351da",
     "research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py": "ffbc0ca9e92902a7615980929a42ae851808b6b4",
     "research/G2G3_B_RF_CAL_AUDIT_20261014/b_acquire.py": "c6c179c52616552159064cc42e87b3a0dfd4f201",
     "research/G2G3_B_RF_CAL_AUDIT_20261014/CONTRACT.json": "8f4e839b2dd6b645b5ca08f0887ce433b0e2ba9a",
-    "research/G2G3_B_RF_CAL_AUDIT_20261014/SOURCE_REVIEW_KO.md": "9608bd3779ef8cb0bb7390d0bebae331f7291281",
+    "research/G2G3_B_RF_CAL_AUDIT_20261014/SOURCE_REVIEW_KO.md": "46f6a96f6a5cfd1c545d6bcdef26d57b22ea089c",
     ".github/workflows/g2g3-B-rf-cal-audit.yml": "79c351b5684d8253d3a338702d106e26cd72baa4"
   },
   "review_findings": [
@@ -39,6 +39,11 @@
       "id": "SA-004",
       "severity": "CLAIM_BLOCK",
       "message": "Observed z-bins are descriptive only, not normalized generative measurement likelihood."
+    },
+    {
+      "id": "SA-006",
+      "severity": "DIAGNOSTIC_DEFECT_OR_WARNING_FIXED",
+      "message": "First cloud run passed math/acquire then failed because train_n report key was duplicated. Source-only output assembly fix, no scientific model changes. Prior failure preserved."
     }
   ],
   "input_archive_id": 11875206058,
