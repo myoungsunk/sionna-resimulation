@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 FROZEN = {
     'P2_SPEC.json': '548258a444c02a3a1d0c2d210b470489560b1bd56ad911cc9ee93d7631b36ce7',
-    'synthetic.py': 'c3fc54d9726beab176971aa8652c0b6f613e4c8150351c4d9643',
+    'synthetic.py': 'c3fc54d9726beab176971aa8652c0b6f61353f55f596613e4c8150351c4d9643',
 }
 CODES = (
     'core.py', 'stable_descent.py', 'synthetic.py', 'validate.py',

@@ -4,7 +4,7 @@
 
 ## 원본과 재사용
 - 원본 P2_SPEC SHA256: `548258a444c02a3a1d0c2d210b470489560b1bd56ad911cc9ee93d7631b36ce7`. 원 실험 3경로×2bias×100 trial/조건, 0.5초/60초, seed10000–10099, 4개 모델, R/Q와 MAP gradient_tol 1e-8은 **불변**.
-- 원 synthetic.py SHA256: `c3fc54d9726beab176971aa8652c0b6f613e4c8150351c4d9643`.
+- 원 synthetic.py SHA256: `c3fc54d9726beab176971aa8652c0b6f61353f55f596613e4c8150351c4d9643`.
 - 기존 P0/P1/R1/D2/R2 결과는 해당 버전과 범위에서 재사용하며 소급 PASS로 바꾸지 않는다.
 - 현재 `core.py`의 R2 휴리스틱은 연구용 후보이며 학문적 최적점/공분산 보장이 아니다.
 
