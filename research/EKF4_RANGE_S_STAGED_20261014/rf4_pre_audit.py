@@ -26,6 +26,7 @@ def main():
   ast.parse(source)
   checks.append({'name':'one_RF Range_factor_plus_s','ok':"z=np.array([float(obs['range_m'][k]),float(obs['s'][k])])" in source})
   checks.append({'name':'four_state_bias_model','ok':'MAP4_GATED' in source and 'MAP4_ALL' in source})
+  checks.append({'name':'audit_result_field_contract','ok':"a['verdict']=='GO'" in source})
   checks.append({'name':'fixed_source_not_importing_h3_oracle','ok':'h3_range_sign_audit' not in source})
   w=(REPO/WF).read_text()
   cmds=['rf4_pre_audit.py --out','p0_verify_inputs.py','rf4_recursive_pilot.py --audit']

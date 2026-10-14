@@ -34,7 +34,7 @@ def write(path,obj):
 
 def source_guard(audit):
  a=json.loads(Path(audit).read_text())
- if not (a['decision']=='GO' and a['git_sha']==os.environ.get('GITHUB_SHA')):
+ if not (a['verdict']=='GO' and a['git_sha']==os.environ.get('GITHUB_SHA')):
   raise RuntimeError('P6 pre-run code audit not passed')
  return a
 
