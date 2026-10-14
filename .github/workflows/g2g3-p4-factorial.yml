@@ -1,0 +1,87 @@
+name: G2G3 P4 full one-step factorial R0 EKF approximations
+on:
+  push:
+    branches: [research/g2g3-p0-p6-execution-20261014]
+    paths: [research/G2G3_P0P6_EXECUTION_20261014/APPROVAL_P4.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  P4-one-step:
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: [R2_aA_m0,R2_aA_m45,R2_aB_m0,R4_aA_m0,R4_aB_m0,R5_aA_m0,R5_aB_m0]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout immutable original H3 sensor inputs and source for all archived cases
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_P0P6_EXECUTION_20261014/
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/*/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_*.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_*.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /.github/workflows/g2g3-p4-factorial.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Audit exact P4 reviewed source and source-only frozen model before scientific run
+        run: |
+          python research/G2G3_P0P6_EXECUTION_20261014/p34_gate.py P4 --case ${{ matrix.case }}
+          python -m py_compile research/G2G3_P0P6_EXECUTION_20261014/p4_factorial.py
+      - name: Install original numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Execute complete paired one-step factorial, per-method failures kept
+        run: |
+          python research/G2G3_P0P6_EXECUTION_20261014/p4_factorial.py \
+             --case ${{ matrix.case }} --out outputs/g2g3_p4_${{ matrix.case }}
+      - name: Archive per-case numerical and actual performance outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-P4-${{ matrix.case }}
+          path: |
+            outputs/g2g3_p4_${{ matrix.case }}/
+            outputs/g2g3_p34_audit/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Per-case factual GitHub Actions results
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path("outputs/g2g3_p4_${{ matrix.case }}/P4_RECEIPT.json")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("# Frozen R0 P4 One-step EKF approximation\n\n")
+              if not p.exists():
+                  f.write("No P4 receipt: setup/preflight failure\n")
+              else:
+                  r=json.loads(p.read_text())
+                  for name in ("case","status","failed_count","method_attempts","method_valid"):
+                      f.write("**"+name+"**: "+str(r.get(name))+"\n\n")
+          PY
