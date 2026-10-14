@@ -97,11 +97,16 @@ def audit(destination):
         # Verify the new solver-independent audit genuinely comes before all
         # numerical code and that the upload is unconditional on test success.
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        stages = ["p3_pre_run_audit.py", "p3_frozen_inputs.py",
-                  "p3_parity.py", "test_p3_adapter.py", "p3_export.py"]
-        offsets = [workflow.find("python research/EKF4_RANGE_S_STAGED_20261014/" + x)
-                   if x != "test_p3_adapter.py" else workflow.find("test_p3_adapter.py")
-                   for x in stages]
+        # Match EXECUTED command prefixes rather than a bare filename;
+        # the workflow triggers and artifact list also contain test filenames.
+        calls = [
+            "python research/EKF4_RANGE_S_STAGED_20261014/p3_pre_run_audit.py --out",
+            "python research/EKF4_RANGE_S_STAGED_20261014/p3_frozen_inputs.py --archive",
+            "python research/EKF4_RANGE_S_STAGED_20261014/p3_parity.py --archive",
+            "python -m pytest --noconftest",
+            "python research/EKF4_RANGE_S_STAGED_20261014/p3_export.py --audit",
+        ]
+        offsets = [workflow.find(command) for command in calls]
         if not all(x >= 0 for x in offsets) or offsets != sorted(offsets):
             fatal.append("WORKFLOW_AUDIT_NOT_FIRST_OR_STAGE_ORDER")
         if ("if: always()" not in workflow or "set -euo pipefail" not in workflow
