@@ -14,9 +14,9 @@ concurrency:
   group: ekf4-staged-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  math-and-local-map:
+  gated-p0-p2:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 30
     env:
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
@@ -47,16 +47,25 @@ jobs:
         run: |
           set -euo pipefail
           python research/EKF4_RANGE_S_STAGED_20261014/validate.py --until P1 --out "$RUNNER_TEMP/ekf4_p0p1" | tee "$RUNNER_TEMP/ekf4_execution.log"
+      - name: P2 paired recursive synthetic experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/synthetic.py --gates "$RUNNER_TEMP/ekf4_p0p1" --out "$RUNNER_TEMP/ekf4_p2" | tee "$RUNNER_TEMP/ekf4_p2_execution.log"
       - name: Preserve complete evidence even on failure
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ekf4-p0p1-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ekf4-stages-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/ekf4_p0p1/**
+            ${{ runner.temp }}/ekf4_p2/**
             ${{ runner.temp }}/ekf4_execution.log
+            ${{ runner.temp }}/ekf4_p2_execution.log
             research/EKF4_RANGE_S_STAGED_20261014/*.py
-            research/EKF4_RANGE_S_STAGED_20261014/PLAN_KO.md
+            research/EKF4_RANGE_S_STAGED_20261014/*.json
+            research/EKF4_RANGE_S_STAGED_20261014/*.md
             research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
+            research/EKF4_RANGE_S_STAGED_20261014/pytest.ini
           if-no-files-found: error
           retention-days: 30
