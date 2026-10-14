@@ -1,0 +1,47 @@
+{
+  "audit_id": "G2G3_B2_CIR_QUANTIZATION_20261014_INITIAL",
+  "decision": "GO_WITH_CLAIM_LIMITATION",
+  "review_commit": "a7cff38066acc80a7ef0c18369f814af3370e13a",
+  "audit_author": "assistant source and math audit; no independent external human reviewer",
+  "authorized_stages": [
+    "BOOTSTRAP",
+    "B2",
+    "C2",
+    "D0"
+  ],
+  "approved_git_blobs": {
+    "research/G2G3_B2_PHYSICS_Q_20261014/CONTRACT.json": "a788b76eb270e8cd13f31f3ceca01be48ef9e326",
+    "research/G2G3_B2_PHYSICS_Q_20261014/run.py": "1652c0b18df3bb767d7993ecd54a3a7052d0c034",
+    "research/G2G3_B2_PHYSICS_Q_20261014/gate.py": "b825ea62ec951ee4d0a038a1671c0bd49c9c0e86",
+    "research/G2G3_B2_PHYSICS_Q_20261014/PRE_RUN_REVIEW_KO.md": "44294b1f1bfb64c772b439d9595b60d0f818c54d",
+    ".github/workflows/g2g3-b2-physics-q-c2.yml": "f3fad02feeee00c19619028ebe1caaa42d29e94f"
+  },
+  "immutable_external_ref": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+  "audit_policy": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "preregistered_verdicts": [
+    {
+      "stage": "B2",
+      "run": "audit source and original 64 RF scene positions",
+      "claim": "95/99 tail coverage and NLL; independent posterior calibration not guaranteed"
+    },
+    {
+      "stage": "C2",
+      "run": "same C1-C4 fixtures with new frozen signed likelihood",
+      "claim": "radial action vs wrong-RF false-confidence"
+    },
+    {
+      "stage": "D0",
+      "run": "normalized signed likelihood exact Bayes sequential/joint algebra in toy nonlinear model",
+      "claim": "not physical G2/G3 pose comparison"
+    }
+  ],
+  "known_claim_blocks": [
+    "Only Office vs corridor synthetic scene families; A2 and A2B related",
+    "Independent gyro Fault prior unavailable and pF=.05 is synthetic frozen",
+    "Defensive negative Student-t signed component inherited, not empirically calibrated",
+    "Double-counting of clean quantization variance possible, reported as conservative hypothesis",
+    "Original G3 one-cell Heading performance previously worsened even after numeric convergence"
+  ],
+  "scientific_PASS": false,
+  "audited_code_matches_execution_sha": false
+}
