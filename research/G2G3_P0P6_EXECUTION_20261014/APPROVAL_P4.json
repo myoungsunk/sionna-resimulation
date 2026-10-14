@@ -1,0 +1,40 @@
+{
+  "audit_id": "G2G3_P4_ALL_CASES_EKF_APPROX_20261014_01",
+  "decision": "GO_WITH_CLAIM_LIMITATION",
+  "audit_policy": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "source_blobs": {
+    "research/G2G3_P0P6_EXECUTION_20261014/p4_factorial.py": "f48b8762310f72256ccadf67803197847d40e9de",
+    "research/G2G3_P0P6_EXECUTION_20261014/p34_gate.py": "d6a079836dc187c0abbae4ee08cadd73cfcc200b",
+    "research/G2G3_P0P6_EXECUTION_20261014/P34_CONTRACT.json": "3466c7765d0a8484a5501c89d0508d53151ff3d2",
+    "research/G2G3_P0P6_EXECUTION_20261014/P34_SOURCE_REVIEW_KO.md": "4bed53f05ee884d9c93909be3851a3ff84711783",
+    ".github/workflows/g2g3-p4-factorial.yml": "498ab02e082c4b662f6ff08d579dd91e0bb0f9be"
+  },
+  "authorized_cases": [
+    "R2_aA_m0",
+    "R2_aA_m45",
+    "R2_aB_m0",
+    "R4_aA_m0",
+    "R4_aB_m0",
+    "R5_aA_m0",
+    "R5_aB_m0"
+  ],
+  "previous_p3_run_id": 38580298879,
+  "previous_p3_evidence_id": 11902209334,
+  "independent_reviewer": false,
+  "scientific_PASS": false,
+  "claim_scope": "Full-factorial one-step R0 EKF approximations, not G2/G3 exact nonlinear or recursive",
+  "findings": [
+    {
+      "severity": "CLAIM_BLOCK",
+      "decision": "separate P3 nonlinear exact moments from full P4 EKF approximation"
+    },
+    {
+      "severity": "CASE_RESULT_INVALID",
+      "decision": "score per-method time invalid only on nonfinite/PSD error; continue unaffected methods"
+    },
+    {
+      "severity": "CLAIM_BLOCK",
+      "decision": "same RF scenes across seeds; report case/block descriptive performance, not independent scene confidence"
+    }
+  ]
+}
