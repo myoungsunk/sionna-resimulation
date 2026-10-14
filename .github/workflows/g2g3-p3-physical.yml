@@ -1,0 +1,84 @@
+name: G2G3 P3 physical 3state one-step validation
+on:
+  push:
+    branches: [research/g2g3-p0-p6-execution-20261014]
+    paths: [research/G2G3_P0P6_EXECUTION_20261014/APPROVAL_P3.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  P3-one-step:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    steps:
+      - name: Checkout frozen source and representative RF blobs
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_P0P6_EXECUTION_20261014/
+            /research/EKF3_INDEPENDENT_20261013/*.py
+            /research/EKF3_INDEPENDENT_20261013/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/*.json
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/*.py
+            /research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/CONTRACT.json
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/*.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /.github/workflows/g2g3-p3-physical.yml
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: PRE-RUN source, contract and provenance audit
+        run: |
+          python research/G2G3_P0P6_EXECUTION_20261014/p34_gate.py P3
+          python -m py_compile research/G2G3_P0P6_EXECUTION_20261014/p3_one_step.py
+      - name: Install pinned scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: P3 compute full 3state means, covariances, numerical TV and heading posterior
+        run: |
+          python research/G2G3_P0P6_EXECUTION_20261014/p3_one_step.py \
+            --mode P3 --out outputs/g2g3_p3_real
+      - name: Archive results including numerical failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-P3-physical-pose-cov
+          path: |
+            outputs/g2g3_p3_real/
+            outputs/g2g3_p34_audit/
+            research/G2G3_P0P6_EXECUTION_20261014/P34_CONTRACT.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Show P3 verdict
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os,json
+          r=Path("outputs/g2g3_p3_real/P3_P4_REPORT.json")
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("# Physical G2/G3 P3 one-step\n\n")
+              if r.exists():
+                  x=json.loads(r.read_text())
+                  f.write(str({k:x.get(k) for k in ('status','numeric_pass','numeric_invalid','n_valid','n_invalid')})+"\n\n")
+                  for y in x.get("results",[]):f.write(str({k:y.get(k) for k in ('case','method','status','TV','pos_err_m','heading_error_deg','gate')})+"\n\n")
+              else:f.write("No P3 receipt; see source/checkout errors\n")
+          PY
