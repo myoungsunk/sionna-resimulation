@@ -237,6 +237,8 @@ def main():
                         jobs.append((ci["id"],cond,level,0,-1,channel,rmodel))
         grouped={}
         cache={}
+        corrected_cache={}
+        folds=json.loads(c.P3_MODEL.read_text())["loro_fold_params"]
         for caseid,cond,lev,seed,idx,channel,rmodel in jobs:
             case=cases[caseid]
             key=(caseid,cond,lev,seed)
@@ -254,9 +256,14 @@ def main():
             if (caseid,channel) not in cache:
                 cache[caseid,channel]=c.rf_case(p0,case,channel,freq,snap["poseids"])
             obs=cache[caseid,channel]
-            zs,zr=float(obs["s"][k]),float(obs["range_raw_m"][k]-c.B_OLD if rmodel=="B_OLD" else obs[rmodel][k])
-            # c.rf_case returns uncorrected range. E1 is a separate fold correction
-            if rmodel=="B_OLD":zr=float(obs["range_raw_m"][k]-c.B_OLD)
+            if (caseid,channel) not in corrected_cache:
+                corrected_cache[caseid,channel]=c.corrected_ranges(
+                    obs,folds[case["route"]],allow_e1_on_los=False,channel=channel
+                )
+            correction=corrected_cache[caseid,channel]
+            if rmodel not in correction:
+                raise RuntimeError("HARD_EXECUTION_BLOCK: requested RF correction unavailable")
+            zs,zr=float(obs["s"][k]),float(correction[rmodel][k])
             for method,gh in (("G2_EKF_S",S_GH_LEVELS),("G3_JOINT",GH_LEVELS)):
                 base=dict(case=caseid,channel=channel,range_model=rmodel,condition=cond,level=lev,
                           seed=seed,sample=k,time_s=float(snap["t"][k]),method=method)
