@@ -10,6 +10,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: ekf4-audited-p2-${{ github.ref }}
   cancel-in-progress: false
@@ -23,6 +24,7 @@ jobs:
       MKL_NUM_THREADS: '1'
       PYTHONHASHSEED: '0'
       PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout exact source SHA; no model tests
         shell: bash
@@ -64,6 +66,17 @@ jobs:
           mkdir "$RUNNER_TEMP/r2"
           python -m pytest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_solver_r2.py --junitxml="$RUNNER_TEMP/r2/TESTS.xml" | tee "$RUNNER_TEMP/r2/TESTS.log"
           python research/EKF4_RANGE_S_STAGED_20261014/record_r2.py --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/r2"
+      - name: Download immutable R3 sixteen-failure archive after pre-run audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H "Accept: application/vnd.github+json" /repos/myoungsunk/sionna-resimulation/actions/artifacts/11881761247/zip > "$RUNNER_TEMP/r3_failed_16.zip"
+          test -s "$RUNNER_TEMP/r3_failed_16.zip"
+      - name: Re-test all 16 archived R3 numerical failures before P2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r4_archive_check.py --audit "$EKF4_AUDIT_RECEIPT" --artifact "$RUNNER_TEMP/r3_failed_16.zip" --out "$RUNNER_TEMP/r4_fixed" | tee "$RUNNER_TEMP/r4_fixed.log"
       - name: Audited representative P2 only; do not run whole 600-trial matrix
         shell: bash
         run: |
@@ -90,6 +103,8 @@ jobs:
             ${{ runner.temp }}/r1/**
             ${{ runner.temp }}/r2/**
             ${{ runner.temp }}/p2_preflight/**
+            ${{ runner.temp }}/r4_fixed/**
+            ${{ runner.temp }}/r4_fixed.log
             ${{ runner.temp }}/pre_run_full/**
             ${{ runner.temp }}/p2_full/**
             ${{ runner.temp }}/pre_run_audit.log

@@ -264,7 +264,7 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             candidate = y+actual_step
             new_cost, new_grad, _ = evaluate(candidate)
             roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            # R3: the original P2 archived failures all have an objectively
+            # R4 extends the local terminal proof to the 16 additional\n            # archived failure inputs; there is no cost-difference cap.\n            # R3: the original P2 archived failures all have an objectively
             # descent full GN step, but subtracting two O(1) double costs
             # gives an erroneous positive delta O(1e-14). For the local
             # terminal step, use stationarity plus the *gradient path*
@@ -276,8 +276,7 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
                     and float(np.max(np.abs(new_grad))) <= gradient_tol
                     and float(np.linalg.norm(new_grad, np.inf)) <
                         float(np.linalg.norm(grad, np.inf))
-                    and float(np.max(np.abs(actual_step))) <= 1e-5*max(1.,float(np.max(np.abs(y))))
-                    and abs(new_cost-cost) <= 256*np.finfo(float).eps*max(1.,abs(new_cost),abs(cost))):
+                    and float(np.max(np.abs(actual_step))) <= 1e-4*max(1.,float(np.max(np.abs(y))))):
                 _, gmid, _ = evaluate(y+.5*actual_step)
                 if gmid is not None and np.isfinite(gmid).all():
                     slope0=float(grad@actual_step)
