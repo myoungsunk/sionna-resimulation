@@ -1,0 +1,125 @@
+{
+  "schema": "G2G3_BF_PARTIAL_EXECUTION_SUMMARY_20261014",
+  "branch": "research/g2g3-bf-audited-20261014",
+  "latest_scoring_commit": "3db198e9d49a123cb4eb9e06967d4e2850ca01bd",
+  "runs": [
+    {
+      "type": "B_C_D_E0_F",
+      "run_id": 38531405523,
+      "artifact_id": 11878356818,
+      "head_sha": "7a2380a3a2173a1f219994adcfe8ea70dca28159",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "type": "E1_ORIGINAL_R0_SINGLE_CELL",
+      "run_id": 38532581455,
+      "artifact_id": 11878746751,
+      "head_sha": "3db198e9d49a123cb4eb9e06967d4e2850ca01bd",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "audit_policy": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "A": {
+    "status": "REUSED_VERIFIED",
+    "run_id": 38523237789,
+    "scope": "signed RF residual, DR-RF directional descriptive"
+  },
+  "B": {
+    "execution": "PASS",
+    "calculation": "PASS_DESCRIPTIVE",
+    "hypothesis": "INDEPENDENT_CALIBRATION_NOT_SUPPORTED",
+    "scientific_claim": "CLAIM_BLOCK",
+    "spatial_0p5m_valid_folds": {
+      "R2": 0,
+      "R4": 1241,
+      "R5": 0
+    },
+    "route_heldout99_minimum_coverage": 0.9702
+  },
+  "C": {
+    "execution": "PASS",
+    "calculation": "PASS",
+    "hypothesis": "SUPPORTED_ON_FOUR_FIXED_FIXTURES",
+    "scientific_claim": "CLAIM_BLOCK_UNCALIBRATED",
+    "controls": {
+      "C1": [
+        0,
+        0
+      ],
+      "C2": [
+        2.805920656,
+        0.086985238
+      ],
+      "C3": [
+        0.03,
+        0.03
+      ],
+      "C4": [
+        0.03,
+        0.03
+      ]
+    }
+  },
+  "D": {
+    "execution": "PASS_SINGLE_CELL",
+    "calculation": "PASS_NUMERICAL_CROSSCHECK_ONE_CASE",
+    "hypothesis": "TILTED_QUADRATURE_SUPPORTED_LOCAL",
+    "scientific_claim": "CLAIM_BLOCK_FULL_G3",
+    "old_GH_TV": 0.38706501555739936,
+    "tilted_GH_25_41_TV": 0.0003355753008792813,
+    "RQMC_seed_TV": 0.00010856182264205285,
+    "largest_cross_method_TV": 0.0003355753008792813,
+    "max_relative_evidence_diff": 0.002194796014731292
+  },
+  "E0": {
+    "execution": "PASS",
+    "calculation": "PASS_SCALAR_SHADOW",
+    "hypothesis": "DESCRIPTIVE",
+    "scientific_claim": "CLAIM_BLOCK_NOT_FULL_ONE_STEP",
+    "n_paired": 223236,
+    "selected": 5202,
+    "selected_RF_inferior": 0,
+    "L2_radial_MAE_m": {
+      "DR": 0.4596,
+      "LoS_BOLD_new": 0.2388,
+      "Full_BOLD_new": 0.2398,
+      "Full_E1_new": 0.2383
+    }
+  },
+  "E1": {
+    "execution": "PASS",
+    "calculation": "PASS_SINGLE_G3_SCORING",
+    "hypothesis": "CONTRADICTED_G3_ALWAYS_IMPROVES_HEADING",
+    "scientific_claim": "CLAIM_BLOCK_GENERAL",
+    "case": "R2_aA_m0/gyro_bias_L2/seed0/LoS/B_OLD/195.6s",
+    "truth_heading_deg": -182.32917768218303,
+    "G0_abs_heading_error_deg": 27.53901938023448,
+    "G2X_abs_heading_error_deg": 24.55957199887954,
+    "G3_converged_abs_heading_error_deg": 52.579177682183044,
+    "G3_HPD95_contains_truth": false,
+    "G3_truth_pm5_probability": 4.953950446257466e-236
+  },
+  "E_full": {
+    "execution": "NOT_RUN",
+    "calculation": "NOT_RUN",
+    "hypothesis": "NOT_EVALUATED",
+    "scientific_claim": "CLAIM_BLOCK"
+  },
+  "F_recursive": {
+    "execution": "NOT_RUN",
+    "calculation": "NOT_RUN",
+    "hypothesis": "NOT_EVALUATED",
+    "scientific_claim": "CLAIM_BLOCK"
+  },
+  "unresolved": [
+    "B independent spatial-scene RF calibration lacks samples and 99% empirical coverage does not hold on all route-only folds",
+    "Signed RF likelihood and physical Gyro-fault prior for full 3state posterior remain uncalibrated/unimplemented",
+    "Tilted numerical G3 successfully validated only for one original normal-prior R0 case, not all cases/multimodal fault prior",
+    "Despite numerical convergence, original G3 heading estimate is inaccurate on the same failed frame",
+    "Full new G2/G3 one-step and recursive covariance/NEES/coverage not run"
+  ],
+  "stop_reason": "Contradicted full-state accuracy expectation plus uncalibrated B model: follow user's hypothesis-revision-and-confirmation protocol; no unapproved new physical model trial.",
+  "scientific_PASS": false
+}
