@@ -1,0 +1,30 @@
+{
+  "audit_id":"G2G3_READOUT_SCOPE_REPAIR_20261014_A02",
+  "reviewed_source_commit":"69b84f179b96fcbc16cb3f6177a07cb22d6ac04b",
+  "review_decision":"GO_WITH_CLAIM_LIMITATION",
+  "audit_method":"source review, exact event-inequality derivation, CDF versus independent direct-integral verification",
+  "independent_reviewer":false,
+  "reused_run_id":38526264898,
+  "scope":"One bounded diagnosis of two probability readouts using the same unchanged posterior. No new estimator adopted.",
+  "reference_zip_sha256":"56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5",
+  "source_git_blobs":{
+    "research/G2G3_AUDITED_MINIMAL_20261014/readout_review.py":"a5f0620548f29a25fa3a3248564d43cbd98bfba3",
+    "research/G2G3_AUDITED_MINIMAL_20261014/model.py":"1b13e7fa1909168f3f7cb2d35d2d86d4c00cb5b9",
+    "research/G2G3_AUDITED_MINIMAL_20261014/CONTRACT.json":"eaa43a8cc33f8b32af0e033e439277401f0b56c2",
+    "research/G2G3_AUDITED_MINIMAL_20261014/gate.py":"a9c0bc2c4003f4f63c58fb0d3b83aeff408d1fde",
+    "research/G2G3_AUDITED_MINIMAL_20261014/acquire.py":"b5ca3ee79f225212106457c82c321aac422f9be2",
+    ".github/workflows/g2g3-readout-review.yml":"aa0e235751934b40674de1d407afa05a2d85a04b"
+  },
+  "findings":[
+    {"severity":"DIAGNOSTIC_DEFECT_OR_WARNING","scope":"equating fault event with distance advantage","action":"derive and independently verify the direct distance event probability"},
+    {"severity":"CLAIM_BLOCK","scope":"zero mistakes with zero activation","action":"report undefined precision as null"},
+    {"severity":"CLAIM_BLOCK","scope":"C4 flag-based success versus continuous point estimate","action":"report actual point-estimate harm without invalidating its valid calculation"}
+  ],
+  "parameter_changes":0,
+  "threshold_changes":0,
+  "new_model_trials":0,
+  "new_readout_diagnostics":1,
+  "model_deployment_authorized":false,
+  "scientific_claim_decision":"CLAIM_BLOCK_CALIBRATION_AND_FULL_POSE_GENERALIZATION",
+  "audited_code_matches_execution_sha":false
+}
