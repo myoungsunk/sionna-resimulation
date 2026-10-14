@@ -81,18 +81,23 @@ jobs:
         run: |
           set -euo pipefail
           python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase full --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
+      - name: Show scientific effect verdict and full results manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -c 'import json,os,pathlib; p=pathlib.Path(os.environ["RUNNER_TEMP"])/"p2_full"; print("SCIENTIFIC_DECISION",json.dumps(json.loads((p/"SCIENTIFIC_DECISION.json").read_text()),ensure_ascii=False)); print("P2_GROUP_METRICS",json.dumps(json.loads((p/"GROUP_METRICS.json").read_text()),ensure_ascii=False)); print("P2_PAIRED_CI",json.dumps(json.loads((p/"PAIRED_CI.json").read_text()),ensure_ascii=False))'
       - name: Preserve all evidence even if an earlier stage fails
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ekf4-audited-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ekf4-audited-full-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/pre_run/**
             ${{ runner.temp }}/p0p1/**
             ${{ runner.temp }}/r1/**
             ${{ runner.temp }}/r2/**
             ${{ runner.temp }}/r3/**
-            ${{ runner.temp }}/p2_preflight/**
+            ${{ runner.temp }}/p2_full/**
             ${{ runner.temp }}/pre_run_audit.log
             ${{ runner.temp }}/p0p1.log
             ${{ runner.temp }}/r1.log
