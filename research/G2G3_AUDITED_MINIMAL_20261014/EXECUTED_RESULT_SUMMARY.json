@@ -1,0 +1,59 @@
+{
+  "scope": "Executed minimal radial model and linear G2/G3 algebra; same-model distance-probability readout diagnosis",
+  "date_kst": "2026-10-14",
+  "branch": "research/g2g3-audited-minimal-20261014",
+  "audit_policy_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "runs": [
+    {"stage":"minimal_chain","run_id":38526264898,"code_commit":"5dfdea0bdc86706cadc69cc20a3607a482fa02f9","conclusion":"success","artifact_id":11875089589,"artifact_sha256":"4c48c7621cebf401fc34d173154a44459f9a4555b5a9a1187ed1eb6fbfee26df"},
+    {"stage":"readout_before_export_repair","run_id":38527288934,"code_commit":"0328b2a9d3f3e9a788dd77dae5e0c8a6fe7b60ac","conclusion":"failure","artifact_id":11876517911,"artifact_sha256":"d72de68c858b0c0b2f7c5d6bb25504b0e8b79e58dcaea04cc61ab9a480036dc3","failure":"NumPy int64 group label is not JSON serializable","failure_scope":"final JSON report export; previously produced CSV and core model not retroactively invalidated"},
+    {"stage":"readout_export_repaired","run_id":38527848155,"code_commit":"e3d379153a737546aacfa9367f88bfdf7eda7fb3","conclusion":"success","artifact_id":11876866210,"artifact_sha256":"c6974f01ad0d4322f788d823442848e2f7f6dbf4dbf4a4c104546ee2295e38b3"}
+  ],
+  "verdicts": {
+    "execution":"PASS_FOR_COMPLETED_MINIMAL_CHAIN_AND_REPAIRED_DIAGNOSTIC",
+    "calculation":"PASS_IN_TESTED_RADIAL_AND_LINEAR_SCOPES",
+    "hypothesis":"PARTIAL_SUPPORT; OLD_FAULT_EVENT_IS_NOT_REQUIRED_DISTANCE_ADVANTAGE_EVENT",
+    "scientific_claim":"CLAIM_BLOCK_CALIBRATION_NONLINEAR_POSE_AND_GENERALIZATION"
+  },
+  "scientific_PASS":false,
+  "independent_reviewer":false,
+  "independent_computational_checks":[
+    {"test":"analytic truncated radial mixture versus raw prior-likelihood quadrature","fixtures":6,"passed":6,"maximum_recorded_absolute_difference":1.554919387691811e-14},
+    {"test":"joint information form versus conditional sequential Joseph full linear 3state update including mixture evidence","checks":9,"passed":9,"maximum_recorded_absolute_difference":9.992007221626409e-16},
+    {"test":"direct distance CDF versus independent raw-density integral","fixtures":4,"passed":4,"maximum_probability_difference":7.771561172376096e-16},
+    {"test":"initial shadow output labels and decision masks versus raw squared-error recalculation","records":223236,"status":"PASS"}
+  ],
+  "double_range_negative_control":{"detected":true,"covariance_difference":0.022508332864498895},
+  "optional_metadata_negative_control":{"injected":true,"diagnostic_status":"DIAGNOSTIC_DEFECT_OR_WARNING","estimator_unchanged":true},
+  "controls":[
+    {"id":"C1_nominal","p_fault_and_inlier":0.003986755457401216,"p_RF_distance_better":0.526606861455685,"dr_abs_error_m":0.0,"rf_abs_error_m":0.040000000000000036,"posterior_mean_abs_error_m":0.020902494524044357},
+    {"id":"C2_DR_drift","p_fault_and_inlier":0.9427463100244688,"p_RF_distance_better":0.9978215928989684,"dr_abs_error_m":2.8059206559999996,"rf_abs_error_m":0.06346522899999973,"posterior_mean_abs_error_m":0.0869852379312217,"old_095_fault_event_check":"CONTRADICTED","direct_095_distance_check":"SUPPORTED_IN_FIXED_MODEL"},
+    {"id":"C3_RF_overcorrection","p_fault_and_inlier":0.16036061587158262,"p_RF_distance_better":0.17144470197293987,"dr_abs_error_m":0.03000000000000025,"rf_abs_error_m":0.5,"posterior_mean_abs_error_m":0.06553206010782464},
+    {"id":"C4_RF_long_path","p_fault_and_inlier":0.6226248508478182,"p_RF_distance_better":0.6452513961975548,"dr_abs_error_m":0.03000000000000025,"rf_abs_error_m":2.0,"posterior_mean_abs_error_m":1.3020691849476584,"claim_limit":"non-dominant boolean flag is not evidence that continuous posterior mean is safe"}
+  ],
+  "archived_readout_comparison":{
+    "rows":223236,
+    "eligible_RF_shorter_and_NIS_rejected":10547,
+    "old_fault_event_selection":{"selected":0,"less_accurate_RF_selected":0,"observed_precision":null},
+    "direct_distance_selection":{"selected":5202,"less_accurate_RF_selected":0,"observed_precision":1.0,"mean_model_probability":0.9910986323801363},
+    "selected_by_condition":[
+      {"channel":"los","model":"B_OLD","condition":"gyro_bias_L2","selected":1739,"less_accurate_RF_selected":0},
+      {"channel":"full","model":"B_OLD","condition":"gyro_bias_L2","selected":1732,"less_accurate_RF_selected":0},
+      {"channel":"full","model":"E1_FULL_LORO","condition":"gyro_bias_L2","selected":1731,"less_accurate_RF_selected":0}
+    ],
+    "interpretation":"Descriptive same-data readout only; RF observations reused across conditions/seeds; no calibrated 95 percent guarantee or independent 5202 RF scenes. No new pose/state update deployed."
+  },
+  "export_repair_audit":{
+    "implementation_repair_count":1,
+    "parameter_changes":0,
+    "threshold_changes":0,
+    "constant_model_git_blob":"1b13e7fa1909168f3f7cb2d35d2d86d4c00cb5b9",
+    "constant_contract_git_blob":"eaa43a8cc33f8b32af0e033e439277401f0b56c2",
+    "old_and_new_csv_byte_identical":true,
+    "csv":"DIRECT_READOUT_BY_CONDITION.csv",
+    "bytes":271,
+    "sha256_before":"a1b0d09bc30dda9e6a65f4a6cb4ece80bcc59a59c10a5856c7ab3a7ff94fce81",
+    "sha256_after":"a1b0d09bc30dda9e6a65f4a6cb4ece80bcc59a59c10a5856c7ab3a7ff94fce81"
+  },
+  "remaining":["C4 continuous posterior-mean harm remains","source-fault probability is prior-sensitive","true online quality/fault inputs have not been independently calibrated","full nonlinear G3 reference remains invalid at original failed case","joint 3state posterior and recursive G2/G3 not executed"],
+  "next_action":"Confirm whether to use direct relative-distance probability and guarded radial-only correction as the next estimator hypothesis. Existing model and all failure records preserved."
+}
