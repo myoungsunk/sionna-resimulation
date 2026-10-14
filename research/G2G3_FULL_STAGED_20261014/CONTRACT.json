@@ -1,0 +1,111 @@
+{
+  "schema": "G2G3_FULL_STAGED_P0_P3_20261014",
+  "source_baseline": "32ee990b0d9dfc3bf3010e5ccabf404fa9d3aa20",
+  "base_branch_commit": "001ca4bc06ae3875fdd8aa24823b2cd34da3021d",
+  "preaudit_policy": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "prior_runs": {
+    "B2": 38561262164,
+    "older_D_single": 38531405523,
+    "older_E_single": 38532581455,
+    "DR_RF_A": 38523237789
+  },
+  "scope": "P0 frozen data parity; P1 R0 G2/G3 likelihood+gate compatibility; P2 physical full 3state R0 one-step GH/RQMC; P3 physical representative pairs; no full claim from single cells",
+  "B2_model_integration": "NOT_ELIGIBLE until original H3 observation TX0, CIR feature semantics, static-office density vs dynamic H3 signed error mapping audited. R0 primary; conditional robustness candidate later.",
+  "hypotheses": {
+    "H0": "Frozen 195.6s L2 DR prior and G0/G2X parity",
+    "H1": "Range counted once and G2X rejected Range matches archived; exact sequential Bayes identity",
+    "H2": "tilted GH and randomized QMC agree on original G3 Heading posterior and recover full (x,y,ψ) moments",
+    "H3": "Representative 3state G2/G3 One-step results produce valid outputs; some errors may worsen without invalidating numeric calculation"
+  },
+  "fixed": {
+    "case": "R2_aA_m0",
+    "condition": "gyro_bias",
+    "level": 2,
+    "seed": 0,
+    "sample": 978,
+    "channel": "los",
+    "range_model": "B_OLD",
+    "posterior_heading_bins": 1440,
+    "gh_orders": [
+      25,
+      41
+    ],
+    "rqmc_n": 8192,
+    "rqmc_seeds": [
+      1069,
+      2099
+    ],
+    "tv": 0.001,
+    "map_angle_deg": 0.1,
+    "evidence_relative": 0.005,
+    "mean_3state_accuracy_m": 0.05,
+    "cov_3state_accuracy_max": 0.15
+  },
+  "p3_preselected": [
+    {
+      "case": "R2_aA_m0",
+      "condition": "noise_pair",
+      "level": 1,
+      "seed": 0,
+      "sample": 978,
+      "channel": "los",
+      "range_model": "B_OLD"
+    },
+    {
+      "case": "R2_aA_m0",
+      "condition": "gyro_bias",
+      "level": 0,
+      "seed": 0,
+      "sample": 978,
+      "channel": "full",
+      "range_model": "E1_FULL_LORO"
+    },
+    {
+      "case": "R2_aA_m0",
+      "condition": "gyro_bias",
+      "level": 2,
+      "seed": 0,
+      "sample": 978,
+      "channel": "los",
+      "range_model": "B_OLD"
+    },
+    {
+      "case": "R2_aA_m0",
+      "condition": "gyro_bias",
+      "level": 2,
+      "seed": 0,
+      "sample": 978,
+      "channel": "full",
+      "range_model": "E1_FULL_LORO"
+    },
+    {
+      "case": "R4_aA_m0",
+      "condition": "gyro_bias",
+      "level": 0,
+      "seed": 0,
+      "sample": 400,
+      "channel": "full",
+      "range_model": "E1_FULL_LORO"
+    }
+  ],
+  "p3_gh_orders": [
+    17,
+    25,
+    41
+  ],
+  "p3_heading_bins": 720,
+  "evaluation_start_s": 30,
+  "source_files_required": [
+    "research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/h3_cloud_stage1.py",
+    "research/EKF3_INDEPENDENT_20261013/diagnostics/h3_offline/results/H3_OFFLINE_20261014_01a1380d/h3_offline.py"
+  ],
+  "policy": {
+    "single_bad_performance": "RETAIN_AND_ANALYZE_DO_NOT_STOP",
+    "numerical_failure": "CASE_RESULT_INVALID_ONLY",
+    "leakage_or_hash": "HARD_EXECUTION_BLOCK",
+    "incomplete_external_calibration": "CLAIM_BLOCK_SOURCE_GENERALIZATION_NOT_NUMERIC",
+    "old_error_not_overwritten": true
+  },
+  "scientific_PASS": false
+}
