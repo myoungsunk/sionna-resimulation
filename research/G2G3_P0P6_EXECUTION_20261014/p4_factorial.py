@@ -62,36 +62,29 @@ def rowscore(method,ft,truth,gate_info,base):
         pose_NEES=n,
         rejected=int("rejected_NIS" in gate_info),
         gate_status=gate_info)
-def make_one_step(x,P,zs,zr,case,lut):
-    base=c.EKF3(x,P)
-    adapter=c.EKF3(x,P).clone()
-    model=c.EKF3.__module__
-    from ekf3 import archived_direct_s_model
-    sfun=archived_direct_s_model(lut,
-        anchor_xyz_m=tuple(case["anchor"]),
-        tag_height_m=float(case["robot_z_m"]),
-        mount_deg=float(case["mount_deg"]))
+def make_one_step(x,P,zs,zr,case,sfun,method):
+    """Independent per-method state, so numerical failure never erases DR."""
+    f=c.EKF3(x,P)
     zraw=float(zr+c.B_OLD)
-    results={"DR":(base,"DR_only")}
-    sf=c.EKF3(x,P)
-    st=sf.update_heading(zs,c.RS,s_model=sfun)
-    results["G0_S_EKF"]=(sf,st.status)
-    rf=c.EKF3(x,P)
-    a=rf.update_range(zraw,c.RR,anchor_xyz_m=tuple(case["anchor"]),
-             tag_height_m=float(case["robot_z_m"]),range_offset_m=c.B_OLD)
-    b=rf.update_heading(zs,c.RS,s_model=sfun)
-    results["G2_RANGE_S_EKF"]=(rf,a.status+";S="+b.status)
-    joint=c.EKF3(x,P)
-    v=joint.update_joint(zs,zraw,c.RS,c.RR,0.,s_model=sfun,
-             anchor_xyz_m=tuple(case["anchor"]),tag_height_m=float(case["robot_z_m"]),
-             range_offset_m=c.B_OLD)
-    results["G3_JOINT_EKF_GATE"]=(joint,v.status)
-    joint2=c.EKF3(x,P)
-    v2=joint2.update_joint(zs,zraw,c.RS,c.RR,0.,s_model=sfun,
-             anchor_xyz_m=tuple(case["anchor"]),tag_height_m=float(case["robot_z_m"]),
-             range_offset_m=c.B_OLD,gate=False)
-    results["G3_JOINT_EKF_NOGATE"]=(joint2,v2.status)
-    return results
+    anchor=tuple(case["anchor"])
+    z=float(case["robot_z_m"])
+    if method=="DR":
+        return f,"DR_only"
+    if method=="G0_S_EKF":
+        step=f.update_heading(zs,c.RS,s_model=sfun)
+        return f,step.status
+    if method=="G2_RANGE_S_EKF":
+        ra=f.update_range(zraw,c.RR,anchor_xyz_m=anchor,
+                         tag_height_m=z,range_offset_m=c.B_OLD)
+        sb=f.update_heading(zs,c.RS,s_model=sfun)
+        return f,ra.status+";S="+sb.status
+    if method in ("G3_JOINT_EKF_GATE","G3_JOINT_EKF_NOGATE"):
+        step=f.update_joint(zs,zraw,c.RS,c.RR,0.,s_model=sfun,
+             anchor_xyz_m=anchor,tag_height_m=z,
+             range_offset_m=c.B_OLD,
+             gate=(method=="G3_JOINT_EKF_GATE"))
+        return f,step.status
+    raise RuntimeError("HARD_EXECUTION_BLOCK: unregistered method "+method)
 def run(caseid,out):
     if out.exists():raise FileExistsError(out)
     out.mkdir(parents=True)
@@ -100,6 +93,7 @@ def run(caseid,out):
         full_RF_D0_truth_after_inference_only=True,failed_updates=[],method_attempts=Counter(),
         method_valid=Counter(),condition_summary=[])
     t0=time.time()
+    trace_rows=[]
     try:
         p0=c.check_inputs(full_p0=False)
         case=next(x for x in p0["cases"] if x["id"]==caseid)
@@ -110,6 +104,10 @@ def run(caseid,out):
         folds=json.loads(c.P3_MODEL.read_text())["loro_fold_params"]
         corrections={ch:c.corrected_ranges(detectors[ch],folds[case["route"]],
                     allow_e1_on_los=False,channel=ch) for ch in ("los","full")}
+        from ekf3 import archived_direct_s_model
+        sfun=archived_direct_s_model(
+            lut,anchor_xyz_m=tuple(case["anchor"]),
+            tag_height_m=float(case["robot_z_m"]),mount_deg=float(case["mount_deg"]))
         for cond,lev in DR_CONDITIONS:
             for seed in SEEDS:
                 t,tr,pids,motion,_=c.case_motion(p0,case,seed,lev,cond)
@@ -128,25 +126,19 @@ def run(caseid,out):
                         zr=float(corrections[channel][rmod][k])
                         base=dict(case=caseid,condition=cond,level=lev,seed=seed,
                             sample=int(k),time_s=float(t[k]),channel=channel,range_model=rmod)
-                        try:
-                            methods=make_one_step(x,P,zs,zr,case,lut)
-                            for method in METHODS:
-                                attempts[channel,rmod,method]+=1
-                                receipt["method_attempts"][method]+=1
-                                f,gate=methods[method]
-                                r=rowscore(method,f,tr[k],gate,base)
-                                grouped[channel,rmod,method].append(r)
+                        for method in METHODS:
+                            attempts[channel,rmod,method]+=1
+                            receipt["method_attempts"][method]+=1
+                            try:
+                                f,gate=make_one_step(x,P,zs,zr,case,sfun,method)
+                                row=rowscore(method,f,tr[k],gate,base)
+                                grouped[channel,rmod,method].append(row)
                                 receipt["method_valid"][method]+=1
-                                # Only aggregate records saved for 5 methods, store
-                                # complete input/output for 30 seconds intervals.
                                 if k%150==0:
-                                    trace_rows.append(r)
-                        except Exception as exc:
-                            for method in METHODS:
-                                attempts[channel,rmod,method]+=1
-                                receipt["method_attempts"][method]+=1
-                            receipt["failed_updates"].append(dict(base,exception_type=type(exc).__name__,
-                                            detail=str(exc)))
+                                    trace_rows.append(row)
+                            except Exception as exc:
+                                receipt["failed_updates"].append(dict(base,method=method,
+                                    exception_type=type(exc).__name__,detail=str(exc)))
                 for (ch,rm,method),sub in grouped.items():
                     r=dict(case=caseid,route=case["route"],condition=cond,level=lev,seed=seed,
                          channel=ch,range_model=rm,method=method,**stats(sub),
