@@ -1,3 +1,18 @@
+# 최신 후속 — Solver R1 한정 수정·실패 회귀검증 (2026-10-14)
+
+**상태: P0 16 PASS / P1 8 PASS / R1 실패 사례 5 PASS, scientific_PASS=false.**
+원래 P2의 첫 MAP3 `LINE_SEARCH_FAILED` 입력을 수정된 solver로 검증하여, 동결 gradient 기준 `1e-8`에서 `CONVERGED`를 확인했다. 원 기록은 수정하지 않았다.
+
+- [목적함수 감사·solver 결정](SOLVER_R1_DECISION_KO.md)
+- [실행 결과·한계](SOLVER_R1_RESULT_KO.md)
+- [클라우드 감사 영수증](SOLVER_R1_CLOUD_RECEIPT.json)
+- [GitHub Actions Run 38517841360](https://github.com/myoungsunk/sionna-resimulation/actions/runs/38517841360)
+- [원시 cloud evidence ZIP](https://github.com/myoungsunk/sionna-resimulation/actions/runs/38517841360/artifacts/11873035416)
+
+**중요:** R1은 수치 구현 결함의 국소 회귀검증으로, P2 전체/실 RF P3–P6/독립 검증은 **NOT_RUN**이다. 아래는 과거 P2 중단 및 D1 원인 진단 당시의 동결 이력으로 남긴다. 새 solver는 P2를 재개하지 않았다.
+
+---
+
 # EKF4 Range–s 단계별 구현 및 클라우드 실행 현황
 
 ## 현재 결론
