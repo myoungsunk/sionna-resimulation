@@ -90,8 +90,15 @@ def verify(a):
        and r['xplus'].shape==(n,3,3) and r['Pplus'].shape==(n,3,3,3)
        and r['innovation'].shape==(n,3,2) and r['status'].shape==(n,3)
        and r['z_s'].shape==(n,) and r['z_r_m'].shape==(n,))
-      finite=all(np.isfinite(r[k]).all() for k in ('xminus','Pminus','H','R',
-        'xplus','Pplus','innovation','z_s','z_r_m'))
+      # Frozen A(s-only) and B(range-only) store NaN in UNUSED second
+      # observation slots by design. Audit only active likelihood dimensions.
+      finite=all(np.isfinite(r[k]).all() for k in (
+        'xminus','Pminus','xplus','Pplus','z_s','z_r_m'))
+      for arm in range(3):
+       active=1 if arm<2 else 2
+       finite = finite and bool(np.isfinite(r['H'][:,arm,:active]).all()
+        and np.isfinite(r['R'][:,arm,:active,:active]).all()
+        and np.isfinite(r['innovation'][:,arm,:active]).all())
       temporal=bool(np.all(np.diff(r['t_s'])>0) and len(np.unique(r['pose_id']))==n)
       if not shape or not finite or not temporal:
        raise RuntimeError('P3 invalid RF adapter arrays '+name)
