@@ -1,0 +1,70 @@
+{
+  "schema": "G2G3_B2_QUANT_CIR_SIGNED_RF_REVISION_20261014",
+  "base": "research/g2g3-b-crossscene-c-20261014 at 2fa18fbf26b817af2e6591157c8bc05c86fd4904",
+  "source_archive_branch": "claude/office-e-layout",
+  "source_archive_commit": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+  "source_assumption": "The original GH/S physics and R0 are immutable; only B2 signed error predictive risk and C action hypothesis change.",
+  "detector_resolution_m": 0.1495522588047491,
+  "Q_shrinkage": 0.5,
+  "logistic_regularization": 5,
+  "quality_features": [
+    "first-to-peak CIR gap / 3m",
+    "negative log first energy fraction centered 3.5",
+    "FP peak-power ratio distance from 0.4, x5"
+  ],
+  "quality_target": "Geometric LoS-blocked used only to fit office component weight; NOT injected into online inference",
+  "signed_components": {
+    "clean": "Gaussian trained on office clear 25 positions, broadened by independent Uniform(-half tap,+half tap) physical discretization floor, not proven exact",
+    "blocked": "Student t df3, location office blocked median, scale max(.06m,1.4826*MAD), trained 10 blocked office positions",
+    "overcorrected": "Frozen exploratory negative-outlier component from earlier C3 controls; NOT independent calibration"
+  },
+  "defensive_negative_outlier": {
+    "weight": 0.035,
+    "loc_m": -0.5,
+    "scale_m": 0.25,
+    "df": 3,
+    "parameter_provenance": "Earlier frozen G2G3_AUDITED_MINIMAL_20261014 CONTRACT C3 / overcorrected component; NOT fitted to Office, A2 or A2B; physical signed safety prior only."
+  },
+  "external_groups": {
+    "office_fit": {
+      "n": 35,
+      "los": 25,
+      "blocked": 10
+    },
+    "A2_heldout": {
+      "n": 15,
+      "scene_independence": "office vs corridor different geometry; A2/A2B same corridor family"
+    },
+    "A2B_heldout_related": {
+      "n": 14
+    }
+  },
+  "old_B_hypothesis": "Office to A2/A2B 95% tail coverage 80.0%/85.7% with unfloored clean Gaussian. Replace with quantization-aware defensive signed model and assess without tuning on A2/A2B labels.",
+  "decision_thresholds": {
+    "p_rfwin": 0.95,
+    "nis": 6.634896601,
+    "not_calibrated_online": true
+  },
+  "C_fixtures": "Unmodified legacy C1-C4 from research/G2G3_BC_CROSSSCENE_20261014/CONTRACT.json",
+  "D_test": "Exact Bayes factorization of 1D radial + 1 angular nonlinear toy using same signed likelihood. NOT original nonlinear 3-state G2/G3.",
+  "start_after_pre_run_source_audit": true,
+  "stages": [
+    "B2",
+    "C2",
+    "D0"
+  ],
+  "stop_rules": {
+    "incorrect_source_or_input": "HARD_EXECUTION_BLOCK dependent execution",
+    "nonfinite_or_integral_mismatch": "CASE_RESULT_INVALID affected scalar case",
+    "no_external_scene_calibration": "CLAIM_BLOCK calibrated probability/generalization, independent arithmetic and synthetic diagnosis may continue",
+    "C_counterexample": "CLAIM_BLOCK guard policy adoption; record false confidence and no retuning",
+    "G2G3_full_state": "NOT_RUN until independent gyro-Fault prior, new real full pose integration and one-step covariance / negative controls"
+  },
+  "reused_verified_runs": [
+    38556968635,
+    38545314173,
+    38531405523,
+    38532581455
+  ],
+  "scientific_PASS": false
+}
