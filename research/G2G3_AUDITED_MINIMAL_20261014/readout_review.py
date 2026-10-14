@@ -147,6 +147,8 @@ def main():
     for key,ix in df.groupby(['channel','correction','condition','level']).indices.items():
         mask=np.zeros(len(df),bool);mask[ix]=new[ix]
         if not mask.any():continue
+        # Export-only repair: retain numerical values but convert NumPy scalar labels.
+        key=tuple(v.item() if isinstance(v,np.generic) else v for v in key)
         rows.append(dict(zip(['channel','correction','condition','level'],key),**aggregate(mask)))
     pd.DataFrame(rows).to_csv(OUT/'DIRECT_READOUT_BY_CONDITION.csv',index=False)
     report['by_condition']=rows
@@ -156,8 +158,9 @@ def main():
        'C4 non-dominant flag is not protection of the continuous mixture mean; record its point-estimate harm.',
        'Direct distance probability is conditional on the same uncalibrated synthetic model, not an externally calibrated 95% guarantee.']
     report['next_action']='STOP before adopting a new online decision or changing the prior/model; provide diagnostic repair and request direction confirmation.'
-    (OUT/'READOUT_RESULT.json').write_text(json.dumps(report,indent=2,ensure_ascii=False))
-    print('READOUT_FINAL',json.dumps(report,ensure_ascii=False))
+    report['export_repair']=dict(previous_run=38527288934,scope='NumPy scalar group labels to JSON native scalars',numerical_code_changed=False)
+    (OUT/'READOUT_RESULT.json').write_text(json.dumps(report,indent=2,ensure_ascii=False,allow_nan=False))
+    print('READOUT_FINAL',json.dumps(report,ensure_ascii=False,allow_nan=False))
 
 
 if __name__=='__main__':main()
