@@ -175,7 +175,7 @@ def stage_B2():
       hypothesis_result="SUPPORTED_DESCRIPTIVE_EXTERNAL_95_COVERAGE" if cl["one_sided_95_empirical_coverage"]>=.95 else "CONTRADICTED_EXTERNAL_95_TAIL",
       full_scientific_calibration="CLAIM_BLOCK_INSUFFICIENT_DISTINCT_SCENES_AND_UNCALIBRATED_DR_FAULT",
       source_handling="OFFICE_ONLY_FIT_A2_A2B_NO_LABEL_TUNING",
-      quality_inputs=["observed_corrected_range","first_to_peak_gap","first_energy_fraction","first_to_peak_ratio"],
+      quality_inputs=["first_to_peak_gap","first_energy_fraction","first_to_peak_ratio"],
       labels_used_for_training=["office geometric blocked label","office signed error ground truth"],
       test_truth_used_in_prediction=False,
       clean_convolution_assumption="Gaussian residual plus independent uniform +/- half FFT tap-spacing; conservative physics-inspired assumption, NOT proven exact detector noise",
