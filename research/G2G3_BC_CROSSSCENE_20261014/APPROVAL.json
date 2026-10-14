@@ -1,0 +1,45 @@
+{
+  "audit_id": "G2G3_BC_CROSSSCENE_20261014_01",
+  "run_authorization": "GO_WITH_CLAIM_LIMITATION",
+  "reviewed_commit": "80dece72cbe2c2aaafd5409facb2918b1be6aa8d",
+  "approved_source_blobs": {
+    "research/G2G3_BC_CROSSSCENE_20261014/CONTRACT.json": "65d9d1913c8d2a493017608b4f258b9167e1684e",
+    "research/G2G3_BC_CROSSSCENE_20261014/run.py": "0fae10d0795a7cd936e779a1b2bac52e1f88722a",
+    "research/G2G3_BC_CROSSSCENE_20261014/gate.py": "1d6ca0b4eb3a2c012a75f620fae74bb44b1173a0",
+    "research/G2G3_BC_CROSSSCENE_20261014/SOURCE_REVIEW_KO.md": "7234fd9f7117873bd3be250380899c10eb01372a",
+    ".github/workflows/g2g3-b-crossscene-c.yml": "31d7a5df81daa1b54a991d86c60e7f6ac9b9a6a4"
+  },
+  "authorized_stages": [
+    "BOOTSTRAP",
+    "EXTRACT",
+    "B",
+    "C"
+  ],
+  "scope": "Source-locked independent office scene signed RF B calibration, heldout alternate-anchor transfer, C1-C4 and static external RF+synthetic DR controls.",
+  "independent_reviewer": false,
+  "independent_computational_check": "Office original max4 vs independently reimplemented FFT; C pwin adaptive quadrature vs independent fixed Simpson grid.",
+  "scientific_claim_decision": "CLAIM_BLOCK_DETAILED_DYNAMIC_DR_FAULT_AND_CALIBRATED_ONLINE_G2_G3",
+  "review_findings": [
+    {
+      "id": "SC1",
+      "severity": "CLAIM_BLOCK",
+      "reason": "Office 35 unique RF positions and same-corridor A2/A2B 29 positions; repeated yaw does not increase independent-scene count."
+    },
+    {
+      "id": "SC2",
+      "severity": "CLAIM_BLOCK",
+      "reason": "No independent time-resolved DR gyro/wheel sequences in external office/anchor scenes; synthetic fault prior only."
+    },
+    {
+      "id": "SC3",
+      "severity": "CLAIM_BLOCK",
+      "reason": "Original office self-calibrated median excluded; apply frozen B_OLD only; E1 schema not transferable without independent parity."
+    },
+    {
+      "id": "SC4",
+      "severity": "CASE_RESULT_INVALID_IF_FAILURE",
+      "reason": "Office legacy max4 detector parity and independent C integral must PASS for dependent results."
+    }
+  ],
+  "scientific_PASS": false
+}
