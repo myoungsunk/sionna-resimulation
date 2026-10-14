@@ -71,8 +71,10 @@ def source_audit():
  checks.append({'check':'workflow_exists','ok':wf.is_file()})
  if wf.is_file():
   s=wf.read_text(encoding='utf-8')
-  checkpoints=['d3_pre_audit.py --phase source','d3_pre_audit.py --phase input',
-               'python -m pip install','d3_fixed_four.py']
+  checkpoints=['python research/EKF4_RANGE_S_STAGED_20261014/d3_pre_audit.py --phase source',
+               'python research/EKF4_RANGE_S_STAGED_20261014/d3_pre_audit.py --phase input',
+               'python -m pip install',
+               'python research/EKF4_RANGE_S_STAGED_20261014/d3_fixed_four.py']
   idx=[s.find(k) for k in checkpoints]
   checks.append({'check':'audit_before_all_numerical_executions',
                  'ok':all(i>=0 for i in idx) and idx==sorted(idx),'positions':idx})
