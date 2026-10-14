@@ -1,0 +1,52 @@
+{
+  "schema": "G2G3_AUDITED_MINIMAL_V1",
+  "base_commit": "e7ee115836bce20188f6d2942f34f0d7a75ddc39",
+  "audit_policy_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "audit_policy_path": "research/EKF4_RANGE_S_STAGED_20261014/PRE_RUN_AUDIT_POLICY_20261014_KO.md",
+  "audit_policy_blob": "df9ec6121f3f0c953e58ef8e85ce436ed9a79334",
+  "scope": "minimum normalized radial fault mixture; exact linear 3state G2/G3 identity; synthetic controls; bounded archived-data shadow diagnosis",
+  "not_in_scope": ["new CIR-quality training", "nonlinear G3 integral restoration", "recursive pose filter", "independent-scene scientific certification"],
+  "scientific_PASS": false,
+  "model": {
+    "lower_slant_m": 2.2,
+    "fault_prior_probability": 0.05,
+    "fault_radial_std_m": 2.0,
+    "rf_components": [
+      {"name":"inlier_negative", "weight":0.38,"bias_m":-0.03,"std_m":0.06,"inlier":true},
+      {"name":"inlier_positive", "weight":0.57,"bias_m":0.04,"std_m":0.10,"inlier":true},
+      {"name":"overcorrected", "weight":0.035,"bias_m":-0.50,"std_m":0.25,"inlier":false},
+      {"name":"long_path", "weight":0.015,"bias_m":1.0,"std_m":1.0,"inlier":false}
+    ],
+    "parameter_provenance": "Fixed synthetic engineering assumptions, not fitted or calibrated. Negative component is motivated by already-seen E1 failure; no holdout claim.",
+    "rf_dominance_threshold":0.95
+  },
+  "threshold_provenance": {
+    "algebra_rtol": "1e-8 numerical comparison, not a performance claim",
+    "posterior_component_atol": "1e-8 exact algebra and independent numerical integral",
+    "rf_dominance_threshold":"0.95 exploratory decision threshold from previous plan, not calibrated probability",
+    "performance":"No additional pooled win-rate or universal-improvement gate"
+  },
+  "algebra_rtol":1e-8,
+  "posterior_component_atol":1e-8,
+  "fixtures":[
+    {"id":"C1_nominal", "mu_dr":5.0,"sigma_dr":0.10,"rf":5.04,"truth":5.0,"purpose":"no unwarranted DR-fault declaration","expected":"not_rf_dominant"},
+    {"id":"C2_DR_drift", "mu_dr":6.414651253,"sigma_dr":0.245318414,"rf":3.672195826,"truth":3.608730597,"purpose":"recover original extreme discrepancy in a scalar surrogate","expected":"rf_dominant"},
+    {"id":"C3_RF_overcorrection", "mu_dr":5.03,"sigma_dr":0.10,"rf":4.50,"truth":5.0,"purpose":"do not blindly follow a too-short RF observation","expected":"not_rf_dominant"},
+    {"id":"C4_RF_long_path", "mu_dr":5.03,"sigma_dr":0.10,"rf":7.00,"truth":5.0,"purpose":"do not force faulty long RF","expected":"not_rf_dominant"}
+  ],
+  "negative_control":"blindly choose RF when rf<mu_dr",
+  "alias_pair":{"mu_dr":6.414651253,"sigma_dr":0.245318414,"rf":3.672195826,"world_truths":[3.608730597,6.414651253],"purpose":"bound identifiability from identical available inputs; not an observed second event"},
+  "sensitivity":{"fault_probabilities":[0.005,0.05,0.20],"rf_outlier_probabilities":[0.01,0.05,0.20],"max_models":9,"purpose":"diagnose prior-dependence without selecting a best parameter after scoring"},
+  "source_artifact":{"run_id":38523237789,"artifact_id":11875206058,"zip_sha256":"56276ccb88605382b801f080cb97b58bc465bcff46c78677bcaf14fcd1b62bd5","data":"DR_RF_PAIRED_TRACE.csv.gz","unique_rf":"RAW_RF_UNIQUE.csv.gz","receipt":"AUDIT_RECEIPT.json"},
+  "reuse":{"D0_D4":"REUSED_VERIFIED for original immutable artifact only; no old scientific_PASS imported"},
+  "stage_order":["math","controls","shadow","diagnosis","final"],
+  "hypothesis_policy":"Contradiction blocks the affected acceptance claim, not valid math or preregistered bounded diagnostic. A different estimator/feature/physical prior requires a separately amended contract and user confirmation.",
+  "failure_policy":{
+    "source_or_input_mismatch":"HARD_EXECUTION_BLOCK for dependent execution",
+    "nonfinite_or_bad_integral":"CASE_RESULT_INVALID for affected fixture; track denominator",
+    "missing_optional_metadata":"DIAGNOSTIC_DEFECT_OR_WARNING; no state mutation; unaffected calculations continue",
+    "hypothesis_counterexample":"CLAIM_BLOCK for that claim; preregistered diagnosis may continue",
+    "untrained_quality_and_fault_prior":"CLAIM_BLOCK for online source identification/generalization; synthetic/diagnostic execution allowed"
+  },
+  "budget":{"cloud_job_minutes":15,"automatic_scientific_retuning":0,"bounded_diagnostic_models":9,"max_test_bug_repair_cycles":2}
+}
