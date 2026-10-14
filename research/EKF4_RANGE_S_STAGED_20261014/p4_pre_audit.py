@@ -21,7 +21,7 @@ def main():
  checks.append(('one observation per estimator and same-prior parity',
      'sequential_affine(mu,C,z,h,H,R)' in c and 'gaussian_update(mu,C,z,model,R)' in c))
  workflow=(ROOT/'.github/workflows/ekf4-p4-one-step.yml').read_text()
- ids=[workflow.find(x) for x in ('p4_pre_audit.py','p0_verify_inputs.py','p4_one_step.py')]
+ ids=[workflow.find(x) for x in ('python research/EKF4_RANGE_S_STAGED_20261014/p4_pre_audit.py','python research/EKF3_INDEPENDENT_20261013/p0_verify_inputs.py','python research/EKF4_RANGE_S_STAGED_20261014/p4_one_step.py')]
  checks.append(('audit then P0 parity then one-step',all(x>=0 for x in ids) and ids==sorted(ids)))
  receipt={'stage':'P4_PRE_RUN','sha':os.getenv('GITHUB_SHA'),'run':os.getenv('GITHUB_RUN_ID'),
           'checks':[{'name':n,'ok':ok} for n,ok in checks],
