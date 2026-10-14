@@ -14,7 +14,7 @@
 ## 2. 과학·수학 불변 조건
 
 - EKF4 상태 `x=[p_x(m),p_y(m),psi(rad),b_g(rad/s)]`, 기존 P2 `core.py`의 4-state 및 motion 의미를 그대로 유지한다. P3에서는 상태 업데이트·MAP solver·Q 변경을 하지 않는다.
-- **입력 순서의 위험:** 기존 EKF3 archived joint C는 `[s,r_raw]`, 새 P2 MAP `range_first`는 **`[r_raw,s]`**를 기대한다. 순열 `Pi=[[0,1],[1,0]]`로 `z_new=Pi z_old, h_new=Pi h_old, H_new=Pi H_old, R_new=Pi R_old Pi.T`를 **모든 항목에 동일하게** 적용. 원본 저장 C arm row 0=s, row 1=range이다.
+- **입력 순서의 위험:** 기존 EKF3 archived joint C는 `[s,r_raw]`, 새 P2 MAP `range_first`는 **`[r_raw,s]`**를 기대한다. 순열 `Pi=[[0,1],[1,0]]`로 `z_new=Pi z_old, h_new=Pi h_old, H_new=Pi H_old, R_new=Pi R_old Pi.T`를 **모든 항목에 동일하게** 적용. 원본 저장 C arm row 0=s, row 1=range이다. 저장된 참고 중간값도 재사용할 경우 `innovation_new=Pi innovation_old`, `S_new=Pi S_old Pi.T`, `K_new=K_old Pi.T`가 필수이며 NIS 및 posterior 상태·공분산의 순열 불변성을 별도 회귀로 확인한다. 원본 K/S를 새로운 추정에 재사용하는 것은 P3 범위 밖이다.
 - **Range 평균·offset 1회만:** 측정은 기존 `z_r_m` 원시 detected range. 예측 `h_r=sqrt((x-a_x)^2+(y-a_y)^2+(z_tag-a_z)^2)+B_old`; `B_old=-0.5315983906250129 m`. `z_r`을 별도 offset 보정해 놓고 `h_r`에도 보정하는 중복 적용 금지. 대체 `z_r-B_old` / 무보정 `rho` 형태는 정확히 동등한 대조로만 검증.
 - **s 전방 모델:** 동결 `hs_lut_2deg.npy` numeric grid 46×180×180, `hs_lut_meta.json`의 실제 theta/phi 축·주기 경계·mount 0°/45°·앵커 및 tag 높이 사용. 로봇 tag 높이 0.45m, 앵커 A=(4,0,2.65)m, B=(10,0,2.65)m. 새 LUT 생성/재보정, inverse-heading 가짜 독립 관측 추가 금지.
 - instantaneous RF measurement `h=[h_r,h_s]`, `H_4` shape (2,4): 첫 행 `[(x-a_x)/rho,(y-a_y)/rho,0,0]`; 둘째 행 `[ds/dx,ds/dy,ds/dpsi,0]`. `R_0=[[0.0068578637,0],[0,0.0081]]` in `[r,s]` order. 기존 R0 `R_sr=0`은 **물리적 독립성 미검증 대조군 가정**. `S=H P H^T+R`의 비대각 성분까지 0이라고 만들지 않는다.
