@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 
-ROOT=Path(__file__).resolve().parents[3]
+ROOT=Path(__file__).resolve().parents[2]
 DIR=ROOT/'research/EKF3_INDEPENDENT_20261013'
 EXPECTED={
   'P0_INPUT_MANIFEST.json':'8bf216cf606f5e3c11139cacbf42f15a44556feb',
