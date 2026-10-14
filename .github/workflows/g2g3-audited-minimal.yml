@@ -1,0 +1,93 @@
+name: G2G3 source-audited minimal validation
+on:
+  push:
+    branches: [research/g2g3-audited-minimal-20261014]
+    paths: [research/G2G3_AUDITED_MINIMAL_20261014/APPROVAL.json]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: g2g3-audited-minimal
+  cancel-in-progress: false
+jobs:
+  audited-minimal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_AUDITED_MINIMAL_20261014/
+            /.github/workflows/g2g3-audited-minimal.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source-bound pre-audit before dependency setup or experiments
+        run: python research/G2G3_AUDITED_MINIMAL_20261014/gate.py environment
+      - name: Install reviewed numerical environment
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Audit and independently validate minimum mathematics
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py math
+          python research/G2G3_AUDITED_MINIMAL_20261014/stages.py math
+      - name: Audit and run four hypothesis controls
+        if: always()
+        continue-on-error: true
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py controls
+          python research/G2G3_AUDITED_MINIMAL_20261014/stages.py controls
+      - name: Audit and acquire immutable reference (does not gate independent math)
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py acquire
+          python research/G2G3_AUDITED_MINIMAL_20261014/acquire.py
+      - name: Audit and run bounded scalar shadow diagnosis
+        if: always()
+        continue-on-error: true
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py shadow
+          python research/G2G3_AUDITED_MINIMAL_20261014/stages.py shadow
+      - name: Audit and diagnose hypothesis limits without parameter selection
+        if: always()
+        continue-on-error: true
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py diagnosis
+          python research/G2G3_AUDITED_MINIMAL_20261014/stages.py diagnosis
+      - name: Audit and independently verify final outputs (missing evidence is not PASS)
+        if: always()
+        run: |
+          python research/G2G3_AUDITED_MINIMAL_20261014/gate.py final
+          python research/G2G3_AUDITED_MINIMAL_20261014/finalize.py
+      - name: Preserve all audited outputs and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-audited-minimal-evidence
+          path: |
+            outputs/g2g3_minimal/
+            research/G2G3_AUDITED_MINIMAL_20261014/
+            inputs/range_audit/ACQUISITION.json
+          retention-days: 30
+          if-no-files-found: error
+      - name: Publish briefing
+        if: always()
+        run: |
+          if test -f outputs/g2g3_minimal/BRIEFING_KO.md; then
+            cat outputs/g2g3_minimal/BRIEFING_KO.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Final briefing not completed; inspect scoped audit receipts. No PASS inferred.' >> "$GITHUB_STEP_SUMMARY"
+          fi
