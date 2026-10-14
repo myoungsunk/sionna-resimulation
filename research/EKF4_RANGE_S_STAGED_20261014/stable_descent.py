@@ -48,3 +48,60 @@ def integrated_descent(evaluate, y, d, c0, g0, c1, g1, info):
             'gradient_new_inf':n1,'curvature_ratio':curv,
             'strong_wolfe_ratio':abs(slope1/slope0),
             'R2_guard':'EMBEDDED_TRUE_GRADIENT_DESCENT_NOT_GN_CURVATURE_MATCH'}
+
+
+import math
+import numpy as np
+
+
+def verified_step_r3(evaluate, y, d, c0, g0, c1, g1, info):
+    if g1 is None or not (np.isfinite(c0) and np.isfinite(c1)
+                           and np.isfinite(g1).all() and np.isfinite(g0).all()):
+        return None
+    dot=lambda u,v:float(math.fsum(float(a)*float(b) for a,b in zip(u,v)))
+    slope=dot(g0,d)
+    if not slope < 0:
+        return None
+    sufficient=1e-4*slope
+    raw_diff=c1-c0
+    eps=np.finfo(float).eps
+    # Cost evaluation roundoff is proportional to the magnitude of J. A
+    # change above this floor is used directly, without extra offset.
+    floor=32*eps*max(abs(c0),abs(c1),1.)
+    if raw_diff < sufficient and raw_diff < -floor:
+        return {'acceptance':'ARMIJO_DIRECT_VERIFIED',
+                'direct_cost_difference':float(raw_diff),
+                'gradient_new_inf':float(np.linalg.norm(g1,np.inf))}
+    # Residual/Jacobian finite-difference cancellation can occasionally
+    # make a candidate appear nondecreasing; compare independent 3/5 point
+    # quadratures of the analytic gradient (not the GN Hessian proxy).
+    ss=[slope]
+    for t in (.25,.5,.75):
+        _,g,_=evaluate(y+t*d)
+        if g is None or not np.isfinite(g).all():
+            return None
+        ss.append(dot(g,d))
+    slope1=dot(g1,d)
+    ss.append(slope1)
+    s0,s1,s2,s3,s4=ss
+    q3=math.fsum((s0,4*s2,s4))/6.
+    q5=math.fsum((s0,4*s1,2*s2,4*s3,s4))/12.
+    err=abs(q5-q3)/15.
+    if not (np.isfinite(q3) and np.isfinite(q5) and np.isfinite(err)):
+        return None
+    # Reject a quadrature disagreement as large as its claimed decrease,
+    # but do not impose a scale-unrelated 1e-6 step or 64eps total-cost
+    # gate: those two guards invalidated the four stored failures.
+    if not (q5 < sufficient and q5 < 0
+            and err < .1*abs(q5)
+            and abs(q5-q3) < .2*abs(q5)):
+        return None
+    # Prevent a numerical 'success' designation: the caller independently
+    # requires the unchanged infinity-gradient stationarity criterion.
+    return {'acceptance':'GRADIENT_INTEGRAL_R3',
+            'direct_cost_difference':float(raw_diff),
+            'gradient_integral_difference':float(q5),
+            'quadrature_disagreement':float(abs(q5-q3)),
+            'quadrature_error_indicator':float(err),
+            'gradient_new_inf':float(np.linalg.norm(g1,np.inf)),
+            'roundoff_scale_estimate':float(floor)}

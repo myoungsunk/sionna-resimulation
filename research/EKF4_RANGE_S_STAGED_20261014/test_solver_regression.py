@@ -37,7 +37,7 @@ def test_saved_failed_terminal_iterate_repaired_at_original_threshold():
     # metadata is tested separately by its independent fixed-input check.
     first=a.history[0]
     assert first.get('step_acceptance') in (
-        'ARMIJO_DIRECT','GRADIENT_INTEGRAL_TERMINAL','GRADIENT_INTEGRAL_PROGRESS')
+        'ARMIJO_DIRECT','GRADIENT_INTEGRAL_TERMINAL','GRADIENT_INTEGRAL_PROGRESS','GRADIENT_INTEGRAL_R3','ARMIJO_DIRECT_VERIFIED')
     if first.get('step_acceptance','').startswith('GRADIENT_INTEGRAL'):
         assert first.get('gradient_integral_difference',float('inf'))<0
         assert first.get('gradient_new_inf',float('inf'))<=1e-8

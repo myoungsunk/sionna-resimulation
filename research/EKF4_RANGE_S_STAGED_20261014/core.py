@@ -263,26 +263,19 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
             actual_step = t*step
             candidate = y+actual_step
             new_cost, new_grad, _ = evaluate(candidate)
-            roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
-            if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
-                y = candidate
-                history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
-                accepted = True
-                break
-            # R2: test the true gradient along the segment, not agreement
-            # with the Gauss-Newton Hessian approximation. The latter also
-            # differs on perfectly smooth nonlinear residuals (D2, 6s).
-            from stable_descent import integrated_descent
-            proof = integrated_descent(evaluate, y, actual_step, cost, grad,
-                                       new_cost, new_grad, info)
+            # R3: do not let an arbitrary positive eps allowance accept
+            # an unverified nondecreasing candidate or reject real descent.
+            # Direct cost is used only when its decrease is resolvable;
+            # close to cancellation evaluate the line-integral of the true
+            # gradient to test the SAME original objective.
+            from stable_descent import verified_step_r3
+            proof = verified_step_r3(evaluate, y, actual_step, cost, grad,
+                                     new_cost, new_grad, info)
             if proof is not None:
                 y = candidate
                 history[-1].update(proof)
                 history[-1]['step_fraction'] = t
-                history[-1]['step_acceptance'] = (
-                    'GRADIENT_INTEGRAL_TERMINAL' if proof['gradient_new_inf'] <= gradient_tol
-                    else 'GRADIENT_INTEGRAL_PROGRESS')
+                history[-1]['step_acceptance'] = proof['acceptance']
                 accepted = True
                 break
         if not accepted:
