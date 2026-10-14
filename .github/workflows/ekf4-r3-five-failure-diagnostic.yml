@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           git init .
           git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
-          git -c protocol.version=2 fetch --no-tags --depth=2 --filter=blob:none origin "$GITHUB_SHA"
+          git -c protocol.version=2 fetch --no-tags --depth=4 --filter=blob:none origin "$GITHUB_SHA"
           git config core.sparseCheckout true
           mkdir -p .git/info
           printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/.github/workflows/ekf4-r3-five-failure-diagnostic.yml\n' > .git/info/sparse-checkout

@@ -89,7 +89,9 @@ class MPObjective:
             raise ValueError("outside local yaw chart")
         h, H = model_mp(x)
         v = mp.lu_solve(self.Lr, self.z-h)
-        B = mp.lu_solve(self.Lr, H*self.Lp)
+        # mpmath lu_solve expects a vector RHS; here H*Lp is 2-by-n.
+        # A high-precision matrix inverse (2x2) handles the multi-RHS case.
+        B = (self.Lr ** -1) * (H*self.Lp)
         cost = mp.fsum([*(y[i]*y[i] for i in range(self.n)),
                         *(v[i]*v[i] for i in range(len(v)))])/2
         if not gradient:

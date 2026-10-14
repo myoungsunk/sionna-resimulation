@@ -50,11 +50,22 @@ def audit(out):
             ["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
         if git_head != run_sha:
             fatal.append("GIT_CHECKOUT_MISMATCH")
-        parents = subprocess.check_output(
-            ["git", "rev-list", "--parents", "-n", "1", "HEAD"],
-            cwd=REPO, text=True).strip().split()
-        if len(parents) != 2 or parents[1] != ORIGINAL:
-            fatal.append("UNEXPECTED_PARENT_COMMIT")
+        ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ORIGINAL, "HEAD"],
+            cwd=REPO, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if ancestor.returncode != 0:
+            fatal.append("ORIGINAL_COMMIT_NOT_ANCESTOR")
+        changed = subprocess.check_output(
+            ["git", "diff", "--name-only", ORIGINAL, "HEAD"],
+            cwd=REPO, text=True).splitlines()
+        authorized = {
+            "research/EKF4_RANGE_S_STAGED_20261014/r3five_audit.py",
+            "research/EKF4_RANGE_S_STAGED_20261014/r3five_diag.py",
+            "research/EKF4_RANGE_S_STAGED_20261014/R3_FIVE_FAILURE_DIAG_PLAN_20261014.md",
+            ".github/workflows/ekf4-r3-five-failure-diagnostic.yml",
+        }
+        if set(changed)-authorized:
+            fatal.append("UNAUTHORIZED_SOURCE_CHANGE:" + repr(sorted(set(changed)-authorized)))
         for f in FILES:
             p = HERE / f
             if not p.is_file():
@@ -71,6 +82,14 @@ def audit(out):
         src = (HERE / "r3five_diag.py").read_text(encoding="utf-8")
         tree = ast.parse(src)
         funcs = [n.name for n in tree.body if isinstance(n, ast.FunctionDef)]
+        # mpmath's LU helper accepts *vector* RHS. The first diagnostic
+        # trial failed when a 2-by-n matrix RHS was passed; fail closed on
+        # unreviewed matrix products as RHS in this numerical diagnostic.
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "lu_solve" and len(node.args) >= 2
+                    and isinstance(node.args[1], ast.BinOp)):
+                fatal.append("MP_LU_SOLVE_NONVECTOR_RHS_UNREVIEWED")
         if not {"diagnose", "high_precision_analysis", "run"}.issubset(funcs):
             fatal.append("DIAGNOSTIC_API_MISSING")
         for token in ("FAILED_STEP.npz", "FAILURE.json", "CASE_INVALID.json",
