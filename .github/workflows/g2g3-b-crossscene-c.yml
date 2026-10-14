@@ -1,0 +1,105 @@
+name: Audited G2G3 B external scene calibration and C controls
+on:
+  push:
+    branches: [research/g2g3-b-crossscene-c-20261014]
+    paths:
+      - research/G2G3_BC_CROSSSCENE_20261014/APPROVAL.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: g2g3-b-crossscene-c-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  office-anchor-B-C:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      PYTHONUNBUFFERED: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - name: Checkout only pre-reviewed B/C source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_BC_CROSSSCENE_20261014/
+            /.github/workflows/g2g3-b-crossscene-c.yml
+      - name: Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Strict code-only pre-audit BEFORE cloud external input acquisition
+        run: python research/G2G3_BC_CROSSSCENE_20261014/gate.py BOOTSTRAP
+      - name: Checkout exact committed office and alternate-anchor RF H inputs
+        uses: actions/checkout@v4
+        with:
+          ref: b05af070a87981f8712fdd41eac4c1bbb882e9c7
+          path: externalOffice
+          persist-credentials: false
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /results/OFFICE_RANGING_20261008/OFFICE_RANGING.json
+            /results/OFFICE_SNOWBALL_20261008_819fa93/full35_stride1/*/*_H.npy
+            /results/CORRIDOR_ANCHOR2_20261007/SHIFT_FIT_ANCHOR2.json
+            /results/CORRIDOR_ANCHOR2_20261007/a2_*/*_H.npy
+            /results/CORRIDOR_ANCHOR2B_20261007/SHIFT_FIT_ANCHOR2B.json
+            /results/CORRIDOR_ANCHOR2B_20261007/a2b_*/*_H.npy
+      - name: Install reviewed numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Audit external source and reproduce existing OFFICE receiver before B
+        run: |
+          python research/G2G3_BC_CROSSSCENE_20261014/gate.py EXTRACT
+          python research/G2G3_BC_CROSSSCENE_20261014/run.py extract
+      - name: Audit B and calibrate signed RF mixture, test independent anchor configurations
+        run: |
+          python research/G2G3_BC_CROSSSCENE_20261014/gate.py B
+          python research/G2G3_BC_CROSSSCENE_20261014/run.py B
+      - name: Audit C and run frozen C1-C4 plus external RF static-scene controls
+        run: |
+          python research/G2G3_BC_CROSSSCENE_20261014/gate.py C
+          python research/G2G3_BC_CROSSSCENE_20261014/run.py C
+      - name: Keep all available scoped audit/result artifacts even on failed hypothesis
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: g2g3-B-crossscene-C-audit
+          path: |
+            outputs/BC_CROSSSCENE/
+            research/G2G3_BC_CROSSSCENE_20261014/CONTRACT.json
+            research/G2G3_BC_CROSSSCENE_20261014/SOURCE_REVIEW_KO.md
+            research/G2G3_BC_CROSSSCENE_20261014/APPROVAL.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Four independent scientific verdicts in run summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path("outputs/BC_CROSSSCENE")
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write("# B external-office calibration, C synthetic and alternate-anchor controls\n\n")
+              for name in ("H_EXTRACTION.json","B_REPORT.json","C_REPORT.json"):
+                  p=root/name
+                  f.write("## "+name+"\n\n")
+                  if p.exists():
+                      r=json.loads(p.read_text())
+                      for k in ('status','receiver_parity','numerical','expected_vs_actual',
+                                'calibrated_probability_guarantee','calibration_independent_scene',
+                                'DR_fault_prior','E1_signed_likelihood','scientific_PASS'):
+                          if k in r:f.write("**"+k+"**: "+str(r[k])+"\n\n")
+                  else:f.write("NOT_RUN or blocked (inspect affected stage audit).\n\n")
+          PY
