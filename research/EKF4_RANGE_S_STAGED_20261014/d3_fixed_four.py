@@ -197,7 +197,7 @@ def single_case(zipped,route,alg,k,npz_sha,json_sha):
  base_cost,g,A,h,H=evaluate64(y,mu,Lp,z,Lr)
  if abs(float(ref.cost(y))-base_cost)>1e-9:
   raise RuntimeError('Independent high precision forward model inconsistent with original objective')
- r=h
+ h_prior,_=SyntheticRF()(mu)
  gMP=ref.grad_inf(y)
  d=np.linalg.solve(A,-g)
  yc=y+d
@@ -213,9 +213,9 @@ def single_case(zipped,route,alg,k,npz_sha,json_sha):
  counter={}
  for label,obs in (
   ('original_z',z.copy()),
-  ('range_replaced_by_DR_prediction',np.array([h[0],z[1]])),
-  ('s_replaced_by_DR_prediction',np.array([z[0],h[1]])),
-  ('both_replaced_by_DR_predictions',h.copy())):
+  ('range_replaced_by_DR_prediction',np.array([h_prior[0],z[1]])),
+  ('s_replaced_by_DR_prediction',np.array([z[0],h_prior[1]])),
+  ('both_replaced_by_DR_predictions',h_prior.copy())):
   result=map_update(mu,P,obs,SyntheticRF(),R,range_first=True,max_iter=80,gradient_tol=TOL)
   counter[label]={'status':result.status,'gradient_inf':result.gradient_inf,
                   'cost':result.cost,'iterations':result.iterations,
