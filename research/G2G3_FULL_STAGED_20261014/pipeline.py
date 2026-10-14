@@ -351,7 +351,8 @@ def stage_p3():
     for sel in C["p3_preselected"]:
         b=dict(sel)
         try:
-            obs=sample(p0,freq,fold,**sel)
+            obs=sample(p0,freq,fold,sel["case"],sel["condition"],sel["level"],sel["seed"],
+                       sel["sample"],sel["channel"],sel["range_model"])
         except Exception as e:
             rows.append(dict(b,status="HARD_EXECUTION_BLOCK",error=str(e)))
             continue
