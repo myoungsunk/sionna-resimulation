@@ -4,7 +4,6 @@ No new 4state RF run. Runs only GitHub cloud after source/zip audits.
 """
 from __future__ import annotations
 import argparse, ast, datetime, hashlib, io, json, os, pathlib, zipfile
-import numpy as np
 
 HERE=pathlib.Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
@@ -72,6 +71,8 @@ def verified_zip(a):
  return b
 
 def verify(a):
+ global np
+ import numpy as np
  b=verified_zip(a)
  root=pathlib.Path(a.out);root.mkdir(parents=True,exist_ok=False)
  receipt={'stage':'P3_RF_ARCHIVE_ELIGIBILITY','git_sha':os.environ['GITHUB_SHA'],
@@ -105,6 +106,8 @@ def verify(a):
  return 0 if receipt['status']=='INPUT_ELIGIBLE_FOR_FIXED_ONE_STEP' else 2
 
 def p4(a):
+ global np
+ import numpy as np
  b=verified_zip(a)
  gate=json.loads(pathlib.Path(a.p3).read_text())
  if gate['status']!='INPUT_ELIGIBLE_FOR_FIXED_ONE_STEP' or gate['git_sha']!=os.environ['GITHUB_SHA']:
