@@ -78,9 +78,19 @@ def main():
     if not path.is_file(): raise RuntimeError('Missing RF file: '+a['path'])
     length=path.stat().st_size
     digest=sha256_file(path)
-    if length!=a['bytes'] or digest!=a['sha256']:
-     raise RuntimeError('Frozen asset hash/size mismatch: '+a['path'])
-    row={'path':a['path'],'kind':a['kind'],'bytes':length,'SHA256':digest,'status':'PASS'}
+    # The frozen manifest records SHA256 for the 35 scientific inputs
+    # and Git blob SHA1 only for four non-numerical LINEAGE artifacts.
+    if length!=a['bytes']:
+     raise RuntimeError('Frozen asset size mismatch: '+a['path'])
+    if 'sha256' in a and digest!=a['sha256']:
+     raise RuntimeError('Frozen asset SHA256 mismatch: '+a['path'])
+    if 'sha256' not in a:
+     b=path.read_bytes()
+     blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\\0'+b).hexdigest()
+     if blob!=a.get('git_blob_sha1'):
+      raise RuntimeError('Frozen lineage blob SHA1 mismatch: '+a['path'])
+    row={'path':a['path'],'kind':a['kind'],'bytes':length,'SHA256_computed':digest,
+         'validation_hash_type':'SHA256' if 'sha256' in a else 'GIT_BLOB_SHA1','status':'PASS'}
     if path.suffix=='.npy':
      value=np.load(path,mmap_mode='r',allow_pickle=False)
      row['shape']=list(value.shape)
