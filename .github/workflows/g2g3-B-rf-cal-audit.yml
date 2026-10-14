@@ -1,0 +1,81 @@
+name: G2G3 B signed RF error and distance superiority validation
+on:
+  push:
+    branches: [research/g2g3-B-rfcal-audit-20261014]
+    paths:
+      - research/G2G3_B_RF_CAL_AUDIT_20261014/APPROVAL.json
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  b-only-audited-calibration:
+    name: B-only RF signed likelihood / DR fault prior eligibility and superiority diagnostics
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/G2G3_B_RF_CAL_AUDIT_20261014/
+            /.github/workflows/g2g3-B-rf-cal-audit.yml
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Source-bound pre-run audit BEFORE dependencies or experiment
+        run: python research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py bootstrap
+      - name: Install audited numerical environment
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Audit and test probability formula independently
+        run: |
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py fixture
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_audit.py fixture
+      - name: Audit before immutable RF and DR data acquisition
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py acquire
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_acquire.py
+      - name: Audit signed residual, heldout route, DR fault and win-prob diagnostics
+        run: |
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_gate.py evaluate
+          python research/G2G3_B_RF_CAL_AUDIT_20261014/b_audit.py evaluate
+      - name: Preserve available B-only audits and diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: G2G3-B-signed-calibration
+          path: |
+            outputs/B_RF_SIGNED/
+            research/G2G3_B_RF_CAL_AUDIT_20261014/CONTRACT.json
+            research/G2G3_B_RF_CAL_AUDIT_20261014/APPROVAL.json
+            research/G2G3_B_RF_CAL_AUDIT_20261014/SOURCE_REVIEW_KO.md
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish four separate verdicts
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          src=Path('outputs/B_RF_SIGNED/B_REPORT.json')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write('# B-only RF signed error audit\n\n')
+              if src.is_file():
+                  r=json.loads(src.read_text())
+                  for k in ('status','numerical_result','hypotheses','scientific_claim',
+                            'rows_unique_RF','rows_paired','next_action'):
+                      f.write('**'+k+'**: '+str(r.get(k))+'\n\n')
+              else:
+                  f.write('Missing final evaluation; inspect scoped PRE_RUN and fixture results.\n')
+          PY
