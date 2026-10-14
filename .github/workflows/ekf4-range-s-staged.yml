@@ -80,7 +80,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase preflight --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
+          python research/EKF4_RANGE_S_STAGED_20261014/p2_v2.py --phase full --out "$RUNNER_TEMP/p2_full" --audit "$EKF4_AUDIT_RECEIPT" --gates "$RUNNER_TEMP/p0p1" --r2 "$RUNNER_TEMP/r2" | tee "$RUNNER_TEMP/p2_preflight.log"
       - name: Preserve all evidence even if an earlier stage fails
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
