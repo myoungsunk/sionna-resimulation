@@ -113,7 +113,9 @@ def dr_mixture_win(delta,sdr,muR,sR,pfault,faultstd):
     a=sd*sd
     weights=[]
     posterior=[]
-    for pf,extra in ((1-pfault,0.),(pf,faultstd)):
+    for pf,extra in ((1-pfault,0.),(pfault,faultstd)):
+        if pf<=0:
+            continue  # Skip nonexistent mixture branches before evaluating log weight.
         vD=a+extra*extra
         vr=sR*sR
         V=vD+vr
