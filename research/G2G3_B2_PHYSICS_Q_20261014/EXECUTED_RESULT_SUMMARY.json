@@ -1,0 +1,81 @@
+{
+  "schema": "G2G3_B2_C2_D0_EXECUTED_EVIDENCE_20261014",
+  "branch": "research/g2g3-b2-physics-q-c2-staged-20261014",
+  "source_run_commit": "410fe26661bba7ed3e67266d05ac962d58803691",
+  "run_id": 38561262164,
+  "artifact_id": 11891769888,
+  "source_geometry_ref": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+  "original_H3_R0": "32ee990b0d9dfc3bf3010e5ccabf404fa9d3aa20",
+  "overall_scientific_PASS": false,
+  "A": "REUSED_VERIFIED_FROM_38523237789",
+  "B2": {
+    "execution": "PASS",
+    "calculation": "PASS_CONDITIONAL_NORMALIZED_DENSITY",
+    "hypothesis": "SUPPORTED_CONSERVATIVE_95PCT_COVERAGE_ON_A2_A2B",
+    "scientific_claim": "CLAIM_BLOCK_REAL_PROBABILITY_AND_GENERALIZATION",
+    "new_signed_likelihood": "CIR-Q logistic shrinkage from Office + Gaussian-uniform clean convolution + positive NLoS t + inherited 3.5pct negative-outlier t",
+    "office_fit_positions": 35,
+    "A2_holdout_positions": 15,
+    "A2B_related_holdout_positions": 14,
+    "office_loocv_95": 1,
+    "A2_95": 1,
+    "A2B_95": 1,
+    "A2_nll_before": -0.45321759745319046,
+    "A2_nll_new": -0.9063837160890235,
+    "A2B_nll_before": -0.8197543365757435,
+    "A2B_nll_new": -1.0650079953667067,
+    "PIT_KS_A2": 0.2725631861058977,
+    "PIT_KS_A2B": 0.13743263139517828,
+    "caution": "Only two synthetic scene families, not independent 99pct; B2 protective negative tail from previously seen C3, clean uniform broadening double counts part of measured tap spacing; position-mean observations not per-transaction."
+  },
+  "C2": {
+    "execution": "PASS",
+    "calculation": "PASS_INDEPENDENT_QUAD_VS_GRID",
+    "hypothesis": "GUARDED_RADIAL_ACTION_FIXTURES_PASS__UNCONDITIONAL_CONFIDENCE_NOT_SUPPORTED",
+    "C2_DR_initial_m": 2.8059206559999996,
+    "C2_guarded_error_m": 0.052438423390503974,
+    "C2_pwin": 0.9755196431272913,
+    "C3_guarded_error_m": 0.03000000000000025,
+    "C3_pwin": 0.15960561659151445,
+    "C4_guarded_error_m": 0.03000000000000025,
+    "C4_pwin_false_confidence": 0.9737544654973372,
+    "C4_RF_error_m": 2,
+    "DR_error_m": 0.03,
+    "sign_guard_RF_longer": true,
+    "scientific_claim": "CLAIM_BLOCK_C4_EVENT_PROBABILITY_AND_UNCALIBRATED_SOURCE",
+    "note": "C3 fixture influenced inherited negative component and is not independent proof; protected C4 due z_RF > d_DR, not accurate probability."
+  },
+  "D0": {
+    "execution": "PASS",
+    "calculation": "PASS_TOY_SIGNED_LIKELIHOOD_BAYES_FACTOR",
+    "maximum_density_absolute_difference": 7.105427357601002e-15,
+    "heading_TV": 1.0406676634007528e-16,
+    "original_physical_G3_single_cell_reuse_run": 38531405523,
+    "original_physical_G3_heading_worse_reuse_run": 38532581455,
+    "scientific_claim": "CLAIM_BLOCK_NOT_ORIGINAL_FULL_POSE_G2_G3"
+  },
+  "E_full": "NOT_RUN_UNCALIBRATED_B_AND_WRONG_CONFIDENCE_C4",
+  "F_recursive": "NOT_RUN_DEPENDENCY",
+  "audit": {
+    "original_policy": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+    "exact_source_blob_audit": "PASS_AT_BOOTSTRAP_B2_C2_D0",
+    "original_Office_detector_parity_m": 1.0269562977782698e-15,
+    "source_commit_pinned_to_execution": true,
+    "scientific_reviewer_independent": false,
+    "severity": [
+      {
+        "severity": "CLAIM_BLOCK",
+        "scope": "A2/A2B related, C4 97.38pct incorrect RF probability, B2 calibration unproven"
+      },
+      {
+        "severity": "CLAIM_BLOCK",
+        "scope": "No dynamic gyro/odom independent prior or full 3state posterior"
+      },
+      {
+        "severity": "DIAGNOSTIC_DEFECT_OR_WARNING",
+        "scope": "No new mandatory diagnostic export failures in executed run"
+      }
+    ]
+  },
+  "next_direction_for_user_approval": "Calibrate DR fault prior with truly independent time-series gyro/odom plus signed measurement quality with >=third independent RF scene; separately prevent high confidence for positive RF over-range C4, without retuning A2/A2B holdout labels. Then fully implement/verify nonlinear 3state G2/G3 and recursive covariance."
+}
