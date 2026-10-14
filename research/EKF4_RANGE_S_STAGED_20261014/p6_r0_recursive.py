@@ -32,6 +32,12 @@ def score(states,covs,t,truth,truebias,ok):
  err[:,2]=wrap(err[:,2])
  e=err[t[:len(states)]>=30]
  cov=covs[t[:len(states)]>=30]
+ if len(e)==0:
+  return {'frames':len(states),'evaluated_frames':0,
+          'status':'INSUFFICIENT_VALID_FRAMES',
+          'heading_RMSE_deg':None,'xy_RMSE_m':None,
+          'pose_NEES':None,'pose95':None,'heading95':None,
+          'completed':False,'valid':0}
  pose_nees=np.einsum('ij,ij->i',e,np.linalg.solve(cov[:,:3,:3],e[...,None])[...,0])
  heading_nees=e[:,2]**2/cov[:,2,2]
  r={'frames':len(states),'evaluated_frames':len(e),
