@@ -190,7 +190,7 @@ def calibration_report():
             pit=ndtr((test_error-mean)/sd)
             ks=float(kstest(pit,"uniform").statistic)
             records.append(dict(channel=channel,correction=correction,holdout_route=route,
-                train_n=len(tr),test_n=len(te),train_mu_m=mean,train_sigma_m=sd,
+                test_n=len(te),train_mu_m=mean,train_sigma_m=sd,
                 test_mean_m=float(test_error.mean()),test_rmse_m=float(np.sqrt(np.mean(test_error**2))),
                 test_normal_95_interval_coverage=float(np.mean(np.abs(test_error-mean)<=1.96*sd)),
                 test_signed_gaussian_nll=float(-np.mean(normal_ll)),
