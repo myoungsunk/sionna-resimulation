@@ -1,20 +1,23 @@
-name: EKF4 Range-s staged validation
+name: EKF4 Solver R1 limited regression
 on:
   push:
     branches: ['research/ekf4-range-s-staged-20261014']
     paths:
       - '.github/workflows/ekf4-range-s-staged.yml'
-      - 'research/EKF4_RANGE_S_STAGED_20261014/**.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/core.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_core.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_solver_regression.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/solver_regression.py'
       - 'research/EKF4_RANGE_S_STAGED_20261014/pytest.ini'
       - 'research/EKF4_RANGE_S_STAGED_20261014/requirements.txt'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: ekf4-staged-${{ github.ref }}
+  group: ekf4-solver-r1-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  gated-d1-failure-analysis:
+  p0-p1-and-frozen-regression-only:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
@@ -24,7 +27,7 @@ jobs:
       PYTHONHASHSEED: '0'
       PYTHONUNBUFFERED: '1'
     steps:
-      - name: Checkout additive code at event commit
+      - name: Checkout only additive EKF4 code at event commit
         shell: bash
         run: |
           set -euo pipefail
@@ -39,32 +42,34 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11.11'
-      - name: Install pinned dependencies and high-precision diagnostic dependency
-        run: python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt mpmath==1.3.0
-      - name: Preserve P0 and P1 regression gate
+      - name: Install pinned numerical dependencies
+        run: python -m pip install --disable-pip-version-check -r research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
+      - name: Rerun same-commit P0 and P1 numerical contracts
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/validate.py --until P1 --out "$RUNNER_TEMP/ekf4_p0p1" | tee "$RUNNER_TEMP/ekf4_execution.log"
-      - name: D1 fixed-input diagnostic only; do not resume P2
+          python research/EKF4_RANGE_S_STAGED_20261014/validate.py --until P1 --out "$RUNNER_TEMP/p0p1" | tee "$RUNNER_TEMP/p0p1.log"
+      - name: Frozen initial P2 failure regression ONLY
         shell: bash
         run: |
           set -euo pipefail
-          python research/EKF4_RANGE_S_STAGED_20261014/diagnose.py --out "$RUNNER_TEMP/ekf4_d1" | tee "$RUNNER_TEMP/ekf4_d1_execution.log"
-      - name: Preserve complete evidence even on failure
+          python research/EKF4_RANGE_S_STAGED_20261014/solver_regression.py --gates "$RUNNER_TEMP/p0p1" --out "$RUNNER_TEMP/solver_r1" | tee "$RUNNER_TEMP/solver_r1.log"
+      - name: Preserve evidence for PASS or FAIL
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ekf4-d1-${{ github.run_id }}-${{ github.run_attempt }}
+          name: ekf4-solver-r1-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
-            ${{ runner.temp }}/ekf4_p0p1/**
-            ${{ runner.temp }}/ekf4_d1/**
-            ${{ runner.temp }}/ekf4_execution.log
-            ${{ runner.temp }}/ekf4_d1_execution.log
-            research/EKF4_RANGE_S_STAGED_20261014/*.py
-            research/EKF4_RANGE_S_STAGED_20261014/*.json
-            research/EKF4_RANGE_S_STAGED_20261014/*.md
-            research/EKF4_RANGE_S_STAGED_20261014/requirements.txt
-            research/EKF4_RANGE_S_STAGED_20261014/pytest.ini
+            ${{ runner.temp }}/p0p1/**
+            ${{ runner.temp }}/solver_r1/**
+            ${{ runner.temp }}/p0p1.log
+            ${{ runner.temp }}/solver_r1.log
+            research/EKF4_RANGE_S_STAGED_20261014/core.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_core.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_solver_regression.py
+            research/EKF4_RANGE_S_STAGED_20261014/solver_regression.py
+            research/EKF4_RANGE_S_STAGED_20261014/FAILURE_SNAPSHOT.json
+            research/EKF4_RANGE_S_STAGED_20261014/D1_RESULT_SUMMARY.json
+            research/EKF4_RANGE_S_STAGED_20261014/SOLVER_R1_DECISION_KO.md
           if-no-files-found: error
           retention-days: 30

@@ -181,14 +181,21 @@ class MAPResult:
 
 
 def map_update(mu, P, z, model: Model, R, *, range_first=True,
-               max_iter=40, gradient_tol=1e-8, max_step_halvings=24):
-    """Local joint MAP in prior-whitened coordinates, with backtracking.
+               max_iter=40, gradient_tol=1e-8, max_step_halvings=24,
+               initial_delta=None):
+    """Local joint MAP in prior-whitened coordinates, with safeguarded GN.
+
+    The fixed Gaussian negative-log-posterior and gradient_tol are unchanged.
+    Near the cost cancellation floor only, a locally smooth terminal GN
+    step may use a 3-point gradient line-integral to verify descent.
 
     x=mu+chol(P)*y; prior residual is ALWAYS y. Angles supplied to the
     periodic model may be unwrapped. Restrict yaw delta to (-pi,pi) for
     this single local prior branch. This is not multimodal integration.
     Returned P is local Gauss-Newton covariance, NOT certified coverage.
     Failure is explicit; callers must not silently deploy a failed update.
+    Optional initial_delta is a warm start for frozen regression, not a new
+    prior or observation, and is mutually exclusive with range_first.
     """
     mu = state_vector(mu).copy()
     n = len(mu)
@@ -199,6 +206,15 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
     if not np.isfinite(z).all():
         raise ValueError('nonfinite observation')
     y = np.zeros(n)
+    if initial_delta is not None:
+        if range_first:
+            raise ValueError('initial_delta and range_first are mutually exclusive')
+        initial_delta = np.asarray(initial_delta, dtype=float)
+        if initial_delta.shape != (n,) or not np.isfinite(initial_delta).all():
+            raise ValueError('initial_delta must be a finite full-state vector')
+        if abs(initial_delta[2]) >= np.pi:
+            raise ValueError('initial_delta outside the local angular chart')
+        y = np.linalg.solve(Lp, initial_delta)
     if range_first:
         def rm(x):
             h, H = model(x)
@@ -243,12 +259,49 @@ def map_update(mu, P, z, model: Model, R, *, range_first=True,
         accepted = False
         for j in range(max_step_halvings+1):
             t = 2.**(-j)
-            candidate = y+t*step
-            new_cost, _, _ = evaluate(candidate)
+            actual_step = t*step
+            candidate = y+actual_step
+            new_cost, new_grad, _ = evaluate(candidate)
             roundoff = 4*np.finfo(float).eps*max(1., abs(cost))
             if np.isfinite(new_cost) and new_cost <= cost+1e-4*t*directional+roundoff:
                 y = candidate
                 history[-1]['step_fraction'] = t
+                history[-1]['step_acceptance'] = 'ARMIJO_DIRECT'
+                accepted = True
+                break
+            # At the floating-point cancellation floor, compare the SAME
+            # objective via J(y+d)-J(y) = integral_0^1 grad J(y+t*d).d dt.
+            # A separate stationarity check uses the UNCHANGED gradient_tol.
+            if not (new_grad is not None and np.isfinite(new_cost)
+                    and np.isfinite(new_grad).all()
+                    and float(np.max(np.abs(new_grad))) <= gradient_tol
+                    and directional < 0.
+                    and float(np.max(np.abs(actual_step))) <= 1e-6*max(1., float(np.max(np.abs(y))))
+                    and abs(new_cost-cost) <= 64*np.finfo(float).eps*max(1., abs(cost), abs(new_cost))):
+                continue
+            # Exclude discontinuous LUT branches: local GN curvature must
+            # agree with the gradient change before using 3-point Simpson.
+            expected_change = info@actual_step
+            curv_ratio = float(np.linalg.norm(new_grad-grad-expected_change, ord=np.inf)
+                               /max(float(np.linalg.norm(expected_change, ord=np.inf)), 1e-30))
+            if not np.isfinite(curv_ratio) or curv_ratio > .05:
+                continue
+            _, half_grad, _ = evaluate(y+.5*actual_step)
+            if half_grad is None:
+                continue
+            area = float(math.fsum(float(a)*float(b) for a,b in zip(
+                (grad+4*half_grad+new_grad)/6.,actual_step)))
+            trapezoid = float(math.fsum(float(a)*float(b) for a,b in zip(
+                (grad+new_grad)/2.,actual_step)))
+            if (area < 1e-4*t*directional
+                    and abs(area-trapezoid) <= .001*abs(area)+1e-20):
+                y = candidate
+                history[-1]['step_fraction'] = t
+                history[-1]['step_acceptance'] = 'GRADIENT_INTEGRAL_TERMINAL'
+                history[-1]['direct_cost_difference'] = float(new_cost-cost)
+                history[-1]['gradient_integral_difference'] = area
+                history[-1]['gradient_new_inf'] = float(np.max(np.abs(new_grad)))
+                history[-1]['curvature_ratio'] = curv_ratio
                 accepted = True
                 break
         if not accepted:
