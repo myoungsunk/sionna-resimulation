@@ -1,0 +1,38 @@
+{
+  "audit_id": "G2G3_P3_PHYSICAL_3STATE_R0_20261014_01",
+  "decision": "GO_WITH_CLAIM_LIMITATION",
+  "policy_commit": "9beb061f354edef18e1f977f5d462d7e0d8b1f2e",
+  "source_blobs": {
+    "research/G2G3_P0P6_EXECUTION_20261014/p3_one_step.py": "47a121b480b0dc7bc937bf14e804130dccf50046",
+    "research/G2G3_P0P6_EXECUTION_20261014/p34_gate.py": "d6a079836dc187c0abbae4ee08cadd73cfcc200b",
+    "research/G2G3_P0P6_EXECUTION_20261014/P34_CONTRACT.json": "3466c7765d0a8484a5501c89d0508d53151ff3d2",
+    "research/G2G3_P0P6_EXECUTION_20261014/P34_SOURCE_REVIEW_KO.md": "4bed53f05ee884d9c93909be3851a3ff84711783",
+    ".github/workflows/g2g3-p3-physical.yml": "e0520f17d451e4b17a45fe501ef1a14e8a47733f"
+  },
+  "authorized_mode": "P3",
+  "independent_human_reviewer": false,
+  "scientific_PASS": false,
+  "previous_numeric_evidence": [
+    38531405523,
+    38532581455
+  ],
+  "numerical_pass_thresholds": {
+    "TV": 0.001,
+    "MAP_change_deg": 0.1,
+    "HPD_width_deg": 1,
+    "evidence_relative": 0.005
+  },
+  "audit_findings": [
+    {
+      "severity": "CLAIM_BLOCK",
+      "scope": "G2/G3 posterior generalization",
+      "reason": "Only R0 physical detector, P3 three one-step cells; not signed B2 source-compatible, not recursive."
+    },
+    {
+      "severity": "CASE_RESULT_INVALID",
+      "scope": "quadrature",
+      "reason": "If GH25/41 differ, mark that method+sample invalid; do not drop other methods/conditions."
+    }
+  ],
+  "reviewed_head": "3cd2729b11fc9301dfeb63ff5dea78cfdd776053"
+}
