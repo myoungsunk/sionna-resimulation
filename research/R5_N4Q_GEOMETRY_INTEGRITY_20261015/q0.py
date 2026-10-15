@@ -231,7 +231,8 @@ def reconcile(np,pd,config,zips,pol_path,out):
         close(np,pairs[k+'_full'],pairs[k+'_los'],0,label='NATIVE_LOS_POSE_PAIRING')
     lut=FrozenLut(ROOT)
     close(np,lut.dt,2.,0,label='THETA_GRID_NOT_2DEG');close(np,lut.dp,2.,0,label='PHI_GRID_NOT_2DEG')
-    geo=pd.read_csv(io.BytesIO(member(zips['pol'],'POL_V1_GEOMETRY_ORACLE.csv.gz')),compression='gzip')
+    geo=pd.read_csv(io.BytesIO(member(zips['pol'],'POL_V1_GEOMETRY_ORACLE.csv.gz')),
+                    compression='gzip',float_precision='round_trip')
     require(len(geo)==9519 and not geo.duplicated(keys).any(),'POL_GEOMETRY_COUNT_OR_DUPLICATE')
     indexed=full.set_index(keys,verify_integrity=True)
     max_geo=0.;fds=[];med=[]
@@ -271,7 +272,7 @@ def reconcile(np,pd,config,zips,pol_path,out):
             test_keys_sha256=hashlib.sha256(full.loc[te,keys].to_csv(index=False).encode()).hexdigest(),
             mount45_training_present=bool((full.loc[tr,'mount_feature']==1).any())))
     # These are frozen summaries; do not refit their historical models in Q0.
-    prior=pd.read_csv(io.BytesIO(member(zips['pol'],'POL_V1_PRE_RF_PRIOR_TRANSFER.csv')))
+    prior=pd.read_csv(io.BytesIO(member(zips['pol'],'POL_V1_PRE_RF_PRIOR_TRANSFER.csv')),float_precision='round_trip')
     polmeta=json.loads(member(zips['pol'],'POL_V1_FINAL.json'))
     require(polmeta['source_sha']=='003b97bf4ba70b7bfa2669ce2c081517a24d58d5','POL_EXECUTED_SOURCE')
     require(len(prior)==8 and set(prior.n)=={979},'POL_PRIOR_WINDOW')
@@ -282,7 +283,7 @@ def reconcile(np,pd,config,zips,pol_path,out):
             close(np,q.iloc[0][col],r[col],tol['metric_atol'],label='POL_PRIOR_SUMMARY')
     require(json.loads(member(zips['pol_review'],'POL_V1_AUDITED_CASE_REVIEW.json'))['status']=='N4B_POL_V1_INDEPENDENT_AUDIT_PASS','POL_REVIEW_STATUS')
     # Independent re-score of existing N4C x/P. No recursive filter is run.
-    metrics=pd.read_csv(io.BytesIO(member(zips['n4c'],'N4C_RECURSIVE_ALL_METRICS.csv')))
+    metrics=pd.read_csv(io.BytesIO(member(zips['n4c'],'N4C_RECURSIVE_ALL_METRICS.csv')),float_precision='round_trip')
     require(len(metrics)==304,'N4C_METRIC_COUNT')
     mkeys=['case','channel','bias','method','policy','gate_mode']
     require(not metrics.duplicated(mkeys).any(),'N4C_METRIC_DUPLICATE')
