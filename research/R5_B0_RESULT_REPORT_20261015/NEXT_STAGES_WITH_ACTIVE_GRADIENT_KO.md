@@ -19,6 +19,7 @@
 | **B0 PHY Hard/Soft (Run 38688494790)** | 15 methods B0/Full/LoS/mount0/45 | 계산 PASS, Soft mean+Rs m0 3.362°/m45 1.350°, 전역 채택 HOLD |
 | **B0 Harm diagnostic (Run 38689008284)** | MP-risk vs original J4 update Heading harm 3,912 rows | 계산 PASS, MP-proxy Hard gate 정당화 실패 |
 | R5-4 yaw full native-LoS oracle | 169 groups 3,133 samples, hypothetical Gradient | 기존 oracle 예비 검증, LoS LUT/gyro/scale 검증 전 |
+| PHY-A B0 3/4-state + Bias prior sweep | Run 38689513593 및 38689772383 | **감사·실행 완료**; 바이어스 추정 자유도가 B0 Full Heading 오류를 증폭, 범용 bias prior 선택은 미검증 |
 | R5-5~R5-8 | 물리 Full yaw, Gradient+PHY, Heading factor, 실주행 | 핵심 후속 실행 필요 |
 
 ## 2. 업데이트된 연속 단계
@@ -75,8 +76,8 @@ quad R_{RF}(q)=egin{bmatrix}R_r(q)&R_{rs}(q)\\R_{rs}(q)&V_s(q)end{bmatrix}.
 - 물리적으로 근거 있는 20초 기본/10초 조건부/±10° 정보 부족 시 확장 정책, 회전 시간/오도메트리·충돌 회피·재출발과 주행 총 비용 비교.
 
 ## 3. 즉시 다음 실험 Gate 순서
-1. **PHY-A** — B0 S3/J3/SR3 vs S4/J4/SR4로 거짓 bias 감도 분해 (기존 원본 trace 재사용, 새로운 RF 필요 없음).
-2. **PHY-B** — train-target Heading harmfulness와 signed error risk, Geometry/conditional Fisher 대비 G5 MP target의 한계 수치화.
+1. **PHY-A 완료** — B0 S3/J3/SR3 vs S4/J4/SR4 재현 및 4state gyro-bias prior 0.001/0.01/0.03/0.1°/s, fixed-gate, Range-only control 완료. [결과](../R5_B0_RESULT_REPORT_20261015/B0_BIAS_MECHANISM_KO.md). B0 Full Mount0 Joint3 0.701° vs Joint4 7.490°; bias prior 0.001°/s 4state 0.701°; Range-only 역시 큰 Heading 오류. 범용 prior 축소로 채택 금지.
+2. **PHY-B 다음 우선 단계** — Train-target Heading harmfulness와 signed error risk, geometry/conditional Fisher 대비 G5 MP target의 한계 수치화. Hard gate를 MP-prior만으로 결정하지 않는다.
 3. **PHY-C** — G5 signed mean + centered conditional covariance, Range–s coupling, NEES 원인 추적.
 4. **PHY-D** — 기존 169 native yaw 그룹에서 Physics+Gradient 결합.
 5. PHY-E/F는 native RF/robot yaw/time/actual sensor availability가 갖춰져야 실행. 불가능하면 `BLOCKED_INPUT`, 기존 oracle 결과로 대체하지 않는다.
