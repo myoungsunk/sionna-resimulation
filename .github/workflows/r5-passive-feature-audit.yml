@@ -1,0 +1,65 @@
+name: R5-2 Dual LP CIR passive input and feature audit
+on:
+  push:
+    branches: ['research/r5-fullrf-heading-staged-20261015']
+    paths:
+      - '.github/workflows/r5-passive-feature-audit.yml'
+      - 'research/R5_FULLRF_HEADING_20261015/r5_passive_features.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  r5_2_physical_features:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact sparse checkout of immutable historical RF feature source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_FULLRF_HEADING_20261015/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/FEATURE_STATUS.json\n/.github/workflows/r5-passive-feature-audit.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Pre-run static audit and feature provenance FIRST
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_FULLRF_HEADING_20261015/r5_passive_features.py --phase pre --out "$RUNNER_TEMP/r5_2_pre" | tee "$RUNNER_TEMP/r5_2_pre.log"
+      - name: Install pinned data/analysis packages after audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 pandas==2.2.3
+      - name: Execute oracle-isolated physical feature analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_FULLRF_HEADING_20261015/r5_passive_features.py --phase run --audit "$RUNNER_TEMP/r5_2_pre/PRE_AUDIT.json" --out "$RUNNER_TEMP/r5_2_out" | tee "$RUNNER_TEMP/r5_2_run.log"
+      - name: Preserve full result and failure evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r5-passive-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r5_2_pre/**
+            ${{ runner.temp }}/r5_2_out/**
+            ${{ runner.temp }}/r5_2_pre.log
+            ${{ runner.temp }}/r5_2_run.log
+            research/R5_FULLRF_HEADING_20261015/r5_passive_features.py
+            .github/workflows/r5-passive-feature-audit.yml
+          if-no-files-found: warn
+          retention-days: 30
