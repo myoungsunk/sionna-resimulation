@@ -1,6 +1,6 @@
 # N0–N3 Full RF Heading 연구 — 순차 실행 보고 (2026-10-15)
 
-**진행 상태:** N0·N1·N2 실제 실험/감사 완료. N3 통합 물리 특징량의 held-route 실험 실행 중이며 최종 결과가 확인되기 전까지 임의 수치를 기입하지 않는다.
+**진행 상태:** **N0·N1·N2·N3 모두 새 코드 사전 감사, 실행, 원본 정합 검증 완료.** 독립 장면 일반화·calibrated 4-state posterior 일관성은 scientific PASS가 아니며 다음 단계에서 검증한다.
 
 ## 공통 물리·추정기 계약
 
@@ -52,16 +52,34 @@
 
 Mount0의 큰 Heading 오차는 s 오염 영향이 주도: E01 한 개만으로 E11과 비슷하게 악화. 그러나 Range 오염은 Pose 신뢰도에 큰 영향을 줌: Mount45 Pose NEES E00=5.34, E10=83.76, E01=11.12, E11=86.84. MSE 차이/interaction은 비선형 필터·시간누적/Gate 영향을 포함하여 전체 오차의 유일한 인과 기여율이 아님.
 
-## N3 — 전체 물리 특징량 재평가
+## N3 — 전체 물리 특징량 재평가 / 계산 PASS
 
-**평가 항목:** 원 PHY G0~G5와 이전 전력 P1/P2·총전력·s·CIR first-path/peak·early8 포트별 비율·dual-port JSD/shape L1. 실제 archive `z_r,z_s` 14,502시점 전수 parity, route-heldout 동일 fixed RandomForest 회귀+분류, 1.5m x block 재표본화 신뢰구간.
+- [Run 38695618847](https://github.com/myoungsunk/sionna-resimulation/actions/runs/38695618847), [artifact 11954163487](https://github.com/myoungsunk/sionna-resimulation/actions/runs/38695618847/artifacts/11954163487), ZIP SHA256 `ef89e832b9554119bd8c797ff30e18a5b5eb6e97f8f4cf03aca19f754845f5fe`.
+- 전체 original FFD Full/LoS 14채널 SHA audit, original 14,502 archived Range/s 전수 parity PASS, 물리 9,519개 matched pose/channel; 13개 특징량 조합, 3개 held-out route에서 같은 RandomForest 160 trees/depth6/leaf40으로 조건부 squared error 회귀+MP proxy 분류 비교.
+- 기존 이전 전력/CIR/dual-LP는 G0~G5와 **통합 검증**: port1/2 FP power, 총전력, s, FP/peak, early8 각 port, 16tap dual-port JSD 및 Shape L1. Frequency Jones G3/G5는 연구용으로 분리; SNR/실제 시간 jitter/hardware port calibration은 데이터에 없음.
 
-중요 구분:
-- `e_total^2=(s-h_LoS(true))^2` 조건부 예측과 `|s_Full-s_directLoS|>0.1` 오염프록시는 **Heading 위해성 label이 아님**.
-- `s`, `P1/P2`, `log(P1/P2)`는 서로 결정적으로 관련되어 독립 RF 정보라고 해석하지 않는다.
-- Complex frequency Jones G3/G5는 DWM1000에서 구현된 실제 측정 특징으로 볼 수 없으므로 research-only.
-- 외부 독립 Scene/기구 회전/Active Gradient 정보는 이 N3 실행 범위 밖.
+### MP proxy classification `|s_Full-s_nativeLoS|>0.1` (held-route pooled)
+
+| Features | Brier ↓ | AUROC ↑ |
+|---|---:|---:|
+| Range only | 0.147644 | 0.8270 |
+| G0 baseline (range+power+abs s) | 0.112891 | 0.8928 |
+| G0+기존 CIR | 0.111569 | 0.8975 |
+| G2 first-path polarization | 0.112209 | 0.8970 |
+| **G4 first-path threshold sensitivity** | **0.106366** | **0.9056** |
+| G5 all physical | 0.107735 | 0.9028 |
+| G5+legacy CIR | 0.107847 | 0.9030 |
+| G3 제외 전체+legacy | 0.107998 | 0.9029 |
+
+같은 복도 39개의 route+1.5m x block 재표본화에서 G5−G0 Brier 차이 `−0.0051556`, 95% CI `[−0.00998,−0.00115]`; 기존 CIR만 추가 vs G0 `−0.001321`, CI `[−0.00326,+0.00041]` → 추가 효과 확정 불가. G5에 기존 CIR 추가해도 Brier `0.107847`로 G5 `0.107735`보다 소폭 나쁨.
+
+### 조건부 s 제곱오차 예측 (Full RF)
+- `e_total²=(s−h_LUT(true))²` target held-route weighted R²: G0 `−0.0295`, G4 `0.2853`, G5 `0.3442`, G5+legacy `0.3486`.
+- **MP proxy 이상 여부 분류**에는 G4, **연속 오차 크기**에는 G5의 이점이 상대적으로 큼. Signed bias 제거 후 centered covariance/Heading 위해성/NEES로 아직 검증한 것은 아님.
+- LoS의 `e_total²` target은 분산이 극단적으로 작아서 held-route R²가 큰 음수로 불안정하므로 해당 숫자를 LoS Heading 품질의 종합 근거로 사용하지 않음.
+
+한계: `s`, `P1/P2`, `log(P1/P2)`는 독립 RF 측정이 아님. `e_total²`와 `MP proxy`는 Heading 위해성 label이 아님. 고주파 Jones 특징량의 실제 DWM1000 가용성은 미확정. 3개의 route는 동일 corridor이며 independent scene 연구가 아님.
 
 ## 다음 결과를 위한 연구 게이트
 
-N3 통과 뒤 N4: 실제 RF observation-conditioned Heading harm, Range signed bias 및 `R_r,R_{rs},R_s`의 centered covariance와 temporal correlation을 검증. N5: 기존 169개 Full yaw sweep에 PHY feature+Gradient를 결합하고, nuisance 제거 Heading 정보량 및 multi-modal likelihood 평가. 별도 수치 경계 MAP solver 문제는 독립 트랙으로 유지.
+N3 감사·실험 통과. 다음 N4: 실제 RF observation-conditioned Heading harm, Range signed bias 및 `R_r,R_{rs},R_s`의 centered covariance와 temporal correlation을 검증. N5: 기존 169개 Full yaw sweep에 PHY feature+Gradient를 결합하고, nuisance 제거 Heading 정보량 및 multi-modal likelihood 평가. 별도 수치 경계 MAP solver 문제는 독립 트랙으로 유지.
