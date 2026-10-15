@@ -214,6 +214,8 @@ def local_arms(np,xprior,Pprior,obs,mean,rs,gt,lut,case,R0,gaussian_update,decom
      "heading_nees":float(d["heading_nees"][0]),
      "xy_cond_nees":float(d["conditional_xy_nees"][0]),
      "small_axis_nees":float(d["conditional_xy_first_eigen_nees"][0]),
+     "small_axis_variance_m2":float(d["conditional_xy_eigen_small"][0]),
+     "xy_cond_error_m":float(d["xy_cond_error_norm"][0]),
      "xy_rmse_instant_m":float(d["xy_error_norm"][0]),
      "heading_error_deg":float(math.degrees(d["err"][0,2]))})
  return out
@@ -487,6 +489,12 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
    })
   # Store every selected-window row and all compact original-case diagnostics.
   export(out/"N4AE_TOP_EPISODES.csv",event_rows)
+  # For the extreme onset/peak, include ground-truth RF residual,
+  # innovation NIS, covariance eigenvector, and Gain projections for
+  # all bias levels and Mount choices without resimulating any RF.
+  peak_indices=[e["k_peak"] for e in event_rows]
+  peak_telemetry=[r for r in allrows if r["k"] in peak_indices]
+  export(out/"N4AE_PEAK_TELEMETRY.csv",peak_telemetry)
   export(out/"N4AE_LOCAL_SAME_PRIOR_COUNTERFACTUALS.csv",counterfactual)
   export(out/"N4AE_GATE_COUNTS.csv",conditions)
   export(out/"N4AE_EXTREME_VS_OTHER.csv",extreme_rows)
@@ -508,6 +516,24 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
     "target":"Full Mount0 L2 G5 Mean+Rs",
     "top5_nees_threshold":cutoff,
     "episodes":event_rows,
+    "peak_telemetry_full_mount0_L2":[{
+        "method":r["method"],"k":r["k"],"time_s":r["t_s"],
+        "range_innovation_m":r["range_innovation_m"],
+        "pol_innovation_s":r["pol_innovation_s"],
+        "rf_model_error_r_GT_m":r["rf_model_error_r_GT_m"],
+        "rf_model_error_s_GT":r["rf_model_error_s_GT"],
+        "native_full_minus_los_r_m":r["native_full_minus_los_r_m"],
+        "native_full_minus_los_s":r["native_full_minus_los_s"],
+        "g5_rs_used":r["pol_R_variance"],
+        "joint_NIS":r["joint_NIS_recomputed"],
+        "gate":r["gate_status"],"small_axis_lambda_m2":r["small_axis_variance_m2"],
+        "small_axis_projected_error_m":r["small_axis_econd_projection_m"],
+        "small_axis_nees":r["small_axis_nees"],
+        "axis_gain_range_m":r["small_axis_gain_contrib_range_m"],
+        "axis_gain_s_m":r["small_axis_gain_contrib_s_m"],
+        "axis_angle_deg":r["axis_angle_deg"],
+       } for r in peak_telemetry if r["case"]==TARGET[0] and
+             r["bias_level"]=="L2"],
     "gate_difference_by_condition":conditions,
     "tail_contrasts":extreme_rows,
     "same_prior_counterfactuals":counterfactual,
@@ -524,6 +550,7 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
   write(out/"N4AE_FINAL.json",final)
   print("N4AE_FINAL "+json.dumps({"status":final["status"],
      "source_counts":final["source_counts"],"events":event_rows,
+     "peak_telemetry":final["peak_telemetry_full_mount0_L2"],
      "gate_counts":conditions,"tail_contrasts":extreme_rows,
      "same_prior_counterfactuals":counterfactual},ensure_ascii=False),flush=True)
   return 0
