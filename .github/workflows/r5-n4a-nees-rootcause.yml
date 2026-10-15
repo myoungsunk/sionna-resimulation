@@ -1,0 +1,79 @@
+name: R5 N4-A Pose NEES conditional XY root cause forensic
+on:
+  push:
+    branches: ['research/r5-n4a-nees-rootcause-20261015']
+    paths:
+      - '.github/workflows/r5-n4a-nees-rootcause.yml'
+      - 'research/R5_N4A_NEES_20261015/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  n4a_nees:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact sparse checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N4A_NEES_20261015/**\n/research/R5_N0_N3_20261015/n1_bias_policies.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/PHYSICS_RS_STAGED_20261015/code/stage_c.py\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/r5-n4a-nees-rootcause.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory source pin and workflow PREAUDIT
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4A_NEES_20261015/n4a_nees_rootcause.py --phase pre --out "$RUNNER_TEMP/n4a_pre" | tee "$RUNNER_TEMP/n4a_pre.log"
+      - name: Fetch immutable original RF and N1 archived x/P
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/n4a_RF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/n4a_RF.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11954136512/zip > "$RUNNER_TEMP/n4a_N1.zip"
+          echo 'b633d0af900f26ab7d5a42c905adcb4abc01e5b262a154c774d10d5740fbaa40  '"$RUNNER_TEMP/n4a_N1.zip" | sha256sum -c
+      - name: Install minimal frozen numeric dependencies after source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Exact synthetic Schur and eigenbasis unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4A_NEES_20261015/n4a_nees_rootcause.py --phase test | tee "$RUNNER_TEMP/n4a_test.log"
+      - name: N4-A posterior root cause and independent N1 score parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4A_NEES_20261015/n4a_nees_rootcause.py --phase run --out "$RUNNER_TEMP/n4a_results" --audit "$RUNNER_TEMP/n4a_pre/N4A_PRE_AUDIT.json" --raw "$RUNNER_TEMP/n4a_RF.zip" --n1 "$RUNNER_TEMP/n4a_N1.zip" | tee "$RUNNER_TEMP/n4a_run.log"
+      - name: Preserve all trace records and failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4a-nees-archive-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/n4a_pre/**
+            ${{ runner.temp }}/n4a_results/**
+            ${{ runner.temp }}/n4a_pre.log
+            ${{ runner.temp }}/n4a_test.log
+            ${{ runner.temp }}/n4a_run.log
+          if-no-files-found: warn
+          retention-days: 30
