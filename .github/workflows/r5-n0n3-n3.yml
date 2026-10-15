@@ -1,0 +1,84 @@
+name: N3 Full RF physical feature incrementality G0-G5 plus previous Power CIR
+on:
+  push:
+    branches: ['research/r5-n0n3-audited-20261015']
+    paths:
+      - '.github/workflows/r5-n0n3-n3.yml'
+      - 'research/R5_N0_N3_20261015/n3_feature_incremental.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  N3_feature_incrementality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout exact original frozen FFD H and all physics sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N0_N3_20261015/n3_feature_incremental.py\n/research/R5_FULLRF_B0_GATES_20261015/r5_b0_hard_soft.py\n/research/PHYSICS_RS_STAGED_20261015/code/*.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/r5-n0n3-n3.yml\n' > .git/info/sparse-checkout
+          BASE='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C'
+          printf '/%s/FULL_RF/*.npy\n/%s/H_LoS_*.npy\n/%s/freqs_hz.npy\n' "$BASE" "$BASE" "$BASE" >> .git/info/sparse-checkout
+          for CASE in R2_aA_m0 R2_aA_m45 R2_aB_m0 R4_aA_m0 R4_aB_m0 R5_aA_m0 R5_aB_m0; do
+            printf '/%s/%s/SAMPLES.json\n' "$BASE" "$CASE" >> .git/info/sparse-checkout
+          done
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Source hash and all raw RF files audit BEFORE numeric execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N0_N3_20261015/n3_feature_incremental.py --phase pre --out "$RUNNER_TEMP/n3_pre" | tee "$RUNNER_TEMP/n3_pre.log"
+      - name: Retrieve N0 approval and original RF for exact observer parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11953640791/zip > "$RUNNER_TEMP/n0.zip"
+          echo 'aade786b83357086c9e645fa9b87467a869289aa93040e3b48410f44af2d08fb  '"$RUNNER_TEMP/n0.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/frozenRF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/frozenRF.zip" | sha256sum -c
+      - name: Install pinned numeric dependencies for original and merged physics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3 scikit-learn==1.5.2
+      - name: Mathematical Power/CIR shape and amplitude scaling regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N0_N3_20261015/n3_feature_incremental.py --phase test | tee "$RUNNER_TEMP/n3_test.log"
+      - name: Route-heldout physical feature incrementality and original observer parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N0_N3_20261015/n3_feature_incremental.py --phase run --out "$RUNNER_TEMP/n3_results" --audit "$RUNNER_TEMP/n3_pre/N3_PRE_AUDIT.json" --n0 "$RUNNER_TEMP/n0.zip" --raw "$RUNNER_TEMP/frozenRF.zip" | tee "$RUNNER_TEMP/n3_results.log"
+      - name: Preserve complete raw and failed audit outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n3-physical-features-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/n3_pre/**
+            ${{ runner.temp }}/n3_results/**
+            ${{ runner.temp }}/n3_pre.log
+            ${{ runner.temp }}/n3_test.log
+            ${{ runner.temp }}/n3_results.log
+          if-no-files-found: warn
+          retention-days: 30
