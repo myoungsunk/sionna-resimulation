@@ -225,7 +225,7 @@ def independent_n4b_test():
  A=rng.normal(size=(128,2))
  train=pd.DataFrame({"e_r":.45+A[:,0]*.14,
    "e_s":-.10+.6*A[:,0]*.12+A[:,1]*.05})
- for col in set(SIMPLE+G4+NQ):
+ for col in set(SIMPLE+G4+NQ+tuple(GROUPS["G5"])):
   if col not in train:train[col]=rng.normal(size=len(train))
  test=train.iloc[:12].copy()
  from features import GROUPS
@@ -520,8 +520,8 @@ def run(out,pre,rf_archive):
       "n_case_strata":len(q)})
  # Paired spatial-block resampling of conditional likelihood improvements.
  samples=prediction[["case","route","x_eval","y_eval","pose_id","model","nll"]].copy()
- samples["block"]=samples.case+":"+np.floor(samples.x_eval/1.5).astype(int).astype(str)+":"+
-  np.floor(samples.y_eval/1.5).astype(int).astype(str)
+ samples["block"]=(samples.case+":"+np.floor(samples.x_eval/1.5).astype(int).astype(str)+":"+
+  np.floor(samples.y_eval/1.5).astype(int).astype(str))
  base=samples[samples.model=="R0"][["case","pose_id","nll","block"]].rename(columns={"nll":"nll_R0"})
  global_model=samples[samples.model=="GLOBAL_JOINT"][["case","pose_id","nll"]].rename(columns={"nll":"nll_GLOBAL"})
  simple_group=samples.merge(base,on=["case","pose_id"],how="left",validate="many_to_one",
