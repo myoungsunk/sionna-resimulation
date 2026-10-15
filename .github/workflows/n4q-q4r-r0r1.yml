@@ -1,0 +1,87 @@
+name: N4 Q4-R0R1 prior calibration source and posterior audit
+on:
+  push:
+    branches: ['research/n4q-q4r-prior-calibration-20261015']
+    paths:
+      - '.github/workflows/n4q-q4r-r0r1.yml'
+      - 'research/N4_Q4R_20261015/q4r_posthoc.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  q4r0r1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact sparse original Q4 N4C R2 and LUT source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/N4_Q4R_20261015/q4r_posthoc.py\n/research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py\n/research/R5_N4C_20261015/n4c_joint_sr4.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/.github/workflows/n4q-q4r-r0r1.yml\n' > .git/info/sparse-checkout
+          BASE='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C'
+          for CASE in R4_aA_m0 R4_aB_m0 R5_aA_m0 R5_aB_m0; do
+            printf '/%s/%s/SAMPLES.json\n' "$BASE" "$CASE" >> .git/info/sparse-checkout
+          done
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory hash audit and R4 R5 sequential training-source eligibility
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_posthoc.py --phase pre --out "$RUNNER_TEMP/q4r0" | tee "$RUNNER_TEMP/q4r0.log"
+      - name: Retrieve original archived RF R2 Q4 and POWER_JOINT with SHA check
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/rf.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/r2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/r2.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11967961466/zip > "$RUNNER_TEMP/q4.zip"
+          echo '599267063f87546ca76cf6f7c755977c74c8b298c18fbb89e73066dd34be3164  '"$RUNNER_TEMP/q4.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11962810669/zip > "$RUNNER_TEMP/n4c.zip"
+          echo 'f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9  '"$RUNNER_TEMP/n4c.zip" | sha256sum -c
+      - name: Install frozen original sensor and numpy runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Synthetic Schur PSD and covariance cross-checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_posthoc.py --phase test | tee "$RUNNER_TEMP/q4r1_test.log"
+      - name: Evaluate preregistered no-fit covariance calibration on frozen Full LoS R2
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_posthoc.py --phase run --out "$RUNNER_TEMP/q4r1" --audit "$RUNNER_TEMP/q4r0/Q4R0_AUDIT.json" --rf "$RUNNER_TEMP/rf.zip" --r2 "$RUNNER_TEMP/r2.zip" --q4 "$RUNNER_TEMP/q4.zip" --n4c "$RUNNER_TEMP/n4c.zip" | tee "$RUNNER_TEMP/q4r1.log"
+      - name: Preserve all source and result audit evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4q-q4r-r0r1-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/q4r0/**
+            ${{ runner.temp }}/q4r1/**
+            ${{ runner.temp }}/q4r0.log
+            ${{ runner.temp }}/q4r1.log
+            ${{ runner.temp }}/q4r1_test.log
+          if-no-files-found: warn
+          retention-days: 30
