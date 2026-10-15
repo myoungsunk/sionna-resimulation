@@ -6,6 +6,7 @@ import math
 import numpy as np
 from p4_nonsmooth_local import local_nonsmooth_minimize,fixed_objective,probe_directions,frozen_lut_angles,directional_descent_polish
 from p3_rf_adapter4 import R0
+from p4_lut_crossing import step_crossings, candidate_grid_events
 
 def test_original_quadratic_gaussian_objective_and_probe_directions():
     mu=np.array([.2,-.1,.05,0.])
@@ -69,3 +70,31 @@ def test_tilted_nonsmooth_ridge_directional_descent():
     assert len(steps)>0
     assert f(final)<f(start)
     assert np.isfinite(final).all()
+
+def test_actual_r2_knot_crossing_and_pole_rejection():
+    case={"anchor":[4.,0.,2.65],"robot_z_m":.45,"mount_deg":0.}
+    mu=np.array([2.755877,.552919,.106701,0.])
+    y=np.zeros(4)
+    d=np.array([0.,.002,0.,0.])
+    evidence=step_crossings(y,d,np.eye(4),mu,case)
+    crossings=[x for x in evidence["events"] if x["angle"]=="phi_tx"
+               and abs(x["knot_deg"]+156.)<1e-8]
+    assert crossings
+    assert .4 < crossings[0]["t"] < .6
+    try:
+        step_crossings(y,d,np.eye(4),np.array([4.,0.,0.,0.]),case)
+        assert False, "expected near-pole error"
+    except ValueError as exc:
+        assert "POLE" in str(exc)
+
+def test_knot_search_accepts_only_resolved_decrease():
+    case={"anchor":[4.,0.,2.65],"robot_z_m":.45,"mount_deg":0.}
+    mu=np.array([2.755877,.552919,.106701,0.])
+    y=np.zeros(4);d=np.array([0.,.002,0.,0.])
+    improve=candidate_grid_events(lambda q:1.+(q[1]-.001)**2,
+                                  y,d,np.eye(4),mu,case)
+    uphill=candidate_grid_events(lambda q:1.+q[1],
+                                 y,d,np.eye(4),mu,case)
+    assert improve["best"] is not None
+    assert improve["best"]["delta_J"]<0.
+    assert uphill["best"] is None

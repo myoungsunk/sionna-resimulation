@@ -13,6 +13,7 @@ import numpy as np
 from scipy.optimize import minimize
 from core import map_update
 from p3_rf_adapter4 import R0
+from p4_lut_crossing import candidate_grid_events, nearest_grid
 
 def fixed_objective(mu,P,z,model):
     mu=np.asarray(mu,float);P=np.asarray(P,float);z=np.asarray(z,float)
@@ -139,6 +140,50 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
         options={"maxiter":650,"maxfev":maxfev,"xtol":2e-10,"ftol":1e-12})
     candidates=[{"x":np.asarray(pw.x,float),"method":"POWELL",
                  "optimizer_success":bool(pw.success)}]
+    # New: detect exact angular LUT cell-crossing events on the GN search ray.
+    # The original J and original h/H are unchanged. Boundary events become
+    # extra candidate states only after an independently resolved J decrease.
+    boundary_trials=[]
+    boundary_candidates=[]
+    if kink_case is not None:
+        for origin_name,base in (("FAILED_ITERATE",start),("POWELL_ITERATE",np.asarray(pw.x,float))):
+            try:
+                h,H=model(mu+Lp@base)
+                Lr=np.linalg.cholesky(R0)
+                B=np.linalg.solve(Lr,H@Lp)
+                g=grad(base)
+                d=np.linalg.solve(np.eye(n)+B.T@B,-g)
+                fraction=1.
+                for j in range(n):
+                    if d[j]>0:fraction=min(fraction,(upper[j]-base[j])/d[j])
+                    elif d[j]<0:fraction=min(fraction,(lower[j]-base[j])/d[j])
+                if fraction<=1e-12:
+                    boundary_trials.append({"origin":origin_name,"status":"NO_FEASIBLE_STEP"})
+                    continue
+                d*=min(1.,fraction*.999999)
+                events=candidate_grid_events(cost,base,d,Lp,mu,kink_case)
+                record={"origin":origin_name,"status":"EVALUATED",
+                   "start_distance":events["crossing"]["start"]["distance_deg"],
+                   "end_distance":events["crossing"]["end"]["distance_deg"],
+                   "crossing_count":len(events["crossing"]["events"]),
+                   "event_examples":events["crossing"]["events"][:12],
+                   "segments":events["crossing"]["segments"],
+                   "accepted_resolved_decrease":events["best"] is not None}
+                boundary_trials.append(record)
+                if events["best"] is not None:
+                    target=np.asarray(base+events["best"]["t"]*d,float)
+                    if cost(target)<=c0+1e-11:
+                        boundary_candidates.append({
+                           "x":target,"method":"LUT_KNOT_CROSSING_LINESEARCH",
+                           "optimizer_success":True,
+                           "origin":origin_name,
+                           "knot_count":len(events["crossing"]["events"]),
+                           "step_fraction":events["best"]["t"]})
+            except (RuntimeError,ValueError,np.linalg.LinAlgError,OverflowError) as exc:
+                boundary_trials.append({
+                   "origin":origin_name,"status":"CROSSING_UNRESOLVED",
+                   "error":type(exc).__name__+":"+str(exc)})
+    candidates.extend(boundary_candidates)
     # Active-grid facet constrained optimization: at a kink, tangent descent
     # can exist even when axis-parallel Powell appears stationary. The equality
     # only defines SEARCH SUBSPACE; final J is always ORIGINAL unsmoothed J.
@@ -213,6 +258,8 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
     return {"terminal_status":("NONSMMOOTH_LOCAL_CANDIDATE_VERIFIED"
                 if passed else "NONSMMOOTH_LOCAL_UNVERIFIED"),
             "candidate_strategy":selected["method"],
+            "lut_boundary_detection":boundary_trials,
+            "lut_boundary_resolved_candidate_count":len(boundary_candidates),
             "active_set_tried":tried,
             "active_set_candidates":sum(c["method"]=="ACTIVE_LUT_FACET"
                 for c in candidates),

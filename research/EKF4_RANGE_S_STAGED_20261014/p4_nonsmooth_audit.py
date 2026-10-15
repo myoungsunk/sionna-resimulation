@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime,timezone
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[1]
-WORKFLOW=ROOT/".github/workflows/ekf4-r4-p4-nonsmooth-pilot.yml"
+WORKFLOW=ROOT/".github/workflows/ekf4-r4-lut-crossing-pilot.yml"
 BASE={
  "research/EKF4_RANGE_S_STAGED_20261014/core.py":"0a0851e6867c14fec5eefe02df471100cb9e9e1d",
  "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py":"cb676aea8e6710ff2c0e175e1e422271b696cebe",
@@ -41,7 +41,7 @@ def audit(out):
    git,sha=getsha(p)
    if git!=blob:errors.append("FROZEN_SOURCE_CHANGED:"+rel)
    hashes[rel]=sha
-  for name in ("p4_nonsmooth_audit.py","p4_nonsmooth_local.py",
+  for name in ("p4_nonsmooth_audit.py","p4_nonsmooth_local.py","p4_lut_crossing.py",
                "test_p4_nonsmooth.py","p4_nonsmooth_pilot.py"):
    rel="research/EKF4_RANGE_S_STAGED_20261014/"+name
    p=ROOT/rel
@@ -58,7 +58,7 @@ def audit(out):
    if -1 in positions or positions!=sorted(positions):errors.append("AUDIT_NOT_FIRST")
    if not("actions: read" in wf and ZIP_SHA in wf and "if: always()" in wf and "set -euo pipefail" in wf):
     errors.append("WORKFLOW_PROVENANCE_MISSING")
-   hashes[".github/workflows/ekf4-r4-p4-nonsmooth-pilot.yml"]=getsha(WORKFLOW)[1]
+   hashes[".github/workflows/ekf4-r4-lut-crossing-pilot.yml"]=getsha(WORKFLOW)[1]
   else:errors.append("WORKFLOW_MISSING")
   src=(HERE/"p4_nonsmooth_pilot.py").read_text()
   if "truth_for_offline_scoring_only" in src:errors.append("TRUTH_LEAKAGE_IN_SOLVER_PILOT")

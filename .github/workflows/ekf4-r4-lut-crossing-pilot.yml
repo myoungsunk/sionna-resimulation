@@ -1,0 +1,85 @@
+name: EKF4 R4 P4 audit-first explicit LUT crossing solver pilot
+on:
+  push:
+    branches: ['research/ekf4-r4-lut-crossing-solver-20261015']
+    paths:
+      - '.github/workflows/ekf4-r4-lut-crossing-pilot.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_*.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_lut_crossing.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  immutable-20-failures-and-nonsmooth-candidates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact frozen source and original Sionna LUT sparse checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r4-lut-crossing-pilot.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory source and optimizer audit before ANY numeric code
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_audit.py --out "$RUNNER_TEMP/p4_ns_audit" | tee "$RUNNER_TEMP/p4_ns_audit.log"
+      - name: Download preserved original 4124 failure snapshots and SHA verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11937707221/zip > "$RUNNER_TEMP/p4_failed_original.zip"
+          echo 'db1bda22f9fdbb56ba95817ea4c02016bba294c35a4c126daca448284a285ec4  '"$RUNNER_TEMP/p4_failed_original.zip" | sha256sum -c
+      - name: Install pinned SciPy dependencies only AFTER preaudit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pytest==8.3.5
+      - name: Independent synthetic smooth/nonsmooth negative regression before RF
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/p4_ns_tests"
+          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py --junitxml="$RUNNER_TEMP/p4_ns_tests/TESTS.xml" | tee "$RUNNER_TEMP/p4_ns_tests.log"
+      - name: Reproduce 20 exact original MAP failures and test objective-preserving nonsmooth method
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_pilot.py --artifact "$RUNNER_TEMP/p4_failed_original.zip" --audit "$RUNNER_TEMP/p4_ns_audit/PREAUDIT.json" --out "$RUNNER_TEMP/p4_ns_results" | tee "$RUNNER_TEMP/p4_ns_pilot.log"
+      - name: Preserve all source audit, original-failure and pilot evidence regardless of status
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-p4-nonsmooth-local-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p4_ns_audit/**
+            ${{ runner.temp }}/p4_ns_tests/**
+            ${{ runner.temp }}/p4_ns_results/**
+            ${{ runner.temp }}/p4_ns_audit.log
+            ${{ runner.temp }}/p4_ns_tests.log
+            ${{ runner.temp }}/p4_ns_pilot.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_*.py
+            research/EKF4_RANGE_S_STAGED_20261014/p4_lut_crossing.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py
+            .github/workflows/ekf4-r4-lut-crossing-pilot.yml
+          if-no-files-found: warn
+          retention-days: 30
