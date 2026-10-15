@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse,csv,hashlib,io,json,math,os,zipfile
 from pathlib import Path
 import numpy as np
-from core import predict,wrap
+from core import predict,wrap,gaussian_update
 from p3_rf_adapter4 import FrozenLut,R0,GATE_JOINT
 from p3_frozen_inputs import open_verified_archive
 from r2_bias_replay import build_positive_bias_controls,BIAS_LEVELS,CASES,CHANNELS,INITIAL_POSE_STD,BIAS_PRIOR_STD,predict_one
@@ -22,6 +22,9 @@ def joseph(P,K,H,R):
  C=A@P@A.T+K@R@K.T
  return (C+C.T)/2
 def update(x,P,z,case,lut,method):
+ if method=="J4":
+  y,C,diag=gaussian_update(x,P,z,lambda q:lut.model(q,case),R0,gate_threshold=GATE_JOINT)
+  return y,C,("APPLIED" if diag["accepted"] else "REJECT"),diag["NIS"],0.
  h,H=lut.model(x,case);nu=z-h;S=H@P@H.T+R0
  nis=float(nu@np.linalg.solve(S,nu))
  if nis>GATE_JOINT:
