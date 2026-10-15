@@ -76,7 +76,8 @@ def execute(out,receipt,zip_path):
      ("cubature_brier_vs_GT_geom_label","cubature_prob_squared_error"),
      ("point_label_brier_vs_GT_geom_label","point_label_squared_error"),
      ("s_LoS_GT_coverage95_from_prior_cubature","cubature_s_coverage95_geometry_only")):
-    got=sum(float(v[agg]) for v in items)/len(items)
+    got=sum((1. if v[agg]=="True" else 0. if v[agg]=="False" else float(v[agg]))
+         for v in items)/len(items)
     if abs(got-float(ref[field]))>1e-10:
      raise RuntimeError("ORIGINAL_Q4_METRIC_PARITY_FAILED:"+str(key)+"/"+field)
   pairs=[]
