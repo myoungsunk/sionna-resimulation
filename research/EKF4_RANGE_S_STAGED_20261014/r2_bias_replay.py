@@ -85,7 +85,7 @@ def filter_one(x,P,z,alg,case,lut):
  if alg.startswith("DR"):
   return x.copy(),P.copy(),"DR_ONLY",math.nan
  model=lambda q:lut.model(q,case)
- if alg.startswith("S"):
+ if alg in ("S3","S4"):
   m=lambda q:(model(q)[0][1:],model(q)[1][1:,:])
   xp,pp,diag=gaussian_update(x,P,z[1:],m,R0[1:,1:],
                               gate_threshold=GATE_S)
