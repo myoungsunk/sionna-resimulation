@@ -17,7 +17,7 @@ ART={
  "n4c":"f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9",
 }
 PINNED={
- "research/N4_Q4R_20261015/q4r_posthoc.py":"__R1_SOURCE_BLOB__",
+ "research/N4_Q4R_20261015/q4r_posthoc.py":"2c3a393228c31a4019f24896efb1cdf07925b4d1",
  "research/R5_N4C_20261015/n4c_joint_sr4.py":"40c795fa8799c4090c0766ebdccf6e2be83df6a0",
  "research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py":"b1de0de13e82cd414306cba3182af18ac97607bf",
  "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py":"cb676aea8e6710ff2c0e175e1e422271b696cebe",
