@@ -20,7 +20,7 @@ jobs:
           git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
           git config core.sparseCheckout true
           mkdir -p .git/info
-          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/**\n/research/PHYSICS_RS_STAGED_20261015/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**\n/results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/**\n/.github/workflows/physics-rs-input-bundle.yml\n' > .git/info/sparse-checkout
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/*.py\n/research/EKF4_RANGE_S_STAGED_20261014/*.json\n/research/EKF3_INDEPENDENT_20261013/*.py\n/research/EKF3_INDEPENDENT_20261013/*.json\n/research/PHYSICS_RS_STAGED_20261015/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**\n/results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/**\n/results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/freqs_hz.npy\n/.github/workflows/physics-rs-input-bundle.yml\n' > .git/info/sparse-checkout
           git checkout --detach FETCH_HEAD
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
       - name: Audit original manifest bytes before any scientific calculation
@@ -29,10 +29,8 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import json,hashlib,pathlib,shutil,os
-          root=pathlib.Path('.')
-          manifest=root/'research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json'
-          data=json.loads(manifest.read_text())
-          records=[]
+          manifest=pathlib.Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json')
+          data=json.loads(manifest.read_text());records=[]
           def walk(v):
             if isinstance(v,dict):
               if 'path' in v and 'sha256' in v: records.append(v)
@@ -40,34 +38,33 @@ jobs:
             elif isinstance(v,list):
               for a in v: walk(a)
           walk(data)
-          dest=pathlib.Path(os.environ['RUNNER_TEMP'])/'physics_rs_input'
-          dest.mkdir()
+          dest=pathlib.Path(os.environ['RUNNER_TEMP'])/'physics_rs_input';dest.mkdir()
           want={manifest}
           for c in data['cases']:
             for key in ['full_path','los_path','samples_path']: want.add(pathlib.Path(c[key]))
           for rec in records:
             p=pathlib.Path(rec['path'])
             if p.exists() and (p in want or 'freq' in p.name or 'LUT/' in str(p) or p.suffix=='.py'):
-              b=p.read_bytes()
-              assert hashlib.sha256(b).hexdigest()==rec['sha256'],('SHA256',str(p))
+              b=p.read_bytes();assert hashlib.sha256(b).hexdigest()==rec['sha256'],('SHA256',str(p))
               if rec.get('git_blob_sha1'):
                 assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==rec['git_blob_sha1'],('GIT_SHA',str(p))
               want.add(p)
           verified={r['path'] for r in records if pathlib.Path(r['path']) in want}
           for c in data['cases']:
-            for key in ['full_path','los_path','samples_path']:
-              assert c[key] in verified,('MISSING_MANIFEST_RECORD',c[key])
+            for key in ['full_path','los_path','samples_path']: assert c[key] in verified
           prefixes=['research/EKF4_RANGE_S_STAGED_20261014','research/EKF3_INDEPENDENT_20261013','research/PHYSICS_RS_STAGED_20261015','results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src','results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT']
           for s in prefixes:
             for p in pathlib.Path(s).rglob('*'):
-              if p.is_file(): want.add(p)
+              if p.is_file() and (p.suffix=='.py' or (p.suffix in ('.json','.md') and p.stat().st_size<10000000) or '/LUT/' in str(p)): want.add(p)
           for p in pathlib.Path('results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449').rglob('*freq*.npy'): want.add(p)
           receipts=[]
           for p in sorted(want):
             b=p.read_bytes();q=dest/p;q.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,q)
             receipts.append({'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'original_manifest_verified':str(p) in verified})
+          total=sum(x['bytes'] for x in receipts)
+          assert total<500000000,('UNEXPECTED_BUNDLE_SIZE',total)
           (dest/'BUNDLE_AUDIT.json').write_text(json.dumps({'status':'GO_INPUT_BYTES_ONLY','git_sha':os.environ['GITHUB_SHA'],'original_verified_paths':len(verified),'files':receipts,'scientific_calculation':False},indent=2))
-          print('BUNDLE_AUDIT_GO',len(receipts),sum(x['bytes'] for x in receipts))
+          print('BUNDLE_AUDIT_GO',len(receipts),total)
           PY
       - name: Preserve immutable input bundle
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
