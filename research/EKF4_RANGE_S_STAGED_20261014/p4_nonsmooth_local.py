@@ -90,6 +90,42 @@ def frozen_lut_angles(x,case):
         -case["mount_deg"]+180.)%360.-180.
     return np.array([theta,tx,rx])
 
+def directional_descent_polish(cost,y,lower,upper,max_rounds=32):
+    """Do not stop at coordinate-wise Powell stagnation on tilted LUT facets.
+
+    Probe the *actual objective* along deterministic off-axis directions
+    and follow only real signed decreases. The same original objective
+    and local domain bounds are maintained.
+    """
+    y=np.asarray(y,float).copy()
+    directions=probe_directions(len(y))
+    trace=[]
+    for iteration in range(max_rounds):
+        c0=cost(y)
+        h=2e-5
+        diffs=np.array([cost(y+h*d)-c0 if np.all(y+h*d>=lower)
+                        and np.all(y+h*d<=upper) else np.inf
+                        for d in directions])
+        ranked=np.argsort(diffs)[:8]
+        best_y=y
+        best_cost=c0
+        for idx in ranked:
+            d=directions[idx]
+            for alpha in (h,4*h,20*h,100*h,1000*h):
+                candidate=y+alpha*d
+                if not(np.all(candidate>=lower) and np.all(candidate<=upper)):
+                    continue
+                cj=cost(candidate)
+                if cj<best_cost-1e-13:
+                    best_y,best_cost=candidate,cj
+        if best_cost>=c0-1e-13:
+            break
+        trace.append(float(best_cost-c0))
+        y=best_y.copy()
+        # Recompute local off-axis descent after movement; DO NOT accept
+        # optimizer 'success' without the final true-objective verification.
+    return y,trace
+
 def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
                              maxfev=24000,kink_case=None):
     cost,grad,Lp=fixed_objective(mu,P,z,model)
@@ -141,6 +177,17 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
                            "constraint_residual_deg":float(residual)})
                 except (ArithmeticError,ValueError):
                     continue
+    # Recheck cross-facet descent that Powell axis searches can miss.
+    # Do not make a generalized-stationarity claim from this step alone.
+    polished=[]
+    for initial in sorted(candidates,key=lambda c:cost(c["x"]))[:3]:
+        yy,improvements=directional_descent_polish(
+            cost,initial["x"],lower,upper)
+        if improvements:
+            polished.append({"x":yy,"method":"DIRECTIONAL_BUNDLE_POLISH",
+                "optimizer_success":True,"descent_rounds":len(improvements),
+                "total_verified_delta":sum(improvements)})
+    candidates.extend(polished)
     qualified=[]
     for cand in candidates:
         y=cand["x"]

@@ -4,7 +4,7 @@ No original MAP 'CONVERGED' is backfilled by derivative-free candidate.
 """
 import math
 import numpy as np
-from p4_nonsmooth_local import local_nonsmooth_minimize,fixed_objective,probe_directions,frozen_lut_angles
+from p4_nonsmooth_local import local_nonsmooth_minimize,fixed_objective,probe_directions,frozen_lut_angles,directional_descent_polish
 from p3_rf_adapter4 import R0
 
 def test_original_quadratic_gaussian_objective_and_probe_directions():
@@ -59,3 +59,13 @@ def test_actual_theta_tx_rx_grid_angle_coordinates_preserved():
     a=frozen_lut_angles(x,case)
     assert a.shape==(3,)
     assert abs(a[1]+156.)<.005
+
+def test_tilted_nonsmooth_ridge_directional_descent():
+    def f(y):
+        return abs(y[0]-y[1])+.1*(y[0]+y[1]-1)**2
+    start=np.array([0.,0.])
+    final,steps=directional_descent_polish(
+        f,start,np.array([-1.,-1.]),np.array([1.,1.]),max_rounds=32)
+    assert len(steps)>0
+    assert f(final)<f(start)
+    assert np.isfinite(final).all()
