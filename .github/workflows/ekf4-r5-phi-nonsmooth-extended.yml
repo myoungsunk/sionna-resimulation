@@ -1,0 +1,100 @@
+name: EKF4 R5 audited R2 phi sensitivity and full P4 nonsmooth validation expansion
+on:
+  push:
+    branches: ['research/ekf4-r5-phi-and-nonsmooth-expanded-20261015']
+    paths:
+      - '.github/workflows/ekf4-r5-phi-nonsmooth-extended.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_extended_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ekf4-r5-extended-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-and-execute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+      MPLBACKEND: Agg
+    steps:
+      - name: Sparse checkout original frozen R5 and P3 LUT at exact source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r5-phi-nonsmooth-extended.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory code, P0, LUT and frozen evidence audit BEFORE any numerics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_extended_audit.py --out "$RUNNER_TEMP/r5_ext_audit" | tee "$RUNNER_TEMP/r5_ext_audit.log"
+          echo "R5_EXT_AUDIT=$RUNNER_TEMP/r5_ext_audit/PRE_AUDIT.json" >> "$GITHUB_ENV"
+      - name: Fetch original P4 failed update data and original R2 LoS/Full observer archive by pinned SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11937707221/zip > "$RUNNER_TEMP/r5_original_p4_failures.zip"
+          echo 'db1bda22f9fdbb56ba95817ea4c02016bba294c35a4c126daca448284a285ec4  '"$RUNNER_TEMP/r5_original_p4_failures.zip" | sha256sum -c
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/r5_original_R2.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/r5_original_R2.zip" | sha256sum -c
+      - name: Install pinned numerical packages only after source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 matplotlib==3.9.4 pytest==8.3.5
+      - name: Verify existing R5 boundary geometry and negative controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pytest --noconftest -q -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py | tee "$RUNNER_TEMP/r5_extended_tests.log"
+      - name: Compute frozen R2 0 and 45 mount theta / phi_tx / phi_rx and theoretical 10/45 degree yaw sweep information
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_extended_phi.py --archive "$RUNNER_TEMP/r5_original_R2.zip" --audit "$R5_EXT_AUDIT" --out "$RUNNER_TEMP/r5_phi" | tee "$RUNNER_TEMP/r5_phi.log"
+      - name: Independently replay ALL 4124 original failed P4 MAP updates and calculate LUT boundary geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_extended_validation.py --phase full-geometry --artifact "$RUNNER_TEMP/r5_original_p4_failures.zip" --audit "$R5_EXT_AUDIT" --out "$RUNNER_TEMP/r5_full_geometry" | tee "$RUNNER_TEMP/r5_full_geometry.log"
+      - name: Deterministic expanded stratified original-LUT nonsmooth optimization (28 groups, 6 each plus 20 historical controls)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_extended_validation.py --phase stratified-solver --artifact "$RUNNER_TEMP/r5_original_p4_failures.zip" --audit "$R5_EXT_AUDIT" --full-geometry-dir "$RUNNER_TEMP/r5_full_geometry" --out "$RUNNER_TEMP/r5_stratified" | tee "$RUNNER_TEMP/r5_stratified.log"
+      - name: Preserve source, audit, failed snapshots, reports and plots regardless of model verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r5-expanded-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r5_ext_audit/**
+            ${{ runner.temp }}/r5_phi/**
+            ${{ runner.temp }}/r5_full_geometry/**
+            ${{ runner.temp }}/r5_stratified/**
+            ${{ runner.temp }}/r5_ext_audit.log
+            ${{ runner.temp }}/r5_phi.log
+            ${{ runner.temp }}/r5_full_geometry.log
+            ${{ runner.temp }}/r5_stratified.log
+            ${{ runner.temp }}/r5_extended_tests.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_extended_*.py
+            .github/workflows/ekf4-r5-phi-nonsmooth-extended.yml
+          if-no-files-found: warn
+          retention-days: 30
