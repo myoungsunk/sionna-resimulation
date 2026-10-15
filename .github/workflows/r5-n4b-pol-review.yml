@@ -1,0 +1,61 @@
+name: N4B-POL-V1 independent mount and heading residual audit
+on:
+  push:
+    branches: ['research/r5-n4b-polar-geometry-20261015']
+    paths:
+      - '.github/workflows/r5-n4b-pol-review.yml'
+      - 'research/R5_N4B_POL_V1_20261015/n4b_pol_review.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  polar_mount_strata_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact source audit checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py\n/research/R5_N4B_POL_V1_20261015/n4b_pol_review.py\n/.github/workflows/r5-n4b-pol-review.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory exact source and original artifact audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_POL_V1_20261015/n4b_pol_review.py --phase pre --out "$RUNNER_TEMP/review_pre" | tee "$RUNNER_TEMP/review_pre.log"
+      - name: Retrieve and hash verify actual N4B-POL original experiment
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11963440700/zip > "$RUNNER_TEMP/POL_ORIGINAL.zip"
+          echo '348c0761e7c6ec06057a5e80b799739e302ba869c9e6d368bce10628a8ba7bae  '"$RUNNER_TEMP/POL_ORIGINAL.zip" | sha256sum -c
+      - name: Independent per-mount conditional Range-s and prior-transfer evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_POL_V1_20261015/n4b_pol_review.py --phase run --out "$RUNNER_TEMP/review_results" --audit "$RUNNER_TEMP/review_pre/PRE_AUDIT.json" --input "$RUNNER_TEMP/POL_ORIGINAL.zip" | tee "$RUNNER_TEMP/review_run.log"
+      - name: Preserve full audit and numeric checks
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4b-polar-independent-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/review_pre/**
+            ${{ runner.temp }}/review_results/**
+            ${{ runner.temp }}/review_pre.log
+            ${{ runner.temp }}/review_run.log
+          if-no-files-found: warn
+          retention-days: 30
