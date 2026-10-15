@@ -164,7 +164,11 @@ def run(artifact,audit,out):
         "status":"DIAGNOSTIC_COMPLETED","scientific_PASS":False,
         "observations_are_same_frozen_R0":True,"model_changed":False,
         "time_utc":datetime.now(timezone.utc).isoformat()}
-    (out/"P4_D4_FINAL.json").write_text(json.dumps(summary,indent=2)+"\n")
+    def numpy_safe(v):
+        if isinstance(v,np.generic):return v.item()
+        if isinstance(v,np.ndarray):return v.tolist()
+        raise TypeError(type(v).__name__)
+    (out/"P4_D4_FINAL.json").write_text(json.dumps(summary,indent=2,default=numpy_safe)+"\\n")
     print("P4_D4_FINAL "+json.dumps({k:summary[k] for k in
        ("status","original_failures","original_failure_types","sample_cases_tested",
         "all_sample_statuses_reproduced","near_grid_knot_under_0p001deg",
