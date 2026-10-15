@@ -13,6 +13,7 @@ import numpy as np
 from scipy.optimize import minimize
 from core import map_update
 from p3_rf_adapter4 import R0
+from p4_lut_boundary import boundary_report, segment_crossings
 
 def fixed_objective(mu,P,z,model):
     mu=np.asarray(mu,float);P=np.asarray(P,float);z=np.asarray(z,float)
@@ -90,7 +91,7 @@ def frozen_lut_angles(x,case):
         -case["mount_deg"]+180.)%360.-180.
     return np.array([theta,tx,rx])
 
-def directional_descent_polish(cost,y,lower,upper,max_rounds=32):
+def directional_descent_polish(cost,y,lower,upper,max_rounds=32,*,context=None):
     """Do not stop at coordinate-wise Powell stagnation on tilted LUT facets.
 
     Probe the *actual objective* along deterministic off-axis directions
@@ -111,7 +112,19 @@ def directional_descent_polish(cost,y,lower,upper,max_rounds=32):
         best_cost=c0
         for idx in ranked:
             d=directions[idx]
-            for alpha in (h,4*h,20*h,100*h,1000*h):
+            alphas=[h,4*h,20*h,100*h,1000*h]
+            if context is not None:
+                mu,Lp,case=context
+                reach=1000*h
+                segment=segment_crossings(mu+Lp@y,mu+Lp@(y+reach*d),
+                                          case,samples=33)
+                if segment["status"]=="CROSSING":
+                    for crossing in segment["events"][:6]:
+                        alpha=reach*crossing["cross_fraction"]
+                        alphas.extend([max(0.,alpha-1e-7),alpha,
+                                       min(reach,alpha+1e-7)])
+            for alpha in sorted(set(alphas)):
+                if alpha<=0:continue
                 candidate=y+alpha*d
                 if not(np.all(candidate>=lower) and np.all(candidate<=upper)):
                     continue
@@ -139,6 +152,33 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
         options={"maxiter":650,"maxfev":maxfev,"xtol":2e-10,"ftol":1e-12})
     candidates=[{"x":np.asarray(pw.x,float),"method":"POWELL",
                  "optimizer_success":bool(pw.success)}]
+    crossing_details=[]
+    boundary_candidates=[]
+    if kink_case is not None:
+        for base in (start,np.asarray(pw.x,float)):
+            g=np.asarray(grad(base),float)
+            if np.isfinite(g).all() and np.linalg.norm(g)>0:
+                direction=-.05*g/np.linalg.norm(g)
+                tmax=1.
+                for i,di in enumerate(direction):
+                    if di>0:tmax=min(tmax,max(0.,(upper[i]-base[i])/di))
+                    elif di<0:tmax=min(tmax,max(0.,(lower[i]-base[i])/di))
+                direction*=tmax
+                scan=segment_crossings(mu+Lp@base,mu+Lp@(base+direction),
+                                       kink_case,samples=129)
+                crossing_details.append({
+                    "status":scan["status"],
+                    "events":scan.get("events",[])[:12]})
+                if scan["status"]=="CROSSING":
+                    for event in scan["events"][:12]:
+                        yy=base+event["cross_fraction"]*direction
+                        if np.all(yy>=lower) and np.all(yy<=upper) and np.isfinite(cost(yy)):
+                            boundary_candidates.append({
+                                "x":yy,"method":"LUT_BOUNDARY_INTERSECTION",
+                                "optimizer_success":False,
+                                "boundary":event["dimension"],
+                                "fraction":event["cross_fraction"]})
+    candidates.extend(boundary_candidates)
     # Active-grid facet constrained optimization: at a kink, tangent descent
     # can exist even when axis-parallel Powell appears stationary. The equality
     # only defines SEARCH SUBSPACE; final J is always ORIGINAL unsmoothed J.
@@ -182,7 +222,8 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
     polished=[]
     for initial in sorted(candidates,key=lambda c:cost(c["x"]))[:3]:
         yy,improvements=directional_descent_polish(
-            cost,initial["x"],lower,upper)
+            cost,initial["x"],lower,upper,
+            context=(mu,Lp,kink_case) if kink_case is not None else None)
         if improvements:
             polished.append({"x":yy,"method":"DIRECTIONAL_BUNDLE_POLISH",
                 "optimizer_success":True,"descent_rounds":len(improvements),
@@ -210,7 +251,12 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
     passed,c1,selected,probe,hull,smooth_g=best
     y=selected["x"]
     delta=Lp@y
-    return {"terminal_status":("NONSMMOOTH_LOCAL_CANDIDATE_VERIFIED"
+    geometry_at_selected=(boundary_report(mu+Lp@y,kink_case)
+                          if kink_case is not None else None)
+    return {"boundary_detector":geometry_at_selected,
+            "crossing_scans":crossing_details,
+            "explicit_boundary_candidates":len(boundary_candidates),
+            "terminal_status":("NONSMMOOTH_LOCAL_CANDIDATE_VERIFIED"
                 if passed else "NONSMMOOTH_LOCAL_UNVERIFIED"),
             "candidate_strategy":selected["method"],
             "active_set_tried":tried,

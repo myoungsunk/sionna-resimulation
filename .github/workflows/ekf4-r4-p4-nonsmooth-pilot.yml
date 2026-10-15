@@ -1,11 +1,13 @@
 name: EKF4 R4 P4 audit-first nonsmooth unchanged posterior pilot
 on:
   push:
-    branches: ['research/ekf4-r4-nonsmooth-lut-bundle-20261015']
+    branches: ['research/ekf4-r5-lut-boundary-solver-20261015']
     paths:
       - '.github/workflows/ekf4-r4-p4-nonsmooth-pilot.yml'
       - 'research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_*.py'
       - 'research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_lut_boundary.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -58,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir "$RUNNER_TEMP/p4_ns_tests"
-          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py --junitxml="$RUNNER_TEMP/p4_ns_tests/TESTS.xml" | tee "$RUNNER_TEMP/p4_ns_tests.log"
+          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py --junitxml="$RUNNER_TEMP/p4_ns_tests/TESTS.xml" | tee "$RUNNER_TEMP/p4_ns_tests.log"
       - name: Reproduce 20 exact original MAP failures and test objective-preserving nonsmooth method
         shell: bash
         run: |
@@ -78,6 +80,8 @@ jobs:
             ${{ runner.temp }}/p4_ns_pilot.log
             research/EKF4_RANGE_S_STAGED_20261014/p4_nonsmooth_*.py
             research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py
+            research/EKF4_RANGE_S_STAGED_20261014/p4_lut_boundary.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py
             .github/workflows/ekf4-r4-p4-nonsmooth-pilot.yml
           if-no-files-found: warn
           retention-days: 30

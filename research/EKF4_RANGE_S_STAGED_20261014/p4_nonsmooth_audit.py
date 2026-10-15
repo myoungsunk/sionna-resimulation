@@ -42,6 +42,7 @@ def audit(out):
    if git!=blob:errors.append("FROZEN_SOURCE_CHANGED:"+rel)
    hashes[rel]=sha
   for name in ("p4_nonsmooth_audit.py","p4_nonsmooth_local.py",
+               "p4_lut_boundary.py","test_p4_lut_boundary.py",
                "test_p4_nonsmooth.py","p4_nonsmooth_pilot.py"):
    rel="research/EKF4_RANGE_S_STAGED_20261014/"+name
    p=ROOT/rel
@@ -56,6 +57,8 @@ def audit(out):
    test=wf.find("python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py")
    positions=[wf.find(commands[0]),test,wf.find(commands[2])]
    if -1 in positions or positions!=sorted(positions):errors.append("AUDIT_NOT_FIRST")
+   if "test_p4_lut_boundary.py" not in wf or "p4_lut_boundary.py" not in wf:
+    errors.append("LUT_BOUNDARY_DETECTOR_TEST_NOT_IN_WORKFLOW")
    if not("actions: read" in wf and ZIP_SHA in wf and "if: always()" in wf and "set -euo pipefail" in wf):
     errors.append("WORKFLOW_PROVENANCE_MISSING")
    hashes[".github/workflows/ekf4-r4-p4-nonsmooth-pilot.yml"]=getsha(WORKFLOW)[1]
