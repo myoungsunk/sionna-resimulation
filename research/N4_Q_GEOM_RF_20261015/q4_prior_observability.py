@@ -249,7 +249,7 @@ def execute(out,pre,q0,r2path,rfpath):
      "Cubature comparison is a calibration negative control, not proof of online model improvement",
      "Original RF is one corridor, one multipath realization, one seed; no independent scenes"
    ]}
- write(out/"Q4_FINAL.json",output)
+ save(out/"Q4_FINAL.json",output)
  print("Q4_FINAL "+json.dumps({"status":output["status"],
    "n":len(df),"full_J4_focus":focus}),flush=True)
  return 0
