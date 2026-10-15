@@ -28,6 +28,7 @@ REF_BIAS_LEVELS=("B0","L2")
 R2_CASES=("R2_aA_m0","R2_aA_m45")
 ANCHOR_Q1_CASES=("R2_aA_m0","R2_aA_m45","R2_aB_m0")
 THRESH_MP_S=.1
+CASES=7
 
 def sha256(path):
  h=hashlib.sha256()
