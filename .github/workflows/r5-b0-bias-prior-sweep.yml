@@ -1,0 +1,70 @@
+name: R5 B0 Gyro Bias prior and fixed-gate RF mechanism experiment
+on:
+  push:
+    branches: ['research/r5-b0-hard-soft-physics-20261015']
+    paths:
+      - '.github/workflows/r5-b0-bias-prior-sweep.yml'
+      - 'research/R5_B0_BIAS_PRIOR_SWEEP_20261015/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  b0_bias_prior:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - name: Sparse frozen source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_B0_BIAS_PRIOR_SWEEP_20261015/**\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/r5-b0-bias-prior-sweep.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Verify original source hashes and pipeline contract before numeric work
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_B0_BIAS_PRIOR_SWEEP_20261015/b0_prior_sweep.py --phase pre --out "$RUNNER_TEMP/b0_prior_pre" | tee "$RUNNER_TEMP/b0_prior_pre.log"
+      - name: Download frozen R2 RF and recursive results with exact checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_RF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_RF.zip" | sha256sum -c
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/original_R2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/original_R2.zip" | sha256sum -c
+      - name: Pinned runtime numeric libraries after audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: B0 prior-size grid with S-only Range-only Joint and common fixed gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_B0_BIAS_PRIOR_SWEEP_20261015/b0_prior_sweep.py --phase run --out "$RUNNER_TEMP/b0_prior_out" --raw "$RUNNER_TEMP/original_RF.zip" --r2 "$RUNNER_TEMP/original_R2.zip" --audit "$RUNNER_TEMP/b0_prior_pre/PRE_AUDIT.json" | tee "$RUNNER_TEMP/b0_prior_out.log"
+      - name: Preserve all positive and failed evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r5-b0-prior-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/b0_prior_pre/**
+            ${{ runner.temp }}/b0_prior_out/**
+            ${{ runner.temp }}/b0_prior_pre.log
+            ${{ runner.temp }}/b0_prior_out.log
+          if-no-files-found: warn
+          retention-days: 30
