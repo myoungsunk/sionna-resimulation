@@ -59,6 +59,12 @@ def check(out):
                 "positive_bias", 'condition="all"', 'slip_mode="off"',
                 "run_filters"):
    if token not in s:errors.append("MISSING_PAIRED_SENSITIVITY_CONTRACT:"+token)
+  # Strict method dispatch is source-critical: the initial audited run
+  # incorrectly sent SR3/SR4 to s-only via startswith("S").
+  if ('if alg in ("S3","S4"):' not in s or
+      'if alg.startswith("S"):' in s or
+      'if not alg.startswith("SR"):' not in s):
+   errors.append("SR_RELINEARIZED_BRANCH_DISPATCH_NOT_VERIFIED")
   # The estimator function must accept already-generated inputs, not truth.
   tree=ast.parse(s)
   fun=next((node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name=="run_filters"),None)
