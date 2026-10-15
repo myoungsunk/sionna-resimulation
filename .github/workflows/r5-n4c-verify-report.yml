@@ -1,0 +1,61 @@
+name: N4-C independent output audit Power Joint, Fixed Gate and LoS
+on:
+  push:
+    branches: ['research/r5-n4c-joint-sr-recursive-20261015']
+    paths:
+      - '.github/workflows/r5-n4c-verify-report.yml'
+      - 'research/R5_N4C_REVIEW_20261015/n4c_review.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  n4c_postrun_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact frozen original N4-C and independent verifier checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N4C_20261015/n4c_joint_sr4.py\n/research/R5_N4C_REVIEW_20261015/n4c_review.py\n/.github/workflows/r5-n4c-verify-report.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory original N4-C source audit before reading results
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4C_REVIEW_20261015/n4c_review.py --phase pre --out "$RUNNER_TEMP/n4c_verify_pre" | tee "$RUNNER_TEMP/n4c_verify_pre.log"
+      - name: Fetch original completed 304-arm N4-C artifact SHA validated
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11962810669/zip > "$RUNNER_TEMP/n4c.zip"
+          echo 'f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9  '"$RUNNER_TEMP/n4c.zip" | sha256sum -c
+      - name: Independently compare POWER to R0 and common gate policies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4C_REVIEW_20261015/n4c_review.py --phase run --out "$RUNNER_TEMP/n4c_verify_out" --audit "$RUNNER_TEMP/n4c_verify_pre/PRE_AUDIT.json" --input "$RUNNER_TEMP/n4c.zip" | tee "$RUNNER_TEMP/n4c_verify_run.log"
+      - name: Preserve audit metadata and raw comparison
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4c-independent-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/n4c_verify_pre/**
+            ${{ runner.temp }}/n4c_verify_out/**
+            ${{ runner.temp }}/n4c_verify_pre.log
+            ${{ runner.temp }}/n4c_verify_run.log
+          if-no-files-found: warn
+          retention-days: 30
