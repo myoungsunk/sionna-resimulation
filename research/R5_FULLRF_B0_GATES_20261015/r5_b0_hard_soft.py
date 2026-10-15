@@ -382,7 +382,7 @@ def run(raw,r2zip,auditfile,out):
  manifest=json.loads(MANIFEST.read_text())
  data,lut=prepare_features(np,pd,manifest)
  preds,offline_oracle,classification_meta,split=fit_models(np,pd,data)
- pd.DataFrame(split,index=[0]).to_json(out/"R5_B0_DATA_SPLIT.json",orient="records",indent=2)
+ dump(out/"R5_B0_DATA_SPLIT.json",split)
  bypred=preds.set_index(["case","channel","pose_id"])
  case_meta={c["id"]:c for c in manifest["cases"]}
  all_scores=[];checks=[];per_route_class=[]
