@@ -1,0 +1,73 @@
+name: R5 R2 frozen LoS fast11 wide19 yaw template and self-match shape factor
+on:
+  push:
+    branches: ['research/ekf4-r5-yaw-sweep-los-templates-20261015']
+    paths:
+      - '.github/workflows/ekf4-r5-yaw-sweep-los-template.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_sweep_los_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-then-LOS-model-templates:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+      MPLBACKEND: Agg
+    steps:
+      - name: Fetch frozen source and exact P3 LoS LUT, without new Full H generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r5-yaw-sweep-los-template.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory static code and frozen model audit FIRST
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_sweep_los_pre_audit.py --out "$RUNNER_TEMP/s0_audit" | tee "$RUNNER_TEMP/s0_audit.log"
+      - name: Retrieve original frozen R2 DR priors and observer archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_R2.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_R2.zip" | sha256sum -c
+      - name: Install pinned numerical dependencies after source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 matplotlib==3.9.4
+      - name: Produce 11 and 19 actual frozen LoS-LUT predicted angular response lines
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_sweep_los_templates.py --archive "$RUNNER_TEMP/original_R2.zip" --audit "$RUNNER_TEMP/s0_audit/PRE_AUDIT.json" --out "$RUNNER_TEMP/s0_lines" | tee "$RUNNER_TEMP/s0_lines.log"
+      - name: Preserve all evidence including failure and non-scan limitations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r5-r2-los-fast11-wide19-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/s0_audit/**
+            ${{ runner.temp }}/s0_lines/**
+            ${{ runner.temp }}/s0_audit.log
+            ${{ runner.temp }}/s0_lines.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_sweep_los_*.py
+            .github/workflows/ekf4-r5-yaw-sweep-los-template.yml
+          if-no-files-found: warn
+          retention-days: 30
