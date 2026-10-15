@@ -435,7 +435,10 @@ def run(out,receipt,rfpath,r2path):
      hprior=lut.model(xpred,desc)[0]
      p=source.loc[int(pid[k])]
      emp=np.array([p.e_mp_r,p.e_mp_s])
-     elut=np.array([p.e_lut_r,p.e_lut_s])
+     # R2 archived motion GT differs from the separate sweep SAMPLES pose
+     # by sub-micrometric precision. Re-evaluate Native LoS residual using
+     # EXACT archived motion truth, not the sweep-sample LUT GT.
+     elut=np.array([p.range_m_los,p.s_fp_los])-hgt
      epose=hgt-hprior
      if np.max(abs(z[k]-hprior-emp-elut-epose))>1e-9:
       raise RuntimeError("Q2_THREE_TERM_INNOVATION_IDENTITY_FAIL")
