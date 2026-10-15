@@ -8,7 +8,7 @@ import pytest
 from p4_extended_validation import classify_export_objective
 
 @pytest.mark.parametrize("c0,d_internal,c_export,expected", [
-    (1.0,-1e-3,0.998,"ELIGIBLE_NONINCREASING"),
+    (1.0,-1e-3,0.999,"ELIGIBLE_NONINCREASING"),
     (1.0,0.0,1.0,"ELIGIBLE_NONINCREASING"),
     (1.0,-1e-14,1.0+1e-14,"EXPORT_OBJECTIVE_INCREASE_BLOCKED"),
     (1.0,1e-15,1.0,"INTERNAL_OBJECTIVE_INCREASE_BLOCKED"),
