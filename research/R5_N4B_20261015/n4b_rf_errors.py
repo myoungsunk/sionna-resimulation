@@ -221,6 +221,7 @@ def fit_model(np,train,test,w,name,feature_groups):
 
 def independent_n4b_test():
  np,pd=setup()
+ from features import GROUPS
  rng=np.random.default_rng(24)
  A=rng.normal(size=(128,2))
  train=pd.DataFrame({"e_r":.45+A[:,0]*.14,
@@ -228,7 +229,6 @@ def independent_n4b_test():
  for col in set(SIMPLE+G4+NQ+tuple(GROUPS["G5"])):
   if col not in train:train[col]=rng.normal(size=len(train))
  test=train.iloc[:12].copy()
- from features import GROUPS
  for model in MODELS:
   mu,cov,info=fit_model(np,train,test,np.ones(len(train)),model,GROUPS)
   nll,d2=add_nll(np,test[["e_r","e_s"]].to_numpy(float),mu,cov)
