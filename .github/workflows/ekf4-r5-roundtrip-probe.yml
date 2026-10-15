@@ -1,0 +1,71 @@
+name: EKF4 R5 audited three objective roundtrip cases
+on:
+  push:
+    branches: ['research/ekf4-r5-roundtrip-candidate-diagnostic-20261015']
+    paths:
+      - '.github/workflows/ekf4-r5-roundtrip-probe.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_roundtrip_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audited-three-case:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout original 2-degree LUT and R5 code at exact SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r5-roundtrip-probe.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory static numerical source audit BEFORE diagnosis
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_roundtrip_preaudit.py --out "$RUNNER_TEMP/r5_three_audit" | tee "$RUNNER_TEMP/r5_three_audit.log"
+      - name: Download exact P4 failed source ZIP SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11937707221/zip > "$RUNNER_TEMP/r5_three_source.zip"
+          echo 'db1bda22f9fdbb56ba95817ea4c02016bba294c35a4c126daca448284a285ec4  '"$RUNNER_TEMP/r5_three_source.zip" | sha256sum -c
+      - name: Install pinned numeric libraries AFTER audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1
+      - name: Independently recreate three strict monotonicity violations and quantify coordinate round-trip
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_roundtrip_probe.py --artifact "$RUNNER_TEMP/r5_three_source.zip" --audit "$RUNNER_TEMP/r5_three_audit/PRE_AUDIT.json" --out "$RUNNER_TEMP/r5_three_result" | tee "$RUNNER_TEMP/r5_three_result.log"
+      - name: Preserve artifacts even on diagnostic failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r5-roundtrip-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/r5_three_audit/**
+            ${{ runner.temp }}/r5_three_result/**
+            ${{ runner.temp }}/r5_three_audit.log
+            ${{ runner.temp }}/r5_three_result.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_roundtrip_*.py
+            .github/workflows/ekf4-r5-roundtrip-probe.yml
+          if-no-files-found: warn
