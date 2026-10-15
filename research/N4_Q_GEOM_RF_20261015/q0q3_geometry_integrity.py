@@ -402,7 +402,7 @@ def run(out,receipt,rfpath,r2path):
     "is_mp_s_high","p_RF_ONLY"]],
     on=["case","pose_id"],validate="many_to_one")
   harm_summary=[]
-  for keys,g in harm[harm.eval].groupby(
+  for keys,g in harm[harm["eval"]].groupby(
     ["case","bias_level","I_geom_high_trainMedian","is_mp_s_high"],dropna=False):
    selected=g[g.accepted]
    harm_summary.append({"case":keys[0],"bias":keys[1],
