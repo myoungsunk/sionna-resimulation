@@ -90,6 +90,8 @@ def main(artifact,audit,out):
    newdelta=solved.pop("posterior_delta")
    if len(newx)!=4 or not np.isfinite(newx).all():
     raise RuntimeError("NEW_SOLVER_NONFINITE")
+   if solved["J_delta"]>0.:
+    raise RuntimeError("NONSMMOOTH_OBJECTIVE_ROSE_IN_PILOT:"+name)
    detail={"case":e["case"],"channel":e["channel"],"k":e["k"],
        "t_s":e["t_s"],"method":e["method"],
        "original_status":old.status,
@@ -113,7 +115,7 @@ def main(artifact,audit,out):
    "original_invalid_population":len(entries),
    "sample_count":len(cases),
    "statuses":status_counts,
-   "cost_nonincreasing":sum(d["J_delta"]<=1e-11 for d in cases),
+   "cost_nonincreasing":sum(d["J_delta"]<=0. for d in cases),
    "probe_nonnegative_cases":sum(d["probe"]["negative_beyond_1e_minus_5"]==0 for d in cases),
    "clarke_hull_small_cases":sum(d["clarke_hull_proxy"].get("norm") is not None
        and d["clarke_hull_proxy"]["norm"]<=1e-3 for d in cases),
