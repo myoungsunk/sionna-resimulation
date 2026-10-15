@@ -150,7 +150,11 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
     bounds=list(zip(lower,upper))
     pw=minimize(cost,start,method="Powell",bounds=bounds,
         options={"maxiter":650,"maxfev":maxfev,"xtol":2e-10,"ftol":1e-12})
-    candidates=[{"x":np.asarray(pw.x,float),"method":"POWELL",
+    # Always retain the original starting state as a safe candidate.
+    # A failed local search must not force an objective increase.
+    candidates=[{"x":start.copy(),"method":"ORIGINAL_START",
+                 "optimizer_success":False},
+                {"x":np.asarray(pw.x,float),"method":"POWELL",
                  "optimizer_success":bool(pw.success)}]
     crossing_details=[]
     boundary_candidates=[]
