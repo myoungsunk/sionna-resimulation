@@ -10,12 +10,12 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 HERE=Path(__file__).resolve().parent
 ART={
- "r2_recursive":"__R2_ARCHIVE_SHA__",
+ "r2_recursive":"4f979b13f32c0a269d10dd0d7d1dc39d6f8b82dca425fb2e9aacf3cfda22e510",
  "RF":"88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
  "Q4":"599267063f87546ca76cf6f7c755977c74c8b298c18fbb89e73066dd34be3164",
 }
 BLOBS={
- "research/N4_Q4R_20261015/q4r_recursive.py":"__R2_SOURCE_BLOB__",
+ "research/N4_Q4R_20261015/q4r_recursive.py":"387ec31cdf7a3081b8986945f11439b952114704",
  "research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py":"28ec3676bbe5f1cca27ca67d6564a221635f1da4",
  "research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py":"565d6f2704f40f770da5f70a40314141a3d621a1",
  "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py":"cb676aea8e6710ff2c0e175e1e422271b696cebe",
