@@ -1,0 +1,70 @@
+name: R5 B0 three versus four state RF multipath mechanism ablation
+on:
+  push:
+    branches: ['research/r5-b0-hard-soft-physics-20261015']
+    paths:
+      - '.github/workflows/r5-b0-bias-state-ablation.yml'
+      - 'research/R5_B0_STATE_ABLATION_20261015/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  b0_state_ablation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - name: Exact sparse checkout of frozen B0 result source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_B0_STATE_ABLATION_20261015/**\n/research/EKF4_RANGE_S_STAGED_20261014/core.py\n/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py\n/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_score.py\n/.github/workflows/r5-b0-bias-state-ablation.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Audit source revisions and argument contracts before any numeric work
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_B0_STATE_ABLATION_20261015/b0_state_ablation.py --phase pre --out "$RUNNER_TEMP/b0_state_pre" | tee "$RUNNER_TEMP/b0_state_pre.log"
+      - name: Fetch original R2 RF and audited R2 output with hash checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_RF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_RF.zip" | sha256sum -c
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/original_R2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/original_R2.zip" | sha256sum -c
+      - name: Install pinned NumPy after original source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Evaluate frozen B0 3-state versus 4-state methods and posterior covariance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_B0_STATE_ABLATION_20261015/b0_state_ablation.py --phase run --out "$RUNNER_TEMP/b0_state_results" --raw "$RUNNER_TEMP/original_RF.zip" --r2 "$RUNNER_TEMP/original_R2.zip" --audit "$RUNNER_TEMP/b0_state_pre/PRE_AUDIT.json" | tee "$RUNNER_TEMP/b0_state_results.log"
+      - name: Always export failure traces and complete results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r5-b0-state-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/b0_state_pre/**
+            ${{ runner.temp }}/b0_state_results/**
+            ${{ runner.temp }}/b0_state_pre.log
+            ${{ runner.temp }}/b0_state_results.log
+          if-no-files-found: warn
+          retention-days: 30
