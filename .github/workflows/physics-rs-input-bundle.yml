@@ -1,0 +1,78 @@
+name: Physics Rs immutable audited input bundle
+on:
+  push:
+    branches: ['research/physics-rs-staged-audit-20261015']
+    paths: ['.github/workflows/physics-rs-input-bundle.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verified-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Sparse checkout pinned source and raw RF
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/**\n/research/PHYSICS_RS_STAGED_20261015/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**\n/results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/**\n/.github/workflows/physics-rs-input-bundle.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Audit original manifest bytes before any scientific calculation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,hashlib,pathlib,shutil,os
+          root=pathlib.Path('.')
+          manifest=root/'research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json'
+          data=json.loads(manifest.read_text())
+          records=[]
+          def walk(v):
+            if isinstance(v,dict):
+              if 'path' in v and 'sha256' in v: records.append(v)
+              for a in v.values(): walk(a)
+            elif isinstance(v,list):
+              for a in v: walk(a)
+          walk(data)
+          dest=pathlib.Path(os.environ['RUNNER_TEMP'])/'physics_rs_input'
+          dest.mkdir()
+          want={manifest}
+          for c in data['cases']:
+            for key in ['full_path','los_path','samples_path']: want.add(pathlib.Path(c[key]))
+          for rec in records:
+            p=pathlib.Path(rec['path'])
+            if p.exists() and (p in want or 'freq' in p.name or 'LUT/' in str(p) or p.suffix=='.py'):
+              b=p.read_bytes()
+              assert hashlib.sha256(b).hexdigest()==rec['sha256'],('SHA256',str(p))
+              if rec.get('git_blob_sha1'):
+                assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==rec['git_blob_sha1'],('GIT_SHA',str(p))
+              want.add(p)
+          verified={r['path'] for r in records if pathlib.Path(r['path']) in want}
+          for c in data['cases']:
+            for key in ['full_path','los_path','samples_path']:
+              assert c[key] in verified,('MISSING_MANIFEST_RECORD',c[key])
+          prefixes=['research/EKF4_RANGE_S_STAGED_20261014','research/EKF3_INDEPENDENT_20261013','research/PHYSICS_RS_STAGED_20261015','results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src','results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT']
+          for s in prefixes:
+            for p in pathlib.Path(s).rglob('*'):
+              if p.is_file(): want.add(p)
+          for p in pathlib.Path('results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449').rglob('*freq*.npy'): want.add(p)
+          receipts=[]
+          for p in sorted(want):
+            b=p.read_bytes();q=dest/p;q.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,q)
+            receipts.append({'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest(),'original_manifest_verified':str(p) in verified})
+          (dest/'BUNDLE_AUDIT.json').write_text(json.dumps({'status':'GO_INPUT_BYTES_ONLY','git_sha':os.environ['GITHUB_SHA'],'original_verified_paths':len(verified),'files':receipts,'scientific_calculation':False},indent=2))
+          print('BUNDLE_AUDIT_GO',len(receipts),sum(x['bytes'] for x in receipts))
+          PY
+      - name: Preserve immutable input bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: physics-rs-input-${{ github.run_id }}
+          path: ${{ runner.temp }}/physics_rs_input/
+          compression-level: 1
+          retention-days: 30
