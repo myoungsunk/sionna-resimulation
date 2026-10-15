@@ -45,7 +45,7 @@ def check(out):
    ast.parse(p.read_text(encoding="utf-8"),filename=name)
    checks["research/EKF4_RANGE_S_STAGED_20261014/"+name]=hashb(p)[1]
   wf=WF.read_text()
-  commands=["r2_bias_audit.py --out","python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_r2_bias.py","r2_bias_replay.py --archive","r2_bias_score.py --root"]
+  commands=["r2_bias_audit.py --out","python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_r2_bias.py","r2_bias_replay.py --archive","r2_bias_score.py --archive"]
   positions=[wf.index(x) for x in commands]
   if positions!=sorted(positions):errors.append("BAD_STAGE_ORDER")
   if not ("actions: read" in wf and ARCHIVE in wf and "if: always()" in wf and "set -euo pipefail" in wf):
