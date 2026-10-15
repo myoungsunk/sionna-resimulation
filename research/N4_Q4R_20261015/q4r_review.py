@@ -112,6 +112,7 @@ def execute(out,prepath,r1p,r2p,r3p,q4p):
           r["prior_correction"]):r for r in r3rows}
   original_geometry=[]
   for row in orig["full_J4_focus"]:
+   if row["bias"] not in ("B0","L2"):continue
    k=(row["case"],"full",row["bias"],"J4","BASE_R0","RAW")
    got=q3idx.get(k)
    if got is None:raise RuntimeError("MISSING_ORIGINAL_Q4_CONTROL:"+str(k))
