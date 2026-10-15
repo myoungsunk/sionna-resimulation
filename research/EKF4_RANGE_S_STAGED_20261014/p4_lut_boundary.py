@@ -116,8 +116,8 @@ def segment_crossings(x0,x1,case,*,samples=129,root_tol=1e-9):
              round(e["cross_fraction"],9))
         unique[key]=e
     events=sorted(unique.values(),key=lambda v:(v["cross_fraction"],v["dimension"]))
-    nearest_start=boundary_report(p)
-    nearest_end=boundary_report(q)
+    nearest_start=boundary_report(p,case)
+    nearest_end=boundary_report(q,case)
     return {"status":"CROSSING" if events else
                ("KNOT_NEARBY" if nearest_start["on_or_near_knot"] or
                 nearest_end["on_or_near_knot"] else "WITHIN_CELLS"),
