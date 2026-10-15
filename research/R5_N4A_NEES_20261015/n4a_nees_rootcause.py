@@ -290,7 +290,6 @@ def run(out,pre,rawpath,n1path):
  import numpy as np
  sys.path[:0]=[str(R2CODE),str(PHYS),str(UWB)]
  from r2_bias_replay import build_positive_bias_controls,predict_one
- from stage_c import fast_predict
  from p3_rf_adapter4 import FrozenLut
  out=Path(out);out.mkdir(parents=True,exist_ok=False)
  receipt=json.loads(Path(pre).read_text())
@@ -379,10 +378,10 @@ def run(out,pre,rawpath,n1path):
       for k in range(len(t)):
        if k:
         ds,gyro,dt=(float(ctl[v][k]) for v in ("ds_odom","dtheta_gyro","dt_s"))
-        if method=="R0_J4":
-         xp,Pp=predict_one(X[k-1],P[k-1],ds,gyro,dt)
-        else:
-         xp,Pp=fast_predict(X[k-1],P[k-1],ds,gyro,dt)
+        # Same frozen physical/motion dynamics for all arms. The original
+        # fast_predict is algebraically equivalent but uses a different
+        # floating-point ordering; this is a diagnostic pre-update predictor.
+        xp,Pp=predict_one(X[k-1],P[k-1],ds,gyro,dt)
         prior=decompose(np,xp[None,:],Pp[None,:,:],truth[k:k+1])
         prior_n=float(prior["pose_nees"][0])
         prior_h=float(prior["heading_nees"][0])
