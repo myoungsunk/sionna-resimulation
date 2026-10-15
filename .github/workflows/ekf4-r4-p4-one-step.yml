@@ -1,0 +1,125 @@
+name: EKF4 R4 P4 audit-first frozen RF one-step full
+on:
+  push:
+    branches: ['research/ekf4-r4-p4-frozen-onestep-20261015']
+    paths:
+      - '.github/workflows/ekf4-r4-p4-one-step.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_*.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_p4_math.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ekf4-r4-p4-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-then-14case-one-step:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout exact SHA and frozen P3 source/LUT inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r4-p4-one-step.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory P4 code and source pre-run audit BEFORE numerical execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_pre_run_audit.py --out "$RUNNER_TEMP/p4_pre_run" | tee "$RUNNER_TEMP/p4_pre_audit.log"
+          echo "EKF4_P4_AUDIT_RECEIPT=$RUNNER_TEMP/p4_pre_run/P4_PRE_AUDIT.json" >> "$GITHUB_ENV"
+      - name: Download and independently verify immutable source RF and P3 archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/p4_original_rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/p4_original_rf.zip" | sha256sum -c
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11904127597/zip > "$RUNNER_TEMP/p4_original_p3.zip"
+          echo 'de40cbbef664b064b6c24ac679ffb7238738ceab36995ee4fa156bb99699428b  '"$RUNNER_TEMP/p4_original_p3.zip" | sha256sum -c
+      - name: Install pinned numerical libraries after mandatory static audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pytest==8.3.5
+      - name: Verify original 14502 source frames and P3 receipts before estimation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_frozen_cases.py --archive "$RUNNER_TEMP/p4_original_rf.zip" --p3-artifact "$RUNNER_TEMP/p4_original_p3.zip" --audit "$EKF4_P4_AUDIT_RECEIPT" --out "$RUNNER_TEMP/p4_inputs" | tee "$RUNNER_TEMP/p4_inputs.log"
+      - name: Independently test joint and both sequential mathematical contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/p4_tests"
+          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_math.py --junitxml="$RUNNER_TEMP/p4_tests/P4_TESTS.xml" | tee "$RUNNER_TEMP/p4_math_tests.log"
+      - name: P4 guarded canary with archived historical MAP times and mode checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_fixed_replay.py --phase canary --archive "$RUNNER_TEMP/p4_original_rf.zip" --audit "$EKF4_P4_AUDIT_RECEIPT" --input-index "$RUNNER_TEMP/p4_inputs/P4_INPUT_INDEX.json" --out "$RUNNER_TEMP/p4_canary" | tee "$RUNNER_TEMP/p4_canary.log"
+      - name: P4 full 14502-step joint and frozen sequential parity / relinearization
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_fixed_replay.py --phase fixed --archive "$RUNNER_TEMP/p4_original_rf.zip" --audit "$EKF4_P4_AUDIT_RECEIPT" --input-index "$RUNNER_TEMP/p4_inputs/P4_INPUT_INDEX.json" --out "$RUNNER_TEMP/p4_fixed" | tee "$RUNNER_TEMP/p4_fixed.log"
+      - name: P4 full gate-eligible range-first and prior-start MAP4 with invalid traces preserved
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_fixed_replay.py --phase map --archive "$RUNNER_TEMP/p4_original_rf.zip" --audit "$EKF4_P4_AUDIT_RECEIPT" --input-index "$RUNNER_TEMP/p4_inputs/P4_INPUT_INDEX.json" --out "$RUNNER_TEMP/p4_map" | tee "$RUNNER_TEMP/p4_map.log"
+      - name: Offline truth-only scoring strictly after all frozen model outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_offline_score.py --archive "$RUNNER_TEMP/p4_original_rf.zip" --fixed "$RUNNER_TEMP/p4_fixed" --map "$RUNNER_TEMP/p4_map" --audit "$EKF4_P4_AUDIT_RECEIPT" --out "$RUNNER_TEMP/p4_score" | tee "$RUNNER_TEMP/p4_score.log"
+      - name: Independent artifact and denominator audit with source-bound verdict
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_archive_audit.py --run-root "$RUNNER_TEMP" --preaudit "$EKF4_P4_AUDIT_RECEIPT" --index "$RUNNER_TEMP/p4_inputs/P4_INPUT_INDEX.json" --canary "$RUNNER_TEMP/p4_canary" --fixed "$RUNNER_TEMP/p4_fixed" --map "$RUNNER_TEMP/p4_map" --score "$RUNNER_TEMP/p4_score" --out "$RUNNER_TEMP/p4_final" | tee "$RUNNER_TEMP/p4_final.log"
+      - name: Preserve all audit and model evidence even after partial failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r4-p4-audited-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/p4_pre_run/**
+            ${{ runner.temp }}/p4_inputs/**
+            ${{ runner.temp }}/p4_tests/**
+            ${{ runner.temp }}/p4_canary/**
+            ${{ runner.temp }}/p4_fixed/**
+            ${{ runner.temp }}/p4_map/**
+            ${{ runner.temp }}/p4_score/**
+            ${{ runner.temp }}/p4_final/**
+            ${{ runner.temp }}/p4_pre_audit.log
+            ${{ runner.temp }}/p4_inputs.log
+            ${{ runner.temp }}/p4_math_tests.log
+            ${{ runner.temp }}/p4_canary.log
+            ${{ runner.temp }}/p4_fixed.log
+            ${{ runner.temp }}/p4_map.log
+            ${{ runner.temp }}/p4_score.log
+            ${{ runner.temp }}/p4_final.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_*.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_p4_math.py
+            research/EKF4_RANGE_S_STAGED_20261014/P4_R4_FROZEN_RF_ONE_STEP_IMPLEMENTATION_PLAN_20261015_KO.md
+            .github/workflows/ekf4-r4-p4-one-step.yml
+          if-no-files-found: warn
+          retention-days: 30
