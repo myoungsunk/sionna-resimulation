@@ -384,7 +384,7 @@ def bootstrap(np,pd,pred):
     "blocks":len(group),"independent_scene":False})
  return out
 
-def prior_stress(np,pd,old,groups,full,lut,mf,refzip):
+def prior_stress(np,pd,old,groups,full,lut,mf,refzip,rawzip):
  """For R2 only: train on R4/R5 oracle geometry; test on causal J4 pre-update pose/P."""
  from r2_bias_replay import predict_one,build_positive_bias_controls,METHODS,INITIAL_POSE_STD,BIAS_PRIOR_STD
  detail=[]
@@ -413,7 +413,9 @@ def prior_stress(np,pd,old,groups,full,lut,mf,refzip):
   mubin[b]=alpha*m+(1-alpha)*globmu
   Cbin[b]=old.fix_cov(np,alpha*C+(1-alpha)*globC,False)
  desc={c["id"]:c for c in mf["cases"]}
- with checked(refzip,R2_SHA) as z:
+ with checked(refzip,R2_SHA) as z,checked(rawzip,RF_SHA) as zraw:
+  source=json.loads(zraw.read("P2_OUT/P2_ONE_STEP_SUMMARY.json"))
+  source_map={(x["case"],x["channel"]):x for x in source["per_case"]}
   for level in ("B0","L2"):
    for case in ("R2_aA_m0","R2_aA_m45"):
     zname=f"{case}_full_{level}_seed0_recursive.npz"
@@ -425,7 +427,18 @@ def prior_stress(np,pd,old,groups,full,lut,mf,refzip):
     # for the 979 RF-update frames, not all 1303 yaw-sweep records.
     i=list(METHODS).index("J4")
     times=archive["t_s"];ids=archive["pose_id"].astype(int)
-    truth=src.loc[ids,["x_eval","y_eval","yaw_eval_rad"]].to_numpy(float)
+    original_entry=source_map[(case,"full")]
+    original_blob=zraw.read("P2_OUT/"+original_entry["trace_file"])
+    if hashlib.sha256(original_blob).hexdigest()!=original_entry["trace_sha256"]:
+     raise RuntimeError("PRE_RF_ORIGINAL_TRACE_SHA_MISMATCH")
+    with np.load(io.BytesIO(original_blob),allow_pickle=False) as rr:
+     truth=rr["truth_for_offline_scoring_only"].copy()
+     if not(np.array_equal(rr["pose_id"].astype(int),ids) and
+            np.array_equal(rr["t_s"],times)):
+      raise RuntimeError("PRE_RF_ARCHIVE_POSE_ID_TIME_MISMATCH")
+    oracle_pose=src.loc[ids,["x_eval","y_eval","yaw_eval_rad"]].to_numpy(float)
+    mismatch=max(float(np.max(abs(truth[:,:2]-oracle_pose[:,:2]))),
+       float(np.max(abs((truth[:,2]-oracle_pose[:,2]+np.pi)%(2*np.pi)-np.pi))))
     ctr,x0=build_positive_bias_controls(times,truth,level,seed=0)
     xs=archive["estimate"][:,i,:];Ps=archive["covariance"][:,i,:,:]
     maprow=[];badprior=0
@@ -451,7 +464,8 @@ def prior_stress(np,pd,old,groups,full,lut,mf,refzip):
      e=truthdf[["e_r","e_s"]].to_numpy(float)
      nll,chisq=old.add_nll(np,e,mu,R)
      detail.append({"case":case,"bias_level":level,"test_pose_source":prior_name,
-       "n":len(ids),"mean_nll":float(nll.mean()),
+       "n":len(ids),"raw_route_vs_sample_max_pose_discrepancy":mismatch,
+       "mean_nll":float(nll.mean()),
        "joint95":float(np.mean(chisq<=CHI2)),
        "note":"pre-RF pose predicted from original past Joint4 states; training geometry was oracle GT"})
  return detail
@@ -501,7 +515,7 @@ def main_run(out,pre,raw,n4b,r2ref):
     "calibrated_chi2_mean":float(g.chi2.mean()),
     "oracle_geometric_features_in_training":bool(name in ADD_MODELS)})
  boot=bootstrap(np,pd,pred)
- prior_stress_results=prior_stress(np,pd,old,groups,enriched,lut,manifest,r2ref)
+ prior_stress_results=prior_stress(np,pd,old,groups,enriched,lut,manifest,r2ref,raw)
  pd.DataFrame(bycase).to_csv(out/"POL_V1_GEOMETRY_BY_CASE.csv",index=False)
  pd.DataFrame(evals).to_csv(out/"POL_V1_MODEL_SUMMARY.csv",index=False)
  pd.DataFrame(boot).to_csv(out/"POL_V1_BLOCK_BOOTSTRAP.csv",index=False)
