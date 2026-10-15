@@ -416,6 +416,65 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
    for row in allrows:
     if row["eval"] and row["case"] in CASES and abs(row["t_s"]-time[peak])<=3.0:
      event_window.append({"event_rank":rank,"event_peak_time_s":float(time[peak]),**row})
+  # One narrowly focused geometry/innovation audit at onset and the
+  # adjacent frames, including bias/mount controls. This distinguishes a
+  # genuinely small RF error from near-pole/high-Jacobian low-NIS masking.
+  geometry=[]
+  for erow in event_rows:
+   peak=erow["k_peak"]
+   for jj in (peak-1,peak,peak+1):
+    for case in CASES:
+     meta0=cases[case]
+     ax,ay=float(meta0["anchor"][0]),float(meta0["anchor"][1])
+     for level in BIAS:
+      tape=load_npz(zn,f"N1_{case}_full_{level}.npz",np)
+      raw0=base[(case,"full")]
+      ctl0,_=build_positive_bias_controls(raw0["t_s"],
+                        raw0["truth_for_offline_scoring_only"],level,seed=0)
+      physical=load_npz(zb,f"{case}_full_B0_HARD_SOFT.npz",np)
+      for method in METHODS:
+       ii=list(tape["methods"]).index(method)
+       xp,Pp=predict_one(tape["estimate"][jj-1,ii],
+            tape["covariance"][jj-1,ii],
+            *(float(ctl0[v][jj]) for v in ("ds_odom","dtheta_gyro","dt_s")))
+       h,H=lut.model(xp,meta0)
+       rs=R0[1,1] if method=="R0_J4" else float(physical["R_G5"][jj])
+       mean=0. if method=="R0_J4" else float(physical["MU_G5"][jj])
+       RR=np.diag([R0[0,0],rs])
+       z=np.array([raw0["z_r_m"][jj],raw0["z_s"][jj]-mean])
+       innov=z-h
+       Sinno=H@Pp@H.T+RR
+       niss=float(innov@np.linalg.solve(Sinno,innov))
+       schur_s=float(Sinno[1,1]-Sinno[1,0]**2/Sinno[0,0])
+       if schur_s<=0:raise RuntimeError("PREDICTED_RF_SCHUR_NONPOSITIVE")
+       pred=decompose(np,xp[None],Pp[None,:,:],raw0["truth_for_offline_scoring_only"][jj:jj+1])
+       post=decompose(np,tape["estimate"][jj:jj+1,ii],
+                   tape["covariance"][jj:jj+1,ii,:,:],
+                   raw0["truth_for_offline_scoring_only"][jj:jj+1])
+       ground=raw0["truth_for_offline_scoring_only"][jj]
+       geometry.append({
+         "case":case,"bias_level":level,"method":method,"k":jj,
+         "t_s":float(raw0["t_s"][jj]),
+         "gate":str(tape["status"][jj,ii]),
+         "anchor_horizontal_distance_prior_m":float(np.hypot(xp[0]-ax,xp[1]-ay)),
+         "anchor_horizontal_distance_truth_m":float(np.hypot(ground[0]-ax,ground[1]-ay)),
+         "prior_x_m":float(xp[0]),"prior_y_m":float(xp[1]),
+         "GT_x_m":float(ground[0]),"GT_y_m":float(ground[1]),
+         "H_s_xy_norm_per_m":float(np.linalg.norm(H[1,:2])),
+         "H_s_psi_per_rad":float(H[1,2]),
+         "S_r_variance_m2":float(Sinno[0,0]),
+         "S_s_variance":float(Sinno[1,1]),
+         "S_s_given_r_variance":schur_s,
+         "R_s_used":float(rs),
+         "innovation_r_m":float(innov[0]),
+         "innovation_s":float(innov[1]),
+         "NIS":niss,
+         "prior_small_xy_lambda_m2":float(pred["conditional_xy_eigen_small"][0]),
+         "post_small_xy_lambda_m2":float(post["conditional_xy_eigen_small"][0]),
+         "prior_pose_nees":float(pred["pose_nees"][0]),
+         "post_pose_nees":float(post["pose_nees"][0]),
+       })
+  export(out/"N4AE_PEAK_ADJACENT_GEOMETRY.csv",geometry)
   topprior=[r for r in topprevious if
     r["case"]==TARGET[0] and r["channel"]=="full" and
     r["bias_level"]==TARGET[1] and r["method"]==TARGET[2]]
@@ -534,6 +593,8 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
         "axis_angle_deg":r["axis_angle_deg"],
        } for r in peak_telemetry if r["case"]==TARGET[0] and
              r["bias_level"]=="L2"],
+    "geometry_peak_and_adjacent":[r for r in geometry if
+       r["case"]==TARGET[0] and r["bias_level"]==TARGET[1] and r["k"]==event_rows[0]["k_peak"]],
     "gate_difference_by_condition":conditions,
     "tail_contrasts":extreme_rows,
     "same_prior_counterfactuals":counterfactual,
@@ -551,6 +612,7 @@ def run(out,receipt_path,rawpath,n1path,n4apath,b0path):
   print("N4AE_FINAL "+json.dumps({"status":final["status"],
      "source_counts":final["source_counts"],"events":event_rows,
      "peak_telemetry":final["peak_telemetry_full_mount0_L2"],
+     "geometry_peak_and_adjacent":final["geometry_peak_and_adjacent"],
      "gate_counts":conditions,"tail_contrasts":extreme_rows,
      "same_prior_counterfactuals":counterfactual},ensure_ascii=False),flush=True)
   return 0
