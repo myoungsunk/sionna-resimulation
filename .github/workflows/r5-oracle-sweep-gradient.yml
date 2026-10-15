@@ -1,0 +1,61 @@
+name: R5-4 Existing Full RF native LoS yaw-gradient oracle audit
+on:
+  push:
+    branches: ['research/r5-fullrf-heading-staged-20261015']
+    paths:
+      - '.github/workflows/r5-oracle-sweep-gradient.yml'
+      - 'research/R5_FULLRF_HEADING_20261015/r5_oracle_sweep_gradient.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical_full_scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - name: Exact audited checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_FULLRF_HEADING_20261015/r5_oracle_sweep_gradient.py\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/01_FEATURES.csv\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/OUTPUT/02_LABELS_EVAL_ONLY.csv\n/.github/workflows/r5-oracle-sweep-gradient.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Audit existing Full RF source before numeric execution
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_FULLRF_HEADING_20261015/r5_oracle_sweep_gradient.py --phase pre --out "$RUNNER_TEMP/r5_4_pre" | tee "$RUNNER_TEMP/r5_4_pre.log"
+      - name: Pinned numeric dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 pandas==2.2.3 scipy==1.13.1
+      - name: Compare actual historical Full vs direct-native-LoS yaw series
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_FULLRF_HEADING_20261015/r5_oracle_sweep_gradient.py --phase run --audit "$RUNNER_TEMP/r5_4_pre/PRE_AUDIT.json" --out "$RUNNER_TEMP/r5_4_result" | tee "$RUNNER_TEMP/r5_4_result.log"
+      - name: Save all run records and audit failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r5-oracle-sweep-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r5_4_pre/**
+            ${{ runner.temp }}/r5_4_result/**
+            ${{ runner.temp }}/r5_4_pre.log
+            ${{ runner.temp }}/r5_4_result.log
+          if-no-files-found: warn
+          retention-days: 30
