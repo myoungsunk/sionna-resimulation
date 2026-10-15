@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from qclean_uwb.drivesim.sensors import DRIFT_LEVELS
 from r2_bias_replay import (BIAS_LEVELS,INITIAL_POSE_STD,
-    BIAS_PRIOR_STD,build_positive_bias_controls,predict_one)
+    BIAS_PRIOR_STD,build_positive_bias_controls,predict_one,filter_one)
 from core import predict,gaussian_update
 from p3_rf_adapter4 import FrozenLut,R0
 
@@ -64,3 +64,18 @@ def test_no_gyrobias_state_in_3state():
     P=np.diag([.01,.01,math.radians(5)**2])
     out,cov=predict_one(x,P,.1,.01,.2)
     assert len(out)==3 and cov.shape==(3,3)
+
+def test_relinearized_SR4_is_not_misdispatched_as_S4():
+    lut=FrozenLut()
+    case={"anchor":[4.,0.,2.65],"mount_deg":0.,
+          "robot_z_m":.45,"id":"R2_aA_m0"}
+    x=np.array([5.2,.82,.35,0.])
+    P=np.diag([.2,.15,.07,BIAS_PRIOR_STD**2])
+    h,H=lut.model(x,case)
+    z=h+np.array([.12,.02])
+    s,cs,ss,nis_s=filter_one(x,P,z,"S4",case,lut)
+    q,cq,sq,nis_q=filter_one(x,P,z,"SR4",case,lut)
+    assert ss=="APPLIED" and sq=="APPLIED"
+    assert abs(nis_s-nis_q)>1e-4
+    assert np.max(np.abs(s-q))>1e-4
+    assert np.max(np.abs(cs-cq))>1e-5
