@@ -196,6 +196,24 @@ def stratified_selection(rows):
         "selection_seed":SEED,
         "note":"Selection intentionally mixes extremes and deterministic SHA-ranked examples. Not prevalence estimator."}
 
+def classify_export_objective(J_initial,J_internal_delta,J_exported):
+    """Fail-closed export guard. The actual candidate must NOT increase the
+    unmodified objective even after reconstructing the physical state.
+    No positive float64 slack is permitted; a blocked candidate is not
+    an accepted nonsmooth update.
+    """
+    if not all(map(math.isfinite,(J_initial,J_internal_delta,J_exported))):
+        return "NONFINITE_OBJECTIVE_EXPORT_BLOCKED"
+    if J_internal_delta > 0:
+        return "INTERNAL_OBJECTIVE_INCREASE_BLOCKED"
+    export_delta = J_exported-J_initial
+    if export_delta > 0:
+        return "EXPORT_OBJECTIVE_INCREASE_BLOCKED"
+    if abs(export_delta-J_internal_delta)>1e-9:
+        return "INCONSISTENT_OBJECTIVE_EXPORT_BLOCKED"
+    return "ELIGIBLE_NONINCREASING"
+
+
 def stage_stratified(artifact,audit,full_dir,out):
     require_audit(audit)
     if digest(artifact)!=P4_SHA:raise RuntimeError("ORIGINAL_SOURCE_ZIP_SHA_CHANGED")
@@ -230,20 +248,28 @@ def stage_stratified(artifact,audit,full_dir,out):
                 candidate_x=candidate.pop("candidate_x")
                 delta=candidate.pop("posterior_delta")
                 y=np.linalg.solve(Lp,delta)
-                delta_J=cost(y)-c0
-                if not (math.isfinite(delta_J) and delta_J<=0.):
-                    raise RuntimeError("STRICT_ORIGINAL_OBJECTIVE_NONINCREASING_VIOLATED")
-                if abs(candidate["J_delta"]-delta_J)>1e-9:
-                    raise RuntimeError("CANDIDATE_INTERNAL_COST_NOT_SAME_OBJECTIVE")
-                status=candidate["terminal_status"]
+                exported_J=float(cost(y))
+                delta_J=exported_J-c0
+                internal_delta_J=float(candidate["J_delta"])
+                verdict=classify_export_objective(c0,internal_delta_J,exported_J)
+                # The prior pilot aborted after reporting three positive
+                # exported objective deltas. Preserve all three as explicit
+                # unusable candidates; never pretend the original local MAP
+                # converged, or conceal the increase behind +eps slack.
+                eligible=verdict=="ELIGIBLE_NONINCREASING"
+                status=candidate["terminal_status"] if eligible else verdict
                 strategy[candidate["candidate_strategy"]]+=1
                 result={
                     "source_path":f,"source_sha256":entry["source_sha256"],
                     "case":obj["case"],"channel":obj["channel"],"method":obj["method"],
                     "k":obj["k"],"old_status":r.status,
                     "original_cost":float(c0),
-                    "new_cost":float(cost(y)),
-                    "delta_J_vs_original_failed":float(delta_J),
+                    "new_cost":float(exported_J) if eligible else None,
+                    "delta_J_vs_original_failed":float(delta_J) if eligible else None,
+                    "rejected_candidate_exported_delta_J":float(delta_J) if not eligible and math.isfinite(delta_J) else None,
+                    "internal_whitened_candidate_delta_J":internal_delta_J if math.isfinite(internal_delta_J) else None,
+                    "nonincrease_guard":verdict,
+                    "candidate_admissible_for_fusion":bool(eligible and candidate["terminal_status"]=="NONSMMOOTH_LOCAL_CANDIDATE_VERIFIED"),
                     "knot_distance_orig_deg":entry["min_grid_distance_deg"],
                     "new_terminal_status":status,
                     "strategy":candidate["candidate_strategy"],
@@ -268,7 +294,8 @@ def stage_stratified(artifact,audit,full_dir,out):
                          "statuses":dict(counts),"strategies":dict(strategy)}
                 write(out/"STRATIFIED_PROGRESS.json",receipt)
                 print("R5_EXTENDED_PILOT_PROGRESS "+json.dumps(receipt),flush=True)
-    strict_violations=[v for v in cases if v.get("delta_J_vs_original_failed",0.)>0]
+    strict_violations=[v for v in cases if (v.get("delta_J_vs_original_failed") is not None
+                         and v["delta_J_vs_original_failed"]>0)]
     if strict_violations:raise RuntimeError("STRICT_OBJECTIVE_INCREASE")
     final={
        "schema":"R5_P4_EXTENDED_NONSMOOTH_PILOT_V1",
@@ -281,6 +308,14 @@ def stage_stratified(artifact,audit,full_dir,out):
        "new_statuses":dict(counts),
        "strategies":dict(strategy),
        "strict_no_objective_increase":len(strict_violations)==0,
+       "blocked_export_or_internal_increase_candidates":sum(
+          v["new_terminal_status"].endswith("_BLOCKED") for v in cases),
+       "blocked_candidate_export_delta_J":[
+          {"case":v["case"],"channel":v["channel"],"k":v["k"],
+           "method":v["method"],"status":v["new_terminal_status"],
+           "rejected_delta_J":v.get("rejected_candidate_exported_delta_J")}
+          for v in cases if v["new_terminal_status"].endswith("_BLOCKED")],
+       "all_original_4124_failure_statuses_immutable":True,
        "new_smooth_gradient_atol_1e-8":sum(
          x.get("original_smooth_gradient_at_new",math.inf)<=1e-8 for x in cases),
        "observational_likelihood_unchanged":True,

@@ -16,7 +16,7 @@ BLOBS={
 }
 P4_SHA="db1bda22f9fdbb56ba95817ea4c02016bba294c35a4c126daca448284a285ec4"
 ORIGINAL_RF_SHA="88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63"
-CODES=("p4_extended_audit.py","p4_extended_phi.py","p4_extended_validation.py")
+CODES=("p4_extended_audit.py","p4_extended_phi.py","p4_extended_validation.py","test_p4_extended_guard.py")
 def digest(path):
     h=hashlib.sha256()
     with open(path,"rb") as f:

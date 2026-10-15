@@ -1,10 +1,11 @@
 name: EKF4 R5 audited R2 phi sensitivity and full P4 nonsmooth validation expansion
 on:
   push:
-    branches: ['research/ekf4-r5-phi-and-nonsmooth-expanded-20261015']
+    branches: ['research/ekf4-r5-extended-fix-20261015']
     paths:
       - '.github/workflows/ekf4-r5-phi-nonsmooth-extended.yml'
       - 'research/EKF4_RANGE_S_STAGED_20261014/p4_extended_*.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_p4_extended_guard.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -63,7 +64,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m pytest --noconftest -q -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py | tee "$RUNNER_TEMP/r5_extended_tests.log"
+          python -m pytest --noconftest -q -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_p4_lut_boundary.py research/EKF4_RANGE_S_STAGED_20261014/test_p4_nonsmooth.py research/EKF4_RANGE_S_STAGED_20261014/test_p4_extended_guard.py | tee "$RUNNER_TEMP/r5_extended_tests.log"
       - name: Compute frozen R2 0 and 45 mount theta / phi_tx / phi_rx and theoretical 10/45 degree yaw sweep information
         shell: bash
         run: |
