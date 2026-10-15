@@ -85,7 +85,7 @@ def main(artifact,audit,out):
    if abs(old_cost-old.cost)>2e-10:
     raise RuntimeError("ORIGINAL_SAME_OBJECTIVE_VIOLATION")
    solved=local_nonsmooth_minimize(mu,P,raw,model,
-       warm_delta=old.prior_delta)
+       warm_delta=old.prior_delta,kink_case=c)
    newx=solved.pop("candidate_x")
    newdelta=solved.pop("posterior_delta")
    if len(newx)!=4 or not np.isfinite(newx).all():

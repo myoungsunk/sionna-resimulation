@@ -4,7 +4,7 @@ No original MAP 'CONVERGED' is backfilled by derivative-free candidate.
 """
 import math
 import numpy as np
-from p4_nonsmooth_local import local_nonsmooth_minimize,fixed_objective,probe_directions
+from p4_nonsmooth_local import local_nonsmooth_minimize,fixed_objective,probe_directions,frozen_lut_angles
 from p3_rf_adapter4 import R0
 
 def test_original_quadratic_gaussian_objective_and_probe_directions():
@@ -51,3 +51,11 @@ def test_kink_model_reports_separate_stationary_contract_not_old_smooth_pass():
     assert res["J_delta"]<=1e-9
     assert "NONSMMOOTH" in res["terminal_status"]
     assert "original_smooth_gradient_satisfied" in res
+
+def test_actual_theta_tx_rx_grid_angle_coordinates_preserved():
+    case={"id":"R2_aA_m0","anchor":[4.,0.,2.65],
+          "robot_z_m":.45,"mount_deg":0.}
+    x=np.array([2.755877,.553919,.106701,0.])
+    a=frozen_lut_angles(x,case)
+    assert a.shape==(3,)
+    assert abs(a[1]+156.)<.005

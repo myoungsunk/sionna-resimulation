@@ -80,38 +80,100 @@ def clarke_hull_proxy(gradient,y,radius=1e-7,seed=771):
     return {"status":"APPROXIMATE_HULL","norm":float(math.sqrt(max(fun(result.x),0.))),
             "samples":n,"radius_whitened":radius}
 
-def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,maxfev=24000):
+def frozen_lut_angles(x,case):
+    """Actual three angular trilinear LUT coordinates, in degrees."""
+    ax,ay,az=case["anchor"]
+    u,v=float(x[0]-ax),float(x[1]-ay)
+    theta=math.degrees(math.atan2(math.hypot(u,v),az-case["robot_z_m"]))
+    tx=math.degrees(math.atan2(-v,u))
+    rx=(math.degrees(math.atan2(-v,-u))-math.degrees(x[2])
+        -case["mount_deg"]+180.)%360.-180.
+    return np.array([theta,tx,rx])
+
+def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
+                             maxfev=24000,kink_case=None):
     cost,grad,Lp=fixed_objective(mu,P,z,model)
     n=len(mu)
     start=np.linalg.solve(Lp,warm_delta) if warm_delta is not None else np.zeros(n)
     c0=cost(start)
-    # Strict local scope around the ORIGINAL failing iterate. No global mode
-    # hopping or truth-based choice of starts.
     lower=start-.75
     upper=start+.75
-    def obj(y):return cost(y)
-    result=minimize(obj,start,method="Powell",
-        bounds=list(zip(lower,upper)),
+    bounds=list(zip(lower,upper))
+    pw=minimize(cost,start,method="Powell",bounds=bounds,
         options={"maxiter":650,"maxfev":maxfev,"xtol":2e-10,"ftol":1e-12})
-    y=np.asarray(result.x,float)
-    c1=cost(y)
-    probe=local_probe(cost,y)
-    hull=clarke_hull_proxy(grad,y)
-    smooth_g=float(np.max(abs(grad(y))))
-    # Different non-smooth criterion. Not original 1e-8 gradient success.
-    passed=bool(
-        result.success and np.isfinite(c1) and c1<=c0+1e-11
-        and probe["min_directional_slope"]>=-1e-5
-        and hull["status"]=="APPROXIMATE_HULL"
-        and hull["norm"]<=1e-3)
+    candidates=[{"x":np.asarray(pw.x,float),"method":"POWELL",
+                 "optimizer_success":bool(pw.success)}]
+    # Active-grid facet constrained optimization: at a kink, tangent descent
+    # can exist even when axis-parallel Powell appears stationary. The equality
+    # only defines SEARCH SUBSPACE; final J is always ORIGINAL unsmoothed J.
+    tried=0
+    if kink_case is not None:
+        refs=[start,np.asarray(pw.x,float)]
+        for base in refs:
+            angles=frozen_lut_angles(mu+Lp@base,kink_case)
+            masks=[]
+            for i,val in enumerate(angles):
+                nearest=2*round(val/2)
+                if abs(nearest-val)<.2:
+                    masks.append((i,nearest))
+            constraint_sets=[(one,) for one in masks]
+            constraint_sets += [(masks[i],masks[j]) for i in range(len(masks))
+                                for j in range(i+1,len(masks))]
+            for facets in constraint_sets:
+                def make_constraint(coord,target):
+                    return {"type":"eq",
+                       "fun":lambda y,coord=coord,target=target:
+                             (float(frozen_lut_angles(mu+Lp@y,kink_case)[coord])
+                              -target+180.)%360.-180.}
+                constr=[make_constraint(*v) for v in facets]
+                tried+=1
+                try:
+                    sol=minimize(cost,base,method="SLSQP",
+                         bounds=bounds,constraints=constr,
+                         options={"maxiter":220,"ftol":1e-12,"disp":False})
+                    y=np.asarray(sol.x,float)
+                    residual=max(abs(c["fun"](y)) for c in constr)
+                    if (np.isfinite(y).all() and math.isfinite(cost(y)) and
+                            residual<=1e-4 and cost(y)<=c0+1e-11):
+                        candidates.append({"x":y,"method":"ACTIVE_LUT_FACET",
+                           "facets":[[int(v[0]),float(v[1])] for v in facets],
+                           "optimizer_success":bool(sol.success),
+                           "constraint_residual_deg":float(residual)})
+                except (ArithmeticError,ValueError):
+                    continue
+    qualified=[]
+    for cand in candidates:
+        y=cand["x"]
+        c1=cost(y)
+        probe=local_probe(cost,y)
+        hull=clarke_hull_proxy(grad,y)
+        smooth_g=float(np.max(abs(grad(y))))
+        # Approximate local non-smooth stationarity, NOT old smooth 1e-8.
+        passed=bool(
+            np.isfinite(c1) and c1<=c0+1e-11
+            and probe["min_directional_slope"]>=-1e-5
+            and hull["status"]=="APPROXIMATE_HULL"
+            and hull["norm"]<=1e-3)
+        qualified.append((passed,float(c1),cand,probe,hull,smooth_g))
+    # Prefer the best verified local solution; do NOT report "CONVERGED"
+    # from mere SciPy optimizer flags. If none verified, return the
+    # smallest-cost UNVERIFIED candidate without making a science claim.
+    available=[r for r in qualified if r[0]]
+    best=min(available or qualified,key=lambda v:v[1])
+    passed,c1,selected,probe,hull,smooth_g=best
+    y=selected["x"]
     delta=Lp@y
     return {"terminal_status":("NONSMMOOTH_LOCAL_CANDIDATE_VERIFIED"
                 if passed else "NONSMMOOTH_LOCAL_UNVERIFIED"),
+            "candidate_strategy":selected["method"],
+            "active_set_tried":tried,
+            "active_set_candidates":sum(c["method"]=="ACTIVE_LUT_FACET"
+                for c in candidates),
             "original_smooth_gradient_satisfied":smooth_g<=1e-8,
             "original_smooth_gradient_inf":smooth_g,
-            "powell_success":bool(result.success),
-            "powell_message":str(result.message),
-            "powell_nfev":int(result.nfev),"powell_nit":int(result.nit),
+            "powell_success":bool(pw.success),
+            "powell_message":str(pw.message),
+            "powell_nfev":int(pw.nfev),"powell_nit":int(pw.nit),
             "J_initial":float(c0),"J_final":float(c1),
             "J_delta":float(c1-c0),
             "probe":probe,"clarke_hull_proxy":hull,
