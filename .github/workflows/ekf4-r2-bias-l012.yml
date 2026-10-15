@@ -1,0 +1,95 @@
+name: EKF4 R2 two mounts L0 L1 L2 gyro bias one-step and recursive
+on:
+  push:
+    branches: ['research/ekf4-r2-bias-l012-sj-20261015']
+    paths:
+      - '.github/workflows/ekf4-r2-bias-l012.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/r2_bias_*.py'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/test_r2_bias.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: ekf4-r2-bias-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  audit-controlled-bias-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact source checkout - canonical R4 and original sensor-v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r2-bias-l012.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Pre-execution immutable source audit BEFORE any numeric task
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r2_bias_audit.py --out "$RUNNER_TEMP/r2_bias_audit" | tee "$RUNNER_TEMP/r2_bias_audit.log"
+          echo "R2_BIAS_AUDIT=$RUNNER_TEMP/r2_bias_audit/AUDIT.json" >> "$GITHUB_ENV"
+      - name: Retrieve original frozen R2 RF one-step artifact SHA-verified
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_RF_R2.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_RF_R2.zip" | sha256sum -c
+      - name: Install pinned NumPy and regression tests after audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pytest==8.3.5
+      - name: Independent B0/L0/L1/L2 sensor generator and filter mathematics unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir "$RUNNER_TEMP/r2_bias_tests"
+          export PYTHONPATH="$PWD/research/EKF4_RANGE_S_STAGED_20261014:$PWD/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src"
+          python -m pytest --noconftest -q -s -c research/EKF4_RANGE_S_STAGED_20261014/pytest.ini research/EKF4_RANGE_S_STAGED_20261014/test_r2_bias.py --junitxml="$RUNNER_TEMP/r2_bias_tests/TESTS.xml" | tee "$RUNNER_TEMP/r2_bias_tests.log"
+      - name: Replay R2 mount0/45 B0 L0 L1 L2 two channels and eight models in two modes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py --archive "$RUNNER_TEMP/original_RF_R2.zip" --audit "$R2_BIAS_AUDIT" --out "$RUNNER_TEMP/r2_bias_replay" | tee "$RUNNER_TEMP/r2_bias_replay.log"
+      - name: Truth-only offline NEES bias trajectory and paired model comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/r2_bias_score.py --archive "$RUNNER_TEMP/original_RF_R2.zip" --root "$RUNNER_TEMP/r2_bias_replay" --audit "$R2_BIAS_AUDIT" --out "$RUNNER_TEMP/r2_bias_score" | tee "$RUNNER_TEMP/r2_bias_score.log"
+      - name: Preserve every audit trace and score even on partial/blocked outcomes
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-r2-bias-paired-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r2_bias_audit/**
+            ${{ runner.temp }}/r2_bias_tests/**
+            ${{ runner.temp }}/r2_bias_replay/**
+            ${{ runner.temp }}/r2_bias_score/**
+            ${{ runner.temp }}/r2_bias_audit.log
+            ${{ runner.temp }}/r2_bias_tests.log
+            ${{ runner.temp }}/r2_bias_replay.log
+            ${{ runner.temp }}/r2_bias_score.log
+            research/EKF4_RANGE_S_STAGED_20261014/r2_bias_*.py
+            research/EKF4_RANGE_S_STAGED_20261014/test_r2_bias.py
+            .github/workflows/ekf4-r2-bias-l012.yml
+          if-no-files-found: warn
+          retention-days: 30
