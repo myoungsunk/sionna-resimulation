@@ -265,7 +265,7 @@ def unit():
  np,pd,old,groups,FrozenLut=environment()
  rng=np.random.default_rng(20261015)
  inputs=pd.DataFrame({"e_r":rng.normal(.05,.1,300),"e_s":rng.normal(.02,.17,300)})
- for f in set(old.G4+old.SIMPLE+groups["G5"]+GEOM_FIELDS):
+ for f in set(list(old.G4)+list(old.SIMPLE)+list(groups["G5"])+list(GEOM_FIELDS)):
   if f not in inputs:inputs[f]=rng.normal(0,1,len(inputs))
  w=np.ones(300)
  for name,features,binname,diag in [
