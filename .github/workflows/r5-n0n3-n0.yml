@@ -1,0 +1,66 @@
+name: N0 Audit Frozen R2 PHY-Rs B0 hard-soft reconciliation
+on:
+  push:
+    branches: ['research/r5-n0n3-audited-20261015']
+    paths:
+      - '.github/workflows/r5-n0n3-n0.yml'
+      - 'research/R5_N0_N3_20261015/n0_reconcile.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  N0_source_input_result_reconcile:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONHASHSEED: '0'
+    steps:
+      - name: Exact sparse checkout before analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N0_N3_20261015/n0_reconcile.py\n/research/EKF4_RANGE_S_STAGED_20261014/core.py\n/research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py\n/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py\n/research/PHYSICS_RS_STAGED_20261015/code/features.py\n/research/PHYSICS_RS_STAGED_20261015/code/stage_b.py\n/research/PHYSICS_RS_STAGED_20261015/code/stage_c.py\n/research/R5_FULLRF_B0_GATES_20261015/r5_b0_hard_soft.py\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/r5-n0n3-n0.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory immutable code and workflow pre-audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N0_N3_20261015/n0_reconcile.py --phase pre --out "$RUNNER_TEMP/n0_pre" | tee "$RUNNER_TEMP/n0_pre.log"
+      - name: Retrieve validated source archives only after audit GO
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/frozenRF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/frozenRF.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/auditedR2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/auditedR2.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11951360261/zip > "$RUNNER_TEMP/auditedB0.zip"
+          echo 'f31a04cf2ba39011a5d685b13985b947b1659e5b63c3a5910ec68175fa7e806a  '"$RUNNER_TEMP/auditedB0.zip" | sha256sum -c
+      - name: Independent baseline metric parity and scope audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N0_N3_20261015/n0_reconcile.py --phase run --out "$RUNNER_TEMP/n0_results" --audit "$RUNNER_TEMP/n0_pre/N0_PRE_AUDIT.json" --raw "$RUNNER_TEMP/frozenRF.zip" --r2 "$RUNNER_TEMP/auditedR2.zip" --b0 "$RUNNER_TEMP/auditedB0.zip" | tee "$RUNNER_TEMP/n0_results.log"
+      - name: Save complete results and audit failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n0-reconcile-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/n0_pre/**
+            ${{ runner.temp }}/n0_results/**
+            ${{ runner.temp }}/n0_pre.log
+            ${{ runner.temp }}/n0_results.log
+          if-no-files-found: warn
+          retention-days: 30
