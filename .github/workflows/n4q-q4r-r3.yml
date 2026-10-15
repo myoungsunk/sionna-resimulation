@@ -1,0 +1,81 @@
+name: N4 Q4-R3 geometry information calibration after modified recursion
+on:
+  push:
+    branches: ['research/n4q-q4r-prior-calibration-20261015']
+    paths:
+      - '.github/workflows/n4q-q4r-r3.yml'
+      - 'research/N4_Q4R_20261015/q4r_geometry.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  q4r3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact original immutable prior and LoS FFD code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/N4_Q4R_20261015/q4r_geometry.py\n/research/N4_Q4R_20261015/q4r_recursive.py\n/research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py\n/research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py\n/research/R5_N4B_20261015/n4b_rf_errors.py\n/research/R5_FULLRF_B0_GATES_20261015/r5_b0_hard_soft.py\n/research/PHYSICS_RS_STAGED_20261015/code/features.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/n4q-q4r-r3.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory frozen Q4 and R2 source audit before numerics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_geometry.py --phase pre --out "$RUNNER_TEMP/r3_pre" | tee "$RUNNER_TEMP/r3_pre.log"
+      - name: Fetch original 240 arm Q4-R2 and original Q4 prior and RF archived truth
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11976841890/zip > "$RUNNER_TEMP/r2.zip"
+          echo '4f979b13f32c0a269d10dd0d7d1dc39d6f8b82dca425fb2e9aacf3cfda22e510  '"$RUNNER_TEMP/r2.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/rf.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11967961466/zip > "$RUNNER_TEMP/q4.zip"
+          echo '599267063f87546ca76cf6f7c755977c74c8b298c18fbb89e73066dd34be3164  '"$RUNNER_TEMP/q4.zip" | sha256sum -c
+      - name: Install pinned original FFD and tensor runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3 scikit-learn==1.5.2
+      - name: Positive cubature sigma point math
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_geometry.py --phase test | tee "$RUNNER_TEMP/r3_test.log"
+      - name: Evaluate actual modified recursive priors against oracle LoS geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q4R_20261015/q4r_geometry.py --phase run --out "$RUNNER_TEMP/r3_results" --audit "$RUNNER_TEMP/r3_pre/Q4R3_PRE_AUDIT.json" --r2 "$RUNNER_TEMP/r2.zip" --rf "$RUNNER_TEMP/rf.zip" --q4 "$RUNNER_TEMP/q4.zip" | tee "$RUNNER_TEMP/r3_run.log"
+      - name: Preserve all result and failed numeric receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4q-q4r-r3-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/r3_pre/**
+            ${{ runner.temp }}/r3_results/**
+            ${{ runner.temp }}/r3_pre.log
+            ${{ runner.temp }}/r3_test.log
+            ${{ runner.temp }}/r3_run.log
+          if-no-files-found: warn
+          retention-days: 30
