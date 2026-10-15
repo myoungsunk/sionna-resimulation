@@ -168,12 +168,12 @@ def run(artifact,audit,out):
         if isinstance(v,np.generic):return v.item()
         if isinstance(v,np.ndarray):return v.tolist()
         raise TypeError(type(v).__name__)
-    (out/"P4_D4_FINAL.json").write_text(json.dumps(summary,indent=2,default=numpy_safe)+"\\n")
+    (out/"P4_D4_FINAL.json").write_text(json.dumps(summary,indent=2,default=numpy_safe)+"\n")
     print("P4_D4_FINAL "+json.dumps({k:summary[k] for k in
        ("status","original_failures","original_failure_types","sample_cases_tested",
         "all_sample_statuses_reproduced","near_grid_knot_under_0p001deg",
         "derivative_one_sided_jump_gt_1e-3","central_derivative_mismatch_gt_1e-3",
-        "some_local_GN_step_cost_decreased")}),flush=True)
+        "some_local_GN_step_cost_decreased")},default=numpy_safe),flush=True)
     return 0
 
 if __name__=="__main__":
