@@ -1,0 +1,61 @@
+name: N4-B independent heldout per-case model evaluation and scientific scope audit
+on:
+  push:
+    branches: ['research/r5-n4b-joint-rs-errors-20261015']
+    paths:
+      - '.github/workflows/r5-n4b-report-verify.yml'
+      - 'research/R5_N4B_REPORT_20261015/n4b_verify_report.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  n4b_case_review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact pinned original N4-B and case-review source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N4B_20261015/n4b_rf_errors.py\n/research/R5_N4B_REPORT_20261015/n4b_verify_report.py\n/.github/workflows/r5-n4b-report-verify.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: PREAUDIT before downloading and reading prior model
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_REPORT_20261015/n4b_verify_report.py --phase pre --out "$RUNNER_TEMP/n4b_report_pre" | tee "$RUNNER_TEMP/n4b_report_pre.log"
+      - name: Download exact original N4-B experimental report archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11960766768/zip > "$RUNNER_TEMP/N4B_original.zip"
+          echo '170a646f8167f1e440316abf42b614afa4efc3d77037c0e19bf470a817fc334b  '"$RUNNER_TEMP/N4B_original.zip" | sha256sum -c
+      - name: Per-case mount and anchor evaluation and paired G4 incremental statistics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_REPORT_20261015/n4b_verify_report.py --phase run --out "$RUNNER_TEMP/n4b_case_result" --audit "$RUNNER_TEMP/n4b_report_pre/PRE_AUDIT.json" --input "$RUNNER_TEMP/N4B_original.zip" | tee "$RUNNER_TEMP/n4b_case_result.log"
+      - name: Preserve original evidence and report verification
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4b-case-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/n4b_report_pre/**
+            ${{ runner.temp }}/n4b_case_result/**
+            ${{ runner.temp }}/n4b_report_pre.log
+            ${{ runner.temp }}/n4b_case_result.log
+          if-no-files-found: warn
+          retention-days: 30
