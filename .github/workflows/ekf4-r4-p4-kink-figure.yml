@@ -1,0 +1,72 @@
+name: EKF4 P4 actual LUT kink and objective fixed-input figures
+on:
+  push:
+    branches: ['research/ekf4-r4-p4-kink-figure-20261015']
+    paths:
+      - '.github/workflows/ekf4-r4-p4-kink-figure.yml'
+      - 'research/EKF4_RANGE_S_STAGED_20261014/p4_kink_*.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-then-actual-slices:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      GH_TOKEN: ${{ github.token }}
+      MPLBACKEND: Agg
+    steps:
+      - name: Exact frozen source and actual LUT sparse checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/ekf4-r4-p4-kink-figure.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Static source and plot-code audit BEFORE loading NUMERICAL DATA
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_kink_fig_audit.py --out "$RUNNER_TEMP/fig_audit" | tee "$RUNNER_TEMP/fig_audit.log"
+      - name: Load immutable source failure artifact with SHA256 gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api -H 'Accept: application/vnd.github+json' /repos/myoungsunk/sionna-resimulation/actions/artifacts/11937707221/zip > "$RUNNER_TEMP/p4_original_failures.zip"
+          echo 'db1bda22f9fdbb56ba95817ea4c02016bba294c35a4c126daca448284a285ec4  '"$RUNNER_TEMP/p4_original_failures.zip" | sha256sum -c
+      - name: Install pinned NumPy and chart dependencies ONLY AFTER AUDIT
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 matplotlib==3.9.4
+      - name: Sample original LUT and MAP objective at failed fixed-input points
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/EKF4_RANGE_S_STAGED_20261014/p4_kink_actual_profile.py --artifact "$RUNNER_TEMP/p4_original_failures.zip" --audit "$RUNNER_TEMP/fig_audit/PRE_AUDIT.json" --out "$RUNNER_TEMP/fig_actual" | tee "$RUNNER_TEMP/fig_actual.log"
+      - name: Preserve audit and actual numerical plots even if failed
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ekf4-p4-actual-kink-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/fig_audit/**
+            ${{ runner.temp }}/fig_actual/**
+            ${{ runner.temp }}/fig_audit.log
+            ${{ runner.temp }}/fig_actual.log
+            research/EKF4_RANGE_S_STAGED_20261014/p4_kink_*.py
+            .github/workflows/ekf4-r4-p4-kink-figure.yml
+          if-no-files-found: warn
+          retention-days: 30
