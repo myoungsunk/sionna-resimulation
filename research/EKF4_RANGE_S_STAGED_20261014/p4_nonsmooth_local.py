@@ -210,7 +210,7 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
                     y=np.asarray(sol.x,float)
                     residual=max(abs(c["fun"](y)) for c in constr)
                     if (np.isfinite(y).all() and math.isfinite(cost(y)) and
-                            residual<=1e-4 and cost(y)<=c0+1e-11):
+                            residual<=1e-4 and cost(y)<=c0):
                         candidates.append({"x":y,"method":"ACTIVE_LUT_FACET",
                            "facets":[[int(v[0]),float(v[1])] for v in facets],
                            "optimizer_success":bool(sol.success),
@@ -238,7 +238,7 @@ def local_nonsmooth_minimize(mu,P,z,model,*,warm_delta=None,
         smooth_g=float(np.max(abs(grad(y))))
         # Approximate local non-smooth stationarity, NOT old smooth 1e-8.
         passed=bool(
-            np.isfinite(c1) and c1<=c0+1e-11
+            np.isfinite(c1) and c1<=c0
             and probe["min_directional_slope"]>=-1e-5
             and hull["status"]=="APPROXIMATE_HULL"
             and hull["norm"]<=1e-3)
