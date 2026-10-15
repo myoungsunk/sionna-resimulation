@@ -71,6 +71,24 @@ def segment_crossings(x0,x1,case,*,samples=129,root_tol=1e-9):
     arr=np.asarray(raw)
     arr[:,1:]=np.rad2deg(np.unwrap(np.deg2rad(arr[:,1:]),axis=0))
     events=[]
+    # A crossing can land EXACTLY on a sampled knot. The bracketing
+    # ranges below intentionally exclude endpoints to avoid double counts,
+    # so recognize such interior samples with opposite signs explicitly.
+    for dim in range(3):
+        for k in range(1,samples-1):
+            ang=float(arr[k,dim])
+            target=nearest_knot_degrees(ang)
+            if abs(ang-target)>root_tol:continue
+            before=float(arr[k-1,dim]-target)
+            after=float(arr[k+1,dim]-target)
+            if before*after<0:
+                events.append({
+                    "dimension":ANGLES[dim],
+                    "boundary_deg":float(((target+180.)%360.)-180.)
+                      if dim>0 else float(target),
+                    "cross_fraction":float(tau[k]),
+                    "state_at_cross":list(map(float,p+tau[k]*(q-p))),
+                    "angle_unwrapped_deg":float(target)})
     def unwrap_near(y,ref):
         return float(ref+((float(y)-float(ref)+180)%360)-180)
     for dim in range(3):
