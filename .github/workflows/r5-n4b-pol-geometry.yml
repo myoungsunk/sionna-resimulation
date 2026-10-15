@@ -1,0 +1,89 @@
+name: N4B-POL-V1 FFD mount heading matching and RF conditional reliability
+on:
+  push:
+    branches: ['research/r5-n4b-polar-geometry-20261015']
+    paths:
+      - '.github/workflows/r5-n4b-pol-geometry.yml'
+      - 'research/R5_N4B_POL_V1_20261015/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: n4b-pol-geometry-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  n4b_heldout_angular_conditioning:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Sparse checkout exact original frozen RF and N4B physics source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/R5_N4B_POL_V1_20261015/**\n/research/R5_N4B_20261015/n4b_rf_errors.py\n/research/R5_FULLRF_B0_GATES_20261015/r5_b0_hard_soft.py\n/research/PHYSICS_RS_STAGED_20261015/code/features.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/r5-n4b-pol-geometry.yml\n' > .git/info/sparse-checkout
+          BASE='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C'
+          printf '/%s/FULL_RF/*.npy\n/%s/H_LoS_*.npy\n/%s/freqs_hz.npy\n' "$BASE" "$BASE" "$BASE" >> .git/info/sparse-checkout
+          for CASE in R2_aA_m0 R2_aA_m45 R2_aB_m0 R4_aA_m0 R4_aB_m0 R5_aA_m0 R5_aB_m0; do
+            printf '/%s/%s/SAMPLES.json\n' "$BASE" "$CASE" >> .git/info/sparse-checkout
+          done
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory source and 22 original channel input SHA audit before numerical work
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py --phase pre --out "$RUNNER_TEMP/pol_pre" | tee "$RUNNER_TEMP/pol_pre.log"
+      - name: Retrieve exact N4B, P3 RF and validated R2 recursive sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_RF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_RF.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11960766768/zip > "$RUNNER_TEMP/original_N4B.zip"
+          echo '170a646f8167f1e440316abf42b614afa4efc3d77037c0e19bf470a817fc334b  '"$RUNNER_TEMP/original_N4B.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/original_R2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/original_R2.zip" | sha256sum -c
+      - name: Install exactly pinned original physics packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3 scikit-learn==1.5.2
+      - name: Verify original N4B regression parity and true 3D FFD angular derivatives
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py --phase test | tee "$RUNNER_TEMP/pol_test.log"
+      - name: Run oracle geometric FFD feature ablations and causal R2 pre-RF prior stress
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py --phase run --out "$RUNNER_TEMP/pol_results" --audit "$RUNNER_TEMP/pol_pre/PRE_AUDIT.json" --raw "$RUNNER_TEMP/original_RF.zip" --n4b "$RUNNER_TEMP/original_N4B.zip" --r2 "$RUNNER_TEMP/original_R2.zip" | tee "$RUNNER_TEMP/pol_run.log"
+      - name: Preserve all audit receipts and paired heldout predictions
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4b-polar-geometry-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/pol_pre/**
+            ${{ runner.temp }}/pol_results/**
+            ${{ runner.temp }}/pol_pre.log
+            ${{ runner.temp }}/pol_test.log
+            ${{ runner.temp }}/pol_run.log
+          if-no-files-found: warn
+          retention-days: 30
