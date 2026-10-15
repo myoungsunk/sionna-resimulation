@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 HERE=Path(__file__).resolve().parent
 N4C_SHA="f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9"
-CODE_BLOB="__SOURCE_BLOB__"
+CODE_BLOB="40c795fa8799c4090c0766ebdccf6e2be83df6a0"
 
 def sha(path):
  h=hashlib.sha256()
