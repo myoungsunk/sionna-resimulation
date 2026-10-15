@@ -133,6 +133,7 @@ def environment():
  import numpy as np
  import pandas as pd
  sys.path.insert(0,str(BASE))
+ sys.path.insert(0,str(ROOT/"research/R5_FULLRF_B0_GATES_20261015"))
  sys.path.insert(0,str(PHY))
  sys.path.insert(0,str(R2))
  sys.path.insert(0,str(OBS))
