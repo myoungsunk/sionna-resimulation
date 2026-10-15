@@ -1,0 +1,61 @@
+name: N4-Q4 independent DR4 J4 observability calibration audit and stage gate
+on:
+  push:
+    branches: ['research/n4q-geometry-integrity-staged-20261015']
+    paths:
+      - '.github/workflows/n4q-q4-verify.yml'
+      - 'research/N4_Q_GEOM_RF_20261015/q4_independent_review.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  q4_prior_stage_gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Exact source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py\n/research/N4_Q_GEOM_RF_20261015/q4_independent_review.py\n/.github/workflows/n4q-q4-verify.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory original Q4 source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q_GEOM_RF_20261015/q4_independent_review.py --phase pre --out "$RUNNER_TEMP/review_pre" | tee "$RUNNER_TEMP/review_pre.log"
+      - name: Fetch frozen full Q4 original prior records and check immutable SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11967961466/zip > "$RUNNER_TEMP/Q4.zip"
+          echo '599267063f87546ca76cf6f7c755977c74c8b298c18fbb89e73066dd34be3164  '"$RUNNER_TEMP/Q4.zip" | sha256sum -c
+      - name: Recalculate original DR4 J4 posteriors information and execute stage gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q_GEOM_RF_20261015/q4_independent_review.py --phase run --out "$RUNNER_TEMP/review_out" --audit "$RUNNER_TEMP/review_pre/PRE_AUDIT.json" --input "$RUNNER_TEMP/Q4.zip" | tee "$RUNNER_TEMP/review_run.log"
+      - name: Preserve gate proof and all failing audit evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4q-q4-calibration-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/review_pre/**
+            ${{ runner.temp }}/review_out/**
+            ${{ runner.temp }}/review_pre.log
+            ${{ runner.temp }}/review_run.log
+          if-no-files-found: warn
+          retention-days: 30
