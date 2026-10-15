@@ -16,7 +16,6 @@ import sys
 import zipfile
 from pathlib import Path
 
-import numpy as np
 
 REPO=Path(__file__).resolve().parents[2]
 HERE=Path(__file__).resolve().parent
@@ -174,6 +173,8 @@ def check_zip(path,expected):
     return sha
 
 def run(raw_path,r2_path,out,pre_path):
+    global np
+    import numpy as np
     out.mkdir(parents=True,exist_ok=False)
     pre=json.loads(Path(pre_path).read_text())
     if pre.get("decision")!="GO" or pre.get("git_sha")!=os.getenv("GITHUB_SHA"):
@@ -331,6 +332,8 @@ def run(raw_path,r2_path,out,pre_path):
     return 0
 
 def numeric_self_tests():
+    global np
+    import numpy as np
     from scipy.stats import chi2
     rng=np.random.default_rng(15)
     d=np.diff(np.eye(11),axis=0)
