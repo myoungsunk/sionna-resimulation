@@ -1,0 +1,81 @@
+name: N4-Q4 actual pre-RF DR4 Joint4 geometry information uncertainty
+on:
+  push:
+    branches: ['research/n4q-geometry-integrity-staged-20261015']
+    paths:
+      - '.github/workflows/n4q-q4-prior.yml'
+      - 'research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  q4_prior_physical_information:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact original R2 EKF4 and FFD source checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/N4_Q_GEOM_RF_20261015/q0q3_geometry_integrity.py\n/research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py\n/research/R5_N4B_POL_V1_20261015/n4b_pol_geometry.py\n/research/R5_N4B_20261015/n4b_rf_errors.py\n/research/R5_FULLRF_B0_GATES_20261015/r5_b0_hard_soft.py\n/research/PHYSICS_RS_STAGED_20261015/code/features.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/n4q-q4-prior.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory original predictor and Q0-Q3 source audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py --phase pre --out "$RUNNER_TEMP/q4_pre" | tee "$RUNNER_TEMP/q4_pre.log"
+      - name: Fetch SHA pinned Q0-Q3, original RF and R2 posterior archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11967575965/zip > "$RUNNER_TEMP/Q0Q3.zip"
+          echo '748b7d1b91e06b1825fdd49bc10bf387fae3786aebd63eac18f194e275170d67  '"$RUNNER_TEMP/Q0Q3.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/RF.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/RF.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/R2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/R2.zip" | sha256sum -c
+      - name: Pinned numerical Python dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3 scikit-learn==1.5.2
+      - name: Positive-weight cubature and actual FFD unit tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py --phase test | tee "$RUNNER_TEMP/q4_test.log"
+      - name: Compare GT geometry with causal DR4 and J4 before RF update for all bias levels
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/N4_Q_GEOM_RF_20261015/q4_prior_observability.py --phase run --out "$RUNNER_TEMP/q4_results" --audit "$RUNNER_TEMP/q4_pre/Q4_PRE_AUDIT.json" --q0 "$RUNNER_TEMP/Q0Q3.zip" --rf "$RUNNER_TEMP/RF.zip" --r2 "$RUNNER_TEMP/R2.zip" | tee "$RUNNER_TEMP/q4_run.log"
+      - name: Save full posterior information stress test and failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: n4q-q4-prior-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/q4_pre/**
+            ${{ runner.temp }}/q4_results/**
+            ${{ runner.temp }}/q4_pre.log
+            ${{ runner.temp }}/q4_test.log
+            ${{ runner.temp }}/q4_run.log
+          if-no-files-found: warn
+          retention-days: 30
