@@ -89,7 +89,7 @@ def source_audit(config):
             ast.parse((HERE/name).read_text(encoding='utf-8'))
     current['workflow'] = digest(ROOT/'.github/workflows/r5-n4q-q0.yml')
     wf = (ROOT/'.github/workflows/r5-n4q-q0.yml').read_text()
-    require(wf.index('--phase pre') < wf.index('test_q0.py') < wf.index('--phase verify'),
+    require(wf.index('--phase pre') < wf.index('python -m unittest discover') < wf.index('--phase verify'),
             'AUDIT_TEST_VERIFY_ORDER')
     require('if: always()' in wf, 'PRESERVE_FAILURE_EVIDENCE')
     mf = json.loads((ROOT/MANIFEST).read_text())
