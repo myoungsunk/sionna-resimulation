@@ -1,0 +1,90 @@
+name: Pole LUT Corrected Theta0 Candidate - Native LoS and Recursive Replay
+on:
+  push:
+    branches: ['research/lut-pole-integration-replay-20261016']
+    paths:
+      - '.github/workflows/lut-pole-integrated-audit.yml'
+      - 'research/POLE_LUT_INTEGRATION_20261016/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  pole_candidate_validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout exact source including 12MB original frozen LoS LUT
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/POLE_LUT_INTEGRATION_20261016/**\n/research/POLE_LUT_SINGULARITY_20261016/pole_lut_fix.py\n/research/R5_N4C_20261015/n4c_joint_sr4.py\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/lut-pole-integrated-audit.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Strict audit original LUT sha and FFD/original filter code before numerical tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase pre --out "$RUNNER_TEMP/pole_pre" | tee "$RUNNER_TEMP/pole_pre.log"
+      - name: Download original verified RF and frozen R2 N4B N4C artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/rf.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/r2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/r2.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11960766768/zip > "$RUNNER_TEMP/n4b.zip"
+          echo '170a646f8167f1e440316abf42b614afa4efc3d77037c0e19bf470a817fc334b  '"$RUNNER_TEMP/n4b.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11962810669/zip > "$RUNNER_TEMP/n4c.zip"
+          echo 'f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9  '"$RUNNER_TEMP/n4c.zip" | sha256sum -c
+      - name: Install pinned numerical dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Zero-layer uniqueness and no-double-patch Jacobian and continuity tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase test | tee "$RUNNER_TEMP/pole_unit.log"
+      - name: Compare 9519 native LoS truth vs original frozen and theta0-corrected candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase compare --out "$RUNNER_TEMP/pole_9519" --audit "$RUNNER_TEMP/pole_pre/PRE_AUDIT.json" --rf "$RUNNER_TEMP/rf.zip" | tee "$RUNNER_TEMP/pole_9519.log"
+      - name: Full and LoS B0 L0 L1 L2 R2 actual recursive Joint4 SR4 S4 parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase recursive --out "$RUNNER_TEMP/pole_recursive" --audit "$RUNNER_TEMP/pole_pre/PRE_AUDIT.json" --rf "$RUNNER_TEMP/rf.zip" --r2 "$RUNNER_TEMP/r2.zip" --n4b "$RUNNER_TEMP/n4b.zip" --n4c "$RUNNER_TEMP/n4c.zip" | tee "$RUNNER_TEMP/pole_recursive.log"
+      - name: Always preserve source checks corrected LUT binary and every comparison
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pole-lut-integration-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/pole_pre/**
+            ${{ runner.temp }}/pole_9519/**
+            ${{ runner.temp }}/pole_recursive/**
+            ${{ runner.temp }}/pole_pre.log
+            ${{ runner.temp }}/pole_unit.log
+            ${{ runner.temp }}/pole_9519.log
+            ${{ runner.temp }}/pole_recursive.log
+          if-no-files-found: warn
+          retention-days: 30
