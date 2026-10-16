@@ -89,7 +89,8 @@ def source_audit(out):
  else:
   w=wf.read_text()
   toks=["pole_integrated_eval.py --phase pre","pole_integrated_eval.py --phase test",
-        "pole_integrated_eval.py --phase compare","pole_integrated_eval.py --phase recursive"]
+        "pole_integrated_eval.py --phase compare","pole_integrated_eval.py --phase compare_all",
+        "pole_integrated_eval.py --phase recursive"]
   if not all(x in w for x in toks) or not all(w.index(toks[i])<w.index(toks[i+1]) for i in range(len(toks)-1)):
    errors.append("NOT_AUDIT_BEFORE_RUN")
   if "if: always()" not in w or "actions: read" not in w:errors.append("ARTIFACT_GUARDS")
@@ -429,15 +430,115 @@ def replay(out,pre,rfpath,r2path,n4bpath,n4cpath):
  print("POLE_RECURSIVE_FINAL "+json.dumps(status,ensure_ascii=False),flush=True)
  return 0
 
+
+def compare_all_raw_9519(out,pre,archive9519):
+ """Independent archived Q0-Q3 full angular sample parity across all 9519 poses.
+
+ Q0-Q3 was created from verified original complex Full/native LoS H. The
+ same LoS observer s and truth/LUT prediction are revalidated here without
+ requiring time-sequential R4/R5 gyro controls or regenerating RF.
+ """
+ import gzip
+ (np,pd,patch,FrozenLut,R0,GATE,gaussian_update,wrap,*rest)=modules()
+ out=Path(out);out.mkdir(parents=True,exist_ok=False)
+ aud=json.loads(Path(pre).read_text())
+ if aud["decision"]!="GO" or aud["head_commit"]!=os.environ["GITHUB_SHA"]:
+  raise RuntimeError("NO_AUDIT")
+ before,after=build_luts(np,patch,FrozenLut)
+ with archive(archive9519,"748b7d1b91e06b1825fdd49bc10bf387fae3786aebd63eac18f194e275170d67") as z:
+  meta=json.loads(z.read(member(z,"Q0_Q3_FINAL.json")))
+  if meta["matched_full_los"]!=9519 or meta["source_sha"]!="af461ff5b9ea26019b55eda877119523c42c5ed9":
+   raise RuntimeError("ORIGINAL_9519_SOURCE_NOT_FROZEN")
+  def readcsv(name):
+   raw=z.read(member(z,name))
+   return pd.read_csv(io.BytesIO(gzip.decompress(raw)))
+  oldbase=readcsv("Q1_GEOMETRY_INFORMATION.csv.gz")
+  observations=readcsv("Q2_FULL_VS_NATIVE_LOS_RF_ERRORS.csv.gz")
+ if len(oldbase)!=9519 or len(observations)!=9519:
+  raise RuntimeError("Q0Q3_9519_ROWS_MISSING")
+ keys=["case","pose_id"]
+ if oldbase.duplicated(keys).any() or observations.duplicated(keys).any():
+  raise RuntimeError("Q0Q3_IDS_NOT_UNIQUE")
+ data=oldbase.merge(observations,on=["case","route","pose_id","x_eval","y_eval","yaw_eval_rad"],
+     how="inner",validate="one_to_one",suffixes=("_old",""))
+ if len(data)!=9519:raise RuntimeError("Q0Q3_9519_LOS_ALIGNMENT_BAD")
+ conf=json.loads((ROOT/"research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json").read_text())
+ cases={r["id"]:r for r in conf["cases"]}
+ rows=[];jac=[]
+ for rec in data.itertuples(index=False):
+  case=cases[str(rec.case)]
+  truth=np.array([float(rec.x_eval),float(rec.y_eval),float(rec.yaw_eval_rad)])
+  old,jold=before.model(truth,case)
+  new,jnew=after.model(truth,case)
+  native=float(rec.s_fp_los)
+  expected=float(rec.s_los_expected)
+  if abs(old[1]-expected)>1e-9:
+   raise RuntimeError("OLD_Q1_LUT_S_SCORE_CHANGED:"+str((rec.case,rec.pose_id,old[1],expected)))
+  if abs(native-old[1]-float(rec.e_s_los))>1e-9:
+   raise RuntimeError("OLD_Q2_LOS_ERROR_LABEL_MISMATCH")
+  rho=float(math.hypot(truth[0]-case["anchor"][0],truth[1]-case["anchor"][1]))
+  th=math.degrees(math.atan2(rho,case["anchor"][2]-case["robot_z_m"]))
+  row={"case":str(rec.case),"route":str(rec.route),"pose_id":int(rec.pose_id),
+       "theta_deg":th,"rho_m":rho,"s_native":native,
+       "s_old":float(old[1]),"s_corrected":float(new[1]),
+       "e_s_old":float(native-old[1]),"e_s_corrected":float(native-new[1]),
+       "delta_label_for_Full_training":float(old[1]-new[1]),
+       "old_dsdx":float(jold[1,0]),"new_dsdx":float(jnew[1,0]),
+       "old_dsdy":float(jold[1,1]),"new_dsdy":float(jnew[1,1]),
+       "old_dsdpsi":float(jold[1,2]),"new_dsdpsi":float(jnew[1,2])}
+  rows.append(row)
+  if th<2.:
+   dd={"case":str(rec.case),"pose_id":int(rec.pose_id),"theta_deg":th}
+   for j in range(3):
+    h=1e-6;up=truth.copy();dn=truth.copy();up[j]+=h;dn[j]-=h
+    fd=float((after.model(up,case)[0][1]-after.model(dn,case)[0][1])/(2*h))
+    if abs(fd-jnew[1,j])>2e-3:
+     raise RuntimeError("INDEPENDENT_FINITE_DIFFERENCE_FAIL:"+str((rec.case,rec.pose_id,j,fd,jnew[1,j])))
+    dd[("dx","dy","dpsi")[j]]={"fd":fd,"analytical":float(jnew[1,j])}
+   jac.append(dd)
+ def table(selector):
+  aa=np.array([r["e_s_old"] for r in rows if selector(r)])
+  bb=np.array([r["e_s_corrected"] for r in rows if selector(r)])
+  return {"n":len(aa),"old_rmse":float(np.sqrt(np.mean(aa**2))),
+    "patched_rmse":float(np.sqrt(np.mean(bb**2))),
+    "old_abs_gt05":int(np.sum(abs(aa)>.05)),
+    "patched_abs_gt05":int(np.sum(abs(bb)>.05)),
+    "old_max_abs":float(np.max(abs(aa))),
+    "patched_max_abs":float(np.max(abs(bb)))}
+ stats={"theta_lt2":table(lambda r:r["theta_deg"]<2),
+        "theta_ge2":table(lambda r:r["theta_deg"]>=2),
+        "all":table(lambda r:True)}
+ if stats["theta_lt2"]["n"]!=5 or stats["all"]["old_abs_gt05"]!=4 or stats["all"]["patched_abs_gt05"]!=0:
+  raise RuntimeError("FULL_9519_POLE_REFERENCE_MISMATCH:"+str(stats))
+ if abs(stats["theta_lt2"]["old_rmse"]-.454941)>2e-4 or abs(stats["theta_lt2"]["patched_rmse"]-.001143)>2e-4:
+  raise RuntimeError("FULL_9519_POLE_RMSE_NOT_REPRODUCED")
+ if abs(stats["theta_ge2"]["old_rmse"]-stats["theta_ge2"]["patched_rmse"])>1e-12:
+  raise RuntimeError("OUTSIDE_THETA_0_TO2_CHANGED")
+ if len(jac)!=5:raise RuntimeError("NEAR_POLE_JACOBIAN_COVERAGE_BAD")
+ writecsv(out/"POLE_ALL_9519_SOURCE_OBSERVER_PARITY.csv",rows)
+ save(out/"POLE_ALL_9519_NEAR_JACOBIANS.json",jac)
+ final={"status":"POLE_RAW_9519_CORRECTED_PAIRED_SOURCE_VERIFIED",
+    "input_archive_sha":"748b7d1b91e06b1825fdd49bc10bf387fae3786aebd63eac18f194e275170d67",
+    "source_original_complex_RF_parity":"BY_FROZEN_Q0_Q3_HASH",
+    "original_lut_sha256":ORIG_LUT_SHA256,
+    "candidate_lut_sha256":PATCH_LUT_SHA256,
+    "n_paired_sources":len(rows),"statistics":stats,
+    "full_FFD_bank_independent_rebuild":False,
+    "note":"This uses original Q0-Q3 archived s from complex Native LoS H; new s is never regenerated."}
+ save(out/"POLE_ALL_9519_FINAL.json",final)
+ print("POLE_FULL_9519_FINAL "+json.dumps(final,ensure_ascii=False),flush=True)
+ return 0
+
 def main():
  p=argparse.ArgumentParser()
- p.add_argument("--phase",choices=("pre","test","compare","recursive"),required=True)
+ p.add_argument("--phase",choices=("pre","test","compare","compare_all","recursive"),required=True)
  p.add_argument("--out")
  p.add_argument("--audit");p.add_argument("--rf");p.add_argument("--r2")
- p.add_argument("--n4b");p.add_argument("--n4c")
+ p.add_argument("--n4b");p.add_argument("--n4c");p.add_argument("--q0q3")
  a=p.parse_args()
  if a.phase=="pre":return source_audit(a.out)
  if a.phase=="test":return test()
  if a.phase=="compare":return compare(a.out,a.audit,a.rf)
+ if a.phase=="compare_all":return compare_all_raw_9519(a.out,a.audit,a.q0q3)
  return replay(a.out,a.audit,a.rf,a.r2,a.n4b,a.n4c)
 if __name__=="__main__":raise SystemExit(main())
