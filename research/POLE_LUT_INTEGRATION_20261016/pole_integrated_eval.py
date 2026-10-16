@@ -137,7 +137,10 @@ def test():
  assert np.array_equal(corrected[1:],s[1:])
  assert np.max(np.abs(corrected))<=1.
  assert np.max(np.abs(s[0]-s[0,0:1,:]))<1e-12
- assert np.max(abs(corrected[0,:,0]-corrected[0,0,:]))>0.001
+ # Candidate depends on phi_tx + phi_rx: row/column symmetry is expected.
+ # Verify azimuth sensitivity along a fixed phi_rx, not antisymmetry.
+ assert np.ptp(corrected[0,:,0])>0.001
+ assert np.array_equal(corrected[0,:,0],corrected[0,0,:])
  try:patch(corrected)
  except ValueError as err:
   assert "FROZEN_THETA_ZERO_COLLAPSE" in str(err)
