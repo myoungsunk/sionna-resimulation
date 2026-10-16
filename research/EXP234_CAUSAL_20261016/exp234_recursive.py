@@ -299,3 +299,352 @@ def test_R4R5_ineligible():
   if c["route"] in ("R4","R5"):
    assert "trace_t_s" not in c and "wheel_gyro_control_path" not in c
  return {"R4R5_verified_timed_controls":False,"reason":"Original SAMPLES file lacks authenticated t_s/ds_odom/dtheta_gyro/dt_s of actual traversal"}
+
+
+def exp2(out,args):
+ np,pd,frozen,gaussian_update,wrap,generate,predict,names,FrozenLut,R0=setup()
+ verify_receipt(args.audit);out=Path(out);out.mkdir(parents=True,exist_ok=False)
+ entries=[];steps=[];parities=[];per_arm_checks=[];series_info=[]
+ with checked(args.rf,SHA["RF"]) as zr,checked(args.r2,SHA["R2"]) as ref, \
+      checked(args.n4b,SHA["N4B"]) as zq,checked(args.n4c,SHA["N4C"]) as zc:
+  pair,cases,quality,lut,cuts,coefs,covs=verify_meta(np,pd,frozen,None,zr,zq,zc)
+  for case in CASES:
+   for bias,true_b in LEVELS.items():
+    raw=r2_native(np,zr,pair[(case,"full")])
+    t=raw["t_s"];pids=raw["pose_id"]
+    truth=raw["truth_for_offline_scoring_only"]
+    obs=np.stack([raw["z_r_m"],raw["z_s"]],axis=-1)
+    controls,x0=generate(t,truth,bias,seed=0)
+    q=[quality[(case,int(pid))]["POWER_BIN_JOINT"] for pid in pids]
+    for solver in SOLVERS:
+     saved=zc.read(member(zc,f"N4C_{case}_full_{bias}_{solver}.npz"))
+     with np.load(io.BytesIO(saved),allow_pickle=False) as z:
+      active=np.flatnonzero((z["policies"]=="POWER_JOINT")&(z["gate_modes"]=="natural"))
+      if len(active)!=1:raise RuntimeError("BAD_ORIGINAL_POWER_POLICY")
+      orig_mask=(z["status"][:,int(active[0])]=="APPLIED").copy()
+     runs={}
+     for policy in EXP2_POLICIES:
+      for gate in EXP2_GATES:
+       key=(policy,gate)
+       run=run_estimator(np,frozen,gaussian_update,predict,
+         t,controls,x0,obs,cases[case],lut,q,policy,solver,gate,orig_mask)
+       runs[key]=run
+       if policy=="R0" and gate=="natural":
+        parities.append(check_original(np,run,ref,names,case,"full",bias,solver,None))
+       if policy=="FULL" and gate=="natural":
+        parities.append(check_original(np,run,ref,names,case,"full",bias,solver,zc))
+       s=frozen.score(np,run,t,truth,true_b)
+       diag=condxy(np,run["state"],run["cov"],truth,t)
+       ev=t>=30
+       row={"case":case,"mount_deg":cases[case]["mount_deg"],"bias":bias,"solver":solver,
+        "policy":policy,"gate_mode":gate,"common_gate_source":"frozen_original_POWER" if gate=="power_mask" else "natural",
+        "n":int(ev.sum()),**s,**diag,
+        "mean_abs_K_b_s":float(np.mean(abs(run["K"][ev,3,1]))),
+        "mean_abs_K_b_r":float(np.mean(abs(run["K"][ev,3,0]))),
+        "mean_abs_K_h_s":float(np.mean(abs(run["K"][ev,2,1]))),
+        "longest_reject_run":int(max(
+          [len(x) for x in "".join("1" if v=="REJECT" else "0" for v in run["status"][ev]).split("0")]+[0])),
+        "median_NIS":float(np.median(run["nis"][ev]))}
+       entries.append(row)
+     # Factor ablation invariants, natural joint and fixed mask must keep original observation.
+     rawrun=runs[("FULL","natural")]
+     if not np.array_equal((rawrun["status"]=="APPLIED"),orig_mask):
+      raise RuntimeError("FROZEN_GATE_PARITY_FAIL")
+     if not np.array_equal(
+         runs[("R0","power_mask")]["status"]=="APPLIED",orig_mask):
+      raise RuntimeError("COMMON_GATE_CONTRACT_INVALID")
+     # A one-step counterfactual is evaluated from the same original POWER prior;
+     # matched posterior is the archived frozen POWER path.
+     if bias in ("B0","L2"):
+      eligible=np.flatnonzero(t>=30)
+      for pol in EXP2_POLICIES:
+       group=[]
+       for k in eligible:
+        xp=rawrun["prior_x"][k];PP=rawrun["prior_P"][k]
+        mu,R=select(np,pol,q[k]["mean"],q[k]["cov"],R0)
+        h,H=lut.model(xp,cases[case]);innov=obs[k]-h-mu
+        nis=float(innov@np.linalg.solve(H@PP@H.T+R,innov))
+        if orig_mask[k]:
+         if solver=="J4":
+          new,newP,_=gaussian_update(xp,PP,obs[k]-mu,
+            lambda xx:lut.model(xx,cases[case]),R)
+         else:
+          new,newP=frozen.correlated_sr4(np,xp,PP,obs[k],mu,R,lut,cases[case])
+        else:new,newP=xp.copy(),PP.copy()
+        ee=new[2]-truth[k,2];ee=float(wrap(ee))
+        eb=new[3]-math.radians(true_b)
+        pstate=rawrun["state"][k]
+        power_ee=float(wrap(pstate[2]-truth[k,2]))
+        power_eb=pstate[3]-math.radians(true_b)
+        group.append([ee**2-power_ee**2,eb**2-power_eb**2,nis])
+       v=np.asarray(group,float)
+       steps.append({"case":case,"bias":bias,"solver":solver,
+        "mode":"fixed_original_POWER_prior_and_Gate",
+        "policy":pol,"n":len(v),
+        "delta_heading_squared_error_deg2":float(v[:,0].mean()*(180/math.pi)**2),
+        "delta_bias_squared_error_dps2":float(v[:,1].mean()*(180/math.pi)**2),
+        "mean_own_preGate_NIS":float(v[:,2].mean())})
+     keys=list(runs)
+     np.savez_compressed(out/f"EXP2_{case}_{bias}_{solver}.npz",
+       t_s=t,pose_id=pids,policy=np.asarray([a for a,b in keys]),
+       gate_mode=np.asarray([b for a,b in keys]),
+       estimate=np.stack([runs[k]["state"] for k in keys],axis=1),
+       covariance=np.stack([runs[k]["cov"] for k in keys],axis=1),
+       prior_x=np.stack([runs[k]["prior_x"] for k in keys],axis=1),
+       prior_P=np.stack([runs[k]["prior_P"] for k in keys],axis=1),
+       nis=np.stack([runs[k]["nis"] for k in keys],axis=1),
+       K=np.stack([runs[k]["K"] for k in keys],axis=1),
+       status=np.stack([runs[k]["status"] for k in keys],axis=1))
+     print("EXP2_CASE "+json.dumps({"case":case,"bias":bias,"solver":solver,
+       "policies":len(keys)}),flush=True)
+ csvout(out/"EXP2_SIXWAY_PLUS_ABLATIONS.csv",entries)
+ csvout(out/"EXP2_COMMON_PRIOR_ONE_STEP.csv",steps)
+ csvout(out/"EXP2_BASELINE_PARITY.csv",parities)
+ report={"status":"EXP2_FROZEN_SIXWAY_PLUS_FACTORIAL_RECURSIVE_COMPLETED",
+   "n_recursive_arms":len(entries),"n_matched_one_step":len(steps),
+   "original_N4C_R0_POWER_parity":len(parities),
+   "n_independent_RF_scenes":1,"input_splits":"R4_R5_train_R2_test",
+   "six_required":EXP2_POLICIES[:6],
+   "all_variants":EXP2_POLICIES,"gate_types":EXP2_GATES,
+   "B0_L2_J4":[x for x in entries if x["bias"] in ("B0","L2") and x["solver"]=="J4"],
+   "limitations":["common POWER gate forced in offline replay; not a deployable gate",
+     "same corridor and sensor seed0 across levels",
+     "correlated SR4 nonlinear order may differ from J4",
+     "R2 repeatedly tested; not a fresh independent scene"],
+   "scientific_generalization_PASS":False}
+ save(out/"EXP2_FINAL.json",report)
+ print("EXP2_FINAL "+json.dumps({"status":report["status"],"arms":len(entries),
+   "one_step":len(steps),"parities":len(parities),
+   "L2_J4":[{k:v for k,v in s.items() if k in (
+       "case","policy","gate_mode","heading_rmse_deg","xy_rmse_m",
+       "bias_rmse_dps","pose_nees","conditional_xy_nees","pose_95coverage","rf_applied"
+       )} for s in entries if s["bias"]=="L2" and s["solver"]=="J4"]},
+   ensure_ascii=False),flush=True)
+ return 0
+
+def exp3(out,args):
+ np,pd,frozen,gaussian_update,wrap,generate,predict,names,FrozenLut,R0=setup()
+ verify_receipt(args.audit);out=Path(out);out.mkdir(parents=True,exist_ok=False)
+ metrics=[];residuals=[];parities=[]
+ with checked(args.rf,SHA["RF"]) as zr,checked(args.r2,SHA["R2"]) as ref, \
+      checked(args.n4b,SHA["N4B"]) as zq,checked(args.n4c,SHA["N4C"]) as zc:
+  pair,cases,quality,lut,cuts,coefs,covs=verify_meta(np,pd,frozen,None,zr,zq,zc)
+  with gzip.open(io.BytesIO(zq.read(member(zq,"N4B_OOF_PREDICTIONS.csv.gz"))),"rt") as f:
+   allpred=pd.read_csv(f)
+  idx=allpred[(allpred.model=="POWER_BIN_JOINT")&(allpred.route=="R2")].set_index(["case","pose_id"])
+  for case in CASES:
+   src=r2_native(np,zr,pair[(case,"full")])
+   t=src["t_s"];pids=src["pose_id"];truth=src["truth_for_offline_scoring_only"]
+   z=np.column_stack([src["z_r_m"],src["z_s"]])
+   q=[quality[(case,int(pid))]["POWER_BIN_JOINT"] for pid in pids]
+   # Cross-check oracle r error from the original per-packet N4B source.
+   gt_r=np.array([lut.model(truth[k],cases[case])[0][0] for k in range(len(t))])
+   residual=z[:,0]-gt_r-np.array([p["mean"][0] for p in q])
+   orig_err=idx.loc[[(case,int(pid)) for pid in pids]]
+   discrepancy=float(np.max(abs((z[:,0]-gt_r)-orig_err.e_r.to_numpy())))
+   if discrepancy>5e-6:raise RuntimeError("EXP3_ORIGINAL_RF_ERROR_NOT_PAIRED")
+   corrections={
+     "ORIGINAL":np.zeros(len(t)),
+     "TRAIL25":lowpass(np,residual,25,False),
+     "TRAIL50":lowpass(np,residual,50,False),
+     "CENTER25_ORACLE":lowpass(np,residual,25,True),
+     "CENTER50_ORACLE":lowpass(np,residual,50,True),
+     "SHIFT25_PLACEBO":np.roll(lowpass(np,residual,25,False),125),
+     "GLOBAL_MEAN_ORACLE":np.full(len(t),float(np.mean(residual))),
+     "RAW_RANGE_ORACLE":residual.copy()
+   }
+   for name,trend in corrections.items():
+    rem=residual-trend
+    def corr_lag(a,lag=1):
+     return float(np.corrcoef(a[:-lag],a[lag:])[0,1]) if len(a)>lag+3 else None
+    # Only one physical scene: this ACF has deterministic spatial dependence.
+    residuals.append({"case":case,"variant":name,"n":len(t),
+       "correction_r_mean_m":float(np.mean(trend)),
+       "correction_r_std_m":float(np.std(trend)),
+       "retained_residual_r_mean_m":float(np.mean(rem)),
+       "retained_residual_r_std_m":float(np.std(rem)),
+       "retained_lag1":corr_lag(rem),
+       "original_lag1":corr_lag(residual),
+       "mean_correction_95_135_m":float(np.mean(trend[(t>=95)&(t<=135)])),
+       "is_oracle_using_GT":name!="ORIGINAL",
+       "contains_future_source":name.startswith("CENTER"),
+       "time_matched_negative_placebo":name=="SHIFT25_PLACEBO"})
+   for bias in ("B0","L2"):
+    controls,x0=generate(t,truth,bias,seed=0)
+    for solver in SOLVERS:
+     orig=zc.read(member(zc,f"N4C_{case}_full_{bias}_{solver}.npz"))
+     with np.load(io.BytesIO(orig),allow_pickle=False) as za:
+      j=np.flatnonzero((za["policies"]=="POWER_JOINT")&(za["gate_modes"]=="natural"))
+      if len(j)!=1:raise RuntimeError("N4C_BASELINE_MISSING")
+      i=int(j[0]);original_states=za["estimate"][:,i,:].copy()
+      original_cov=za["covariance"][:,i,:,:].copy()
+      orig_mask=(za["status"][:,i]=="APPLIED")
+     runs={}
+     for variant in EXP3_VARIANTS:
+      zz=z.copy();zz[:,0]-=corrections[variant]
+      run=run_estimator(np,frozen,gaussian_update,predict,t,controls,x0,
+         zz,cases[case],lut,q,"FULL",solver,"natural")
+      runs[variant]=run
+      if variant=="ORIGINAL":
+       dd=run["state"]-original_states;dd[:,2]=(dd[:,2]+np.pi)%(2*np.pi)-np.pi
+       if max(float(np.max(abs(dd))),float(np.max(abs(run["cov"]-original_cov))))>1e-6 \
+          or not np.array_equal(run["status"]=="APPLIED",orig_mask):
+        raise RuntimeError("ORIGINAL_POWER_ORACLE_SIM_PARITY_FAILED")
+       parities.append({"case":case,"bias":bias,"solver":solver,
+        "state_max":float(np.max(abs(dd))),"cov_max":float(np.max(abs(run["cov"]-original_cov)))})
+      out_=frozen.score(np,run,t,truth,LEVELS[bias])
+      vals=condxy(np,run["state"],run["cov"],truth,t)
+      within=(t>=95)&(t<=135)
+      C=run["cov"][within,:3,:3];xx=run["state"][within,:3];tr=truth[within]
+      e=xx-tr;e[:,2]=(e[:,2]+np.pi)%(2*np.pi)-np.pi
+      v=C[:,:2,:2]-C[:,:2,2,None]*C[:,None,2,:2]/C[:,2,2,None,None]
+      conditioned=e[:,:2]-C[:,:2,2]/C[:,2,2,None]*e[:,2,None]
+      win_ne=np.einsum("ni,ni->n",conditioned,
+                      np.linalg.solve(v,conditioned[...,None])[:,:,0])
+      metrics.append({"case":case,"bias":bias,"solver":solver,
+       "variant":variant,"oracle_gt_used_for_correction":variant!="ORIGINAL",
+       "noncausal_future_dependency":variant.startswith("CENTER"),
+       "n_window":int(sum(within)),"condxy_nees_95_135":float(win_ne.mean()),
+       "xy_RMSE_95_135_m":float(np.sqrt(np.mean(np.sum(e[:,:2]**2,axis=1)))),
+       **out_,**vals})
+     keys=list(runs)
+     np.savez_compressed(out/f"EXP3_{case}_{bias}_{solver}.npz",
+       t_s=t,pose_id=pids,variant=np.asarray(keys),
+       raw_range=z[:,0],offline_true_range=gt_r,original_rf_residual=residual,
+       oracle_corrections=np.stack([corrections[k] for k in keys],axis=1),
+       estimate=np.stack([runs[k]["state"] for k in keys],axis=1),
+       covariance=np.stack([runs[k]["cov"] for k in keys],axis=1),
+       prior_x=np.stack([runs[k]["prior_x"] for k in keys],axis=1),
+       prior_P=np.stack([runs[k]["prior_P"] for k in keys],axis=1),
+       status=np.stack([runs[k]["status"] for k in keys],axis=1),
+       NIS=np.stack([runs[k]["nis"] for k in keys],axis=1))
+     print("EXP3_CASE "+json.dumps({"case":case,"bias":bias,"solver":solver,
+       "arms":len(keys),"r2_range_error_parity_max":discrepancy}),flush=True)
+ csvout(out/"EXP3_ORACLE_RECURSIVE.csv",metrics)
+ csvout(out/"EXP3_LPF_DIAGNOSTIC.csv",residuals)
+ csvout(out/"EXP3_BASELINE_PARITY.csv",parities)
+ info={"status":"EXP3_GT_ORACLE_RANGE_LOW_PASS_ABLATION_COMPLETE",
+   "n_arms":len(metrics),"n_baseline_parity":len(parities),
+   "all_gt_corrected_are_oracle_and_not_online":True,
+   "orig_q_mu_R_Q_unchanged":True,
+   "new_filter_P_is_recomputed_in_recursion":True,
+   "nominal_conditional_XY_NEES":2,
+   "focus":[v for v in metrics if v["bias"]=="L2" and v["solver"]=="J4"],
+   "original_residual_checks":residuals,
+   "limitations":[
+    "Computing e_r requires TRUE Range from ground truth, unavailable online",
+    "TRAIL windows are trailing only but still offline oracle owing to GT",
+    "CENTER windows use future samples and are noncausal oracle",
+    "Removing residual changes estimated state, Jacobians, gating and P trajectories",
+    "If NEES improves, proves only possible source-specific signal effect, not origin of colored noise",
+    "One corridor and no independently generated multipath trials"],
+   "scientific_causal_colored_noise_proven":False}
+ save(out/"EXP3_FINAL.json",info)
+ print("EXP3_FINAL "+json.dumps({"status":info["status"],"arms":len(metrics),
+   "parity":len(parities),
+   "L2J4":[{k:v for k,v in x.items() if k in(
+    "case","variant","heading_rmse_deg","bias_rmse_dps","xy_rmse_m",
+    "conditional_xy_nees","condxy_nees_95_135","pose_nees","pose_95coverage",
+    "rf_applied")} for x in metrics if x["bias"]=="L2" and x["solver"]=="J4"]},
+    ensure_ascii=False),flush=True)
+ return 0
+
+def exp4(out,args):
+ np,pd,frozen,gaussian_update,wrap,generate,predict,names,FrozenLut,R0=setup()
+ verify_receipt(args.audit);out=Path(out);out.mkdir(parents=True,exist_ok=False)
+ results=[];parities=[];pq=[]
+ with checked(args.rf,SHA["RF"]) as zr,checked(args.r2,SHA["R2"]) as ref, \
+      checked(args.n4b,SHA["N4B"]) as zq,checked(args.n4c,SHA["N4C"]) as zc:
+  pair,cases,quality,lut,cuts,coefs,covs=verify_meta(np,pd,frozen,None,zr,zq,zc)
+  for case in CASES:
+   raw=r2_native(np,zr,pair[(case,"los")])
+   t=raw["t_s"];pids=raw["pose_id"];truth=raw["truth_for_offline_scoring_only"]
+   z=np.column_stack([raw["z_r_m"],raw["z_s"]])
+   p=raw["power"]
+   # The native clean LoS q is from exactly the same first-path tap as s.
+   s_direct=(p[:,0]-p[:,1])/(p[:,0]+p[:,1])
+   if np.max(abs(z[:,1]-s_direct))>1e-11:
+    raise RuntimeError("LOS_S_AND_POWER_DIFFERENT_TAPS")
+   native,q_los,bin_los=q_from_los(np,p,cuts,coefs,covs)
+   qfull=np.asarray([q_from["POWER_BIN_JOINT"]["mean"] for q_from in
+       [quality[(case,int(pid))] for pid in pids]])
+   pq.append({"case":case,"n":len(t),"n_eval":int(sum(t>=30)),
+    "median_q_los":float(np.median(q_los[t>=30])),
+    "bin_low":int(sum(bin_los[t>=30]==0)),
+    "bin_mid":int(sum(bin_los[t>=30]==1)),
+    "bin_high":int(sum(bin_los[t>=30]==2)),
+    "avg_native_los_power_correction_r_m":float(np.mean(
+        [v["mean"][0] for v in native if True])),
+    "source_note":"Native LoS power from P2 archive, NOT reused Full packet q"})
+   for bias,true_b in LEVELS.items():
+    controls,x0=generate(t,truth,bias,seed=0)
+    for solver in SOLVERS:
+     runs={}
+     for variant in EXP4_POLICIES:
+      outrec=run_estimator(np,frozen,gaussian_update,predict,
+        t,controls,x0,z,cases[case],lut,native,variant,solver,"natural")
+      runs[variant]=outrec
+      if variant=="R0":
+       parities.append(check_original(np,outrec,ref,names,case,"los",bias,solver,None))
+      score=frozen.score(np,outrec,t,truth,true_b)
+      diag=condxy(np,outrec["state"],outrec["cov"],truth,t)
+      results.append({"case":case,"mount_deg":cases[case]["mount_deg"],
+       "channel":"los","bias":bias,"solver":solver,
+       "policy":variant,"q_origin":"native_clean_LoS_same_packet",
+       **score,**diag})
+     key=list(runs)
+     np.savez_compressed(out/f"EXP4_LOS_{case}_{bias}_{solver}.npz",
+       t_s=t,pose_id=pids,q_native_los=q_los,
+       native_los_power=np.asarray(p),native_s=z[:,1],
+       first_power_bin=bin_los,
+       policy=np.asarray(key),
+       mean_correction_r=np.array([a["mean"][0] for a in native]),
+       mean_correction_s=np.array([a["mean"][1] for a in native]),
+       estimate=np.stack([runs[k]["state"] for k in key],axis=1),
+       covariance=np.stack([runs[k]["cov"] for k in key],axis=1),
+       status=np.stack([runs[k]["status"] for k in key],axis=1),
+       NIS=np.stack([runs[k]["nis"] for k in key],axis=1))
+     print("EXP4_CASE "+json.dumps({"case":case,"bias":bias,"solver":solver,
+       "arms":len(key)}),flush=True)
+ csvout(out/"EXP4_NATIVE_LOS_RECURSIVE.csv",results)
+ csvout(out/"EXP4_LOS_BASELINE_PARITY.csv",parities)
+ csvout(out/"EXP4_LOS_POWER_BINS.csv",pq)
+ status={"status":"EXP4_NATIVE_LOS_FULL_TRAINED_POWER_TRANSFER_COMPLETE",
+   "n_recursive_arms":len(results),
+   "n_baseline_R0_parity":len(parities),
+   "native_LoS_q_source":"P2 native LoS first-path power P1/P2",
+   "original_N4B_R2_fold_coefs":coefs.tolist(),
+   "original_N4B_R2_fold_power_cuts":cuts.tolist(),
+   "models":EXP4_POLICIES,
+   "R4R5_timed_recursion":"BLOCKED_MISSING_AUTHENTICATED_CONTROLS",
+   "R4R5_contract":test_R4R5_ineligible(),
+   "B0_L2_J4":[v for v in results if v["bias"] in ("B0","L2") and v["solver"]=="J4"],
+   "limitations":["LoS application of Full-trained POWER is a negative transfer test",
+     "No oracle switch identifying real LoS is provided to filter",
+     "Native LoS q power source not Full RF q; independent identical source tap",
+     "R4/R5 one-step sweep samples lack true timed wheel/gyro control stream",
+     "R2 is one frequently inspected corridor and seed0"],
+   "generalization_PASS":False}
+ save(out/"EXP4_FINAL.json",status)
+ print("EXP4_FINAL "+json.dumps({"status":status["status"],
+  "n":len(results),"parity":len(parities),
+  "L2_J4":[{k:v for k,v in s.items() if k in(
+   "case","policy","heading_rmse_deg","xy_rmse_m","bias_rmse_dps",
+   "pose_nees","pose_95coverage","conditional_xy_nees","rf_applied")}
+   for s in results if s["bias"]=="L2" and s["solver"]=="J4"]},
+   ensure_ascii=False),flush=True)
+ return 0
+
+def main():
+ p=argparse.ArgumentParser()
+ p.add_argument("--phase",required=True,choices=("audit","test","exp2","exp3","exp4"))
+ p.add_argument("--out");p.add_argument("--audit");p.add_argument("--rf")
+ p.add_argument("--r2");p.add_argument("--n4b");p.add_argument("--n4c")
+ args=p.parse_args()
+ if args.phase=="audit":return audit(args.out)
+ if args.phase=="test":return unit()
+ if not all([args.out,args.audit,args.rf,args.r2,args.n4b,args.n4c]):
+  raise RuntimeError("REQUIRED_FROZEN_INPUTS_MISSING")
+ funcs={"exp2":exp2,"exp3":exp3,"exp4":exp4}
+ return funcs[args.phase](args.out,args)
+if __name__=="__main__":raise SystemExit(main())
