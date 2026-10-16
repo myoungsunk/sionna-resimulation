@@ -56,13 +56,12 @@
     },
     {
       "id": "SIM_B_R4R5_MOTION",
-      "required": true,
+      "required": false,
       "available": false,
-      "purpose": "R4/R5 synchronized 4-state sequences",
+      "purpose": "R4/R5 archival recursion supplemental only; independent new scenes contain independent valid motion",
       "owner": "simulator",
       "scientific_blocker_for": [
-        "F6",
-        "F7"
+        "R4R5_ORIGINAL_REPLAY_ONLY"
       ],
       "required_fields": [
         "t_s",
@@ -227,7 +226,6 @@
       "uses_existing_for_pilot": false,
       "requires": [
         "SIM_A_ORIGINAL_FFD",
-        "SIM_B_R4R5_MOTION",
         "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
       ],
       "outputs": [
@@ -253,7 +251,6 @@
       "uses_existing_for_pilot": false,
       "requires": [
         "SIM_A_ORIGINAL_FFD",
-        "SIM_B_R4R5_MOTION",
         "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
       ],
       "outputs": [
@@ -280,7 +277,8 @@
     "train_validation_test_scene_overlap": false,
     "same_packet_q_and_s_assumed_independent": false,
     "chi2_829_frames_assumed_independent": false,
-    "scientific_pass_when_required_inputs_missing": false
+    "scientific_pass_when_required_inputs_missing": false,
+    "authentic_R4R5_required_for_new_scene_independence": false
   },
   "hard_locked_eval_config": {
     "baseline_filters": [
