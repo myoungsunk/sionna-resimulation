@@ -1,0 +1,49 @@
+name: Verify exact FFD source-bank availability
+on:
+  push:
+    branches: ['research/ffd-source-p0p3-20261016']
+    paths: ['.github/workflows/ffd-bank-availability-20261016.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Retrieve exact public LFS content with bounded timeouts
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$RUNNER_TEMP/ffd_check"
+          cd "$RUNNER_TEMP/ffd_check"
+          python3 - <<'PY'
+          import urllib.request,hashlib,json,time,pathlib
+          records=[]
+          files=[('LP_plus45_bank.npz','b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b',247727983),('LP_minus45_bank.npz','39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9',247743979)]
+          for name,sha,size in files:
+              row={'name':name,'expected_sha256':sha,'expected_bytes':size,'verified':False}
+              url='https://media.githubusercontent.com/media/myoungsunk/sionna-resimulation/4c0682a55298ae33f3495a4c7249f3a8c34633ad/'+name
+              try:
+                  start=time.monotonic();h=hashlib.sha256();n=0
+                  with urllib.request.urlopen(url,timeout=30) as response,open(name,'wb') as f:
+                      while True:
+                          b=response.read(1048576)
+                          if not b: break
+                          f.write(b);h.update(b);n+=len(b)
+                          if time.monotonic()-start>70: raise TimeoutError('bounded download deadline')
+                  row.update(actual_bytes=n,actual_sha256=h.hexdigest(),verified=(n==size and h.hexdigest()==sha))
+              except Exception as e: row['error']=str(e)
+              if not row['verified']: pathlib.Path(name).unlink(missing_ok=True)
+              records.append(row)
+          pathlib.Path('BANK_AVAILABILITY.json').write_text(json.dumps({'files':records,'all_verified':all(x['verified'] for x in records),'scientific_pass':False},indent=2))
+          print(json.dumps(records))
+          PY
+      - name: Preserve verified binary objects and availability receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ffd-verified-original-${{ github.run_id }}
+          path: ${{ runner.temp }}/ffd_check/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
