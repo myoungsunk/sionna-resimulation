@@ -1,0 +1,329 @@
+{
+  "schema": "POWERJOINT_FINAL_PREEXECUTION_PLAN_V1",
+  "created_kst": "2026-10-16",
+  "plan_only": true,
+  "scientific_experiments_executed_in_plan_branch": false,
+  "repo": "myoungsunk/sionna-resimulation",
+  "plan_branch": "research/powerjoint-final-preexecution-20261016",
+  "original_lut_sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+  "original_artifact_sha256": {
+    "RF": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+    "R2": "ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399",
+    "N4B": "170a646f8167f1e440316abf42b614afa4efc3d77037c0e19bf470a817fc334b",
+    "N4C": "f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9"
+  },
+  "original_code_git_blobs": {
+    "research/EKF4_RANGE_S_STAGED_20261014/core.py": "0a0851e6867c14fec5eefe02df471100cb9e9e1d",
+    "research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py": "b1de0de13e82cd414306cba3182af18ac97607bf",
+    "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "cb676aea8e6710ff2c0e175e1e422271b696cebe",
+    "research/R5_N4C_20261015/n4c_joint_sr4.py": "40c795fa8799c4090c0766ebdccf6e2be83df6a0",
+    "research/R5_N4B_20261015/n4b_rf_errors.py": "abd654dd9efde61fc7baffc350188b2a8b4904a3",
+    "research/EXP234_CAUSAL_20261016/exp234_recursive.py": "4ec38ff42a5daecf00067902369b03bfec3495cd",
+    "research/POLE_RECURSIVE_20261016/pole_lut_fix.py": "d2474fcac8bc02dc20d1bad253b6c39956412376",
+    "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/hs_lut.py": "a205e43bb381fbbdf3a41f9bb029ede0d4293231"
+  },
+  "documents": [
+    "00_MASTER_PLAN_KO.md",
+    "01_HYPOTHESIS_LEDGER_KO.md",
+    "02_EXPERIMENT_PROTOCOL_KO.md",
+    "03_CODE_AUDIT_CONTRACT_KO.md",
+    "04_SIMULATION_REQUEST_SPEC_KO.md",
+    "05_PAPER_STORY_KO.md",
+    "06_EXECUTION_RUNBOOK_KO.md"
+  ],
+  "input_packages": [
+    {
+      "id": "SIM_A_ORIGINAL_FFD",
+      "required": true,
+      "available": false,
+      "purpose": "physical pole and FFD LUT offpole reconstruction",
+      "owner": "simulator",
+      "scientific_blocker_for": [
+        "F0",
+        "F1",
+        "F3",
+        "F7"
+      ],
+      "required_fields": [
+        "TX0_FFD_complex",
+        "RX0_FFD_complex",
+        "RX1_FFD_complex",
+        "freq_hz_257",
+        "global_rotation",
+        "FFD_sha256",
+        "near_pole_direct_H"
+      ]
+    },
+    {
+      "id": "SIM_B_R4R5_MOTION",
+      "required": true,
+      "available": false,
+      "purpose": "R4/R5 synchronized 4-state sequences",
+      "owner": "simulator",
+      "scientific_blocker_for": [
+        "F6",
+        "F7"
+      ],
+      "required_fields": [
+        "t_s",
+        "pose_id",
+        "ds_odom_m",
+        "dtheta_gyro_rad",
+        "dt_s",
+        "gt_pose_offline",
+        "sensor_v2_seed",
+        "provenance_authentic_or_regenerated"
+      ]
+    },
+    {
+      "id": "SIM_C_INDEPENDENT_FULL_LOS_SCENES",
+      "required": true,
+      "available": false,
+      "purpose": "true multipath independent scene data",
+      "owner": "simulator",
+      "scientific_blocker_for": [
+        "F3",
+        "F4",
+        "F5",
+        "F6",
+        "F7"
+      ],
+      "required_fields": [
+        "scene_sha",
+        "scene_train_val_test_id",
+        "rf_seed",
+        "sensor_seed",
+        "H_full_complex_N257x2x2",
+        "H_los_complex_N257x2x2",
+        "full_los_FP_packets",
+        "gyro_wheel_input_N",
+        "GT_offline"
+      ]
+    },
+    {
+      "id": "SIM_D_HARDWARE",
+      "required": false,
+      "available": false,
+      "purpose": "hardware-ready claims only",
+      "owner": "lab",
+      "scientific_blocker_for": []
+    }
+  ],
+  "stages": [
+    {
+      "id": "F0",
+      "title": "Physical FFD theta pole source and interpolation correction",
+      "deps": [],
+      "readiness": "BLOCKED_INPUT",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": true,
+      "requires": [
+        "SIM_A_ORIGINAL_FFD"
+      ],
+      "outputs": [
+        "source_lut_npy",
+        "FFD_DIRECT.csv",
+        "F01_INTERPOLATION_QA.json",
+        "jacobian_QA"
+      ]
+    },
+    {
+      "id": "F1",
+      "title": "Correct P2/N4-B labels and crossfit calibration",
+      "deps": [
+        "F0"
+      ],
+      "readiness": "WAIT_F0",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": true,
+      "requires": [
+        "SIM_A_ORIGINAL_FFD"
+      ],
+      "outputs": [
+        "corrected_target_csv",
+        "fold_fit_params.json",
+        "heldout_model_scores"
+      ]
+    },
+    {
+      "id": "F2",
+      "title": "Dual LP heading and gyro bias leakage factor attribution",
+      "deps": [],
+      "readiness": "EXISTING_R2_PILOT_READY",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": true,
+      "requires": [],
+      "outputs": [
+        "F2_bias_gain_decomp",
+        "r_only_s_only_ablation",
+        "4R0_gate_only_counterfactual"
+      ]
+    },
+    {
+      "id": "F3",
+      "title": "LoS-preserving geometry- and integrity-conditioned RF correction",
+      "deps": [
+        "F0",
+        "F1",
+        "F2"
+      ],
+      "readiness": "WAIT_F0_F1_NEW_SCENES",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": false,
+      "requires": [
+        "SIM_A_ORIGINAL_FFD",
+        "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
+      ],
+      "outputs": [
+        "los_guard_metrics",
+        "geometry_integrity_policy",
+        "normalized_or_heuristic_model_decl"
+      ]
+    },
+    {
+      "id": "F4",
+      "title": "Time/site residual persistence and posterior confidence",
+      "deps": [],
+      "readiness": "EXISTING_R2_PILOT_READY_FULL_CAUSAL_BLOCKED",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": true,
+      "requires": [
+        "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
+      ],
+      "outputs": [
+        "site_temporal_residuals",
+        "four_state_nees",
+        "report_only_vs_recursive_cov"
+      ]
+    },
+    {
+      "id": "F5",
+      "title": "G4 power inversion first tap and FP feature robustness",
+      "deps": [],
+      "readiness": "EXISTING_R2_PILOT_READY_FULL_CAUSAL_BLOCKED",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": true,
+      "requires": [
+        "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
+      ],
+      "outputs": [
+        "gain_gate_tail",
+        "FP_threshold_window_gain_port_control",
+        "geometry_2axis"
+      ]
+    },
+    {
+      "id": "F6",
+      "title": "Locked independent new scene and R4/R5 replay generality",
+      "deps": [
+        "F0",
+        "F1",
+        "F3",
+        "F4",
+        "F5"
+      ],
+      "readiness": "BLOCKED_INPUT",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": false,
+      "requires": [
+        "SIM_A_ORIGINAL_FFD",
+        "SIM_B_R4R5_MOTION",
+        "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
+      ],
+      "outputs": [
+        "scene_locked_metrics",
+        "cluster_CI",
+        "new_scene_failure_cases"
+      ]
+    },
+    {
+      "id": "F7",
+      "title": "Independent paper audit and claim gating",
+      "deps": [
+        "F0",
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6"
+      ],
+      "readiness": "WAIT_F0_F6",
+      "scientific_status": "NOT_RUN",
+      "uses_existing_for_pilot": false,
+      "requires": [
+        "SIM_A_ORIGINAL_FFD",
+        "SIM_B_R4R5_MOTION",
+        "SIM_C_INDEPENDENT_FULL_LOS_SCENES"
+      ],
+      "outputs": [
+        "figures",
+        "tables",
+        "independent_recompute",
+        "final_claim_status"
+      ]
+    }
+  ],
+  "disallowed_claims": [
+    "probabilistically_consistent_bayesian_filter",
+    "cross_correlation_always_beneficial",
+    "normal_los_safe_original_POWER",
+    "independent_16_scene_success",
+    "source_FFD_bank_regenerated",
+    "F7_scientific_pass"
+  ],
+  "integrity_rules": {
+    "truth_input_to_filter": false,
+    "future_input_to_filter": false,
+    "source_lut_overwrite": false,
+    "original_N4C_overwrite": false,
+    "train_validation_test_scene_overlap": false,
+    "same_packet_q_and_s_assumed_independent": false,
+    "chi2_829_frames_assumed_independent": false,
+    "scientific_pass_when_required_inputs_missing": false
+  },
+  "hard_locked_eval_config": {
+    "baseline_filters": [
+      "DR4",
+      "S4",
+      "J4",
+      "SR4",
+      "R0",
+      "POWER_JOINT",
+      "G4"
+    ],
+    "test_scene_minimum": 3,
+    "train_scene_minimum": 2,
+    "validation_scene_minimum": 1,
+    "target_sensor_noise_seeds_per_scene": 5,
+    "mount_deg_original": [
+      0,
+      45
+    ],
+    "mount_deg_unseen": [
+      15,
+      30
+    ],
+    "bias_dps_original": [
+      0,
+      0.01,
+      0.05,
+      0.2
+    ],
+    "scoring_initial_warmup_s": 30,
+    "metrics": [
+      "heading_rmse_deg",
+      "bias_rmse_dps",
+      "xy_rmse_m",
+      "pose3_nees",
+      "full4_nees",
+      "conditional_xy_nees",
+      "heading_nees",
+      "posterior_95coverage",
+      "pre_gate_nis",
+      "covariance_logdet",
+      "los_false_correction_rate"
+    ],
+    "CI_sampling_unit": "independent_physical_RF_scene"
+  }
+}
