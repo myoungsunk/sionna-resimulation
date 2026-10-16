@@ -263,7 +263,7 @@ def compare(out,pre,rfpath):
  if max(abs(p["s_native"]-(-.946821)),abs(p["s_fixed_LUT"]-(-.945594)))>2e-3:
   raise RuntimeError("REFERENCE_POSE706_CLOSURE_INVALID")
  save(out/"NEAR_POLE_JACOBIAN_CHECKS_P2_TIMED.json",jac)
- final={"status":"POLE_CANDIDATE_9519_NATIVE_LOS_VERIFIED",
+ final={"status":"POLE_CANDIDATE_7251_P2_TIMED_NATIVE_LOS_VERIFIED",
    "source_commit":os.environ["GITHUB_SHA"],
    "original_lut_sha256":ORIG_LUT_SHA256,"candidate_npy_sha256":c_sha,
    "n_pairs":len(full_rows),"dataset_scope":"P2_timed_7251_not_raw_9519","case_sample_counts":counts,
@@ -272,7 +272,7 @@ def compare(out,pre,rfpath):
    "modified_LUT_theta_layers":[0],"original_LUT_unmodified":True,
    "online_recursive_effect_not_yet_known":True}
  save(out/"POLE_P2_7251_RESULTS.json",final)
- print("POLE_9519_FINAL "+json.dumps({"status":final["status"],"quantitative":table,
+ print("POLE_P2_TIMED_FINAL "+json.dumps({"status":final["status"],"quantitative":table,
      "pose706":{"old":p["s_original_LUT"],"new":p["s_fixed_LUT"],
                "native":p["s_native"],"theta":p["theta_deg"]},
      "candidate_sha":c_sha},ensure_ascii=False),flush=True)
