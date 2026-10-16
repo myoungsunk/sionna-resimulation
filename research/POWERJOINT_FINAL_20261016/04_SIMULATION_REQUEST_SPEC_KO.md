@@ -7,7 +7,7 @@
 | 요청 | 목적/해결하는 Blocker | 필요한 모델 | 현재 상태 |
 |---|---|---|---|
 | **SIM-A: Original complex FFD bank + near-pole direct channel** | F0 θ=0 source physics, $\theta\ge2^\circ$ interpolation gate FAIL, $\hat q_\mathrm{LoS}$ antenna pattern | 원래 TX(+45 LP) / RX(±45 LP) FFD의 complex $\mathbf E_\theta,\mathbf E_\phi$ vs frequency/angles and rotation calibration | **필수 · SOURCE MISSING** |
-| **SIM-B: R4/R5 authentic or clearly regenerated synchronized motion inputs** | Existing R4/R5 P2 static RF paired packets와 4-state recursive Sensor-v2 controls 대응 | Real t/pose/gyro/wheel sequence, motion and original sensor seeds, or a **newly generated** labeled sensor-v2 control sequence | **필수 · TIMED INPUT MISSING** |
+| **SIM-B: R4/R5 authentic or clearly regenerated synchronized motion inputs** | Existing R4/R5 P2 static RF paired packets와 4-state recursive Sensor-v2 controls 대응 | Real t/pose/gyro/wheel sequence, motion and original sensor seeds, or a **newly generated** labeled sensor-v2 control sequence | **R4/R5 archival replay 시 필수 · TIMED INPUT MISSING** |
 | **SIM-C: independent Sionna multipath scenes/trajectory** | F6/F7 external scene generalization, rare FP/reflector mismatch, temporal/site effects | Multi-material/layout ray tracing, actual full two-port complex H(f) **per pose/yaw**, corresponding native LoS packet, multiple RF seeds | **필수 · INDEPENDENT SCENE MISSING** |
 | SIM-D: hardware transfer diagnostics | Claim of real DW1000 deployment, gain/AGC drift, FP tap robustness | Recorded matched hardware CIR registers/gain/sensor time calibration | **Optional** for simulation-only publication; indispensable for hardware-ready claim |
 
@@ -117,4 +117,4 @@ Deliver:
 2. **R4/R5 time-aligned verified or transparently regenerated Sensor-v2 controls** paired by pose_id with already archived RF (SIM-B).
 3. **≥6 fully distinct Full multipath RF scenes** with corresponding LoS, true complex channels at actual yaw/position, sensor seed streams, source manifests/hashes, split specification and independent test lock (SIM-C).
 
-These three deliverables are the minimum to claim final external scene validation of a new, physically corrected POWER_JOINT method. If only SIM-A/B become available, limit paper to source correctness and single-corridor empirical mechanism study; report missing generalization faithfully.
+**SIM-A and SIM-C are hard scientific prerequisites** for new-scene claims. **SIM-B is additionally required only for an authentic original R4/R5 dynamic replay claim.** New SIM-C scenes have their own time-aligned controls, so absence of historical R4/R5 controls must not block independent fresh-scene experiments. If only SIM-A/B become available, limit paper to source correctness and single-corridor empirical mechanism study; report missing generalization faithfully.
