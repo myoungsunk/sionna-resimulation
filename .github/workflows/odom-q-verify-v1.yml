@@ -1,0 +1,61 @@
+name: ODOM Q Independent Physical Noise and Recursive Output Audit
+on:
+  push:
+    branches: ['research/odom-q-physics-audit-20261016']
+    paths:
+      - '.github/workflows/odom-q-verify-v1.yml'
+      - 'research/ODOM_Q_REVIEW_20261016/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independently_audit_original_odom_q:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout original simulation source and independent verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/ODOM_Q_PHYS_20261016/odom_q_experiment.py\n/research/ODOM_Q_REVIEW_20261016/odom_q_verify.py\n/.github/workflows/odom-q-verify-v1.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Prior-to-analysis audit of original simulator code git blob
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/ODOM_Q_REVIEW_20261016/odom_q_verify.py --phase pre --out "$RUNNER_TEMP/independent_pre" | tee "$RUNNER_TEMP/pre.log"
+      - name: Fetch physically modeled ODOM Q original validated archive SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/12023177767/zip > "$RUNNER_TEMP/original_odom_q.zip"
+          echo '78a1a13503846ae80ac19f16276f0c4a6c924452bd0e70e902c12119e718983a  '"$RUNNER_TEMP/original_odom_q.zip" | sha256sum -c
+      - name: Independently verify all 160 arms 48 original baselines and 4 sensor Monte Carlo levels
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/ODOM_Q_REVIEW_20261016/odom_q_verify.py --phase run --out "$RUNNER_TEMP/independent_output" --receipt "$RUNNER_TEMP/independent_pre/PRE_AUDIT.json" --archive "$RUNNER_TEMP/original_odom_q.zip" | tee "$RUNNER_TEMP/review_run.log"
+      - name: Always preserve independent audit failures and result comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: odom-q-independent-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/independent_pre/**
+            ${{ runner.temp }}/independent_output/**
+            ${{ runner.temp }}/pre.log
+            ${{ runner.temp }}/review_run.log
+          if-no-files-found: warn
+          retention-days: 30
