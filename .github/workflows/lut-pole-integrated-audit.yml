@@ -59,16 +59,27 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Retrieve SHA-verified original 9519 complex LoS observer parity result
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11967575965/zip > "$RUNNER_TEMP/q0q3.zip"
+          echo '748b7d1b91e06b1825fdd49bc10bf387fae3786aebd63eac18f194e275170d67  '"$RUNNER_TEMP/q0q3.zip" | sha256sum -c
       - name: Zero-layer uniqueness and no-double-patch Jacobian and continuity tests
         shell: bash
         run: |
           set -euo pipefail
           python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase test | tee "$RUNNER_TEMP/pole_unit.log"
-      - name: Compare 9519 native LoS truth vs original frozen and theta0-corrected candidate
+      - name: Compare 7251 time-aligned P2 Native LoS records
         shell: bash
         run: |
           set -euo pipefail
           python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase compare --out "$RUNNER_TEMP/pole_9519" --audit "$RUNNER_TEMP/pole_pre/PRE_AUDIT.json" --rf "$RUNNER_TEMP/rf.zip" | tee "$RUNNER_TEMP/pole_9519.log"
+      - name: Verify full 9519 complex Native LoS observer records and pole patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POLE_LUT_INTEGRATION_20261016/pole_integrated_eval.py --phase compare_all --out "$RUNNER_TEMP/pole_raw9519" --audit "$RUNNER_TEMP/pole_pre/PRE_AUDIT.json" --q0q3 "$RUNNER_TEMP/q0q3.zip" | tee "$RUNNER_TEMP/pole_raw9519.log"
       - name: Full and LoS B0 L0 L1 L2 R2 actual recursive Joint4 SR4 S4 parity
         shell: bash
         run: |
@@ -83,9 +94,11 @@ jobs:
             ${{ runner.temp }}/pole_pre/**
             ${{ runner.temp }}/pole_9519/**
             ${{ runner.temp }}/pole_recursive/**
+            ${{ runner.temp }}/pole_raw9519/**
             ${{ runner.temp }}/pole_pre.log
             ${{ runner.temp }}/pole_unit.log
             ${{ runner.temp }}/pole_9519.log
             ${{ runner.temp }}/pole_recursive.log
+            ${{ runner.temp }}/pole_raw9519.log
           if-no-files-found: warn
           retention-days: 30
