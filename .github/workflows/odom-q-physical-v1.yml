@@ -1,0 +1,86 @@
+name: ODOM Q Physical Input Noise and True Recursive FullRF LoS
+on:
+  push:
+    branches: ['research/odom-q-physics-audit-20261016']
+    paths:
+      - '.github/workflows/odom-q-physical-v1.yml'
+      - 'research/ODOM_Q_PHYS_20261016/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: odom-q-physical-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  odom_q_audit_and_recursive:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Exact sparse frozen R2 N4C Simulator source and FFD checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/ODOM_Q_PHYS_20261016/**\n/research/EKF4_RANGE_S_STAGED_20261014/**\n/research/R5_N4C_20261015/n4c_joint_sr4.py\n/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy\n/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json\n/.github/workflows/odom-q-physical-v1.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory exact original source Jacobian encoder and source workflow audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/ODOM_Q_PHYS_20261016/odom_q_experiment.py --phase audit --out "$RUNNER_TEMP/odom_pre" | tee "$RUNNER_TEMP/odom_pre.log"
+      - name: Retrieve exact original RF R2 N4B and N4C archive with SHA256 checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/raw_rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/raw_rf.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11940333419/zip > "$RUNNER_TEMP/r2.zip"
+          echo 'ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399  '"$RUNNER_TEMP/r2.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11960766768/zip > "$RUNNER_TEMP/n4b.zip"
+          echo '170a646f8167f1e440316abf42b614afa4efc3d77037c0e19bf470a817fc334b  '"$RUNNER_TEMP/n4b.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11962810669/zip > "$RUNNER_TEMP/n4c.zip"
+          echo 'f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9  '"$RUNNER_TEMP/n4c.zip" | sha256sum -c
+      - name: Install frozen NumPy SciPy Pandas dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: G Jacobian finite difference original native predictor and PSD stress unit
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/ODOM_Q_PHYS_20261016/odom_q_experiment.py --phase test | tee "$RUNNER_TEMP/odom_test.log"
+      - name: Execute exact Sensor v2 independent seed generator audit plus true recursive J4 SR4
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/ODOM_Q_PHYS_20261016/odom_q_experiment.py --phase run --out "$RUNNER_TEMP/odom_results" --receipt "$RUNNER_TEMP/odom_pre/SOURCE_AUDIT.json" --rf "$RUNNER_TEMP/raw_rf.zip" --r2 "$RUNNER_TEMP/r2.zip" --n4b "$RUNNER_TEMP/n4b.zip" --n4c "$RUNNER_TEMP/n4c.zip" | tee "$RUNNER_TEMP/odom_run.log"
+      - name: Always preserve original source audit and every covariance trace
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: odom-q-physical-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/odom_pre/**
+            ${{ runner.temp }}/odom_results/**
+            ${{ runner.temp }}/odom_pre.log
+            ${{ runner.temp }}/odom_test.log
+            ${{ runner.temp }}/odom_run.log
+          if-no-files-found: warn
+          retention-days: 30
