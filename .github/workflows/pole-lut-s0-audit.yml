@@ -1,0 +1,36 @@
+name: Pole LUT S0 audited candidate
+on:
+  push:
+    branches:
+      - research/lut-pole-systematic-revalidation-20261016
+    paths:
+      - research/POLE_SYSTEMATIC_REVALIDATION_20261016/**
+      - .github/workflows/pole-lut-s0-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical dependency
+        run: python -m pip install numpy==1.26.4
+      - name: Syntax audit of every new source
+        run: python -m py_compile research/POLE_SYSTEMATIC_REVALIDATION_20261016/s0_verify_candidate.py research/POLE_LUT_SINGULARITY_20261016/pole_lut_fix.py
+      - name: Run immutable-input S0 audit
+        run: python research/POLE_SYSTEMATIC_REVALIDATION_20261016/s0_verify_candidate.py
+      - name: Save S0 receipt and versioned candidate
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pole-lut-s0-${{ github.run_id }}
+          path: s0_pole_candidate/
+          if-no-files-found: warn
