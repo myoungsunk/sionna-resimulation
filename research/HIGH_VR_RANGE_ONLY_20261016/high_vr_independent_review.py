@@ -185,39 +185,39 @@ def complete(out,pre,newzip,n4czip,rfzip):
        "natural_vs_fixed_gate_heading_diff":float(a.heading_rmse_deg-forced.heading_rmse_deg),
        "natural_minus_frozen_accept_high":int(a.accepted_high-b.accepted_high)})
    # each case+level had one / repeated two solver same packet source.
-  if counted!=112 or len(controls)!=48:raise RuntimeError("AUDIT_EXPECTED_ARMS_MISSING")
-  if not np.allclose(m2.heading_sq_change_deg2_lowmid,0,atol=1e-13):
-   raise RuntimeError("ONE_STEP_NONHIGH_PACKET_CHANGED")
-  # No gain-only refit on R2, and potential wins must survive both mounts.
-  comp=pd.DataFrame(controls)
-  verdict=[]
-  for var,g in comp.groupby("policy"):
-   verdict.append({"policy":var,"n_conditions":len(g),
-     "heading_nonworse_all":bool((g.delta_heading_rmse_deg<=1e-9).all()),
-     "bias_nonworse_all":bool((g.delta_bias_rmse_dps<=1e-9).all()),
-     "XY_nonworse_all":bool((g.delta_xy_rmse_m<=1e-9).all()),
-     "condXY_nees_improved_all":bool((g.delta_condXY_nees<0).all()),
-     "pose95_nonworse_all":bool((g.delta_pose95>=0).all()),
-     "high_gate_changed_any":bool((g.natural_minus_frozen_accept_high!=0).any())})
-  comp.to_csv(out/"INDEPENDENT_PAIRED_ALL.csv",index=False)
-  pd.DataFrame(verdict).to_csv(out/"INDEPENDENT_GATES.csv",index=False)
-  doc={"status":"HIGH_VR_ONLY_ORIGINAL_NUMERIC_INDEPENDENT_PASS",
-    "original_zip_sha":SHA,
-    "verified_full_recursive_arms":counted,
-    "original_parity_records":len(parity),
-    "los_r0_guard_records":len(los),
-    "one_step_common_prior_records":len(m2),
-    "high_bin_count_r2":final["n_high_bin_summary"],
-    "candidate_gate_conditions":verdict,
-    "conditional_xy_highVr_corrects_overconfidence":False,
-    "scientific_calibrated_posterior":False,
-    "dataset":"repeatedly inspected R2 single scene RF seed0",
-    "caveat":"Fixed marginal V_s,C_rs does not fix conditional Var(s|r). LoS POWER transfer not evaluated."}
-  save(out/"INDEPENDENT_FINAL.json",doc)
-  print("HIGH_VR_REVIEW_FINAL "+json.dumps({
-    "status":doc["status"],"checked":counted,"candidate_verdict":verdict,
-    "L2_J4":[x for x in controls if x["bias"]=="L2" and x["solver"]=="J4"]},
-    ensure_ascii=False),flush=True)
+ if counted!=112 or len(controls)!=48:raise RuntimeError("AUDIT_EXPECTED_ARMS_MISSING")
+ if not np.allclose(m2.heading_sq_change_deg2_lowmid,0,atol=1e-13):
+  raise RuntimeError("ONE_STEP_NONHIGH_PACKET_CHANGED")
+ # No gain-only refit on R2, and potential wins must survive both mounts.
+ comp=pd.DataFrame(controls)
+ verdict=[]
+ for var,g in comp.groupby("policy"):
+  verdict.append({"policy":var,"n_conditions":len(g),
+    "heading_nonworse_all":bool((g.delta_heading_rmse_deg<=1e-9).all()),
+    "bias_nonworse_all":bool((g.delta_bias_rmse_dps<=1e-9).all()),
+    "XY_nonworse_all":bool((g.delta_xy_rmse_m<=1e-9).all()),
+    "condXY_nees_improved_all":bool((g.delta_condXY_nees<0).all()),
+    "pose95_nonworse_all":bool((g.delta_pose95>=0).all()),
+    "high_gate_changed_any":bool((g.natural_minus_frozen_accept_high!=0).any())})
+ comp.to_csv(out/"INDEPENDENT_PAIRED_ALL.csv",index=False)
+ pd.DataFrame(verdict).to_csv(out/"INDEPENDENT_GATES.csv",index=False)
+ doc={"status":"HIGH_VR_ONLY_ORIGINAL_NUMERIC_INDEPENDENT_PASS",
+   "original_zip_sha":SHA,
+   "verified_full_recursive_arms":counted,
+   "original_parity_records":len(parity),
+   "los_r0_guard_records":len(los),
+   "one_step_common_prior_records":len(m2),
+   "high_bin_count_r2":final["n_high_bin_summary"],
+   "candidate_gate_conditions":verdict,
+   "conditional_xy_highVr_corrects_overconfidence":False,
+   "scientific_calibrated_posterior":False,
+   "dataset":"repeatedly inspected R2 single scene RF seed0",
+   "caveat":"Fixed marginal V_s,C_rs does not fix conditional Var(s|r). LoS POWER transfer not evaluated."}
+ save(out/"INDEPENDENT_FINAL.json",doc)
+ print("HIGH_VR_REVIEW_FINAL "+json.dumps({
+   "status":doc["status"],"checked":counted,"candidate_verdict":verdict,
+   "L2_J4":[x for x in controls if x["bias"]=="L2" and x["solver"]=="J4"]},
+   ensure_ascii=False),flush=True)
  return 0
 def main():
  p=argparse.ArgumentParser()
