@@ -312,6 +312,7 @@ def recurse(np,core_predict,transition,parent,controls,x0,z,q,method,policy,vari
   st[i]=status;nis[i]=ni
  return {"prior_x":prex,"prior_P":preP,
    "state":X,"cov":PP,"status":st,"nis":nis,
+   "robust_R_scale":np.ones(n),
    "qworld":qworld,"qdist":qd,"qlateral_std":lat}
 
 def execute(out,rec,rf,r2,n4b,n4c):
