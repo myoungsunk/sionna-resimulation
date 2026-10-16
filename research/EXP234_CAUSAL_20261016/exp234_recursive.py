@@ -456,7 +456,13 @@ def exp3(out,args):
    for name,trend in corrections.items():
     rem=residual-trend
     def corr_lag(a,lag=1):
-     return float(np.corrcoef(a[:-lag],a[lag:])[0,1]) if len(a)>lag+3 else None
+     # A perfect oracle can make the residual identically zero: correlation is
+     # undefined (None), NOT NaN or invented zero correlation.
+     a=np.asarray(a,float)
+     if len(a)<=lag+3 or np.std(a[:-lag])<1e-12 or np.std(a[lag:])<1e-12:
+      return None
+     v=float(np.corrcoef(a[:-lag],a[lag:])[0,1])
+     return v if np.isfinite(v) else None
     # Only one physical scene: this ACF has deterministic spatial dependence.
     residuals.append({"case":case,"variant":name,"n":len(t),
        "correction_r_mean_m":float(np.mean(trend)),
