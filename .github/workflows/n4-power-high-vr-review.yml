@@ -1,0 +1,74 @@
+name: N4 POWER High-Vr Only Independent Re-score and Packet Invariance
+on:
+  push:
+    branches: ['research/power-high-range-vr-only-20261016']
+    paths:
+      - '.github/workflows/n4-power-high-vr-review.yml'
+      - 'research/HIGH_VR_RANGE_ONLY_20261016/high_vr_independent_review.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  source_pinned_independent_review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - name: Checkout immutable main experiment source and review program
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/HIGH_VR_RANGE_ONLY_20261016/high_vr_range_only.py\n/research/HIGH_VR_RANGE_ONLY_20261016/high_vr_independent_review.py\n/.github/workflows/n4-power-high-vr-review.yml\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Mandatory frozen original source audit before evaluation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/HIGH_VR_RANGE_ONLY_20261016/high_vr_independent_review.py --phase pre --out "$RUNNER_TEMP/review_pre" | tee "$RUNNER_TEMP/review_pre.log"
+      - name: Fetch original main Vr and N4C and raw RF archives and check SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/12023958123/zip > "$RUNNER_TEMP/high_vr.zip"
+          echo '71b5433020133af75386edd03410bcf073b47a9d17f4cb749d0bf7c24b761475  '"$RUNNER_TEMP/high_vr.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11962810669/zip > "$RUNNER_TEMP/original_n4c.zip"
+          echo 'f807346e806adcc88ce5772d901cb82f83e423d56c1b5f7b846b6871fcaefad9  '"$RUNNER_TEMP/original_n4c.zip" | sha256sum -c
+          gh api /repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip > "$RUNNER_TEMP/original_rf.zip"
+          echo '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63  '"$RUNNER_TEMP/original_rf.zip" | sha256sum -c
+      - name: Pin numpy pandas re-scoring dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 pandas==2.2.3
+      - name: Recompute all 112 full posterior covariance errors from original truth and enforce packet Vr-only and immutable Gate controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/HIGH_VR_RANGE_ONLY_20261016/high_vr_independent_review.py --phase run --out "$RUNNER_TEMP/review_results" --receipt "$RUNNER_TEMP/review_pre/PRE_AUDIT.json" --new "$RUNNER_TEMP/high_vr.zip" --n4c "$RUNNER_TEMP/original_n4c.zip" --rf "$RUNNER_TEMP/original_rf.zip" | tee "$RUNNER_TEMP/review_run.log"
+      - name: Preserve reviews original sources and failed outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: high-vr-only-independent-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/review_pre/**
+            ${{ runner.temp }}/review_results/**
+            ${{ runner.temp }}/review_pre.log
+            ${{ runner.temp }}/review_run.log
+          if-no-files-found: warn
+          retention-days: 30
