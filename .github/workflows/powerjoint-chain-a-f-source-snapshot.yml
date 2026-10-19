@@ -1,0 +1,89 @@
+name: POWERJOINT A-F source snapshot (NO RF recomputation)
+on:
+  push:
+    branches: ['research/powerjoint-chain-hypotheses-a-f-20261019']
+    paths: ['.github/workflows/powerjoint-chain-a-f-source-snapshot.yml']
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - name: Checkout immutable available H and source only
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+            /research/R5_N4B_20261015/*.py
+            /research/R5_N4C_20261015/*.py
+            /research/EKF4_RANGE_S_STAGED_20261014/*.py
+            /research/FFD_P0P3_20261016/*.py
+            /research/PHYSICS_RS_STAGED_20261015/code/*.py
+            /research/R5_FULLRF_B0_GATES_20261015/*.py
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**/*.py
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/*
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/*.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aA_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_*_Tnone.csv
+      - name: Verify seven paired FULL/LoS source files
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import pathlib,json,numpy as np,hashlib
+          root=pathlib.Path('results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C')
+          m=json.loads(pathlib.Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
+          assert len(m['cases'])==7
+          rows=[]
+          for c in m['cases']:
+            a=pathlib.Path(c['full_path']);b=pathlib.Path(c['los_path']);s=pathlib.Path(c['samples_path']);assert a.is_file() and b.is_file() and s.is_file(),(a,b,s)
+            x=np.load(a,mmap_mode='r',allow_pickle=False);y=np.load(b,mmap_mode='r',allow_pickle=False)
+            assert x.shape==y.shape==tuple(c['H_shape'])
+            rows.append({'case':c['id'],'shape':x.shape,'full_bytes':a.stat().st_size,'los_bytes':b.stat().st_size})
+          pathlib.Path('SOURCE_SNAPSHOT_RECEIPT.json').write_text(json.dumps({'status':'SOURCE_SNAPSHOT_NOT_RF_SCIENCE','cases':rows},indent=2))
+          print('PAIRED_SOURCE_SEVEN_PASS',sum(x['full_bytes'] for x in rows))
+          PY
+      - name: Upload replay source and original RF H (no learned weights, no claim)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: powerjoint-chain-af-rf-snapshot-${{ github.run_id }}
+          path: |
+            research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+            research/R5_N4B_20261015/*.py
+            research/R5_N4C_20261015/*.py
+            research/EKF4_RANGE_S_STAGED_20261014/*.py
+            research/FFD_P0P3_20261016/*.py
+            research/PHYSICS_RS_STAGED_20261015/code/*.py
+            research/R5_FULLRF_B0_GATES_20261015/*.py
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**/*.py
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/*
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/*.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_*.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R*/SAMPLES.json
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_*_Tnone.csv
+            SOURCE_SNAPSHOT_RECEIPT.json
+          compression-level: 3
+          retention-days: 30
+          if-no-files-found: error
