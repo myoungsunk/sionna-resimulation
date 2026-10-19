@@ -1,0 +1,30 @@
+name: POWERJOINT new RF schema and paired input audit
+on:
+  push:
+    branches: ['research/powerjoint-chain-hypothesis-20261019']
+    paths: ['.github/workflows/powerjoint-heldout-schema.yml']
+permissions:
+  contents: read
+jobs:
+  schemas:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          sparse-checkout: research/CHAIN_REVIEW_20261019
+          persist-credentials: false
+          lfs: false
+      - run: python -m pip install numpy==2.3.5
+      - name: Read source arrays and time axes only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -u research/CHAIN_REVIEW_20261019/heldout_schema.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: powerjoint-heldout-contract-${{ github.run_id }}
+          path: heldout_contract/
+          retention-days: 30
+          compression-level: 4
+          if-no-files-found: warn
