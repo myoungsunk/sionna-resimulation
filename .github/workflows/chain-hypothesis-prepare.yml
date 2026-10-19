@@ -27,6 +27,7 @@ jobs:
             research/R5_N4B_20261015
             research/R5_N4C_20261015
             research/R5_FULLRF_B0_GATES_20261015
+            research/PHYSICS_RS_STAGED_20261015
             research/CHAIN_HYPOTHESES_20261019
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -43,6 +44,7 @@ jobs:
           cp -R research/R5_N4B_20261015 "$RUNNER_TEMP/model/source/research/"
           cp -R research/R5_N4C_20261015 "$RUNNER_TEMP/model/source/research/"
           cp -R research/R5_FULLRF_B0_GATES_20261015 "$RUNNER_TEMP/model/source/research/"
+          cp -R research/PHYSICS_RS_STAGED_20261015/. "$RUNNER_TEMP/model/source/research/PHYSICS_RS_STAGED_20261015/"
           cp "$RUNNER_TEMP/chain_inputs/RECOVERY_RECEIPT.json" "$RUNNER_TEMP/model/RECOVERY_RECEIPT.json"
       - name: Numerical runtime and equal-marginal augmentation tests
         run: |
