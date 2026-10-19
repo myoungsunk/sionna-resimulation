@@ -1,0 +1,47 @@
+name: POWERJOINT verified evidence publication
+on:
+  push:
+    branches: ['research/powerjoint-chain-hypothesis-20261019']
+    paths: ['.github/workflows/powerjoint-evidence-publication.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: research/powerjoint-chain-hypothesis-20261019
+          sparse-checkout: |
+            research/CHAIN_REVIEW_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+          lfs: false
+          persist-credentials: true
+      - run: python -m pip install numpy==2.3.5 pandas==2.2.3
+      - name: Restore already verified outputs and compute additional descriptive chain metrics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -u research/CHAIN_REVIEW_20261019/publish_evidence.py
+      - name: Commit only new evidence; never touch input or inference code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/CHAIN_VALIDATED_RESULTS_20261019/evidence
+          git commit -m 'Publish independently verified chain hypothesis outputs and residual-origin diagnostics'
+          git pull --rebase origin research/powerjoint-chain-hypothesis-20261019
+          git push origin HEAD:research/powerjoint-chain-hypothesis-20261019
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: powerjoint-verified-chain-evidence-${{ github.run_id }}
+          path: research/CHAIN_VALIDATED_RESULTS_20261019/
+          retention-days: 30
+          compression-level: 6
+          if-no-files-found: warn
