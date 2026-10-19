@@ -1,0 +1,334 @@
+{
+  "schema": "POWERJOINT_M45_EXISTING_SCENES_REQUEST_V2",
+  "issued_date": "2026-10-19",
+  "status": "SIMULATION_REQUEST_NOT_EXECUTED",
+  "scope": "Keep existing corridor and office geometry. 3 corridor + 3 office new continuous mobile routes only. The former 16 scene proposal is cancelled.",
+  "provenance": {
+    "office_branch": "claude/office-e-layout",
+    "office_ref_commit": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+    "office_completed_sweep_source": "819fa93b152ca3cdf66297af09ff073880bd9d9b",
+    "office_setup_sha256": "7b48fc6682d1bc8a500913273722babcfb54166a71fae81ba097f421a30c5a41",
+    "source_ffd_ref": "research/ffd-source-p0p3-20261016",
+    "source_ffd_commit": "4b82e9801a1e065593fdd67a0f3ebd721ba29848",
+    "ffd_sha256": {
+      "LP_plus45": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    }
+  },
+  "scenes": {
+    "CORRIDOR_EXISTING": {
+      "size_m": [
+        20,
+        2.4,
+        2.7
+      ],
+      "anchors": {
+        "A": [
+          4,
+          0,
+          2.65
+        ],
+        "B": [
+          10,
+          0,
+          2.65
+        ]
+      },
+      "reuse_original_corridor_scene": true
+    },
+    "OFFICE_E_EXISTING": {
+      "size_m": [
+        10,
+        12,
+        2.7
+      ],
+      "anchors": {
+        "O0": [
+          5,
+          2.2,
+          2.65
+        ]
+      },
+      "office_source": "src/qclean_uwb/scenarios/office.py",
+      "configuration_source": "results/OFFICE_SETUP_20261007/OFFICE_SETUP.json",
+      "existing_35_stationary_pose_sweep_not_time_series": true,
+      "do_not_invent_anchor_B": true
+    }
+  },
+  "motion": {
+    "dt_s": 0.25,
+    "v_mps": 0.2,
+    "yaw_rate_dps": 15,
+    "rf_stride": 4,
+    "radio_at_vertices": true,
+    "radio_during_yaw_scan": true,
+    "z_m": 0.45,
+    "mount_deg": 45,
+    "sensor_v2_is_synthetic_not_measured": true
+  },
+  "radio": {
+    "frequency_Hz": {
+      "start": 6250400000,
+      "step": 1950000,
+      "count": 257
+    },
+    "H_shape": "[n_radio,257,2,2]",
+    "H_dtype": "complex128",
+    "H_axes": "radio frame, frequency, RX LP+/-, TX LP+/-",
+    "channels": [
+      "FULL",
+      "DIRECT_LOS"
+    ],
+    "full_and_los_same_pose_clock_jones_detector": true,
+    "no_legacy_native_mixing": true,
+    "avoid_false_direct_los_for_blocked": true,
+    "path_solver": {
+      "sionna_rt": "2.0.1",
+      "max_depth": 3,
+      "reflection": true,
+      "refraction": true,
+      "diffraction": false,
+      "diffuse": false
+    },
+    "baseline_seed": 20260924
+  },
+  "routes": [
+    {
+      "id": "C01",
+      "environment": "CORRIDOR_EXISTING",
+      "anchors": [
+        "A",
+        "B"
+      ],
+      "priority": "required",
+      "name": "Radial forward/reverse; anchor crossing",
+      "waypoints_xy_m": [
+        [
+          2,
+          0
+        ],
+        [
+          16,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "claims": [
+        "E1",
+        "E3",
+        "E4",
+        "P3"
+      ]
+    },
+    {
+      "id": "C02",
+      "environment": "CORRIDOR_EXISTING",
+      "anchors": [
+        "A",
+        "B"
+      ],
+      "priority": "required",
+      "name": "Signed lateral offset comparison",
+      "waypoints_xy_m": [
+        [
+          2.5,
+          -0.55
+        ],
+        [
+          16,
+          -0.55
+        ],
+        [
+          16,
+          0.55
+        ],
+        [
+          2.5,
+          0.55
+        ],
+        [
+          2.5,
+          -0.55
+        ]
+      ],
+      "claims": [
+        "E3",
+        "E4",
+        "P5"
+      ]
+    },
+    {
+      "id": "C03",
+      "environment": "CORRIDOR_EXISTING",
+      "anchors": [
+        "A",
+        "B"
+      ],
+      "priority": "required",
+      "name": "Return to same sites; plus/minus ten yaw scan",
+      "waypoints_xy_m": [
+        [
+          3.5,
+          0
+        ],
+        [
+          11.5,
+          0
+        ],
+        [
+          3.5,
+          0
+        ],
+        [
+          11.5,
+          0
+        ],
+        [
+          3.5,
+          0
+        ]
+      ],
+      "scan_at_waypoint_indices": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "claims": [
+        "E5",
+        "P5",
+        "P2"
+      ]
+    },
+    {
+      "id": "O01",
+      "environment": "OFFICE_E_EXISTING",
+      "anchors": [
+        "O0"
+      ],
+      "priority": "required",
+      "name": "Bottom-bar transverse out and back, predominantly LoS",
+      "waypoints_xy_m": [
+        [
+          0.5,
+          0.75
+        ],
+        [
+          9.5,
+          0.75
+        ],
+        [
+          0.5,
+          0.75
+        ]
+      ],
+      "claims": [
+        "P4",
+        "E1",
+        "E3"
+      ]
+    },
+    {
+      "id": "O02",
+      "environment": "OFFICE_E_EXISTING",
+      "anchors": [
+        "O0"
+      ],
+      "priority": "required",
+      "name": "Center longitudinal aisle out and back",
+      "waypoints_xy_m": [
+        [
+          3.3,
+          0.75
+        ],
+        [
+          3.3,
+          11.25
+        ],
+        [
+          3.3,
+          0.75
+        ]
+      ],
+      "claims": [
+        "E3",
+        "E4",
+        "P5"
+      ]
+    },
+    {
+      "id": "O03",
+      "environment": "OFFICE_E_EXISTING",
+      "anchors": [
+        "O0"
+      ],
+      "priority": "required",
+      "name": "Left/right wall aisle LoS obstruction and recovery",
+      "waypoints_xy_m": [
+        [
+          9.5,
+          0.75
+        ],
+        [
+          9.5,
+          11.25
+        ],
+        [
+          9.5,
+          0.75
+        ],
+        [
+          0.5,
+          0.75
+        ],
+        [
+          0.5,
+          11.25
+        ],
+        [
+          0.5,
+          0.75
+        ]
+      ],
+      "claims": [
+        "P4",
+        "P5",
+        "E4"
+      ]
+    }
+  ],
+  "outputs": [
+    "ROUTE_POSE.csv",
+    "H_FULL.npy",
+    "H_DIRECT_LOS.npy",
+    "LOS_EXISTS.npy",
+    "PATH_COUNTS.csv",
+    "FIRST_PATH.csv",
+    "SENSOR_V2.csv",
+    "SCENE_METADATA.json",
+    "RUN_MANIFEST.json",
+    "SHA256SUMS.txt"
+  ],
+  "acceptance": [
+    "source/geometry SHA fixed and no overwrite of old data",
+    "all poses collision-free and unique monotone t",
+    "A/B synchronized per corridor route; office O0 only",
+    "native Direct LoS and Full generated by one canonical traced scene/pose contract",
+    "two-port H frequency/port/yaw axes match pinned source",
+    "LoS blocked frames flagged, not assigned a fabricated direct ray",
+    "Sensor-v2 created from truth/time with synthetic labeling and stored seeds",
+    "train split disjoint from evaluation routes; same physical room not independent scenes",
+    "evaluate Heading, XY, bias, NIS, conditional narrow-axis NEES and 95 coverage; no scientific success from job exit"
+  ],
+  "excluded": [
+    "16 independent new scenes",
+    "Mount0 full factorial",
+    "office second anchor",
+    "claim of physical environmental generalization from route holdouts",
+    "using sparse 35-point static office sweeps as if they were continuous RF traces"
+  ]
+}
