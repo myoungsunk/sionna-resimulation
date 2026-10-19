@@ -1,0 +1,48 @@
+name: POWERJOINT inspect regenerated R4/R5 Mount45 multipart RF
+on:
+  push:
+    branches: ['research/powerjoint-crosscase-mechanism-20261020']
+    paths: ['.github/workflows/powerjoint-crosscase-r4r5-mount45-snapshot.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        route: [R4, R5]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/POWERJOINT_CROSSCASE_20261020/**
+      - name: Download immutable regenerated full RF release in split parts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/parts"
+          route_lower=$(echo "${{ matrix.route }}" | tr A-Z a-z)
+          gh release download "legacy-rf-${route_lower}-20261019-r02" --repo myoungsunk/sionna-resimulation --pattern "${{ matrix.route }}.tar.gz.part*" --dir "$RUNNER_TEMP/parts" --clobber
+          ls -lh "$RUNNER_TEMP/parts/"
+      - name: Stream archive; recover original matching Full and DirectLoS H with mapping
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POWERJOINT_CROSSCASE_20261020/extract_multipart_legacy.py "$RUNNER_TEMP/parts" "$RUNNER_TEMP/output" "${{ matrix.route }}"
+      - name: Preserve verified-source subset only (not scientific PASS)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: pj-regenerated-m45-${{ matrix.route }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/output/**
+          retention-days: 30
+          if-no-files-found: warn
