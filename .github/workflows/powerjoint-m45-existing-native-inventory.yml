@@ -1,0 +1,78 @@
+name: POWERJOINT existing M45 Native H inventory (NO NEW SIM)
+on:
+  push:
+    branches: ['research/powerjoint-integrated-valid-rf-20261019']
+    paths: ['.github/workflows/powerjoint-m45-existing-native-inventory.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Sparse immutable archive source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none --no-tags origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/RF_PRIORS_ARCHIVE/**\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Validate archive parts, inventory matching source RF inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/native_inventory"
+          python3 - <<'PY'
+          import os,glob,hashlib,json,tarfile,pathlib,shutil,re,io
+          base=pathlib.Path('results/DRIVE_SIM_NOISY_PROBE_20261010/RUN_01a125b3/RF_PRIORS_ARCHIVE')
+          m=json.loads((base/'PACKAGE_MANIFEST.json').read_text())
+          f=pathlib.Path(os.environ['RUNNER_TEMP'])/'RF_PRIORS.tar.gz'
+          with f.open('wb') as output:
+              for rec in m['parts']:
+                  p=base/rec['file'];h=hashlib.sha256(p.read_bytes()).hexdigest()
+                  assert p.stat().st_size==rec['bytes'] and h==rec['sha256'],('PART_MISMATCH',str(p))
+                  with p.open('rb') as inp:shutil.copyfileobj(inp,output)
+          assert f.stat().st_size==m['archive_bytes']
+          assert hashlib.sha256(f.read_bytes()).hexdigest()==m['archive_sha256']
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'native_inventory'
+          targets=[];catalog=[]
+          with tarfile.open(f,'r:gz') as tar:
+              for rec in tar:
+                  if not rec.isfile():continue
+                  if re.search(r'(?:H_(?:LoS_)?R[245]_a[AB]_m45\.(?:npy|npz)|SAMPLES\.json)$',rec.name,re.I):
+                      catalog.append({'member':rec.name,'bytes':rec.size})
+                      # Do not export arbitrary hundreds of samples. Only m45 complex channels.
+                      if not re.search(r'H_(?:LoS_)?R[245]_a[AB]_m45\.(?:npy|npz)$',rec.name,re.I):continue
+                      original=tar.extractfile(rec)
+                      if original is None:continue
+                      target=out/pathlib.Path(rec.name).name
+                      if target.exists():
+                          target=out/(str(len(targets))+'_'+target.name)
+                      hh=hashlib.sha256();n=0
+                      with target.open('wb') as fout:
+                          while True:
+                              b=original.read(1024*1024)
+                              if not b:break
+                              fout.write(b);hh.update(b);n+=len(b)
+                      assert n==rec.size
+                      targets.append({'member':rec.name,'artifact':target.name,'bytes':n,'sha256':hh.hexdigest()})
+          report={'source_commit':os.environ['GITHUB_SHA'],'source_archive_sha256':m['archive_sha256'],'target_count':len(targets),'targets':targets,'matching_entries':catalog,'scientific_pass':False,'run_status':'ARCHIVE_CONTENT_AUDITED_NO_PHYSICAL_PARITY'}
+          (out/'SOURCE_INVENTORY.json').write_text(json.dumps(report,indent=2))
+          print('FOUND_TARGETS',len(targets))
+          print(json.dumps(catalog[:30]))
+          PY
+      - name: Keep auditable extract for Mount45 source check (not science PASS)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: powerjoint-existing-M45-source-inventory-${{ github.run_id }}
+          path: ${{ runner.temp }}/native_inventory/**
+          retention-days: 30
+          compression-level: 1
+          if-no-files-found: warn
