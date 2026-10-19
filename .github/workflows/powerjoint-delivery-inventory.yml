@@ -1,0 +1,27 @@
+name: POWERJOINT held-out RF delivery inventory
+on:
+  push:
+    branches: ['research/powerjoint-chain-hypothesis-20261019']
+    paths: ['.github/workflows/powerjoint-delivery-inventory.yml']
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          sparse-checkout: research/CHAIN_REVIEW_20261019
+          lfs: false
+          persist-credentials: false
+      - name: Read source receipts, not RF evaluation outcomes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python research/CHAIN_REVIEW_20261019/external_inventory.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: external-rf-delivery-inventory-${{ github.run_id }}
+          path: external_inventory/
+          retention-days: 30
