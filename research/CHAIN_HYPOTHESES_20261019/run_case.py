@@ -29,8 +29,9 @@ def main():
     write_json(out/'LINEAR_UNIT_QA.json',unit_tests())
     print('TEMPORAL_ACTUAL_CLOCK',json.dumps(tp),flush=True)
     with np.load(work/(args.case+'_full.npz'),allow_pickle=False) as a:data={k:a[k].copy() for k in a.files}
-    # Whitelist inference fields; truth and h/J at truth never enter replay.
-    stream={k:data[k] for k in data if k.startswith('feature_') or k in ['mu','R','mu_rich','R_rich','risk','utility']}
+    allowed={'feature_'+k for k in rt['features']}|{'mu','R','mu_rich','R_rich','risk','utility'}
+    stream={k:data[k] for k in allowed}
+    assert not any(k in stream for k in ['truth','h_truth','H_truth','feature_distance','feature_relative_yaw','feature_gpsi'])
     allrows=[];allqa=[];allepisodes=[];fail=[];times=[]
     for level,bias in [('B0',0.),('L0',.01),('L1',.05),('L2',.20)]:
         started=time.monotonic();controls={k:data[level+'_'+k] for k in ['dt_s','ds_odom','dtheta_gyro']}
