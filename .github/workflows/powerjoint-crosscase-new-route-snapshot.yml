@@ -1,0 +1,47 @@
+name: POWERJOINT inspect six newly released Mount45 RF route archives
+on:
+  push:
+    branches: ['research/powerjoint-crosscase-mechanism-20261020']
+    paths: ['.github/workflows/powerjoint-crosscase-new-route-snapshot.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        route: [C01, C02, C03, O01, O02, O03]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/POWERJOINT_CROSSCASE_20261020/**
+      - name: Download actual pinned release RF archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/actual_source"
+          route_lower=$(echo "${{ matrix.route }}" | tr A-Z a-z)
+          gh release download "route-rf-${route_lower}-20261019-r01" --repo myoungsunk/sionna-resimulation --pattern "${{ matrix.route }}.tar.gz" --dir "$RUNNER_TEMP/actual_source" --clobber
+      - name: Inspect and extract reproducible small RF/pose subset
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POWERJOINT_CROSSCASE_20261020/extract_release_assets.py "$RUNNER_TEMP/actual_source/${{ matrix.route }}.tar.gz" "$RUNNER_TEMP/output" "route-rf-${{ matrix.route }}-20261019-r01"
+      - name: Upload verified source subset and internal manifest
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: powerjoint-newrf-${{ matrix.route }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/output/**
+          retention-days: 30
+          if-no-files-found: warn
