@@ -1,0 +1,60 @@
+name: POWERJOINT existing office 35 stationary RF extraction (NOT trajectory)
+on:
+  push:
+    branches: ['research/powerjoint-m45-corridor-office-routes-20261019']
+    paths: ['.github/workflows/powerjoint-existing-office-static-extract.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  preserve:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Sparse office original bytes checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/results/OFFICE_SETUP_20261007/OFFICE_SETUP.json\n/results/OFFICE_RUN_PLAN_20261008/RUN_PLAN.json\n/results/OFFICE_SNOWBALL_20261008_819fa93/full35_stride1/**\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - name: Archive only approved 35 original H arrays
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/office35"
+          python3 - <<'PY'
+          import pathlib,json,hashlib,os,shutil
+          root=pathlib.Path('results/OFFICE_SNOWBALL_20261008_819fa93/full35_stride1')
+          status=json.loads((root/'RUN_STATUS.json').read_text())
+          verify=json.loads((root/'VERIFY.json').read_text())
+          assert status['status']=='COMPLETE' and status['verify_exit']==0
+          assert verify['ok'] and verify['n_valid']==35 and verify['expected_n']==35
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'office35'
+          records=[]
+          for p in sorted(root.glob('office_*/office_*_H.npy')):
+              dest=out/p.name
+              if dest.exists():raise RuntimeError('DUPLICATE_ARRAY_NAME')
+              data=p.read_bytes()
+              dest.write_bytes(data)
+              records.append({'name':p.name,'git_original':str(p),'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+          assert len(records)==35,len(records)
+          src={'status':'EXISTING_35_STATIONARY_RF_ARCHIVED','source_commit':os.environ['GITHUB_SHA'],'motion_trajectory_simulation':False,'office_fullrf_35x19_yaw_257_bins':True,'files':records}
+          (out/'OFFICE35_SHA_MANIFEST.json').write_text(json.dumps(src,indent=2))
+          shutil.copyfile('results/OFFICE_SETUP_20261007/OFFICE_SETUP.json',out/'OFFICE_SETUP.json')
+          shutil.copyfile('results/OFFICE_RUN_PLAN_20261008/RUN_PLAN.json',out/'OFFICE_RUN_PLAN.json')
+          print('OFFICE35_ORIGINAL_SOURCE_PASS',len(records))
+          PY
+      - name: Upload research reuse input (not new simulation)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: powerjoint-office35-static-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/office35/**
+          compression-level: 1
+          retention-days: 30
+          if-no-files-found: error
