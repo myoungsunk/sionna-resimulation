@@ -38,47 +38,8 @@ jobs:
       - name: Restore immutable inputs directly in execution environment
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          python - <<'PY'
-          import os,json,zipfile,hashlib,urllib.request,pathlib,shutil
-          root=pathlib.Path.cwd(); source=root/'source'; (root/'ffd_p0p3/out').mkdir(parents=True,exist_ok=True); out=root/'out'; out.mkdir(exist_ok=True)
-          records=[]
-          for artifact,name in [(11948391783,'physics_rs_inputs.zip'),(11782748118,'rf_frozen.zip'),(12034154094,'ffd_original.zip')]:
-              req=urllib.request.Request('https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/artifacts/'+str(artifact)+'/zip',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
-              target=root/name
-              with urllib.request.urlopen(req,timeout=90) as response,target.open('wb') as f: shutil.copyfileobj(response,f)
-              with target.open('rb') as f: h=hashlib.file_digest(f,'sha256').hexdigest()
-              records.append({'artifact':artifact,'file':name,'bytes':target.stat().st_size,'sha256':h})
-              with zipfile.ZipFile(target) as z:
-                  if z.testzip(): raise RuntimeError('DAMAGED_ZIP:'+name)
-                  if name=='physics_rs_inputs.zip':
-                      for info in z.infolist():
-                          if info.is_dir(): continue
-                          p=pathlib.PurePosixPath(info.filename)
-                          if '..' in p.parts or p.is_absolute(): raise RuntimeError('UNSAFE_PATH')
-                          dest=source/pathlib.Path(*p.parts); dest.parent.mkdir(parents=True,exist_ok=True)
-                          if not dest.exists():
-                              with z.open(info) as i,dest.open('wb') as o: shutil.copyfileobj(i,o)
-                  elif name=='ffd_original.zip':
-                      for expected in ['LP_plus45_bank.npz','LP_minus45_bank.npz']:
-                          members=[p for p in z.namelist() if p.endswith(expected)]
-                          if len(members)!=1: raise RuntimeError('BANK_AMBIGUOUS')
-                          with z.open(members[0]) as i,(root/expected).open('wb') as o: shutil.copyfileobj(i,o)
-          banks={'LP_plus45_bank.npz':'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b','LP_minus45_bank.npz':'39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9'}
-          for n,h in banks.items():
-              with (root/n).open('rb') as f: got=hashlib.file_digest(f,'sha256').hexdigest()
-              records.append({'file':n,'sha256':got,'expected':h,'matches_original':got==h})
-              if got!=h: raise RuntimeError('Original recovery produced different bank bytes; inspect arrays before scientific reuse')
-          (root/'BANK_MANIFEST.json').write_text(json.dumps({'npz_sha256':banks}))
-          (out/'INPUT_RECEIPT.json').write_text(json.dumps(records,indent=2))
-          print('INPUTS_RECOVERED',json.dumps(records),flush=True)
-          manifest=json.loads((source/'research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
-          print('CASES',json.dumps(manifest['cases']),flush=True)
-          with zipfile.ZipFile(root/'rf_frozen.zip') as z: print('RF_MEMBERS',json.dumps(z.namelist()[:20]),flush=True)
-          PY
-      - name: Hypothesis execution (when code registered)
+        run: python -u source/research/CHAIN_HYPOTHESIS_20261019/restore.py
+      - name: Hypothesis execution
         shell: bash
         run: |
           set -euo pipefail
@@ -87,7 +48,7 @@ jobs:
           else
             echo 'INPUT PREPARATION ONLY: hypothesis code not yet registered'
           fi
-      - name: Preserve all completed results and errors, never infer scientific pass from CI
+      - name: Preserve completed results and errors without assuming scientific pass
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
