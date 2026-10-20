@@ -1,0 +1,214 @@
+"""Canonical full-motion Sensor-v2 inputs; no RF extraction, fitting or replay."""
+from pathlib import Path
+import argparse
+import hashlib
+import importlib.util
+import json
+import os
+import sys
+import traceback
+import types
+for key in ('OPENBLAS_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS'):
+    os.environ[key] = '1'
+import numpy as np
+import pandas as pd
+
+HERE = Path(__file__).resolve().parent
+BIAS_LEVELS = {'B0': 0., 'L0': .01, 'L1': .05, 'L2': .20}
+
+
+def sha(path):
+    with Path(path).open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+
+def wrap(x): return (np.asarray(x)+np.pi) % (2*np.pi)-np.pi
+
+
+def receipt_index(root):
+    records, receipts = {}, []
+    for name, key in [('ARCHIVE_CONTENTS_AND_SHA.json', 'extracted'),
+                      ('SOURCE_RELEASE_SUBSET_RECEIPT.json', 'kept')]:
+        for path in root.rglob(name):
+            data = json.loads(path.read_text()); receipts.append(dict(path=str(path), sha256=sha(path)))
+            for row in data.get(key, []):
+                dest = (path.parent/'data'/row['name']).resolve()
+                expected = row['sha256'].lower()
+                if dest in records and records[dest] != expected:
+                    raise ValueError('CONFLICTING_RECEIPT:'+str(dest))
+                records[dest] = expected
+    if not receipts: raise ValueError('BLOCKED_INPUT:NO_SOURCE_EXTRACTION_SHA_RECEIPT')
+    return records, receipts
+
+
+def prepare_new_route(route_root, route_id):
+    """Return frozen motion, exact RF mapping, flags and source identity metadata.
+
+    route_root is one extracted release snapshot directory, containing its
+    receipt and data subtree. Per-case files follow */CASES/<id>_M45_FULL/.
+    No nearest time/geometry matching, re-created route, or LoS fill is allowed.
+    """
+    root = Path(route_root)
+    if route_id not in ('C01', 'C02', 'C03', 'O01', 'O02', 'O03'):
+        raise ValueError('UNKNOWN_ROUTE')
+    lock = json.loads((HERE/'PROTOCOL_LOCK.json').read_text())
+    expected, receipts = receipt_index(root)
+    verified = {}
+
+    def verify(path):
+        path = path.resolve()
+        if path not in expected: raise ValueError('BLOCKED_INPUT:UNRECEIPTED_FILE:'+str(path))
+        value = sha(path)
+        if value != expected[path]: raise ValueError('INPUT_SHA_MISMATCH:'+str(path))
+        verified[str(path)] = value
+
+    def candidates(suffix):
+        found = []
+        for path in root.rglob('*'+suffix):
+            data = pd.read_csv(path)
+            if 'route_id' not in data or set(data.route_id.astype(str)) != {route_id}: continue
+            verify(path); found.append((path, data))
+        if not found: raise ValueError('BLOCKED_INPUT:MISSING_'+route_id+'_'+suffix)
+        if len({sha(path) for path, _ in found}) != 1:
+            raise ValueError('NONIDENTICAL_DUPLICATE_'+suffix)
+        return found
+
+    motions = candidates('ROUTE_POSE.csv'); radios = candidates('RADIO_POSE.csv')
+    motion_path, motion = motions[0]; radio_path, radio = radios[0]
+    required = ['pose_id', 't_s', 'x_m', 'y_m', 'z_m', 'yaw_body_deg', 'yaw_antenna_deg']
+    for data in (motion, radio):
+        if any(key not in data for key in required): raise ValueError('POSE_COLUMNS_MISSING')
+        if not np.isfinite(data[required].to_numpy(float)).all(): raise ValueError('NONFINITE_POSE')
+        if not data.pose_id.is_unique: raise ValueError('DUPLICATE_POSE_ID')
+        if not np.array_equal(data.pose_id.to_numpy(), data.pose_id.to_numpy(int)):
+            raise ValueError('NONINTEGER_POSE_ID')
+    t = motion.t_s.to_numpy(float)
+    if abs(t[0]) > lock['motion_time_tolerance_s']:
+        raise ValueError('MOTION_CLOCK_NOT_STARTING_AT_ZERO')
+    if len(t) < 2 or np.max(abs(np.diff(t)-lock['motion_dt_s'])) > lock['motion_time_tolerance_s']:
+        raise ValueError('MOTION_NOT_FULL_QUARTER_SECOND_CLOCK')
+    if np.max(abs(motion.z_m.to_numpy(float)-.45)) > 1e-12:
+        raise ValueError('FROZEN_HEIGHT_CHANGED')
+    truth = np.column_stack((motion.x_m, motion.y_m, np.radians(motion.yaw_body_deg)))
+    antenna_error = abs(wrap(np.radians(motion.yaw_antenna_deg)-truth[:, 2]-np.pi/4))
+    if antenna_error.max() > np.radians(1e-6): raise ValueError('MOUNT_NOT_BODY_PLUS45')
+    byid = {int(pose): i for i, pose in enumerate(motion.pose_id)}
+    if any(int(pose) not in byid for pose in radio.pose_id): raise ValueError('RF_POSE_ID_NOT_IN_MOTION')
+    indices = np.array([byid[int(pose)] for pose in radio.pose_id], int)
+    if len(indices) > 1 and not np.all(np.diff(indices) > 0): raise ValueError('RF_ORDER_NOT_MOTION_ORDER')
+    aligned = motion.iloc[indices]
+    for key in required:
+        if np.max(abs(aligned[key].to_numpy(float)-radio[key].to_numpy(float))) > 1e-12:
+            raise ValueError('RF_MOTION_VALUE_MISMATCH:'+key)
+    if 'rf_sample' not in motion: raise ValueError('MISSING_FROZEN_RF_SAMPLE_MASK')
+    if not np.array_equal(np.flatnonzero(motion.rf_sample.to_numpy(int)), indices):
+        raise ValueError('RADIO_ROWS_NOT_EXACT_FROZEN_RF_SUBSET')
+    dp = np.diff(truth[:, :2], axis=0)
+    lateral = -dp[:, 0]*np.sin(truth[:-1, 2])+dp[:, 1]*np.cos(truth[:-1, 2])
+    if abs(lateral).max() > lock['legacy_euler_lateral_tolerance_m']:
+        raise ValueError('BLOCKED_INPUT:LATERAL_RESIDUAL_EXCEEDS_DECLARED_ROUNDING_BOUND')
+    anchors = ['A', 'B'] if route_id.startswith('C') else ['O0']
+    cases = []
+    for anchor in anchors:
+        case_name = f'{route_id}_{anchor}_M45_FULL'
+        case_radios = [(path, data) for path, data in radios if path.parent.name == case_name]
+        if len(case_radios) != 1: raise ValueError('BLOCKED_INPUT:NONUNIQUE_CASE_RADIO:'+case_name)
+        case_path, case_radio = case_radios[0]
+        full = case_path.parent/'H_FULL.npy'; los = case_path.parent/'H_DIRECT_LOS.npy'
+        verify(full); verify(los)
+        flags_path = case_path.parent/'LOS_EXISTS.npy'
+        if flags_path.is_file():
+            verify(flags_path); flags = np.load(flags_path, allow_pickle=False)
+            if flags.ndim != 1 or len(flags) != len(radio) or not np.isin(flags, [0, 1]).all():
+                raise ValueError('INVALID_LOS_EXISTS:'+case_name)
+            flags = flags.astype(bool)
+        elif 'los_exists' in case_radio:
+            raw_flags = case_radio.los_exists
+            normalized = raw_flags.astype(str).str.lower()
+            if not normalized.isin(['true', 'false', '1', '0']).all(): raise ValueError('INVALID_LOS_EXISTS')
+            flags = normalized.isin(['true', '1']).to_numpy()
+            flags_path = case_path
+        else:
+            raise ValueError('BLOCKED_INPUT:MISSING_LOS_EXISTS_NO_SYNTHESIS:'+case_name)
+        cases.append(dict(case_id=case_name, anchor=anchor, radio_path=str(case_path),
+                          full_path=str(full), los_path=str(los), los_exists=flags,
+                          los_exists_path=str(flags_path)))
+    metadata = dict(route_id=route_id, motion_path=str(motion_path), radio_path=str(radio_path),
+        motion_n=len(motion), rf_n=len(radio), motion_dt_s=lock['motion_dt_s'],
+        max_lateral_serialization_residual_m=float(abs(lateral).max()),
+        rounding_tolerance_m=lock['legacy_euler_lateral_tolerance_m'], input_sha256=verified,
+        receipts=receipts, POWER_training='all existing R2/R4/R5; new routes not used')
+    return dict(motion_t=t, motion_truth=truth, motion_pose_ids=motion.pose_id.to_numpy(int),
+                rf_motion_indices=indices, rf_pose_ids=radio.pose_id.to_numpy(int),
+                lateral_residual_m=np.r_[0., lateral], metadata=metadata, cases=cases)
+
+
+def load_exact_builder(source_root):
+    root = Path(source_root)
+    sys.path.insert(0, str(root/'results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src'))
+    sys.path.insert(0, str(root/'research/EKF4_RANGE_S_STAGED_20261014'))
+    path = root/'research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py'
+    spec = importlib.util.spec_from_file_location('t2_pinned_bias_replay', path)
+    module = importlib.util.module_from_spec(spec); spec.loader.exec_module(module)
+    return module, path
+
+
+def build_canonical_controls(prepared, level_name, seed, source_root):
+    """Run exact builder code with the one declared serialization tolerance.
+
+    The original module globals and motion truth arrays remain unchanged.
+    """
+    module, path = load_exact_builder(source_root)
+    lock = json.loads((HERE/'PROTOCOL_LOCK.json').read_text())
+    original = module.build_positive_bias_controls
+    namespace = original.__globals__.copy()
+    def increments(t, pose, **kwargs):
+        if 'tolerance' in kwargs: raise ValueError('UNEXPECTED_BUILDER_TOLERANCE_OVERRIDE')
+        return module.motion_increments(t, pose,
+            tolerance=lock['legacy_euler_lateral_tolerance_m'], **kwargs)
+    namespace['motion_increments'] = increments
+    exact = types.FunctionType(original.__code__, namespace, original.__name__,
+                               original.__defaults__, original.__closure__)
+    controls, initial = exact(prepared['motion_t'], prepared['motion_truth'], level_name, seed)
+    return controls, initial, dict(builder_path=str(path), builder_sha256=sha(path),
+        sensor_v2_sha256=sha(Path(sys.modules['qclean_uwb.drivesim.sensor_v2'].__file__)),
+        deliberate_override='motion_increments tolerance only; exact builder code and noise/RNG retained')
+
+
+def main():
+    p = argparse.ArgumentParser(); p.add_argument('--route-root', type=Path, required=True)
+    p.add_argument('--route-id', required=True); p.add_argument('--source-root', type=Path, required=True)
+    p.add_argument('--out', type=Path, required=True)
+    args = p.parse_args(); args.out.mkdir(parents=True, exist_ok=True)
+    try:
+        prepared = prepare_new_route(args.route_root, args.route_id)
+        t = prepared['motion_t']; is_radio = np.zeros(len(t), bool)
+        is_radio[prepared['rf_motion_indices']] = True
+        pd.DataFrame(dict(pose_id=prepared['motion_pose_ids'], t_s=t, rf_sample=is_radio,
+                         lateral_residual_m=prepared['lateral_residual_m'])).to_csv(args.out/'MOTION_ALIGNMENT.csv', index=False)
+        sensor_receipt = None
+        for seed in range(5):
+            for label, bias in BIAS_LEVELS.items():
+                controls, initial, sensor_receipt = build_canonical_controls(prepared, label, seed, args.source_root)
+                np.savez_compressed(args.out/f'{args.route_id}_{label}_seed{seed}_CONTROLS.npz',
+                    motion_t=t, truth_for_sensor_generation_and_scoring_only=prepared['motion_truth'],
+                    motion_pose_ids=prepared['motion_pose_ids'], rf_pose_ids=prepared['rf_pose_ids'],
+                    rf_motion_indices=prepared['rf_motion_indices'], initial_pose=initial,
+                    initial_cov=np.diag([.1**2, .1**2, np.radians(5)**2, np.radians(.1)**2]),
+                    bias_dps=np.array(bias), **controls)
+        case_metadata = []
+        for case in prepared['cases']:
+            np.save(args.out/f"{case['case_id']}_LOS_EXISTS.npy", case['los_exists'], allow_pickle=False)
+            case_metadata.append({k: v for k, v in case.items() if k != 'los_exists'})
+        metadata = dict(prepared['metadata'], cases=case_metadata, sensor=sensor_receipt,
+            canonical_sensor_settings_sha256=sha(HERE/'PROTOCOL_LOCK.json'), actions_run_id=os.getenv('GITHUB_RUN_ID'),
+            artifact_id=None, numpy=np.__version__, pandas=pd.__version__, python=sys.version,
+            technical='SENSOR_PREPARATION_PASS', baseline_replay='NOT_EXECUTED', scientific='NOT_ESTABLISHED')
+        (args.out/'MANIFEST.json').write_text(json.dumps(metadata, indent=2))
+    except Exception as error:
+        (args.out/'ERRORS.json').write_text(json.dumps([dict(error=str(error),
+            traceback=traceback.format_exc(), retry='not automatic')], indent=2))
+        raise
+
+
+if __name__ == '__main__': main()
