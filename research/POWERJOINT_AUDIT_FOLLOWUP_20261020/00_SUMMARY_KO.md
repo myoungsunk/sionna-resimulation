@@ -108,3 +108,8 @@ S0 감사의 ACCEPT_FOR_S1 이후 입력을 확인했으나, 고정 원본77개(
 엔진034e57a 원본 byte identity 및 T2 센서 lock b05e7ead… 일치는 확인했다. 기존 주로의 실제 los_exists 원본 플래그는 미인증이다. 필요한 입력은 원래 legacy30/new47 이벤트 명단·enumerator·행/clock 매핑과 legacy LoS 존재 근거다. 미확보 상태에서 PROTOCOL_LOCK 또는77행 EVENT_TABLE을 만들어 실행하지 않았다. POWER1 재현·독립 scorer·D7 parity는 NOT_RUN이다.
 
 S0 본문·수치·기존 판정은 위에 그대로 보존한다. S0 잔차 평균은 OPEN / NOT_ESTABLISHED이며 S1 입력 감사로 이를 닫지 않는다. S2/S3, RF 시뮬레이션, T6 tap EKF, D4 대체, 새 gate·기억 모델은 실행하지 않았다.
+
+
+## S1 사용자 개정 명단 사전등록
+
+원래30+47 목록은 BLOCKED_SOURCE_UNAVAILABLE로 확정하고 격자로 새 열거했다. 후보110개 → 포함79개(기존35/신규44), 제외31개는30초 부족. 신규 물리61행은61/61 대응한다. EVENT_LIST.csv와 PROTOCOL_LOCK.json을 재귀 실행 전에 커밋한다. 아래 후속 결과가 앞선 입력 차단 상태를 대체할 예정이며 S0 본문·판정은 보존한다.
