@@ -78,7 +78,8 @@ def main():
    '개정 격자로 후보110개를 열거해79개(기존35/신규44)를 고정했다. 종료 후30초가 부족한31개는 원래 후보와 제외 사유를 보존했다. 신규 물리61개는 RF 행 범위·개수·시각61/61 일치했다. 원래30+47개 source의 상태는 BLOCKED_SOURCE_UNAVAILABLE이며 이79개가 원래77개라고 주장하지 않는다.','',
    '| 범위 | 유해 D2 회수≥50% | 유익 D2 악화≤skip의50% | 중립 | 과학 판정 |','|---|---:|---:|---:|---|']
  for scene,g in d['groups'].items():lines.append(f"| {scene} | {g['harmful_numerator']}/{g['harmful_denominator']} | {g['beneficial_numerator']}/{g['beneficial_denominator']} | {g['neutral_count']} | {g['scientific']} |")
- lines+=['','각 비율은 조건 수를 독립 표본 수로 해석하지 않는다. corridor는 R2/R4/R5/C01–C03의 같은 장면이며 office는 O02/O03의 한 장면이다. O01은 포함 가능한30초 horizon 이벤트가0개다. p-value는 계산·보고하지 않는다.','',
+ g=d['groups']['overall']
+ lines+=['',f"전체 유해 이벤트의 D2 회수 비율{g['harmful_numerator']}/{g['harmful_denominator']}과 유익 안전성{g['beneficial_numerator']}/{g['beneficial_denominator']}을 함께 판정했다. 이전 skip 수치는 알려진12개에만 참고열로 보존했으며 현 POST30 label이나 분모를 정하는 데 사용하지 않았다.",'','각 비율은 조건 수를 독립 표본 수로 해석하지 않는다. corridor는 R2/R4/R5/C01–C03의 같은 장면이며 office는 O02/O03의 한 장면이다. O01은 포함 가능한30초 horizon 이벤트가0개다. p-value는 계산·보고하지 않는다.','',
    '## 검증과 오류 보존','',
    f"정본30개 case×bias에서 과거 POWER1 gate 불일치0, Heading 차이 최대{final['QA']['max_heading_reproduction_difference_deg']:.17g}°. 현 실행 모든 유효 개입의11개 지표를 독립 scalar/Cholesky scorer로 재계산한 최대차는{final['QA']['max_common11_independent_scorer_difference']:.17g}이다. no-change joint adapter의 state/cov 최대차는{final['QA']['max_adapter_state_difference']:.17g}/{final['QA']['max_adapter_covariance_difference']:.17g}이다. pinned engine과 T4 helper는 원본 bytes를 유지했다.",'',
    f"첫 run39370673576의 R2/R5에서 CSV 기본 float parser 때문에 원본 시각과 약1e-14s 차이가 발생했다. 오류{len(error_sources)}건과 모든 첫 출력은 FAILED_EXECUTION_R01/에 보존했다. V2 lock3062701은 round_trip parser만 적용하며 입력/이벤트 행/과학 임계값을 바꾸지 않았다. 재실행39370942876의 R2/R5와 첫 실행의 나머지6개 성공 결과를 정본으로 묶었다.",'',
