@@ -138,6 +138,19 @@ def main():
             rc = dict(x='x', y='y', z='z_m', time='t_s', body='yaw_body_deg')
             nc = dict(x='x_m', y='y_m', z='z_m', time='t_s', body='yaw_body_deg', antenna='yaw_antenna_deg')
             rc.update(rec.get('reference_columns', {})); nc.update(rec.get('radio_columns', {}))
+            if rc['time'] not in ref:
+                # Pose JSON omits time. Use the actual immutable Tnone trace,
+                # only after exact pose-id and geometry certification.
+                sys.path.insert(0,str(args.source_root/'research/CHAIN_HYPOTHESIS_20261019'))
+                from run import frozen_inputs
+                raw=frozen_inputs()[(cid,'full')]
+                if not np.array_equal(ref.pose_id.to_numpy(int),raw['pose_id'].astype(int)):
+                    raise ValueError('REFERENCE_RF_CLOCK_POSE_ID_MISMATCH')
+                actual=raw['truth_for_offline_scoring_only'][:,:3]
+                if np.max(abs(ref[['x','y']].to_numpy()-actual[:,:2]))>1e-10 or np.max(abs(wrap(ref.yaw_body_deg.to_numpy()-np.degrees(actual[:,2]))))>1e-8:
+                    raise ValueError('REFERENCE_RF_CLOCK_GEOMETRY_MISMATCH')
+                ref[rc['time']]=raw['t_s']
+                evidence[str(args.source_root.parent/'rf_frozen.zip')]=sha(args.source_root.parent/'rf_frozen.zip')
             fixed_z = rec.get('radio_z_m')
             if nc['z'] not in new and (fixed_z is None or not rec.get('metadata_evidence')):
                 raise ValueError('M45_HEIGHT_NOT_INDEPENDENTLY_DOCUMENTED')
