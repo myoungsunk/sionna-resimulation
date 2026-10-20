@@ -1,11 +1,26 @@
-# T6 준비 상태
+# T6 검출 tap 기반 Range 교정
 
-TECHNICAL: `NOT_EXECUTED` · 과학 판정: `NOT_ESTABLISHED`.
+7조건 Full/Native LoS × 4 bias × 3 관측식 × 2 arm = 336행 재귀 계산 완료. TECHNICAL_PASS_SEVEN_CONDITIONS. 요청 9,519점 중 확보된 Native LoS는 7,251점이며 2,268점 부족으로 전체 과학 판정은 BLOCKED_INPUT이다. 확보점 잔차 RMSE=0 m, tap 내부 FD 43,506개 최대차=0이다. tap 경계는 미분 불가능하며 이를 매끄러운 거리 Jacobian으로 대체하지 않았다.
 
-SourceFFD가 실제 검출기 range를 이미 `diag['native_range']`에 반환하는 것을 소스로 확인했다. `SourceTapRange`는 이를 그대로 사용하며, range Jacobian은 tap 불변 셀에서 0이다. tap 전환점에서는 미분이 정의되지 않는다. 세부 해석은 `DESIGN_KO.md`를 따른다.
+| case | channel | Heading old → SRC (°) | XY old → SRC (m) |
+|---|---|---|---|
+| R2_aA_m0 | full | 1.798910 → 6.312572 | 0.149970 → 0.851978 |
+| R2_aA_m0 | los | 2.108206 → 0.233403 | 0.269707 → 0.082667 |
+| R2_aB_m0 | full | 1.515858 → 3.611139 | 0.074295 → 0.432002 |
+| R2_aB_m0 | los | 1.457319 → 2.249369 | 0.138643 → 0.302858 |
+| R2_aA_m45 | full | 0.982634 → 2.094378 | 0.087113 → 0.331305 |
+| R2_aA_m45 | los | 1.356951 → 0.326645 | 0.145885 → 0.088873 |
+| R4_aA_m0 | full | 0.658932 → 0.718638 | 0.104755 → 0.122348 |
+| R4_aA_m0 | los | 0.610679 → 0.521599 | 0.123566 → 0.075500 |
+| R4_aB_m0 | full | 1.508341 → 1.406850 | 0.093826 → 0.140592 |
+| R4_aB_m0 | los | 0.563874 → 1.121732 | 0.091491 → 0.226610 |
+| R5_aA_m0 | full | 4.556146 → 17.904643 | 0.477497 → 1.904567 |
+| R5_aA_m0 | los | 1.940648 → 0.367154 | 0.211062 → 0.140217 |
+| R5_aB_m0 | full | 1.056234 → 0.933174 | 0.085002 → 0.147907 |
+| R5_aB_m0 | los | 1.448022 → 0.667407 | 0.135283 → 0.095751 |
 
-`PROTOCOL_LOCK.json`, 정확한 adapter, Native LoS 9,519점 잔차·FD 실행 코드를 준비했고 Python AST/JSON 구문 검사만 통과했다. 프로토콜 커밋 확인 전 RF 수치 계산은 하지 않았다. P1 재학습, 재귀 POWER1, Native LoS 안전성 수치는 아직 없다.
+모든 지표는 RANGE_REPLAY.csv, 변화는 RANGE_COMPARISON.csv에 있다. B_REFIT_ONLY 대조를 보존했다. 독립 scorer 및 원 POWER 상태/gate 검사는 REPLAY_CHECKS.csv에 기록했다. T3·T4 SRC 후속 표는 별도 버전으로 보존한다. 실행 39359601219의 Range 단계는 성공했고 뒤따른 T3 단계의 입력 schema 오류가 job 전체 실패를 만들었다. 성공한 Range 계산을 재실행하지 않았다.
 
 ## 주장하지 않는 것
 
-낮은 검출 잔차만으로 재귀 개선, detector tap 전환점의 미분 가능성, 독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다.
+부족한 2,268점 검증, 독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다.

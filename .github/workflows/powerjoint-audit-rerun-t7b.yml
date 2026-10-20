@@ -1,0 +1,142 @@
+# Root integration: install as .github/workflows/powerjoint-audit-rerun-t7b.yml.
+# Dependency artifacts must expose DECISION/MANIFEST at T4 root and NEW_CASES.json
+# at T2 root, with relative trace/feature paths as documented. No push trigger.
+name: Powerjoint audit T7B nested utility policy
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/FINAL_READY.json]
+permissions:
+  contents: read
+  actions: read
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  NUMEXPR_NUM_THREADS: '1'
+jobs:
+  labels:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        outer: [R2, R4, R5, ALL_OLD]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/POWERJOINT_M45_COMPACT_20261019
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Interface parity before label generation
+        run: python work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/interface_checks.py
+      - name: Strict nested labels
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/utility_policy.py labels --outer ${{ matrix.outer }} --source-root source --execution-root . --t4-final source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD --out labels_${{ matrix.outer }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: policy-label-${{ matrix.outer }}-${{ github.run_id }}
+          path: work/labels_${{ matrix.outer }}
+          retention-days: 30
+  train:
+    needs: labels
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: research/POWERJOINT_AUDIT_RERUN_20261020
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: policy-label-*-${{ github.run_id }}
+          path: work/labels
+      - name: Fixed per-action models
+        run: python work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/utility_policy.py train --labels work/labels/*/UTILITY_LABELS.csv --t4-final work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD --out work/models
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: policy-models-${{ github.run_id }}
+          path: work/models
+          retention-days: 30
+  evaluate:
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/POWERJOINT_M45_COMPACT_20261019
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - uses: actions/download-artifact@v4
+        with:
+          name: policy-models-${{ github.run_id }}
+          path: work/models
+      - name: Recover certified T2 and immutable new RF features
+        working-directory: work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for route in C01 C02 C03 O01 O02 O03; do
+            python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run 39359952488 --route "$route" --out "t2_existing/$route"
+            python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_route.py --route "$route" --out "new_release/$route"
+          done
+          python source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/assemble_new_inputs.py --t2-root t2_existing --release-root new_release --source-root source --out t2_combined
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Assemble canonical old input bundle
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/prepare_old.py
+      - name: All requested recursive evaluations
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/utility_policy.py evaluate --models models/MODELS.json --old-bundle old_bundle/BUNDLE.json --new-config t2_combined/NEW_CASES.json --source-root source --execution-root . --t4-final source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD --out t7b_final
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-t7b-${{ github.run_id }}
+          path: |
+            work/t7b_final
+            work/t2_combined/features
+            work/t2_combined/ASSEMBLY_RECEIPT.csv
+            work/t2_combined/MANIFEST.json
+            work/t2_combined/ERRORS.json
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
