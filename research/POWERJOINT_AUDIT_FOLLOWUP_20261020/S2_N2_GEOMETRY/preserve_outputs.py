@@ -4,6 +4,8 @@ import argparse,hashlib,json,os,sys,time,zipfile
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'S0_CORRECTIONS'))
 from github_io import session,api,download,sha
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 def dump(p,x):
  p.parent.mkdir(parents=True,exist_ok=True);p.write_text(json.dumps(x,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 def upload(s,release,assets,path,name,digest):
@@ -18,7 +20,10 @@ def upload(s,release,assets,path,name,digest):
  return dict(release_asset_id=asset['id'],release_asset_url=asset['browser_download_url'],release_readback_sha256=h.hexdigest(),release_readback_bytes=n)
 def main():
  p=argparse.ArgumentParser();p.add_argument('--cache',type=Path,required=True);p.add_argument('--runs',type=int,nargs='+',required=True);a=p.parse_args();a.cache.mkdir(parents=True,exist_ok=True)
- s=session();deadline=time.monotonic()+7200
+ s=session()
+ # Retry idempotent metadata/download GETs only; never repeat uploads implicitly.
+ s.mount('https://',HTTPAdapter(max_retries=Retry(total=3,connect=3,read=3,backoff_factor=1,status_forcelist=[502,503,504],allowed_methods=['GET','HEAD'])))
+ deadline=time.monotonic()+7200
  while True:
   runs=[api(s,f'actions/runs/{rid}') for rid in a.runs]
   if all(r['status']=='completed' for r in runs):break
