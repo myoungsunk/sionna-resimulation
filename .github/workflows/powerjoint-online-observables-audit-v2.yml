@@ -1,0 +1,62 @@
+name: POWERJOINT Full-only observable audit V2 JSON fix
+on:
+  push:
+    branches: ['research/powerjoint-online-observables-20261020']
+    paths: ['.github/workflows/powerjoint-online-observables-audit-v2.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GH_TOKEN: ${{ github.token }}
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/POWERJOINT_ONLINE_OBSERVABLES_20261020/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Correct numpy integer JSON logging, not scientific calculations
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/POWERJOINT_ONLINE_OBSERVABLES_20261020/online_packet_audit.py')
+          s=p.read_text();old="'n':end-start";new="'n':int(end-start)";assert s.count(old)==1
+          p.write_text(s.replace(old,new));print('PATCHED JSON serialization only: n numpy-int -> Python-int')
+          PY
+      - name: Recompute all Full-only features and independent offline timing checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/output/metrics" "$RUNNER_TEMP/source"
+          for rt in C01 C02 C03 O01 O02 O03; do
+            mkdir -p "$RUNNER_TEMP/source/$rt"
+            gh run download 39277485012 --repo myoungsunk/sionna-resimulation --name "powerjoint-newrf-${rt}-39277485012" --dir "$RUNNER_TEMP/source/$rt"
+            python research/POWERJOINT_ONLINE_OBSERVABLES_20261020/online_packet_audit.py "$RUNNER_TEMP/source/$rt/data" "$RUNNER_TEMP/output/metrics" "$rt"
+          done
+      - name: Compare fixed historical effects, no retraining or EKF replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POWERJOINT_ONLINE_OBSERVABLES_20261020/aggregate_online.py "$RUNNER_TEMP/output/metrics" "$RUNNER_TEMP/output/summary"
+          cp research/POWERJOINT_ONLINE_OBSERVABLES_20261020/*.py "$RUNNER_TEMP/output/"
+          python -m compileall -q "$RUNNER_TEMP/output/online_packet_audit.py" "$RUNNER_TEMP/output/aggregate_online.py"
+      - name: Preserve complete results including failed/neutral event comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: powerjoint-online-observables-${{ github.run_id }}
+          path: ${{ runner.temp }}/output/**
+          retention-days: 30
+          if-no-files-found: warn
