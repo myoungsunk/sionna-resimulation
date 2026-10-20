@@ -1,0 +1,23 @@
+# POWER1 vs physically separated Range/s models — preregistered execution 2026-10-20
+
+## Scope
+Execute actual measurement refit and recursive SourceFFD EKF, not a summary. Seven frozen R2/R4/R5 Full/Native-LoS cases; R2 A Mount45 included, remaining six M0. Known original RF source does not include regenerated R4/R5 M45/new C/O; no claim those are invalid. They are external follow-up, not silently mixed. One physical corridor. B0/L2 synthetic Sensor-v2 seed0, same controls/prior per case across arms and Full/LoS, evaluate t>=30s. Original Range surrogate d+B_OLD unchanged. FFD LP banks pinned by source receipt; numerical harmless environment/logging differences recorded but not cause to abandon tests.
+
+## Offline training only
+Full RF labels e=[r-h_r(GT),s-h_s(GT)] from same SourceFFD; Native LoS only evaluated. Leave R2/R4/R5 out by route; remove training XY within 1e-4m of held-route XY; weight unique XY by reciprocal multiplicity as original n4b. Existing source POWER1 fitting code unchanged (Ridge30 on log FP power, train power tertiles, signed-bin-mean and covariance shrinkage). Whole held route must not influence coefficients/cutpoints/shrinkage. Features chosen from prior empirical report, so this is developmental route-heldout validation, not untouched-test confirmation.
+
+Separate Range predictor q_r=[log_fp_power,delay_rms_ns,peak_diff_ns]. Separate s predictor q_s=[log_fp_power,delay_rms_ns,detector_s_span,s_diff4]. Fixed Ridge30, StandardScaler train-only. Target-specific variance bins: Range delay_rms tertiles; s detector_s_span tertiles. Same residual-mean correction, shrinkage n_eff/(n_eff+100), variance floor .1*R0 as original POWER design. Covariance is centered residual variance, not raw second moment. Fixed definitions: peak_diff_ns is RX-port peak separation, s_diff4 uses four taps, detector_s_span is max change from nominal threshold, not ptp.
+
+Correlation models keep these marginal means/variances identical: rho0; one global standardized-residual correlation; 3x3 Range-delay × s-detector strata correlation. Center standardized residuals, estimate weighted rho, local-to-global shrinkage n_eff/(n_eff+200), cap |rho|<=.85; <30 training rows falls back global. Corr fitting uses training residuals only (same in-sample convention as original baseline, no crossfit claims), train residual means are audited to expose joint-bin mean misspecification. Rrs=rho*sqrt(Vr*Vs); SPD required. No model complexity/hyperparameter selected after held-route performance.
+
+## Recursive arms
+1 JOINT4 fixed R0; 2 POWER1 original; 3 POWER_DIAG removing C_rs only; 4 SEP_DIAG; 5 SEP_GLOBAL_RHO; 6 SEP_BIN_RHO; 7 SEP_MEAN_POWER_COV; 8 POWER_MEAN_SEP_COV; 9 SEP_BIN_MARGINAL_GATE.
+Natural joint gate NIS<=chi2_2(.99). Arm9 uses Bonferroni marginal standardized innovation cutoffs chi2_1(.995), but retains the same full R in the update. Gate must be based on predictive S=H P H'+R, not just R. This isolates correlation-sensitive joint gating vs conservative per-component whole-packet rejection; no raw-component downweighting claimed robust-optimal.
+
+## Mandatory mathematical audit
+Random SPD example direct correlated joint Gaussian update vs Cholesky-whitened joint update and fixed-linearization conditional scalar update: state/P/NIS parity. Conditional s update must use H_s-(Crs/Vr)H_r and its transformed intercept; no resubmission of Range information. Scalar conditional variance Vs-Crs²/Vr positive. Independent source core.gaussian_update checks sampled real filter steps. Joseph covariance, symmetry/SPD, finite values, angle wrapping. Reproduce historical POWER B0 Heading within published rounding tolerance; exact source numerical math parity audited separately. Do not conflate near published rounded score with original NPZ byte parity.
+
+## Outcomes
+Measurement: bias/RMSE, marginal95, joint95, standardized residual cross-correlation, mean sigma and conditional-Gaussian NLL. Recursive: signed Heading bias, RMSE, heading95/NEES, mean sigma, XY and bias RMSE, accepted fraction, pre-gate NIS. Evaluate natural recursion, plus single-step alternative arms on frozen POWER1 prior with same POWER mask to separate direct vs accumulated/Gate effects. Repeat Full and Native LoS; Native LoS protection is secondary control, not a separate research goal.
+
+Retain failed candidates, quantify changes case-by-case. No 9519-packet independent-sample significance. No formal normalized p(z|x) claim: q derived from same CIR is measurement-conditioned feature; these are empirical conditional error models. Only simple separate marginals + correlation considered; do not add temporal states, Student-t, mixture, or active scan before this experiment.
