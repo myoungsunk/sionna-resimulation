@@ -1,0 +1,347 @@
+{
+  "task": "S3_Q1_POLICY",
+  "version": 1,
+  "status": "PREREGISTERED_BEFORE_LABELS_TRAIN_RECURSION",
+  "S2_commit": "8821d2e4d80ed749b5c4c5e3901e42957d29b2eb",
+  "S2_audit": "ACCEPT_FOR_S3; scientific NOT_ESTABLISHED preserved",
+  "engine_commit": "034e57a7209a3bd1bb8857b24fd85c64942e1258",
+  "engine_sha256": "e725f92bd74e6a845b07418d6f3b7a2974a518b2cd03b16969518bf879ee11b8",
+  "sensor_lock_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+  "B_OLD": -0.5315983906250129,
+  "rf_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+  "labels_sha256": "02038c4c967750905a80dde31b0bcd0b667bd5d11df1cb02e05023e06893ee4d",
+  "cached_oof_sha256": "207ef86a9c7c60037ca36439370ee12fe52f34eacf8c7046e64a76e669051f08",
+  "features": [
+    "range_m",
+    "log_fp_power",
+    "abs_s_fp",
+    "early4",
+    "early8",
+    "early16",
+    "delay_rms_ns",
+    "peak_diff_ns",
+    "eta_fp_win80",
+    "s_diff4",
+    "s_diff8",
+    "s_diff16",
+    "tap_pol_var80",
+    "jones_diversity",
+    "freq_s_var",
+    "detector_s_span",
+    "detector_delay_span_ns",
+    "power_nis",
+    "sigma_psi_rad",
+    "P_psi_bg",
+    "H_spsi"
+  ],
+  "actions": [
+    "POWER",
+    "R0",
+    "INFLATE4",
+    "SKIP"
+  ],
+  "bias_dps": {
+    "B0": 0,
+    "L0": 0.01,
+    "L1": 0.05,
+    "L2": 0.2
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "label_rule": "every actual old7 Full RF t>=30 and t+10<=last; no subsampling; all other rows retained with exclusion status",
+  "label_loss": "Heading deg^2 MSE on (t,t+10]; current action applied; subsequent POWER; u=MSE_POWER-MSE_action",
+  "p1": "v2 nested outer+inner exclusion and >1e-4m site rule unchanged; novel labels never used",
+  "oof_scope": "HGB_STAGE_ROUTE_HELDOUT_CONDITIONAL_ON_FIXED_V2_PRIOR_LABELS; NOT whole-pipeline OOF; no calibration coverage guarantee",
+  "oof_group": "inner route, all bias/seed/overlapping windows kept together",
+  "learner": {
+    "max_iter": 120,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 20,
+    "learning_rate": 0.05,
+    "l2_regularization": 1.0,
+    "max_bins": 255,
+    "early_stopping": false,
+    "random_state": 20261020
+  },
+  "margin": {
+    "selection": "unadjusted nonPOWER argmax even if all negative",
+    "tie_order": [
+      "R0",
+      "INFLATE4",
+      "SKIP"
+    ],
+    "error": "max(0,predicted-actual) only rows selecting that action",
+    "quantile": 0.8,
+    "quantile_method": "numpy linear",
+    "no_selection": "delta null; UNCALIBRATED_NO_OOF_SELECTION; action disabled in V3",
+    "decision": "argmax(predicted-delta) enabled actions; strictly >0 else POWER",
+    "no_margin": "same final models; delta=0, all three actions enabled; strictly >0 else POWER; uncalibrated disabling is specific to V3"
+  },
+  "evaluation": {
+    "total": 288,
+    "full_cells": 64,
+    "los_cells": 8,
+    "arms": [
+      "POWER1",
+      "R0",
+      "POLICY_V3",
+      "POLICY_NO_MARGIN"
+    ],
+    "scope": "whole motion clock t>=30; radio scope auxiliary"
+  },
+  "decision": "support only Full64/64 V3<=1.10POWER1 AND NativeLoS8/8 V3<=1.10R0; any valid violation NOT_ESTABLISHED/NO_GO; missing or failed technical incomplete forbids support",
+  "checks": {
+    "power_heading_tol_deg": 1e-06,
+    "power_gate_mismatch": 0,
+    "restart_state_cov_tol": 1e-10,
+    "independent_11_tol": 1e-09,
+    "spd": "all prior/posterior finite and eigenvalue>0; no repair",
+    "nonradio_updates": 0
+  },
+  "label_shards": [
+    {
+      "outer": "R2",
+      "case": "R4_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R2_R4_aA_m0.csv",
+      "sha256": "3715a372d78220c2c7d62a2995fdf5bb7db468bc83b7a634685a41239225e595",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "R2",
+      "case": "R4_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R2_R4_aB_m0.csv",
+      "sha256": "f9a26e7e950de7b70e0c92ae018c2850071b3975ed9a310aedd2e180f05b8095",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "R2",
+      "case": "R5_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R2_R5_aA_m0.csv",
+      "sha256": "37953181c17c4fe3adaa1ccf1bd5d959eeff972f6efe3897f3501028b57cb8bb",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    },
+    {
+      "outer": "R2",
+      "case": "R5_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R2_R5_aB_m0.csv",
+      "sha256": "6351c073dc967d56a5772e70d6a1904a2b3d940bb64a7007906672fd97f1d02b",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    },
+    {
+      "outer": "R4",
+      "case": "R2_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R4_R2_aA_m0.csv",
+      "sha256": "257eb7c91656924187ad2215e85a6ba8ce94e893909d4f0abc59b879340ace90",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R4",
+      "case": "R2_aA_m45",
+      "file": "LABEL_PACKET_INDEX_R4_R2_aA_m45.csv",
+      "sha256": "d258c7c29350721650d1c9e81157f33c403541c263474360f480a90989d6eb26",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R4",
+      "case": "R2_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R4_R2_aB_m0.csv",
+      "sha256": "09f20f69de4b1226ca4f2f938cf168705411484ea703b9d43e4ec2d36510c177",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R4",
+      "case": "R5_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R4_R5_aA_m0.csv",
+      "sha256": "8bdfb8a96d141eded99a4709638e0c97f96dc79ab7656a5d95ef74e9858c8789",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    },
+    {
+      "outer": "R4",
+      "case": "R5_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R4_R5_aB_m0.csv",
+      "sha256": "847c0f011b0a2e2982a75b5d7ef326816fdc9b0ec9ea6f8e38ac82cff52cf718",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    },
+    {
+      "outer": "R5",
+      "case": "R2_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R5_R2_aA_m0.csv",
+      "sha256": "f71b48a277f64adcee5118283ccf526ec46dc60fcffedb1f45f879731d2cd8c1",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R5",
+      "case": "R2_aA_m45",
+      "file": "LABEL_PACKET_INDEX_R5_R2_aA_m45.csv",
+      "sha256": "01faf61f981c9f311a1904972dd3e49bf12d11c1c1820b3ff41b32821f22c4ff",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R5",
+      "case": "R2_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R5_R2_aB_m0.csv",
+      "sha256": "da5ebd48a60559c740addbf256b232f1ce80f469eaee0e1731333eea9b5ff9a5",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "R5",
+      "case": "R4_aA_m0",
+      "file": "LABEL_PACKET_INDEX_R5_R4_aA_m0.csv",
+      "sha256": "4fd6723dabff033849dfabf1075a9f1bef60df752009d1098e87299354a46dd2",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "R5",
+      "case": "R4_aB_m0",
+      "file": "LABEL_PACKET_INDEX_R5_R4_aB_m0.csv",
+      "sha256": "0ac63bda9831498c7885391345df248b3dec5772d2fcec89f3d4c64b73a59755",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R2_aA_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R2_aA_m0.csv",
+      "sha256": "c2dbd18cf2383c4c49efbab5838e0a622a5ef6e3eb808f3d4f058d9a054d930c",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R2_aA_m45",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R2_aA_m45.csv",
+      "sha256": "823c3c9f576035f0025ec96a65b1be8d012109540ef3e474473aff13e4e1e96e",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R2_aB_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R2_aB_m0.csv",
+      "sha256": "32c7e6f7e7685bb6bfaf7dfd90cc1a1e8db686cc0886b7d027dc75b5ab47f14c",
+      "rows": 19580,
+      "included": 15580,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 779,
+      "nonoverlapping_10s_windows": 16
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R4_aA_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R4_aA_m0.csv",
+      "sha256": "6d2c294d57eb4cf2c38a5a73e57365cae799f439af03b28fbd2fd427339dd884",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R4_aB_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R4_aB_m0.csv",
+      "sha256": "ea1fd04a8d5284fe359b15dd952307d7f6e4814ac0157c1e7027a04ec957f038",
+      "rows": 14840,
+      "included": 10840,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 542,
+      "nonoverlapping_10s_windows": 11
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R5_aA_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R5_aA_m0.csv",
+      "sha256": "a52f9e39fb653ba1da3c892e5a3a99171ae419dbc12ea31349eed9e678d39b3f",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    },
+    {
+      "outer": "ALL_OLD",
+      "case": "R5_aB_m0",
+      "file": "LABEL_PACKET_INDEX_ALL_OLD_R5_aB_m0.csv",
+      "sha256": "2bb1961deff2a77c3854b4994bed2da7f2250f644bf984a548b902043c3d885d",
+      "rows": 28300,
+      "included": 24300,
+      "incomplete_horizon": 1000,
+      "unique_rf_packets": 1215,
+      "nonoverlapping_10s_windows": 25
+    }
+  ],
+  "contract_hashes": {
+    "TRAIN_FOLDS.json": "8518c6d2d37a9fe880486be366cdbeba10c7b8416d8a5feafe904b0d3cf15811",
+    "LABEL_PACKET_INDEX.json": "f1145cc610f641f1116b67a91cd258e0bb5f8315992d12329f55fb3e8c2422b5",
+    "ROUTE_DEPENDENCIES.csv": "17c93c547b3e20c2dfa217fffc86ec0b20fd1236aa28fe64213233ac7fb7d9f9",
+    "EVALUATION_MATRIX.csv": "ab613b97791447cd24af3b4c24e41594759e601a48e6d490f3272d54fa19727b",
+    "CASE_METADATA.json": "54b20a0d69bf40458f75d302846a94b3aa098dd966460afd19ea5d426109c6b1",
+    "MODEL_AND_OOF_DESIGN.md": "6e368dd33606490d89450e0c6f181a495cc3cc1f11f02b13e12dd62e3c9e1e58"
+  }
+}
