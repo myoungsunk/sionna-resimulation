@@ -1,0 +1,80 @@
+name: POWERJOINT followup S3 all-packet utility labels
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/powerjoint-audit-followup-20261020]
+    paths: [.github/workflows/powerjoint-audit-followup-s3-labels.yml]
+permissions:
+  contents: read
+jobs:
+  labels:
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        include: [{"outer": "R2", "case": "R4_aA_m0", "seed": 0}, {"outer": "R2", "case": "R4_aA_m0", "seed": 1}, {"outer": "R2", "case": "R4_aA_m0", "seed": 2}, {"outer": "R2", "case": "R4_aA_m0", "seed": 3}, {"outer": "R2", "case": "R4_aA_m0", "seed": 4}, {"outer": "R2", "case": "R4_aB_m0", "seed": 0}, {"outer": "R2", "case": "R4_aB_m0", "seed": 1}, {"outer": "R2", "case": "R4_aB_m0", "seed": 2}, {"outer": "R2", "case": "R4_aB_m0", "seed": 3}, {"outer": "R2", "case": "R4_aB_m0", "seed": 4}, {"outer": "R2", "case": "R5_aA_m0", "seed": 0}, {"outer": "R2", "case": "R5_aA_m0", "seed": 1}, {"outer": "R2", "case": "R5_aA_m0", "seed": 2}, {"outer": "R2", "case": "R5_aA_m0", "seed": 3}, {"outer": "R2", "case": "R5_aA_m0", "seed": 4}, {"outer": "R2", "case": "R5_aB_m0", "seed": 0}, {"outer": "R2", "case": "R5_aB_m0", "seed": 1}, {"outer": "R2", "case": "R5_aB_m0", "seed": 2}, {"outer": "R2", "case": "R5_aB_m0", "seed": 3}, {"outer": "R2", "case": "R5_aB_m0", "seed": 4}, {"outer": "R4", "case": "R2_aA_m0", "seed": 0}, {"outer": "R4", "case": "R2_aA_m0", "seed": 1}, {"outer": "R4", "case": "R2_aA_m0", "seed": 2}, {"outer": "R4", "case": "R2_aA_m0", "seed": 3}, {"outer": "R4", "case": "R2_aA_m0", "seed": 4}, {"outer": "R4", "case": "R2_aA_m45", "seed": 0}, {"outer": "R4", "case": "R2_aA_m45", "seed": 1}, {"outer": "R4", "case": "R2_aA_m45", "seed": 2}, {"outer": "R4", "case": "R2_aA_m45", "seed": 3}, {"outer": "R4", "case": "R2_aA_m45", "seed": 4}, {"outer": "R4", "case": "R2_aB_m0", "seed": 0}, {"outer": "R4", "case": "R2_aB_m0", "seed": 1}, {"outer": "R4", "case": "R2_aB_m0", "seed": 2}, {"outer": "R4", "case": "R2_aB_m0", "seed": 3}, {"outer": "R4", "case": "R2_aB_m0", "seed": 4}, {"outer": "R4", "case": "R5_aA_m0", "seed": 0}, {"outer": "R4", "case": "R5_aA_m0", "seed": 1}, {"outer": "R4", "case": "R5_aA_m0", "seed": 2}, {"outer": "R4", "case": "R5_aA_m0", "seed": 3}, {"outer": "R4", "case": "R5_aA_m0", "seed": 4}, {"outer": "R4", "case": "R5_aB_m0", "seed": 0}, {"outer": "R4", "case": "R5_aB_m0", "seed": 1}, {"outer": "R4", "case": "R5_aB_m0", "seed": 2}, {"outer": "R4", "case": "R5_aB_m0", "seed": 3}, {"outer": "R4", "case": "R5_aB_m0", "seed": 4}, {"outer": "R5", "case": "R2_aA_m0", "seed": 0}, {"outer": "R5", "case": "R2_aA_m0", "seed": 1}, {"outer": "R5", "case": "R2_aA_m0", "seed": 2}, {"outer": "R5", "case": "R2_aA_m0", "seed": 3}, {"outer": "R5", "case": "R2_aA_m0", "seed": 4}, {"outer": "R5", "case": "R2_aA_m45", "seed": 0}, {"outer": "R5", "case": "R2_aA_m45", "seed": 1}, {"outer": "R5", "case": "R2_aA_m45", "seed": 2}, {"outer": "R5", "case": "R2_aA_m45", "seed": 3}, {"outer": "R5", "case": "R2_aA_m45", "seed": 4}, {"outer": "R5", "case": "R2_aB_m0", "seed": 0}, {"outer": "R5", "case": "R2_aB_m0", "seed": 1}, {"outer": "R5", "case": "R2_aB_m0", "seed": 2}, {"outer": "R5", "case": "R2_aB_m0", "seed": 3}, {"outer": "R5", "case": "R2_aB_m0", "seed": 4}, {"outer": "R5", "case": "R4_aA_m0", "seed": 0}, {"outer": "R5", "case": "R4_aA_m0", "seed": 1}, {"outer": "R5", "case": "R4_aA_m0", "seed": 2}, {"outer": "R5", "case": "R4_aA_m0", "seed": 3}, {"outer": "R5", "case": "R4_aA_m0", "seed": 4}, {"outer": "R5", "case": "R4_aB_m0", "seed": 0}, {"outer": "R5", "case": "R4_aB_m0", "seed": 1}, {"outer": "R5", "case": "R4_aB_m0", "seed": 2}, {"outer": "R5", "case": "R4_aB_m0", "seed": 3}, {"outer": "R5", "case": "R4_aB_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R2_aA_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R2_aA_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R2_aA_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R2_aA_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R2_aA_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R2_aA_m45", "seed": 0}, {"outer": "ALL_OLD", "case": "R2_aA_m45", "seed": 1}, {"outer": "ALL_OLD", "case": "R2_aA_m45", "seed": 2}, {"outer": "ALL_OLD", "case": "R2_aA_m45", "seed": 3}, {"outer": "ALL_OLD", "case": "R2_aA_m45", "seed": 4}, {"outer": "ALL_OLD", "case": "R2_aB_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R2_aB_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R2_aB_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R2_aB_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R2_aB_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R4_aA_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R4_aA_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R4_aA_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R4_aA_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R4_aA_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R4_aB_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R4_aB_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R4_aB_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R4_aB_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R4_aB_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R5_aA_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R5_aA_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R5_aA_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R5_aA_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R5_aA_m0", "seed": 4}, {"outer": "ALL_OLD", "case": "R5_aB_m0", "seed": 0}, {"outer": "ALL_OLD", "case": "R5_aB_m0", "seed": 1}, {"outer": "ALL_OLD", "case": "R5_aB_m0", "seed": 2}, {"outer": "ALL_OLD", "case": "R5_aB_m0", "seed": 3}, {"outer": "ALL_OLD", "case": "R5_aB_m0", "seed": 4}]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          path: work/source
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S3_Q1_POLICY/
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/github_io.py
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/model.py
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/TRAIN_PARAMS.json
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/restore_references.py
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S1_N1_EVENTS/independent_score.py
+            /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/TRACE_RECEIPT.json
+            /research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/restore_route.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/RELEASE_INPUTS.json
+            /research/POWERJOINT_AUDIT_RERUN_20261020/canonical_engine.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/scalar_power.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T0_INPUTS/
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/vendor/
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/replay.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/unit_tests.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/prepare_inputs.py
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/PROTOCOL_LOCK.json
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/MANIFEST.json
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/ALL_METRICS.csv
+            /research/POWERJOINT_AUDIT_RERUN_20261020/T9_SPEC/RESULTS.csv
+            /research/CHAIN_HYPOTHESIS_20261019/
+            /research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv
+            /research/FFD_P0P3_20261016/
+            /research/EKF4_RANGE_S_STAGED_20261014/
+            /research/R5_N4B_20261015/
+            /research/R5_N4C_20261015/
+            /research/PHYSICS_RS_STAGED_20261015/code/
+            /research/R5_FULLRF_SAME_START_EKF4_20261015/
+            /research/POWERJOINT_M45_COMPACT_20261019/
+            /src/qclean_uwb/__init__.py
+            /src/qclean_uwb/scenarios/
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0 requests==2.32.5
+      - name: Restore immutable releases and verify SHA256
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: All locked labels, committed protocol, actual seed
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S3_Q1_POLICY/labels.py --outer ${{ matrix.outer }} --case ${{ matrix.case }} --seed ${{ matrix.seed }} --out s3/labels/${{ matrix.outer }}_${{ matrix.case }}_seed${{ matrix.seed }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: powerjoint-s3-label-${{ matrix.outer }}-${{ matrix.case }}-seed${{ matrix.seed }}-${{ github.run_id }}
+          path: |
+            work/s3
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
