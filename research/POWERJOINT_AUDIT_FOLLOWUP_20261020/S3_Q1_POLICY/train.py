@@ -5,7 +5,12 @@ from common import *
 from sklearn.ensemble import HistGradientBoostingRegressor
 import sklearn
 sys.path.insert(0,str(HERE.parent/'S0_CORRECTIONS'))
-from github_io import session,api,download
+from github_io import session as raw_session,api,download
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+def session():
+ s=raw_session();s.mount('https://',HTTPAdapter(max_retries=Retry(total=3,connect=3,read=3,backoff_factor=1,status_forcelist=[502,503,504],allowed_methods=['GET','HEAD'])))
+ return s
 def shards(df,out,stem,n=10000):
  for j,i in enumerate(range(0,len(df),n)):df.iloc[i:i+n].to_csv(out/f'{stem}_{j:03}.csv',index=False)
 def get_artifacts(run):

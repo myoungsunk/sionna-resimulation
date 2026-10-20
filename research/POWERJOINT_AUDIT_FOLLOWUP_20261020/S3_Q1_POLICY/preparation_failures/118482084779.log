@@ -1,0 +1,480 @@
+﻿2026-10-20T06:09:37.8938289Z Current runner version: '2.337.0'
+2026-10-20T06:09:37.8972883Z ##[group]Runner Image Provisioner
+2026-10-20T06:09:37.8974738Z Hosted Compute Agent
+2026-10-20T06:09:37.8975768Z Version: 20261012.601
+2026-10-20T06:09:37.8976982Z Commit: f3dc54e1fb89da6852db922499a0233137369e1d
+2026-10-20T06:09:37.8978495Z Build Date: 2026-10-12T17:48:21Z
+2026-10-20T06:09:37.8979767Z Worker ID: {cdb42887-e896-428f-9bb6-40c7db0bf4bb}
+2026-10-20T06:09:37.8981178Z Region: centralus
+2026-10-20T06:09:37.8982196Z Cloud: Azure
+2026-10-20T06:09:37.8983209Z ##[endgroup]
+2026-10-20T06:09:37.8986047Z ##[group]Operating System
+2026-10-20T06:09:37.8987216Z Ubuntu
+2026-10-20T06:09:37.8988700Z 24.04.5
+2026-10-20T06:09:37.8989477Z LTS
+2026-10-20T06:09:37.8990051Z ##[endgroup]
+2026-10-20T06:09:37.8990684Z ##[group]Runner Image
+2026-10-20T06:09:37.8991318Z Image: ubuntu-24.04
+2026-10-20T06:09:37.8991885Z Version: 20261012.334.1
+2026-10-20T06:09:37.8993254Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261012.334/images/ubuntu/Ubuntu2404-Readme.md
+2026-10-20T06:09:37.8995275Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261012.334
+2026-10-20T06:09:37.8996326Z ##[endgroup]
+2026-10-20T06:09:37.8997568Z ##[group]GITHUB_TOKEN Permissions
+2026-10-20T06:09:37.8999751Z Actions: read
+2026-10-20T06:09:37.9000373Z Contents: read
+2026-10-20T06:09:37.9001044Z Metadata: read
+2026-10-20T06:09:37.9001613Z ##[endgroup]
+2026-10-20T06:09:37.9004472Z Secret source: Actions
+2026-10-20T06:09:37.9005478Z Cache mode: write
+2026-10-20T06:09:37.9006662Z Prepare workflow directory
+2026-10-20T06:09:37.9476905Z Prepare all required actions
+2026-10-20T06:09:37.9536806Z Getting action download info
+2026-10-20T06:09:38.1955631Z Download action repository 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' (SHA:08c6903cd8c0fde910a37f88322edcfb5dd907a8)
+2026-10-20T06:09:38.3495414Z Download action repository 'actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-10-20T06:09:38.4345728Z Download action repository 'actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+2026-10-20T06:09:38.6426327Z Complete job name: train
+2026-10-20T06:09:38.7187898Z ##[group]Run actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+2026-10-20T06:09:38.7188983Z with:
+2026-10-20T06:09:38.7189417Z   path: work/source
+2026-10-20T06:09:38.7189957Z   sparse-checkout-cone-mode: false
+2026-10-20T06:09:38.7201435Z   sparse-checkout: /research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S3_Q1_POLICY/
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/github_io.py
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/model.py
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/TRAIN_PARAMS.json
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S2_N2_GEOMETRY/restore_references.py
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S1_N1_EVENTS/independent_score.py
+/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/TRACE_RECEIPT.json
+/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/restore_route.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/RELEASE_INPUTS.json
+/research/POWERJOINT_AUDIT_RERUN_20261020/canonical_engine.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/scalar_power.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/T0_INPUTS/
+/research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/vendor/
+/research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/replay.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/unit_tests.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/prepare_inputs.py
+/research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/PROTOCOL_LOCK.json
+/research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/MANIFEST.json
+/research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/ALL_METRICS.csv
+/research/POWERJOINT_AUDIT_RERUN_20261020/T9_SPEC/RESULTS.csv
+/research/CHAIN_HYPOTHESIS_20261019/
+/research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv
+/research/FFD_P0P3_20261016/
+/research/EKF4_RANGE_S_STAGED_20261014/
+/research/R5_N4B_20261015/
+/research/R5_N4C_20261015/
+/research/PHYSICS_RS_STAGED_20261015/code/
+/research/R5_FULLRF_SAME_START_EKF4_20261015/
+/research/POWERJOINT_M45_COMPACT_20261019/
+/src/qclean_uwb/__init__.py
+/src/qclean_uwb/scenarios/
+/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/
+
+2026-10-20T06:09:38.7213626Z   repository: myoungsunk/sionna-resimulation
+2026-10-20T06:09:38.7217487Z   token: ***
+2026-10-20T06:09:38.7217922Z   ssh-strict: true
+2026-10-20T06:09:38.7218356Z   ssh-user: git
+2026-10-20T06:09:38.7218810Z   persist-credentials: true
+2026-10-20T06:09:38.7219297Z   clean: true
+2026-10-20T06:09:38.7219709Z   fetch-depth: 1
+2026-10-20T06:09:38.7220138Z   fetch-tags: false
+2026-10-20T06:09:38.7220580Z   show-progress: true
+2026-10-20T06:09:38.7221022Z   lfs: false
+2026-10-20T06:09:38.7221428Z   submodules: false
+2026-10-20T06:09:38.7221874Z   set-safe-directory: true
+2026-10-20T06:09:38.7222673Z env:
+2026-10-20T06:09:38.7223114Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:09:38.7223812Z   OMP_NUM_THREADS: 1
+2026-10-20T06:09:38.7224275Z   MKL_NUM_THREADS: 1
+2026-10-20T06:09:38.7224717Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:09:38.7225206Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:09:38.7225701Z ##[endgroup]
+2026-10-20T06:09:38.8232180Z Syncing repository: myoungsunk/sionna-resimulation
+2026-10-20T06:09:38.8234468Z ##[group]Getting Git version info
+2026-10-20T06:09:38.8235426Z Working directory is '/home/runner/work/sionna-resimulation/sionna-resimulation/work/source'
+2026-10-20T06:09:38.8236626Z [command]/usr/bin/git version
+2026-10-20T06:09:38.8318353Z git version 2.55.0
+2026-10-20T06:09:38.8343907Z ##[endgroup]
+2026-10-20T06:09:38.8359884Z Temporarily overriding HOME='/home/runner/work/_temp/d6c6f0fe-3c0f-4e07-b56a-14f7a46f3a45' before making global git config changes
+2026-10-20T06:09:38.8362418Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T06:09:38.8365219Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/sionna-resimulation/sionna-resimulation/work/source
+2026-10-20T06:09:38.8431574Z ##[group]Initializing the repository
+2026-10-20T06:09:38.8437872Z [command]/usr/bin/git init /home/runner/work/sionna-resimulation/sionna-resimulation/work/source
+2026-10-20T06:09:38.8561563Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-10-20T06:09:38.8563318Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-10-20T06:09:38.8565304Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-10-20T06:09:38.8566728Z hint: call:
+2026-10-20T06:09:38.8567510Z hint:
+2026-10-20T06:09:38.8568477Z hint: 	git config --global init.defaultBranch <name>
+2026-10-20T06:09:38.8569728Z hint:
+2026-10-20T06:09:38.8570803Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-10-20T06:09:38.8572814Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-10-20T06:09:38.8574406Z hint:
+2026-10-20T06:09:38.8575150Z hint: 	git branch -m <name>
+2026-10-20T06:09:38.8575978Z hint:
+2026-10-20T06:09:38.8577186Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-10-20T06:09:38.8579517Z Initialized empty Git repository in /home/runner/work/sionna-resimulation/sionna-resimulation/work/source/.git/
+2026-10-20T06:09:38.8595596Z [command]/usr/bin/git remote add origin https://github.com/myoungsunk/sionna-resimulation
+2026-10-20T06:09:38.8662614Z ##[endgroup]
+2026-10-20T06:09:38.8664266Z ##[group]Disabling automatic garbage collection
+2026-10-20T06:09:38.8669085Z [command]/usr/bin/git config --local gc.auto 0
+2026-10-20T06:09:38.8728395Z ##[endgroup]
+2026-10-20T06:09:38.8729544Z ##[group]Setting up auth
+2026-10-20T06:09:38.8730719Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T06:09:38.8755905Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T06:09:38.9166972Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T06:09:38.9207498Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T06:09:38.9461955Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-10-20T06:09:38.9511916Z ##[endgroup]
+2026-10-20T06:09:38.9512699Z ##[group]Fetching the repository
+2026-10-20T06:09:38.9526392Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --filter=blob:none --depth=1 origin +b3e60de790764d834da07260a0d4bd8318f939c4:refs/remotes/origin/research/powerjoint-audit-followup-20261020
+2026-10-20T06:09:39.4395660Z From https://github.com/myoungsunk/sionna-resimulation
+2026-10-20T06:09:39.4397942Z  * [new ref]         b3e60de790764d834da07260a0d4bd8318f939c4 -> origin/research/powerjoint-audit-followup-20261020
+2026-10-20T06:09:39.4400741Z ##[endgroup]
+2026-10-20T06:09:39.4401561Z ##[group]Determining the checkout info
+2026-10-20T06:09:39.4405221Z ##[endgroup]
+2026-10-20T06:09:39.4406970Z ##[group]Setting up sparse checkout
+2026-10-20T06:09:39.4419659Z [command]/usr/bin/git config core.sparseCheckout true
+2026-10-20T06:09:39.4460467Z [command]/usr/bin/git rev-parse --git-path info/sparse-checkout
+2026-10-20T06:09:39.4483206Z .git/info/sparse-checkout
+2026-10-20T06:09:39.4494977Z ##[endgroup]
+2026-10-20T06:09:39.4496757Z ##[group]Checking out the ref
+2026-10-20T06:09:39.4499346Z [command]/usr/bin/git checkout --progress --force -B research/powerjoint-audit-followup-20261020 refs/remotes/origin/research/powerjoint-audit-followup-20261020
+2026-10-20T06:09:40.6852757Z Updating files:   0% (1/211)
+2026-10-20T06:09:40.6884544Z Updating files:   1% (3/211)
+2026-10-20T06:09:40.6885269Z Updating files:   2% (5/211)
+2026-10-20T06:09:40.6885875Z Updating files:   3% (7/211)
+2026-10-20T06:09:40.6886331Z Updating files:   4% (9/211)
+2026-10-20T06:09:40.6886949Z Updating files:   5% (11/211)
+2026-10-20T06:09:40.6887327Z Updating files:   6% (13/211)
+2026-10-20T06:09:40.6887671Z Updating files:   7% (15/211)
+2026-10-20T06:09:40.6887985Z Updating files:   8% (17/211)
+2026-10-20T06:09:40.6888328Z Updating files:   9% (19/211)
+2026-10-20T06:09:40.6888652Z Updating files:  10% (22/211)
+2026-10-20T06:09:40.6888986Z Updating files:  11% (24/211)
+2026-10-20T06:09:40.6889315Z Updating files:  12% (26/211)
+2026-10-20T06:09:40.6889639Z Updating files:  13% (28/211)
+2026-10-20T06:09:40.6890035Z Updating files:  14% (30/211)
+2026-10-20T06:09:40.6896515Z Updating files:  15% (32/211)
+2026-10-20T06:09:40.6898075Z Updating files:  16% (34/211)
+2026-10-20T06:09:40.6899272Z Updating files:  17% (36/211)
+2026-10-20T06:09:40.6899914Z Updating files:  18% (38/211)
+2026-10-20T06:09:40.6900511Z Updating files:  19% (41/211)
+2026-10-20T06:09:40.6901082Z Updating files:  20% (43/211)
+2026-10-20T06:09:40.6901611Z Updating files:  21% (45/211)
+2026-10-20T06:09:40.6902155Z Updating files:  22% (47/211)
+2026-10-20T06:09:40.6903162Z Updating files:  23% (49/211)
+2026-10-20T06:09:40.6904663Z Updating files:  24% (51/211)
+2026-10-20T06:09:40.6905671Z Updating files:  25% (53/211)
+2026-10-20T06:09:40.6925575Z Updating files:  26% (55/211)
+2026-10-20T06:09:40.6926470Z Updating files:  27% (57/211)
+2026-10-20T06:09:40.6927515Z Updating files:  28% (60/211)
+2026-10-20T06:09:40.6928536Z Updating files:  29% (62/211)
+2026-10-20T06:09:40.6929478Z Updating files:  30% (64/211)
+2026-10-20T06:09:40.6930426Z Updating files:  31% (66/211)
+2026-10-20T06:09:40.6931275Z Updating files:  32% (68/211)
+2026-10-20T06:09:40.6932157Z Updating files:  33% (70/211)
+2026-10-20T06:09:40.6932920Z Updating files:  34% (72/211)
+2026-10-20T06:09:40.6933994Z Updating files:  35% (74/211)
+2026-10-20T06:09:40.6935228Z Updating files:  36% (76/211)
+2026-10-20T06:09:40.6936114Z Updating files:  37% (79/211)
+2026-10-20T06:09:40.6936918Z Updating files:  38% (81/211)
+2026-10-20T06:09:40.6937914Z Updating files:  39% (83/211)
+2026-10-20T06:09:40.6938748Z Updating files:  40% (85/211)
+2026-10-20T06:09:40.6939601Z Updating files:  41% (87/211)
+2026-10-20T06:09:40.6940388Z Updating files:  42% (89/211)
+2026-10-20T06:09:40.6941191Z Updating files:  43% (91/211)
+2026-10-20T06:09:40.6942009Z Updating files:  44% (93/211)
+2026-10-20T06:09:40.6943064Z Updating files:  45% (95/211)
+2026-10-20T06:09:40.6944352Z Updating files:  46% (98/211)
+2026-10-20T06:09:40.6945354Z Updating files:  47% (100/211)
+2026-10-20T06:09:40.6946524Z Updating files:  48% (102/211)
+2026-10-20T06:09:40.6948206Z Updating files:  49% (104/211)
+2026-10-20T06:09:40.6950299Z Updating files:  50% (106/211)
+2026-10-20T06:09:40.6980648Z Updating files:  51% (108/211)
+2026-10-20T06:09:40.7037857Z Updating files:  52% (110/211)
+2026-10-20T06:09:40.7126865Z Updating files:  53% (112/211)
+2026-10-20T06:09:40.7224470Z Updating files:  54% (114/211)
+2026-10-20T06:09:40.7277947Z Updating files:  55% (117/211)
+2026-10-20T06:09:40.7332683Z Updating files:  56% (119/211)
+2026-10-20T06:09:40.7385637Z Updating files:  57% (121/211)
+2026-10-20T06:09:40.7416708Z Updating files:  58% (123/211)
+2026-10-20T06:09:40.7444972Z Updating files:  59% (125/211)
+2026-10-20T06:09:40.7482343Z Updating files:  60% (127/211)
+2026-10-20T06:09:40.7482704Z Updating files:  61% (129/211)
+2026-10-20T06:09:40.7483009Z Updating files:  62% (131/211)
+2026-10-20T06:09:40.7514782Z Updating files:  63% (133/211)
+2026-10-20T06:09:40.7516903Z Updating files:  64% (136/211)
+2026-10-20T06:09:40.7519004Z Updating files:  65% (138/211)
+2026-10-20T06:09:40.7521154Z Updating files:  66% (140/211)
+2026-10-20T06:09:40.7523301Z Updating files:  67% (142/211)
+2026-10-20T06:09:40.7526713Z Updating files:  68% (144/211)
+2026-10-20T06:09:40.7528074Z Updating files:  69% (146/211)
+2026-10-20T06:09:40.7529441Z Updating files:  70% (148/211)
+2026-10-20T06:09:40.7531870Z Updating files:  71% (150/211)
+2026-10-20T06:09:40.7547424Z Updating files:  72% (152/211)
+2026-10-20T06:09:40.7549824Z Updating files:  73% (155/211)
+2026-10-20T06:09:40.7553425Z Updating files:  74% (157/211)
+2026-10-20T06:09:40.7554918Z Updating files:  75% (159/211)
+2026-10-20T06:09:40.7556360Z Updating files:  76% (161/211)
+2026-10-20T06:09:40.7559276Z Updating files:  77% (163/211)
+2026-10-20T06:09:40.7559987Z Updating files:  78% (165/211)
+2026-10-20T06:09:40.7565765Z Updating files:  79% (167/211)
+2026-10-20T06:09:41.0291061Z Updating files:  80% (169/211)
+2026-10-20T06:09:41.0315494Z Updating files:  81% (171/211)
+2026-10-20T06:09:41.0316100Z Updating files:  82% (174/211)
+2026-10-20T06:09:41.0316661Z Updating files:  83% (176/211)
+2026-10-20T06:09:41.0317232Z Updating files:  84% (178/211)
+2026-10-20T06:09:41.0317739Z Updating files:  85% (180/211)
+2026-10-20T06:09:41.0318267Z Updating files:  86% (182/211)
+2026-10-20T06:09:41.0318853Z Updating files:  87% (184/211)
+2026-10-20T06:09:41.0319375Z Updating files:  88% (186/211)
+2026-10-20T06:09:41.0319853Z Updating files:  89% (188/211)
+2026-10-20T06:09:41.0320305Z Updating files:  90% (190/211)
+2026-10-20T06:09:41.0320901Z Updating files:  91% (193/211)
+2026-10-20T06:09:41.0321447Z Updating files:  92% (195/211)
+2026-10-20T06:09:41.0321976Z Updating files:  93% (197/211)
+2026-10-20T06:09:41.0322510Z Updating files:  94% (199/211)
+2026-10-20T06:09:41.0323043Z Updating files:  95% (201/211)
+2026-10-20T06:09:41.0323544Z Updating files:  96% (203/211)
+2026-10-20T06:09:41.0324317Z Updating files:  97% (205/211)
+2026-10-20T06:09:41.0324847Z Updating files:  98% (207/211)
+2026-10-20T06:09:41.0325353Z Updating files:  99% (209/211)
+2026-10-20T06:09:41.0325847Z Updating files: 100% (211/211)
+2026-10-20T06:09:41.0326371Z Updating files: 100% (211/211), done.
+2026-10-20T06:09:41.0443452Z Switched to a new branch 'research/powerjoint-audit-followup-20261020'
+2026-10-20T06:09:41.0450260Z branch 'research/powerjoint-audit-followup-20261020' set up to track 'origin/research/powerjoint-audit-followup-20261020'.
+2026-10-20T06:09:41.0466799Z ##[endgroup]
+2026-10-20T06:09:41.0513289Z [command]/usr/bin/git log -1 --format=%H
+2026-10-20T06:09:41.0586257Z b3e60de790764d834da07260a0d4bd8318f939c4
+2026-10-20T06:09:41.0820281Z ##[group]Run actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+2026-10-20T06:09:41.0820775Z with:
+2026-10-20T06:09:41.0821024Z   python-version: 3.13.5
+2026-10-20T06:09:41.0821302Z   check-latest: false
+2026-10-20T06:09:41.0824294Z   token: ***
+2026-10-20T06:09:41.0824559Z   update-environment: true
+2026-10-20T06:09:41.0824851Z   allow-prereleases: false
+2026-10-20T06:09:41.0825131Z   freethreaded: false
+2026-10-20T06:09:41.0825375Z env:
+2026-10-20T06:09:41.0825603Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:09:41.0825871Z   OMP_NUM_THREADS: 1
+2026-10-20T06:09:41.0826115Z   MKL_NUM_THREADS: 1
+2026-10-20T06:09:41.0826363Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:09:41.0826625Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:09:41.0826904Z ##[endgroup]
+2026-10-20T06:09:41.2122713Z ##[group]Installed versions
+2026-10-20T06:09:41.2144709Z Version 3.13.5 was not found in the local cache
+2026-10-20T06:09:41.2273424Z (node:2294) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-20T06:09:41.2275007Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-20T06:09:41.9707935Z Version 3.13.5 is available for downloading
+2026-10-20T06:09:41.9709776Z Download from "https://github.com/actions/python-versions/releases/download/3.13.5-15601068749/python-3.13.5-linux-24.04-x64.tar.gz"
+2026-10-20T06:09:42.7278723Z Extract downloaded archive
+2026-10-20T06:09:42.7408324Z [command]/usr/bin/tar xz --warning=no-unknown-keyword --overwrite -C /home/runner/work/_temp/d60eef76-6c64-46af-8bd9-4d41322a0f43 -f /home/runner/work/_temp/4b3a3252-cec3-492e-aedd-8044af084fd5
+2026-10-20T06:09:44.9105212Z Execute installation script
+2026-10-20T06:09:44.9197266Z Check if Python hostedtoolcache folder exist...
+2026-10-20T06:09:44.9202532Z Create Python 3.13.5 folder
+2026-10-20T06:09:44.9212570Z Copy Python binaries to hostedtoolcache folder
+2026-10-20T06:09:45.4311944Z Create additional symlinks (Required for the UsePythonVersion Azure Pipelines task and the setup-python GitHub Action)
+2026-10-20T06:09:45.4352959Z Upgrading pip...
+2026-10-20T06:09:47.5414113Z Looking in links: /tmp/tmp6k6t4kc3
+2026-10-20T06:09:47.5418339Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.13.5/x64/lib/python3.13/site-packages (25.1.1)
+2026-10-20T06:09:48.5725268Z Collecting pip
+2026-10-20T06:09:48.6303268Z Downloading pip-26.2.1-py3-none-any.whl.metadata (4.6 kB)
+2026-10-20T06:09:48.6477393Z Downloading pip-26.2.1-py3-none-any.whl (1.8 MB)
+2026-10-20T06:09:48.8176993Z ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.8/1.8 MB 11.7 MB/s eta 0:00:00
+2026-10-20T06:09:48.8177904Z 
+2026-10-20T06:09:48.9406586Z Installing collected packages: pip
+2026-10-20T06:09:48.9408034Z Attempting uninstall: pip
+2026-10-20T06:09:48.9435117Z Found existing installation: pip 25.1.1
+2026-10-20T06:09:48.9767037Z Uninstalling pip-25.1.1:
+2026-10-20T06:09:48.9822208Z Successfully uninstalled pip-25.1.1
+2026-10-20T06:09:49.8636069Z Successfully installed pip-26.2.1
+2026-10-20T06:09:49.9128186Z Create complete file
+2026-10-20T06:09:49.9169277Z Successfully set up CPython (3.13.5)
+2026-10-20T06:09:49.9170705Z ##[endgroup]
+2026-10-20T06:09:49.9338150Z ##[group]Run python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0 requests==2.32.5
+2026-10-20T06:09:49.9338942Z [36;1mpython -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0 requests==2.32.5[0m
+2026-10-20T06:09:49.9618788Z shell: /usr/bin/bash -e {0}
+2026-10-20T06:09:49.9619112Z env:
+2026-10-20T06:09:49.9619352Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:09:49.9619662Z   OMP_NUM_THREADS: 1
+2026-10-20T06:09:49.9619916Z   MKL_NUM_THREADS: 1
+2026-10-20T06:09:49.9620160Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:09:49.9620662Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:09:49.9620991Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:09:49.9621509Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib/pkgconfig
+2026-10-20T06:09:49.9622017Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:09:49.9622463Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:09:49.9622951Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:09:49.9623405Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib
+2026-10-20T06:09:49.9623992Z ##[endgroup]
+2026-10-20T06:09:50.6158387Z Collecting numpy==2.3.5
+2026-10-20T06:09:50.6909389Z   Downloading numpy-2.3.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+2026-10-20T06:09:50.8633219Z Collecting scipy==1.17.0
+2026-10-20T06:09:50.8767407Z   Downloading scipy-1.17.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+2026-10-20T06:09:51.0239168Z Collecting pandas==2.2.3
+2026-10-20T06:09:51.0373702Z   Downloading pandas-2.2.3-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (89 kB)
+2026-10-20T06:09:51.1648244Z Collecting scikit-learn==1.8.0
+2026-10-20T06:09:51.1783184Z   Downloading scikit_learn-1.8.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (11 kB)
+2026-10-20T06:09:51.2104335Z Collecting requests==2.32.5
+2026-10-20T06:09:51.2237587Z   Downloading requests-2.32.5-py3-none-any.whl.metadata (4.9 kB)
+2026-10-20T06:09:51.2456267Z Collecting python-dateutil>=2.8.2 (from pandas==2.2.3)
+2026-10-20T06:09:51.2587296Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+2026-10-20T06:09:51.2998111Z Collecting pytz>=2020.1 (from pandas==2.2.3)
+2026-10-20T06:09:51.3131698Z   Downloading pytz-2026.5-py2.py3-none-any.whl.metadata (22 kB)
+2026-10-20T06:09:51.3355801Z Collecting tzdata>=2022.7 (from pandas==2.2.3)
+2026-10-20T06:09:51.3486027Z   Downloading tzdata-2026.5-py2.py3-none-any.whl.metadata (1.4 kB)
+2026-10-20T06:09:51.3750086Z Collecting joblib>=1.3.0 (from scikit-learn==1.8.0)
+2026-10-20T06:09:51.3882513Z   Downloading joblib-1.6.0-py3-none-any.whl.metadata (6.5 kB)
+2026-10-20T06:09:51.4072071Z Collecting threadpoolctl>=3.2.0 (from scikit-learn==1.8.0)
+2026-10-20T06:09:51.4205248Z   Downloading threadpoolctl-3.7.0-py3-none-any.whl.metadata (24 kB)
+2026-10-20T06:09:51.5608176Z Collecting charset_normalizer<4,>=2 (from requests==2.32.5)
+2026-10-20T06:09:51.5745192Z   Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (46 kB)
+2026-10-20T06:09:51.6022264Z Collecting idna<4,>=2.5 (from requests==2.32.5)
+2026-10-20T06:09:51.6155187Z   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+2026-10-20T06:09:51.6431334Z Collecting urllib3<3,>=1.21.1 (from requests==2.32.5)
+2026-10-20T06:09:51.6562758Z   Downloading urllib3-2.8.0-py3-none-any.whl.metadata (7.4 kB)
+2026-10-20T06:09:51.6809280Z Collecting certifi>=2017.4.17 (from requests==2.32.5)
+2026-10-20T06:09:51.6950352Z   Downloading certifi-2026.10.19-py3-none-any.whl.metadata (2.5 kB)
+2026-10-20T06:09:51.7162177Z Collecting cloudpickle>=3.0 (from joblib>=1.3.0->scikit-learn==1.8.0)
+2026-10-20T06:09:51.7298294Z   Downloading cloudpickle-3.1.2-py3-none-any.whl.metadata (7.1 kB)
+2026-10-20T06:09:51.7499200Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas==2.2.3)
+2026-10-20T06:09:51.7628814Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+2026-10-20T06:09:51.7801374Z Downloading numpy-2.3.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.6 MB)
+2026-10-20T06:09:52.3875228Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.6/16.6 MB 28.8 MB/s  0:00:00
+2026-10-20T06:09:52.4028335Z Downloading scipy-1.17.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.0 MB)
+2026-10-20T06:09:52.6977990Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.0/35.0 MB 119.2 MB/s  0:00:00
+2026-10-20T06:09:52.7111726Z Downloading pandas-2.2.3-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (12.7 MB)
+2026-10-20T06:09:52.7773801Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.7/12.7 MB 195.3 MB/s  0:00:00
+2026-10-20T06:09:52.7907701Z Downloading scikit_learn-1.8.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (8.9 MB)
+2026-10-20T06:09:52.8328376Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.9/8.9 MB 217.3 MB/s  0:00:00
+2026-10-20T06:09:52.8460964Z Downloading requests-2.32.5-py3-none-any.whl (64 kB)
+2026-10-20T06:09:52.8617683Z Downloading charset_normalizer-3.5.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (254 kB)
+2026-10-20T06:09:52.8775049Z Downloading idna-3.20-py3-none-any.whl (69 kB)
+2026-10-20T06:09:52.8937401Z Downloading urllib3-2.8.0-py3-none-any.whl (135 kB)
+2026-10-20T06:09:52.9121756Z Downloading certifi-2026.10.19-py3-none-any.whl (136 kB)
+2026-10-20T06:09:52.9272416Z Downloading joblib-1.6.0-py3-none-any.whl (306 kB)
+2026-10-20T06:09:52.9428407Z Downloading cloudpickle-3.1.2-py3-none-any.whl (22 kB)
+2026-10-20T06:09:52.9578986Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+2026-10-20T06:09:52.9732325Z Downloading pytz-2026.5-py2.py3-none-any.whl (506 kB)
+2026-10-20T06:09:52.9896216Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+2026-10-20T06:09:53.0047617Z Downloading threadpoolctl-3.7.0-py3-none-any.whl (26 kB)
+2026-10-20T06:09:53.0210594Z Downloading tzdata-2026.5-py2.py3-none-any.whl (347 kB)
+2026-10-20T06:09:53.2797320Z Installing collected packages: pytz, urllib3, tzdata, threadpoolctl, six, numpy, idna, cloudpickle, charset_normalizer, certifi, scipy, requests, python-dateutil, joblib, scikit-learn, pandas
+2026-10-20T06:10:06.4937800Z 
+2026-10-20T06:10:06.4961417Z Successfully installed certifi-2026.10.19 charset_normalizer-3.5.2 cloudpickle-3.1.2 idna-3.20 joblib-1.6.0 numpy-2.3.5 pandas-2.2.3 python-dateutil-2.9.0.post0 pytz-2026.5 requests-2.32.5 scikit-learn-1.8.0 scipy-1.17.0 six-1.17.0 threadpoolctl-3.7.0 tzdata-2026.5 urllib3-2.8.0
+2026-10-20T06:10:06.5782202Z ##[group]Run python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+2026-10-20T06:10:06.5782795Z [36;1mpython source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py[0m
+2026-10-20T06:10:06.5847405Z shell: /usr/bin/bash -e {0}
+2026-10-20T06:10:06.5847652Z env:
+2026-10-20T06:10:06.5847848Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:10:06.5848077Z   OMP_NUM_THREADS: 1
+2026-10-20T06:10:06.5848290Z   MKL_NUM_THREADS: 1
+2026-10-20T06:10:06.5848495Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:10:06.5848724Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:10:06.5849001Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:06.5849442Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib/pkgconfig
+2026-10-20T06:10:06.5849864Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:06.5850258Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:06.5850636Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:06.5851073Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib
+2026-10-20T06:10:06.5851398Z ##[endgroup]
+2026-10-20T06:10:15.4289480Z RELEASE_RESTORE_PASS
+2026-10-20T06:10:15.4430674Z ##[group]Run python source/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S3_Q1_POLICY/train.py --labels-run 39378144903 --wait --out s3/models
+2026-10-20T06:10:15.4431635Z [36;1mpython source/research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S3_Q1_POLICY/train.py --labels-run 39378144903 --wait --out s3/models[0m
+2026-10-20T06:10:15.4494215Z shell: /usr/bin/bash -e {0}
+2026-10-20T06:10:15.4494460Z env:
+2026-10-20T06:10:15.4494651Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:10:15.4494875Z   OMP_NUM_THREADS: 1
+2026-10-20T06:10:15.4495077Z   MKL_NUM_THREADS: 1
+2026-10-20T06:10:15.4495270Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:10:15.4495479Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:10:15.4495747Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:15.4496176Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib/pkgconfig
+2026-10-20T06:10:15.4496766Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:15.4497166Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:15.4497535Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:10:15.4497901Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib
+2026-10-20T06:10:15.4500742Z   GH_TOKEN: ***
+2026-10-20T06:10:15.4500952Z ##[endgroup]
+2026-10-20T06:10:17.0585194Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:10:47.2894819Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:11:17.5808820Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:11:47.8499276Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:12:18.0786188Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:12:48.2944831Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:13:18.5246151Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:13:48.8090455Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:14:19.0825199Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:14:49.5392809Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:15:19.8302801Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:15:50.0911051Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:16:20.4182569Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:16:50.6540128Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:17:21.8782965Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:17:52.1597084Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:18:22.4207349Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:18:52.6505959Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:19:22.9117037Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:19:53.2255824Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:20:23.4522468Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:20:53.6901667Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:21:23.9303311Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:21:54.1822248Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:22:24.4613941Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:22:54.6686553Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:23:24.9374984Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:23:55.2138079Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:24:25.5553617Z WAIT_LOCKED_LABEL_RUN 39378144903 queued
+2026-10-20T06:24:55.6875121Z ##[error]Process completed with exit code 1.
+2026-10-20T06:24:55.6975478Z ##[group]Run actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+2026-10-20T06:24:55.6975902Z with:
+2026-10-20T06:24:55.6976129Z   name: powerjoint-s3-models-39378550447
+2026-10-20T06:24:55.6976404Z   path: work/s3/models
+2026-10-20T06:24:55.6976613Z   retention-days: 30
+2026-10-20T06:24:55.6976822Z   if-no-files-found: warn
+2026-10-20T06:24:55.6977043Z   compression-level: 6
+2026-10-20T06:24:55.6977242Z   overwrite: false
+2026-10-20T06:24:55.6977462Z   include-hidden-files: false
+2026-10-20T06:24:55.6977692Z env:
+2026-10-20T06:24:55.6977873Z   OPENBLAS_NUM_THREADS: 1
+2026-10-20T06:24:55.6978084Z   OMP_NUM_THREADS: 1
+2026-10-20T06:24:55.6978274Z   MKL_NUM_THREADS: 1
+2026-10-20T06:24:55.6978473Z   NUMEXPR_NUM_THREADS: 1
+2026-10-20T06:24:55.6978680Z   GIT_LFS_SKIP_SMUDGE: 1
+2026-10-20T06:24:55.6978949Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:24:55.6979373Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib/pkgconfig
+2026-10-20T06:24:55.6979833Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:24:55.6980210Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:24:55.6980572Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.5/x64
+2026-10-20T06:24:55.6980943Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.5/x64/lib
+2026-10-20T06:24:55.6981264Z ##[endgroup]
+2026-10-20T06:24:55.8672694Z (node:2597) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-20T06:24:55.8674766Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-10-20T06:24:55.8778479Z With the provided path, there will be 2 files uploaded
+2026-10-20T06:24:55.8804274Z Artifact name is valid!
+2026-10-20T06:24:55.8804819Z Root directory input is valid!
+2026-10-20T06:24:56.1900846Z Beginning upload of artifact content to blob storage
+2026-10-20T06:24:56.2104716Z (node:2597) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-20T06:24:56.3515880Z Uploaded bytes 1569
+2026-10-20T06:24:56.3929815Z Finished uploading artifact content to blob storage!
+2026-10-20T06:24:56.3930586Z SHA256 digest of uploaded artifact zip is e2e281d13cad8550dfd3b212b1a304ddf3ce4f0a0a92e3f638de20bcefce5967
+2026-10-20T06:24:56.3932511Z Finalizing artifact upload
+2026-10-20T06:24:56.6334454Z Artifact powerjoint-s3-models-39378550447.zip successfully finalized. Artifact ID 12244728735
+2026-10-20T06:24:56.6336257Z Artifact powerjoint-s3-models-39378550447 has been successfully uploaded! Final size is 1569 bytes. Artifact ID is 12244728735
+2026-10-20T06:24:56.6342835Z Artifact download URL: https://github.com/myoungsunk/sionna-resimulation/actions/runs/39378550447/artifacts/12244728735
+2026-10-20T06:24:56.6527348Z Post job cleanup.
+2026-10-20T06:24:56.7379168Z [command]/usr/bin/git version
+2026-10-20T06:24:56.7422659Z git version 2.55.0
+2026-10-20T06:24:56.7464999Z Temporarily overriding HOME='/home/runner/work/_temp/a88a9f78-0de2-4340-a828-c32d38b12463' before making global git config changes
+2026-10-20T06:24:56.7466410Z Adding repository directory to the temporary git global config as a safe directory
+2026-10-20T06:24:56.7471367Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/sionna-resimulation/sionna-resimulation/work/source
+2026-10-20T06:24:56.7509691Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-10-20T06:24:56.7546793Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-10-20T06:24:56.7832823Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-10-20T06:24:56.7875574Z http.https://github.com/.extraheader
+2026-10-20T06:24:56.7877207Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-10-20T06:24:56.7898225Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-10-20T06:24:56.8353544Z Cleaning up orphan processes
+2026-10-20T06:24:56.8711029Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

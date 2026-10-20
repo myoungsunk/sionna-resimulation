@@ -1,13 +1,13 @@
 """Training waits for the complete immutable label run; evaluation never subsamples."""
 from build_workflow import HERE,ROOT,prefix
 def main():
- name='powerjoint-audit-followup-s3-train-evaluate.yml'
- top='''name: POWERJOINT followup S3 OOF margins and recursive evaluation
+ name='powerjoint-audit-followup-s3-train-evaluate-retry1.yml'
+ top='''name: POWERJOINT followup S3 OOF margins and recursive evaluation retry1
 on:
   workflow_dispatch:
   push:
     branches: [research/powerjoint-audit-followup-20261020]
-    paths: [.github/workflows/powerjoint-audit-followup-s3-train-evaluate.yml]
+    paths: [.github/workflows/powerjoint-audit-followup-s3-train-evaluate-retry1.yml]
 permissions:
   contents: read
   actions: read
