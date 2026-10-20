@@ -32,6 +32,9 @@ def main():
  for name in ['ACTION_RATES','LABELS_SUMMARY']:
   parts=[pd.read_csv(p) for p in a.inputs.rglob(name+'.csv')]
   if parts:
+   # The train receipt consolidates all 105 label jobs with artifact IDs.
+   # Keep per-job elapsed summaries in execution/, without double-counting here.
+   if name=='LABELS_SUMMARY':parts=[f for f in parts if 'artifact_id' in f]
    combined=pd.concat(parts,ignore_index=True,sort=False);combined.to_csv(a.out/(name+'.csv'),index=False)
    if name=='ACTION_RATES':
     for (channel,arm),g in combined[combined.scope=='t30_radio'].groupby(['channel','arm']):
@@ -72,7 +75,7 @@ RF 결정 수는 동일 RF의 조건·bias 반복을 포함한 처리 횟수이�
 
 ## 해석 범위
 
-학습은 전수 RF×4 bias×5 seed이며 label loss는 현재 시점 제외 (t,t+10s]의 단발 개입 후 POWER 복귀다. 반면 평가 정책은 매 패킷 다시 행동을 선택한다. 이 단발 label과 지속 재귀 정책의 상태·목적함수 차이를 해소했다고 주장하지 않는다.
+학습은 전수 RF×4 bias×5 seed이며 105개 분할의 포함 label 351,060행을 사용한다. 고정 index의 후보 435,060행 중 t<30s 63,000행과 불완전 horizon 21,000행은 제외 명단에 보존한다. 이 수치는 fold·bias·seed 반복을 포함한다. label loss는 현재 시점 제외 (t,t+10s]의 단발 개입 후 POWER 복귀다. 반면 평가 정책은 매 패킷 다시 행동을 선택한다. 이 단발 label과 지속 재귀 정책의 상태·목적함수 차이를 해소했다고 주장하지 않는다.
 
 R2-heldout은 학습에 M45 mount가 없는 OUT_OF_TRAINING_RANGE_MOUNT 평가를 포함한다. q 기반 모델과 gate는 기존 기준을 유지했으며 S2 GEOM은 채택하지 않았다.
 
