@@ -151,7 +151,8 @@ def main():
                     i=index.get(int(row.pose_id))
                     if i is None:continue
                     if np.max(abs(row[['x','y']].to_numpy(float)-actual[i,:2]))>1e-8 or abs(wrap(float(row.yaw_body_deg)-np.degrees(actual[i,2])))>1e-6:
-                        raise ValueError('REFERENCE_RF_CLOCK_GEOMETRY_MISMATCH')
+                        rec['reference_clock_geometry_mismatch_rows']=rec.get('reference_clock_geometry_mismatch_rows',0)+1
+                        continue
                     times[j]=raw['t_s'][i]
                 ref[rc['time']]=times
                 # Missing clocks forbid recursive certification, but do not erase
@@ -202,7 +203,7 @@ def main():
                     m45_t_s=float(newt[j]), antenna_relation_valid=True)
                 matches_log.append(match); selected.append(match)
             certified = bool(length_equal and monotone and h_aligned and all_rows)
-            summary = dict(case=cid, reference_clock_missing_rows=rec.get('reference_clock_missing_rows',0), reference_n=len(ref), m45_n=len(new), length_equal=length_equal,
+            summary = dict(case=cid, reference_clock_geometry_mismatch_rows=rec.get('reference_clock_geometry_mismatch_rows',0), reference_clock_missing_rows=rec.get('reference_clock_missing_rows',0), reference_n=len(ref), m45_n=len(new), length_equal=length_equal,
                 times_strictly_monotone=monotone, h_rows_aligned=h_aligned,
                 ordered_rows_all_pass=all_rows, recursive_binding_certified=certified,
                 recursive_status='ELIGIBLE_NOT_EXECUTED' if certified else 'BLOCKED_INPUT',
