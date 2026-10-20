@@ -34,7 +34,7 @@ def main():
      action_text.append('| '+channel+' | '+arm+' | '+str(n)+' | '+' / '.join(f'{x} {int(counts.get(x,0))/n:.4%}' for x in ['POWER','R0','INFLATE4','SKIP'])+' | '+f'{accepted/n:.4%}'+' |')
  dump(a.out/'DECISION.json',decision);dump(a.out/'ERRORS.json',errors)
  marginpath=next(a.inputs.rglob('MARGINS.json'));margins=json.loads(marginpath.read_text());mtext='\n'.join(f"| {outer} | {action} | {r['delta']} | {r['n_selected']} | {r['status']} |" for outer,acts in margins['margins'].items() for action,r in acts.items())
- vio='\n'.join(f"| {r['case']} | {r['channel']} | {r['bias']} | {r['reference_rmse_deg']:.9f} | {r['policy_rmse_deg']:.9f} | {r['ratio']:.6f} |" for r in decision['violations'])
+ vio='\n'.join(f"| {r['case']} | {r['channel']} | {r['bias']} | {r['reference_rmse_deg']:.9f} | {r['policy_rmse_deg']:.9f} | "+(f"{r['ratio']:.6f}" if r['ratio'] is not None else 'ZERO_DENOMINATOR')+' |' for r in decision['violations'])
  report=f'''# S3 Q1 v3 결과
 
 TECHNICAL: {decision['technical']}. 과학 판정: {decision['scientific']} / {decision['go_no_go']}.

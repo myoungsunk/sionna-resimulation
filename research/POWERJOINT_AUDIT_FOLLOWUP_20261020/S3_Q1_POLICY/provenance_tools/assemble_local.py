@@ -20,7 +20,7 @@ def main():
  subprocess.run([sys.executable,'-X','utf8',str(HERE/'aggregate.py'),'--inputs',str(selected),'--out',str(HERE)],check=True)
  errors=json.loads((HERE/'ERRORS.json').read_text());errors.extend(retired_errors)
  if (HERE/'preparation_failures/ERRORS.json').exists():
-  for error in json.loads((HERE/'preparation_failures/ERRORS.json').read_text()):errors.append(dict(resolved=True,resolved_by_run=a.final_run,**error))
+  for error in json.loads((HERE/'preparation_failures/ERRORS.json').read_text()):errors.append(dict(resolved=True,resolved_by_run=receipt['preservation_actions_run_id'] if 'preservation' in error['stage'] else a.final_run,**error))
  dump(HERE/'ERRORS.json',errors)
  for name in ['MODELS.json','MARGINS.json']:
   source=list((HERE/'execution').rglob(name));assert len(source)==1;shutil.copy2(source[0],HERE/name)

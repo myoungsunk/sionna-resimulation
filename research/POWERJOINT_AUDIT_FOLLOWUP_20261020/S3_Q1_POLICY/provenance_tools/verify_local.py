@@ -57,6 +57,7 @@ def main():
    action_rows+=len(part)
  checks=pd.read_csv(HERE/'CHECKS.csv',float_precision='round_trip');seedchecks=checks[checks.check=='ACTUAL_SEED_CONTROLS'];assert len(seedchecks)==420
  assert (seedchecks.loc[seedchecks.seed!=0,'seed0_max_abs_difference']>0).all() and (seedchecks.loc[seedchecks.seed==0,'seed0_max_abs_difference']==0).all()
+ for key,g in seedchecks.groupby(['case','bias']):assert set(g.seed)==set(range(5)) and g.controls_sha256.nunique()==5,('FIVE_DISTINCT_ACTUAL_CONTROLS',key)
  assert action_rows>0
  manifest=json.loads((HERE/'MANIFEST.json').read_text())
  for r in manifest['original_artifacts']:
