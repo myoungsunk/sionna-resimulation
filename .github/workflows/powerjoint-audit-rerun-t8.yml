@@ -1,0 +1,55 @@
+name: Powerjoint audit T8 frozen mapping certificate
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [.github/workflows/powerjoint-audit-rerun-t8.yml]
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Restore verified legacy M45 releases
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T8_MAPPING/restore_legacy.py
+      - name: Certify time binding before static same-pose comparison
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T8_MAPPING/certify_mapping.py --source-root source --config T8_INPUTS.json --out t8_mapping --static-physics
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-t8-${{ github.run_id }}
+          path: |
+            work/t8_mapping
+            work/T8_INPUTS.json
+            work/legacy_snapshot/**/RESTORE_RECEIPT.json
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
