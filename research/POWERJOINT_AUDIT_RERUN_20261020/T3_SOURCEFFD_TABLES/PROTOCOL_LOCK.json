@@ -1,0 +1,19 @@
+{
+  "task": "T3_SOURCEFFD_TABLES",
+  "status": "PRE_EXECUTION",
+  "source_observer_revision": "4b82e9801a1e065593fdd67a0f3ebd721ba29848",
+  "source_engine_revision": "3fc70f2280471954f1a0673009812ad75437d9ea",
+  "parameter_source": "Preserved reference_ae OOF_PARAMETERS.csv.gz, exact prior SourceFFD route-heldout POWER P1 fit; never old LUT params",
+  "evaluation_t_min_s": 30,
+  "sensor": "Exact build_positive_bias_controls(t, truth, bias_label, seed0), existing routes unmodified",
+  "slide1": {"cases": ["R2_aA_m0", "R2_aA_m45"], "channel": "Native LoS", "biases": ["B0", "L2"], "arms": ["DR4", "S3", "J3", "S4", "J4"], "scope": "ORACLE_DIAGNOSTIC_NATIVE_LOS"},
+  "three_state": "Original core supports3states; SourceFFD spectrum accepts3states, returned 2x4 Jacobian sliced to first3columns (zero bias column). No alternate filter or observation scheme. Bias metrics N/A.",
+  "slide2_stats": {"cases": ["R2_aA_m0", "R2_aA_m45", "R2_aB_m0"], "scope": "GT_EVALUATION_ONLY", "residual": "observed Full - SourceFFD.model(GT)", "variance": "population ddof0", "r0_range_variance_m2": 0.0068578637, "correlation": "Pearson r between e_r and source-based e_s", "time_scope": "t>=30s"},
+  "slide2_hybrid": {"cases": ["R2_aA_m0", "R2_aA_m45"], "bias": "L2", "arms": ["JOINT4", "POWER1"], "cells": {"E00": ["los", "los"], "E10": ["full", "los"], "E01": ["los", "full"], "E11": ["full", "full"]}, "POWER_parameters": "Freeze original Full-only per-packet mu/C/risk across all fourcells; no LoS-q or synthetic-CIR refit", "scope": "ORACLE_DIAGNOSTIC_CHANNEL_ISOLATION", "historical_E1_ZIP_parity": "NOT_ESTABLISHED"},
+  "slide4": {"cases": "all7existing", "bias": "B0", "arms": ["JOINT4", "POWER1"], "channel": "Full"},
+  "all_four_state_recursive_metrics": ["heading_rmse_deg", "signed_heading_deg", "heading_sigma_rms_deg", "heading95", "heading_nees", "pose_nees", "conditional_xy_nees", "xy_rmse_m", "bias_rmse_dps", "bias_mean_dps", "bias_final_dps"],
+  "verification": {"POWER1_historical_heading_rmse_abs_deg": 1e-6, "historical_gate_mismatch": 0, "independent_scorer_max_abs": 1e-9},
+  "old_lut_change_flag": "abs(new-old)>0.05deg OR abs(new-old)/abs(old)>0.10; missing old values recorded NOT_PROVIDED, never inferred",
+  "t6_rerun": "SRC_TAP version requires separately retrained POWER params and parameter manifest range_model=SRC_TAP. Preserve old-range tables in their own versioned output root.",
+  "scientific_scope": "SourceFFD consistency and tested replay only; no independent-scene, normalized-Bayesian-posterior or hardware claim"
+}
