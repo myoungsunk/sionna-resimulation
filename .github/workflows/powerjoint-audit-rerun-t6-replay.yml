@@ -1,0 +1,54 @@
+name: Powerjoint audit T6 range equation replay
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [.github/workflows/powerjoint-audit-rerun-t6-replay.yml]
+permissions:
+  contents: read
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Retrain range likelihood and replay seven frozen conditions
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T6_RANGE/replay_range.py --out t6_replay
+      - name: Preserve SourceFFD slide tables under source tap range
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T3_SOURCEFFD_TABLES/tables.py --source-root source --execution-root . --out t3_src --range-model SRC_TAP --parameters t6_replay/OOF_PARAMETERS_SRC_TAP.csv.gz --parameter-manifest t6_replay/PARAMETER_MANIFEST.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-t6-replay-${{ github.run_id }}
+          path: |
+            work/t6_replay
+            work/t3_src
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
