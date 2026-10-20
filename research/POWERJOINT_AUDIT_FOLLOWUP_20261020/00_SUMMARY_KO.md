@@ -135,3 +135,5 @@ S1 감사 ACCEPT는 실행 증거와 NOT_ESTABLISHED를 인수하며 N1 지지�
 | S2 N2 GEOM | TECHNICAL_PASS | NOT_ESTABLISHED | 신규 seed0 13/36, 기존 M0 4/12; GEOM_Q 개선 16/36 | lock2f1b21b; code481c249; runs39374401047/39374960558/39375649673; artifact·release는 S2 MANIFEST |
 
 공통 11지표 792행과 별도 LoS R0 4행을 보존했다. 주 평가는 t≥30 전체 motion clock·seed0이며 seed1–4는 같은 RF motion noise 반복이다. GEOM/GEOM_Q 잔차 평균·공분산은 사용자 승인 d 삼분위, 평균만 10/11차원이다. Native LoS 안전성과 seed 범위, 위반 셀은 S2_N2_GEOMETRY/RESULTS_KO.md 및 CSV에 보고했다. R2 A M45는 OUT_OF_TRAINING_RANGE_MOUNT다. 독립 장면 일반화·정규화 Bayesian posterior·하드웨어 실증·q 인과 기전은 주장하지 않는다. **S2에서 종료하며 S3는 시작하지 않았다.**
+
+S2 결과 게시 커밋: `4a0ec61cabbf73a028ca8096f57dd46374398f4e` (18개 분할 커밋, 101,231,274 bytes). 원본29개 archive와 공개 release 전체 readback은 S2 MANIFEST/PUBLIC_BUNDLE_RECEIPT에 보존했다.

@@ -89,3 +89,10 @@ R2 A M45 heldout은 **OUT_OF_TRAINING_RANGE_MOUNT**다. mount 특징을 추가�
 lock `2f1b21b9f984ba0d5d3768f9a84a8f5b7d263683`, 모델/adapter `481c249e04164ffc5deccaaefbcc84c16a5779f3`. 학습 run39374401047, 기존/LoS run39374960558, 신규 성공 run39375649673. 입력 준비 중단 18개 route-job와 보존 단계의 GitHub 연결 중단을 원래 로그·artifact·SHA와 함께 보존했다. 판정·모델·엔진을 바꾸지 않았으며 성공 계산만을 재귀 재실행하지 않았다. MANIFEST.json에 모든 원본 artifact의 digest/bytes, release asset ID/URL, 전체 재다운로드 SHA, run/head를 기록했다.
 
 미해결 입력: 없음(현재 S2 계약 범위). 원래77개 명단 및 구현2·3 원본 소스 미확보는 S0/S1의 제한으로 그대로 남는다.
+
+## 최종 게시 영수증
+
+
+결과/원본 요약 498개 파일(101,231,274 bytes)은 18개 분할 커밋으로 게시했고 마지막 결과 커밋은 `4a0ec61cabbf73a028ca8096f57dd46374398f4e`다. 최종 metadata/검증 커밋은 이 결과 커밋의 후속이다. 전체 파일 hash는 OUTPUT_INDEX.json, 게시 내역은 PUBLICATION_RECEIPT.json이다.
+
+신규 Q 180셀의 T2 **공통 11지표 전체**를 같은 seed/bias/motion scope로 다시 대조했으며 최대 차이는 3.858247055177344e-12다(T2_METRIC_PARITY.csv). 역사적 gate는 seed 0에 한해 확인했고 seed 1–4는 명시된 재생성 reference다. 증거 보존 성공 run39376022836은 29개 원본 archive의 SHA/CRC 및 release 전체 readback을 확인했다. 최종 독립 검증은 provenance_tools/verify_local.py로 재현한다.
