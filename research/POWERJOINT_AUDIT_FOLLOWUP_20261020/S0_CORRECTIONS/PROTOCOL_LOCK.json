@@ -1,6 +1,6 @@
 {
   "stage": "S0_CORRECTIONS_ONLY",
-  "version": 2,
+  "version": 3,
   "status": "LOCK_BEFORE_EXECUTION",
   "base_commit": "034e57a7209a3bd1bb8857b24fd85c64942e1258",
   "branch": "research/powerjoint-audit-followup-20261020",
@@ -126,6 +126,12 @@
     "T7B": "v2 정책 NO-GO; not a verdict on the entire utility-target approach"
   },
   "report": "Separate task status, scientific verdict and validity. Preserve original and revised labels, original SHA256, run/artifact provenance, error/retry history. Claims excluded: independent-scene generalization, normalized Bayesian posterior, hardware demonstration, causal separation of s contamination versus filter pathway, physical mechanism of q.",
-  "prior_lock_sha256": "ed7e9417d0a008df7dd8a1cb6e8531eea97b02f5b812bbc65c041a3fedc2e131",
-  "pre_execution_schema_correction": "Before any residual distribution calculation, inspected pinned SourceFFD spectrum and original validate_native code: theta is polar incidence angle, not azimuth. Correct theta definition/bins; scientific criteria unchanged."
+  "prior_lock_sha256": "9cdd7eb9dd80a11ef7832ac25ebc028dd13d64f9fcd1fff2e3d6c0a1a815bb75",
+  "pre_execution_schema_correction": "Before any residual distribution calculation, inspected pinned SourceFFD spectrum and original validate_native code: theta is polar incidence angle, not azimuth. Correct theta definition/bins; scientific criteria unchanged.",
+  "coordinate_precision_amendment": {
+    "after_failed_run": 39368233370,
+    "reason": "Exact raw RF observations/pose IDs match, but RF SAMPLES GT x/y and yaw(deg) are rounded to6 decimals while recursive clock truth is unrounded. Verify exact round(clock truth,6)==archive GT and original recursive residual identity. No statistical residual distributions had been computed before this mapping assertion failed.",
+    "S0_2": "Report archive9519 residuals at original RF SAMPLES GT and clock7251 residuals at original clock GT; add archive7251 subset to expose rounding effect. Scientific thresholds unchanged.",
+    "S0_3": "Compute both populations from original unmodified SourceFFD labels at RF SAMPLES GT.829 membership from exact case/poseID+rounding-certified clock; raw r and s must agree <=1e-12. Preserve prior T3 stats and report deltas due to GT precision explicitly. Difference>1e-5 flags schema mismatch, never changes scientific threshold."
+  }
 }

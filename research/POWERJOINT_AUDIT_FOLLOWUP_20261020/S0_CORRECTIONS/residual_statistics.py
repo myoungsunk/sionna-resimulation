@@ -59,6 +59,12 @@ def main():
     frame['error_m']=frame.range_m-(frame.distance_m+B)
     er_diff=float(abs(frame.error_m-frame.e_r).max())
     assert er_diff<1e-12
+    frozen={}
+    with zipfile.ZipFile(archives[11782748118]) as z:
+        m=next(n for n in z.namelist() if n.endswith('P2_ONE_STEP_SUMMARY.json'))
+        for rec in json.loads(z.read(m))['per_case']:
+            name=next(n for n in z.namelist() if n.endswith(rec['trace_file']))
+            with np.load(io.BytesIO(z.read(name)),allow_pickle=False) as a:frozen[(rec['case'],rec['channel'])]={k:a[k].copy() for k in a.files}
     los=frame[frame.channel=='los'].copy().sort_values(['case','pose_id'])
     counts={str(k):int(v) for k,v in los.groupby('case').size().items()}
     assert counts==lock['S0_2']['expected_counts'] and len(los)==9519
@@ -76,10 +82,24 @@ def main():
     comparisons={'range_m':float(abs(matched.observed_m-matched.range_m).max()),
         'distance_m':float(abs(matched.distance_m_clock-matched.distance_m).max()),
         'error_m':float(abs(matched.error_old_m-matched.error_m).max())}
-    assert max(comparisons.values())<1e-12
+    assert comparisons['range_m']<1e-12
+    rounding=[]
+    for cid,g in prior.groupby('case'):
+        a=frozen[(cid,'los')];assert np.array_equal(g.pose_id.to_numpy(),a['pose_id'])
+        truth=a['truth_for_offline_scoring_only'][:,:3]
+        original=frame[(frame.case==cid)&(frame.channel=='los')].set_index('pose_id').loc[a['pose_id']]
+        xy_delta=float(abs(np.round(truth[:,:2],6)-original[['x_eval','y_eval']].to_numpy()).max())
+        yaw_delta=float(abs(np.radians(np.round(np.degrees(truth[:,2]),6))-original.yaw_rad.to_numpy()).max())
+        c=cases[cid];d=np.sqrt((truth[:,0]-c['anchor'][0])**2+(truth[:,1]-c['anchor'][1])**2+(c['anchor'][2]-c['robot_z_m'])**2)
+        distance_delta=float(abs(d-g.distance_m.to_numpy()).max())
+        assert max(xy_delta,yaw_delta,distance_delta)<1e-12
+        assert float(abs((g.observed_m-(g.distance_m+B))-g.error_old_m).max())<1e-12
+        rounding.append(dict(case=cid,coordinate_decimal_places=6,rounded_xy_max_abs=xy_delta,rounded_yaw_rad_max_abs=yaw_delta,clock_geometry_max_abs=distance_delta,archive_clock_xy_max_abs=float(abs(truth[:,:2]-original[['x_eval','y_eval']].to_numpy()).max())))
     keys=pd.MultiIndex.from_frame(prior[['case','pose_id']]);los['in_recursive_clock7251']=pd.MultiIndex.from_frame(los[['case','pose_id']]).isin(keys)
     prior_stats=[];group_stats=[]
-    for pop,g in [('RF_ARCHIVE_9519',los),('RECURSIVE_CLOCK_7251',los[los.in_recursive_clock7251])]:
+    clock=los[los.in_recursive_clock7251].merge(prior[['case','pose_id','distance_m','theta_deg','error_old_m']],on=['case','pose_id'],validate='one_to_one',suffixes=('_archive',''))
+    clock['error_m']=clock.error_old_m
+    for pop,g in [('RF_ARCHIVE_9519',los),('RECURSIVE_CLOCK_7251',clock),('RF_ARCHIVE_SUBSET_7251',los[los.in_recursive_clock7251])]:
         for cid,cg in g.groupby('case'):
             prior_stats.append(dict(population=pop,case=cid,**stats(cg)))
             for axis,edges in [('distance_m',lock['S0_2']['distance_bin_edges_m']),('theta_deg',lock['S0_2']['theta_bin_edges_deg'])]:
@@ -94,30 +114,25 @@ def main():
     los[['case','pose_id','range_m','distance_m','theta_deg','error_m','original_tap','tap_group','in_recursive_clock7251']].to_csv(args.out/'NATIVE_LOS_ROWS.csv',index=False)
     failed=[r['case'] for r in prior_stats if r['population']=='RF_ARCHIVE_9519' and not(abs(r['mean_m'])<.01 and .8<=r['rmse_over_sigma_q']<=1.2)]
     # Frozen trace row IDs AND truth AND observations certify the slide's829 population.
-    frozen={}
-    with zipfile.ZipFile(archives[11782748118]) as z:
-        m=next(n for n in z.namelist() if n.endswith('P2_ONE_STEP_SUMMARY.json'))
-        for rec in json.loads(z.read(m))['per_case']:
-            if rec['channel']!='full' or not rec['case'].startswith('R2'):continue
-            name=next(n for n in z.namelist() if n.endswith(rec['trace_file']))
-            with np.load(io.BytesIO(z.read(name)),allow_pickle=False) as a:frozen[rec['case']]={k:a[k].copy() for k in a.files}
     slide=[];mapping=[];old={'R2_aA_m0':(.05225,.01708,.525),'R2_aA_m45':(.07187,.01658,.062),'R2_aB_m0':(.03069,.00807,.096)}
     previous=pd.read_csv(AUDIT/'T3_SOURCEFFD_TABLES/SLIDE2_RANGE_STATS.csv')
-    for cid,a in frozen.items():
+    for (cid,channel),a in frozen.items():
+        if channel!='full' or not cid.startswith('R2'):continue
         g=frame[(frame.case==cid)&(frame.channel=='full')].set_index('pose_id')
         gg=g.loc[a['pose_id']]
-        deltas=dict(x=float(abs(gg.x_eval.to_numpy()-a['truth_for_offline_scoring_only'][:,0]).max()),y=float(abs(gg.y_eval.to_numpy()-a['truth_for_offline_scoring_only'][:,1]).max()),range=float(abs(gg.range_m.to_numpy()-a['z_r_m']).max()),s=float(abs(gg.s_fp.to_numpy()-a['z_s']).max()))
+        deltas=dict(x_rounded6=float(abs(gg.x_eval.to_numpy()-np.round(a['truth_for_offline_scoring_only'][:,0],6)).max()),y_rounded6=float(abs(gg.y_eval.to_numpy()-np.round(a['truth_for_offline_scoring_only'][:,1],6)).max()),range=float(abs(gg.range_m.to_numpy()-a['z_r_m']).max()),s=float(abs(gg.s_fp.to_numpy()-a['z_s']).max()))
         assert max(deltas.values())<1e-12,(cid,deltas)
         clock=gg.loc[a['t_s']>=30];assert len(clock)==829 and len(g)==1303
         mapping.append(dict(case=cid,archive_count=len(g),clock_all_count=len(gg),clock_t30_count=len(clock),**deltas))
         for pop,cg in [('ORIGINAL_ALL_RF_1303',g),('SLIDE_SOURCEFFD_T30_829',clock)]:
             er=cg.error_m.to_numpy();es=cg.e_s.to_numpy();mu=float(er.mean());var=float(er.var());rho=float(np.corrcoef(er,es)[0,1])
-            slide.append(dict(case=cid,population=pop,n=len(cg),selected_for_slide=pop=='SLIDE_SOURCEFFD_T30_829',range_model='B_OLD',s_model='SourceFFD',mu_r_m=mu,V_r_m2=var,V_r_over_R0_r=var/.0068578637,rho_er_es=rho,old_LUT_all1303_mu_r_m=old[cid][0],old_LUT_all1303_V_r_m2=old[cid][1],old_LUT_all1303_rho_er_es=old[cid][2],original_time_window='NOT_ESTABLISHED_NO_TIMESTAMP' if pop=='ORIGINAL_ALL_RF_1303' else 't>=30s frozen trace clock'))
+            prev=previous[previous.case==cid].iloc[0]
+            slide.append(dict(case=cid,population=pop,n=len(cg),selected_for_slide=pop=='SLIDE_SOURCEFFD_T30_829',range_model='B_OLD',s_model='SourceFFD',GT_precision='original RF SAMPLES xy6 decimals and yaw_deg6 decimals',mu_r_m=mu,V_r_m2=var,V_r_over_R0_r=var/.0068578637,rho_er_es=rho,old_LUT_all1303_mu_r_m=old[cid][0],old_LUT_all1303_V_r_m2=old[cid][1],old_LUT_all1303_rho_er_es=old[cid][2],previous_T3_clock_GT_mu_r_m=float(prev.mu_r_m),previous_T3_clock_GT_V_r_m2=float(prev.V_r_m2),previous_T3_clock_GT_rho_er_es=float(prev.rho_er_es),delta_vs_previous_T3_mu_r_m=mu-float(prev.mu_r_m),delta_vs_previous_T3_V_r_m2=var-float(prev.V_r_m2),delta_vs_previous_T3_rho_er_es=rho-float(prev.rho_er_es),original_time_window='NOT_ESTABLISHED_NO_TIMESTAMP' if pop=='ORIGINAL_ALL_RF_1303' else 't>=30s frozen trace clock'))
             if pop=='SLIDE_SOURCEFFD_T30_829':
-                prev=previous[previous.case==cid].iloc[0]
-                assert max(abs(mu-prev.mu_r_m),abs(var-prev.V_r_m2),abs(rho-prev.rho_er_es))<1e-12
+                assert max(abs(mu-prev.mu_r_m),abs(var-prev.V_r_m2),abs(rho-prev.rho_er_es))<1e-5
     pd.DataFrame(slide).to_csv(args.out/'SLIDE2_RANGE_STATS_POPULATIONS.csv',index=False)
     pd.DataFrame(mapping).to_csv(args.out/'SLIDE2_ROW_MAPPING.csv',index=False)
+    pd.DataFrame(rounding).to_csv(args.out/'COORDINATE_PRECISION_CERTIFICATION.csv',index=False)
     save(args.out/'STATISTICS_SUMMARY.json',dict(technical='TECHNICAL_PASS',work_status='OPEN' if failed else 'CLOSED_QUANTIZATION',scientific='NOT_ESTABLISHED' if failed else 'SUPPORTED_BUT_LIMITED',delta_m=DELTA,sigma_q_m=SIGMA,counts=counts,total=9519,clock_total=7251,failed_cases=failed,independent_geometry_vs_cached_er_max=er_diff,prior_clock_match_max=comparisons,tap_grid_error=tap_grid_error,slide_population='SLIDE_SOURCEFFD_T30_829',no_recursive_or_RF_execution=True))
     save(args.out/'STATISTICS_MANIFEST.json',dict(actions_run_id=os.getenv('GITHUB_RUN_ID'),source_commit=os.getenv('GITHUB_SHA'),inputs=inputs,label_sha256=hashlib.sha256(label).hexdigest(),case_manifest_sha256=sha(manifest),protocol_sha256=sha(HERE/'PROTOCOL_LOCK.json'),prior_native_sha256=sha(prior_path),generator_sha256=hashlib.sha256(generator).hexdigest(),python=__import__('sys').version,numpy=np.__version__,pandas=pd.__version__,output_sha256={p.name:sha(p) for p in args.out.iterdir() if p.is_file()}))
 
