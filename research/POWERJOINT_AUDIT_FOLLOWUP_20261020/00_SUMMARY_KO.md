@@ -95,3 +95,16 @@ D3/D6의 전체 유익 이벤트 안전성은 모두 false이므로 지지0/5다
 ## 산출물 검증·검토 진입점
 
 FINAL_QA.json: 기존 CSV357·DECISION27 byte identity, 원문37개 SHA/bytes, 기존 JSON 값 보존, JSON/CSV parse, Python 구문, 파일당20MB, 원본·release hash44개,9519/7251행 인증을 검사했다. 새 RF·재귀 실행은 없다. 적용성 범위는 VALIDITY_INDEX.json, 원문은 ORIGINALS/RECEIPTS.json, 통계 provenance는 statistics_execution/STATISTICS_MANIFEST.json, 전체 artifact 회수 SHA/CRC는 statistics_execution/ACTIONS_ARTIFACT.json을 참조한다. 결과 Git commit·원격 bytes 검증은 PUBLICATION_RECEIPT.json에 기록한다. S0에서 종료한다.
+
+
+## S1 N1 이벤트 검증 — BLOCKED_INPUT
+
+S0 감사의 ACCEPT_FOR_S1 이후 입력을 확인했으나, 고정 원본77개(기존30/신규47) 열거 CSV·재귀 코드가 미확보다. 확인된 신규 물리 이벤트는61개이며 SPEC/aggregate 선택12개도 전체 명단이 아니다. 임의 대체·선택 없이 중단했다.
+
+| 과제 | TECHNICAL | 과학 판정 | 실제 실행 | 근거 |
+|---|---|---|---|---|
+| S1 N1/D7 | BLOCKED_INPUT | NOT_ESTABLISHED | 입력 감사 exit0; 새 재귀0; Actions/artifact 없음 | S1_N1_EVENTS/RESULTS_KO.md, INPUT_AUDIT.json, EVENT_PROVENANCE_DRAFT.json |
+
+엔진034e57a 원본 byte identity 및 T2 센서 lock b05e7ead… 일치는 확인했다. 기존 주로의 실제 los_exists 원본 플래그는 미인증이다. 필요한 입력은 원래 legacy30/new47 이벤트 명단·enumerator·행/clock 매핑과 legacy LoS 존재 근거다. 미확보 상태에서 PROTOCOL_LOCK 또는77행 EVENT_TABLE을 만들어 실행하지 않았다. POWER1 재현·독립 scorer·D7 parity는 NOT_RUN이다.
+
+S0 본문·수치·기존 판정은 위에 그대로 보존한다. S0 잔차 평균은 OPEN / NOT_ESTABLISHED이며 S1 입력 감사로 이를 닫지 않는다. S2/S3, RF 시뮬레이션, T6 tap EKF, D4 대체, 새 gate·기억 모델은 실행하지 않았다.
