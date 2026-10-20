@@ -49,7 +49,8 @@ def parameters(frame, cid, ids):
     q = frame[(frame.case == cid) & (frame.channel == 'full')].set_index('pose_id').loc[ids]
     mu = q[['mu_r', 'mu_s']].to_numpy(); C = np.zeros((len(q), 2, 2))
     C[:, 0, 0] = q.C00; C[:, 1, 1] = q.C11; C[:, 0, 1] = C[:, 1, 0] = q.C01
-    return mu, C, q.risk.to_numpy()
+    # These tables use POWER1, never the reconstructed P4 classifier.
+    return mu, C, q.risk.to_numpy() if 'risk' in q else np.zeros(len(q))
 
 
 class DimensionModel:
