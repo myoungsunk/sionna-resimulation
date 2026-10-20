@@ -1,4 +1,29 @@
 [
-  {"run_id":39378550447,"stage":"training prerequisite wait","error":"RemoteDisconnected during GET of label workflow metadata; no training results generated","artifact_id":12244728735,"retry":true,"retry_run_id":39380603592,"changed":"bounded retries for idempotent GET/HEAD only; lock and numerical model unchanged"},
-  {"run_id":39380336271,"stage":"preservation launch","error":"workflow copy used nonexistent S3_N2_GEOMETRY directory instead of S3_Q1_POLICY","artifact_id":null,"retry":true,"changed":"corrected literal checkout/script/output path; preserve logs and original failed run"}
+  {
+    "run_id": 39378550447,
+    "stage": "training prerequisite wait",
+    "error": "RemoteDisconnected during GET of label workflow metadata; no training results generated",
+    "artifact_id": 12244728735,
+    "retry": true,
+    "retry_run_id": 39380603592,
+    "changed": "bounded retries for idempotent GET/HEAD only; lock and numerical model unchanged"
+  },
+  {
+    "run_id": 39380336271,
+    "stage": "preservation launch",
+    "error": "workflow copy used nonexistent S3_N2_GEOMETRY directory instead of S3_Q1_POLICY",
+    "artifact_id": null,
+    "retry": true,
+    "changed": "corrected literal checkout/script/output path; preserve logs and original failed run"
+  },
+  {
+    "stage": "train_retry1_p1_comparison",
+    "actions_run_id": 39380603592,
+    "artifact_id": 12248687338,
+    "archive_sha256": "315b7f3e1e20aaafe80b73e0696eb5820c5e813b6bebac75d11beadfcbad156e",
+    "error": "DUPLICATE_P1_FIT_DIFF",
+    "cause": "Noncontractual pickle byte identity check rejected fitted last-bit numerical differences; full 105-model numerical audit maximum 1.1102230246251565e-16",
+    "repair": "Keep all original labels and P1 pickles; compare unchanged training keys/config/cutpoints and parameters/mu/C at original ScalarPower parity tolerance 1e-12",
+    "retry": true
+  }
 ]

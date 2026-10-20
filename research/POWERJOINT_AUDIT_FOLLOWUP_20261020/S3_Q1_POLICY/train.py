@@ -46,7 +46,8 @@ def main():
   cache=a.out.parent/'label_inputs';cache.mkdir(exist_ok=True)
   with ThreadPoolExecutor(max_workers=6) as pool:receipts=list(pool.map(lambda item:restore_artifact(item,cache/str(item['id'])),items))
   dump(a.out/'LABEL_ARTIFACT_RECEIPT.json',receipts)
-  frames=[];summaries=[];p1hash={}
+  frames=[];summaries=[];p1reference={};p1qa=[]
+  qcheck=pd.read_csv(SOURCE.parent/'reference_ae/PACKETS_SOURCE_LABELS.csv.gz',usecols=['log_fp_power']).log_fp_power.to_numpy()
   for directory in sorted(cache.iterdir()):
    man=next(directory.rglob('MANIFEST.json'));m=json.loads(man.read_text());assert m['stage']=='labels' and m['technical']=='TECHNICAL_PASS' and m['protocol_sha256']==sha(HERE/'PROTOCOL_LOCK.json'),('LABEL_SHARD_NOT_PASS',m)
    for rel,want in m['outputs'].items():assert sha(man.parent/rel)==want,('LABEL_OUTPUT_SHA',rel)
@@ -56,9 +57,20 @@ def main():
    keys=['outer','case','bias','seed','frame','pose_id','horizon_samples'];assert set(map(tuple,df[keys].values))==set(map(tuple,wanted[keys].values)) and len(df)==len(wanted),'LOCKED_LABEL_KEYS'
    assert (df.power_restart_state_max<=1e-10).all() and (df.power_restart_cov_max<=1e-10).all() and (df.power_restart_gate_mismatch==0).all(),'RESTART_QA'
    assert np.isfinite(df[FEATURES+['utility_'+x for x in ACTIONS]].to_numpy()).all(),'LABEL_NONFINITE'
-   fit=json.loads((man.parent/'P1_MODEL.json').read_text());k=(fit['outer'],fit['inner_route']);p1hash.setdefault(k,fit['model']['sha256']);assert p1hash[k]==fit['model']['sha256'],'DUPLICATE_P1_FIT_DIFF'
+   fit=json.loads((man.parent/'P1_MODEL.json').read_text());k=(fit['outer'],fit['inner_route']);current=deserialize(fit['model']);p1reference.setdefault(k,(current,fit));reference,reference_fit=p1reference[k]
+   assert fit['training']==reference_fit['training'],'DUPLICATE_P1_TRAINING_KEY_DIFF'
+   assert current.ridge.get_params()==reference.ridge.get_params() and current.scaler.get_params()==reference.scaler.get_params(),'DUPLICATE_P1_CONFIGURATION_DIFF'
+   assert np.array_equal(current.cuts,reference.cuts),'DUPLICATE_P1_BIN_DIFF'
+   parameter_pairs=[(getattr(current.scaler,n),getattr(reference.scaler,n)) for n in ['mean_','var_','scale_','n_samples_seen_']]+[(getattr(current.ridge,n),getattr(reference.ridge,n)) for n in ['coef_','intercept_']]+[(current.offsets,reference.offsets),(current.covs,reference.covs)]
+   parameter_delta=max(float(np.max(abs(np.asarray(x)-np.asarray(y)))) for x,y in parameter_pairs)
+   predicted=current.predict(qcheck);expected_prediction=reference.predict(qcheck);prediction_delta=max(float(abs(x-y).max()) for x,y in zip(predicted,expected_prediction))
+   # ScalarPower's original fitter-parity tolerance is 1e-12. A pickle digest
+   # records the actual file identity; it is not a numerical equality test.
+   assert max(parameter_delta,prediction_delta)<=1e-12,('DUPLICATE_P1_NUMERICAL_DIFF',k,parameter_delta,prediction_delta)
+   p1qa.append(dict(outer=k[0],inner_route=k[1],artifact_id=int(directory.name),reference_pickle_sha256=reference_fit['model']['sha256'],actual_pickle_sha256=fit['model']['sha256'],parameter_max_abs=parameter_delta,mu_cov_max_abs=prediction_delta,threshold=1e-12,status='PASS'))
    frames.append(df);summaries.append(dict(outer=m['outer'],case=m['case'],seed=m['seed'],rows=len(df),artifact_id=int(directory.name)))
   labels=pd.concat(frames,ignore_index=True);assert len(labels)==sum(x['included'] for x in lock['label_shards']);assert not labels.duplicated(['outer','case','bias','seed','frame']).any()
+  pd.DataFrame(p1qa).to_csv(a.out/'P1_NUMERICAL_EQUIVALENCE.csv',index=False)
   pd.DataFrame(summaries).to_csv(a.out/'LABELS_SUMMARY.csv',index=False)
   models=dict(feature_names=FEATURES,actions=NONPOWER,runtime=dict(python=platform.python_version(),numpy=np.__version__,sklearn=sklearn.__version__),protocol_sha256=sha(HERE/'PROTOCOL_LOCK.json'),models={});margins={};oof_rows=[]
   for outer in ['R2','R4','R5','ALL_OLD']:
