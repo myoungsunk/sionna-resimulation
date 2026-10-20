@@ -1,11 +1,335 @@
 {
-  "task": "T2_NEW_ROUTE_BASELINE",
-  "status": "PREPARED_NOT_EXECUTED",
-  "input_sha256": {},
-  "actions_run_id": null,
-  "artifact_id": null,
-  "technical": "NOT_EXECUTED",
+  "technical": "TECHNICAL_PASS",
   "scientific": "NOT_ESTABLISHED",
-  "static_check": "Python AST and protocol JSON parse PASS",
-  "note": "No numerical sensor generation, RF transformation, POWER fitting or EKF baseline executed during preparation."
+  "scope": "canonical baseline fixed, not an efficacy hypothesis",
+  "actions_run_id": 39359952488,
+  "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+  "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+  "routes": [
+    {
+      "route": "O01",
+      "artifact_id": 12237161269,
+      "artifact_digest": "sha256:15d059204a3192957c8bb1da1860def373c88269f59a0fcc35c1b8b62026a1fa",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/O01/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "4392ffc1d7ddce7b49de7f9ab160f08b96ba7ab2b4a1ae25a1c0d2ddbc8add68",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "O01",
+        "motion_path": "route_snapshot/reconstructed_motion/O01_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/O01/POSES/O01_RADIO_POSE.csv",
+        "motion_n": 461,
+        "rf_n": 192,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 6.1232339957368534e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O01/POSES/O01_RADIO_POSE.csv": "7c88a4c80d4066466b27821370251d116f5f82669f88bd11686aebc11640f27e",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O01/CASES/O01_O0_M45_FULL/RADIO_POSE.csv": "7c88a4c80d4066466b27821370251d116f5f82669f88bd11686aebc11640f27e",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/O01_ROUTE_POSE.csv": "e891c81a3600e3d367dd65154ce33b53aeae7c166cbe8795df010cc994370b6b",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O01/CASES/O01_O0_M45_FULL/H_FULL.npy": "9cc378dee2e05517616919b3472b7e4dc8e5af5d9d7c039ba39d70c0b069a24b",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O01/CASES/O01_O0_M45_FULL/H_DIRECT_LOS.npy": "9cb1614eb251abd0bdfe915a969325b63a42eca4865c045a4735568d52379f32",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O01/CASES/O01_O0_M45_FULL/LOS_EXISTS.npy": "8ff1cded9e1336e8376ee8aa3dc24b82e8bab03ba38eeb8bf514652db44c7f1c"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "0255b041772564d8691e82026d2d8b6de7516c8aecc38bba32c3331f73996c23"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "7c88a4c80d4066466b27821370251d116f5f82669f88bd11686aebc11640f27e",
+            "full_motion_sha256": "e891c81a3600e3d367dd65154ce33b53aeae7c166cbe8795df010cc994370b6b",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    },
+    {
+      "route": "C03",
+      "artifact_id": 12237146888,
+      "artifact_digest": "sha256:d28269749dd9e9cee077b8351b2168197f8b888b2014b81161347135af25bf0f",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/C03/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "4f202e494fbbdb4f27ab36af7c439adfa93c75e6faf845a5c0b4c5b245b8011a",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "C03",
+        "motion_path": "route_snapshot/reconstructed_motion/C03_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/C03/POSES/C03_RADIO_POSE.csv",
+        "motion_n": 901,
+        "rf_n": 423,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 6.1232339957368534e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/POSES/C03_RADIO_POSE.csv": "a6726422401b12b83524c101c964f71b68301209a59e6b73c4bc2bc76e8c74c7",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_B_M45_FULL/RADIO_POSE.csv": "a6726422401b12b83524c101c964f71b68301209a59e6b73c4bc2bc76e8c74c7",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_A_M45_FULL/RADIO_POSE.csv": "a6726422401b12b83524c101c964f71b68301209a59e6b73c4bc2bc76e8c74c7",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/C03_ROUTE_POSE.csv": "33af8fb82a6641196761a7d561b33ad570f232ca1ecb710643500744830c57b0",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_A_M45_FULL/H_FULL.npy": "bfadc8917ab155729afad3800b0bb36b37fc4a46a48ccef3f51f36cfebd5c006",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_A_M45_FULL/H_DIRECT_LOS.npy": "11ccc6c2c3a604cdaf881f124351e18c8523b361c7dc612424a1216ec129dc05",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_A_M45_FULL/LOS_EXISTS.npy": "f2a573e851ee453749cbf8409470d35a4e2e96d6a6e804f3c8db6fb62cef763c",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_B_M45_FULL/H_FULL.npy": "7796dc67995e4ab25c781826d54bfc5e68d7be98ecf72291189076a7307608cd",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_B_M45_FULL/H_DIRECT_LOS.npy": "0d593d83ca25dc9c3459ecbb4eb25b9cda36e97daebacbdc11f9f4c1821f78b8",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C03/CASES/C03_B_M45_FULL/LOS_EXISTS.npy": "f2a573e851ee453749cbf8409470d35a4e2e96d6a6e804f3c8db6fb62cef763c"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "007c8095985403d68124d254a9d9ca041d87cabaef860d861d60f0f4480a3a50"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "a6726422401b12b83524c101c964f71b68301209a59e6b73c4bc2bc76e8c74c7",
+            "full_motion_sha256": "33af8fb82a6641196761a7d561b33ad570f232ca1ecb710643500744830c57b0",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    },
+    {
+      "route": "O03",
+      "artifact_id": 12236673976,
+      "artifact_digest": "sha256:2fb926b1f9d51bf51b780016b20b296023f5fecdc97527bbe72f244a3d6b7002",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/O03/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "75f5ec6c38e4d9deba4b894fee59213a4f582ab43abaf4c97b58fbcd55bd908b",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "O03",
+        "motion_path": "route_snapshot/reconstructed_motion/O03_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/O03/POSES/O03_RADIO_POSE.csv",
+        "motion_n": 1175,
+        "rf_n": 412,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 9.18485099360528e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O03/POSES/O03_RADIO_POSE.csv": "1d0fbd67c989e208e105fea2494e2f5ef2179a007f415e214a94d4afdd1b3920",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O03/CASES/O03_O0_M45_FULL/RADIO_POSE.csv": "1d0fbd67c989e208e105fea2494e2f5ef2179a007f415e214a94d4afdd1b3920",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/O03_ROUTE_POSE.csv": "8ce4014fa8cb92f6660ff438cec54c75bcdfdafa95ad4d935f7f1e15ae699cf8",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O03/CASES/O03_O0_M45_FULL/H_FULL.npy": "98c837fe6fadcd97ff05fbfa3c653ecd35d25db593d135404721a9187221f608",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O03/CASES/O03_O0_M45_FULL/H_DIRECT_LOS.npy": "86f9ba32b265a1c4c868f96c6156e7b8b1116d7c9a22e2bad8c29c725ba0d24f",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O03/CASES/O03_O0_M45_FULL/LOS_EXISTS.npy": "a79e8e4d2017227f27c5967483bdf0932e4ecd7eef5898d57ea021d9431f69bd"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "5dd24ab3f0b0307dda2a60084bc1b34a268ce33a2e9b7b4a45dcd9c0b57ff6d3"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "1d0fbd67c989e208e105fea2494e2f5ef2179a007f415e214a94d4afdd1b3920",
+            "full_motion_sha256": "8ce4014fa8cb92f6660ff438cec54c75bcdfdafa95ad4d935f7f1e15ae699cf8",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    },
+    {
+      "route": "C02",
+      "artifact_id": 12236504528,
+      "artifact_digest": "sha256:a02d783864a98c01ce1625b0f4244545974fcf14a40f1bce2a80824cd1641bd8",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/C02/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "52921b3f09d27b5134e4acb64f989e4ac8adadb4bb7bc9f8d6096fa386e474b4",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "C02",
+        "motion_path": "route_snapshot/reconstructed_motion/C02_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/C02/POSES/C02_RADIO_POSE.csv",
+        "motion_n": 689,
+        "rf_n": 253,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 9.184850993605156e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/POSES/C02_RADIO_POSE.csv": "c2309de1fa81ab9c13ccab5bbfc6c737b986972fd27185d9fe1bcb98507352de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_B_M45_FULL/RADIO_POSE.csv": "c2309de1fa81ab9c13ccab5bbfc6c737b986972fd27185d9fe1bcb98507352de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_A_M45_FULL/RADIO_POSE.csv": "c2309de1fa81ab9c13ccab5bbfc6c737b986972fd27185d9fe1bcb98507352de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/C02_ROUTE_POSE.csv": "11a64b6289a91c4ac05b0e0bb5bf276c9091ff1190ceaaadf795792ac40644ab",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_A_M45_FULL/H_FULL.npy": "836a477e0b658eff272825f3ed191ef0d4495c673cb37fd017f76b260d6b12de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_A_M45_FULL/H_DIRECT_LOS.npy": "eeb3170eb324cfec638b3d96ea0448f6eb6e2db636657bb8efc435da045488de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_A_M45_FULL/LOS_EXISTS.npy": "c99f8a441fe78f47df8e406cb1b86eaaf66964351f57eecbd933f7d4c483a8e9",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_B_M45_FULL/H_FULL.npy": "b092d554758e3eec66163d00d31cee07be2200dca44f31619dadf67bcecca9e7",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_B_M45_FULL/H_DIRECT_LOS.npy": "3aac38c13a77cd7f04f7be31844e55a3f07d6b57d686d5469973ea56ecc9bf77",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C02/CASES/C02_B_M45_FULL/LOS_EXISTS.npy": "c99f8a441fe78f47df8e406cb1b86eaaf66964351f57eecbd933f7d4c483a8e9"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "ece8f70e14b4b8480367f25076dd08ca4c589f8c091479db01056258acb83643"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "c2309de1fa81ab9c13ccab5bbfc6c737b986972fd27185d9fe1bcb98507352de",
+            "full_motion_sha256": "11a64b6289a91c4ac05b0e0bb5bf276c9091ff1190ceaaadf795792ac40644ab",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    },
+    {
+      "route": "C01",
+      "artifact_id": 12236404720,
+      "artifact_digest": "sha256:68fab8587253f65ac6616886d6bf4abc299c09849a821cd3283d9a2b73c5224e",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/C01/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "f64e457b662a7e4513908ea303f095b5a440d4444e451ca2a752251145fb6e90",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "C01",
+        "motion_path": "route_snapshot/reconstructed_motion/C01_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/C01/POSES/C01_RADIO_POSE.csv",
+        "motion_n": 661,
+        "rf_n": 242,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 6.1232339957368534e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/POSES/C01_RADIO_POSE.csv": "196fa237ba96695728c55481fe1b1209ddeaab0dc816239f352ba439b1ef6b4c",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_B_M45_FULL/RADIO_POSE.csv": "196fa237ba96695728c55481fe1b1209ddeaab0dc816239f352ba439b1ef6b4c",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_A_M45_FULL/RADIO_POSE.csv": "196fa237ba96695728c55481fe1b1209ddeaab0dc816239f352ba439b1ef6b4c",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/C01_ROUTE_POSE.csv": "b39789b362b480b0753f36f1d655450def46be75116554a35581e1e67a988720",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_A_M45_FULL/H_FULL.npy": "30bde427a5e11af2849d9fd537d24dbff8a01fa38502d5174f2602bbd946d827",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_A_M45_FULL/H_DIRECT_LOS.npy": "67f62757cd34436e1f9b81decb7febaaf0a5a5640ee131b299e66ade51396030",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_A_M45_FULL/LOS_EXISTS.npy": "639bf8c07304aaa8843592371302217beb3db44c83b086ff8c89ebe62d9a1129",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_B_M45_FULL/H_FULL.npy": "a837b1a876d8dfb00b4d1e2567faed3d19878b15bac003ccbeb026b39b0289de",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_B_M45_FULL/H_DIRECT_LOS.npy": "4a4613821687e90dcaf9dd621d5eb1fe777b75fef878b318a1ed216d7e62f457",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/C01/CASES/C01_B_M45_FULL/LOS_EXISTS.npy": "639bf8c07304aaa8843592371302217beb3db44c83b086ff8c89ebe62d9a1129"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "720e16c181e00ada2427cd7b3b33cb3d761759a0d38c048098633a0327f8bdeb"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "196fa237ba96695728c55481fe1b1209ddeaab0dc816239f352ba439b1ef6b4c",
+            "full_motion_sha256": "b39789b362b480b0753f36f1d655450def46be75116554a35581e1e67a988720",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    },
+    {
+      "route": "O02",
+      "artifact_id": 12236009723,
+      "artifact_digest": "sha256:856cc85734eba45eae3edecdb5ee1375f3236c9f9b037db5bcfabd42dd8636eb",
+      "source_commit": "8bfdd790e76aa34344afdf9c0cc1095f526ada03",
+      "execution_manifest": "execution_39359952488/O02/t2_new/MANIFEST.json",
+      "execution_manifest_sha256": "7e81a19a67ca40ec7f7fff1bd48768706dc186da420dccb9d111bed45f4501bd",
+      "sensor_settings_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+      "engine_sha256": "81f275d8697d612418cc4b5759301161ad7973c92d70abc30af0c1891f44ca01",
+      "sensor": {
+        "builder_path": "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+        "builder_sha256": "5c563346e6140b44bd29c2efa8b4c9a810c2d5a0f7c578b3046659cf90eb5987",
+        "sensor_v2_sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+        "deliberate_override": "motion_increments tolerance only; exact builder code and noise/RNG retained"
+      },
+      "inputs": {
+        "route_id": "O02",
+        "motion_path": "route_snapshot/reconstructed_motion/O02_ROUTE_POSE.csv",
+        "radio_path": "route_snapshot/data/O02/POSES/O02_RADIO_POSE.csv",
+        "motion_n": 521,
+        "rf_n": 207,
+        "motion_dt_s": 0.25,
+        "max_lateral_serialization_residual_m": 9.18485099360528e-18,
+        "rounding_tolerance_m": 2e-06,
+        "input_sha256": {
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O02/POSES/O02_RADIO_POSE.csv": "5682e4450fa0dee5898d50d24feda2f2a156b90925467c7e30fb928a79a8ed39",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O02/CASES/O02_O0_M45_FULL/RADIO_POSE.csv": "5682e4450fa0dee5898d50d24feda2f2a156b90925467c7e30fb928a79a8ed39",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/reconstructed_motion/O02_ROUTE_POSE.csv": "f74496bfd3d614285592095ff493ea88bee816c007a8636765c8e441e28569df",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O02/CASES/O02_O0_M45_FULL/H_FULL.npy": "7226b1984a4e1643c97e2b31c1490c5fda0e176f0c3f535186b85c9b3798c178",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O02/CASES/O02_O0_M45_FULL/H_DIRECT_LOS.npy": "327ccde85c0f52ee196e1a76b3085e75c9a7fa4b2a7e6ccd7f1af87fbb133c20",
+          "/home/runner/work/sionna-resimulation/sionna-resimulation/work/route_snapshot/data/O02/CASES/O02_O0_M45_FULL/LOS_EXISTS.npy": "4c3b693a1012a00558e6a5b6bdade8debaa3775b89c7dda0dd08ed4036d1e974"
+        },
+        "receipts": [
+          {
+            "path": "route_snapshot/ARCHIVE_CONTENTS_AND_SHA.json",
+            "sha256": "816b2aa26b05a77bdecb38170f3b3101685c4ba6d254c95e5a14a132df280be9"
+          },
+          {
+            "kind": "ORIGINAL_GENERATOR_RECONSTRUCTION",
+            "generator_sha256": "a584023452b4d05be80adea5ebc1be26f0ca6f970bddcf00b402a0c0692d085a",
+            "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+            "radio_csv_sha256": "5682e4450fa0dee5898d50d24feda2f2a156b90925467c7e30fb928a79a8ed39",
+            "full_motion_sha256": "f74496bfd3d614285592095ff493ea88bee816c007a8636765c8e441e28569df",
+            "original_RF_byte_identical": true
+          }
+        ],
+        "POWER_training": "all existing R2/R4/R5; new routes not used"
+      }
+    }
+  ],
+  "row_counts": {
+    "BASELINE": 108,
+    "CHECKS": 180,
+    "ALL_METRICS": 1512,
+    "MOTION_NOISE_REPEAT_RANGE": 324,
+    "T1_NEW_CANONICAL_RESULTS": 324
+  },
+  "independent_scorer_max": 1.1368683772161603e-13,
+  "raw_npz_downloaded": false,
+  "artifact_hash_limit": "GitHub immutable artifact digest; retrieved members SHA256 and ZIP CRC verified; whole ZIP not locally downloaded",
+  "outputs": {
+    "ALL_METRICS.csv": "20f5a4a75f1085d72f598fb7e1ae96839b778a930b6e50fdae90344cd530febc",
+    "BASELINE.csv": "c86fdebea163fe8ad79e63384e726f461864e9f57fd1320a2f11c0bf442df21c",
+    "CHECKS.csv": "56f1dfb68dde640459f38c523db149de4aa480987a5d92eb1de885e26d80a03b",
+    "MOTION_NOISE_REPEAT_RANGE.csv": "6d3d207e1520bd80e686c16f74fd1bb12fc1ba4056cd6702dc642fc6026e911b",
+    "PREVIOUS_COMPARISON.csv": "6186c7504e4cb34e772375239d85f79e239af79dc6222a4c5dd99be0cb012e97",
+    "T1_NEW_CANONICAL_RESULTS.csv": "4dc37ee1de5bbb4aff7bd3f93c4168b394315cc49ae335af7de84e7a1074ed87",
+    "UNIT_TESTS_BY_ROUTE.csv": "06ba1a41f66674431953ce80b283643f9047e2ed9ce8c5c34f35c84794a421b1"
+  }
 }

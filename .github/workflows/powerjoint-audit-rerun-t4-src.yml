@@ -1,0 +1,110 @@
+name: Powerjoint audit T4 source-tap followup
+on:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [.github/workflows/powerjoint-audit-rerun-t4-src.yml]
+  workflow_dispatch:
+    inputs:
+      t2_run:
+        description: Successful canonical T2 run id
+        required: true
+        default: '39359952488'
+        type: string
+      combined_artifact:
+        description: Optional artifact containing t2_combined/NEW_CASES.json and features/traces
+        required: false
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [old, new]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/EKF3_INDEPENDENT_20261013
+            research/POWERJOINT_M45_COMPACT_20261019
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Restore certified T6 parameters and source traces
+        working-directory: work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --artifact-id 12236414588 --out t6_result
+      - name: Recover existing combined new inputs when available
+        if: matrix.mode == 'new' && inputs.combined_artifact != ''
+        working-directory: work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --artifact-id ${{ inputs.combined_artifact }} --out combined_result
+      - name: Assemble frozen new-route inputs if no combined artifact supplied
+        if: matrix.mode == 'new' && !inputs.combined_artifact
+        working-directory: work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for route in C01 C02 C03 O01 O02 O03; do
+            python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run ${{ inputs.t2_run || '39359952488' }} --route "$route" --out "canonical_t2/$route"
+            python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_route.py --route "$route" --out "route_snapshot/$route"
+          done
+          python source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/assemble_new_inputs.py --t2-root canonical_t2 --release-root route_snapshot --source-root source --out t2_combined
+      - name: Prepare source-tap parameters without changing RF or sensors
+        working-directory: work
+        run: |
+          extra=()
+          if [ '${{ matrix.mode }}' = new ]; then
+            if [ -n '${{ inputs.combined_artifact }}' ]; then
+              mapfile -t configs < <(find combined_result -name NEW_CASES.json)
+              [ "${#configs[@]}" = 1 ] || exit 1
+              extra=(--new-config "${configs[0]}")
+            else
+              extra=(--new-config t2_combined/NEW_CASES.json)
+            fi
+          fi
+          python source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/prepare_src_inputs.py --t6-root t6_result --source-root source --mode ${{ matrix.mode }} "${extra[@]}" --out src_inputs
+      - name: Replay unchanged frozen event diagnostics using source-tap range
+        continue-on-error: true
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/run_events.py --range-model SRC_TAP --new-traces src_inputs --case-config src_inputs/CASES.json --source-root source --execution-root . --key-b0 source/research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv --out t4_src
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-t4-src-${{ matrix.mode }}-${{ github.run_id }}
+          path: |
+            work/t4_src
+            work/src_inputs
+            work/t6_result/ARTIFACT_RECEIPT.json
+            work/t2_combined/ASSEMBLY_RECEIPT.csv
+            work/combined_result/ARTIFACT_RECEIPT.json
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
+
+# Input recovery r02 uses fresh signed URLs and strips cross-host authorization.

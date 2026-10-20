@@ -99,7 +99,7 @@ def metrics(result, data, mask):
     return dict(status='TECHNICAL_PASS', n=int(mask.sum()), scorer_max_abs_difference=delta, **values)
 
 
-def check_reference(result, data, historical_path, cid, key):
+def check_reference(result, data, historical_path, cid, key, check_key=True):
     reference = load_npz(historical_path)
     j = list(reference['names'].astype(str)).index('POWER1')
     if len(reference['state']) != len(data['t']):
@@ -117,7 +117,7 @@ def check_reference(result, data, historical_path, cid, key):
     if abs(actual-expected) > 1e-6 or mismatches:
         raise RuntimeError('POWER1_STORED_PARITY:'+json.dumps(rec))
     selected = key[(key.case == cid) & (key.method == 'POWER1')]
-    if cid.startswith('R'):
+    if check_key and cid.startswith('R'):
         if len(selected) != 1:
             raise ValueError('BLOCKED_INPUT:KEY_B0_CASE:'+cid)
         rec['key_b0_heading_difference_deg'] = abs(actual-float(selected.iloc[0].heading_rmse_deg))
@@ -245,6 +245,7 @@ def annotate_gains(rows):
 
 
 def main():
+    global LOCK
     parser = argparse.ArgumentParser()
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--bundle', type=Path); source.add_argument('--new-traces', type=Path)
@@ -253,7 +254,10 @@ def main():
     parser.add_argument('--source-root', type=Path); parser.add_argument('--execution-root', type=Path)
     parser.add_argument('--key-b0', type=Path, default=REPO/'research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv')
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--range-model', choices=['B_OLD','SRC_TAP'], default='B_OLD')
     args = parser.parse_args(); args.out.mkdir(parents=True, exist_ok=True)
+    lock_path = HERE/('PROTOCOL_LOCK_SRC.json' if args.range_model == 'SRC_TAP' else 'PROTOCOL_LOCK.json')
+    LOCK = json.loads(lock_path.read_text(encoding='utf-8'))
     if args.aggregate:
         tables = [pd.read_csv(path) for path in args.aggregate]
         merged = pd.concat(tables, ignore_index=True)
@@ -270,13 +274,13 @@ def main():
              '.\n\n고정 5+5 이벤트를 대상으로 같은 개입의 전체 유익 이벤트 안전성을 요구했다. 세부 회수 비율·부호 변경은 DECISION.json, 모든 지표는 INTERVENTIONS.csv에 보존한다.\n\n'
              '## 주장하지 않는 것\n\n독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 모든 개입 비교는 ORACLE_DIAGNOSTIC이다.\n', encoding='utf-8')
         (args.out/'MANIFEST.json').write_text(json.dumps(dict(inputs={str(p):sha(p) for p in args.aggregate},
-             protocol_sha256=sha(HERE/'PROTOCOL_LOCK.json'), technical='TECHNICAL_PASS' if complete else 'INCOMPLETE_OR_ERROR',
+             protocol_sha256=sha(lock_path), range_model=args.range_model, technical='TECHNICAL_PASS' if complete else 'INCOMPLETE_OR_ERROR',
              scientific=decision['scientific'], actions_run_id=os.getenv('GITHUB_RUN_ID'), artifact_id=None), indent=2), encoding='utf-8')
         return
     if args.source_root is None or args.execution_root is None:
         parser.error('--source-root and --execution-root required for replay')
     rows, checks, errors, first, divergences, growth, events = [], [], [], [], [], [], []
-    inputs = {str(HERE/'PROTOCOL_LOCK.json'):sha(HERE/'PROTOCOL_LOCK.json'), str(Path(__file__)):sha(Path(__file__))}
+    inputs = {str(lock_path):sha(lock_path), str(Path(__file__)):sha(Path(__file__))}
     try:
         for rel in ('results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src',
                     'research/EKF4_RANGE_S_STAGED_20261014', 'research/FFD_P0P3_20261016'):
@@ -285,7 +289,12 @@ def main():
         import p0_initial
         p0_initial.DATA = args.execution_root; p0_initial.OUT = args.out/'bank_audit'; p0_initial.OUT.mkdir(exist_ok=True)
         from source_model import SourceFFD
-        model = SourceFFD()
+        old_model = SourceFFD()
+        model = old_model
+        if args.range_model == 'SRC_TAP':
+            sys.path.insert(0, str(HERE.parent/'T6_RANGE'))
+            from src_range_model import SourceTapRange
+            model = SourceTapRange(old_model)
         engine_path = HERE.parent/'canonical_engine.py'
         spec = importlib.util.spec_from_file_location('f1_canonical_engine', engine_path)
         engine = importlib.util.module_from_spec(spec); spec.loader.exec_module(engine)
@@ -294,7 +303,7 @@ def main():
         manifest_path = args.bundle or args.case_config
         if manifest_path is None: raise ValueError('BLOCKED_INPUT:NEW_CASE_CONFIG_REQUIRED')
         config = json.loads(manifest_path.read_text(encoding='utf-8')); inputs[str(manifest_path)] = sha(manifest_path)
-        if config.get('range_model', 'B_OLD') != 'B_OLD':
+        if config.get('range_model', 'B_OLD') != args.range_model:
             raise ValueError('NEW_RANGE_MODEL_REQUIRES_NEW_PROTOCOL_LOCK')
         selected_cases = config['cases']
         seen = set()
@@ -310,9 +319,25 @@ def main():
                         args.new_traces/item.get('trace', cid+'_B0.npz'))
                 inputs[str(path)] = sha(path); data = normalize(load_npz(path))
                 historical = (args.bundle.parent/item['historical_power1_trace']) if args.bundle else path
-                inputs[str(historical)] = sha(historical)
+                if args.range_model == 'SRC_TAP':
+                    historical = args.new_traces/item['bold_reference']
+                    original_data = normalize(load_npz(historical))
+                    original_result = run(engine, old_model, original_data, case, dict(name='POWER1', base='power'))
+                    check = check_reference(original_result, original_data, historical, cid, key)
+                    check['range_model'] = 'B_OLD_REFERENCE'; checks.append(check)
+                    inputs[str(historical)] = sha(historical)
                 baseline = run(engine, model, data, case, dict(name='POWER1', base='power'))
-                checks.append(check_reference(baseline, data, historical, cid, key))
+                if args.range_model == 'B_OLD':
+                    inputs[str(historical)] = sha(historical)
+                    checks.append(check_reference(baseline, data, historical, cid, key))
+                elif item.get('source_reference'):
+                    source_reference = args.new_traces/item['source_reference']
+                    inputs[str(source_reference)] = sha(source_reference)
+                    check = check_reference(baseline, data, source_reference, cid, key, check_key=False)
+                    check['range_model'] = 'SRC_TAP_T6_REFERENCE'; checks.append(check)
+                else:
+                    checks.append(dict(case=cid, range_model='SRC_TAP', source_baseline='NEW_REPLAY_INDEPENDENTLY_SCORED',
+                                       **metrics(baseline, data, data['t'] >= 30)))
             except Exception as exc:
                 errors.append(dict(case=cid, arm='POWER1', error=str(exc), traceback=traceback.format_exc(), retry=False))
                 continue
@@ -356,7 +381,7 @@ def main():
     decision = decide(rows)
     (args.out/'DECISION.json').write_text(json.dumps(decision, indent=2, allow_nan=False), encoding='utf-8')
     (args.out/'ERRORS.json').write_text(json.dumps(errors, indent=2), encoding='utf-8')
-    manifest = dict(task='T4_F1_EVENT', technical='TECHNICAL_PASS' if not errors else 'ERROR_OR_BLOCKED_INPUT',
+    manifest = dict(task='T4_F1_EVENT', range_model=args.range_model, protocol_sha256=sha(lock_path), technical='TECHNICAL_PASS' if not errors else 'ERROR_OR_BLOCKED_INPUT',
                     inputs=inputs, actions_run_id=os.getenv('GITHUB_RUN_ID'), artifact_id=None,
                     output_sha256={p.name:sha(p) for p in args.out.iterdir() if p.is_file() and p.name != 'MANIFEST.json'},
                     scientific=decision['scientific'], executed_case_ids=sorted({r['case'] for r in rows}),
