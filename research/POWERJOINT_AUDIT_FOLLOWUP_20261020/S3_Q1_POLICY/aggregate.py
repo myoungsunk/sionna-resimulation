@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 HERE=Path(__file__).resolve().parent
 def dump(p,x):p.write_text(json.dumps(x,indent=2,ensure_ascii=False,allow_nan=False)+'\n',encoding='utf-8')
+def maximum(g,key):return float(g[key].max()) if key in g and g[key].notna().any() else None
+def total(g,key):return int(g[key].sum()) if key in g else 0
 def main():
  p=argparse.ArgumentParser();p.add_argument('--inputs',type=Path,required=True);p.add_argument('--out',type=Path,default=HERE);a=p.parse_args();a.out.mkdir(exist_ok=True)
  paths=list(a.inputs.rglob('POLICY_RESULTS.csv'));frames=[pd.read_csv(p) for p in paths];df=pd.concat(frames,ignore_index=True);assert len(df)==288 and not df.duplicated(['case','channel','bias','seed','arm','scope']).any(),'EVALUATION_DENOMINATOR'
@@ -20,8 +22,11 @@ def main():
  for path in a.inputs.rglob('ERRORS.json'):
   for e in json.loads(path.read_text()):errors.append(dict(source=str(path),**e))
  checks=pd.concat([pd.read_csv(p).assign(source_file=str(p.relative_to(a.inputs))) for p in a.inputs.rglob('CHECKS.csv')],ignore_index=True,sort=False);maxscore=float(df.scorer_max_abs_difference.max()) if 'scorer_max_abs_difference' in df else None
+ hist=checks[checks.check=='HISTORICAL_POWER'];callback=checks[checks.check=='ALWAYS_POWER_CALLBACK'];keychecks=checks[checks.check=='KEY_B0']
+ validation=dict(historical_cells=len(hist),historical_heading_max_deg=maximum(hist,'heading_difference_deg'),historical_gate_mismatches=total(hist,'gate_mismatches'),always_power_cells=len(callback),always_power_state_max=maximum(callback,'state_max'),always_power_cov_max=maximum(callback,'cov_max'),always_power_gate_mismatches=total(callback,'gate_mismatches'),nonradio_updates=total(callback,'nonradio_updates'),key_b0_cells=len(keychecks),key_b0_heading_max_deg=maximum(keychecks,'heading_difference_deg'))
  supported=bool(technical and not errors and full.pass_10pct.all() and los.pass_10pct.all())
  decision=dict(technical='TECHNICAL_PASS' if technical and not errors else 'ERROR_OR_INCOMPLETE',scientific='SUPPORTED_BUT_LIMITED' if supported else 'NOT_ESTABLISHED',go_no_go='GO_LIMITED' if supported else 'NO_GO',n_results=len(df),full_pass=int(full.pass_10pct.sum()),full_denominator=64,los_pass=int(los.pass_10pct.sum()),los_denominator=8,independent_11_max_abs_difference=maxscore,violations=v3[(v3.status=='VALID')&(~v3.pass_10pct)].to_dict('records'),technical_failures=v3[v3.status!='VALID'].to_dict('records'),no_margin=dict(full_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='full')].pass_10pct.sum()),los_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='los')].pass_10pct.sum())))
+ decision['validation']=validation
  df.to_csv(a.out/'POLICY_RESULTS.csv',index=False);comp.to_csv(a.out/'POLICY_COMPARISON.csv',index=False);checks.to_csv(a.out/'CHECKS.csv',index=False)
  action_text=[]
  for name in ['ACTION_RATES','LABELS_SUMMARY']:
@@ -42,6 +47,8 @@ TECHNICAL: {decision['technical']}. 과학 판정: {decision['scientific']} / {d
 주 판정: Full {decision['full_pass']}/64, Native LoS {decision['los_pass']}/8. 주 평가는 seed 0, 전체 motion clock t≥30 s다. NO_MARGIN은 같은 모델에서 margin만 0으로 적용한 대조이며 Full {decision['no_margin']['full_pass']}/64, LoS {decision['no_margin']['los_pass']}/8이다. v3 판정을 NO_MARGIN으로 대체하지 않는다.
 
 독립 scalar/Cholesky scorer의 공통 11지표 최대 차이는 {maxscore}이다. historical POWER 재현과 항상 POWER callback, all-frame SPD/finite, nonradio update, 저장·재로딩 검사는 CHECKS.csv와 각 실행 manifest에 보존한다. 행동 선택 비율과 gate 수락은 ACTION_RATES.csv의 별도 열이다. POWER 선택을 갱신 수락으로 세지 않는다.
+
+역사적 POWER {validation['historical_cells']}셀의 Heading 최대 차이는 {validation['historical_heading_max_deg']}°, gate 불일치는 {validation['historical_gate_mismatches']}이다. 항상 POWER callback {validation['always_power_cells']}셀의 상태/공분산 최대 차이는 {validation['always_power_state_max']} / {validation['always_power_cov_max']}, gate 불일치는 {validation['always_power_gate_mismatches']}, 비RF 갱신은 {validation['nonradio_updates']}이다. 기존 KEY_B0 {validation['key_b0_cells']}셀 최대 차이는 {validation['key_b0_heading_max_deg']}°다.
 
 ## 모든 v3 위반 셀
 
