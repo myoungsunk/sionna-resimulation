@@ -18,8 +18,10 @@ TECHNICAL_PASS. Actions run39359952488의 6개 성공 artifact에서 요약만 �
 |C01_B_M45_FULL|5.027763|
 |O02_O0_M45_FULL|2.220134|
 
-MOTION_NOISE_REPEAT_RANGE.csv에서 DR4/JOINT4/POWER1만 seed0–4 범위이며, 나머지 arm은 seed0 단일 값(motion_noise_seed_count=1)이다. 반복 범위는 같은 RF의 motion noise 및 원래 초기오차 스트림 반복이다. 독립 RF/장면 표본이 아니다.
+MOTION_NOISE_REPEAT_RANGE.csv는 DR4/JOINT4/POWER1의 seed0–4 범위만 담는다. 나머지 arm의 seed0 단일 값은 MOTION_NOISE_REPEAT_RANGE_ALL_ARMS.csv에 별도로 보존한다. 반복 범위는 같은 RF의 motion noise 및 원래 초기오차 스트림 반복이다. 독립 RF/장면 표본이 아니다.
 
 ## 주장하지 않는 것
 
 독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. C01–C03과 기존 주로는 같은 복도, O01–O03은 같은 오피스 장면이다. 조건 수를 독립 표본 수로 쓰거나 p-value를 계산하지 않는다. 이전 실패 기록은 삭제하지 않았다.
+
+MOTION_NOISE_REPEAT_RANGE.csv는 seed0–4가 모두 있는 DR4/JOINT4/POWER1의 108행만 담고 sensor_seed_count=5를 명시했다. 실행 원본의 324행 범위표는 MOTION_NOISE_REPEAT_RANGE_ALL_ARMS.csv에 보존하며 MEMORY 계열의 seed0 한 번만 있는 범위를 반복 실험으로 해석하지 않는다.
