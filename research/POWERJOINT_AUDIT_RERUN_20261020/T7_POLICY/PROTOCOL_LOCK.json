@@ -1,15 +1,54 @@
 {
- "task":"T7B_UTILITY_POLICY","version":2,"status":"LOCK_BEFORE_EXECUTION",
- "execution_dependencies":["T7A recovered online-feature receipt","T4 complete final DECISION/MANIFEST, INTERVENTIONS and BASELINE_CHECKS. All10 events POWER1/SKIP/D1/D2/D3/D5/D6 successful with scorer<=1e-9 and baseline parity. D4 either successful or explicit preserved D4 NONSPD error per event; no repair required. Any F1 verdict allowed. Genuine baseline/scorer/other errors and incomplete events block. D4 NONSPD does not require every intervention TECHNICAL_PASS."],
- "label":"ORACLE_OFFLINE_TRAINING_LABEL: same saved POWER prior x/P; change only current packet action among POWER,R0,INFLATE4,SKIP; every subsequent packet original POWER. Heading mean squared error over (current_t,current_t+10s], degrees squared. Utility(action)=MSE_POWER-MSE_action, POWER=0. Action targets continuous; signs also reported.",
- "training_packets":"Old7 B0 seed0 only. Greedy chronological actual RF samples t>=30, next selected time>=last selected+5s, full 10s future available. Selection fixed without GT error, gate, feature outcome, or label.",
- "strict_nested_folds":"Outer policy held route R2/R4/R5 omitted from every training feature/label/P1 fit. For each inner training route, P1 priors from start use ScalarPower trained only remaining old routes excluding BOTH outer route and inner route and identical sites within1e-4m of the entire inner route. Same source labels/site_weights/fitter; cached features avoid RF recomputation. ALL_OLD model for new-route evaluation uses normal inner-route-heldout P1 priors across all old routes. Outer evaluation uses historical original OOF POWER baseline. Training label generation uses no new9 labels.",
- "features":"Exactly restored features.FEATURES (17 measured Full-only features) plus POWER candidate NIS, prior heading sigma radians, P_psi_bg radians^2/s, H_spsi per radian. No GT, NativeLoS H, evaluation coordinates, future, case/route identifiers or labels as features. NativeLoS safety is a separate observed-input control.",
- "actions":["POWER","R0","INFLATE4","SKIP"],
- "action_semantics":"POWER unchanged learned mu/C, R0 zero mu/fixedR0, INFLATE4 unchanged POWER mu with C*4, SKIP no update. Original joint 99% gate preserved in non-skip actions; POWER does not force an otherwise rejected update.",
- "learner":{"model":"HistGradientBoostingRegressor per action, relative utility","max_iter":120,"max_leaf_nodes":15,"min_samples_leaf":20,"learning_rate":0.05,"l2_regularization":1.0,"max_bins":255,"early_stopping":false,"random_state":20261020,"selection":"argmax predicted utility; exact ties POWER then R0 then INFLATE4 then SKIP; POWER utility target always0; no hyperparameter tuning"},
- "evaluation":"old7 x B0/L0/L1/L2 Full, new9 x B0/L0/L1/L2 Full (seed0 canonical T2), NativeLoS R2 A M0/M45 x4bias. All motion t>=30; old clock RF only; new RF-only additional comparison. Common11 metrics plus independent scorer. Policy chooses online on its own recursive prior, not historical baseline prior.",
- "verification":{"interface_default_and_POWER_callback_state_cov":1e-10,"interface_gate_mismatch":0,"baseline_heading_rmse_vs_reference_deg":1e-6,"baseline_gate_mismatch":0,"old_B0_vs_KEY_deg":1e-6,"independent_scalar_scorer_max_abs":1e-9,"model_files":"Load only own trained pickles after SHA256 matches MODELS.json"},
- "decision":"SUPPORTED_BUT_LIMITED only if every16 Full conditions at every4bias has POLICY headingRMSE<=1.10*POWER1 and all NativeLoS R2 A M0/M45 x4bias has POLICY<=1.10*R0. Otherwise NO_GO, scientific NOT_ESTABLISHED. Missing cells/errors do not pass. No target-setting selection after outcomes.",
- "limits":"No independent-scene generalization; old/corridor C share scene, office O share scene. No p-values, normalized Bayesian posterior, hardware claim. Offline GT utility labels are not online inference inputs. Preserve negative outcomes and all errors; any change requires new lock/version."
+  "task": "T7B_UTILITY_POLICY",
+  "version": 2,
+  "status": "LOCK_BEFORE_EXECUTION",
+  "execution_dependencies": [
+    "T7A recovered online-feature receipt",
+    "T4 complete final DECISION/MANIFEST, INTERVENTIONS and BASELINE_CHECKS. All10 events POWER1/SKIP/D1/D2/D3/D5/D6 successful with scorer<=1e-9 and baseline parity. D4 either successful or explicit preserved D4 NONSPD error per event; no repair required. Any F1 verdict allowed. Genuine baseline/scorer/other errors and incomplete events block. D4 NONSPD does not require every intervention TECHNICAL_PASS."
+  ],
+  "label": "ORACLE_OFFLINE_TRAINING_LABEL: same saved POWER prior x/P; change only current packet action among POWER,R0,INFLATE4,SKIP; every subsequent packet original POWER. Heading mean squared error over (current_t,current_t+10s], degrees squared. Utility(action)=MSE_POWER-MSE_action, POWER=0. Action targets continuous; signs also reported.",
+  "training_packets": "Old7 B0 seed0 only. Greedy chronological actual RF samples t>=30, next selected time>=last selected+5s, full 10s future available. Selection fixed without GT error, gate, feature outcome, or label.",
+  "strict_nested_folds": "Outer policy held route R2/R4/R5 omitted from every training feature/label/P1 fit. For each inner training route, P1 priors from start use ScalarPower trained only remaining old routes excluding BOTH outer route and inner route and identical sites within1e-4m of the entire inner route. Same source labels/site_weights/fitter; cached features avoid RF recomputation. ALL_OLD model for new-route evaluation uses normal inner-route-heldout P1 priors across all old routes. Outer evaluation uses historical original OOF POWER baseline. Training label generation uses no new9 labels.",
+  "features": "Exactly restored features.FEATURES (17 measured Full-only features) plus POWER candidate NIS, prior heading sigma radians, P_psi_bg radians^2/s, H_spsi per radian. No GT, NativeLoS H, evaluation coordinates, future, case/route identifiers or labels as features. NativeLoS safety is a separate observed-input control.",
+  "actions": [
+    "POWER",
+    "R0",
+    "INFLATE4",
+    "SKIP"
+  ],
+  "action_semantics": "POWER unchanged learned mu/C, R0 zero mu/fixedR0, INFLATE4 unchanged POWER mu with C*4, SKIP no update. Original joint 99% gate preserved in non-skip actions; POWER does not force an otherwise rejected update.",
+  "learner": {
+    "model": "HistGradientBoostingRegressor per action, relative utility",
+    "max_iter": 120,
+    "max_leaf_nodes": 15,
+    "min_samples_leaf": 20,
+    "learning_rate": 0.05,
+    "l2_regularization": 1.0,
+    "max_bins": 255,
+    "early_stopping": false,
+    "random_state": 20261020,
+    "selection": "argmax predicted utility; exact ties POWER then R0 then INFLATE4 then SKIP; POWER utility target always0; no hyperparameter tuning"
+  },
+  "evaluation": "old7 x B0/L0/L1/L2 Full, new9 x B0/L0/L1/L2 Full (seed0 canonical T2), NativeLoS R2 A M0/M45 x4bias. All motion t>=30; old clock RF only; new RF-only additional comparison. Common11 metrics plus independent scorer. Policy chooses online on its own recursive prior, not historical baseline prior.",
+  "verification": {
+    "interface_default_and_POWER_callback_state_cov": 1e-10,
+    "interface_gate_mismatch": 0,
+    "baseline_heading_rmse_vs_reference_deg": 1e-06,
+    "baseline_gate_mismatch": 0,
+    "old_B0_vs_KEY_deg": 1e-06,
+    "independent_scalar_scorer_max_abs": 1e-09,
+    "model_files": "Load only own trained pickles after SHA256 matches MODELS.json"
+  },
+  "decision": "SUPPORTED_BUT_LIMITED only if every16 Full conditions at every4bias has POLICY headingRMSE<=1.10*POWER1 and all NativeLoS R2 A M0/M45 x4bias has POLICY<=1.10*R0. Otherwise NO_GO, scientific NOT_ESTABLISHED. Missing cells/errors do not pass. No target-setting selection after outcomes.",
+  "limits": "No independent-scene generalization; old/corridor C share scene, office O share scene. No p-values, normalized Bayesian posterior, hardware claim. Offline GT utility labels are not online inference inputs. Preserve negative outcomes and all errors; any change requires new lock/version.",
+  "posthoc_validity_20261020": {
+    "record_type": "POSTHOC_APPLICABILITY_CORRECTION_NOT_PREREGISTRATION",
+    "source_audit_base": "034e57a",
+    "preservation_commit": "f7a0ef37d98719ec58fa5231927d6af1e3b117e8",
+    "preservation_actions_run_id": "39367272729",
+    "original_parameters_and_decisions_unchanged": true,
+    "validity_index": "research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/VALIDITY_INDEX.json",
+    "current_policy_scope": "FIXED_V2_POLICY_ONLY",
+    "reason_ko": "T7B NO_GO는 사전 고정한 v2 정책(특징·label·학습·행동 규칙)의 평가 결과에만 적용한다. 효용 target 접근 전체나 가능한 다른 정책의 기각으로 일반화하지 않는다."
+  }
 }

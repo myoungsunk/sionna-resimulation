@@ -1,3 +1,11 @@
+## 2026-10-20 사후 적용성 정정
+
+T7B NO_GO는 사전 고정한 v2 정책(특징·label·학습·행동 규칙)의 평가 결과에만 적용한다. 효용 target 접근 전체나 가능한 다른 정책의 기각으로 일반화하지 않는다.
+
+아래는 보존된 당시 보고 내용이다. 현재 해석은 이 사후 정정을 우선한다. 원래 숫자 CSV·DECISION·사전 등록 파라미터는 변경하지 않았고 원문 bytes/SHA는 후속 S0_CORRECTIONS/ORIGINALS와 VALIDITY_INDEX.json에 보존했다.
+
+---
+
 # T7 온라인 특징과 효용 target 정책
 
 T7A TECHNICAL_PASS / SUPPORTED_BUT_LIMITED. 원본5ac914f의 run39354151551, artifact12233874874를 회수했다. 고정12이벤트·2647패킷에서 Full-only abs_s rank AUC=.742857, 포화=.700000이다. 역사적 이벤트 label에 대한 기술 통계이며 T2 정본의 인과효과나 장면 일반화를 인증하지 않는다.

@@ -6,21 +6,93 @@
   "range_prediction": "SourceFFD.batch(return_diagnostics=True).native_range, never d+B_OLD",
   "interpolation": "NONE. Exact frozen discrete tap detector is primary arm; no sub-tap smoothing or refitting",
   "range_jacobian": "Zero inside unchanged detector tap cell; mathematically undefined at a tap jump. Report all finite-difference crossings separately; do not replace derivative by distance derivative.",
-  "arms": ["B_OLD", "SRC_TAP", "B_REFIT_ONLY"],
+  "arms": [
+    "B_OLD",
+    "SRC_TAP",
+    "B_REFIT_ONLY"
+  ],
   "B_OLD_m": -0.5315983906250129,
   "B_REFIT_ONLY": "train-route mean(native observed range - geometric distance); diagnostic control only, never hsrc",
   "native_los_expected_points": 9519,
   "residual_target_rmse_m": 0.01,
-  "fd": {"xy_eps_m": [0.00001, 0.000001], "yaw_eps_rad": [0.00001, 0.000001], "stable_cell_max_abs_target": 0.000001, "global_claim": "NOT_ESTABLISHED if any stencil crosses tap; report crossing count and slopes without discarding rows"},
-  "distance_bins_m": [0, 2, 4, 6, 8, 10, 15, 20, 30, 1000000],
-  "theta_bins_deg": [0, 15, 30, 45, 60, 75, 90],
+  "fd": {
+    "xy_eps_m": [
+      1e-05,
+      1e-06
+    ],
+    "yaw_eps_rad": [
+      1e-05,
+      1e-06
+    ],
+    "stable_cell_max_abs_target": 1e-06,
+    "global_claim": "NOT_ESTABLISHED if any stencil crosses tap; report crossing count and slopes without discarding rows"
+  },
+  "distance_bins_m": [
+    0,
+    2,
+    4,
+    6,
+    8,
+    10,
+    15,
+    20,
+    30,
+    1000000
+  ],
+  "theta_bins_deg": [
+    0,
+    15,
+    30,
+    45,
+    60,
+    75,
+    90
+  ],
   "train_split": "Existing POWER route-heldout R2/R4/R5, SRC_TAP P1 residual labels recomputed with actual src detector range; no test labels in fitting",
   "recursive_scope": "7 existing Full conditions times B0/L0/L1/L2 POWER1, old and SRC_TAP P1 fits; B_REFIT_ONLY diagnostic separately; Native LoS safety",
   "evaluation_t_min_s": 30,
-  "metrics": ["heading_rmse_deg", "signed_heading_deg", "heading_sigma_rms_deg", "heading95", "heading_nees", "pose_nees", "conditional_xy_nees", "xy_rmse_m", "bias_rmse_dps", "bias_mean_dps", "bias_final_dps"],
-  "recursive_gates": {"POWER1_historical_heading_rmse_abs_deg": 0.000001, "gate_mismatch": 0, "independent_scorer_max_abs": 1e-9},
-  "inference_exclusions": ["GT pose", "Native LoS H", "future samples"],
+  "metrics": [
+    "heading_rmse_deg",
+    "signed_heading_deg",
+    "heading_sigma_rms_deg",
+    "heading95",
+    "heading_nees",
+    "pose_nees",
+    "conditional_xy_nees",
+    "xy_rmse_m",
+    "bias_rmse_dps",
+    "bias_mean_dps",
+    "bias_final_dps"
+  ],
+  "recursive_gates": {
+    "POWER1_historical_heading_rmse_abs_deg": 1e-06,
+    "gate_mismatch": 0,
+    "independent_scorer_max_abs": 1e-09
+  },
+  "inference_exclusions": [
+    "GT pose",
+    "Native LoS H",
+    "future samples"
+  ],
   "GT_allowed": "native-LoS residual and FD diagnostic evaluation, train labels, sensor generation only",
   "failure_policy": "Preserve target failures and transitions, no post-result smoothing or B refit as src substitute. New interpolation would require a separately committed lock.",
-  "scientific_scope": "detector consistency and tested replay only; no normalized Bayesian, independent scene, or hardware claim"
+  "scientific_scope": "detector consistency and tested replay only; no normalized Bayesian, independent scene, or hardware claim",
+  "posthoc_validity_20261020": {
+    "record_type": "POSTHOC_APPLICABILITY_CORRECTION_NOT_PREREGISTRATION",
+    "source_audit_base": "034e57a",
+    "preservation_commit": "f7a0ef37d98719ec58fa5231927d6af1e3b117e8",
+    "preservation_actions_run_id": "39367272729",
+    "original_parameters_and_decisions_unchanged": true,
+    "validity_index": "research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/VALIDITY_INDEX.json",
+    "status": "INVALID_DESIGN_ZERO_RANGE_JACOBIAN",
+    "reason_ko": "Range 행 Jacobian = 0으로 직접 Range 감도 제거, C_rs·gate 영향만 남음. Range 교정 근거로 사용 불가\nSRC_TAP은 양자화된 정수 검출 tap으로 range를 예측하므로 tap 내부에서 range의 위치 Jacobian이 0이다. 이를 연속 EKF의 range 관측으로 사용하면 range의 직접 위치 관측 정보가 제거되고 range–s joint gain·gate·교차공분산 경로가 달라진다. 따라서 잔차 0과 안정 tap FD 0은 range 관측식 교정의 유효성 증거가 아니며, SRC_TAP 재귀 arm 및 그 파생 표·개입·변화량은 INVALID_DESIGN_ZERO_RANGE_JACOBIAN이다. B_OLD와 B_REFIT_ONLY에는 적용하지 않는다.",
+    "scope": "SRC_TAP arms and SRC-derived values only",
+    "unaffected_range_models": [
+      "B_OLD",
+      "B_REFIT_ONLY"
+    ],
+    "diagnostic_limit": "Raw detector residual/FD evidence is preserved; no EKF correction-validity claim.",
+    "historical_population_blocker_withdrawn": true,
+    "population_correction_ko": "과거 '요청 9,519점 중 2,268점 미확보이므로 BLOCKED_INPUT'이라는 현재 판정은 철회한다. 7,251점 실행 기록과 원문은 보존하며, 서로 다른 모집단의 대응은 별도 S0 모집단 감사에서 판정한다. 이 정정은 새 모집단 수치나 대응 인증을 주장하지 않는다."
+  }
 }

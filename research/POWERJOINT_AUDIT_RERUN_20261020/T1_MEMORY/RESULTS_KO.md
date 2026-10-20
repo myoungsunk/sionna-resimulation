@@ -1,3 +1,11 @@
+## 2026-10-20 사후 적용성 정정
+
+구현1/canonical의 현재 지위는 검증된 실행 기준이다. 구현2·3은 DEFERRED_SOURCE_UNAVAILABLE이며 원본 비교·동등성 검증을 완료한 것으로 간주하지 않는다. 파일명 CANONICAL_RESULTS.csv와 역사적 정본 표기는 원문 식별자로 보존한다.
+
+아래는 보존된 당시 보고 내용이다. 현재 해석은 이 사후 정정을 우선한다. 원래 숫자 CSV·DECISION·사전 등록 파라미터는 변경하지 않았고 원문 bytes/SHA는 후속 S0_CORRECTIONS/ORIGINALS와 VALIDITY_INDEX.json에 보존했다.
+
+---
+
 # T1 시간기억 정본 재실행 완료
 
 TECHNICAL_PASS. 기존 7조건 × 4 bias × 9 arm=252행과 신규 9조건 × 4 bias × 9 arm=324행을 합쳐 CANONICAL_RESULTS.csv 576행을 보존했다. 구 주로는 route-heldout, 신규 주로는 기존 R2/R4/R5 전체 학습과 T2 정본 seed0 센서를 사용했다.

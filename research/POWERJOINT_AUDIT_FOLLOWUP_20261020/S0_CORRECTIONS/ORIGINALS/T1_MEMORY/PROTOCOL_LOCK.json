@@ -1,0 +1,23 @@
+{
+  "task": "T1_MEMORY",
+  "status": "PRE_EXECUTION",
+  "source_engine_revision": "3fc70f2280471954f1a0673009812ad75437d9ea",
+  "source_observer_revision": "4b82e9801a1e065593fdd67a0f3ebd721ba29848",
+  "evaluation_t_min_s": 30,
+  "bias_dps": {"B0": 0, "L0": 0.01, "L1": 0.05, "L2": 0.20},
+  "arms": ["DR4", "JOINT4", "POWER1", "POWER_SR4", "MEMORY", "MEMORY_RHO0", "MEMORY_NO_CROSS", "MEMORY_TAU_HALF", "MEMORY_TAU_DOUBLE"],
+  "training": {"old": "R2/R4/R5 route-heldout, exact fit_memory/fit_all from pinned run.py", "new": "all old R2/R4/R5 training only; canonical T2 sensors, seed0", "fraction_bounds": [0.05, 0.90], "rho_moment_bounds": [0.02, 0.995], "selection_using_test_results": false},
+  "unit_tests": {
+    "rho0": {"state_cov_max_abs": 1e-10, "gate_mismatch": 0, "actual_engine_run": true},
+    "variance": {"relative_max": 1e-9, "identity": "Rwhite + B I B.T == C"},
+    "linear_gaussian": {"seed": 161019, "mc": 500, "steps": 100, "rho": 0.98, "fraction": 0.8, "reference_nees": 1.0886208363935503, "reference_coverage95": 0.934, "nees_reference_abs_tolerance": 1e-9, "coverage_reference_abs_tolerance": 1e-12, "actual_engine_single_update": true}
+  },
+  "replay_checks": {"historical_POWER1_heading_rmse_deg_abs": 1e-6, "historical_gate_mismatch": 0, "independent_scorer_max_abs": 1e-9, "historical_gate_trace_required": true},
+  "reported_metrics": ["heading_rmse_deg", "signed_heading_deg", "heading_sigma_rms_deg", "heading95", "heading_nees", "pose_nees", "conditional_xy_nees", "xy_rmse_m", "bias_rmse_dps", "bias_mean_dps", "bias_final_dps"],
+  "decision": {"SUPPORTED_BUT_LIMITED": "fraction of case-bias conditions with MEMORY heading RMSE > 1.10*POWER1 <= 0.10 AND fraction with strictly improved heading95 > 0.50", "otherwise": "NOT_ESTABLISHED", "universal_approval": false, "counting_unit": "16 cases times four biases, no independence or p-value claim"},
+  "canonical_gate": "Test all recovered implementations; if multiple pass, identify numeric discrepancy before proceeding. If only impl1 source is available and passes actual-engine math tests, canonical designation is bounded to available source. Impl2/3 remain BLOCKED_INPUT and untested; report-derived reconstruction is documentary only.",
+  "inference_exclusions": ["GT", "GT event selection", "Native LoS H", "future samples"],
+  "oracle_use": "unit simulation and sensor generation/scoring only",
+  "preserve_failures": true,
+  "trace_storage": "NPZ Actions artifact; code and <=20MB summary CSV committed; source/input hashes and run/artifact IDs in MANIFEST.json"
+}

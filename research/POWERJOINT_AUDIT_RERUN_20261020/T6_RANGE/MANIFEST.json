@@ -6,5 +6,23 @@
   "artifact_id": 12236414588,
   "artifact_sha256": "sha256:89dae721d000c3f8897b39b4cefdf75bbe635bb1ceffbe830a8b56d2ef826011",
   "native_requested_points": 9519,
-  "native_verified_points": 7251
+  "native_verified_points": 7251,
+  "posthoc_validity_20261020": {
+    "record_type": "POSTHOC_APPLICABILITY_CORRECTION_NOT_PREREGISTRATION",
+    "source_audit_base": "034e57a",
+    "preservation_commit": "f7a0ef37d98719ec58fa5231927d6af1e3b117e8",
+    "preservation_actions_run_id": "39367272729",
+    "original_parameters_and_decisions_unchanged": true,
+    "validity_index": "research/POWERJOINT_AUDIT_FOLLOWUP_20261020/S0_CORRECTIONS/VALIDITY_INDEX.json",
+    "status": "INVALID_DESIGN_ZERO_RANGE_JACOBIAN",
+    "reason_ko": "Range 행 Jacobian = 0으로 직접 Range 감도 제거, C_rs·gate 영향만 남음. Range 교정 근거로 사용 불가\nSRC_TAP은 양자화된 정수 검출 tap으로 range를 예측하므로 tap 내부에서 range의 위치 Jacobian이 0이다. 이를 연속 EKF의 range 관측으로 사용하면 range의 직접 위치 관측 정보가 제거되고 range–s joint gain·gate·교차공분산 경로가 달라진다. 따라서 잔차 0과 안정 tap FD 0은 range 관측식 교정의 유효성 증거가 아니며, SRC_TAP 재귀 arm 및 그 파생 표·개입·변화량은 INVALID_DESIGN_ZERO_RANGE_JACOBIAN이다. B_OLD와 B_REFIT_ONLY에는 적용하지 않는다.",
+    "scope": "SRC_TAP arms and SRC-derived values only",
+    "unaffected_range_models": [
+      "B_OLD",
+      "B_REFIT_ONLY"
+    ],
+    "diagnostic_limit": "Raw detector residual/FD evidence is preserved; no EKF correction-validity claim.",
+    "historical_population_blocker_withdrawn": true,
+    "population_correction_ko": "과거 '요청 9,519점 중 2,268점 미확보이므로 BLOCKED_INPUT'이라는 현재 판정은 철회한다. 7,251점 실행 기록과 원문은 보존하며, 서로 다른 모집단의 대응은 별도 S0 모집단 감사에서 판정한다. 이 정정은 새 모집단 수치나 대응 인증을 주장하지 않는다."
+  }
 }

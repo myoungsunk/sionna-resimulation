@@ -8,5 +8,12 @@
     "error": "AssertionError: expected archive and recursive-clock GT geometric residual identity <=1e-12",
     "root_cause": "Source RF SAMPLES GT rounds xy and body yaw(deg) to6 decimals; recursive clock GT is unrounded. Range values match <=5.33e-15m; residual difference up to5.04e-7m.",
     "retry": "New lockv3 explicitly certifies exact rounded coordinate identity; preserves both populations and oldclock residuals. No threshold or sample selection changes."
+  },
+  {
+    "stage": "Git publication preflight",
+    "exit_code": 1,
+    "error": "Publisher archive guard rejected local artifact-12239939880.zip before remote mutations",
+    "root_cause": "Recovery keeps full original download ZIP beside extracted results; Git allowlist correctly rejects archive files",
+    "retry": "Keep local ZIP unchanged; publish code/text/summary CSV only; archive SHA/bytes remain in ACTIONS_ARTIFACT.json receipts"
   }
 ]

@@ -1,0 +1,173 @@
+{
+  "task": "T4_F1_EVENT",
+  "version": 1,
+  "status": "LOCK_BEFORE_EXECUTION",
+  "bias": "B0",
+  "range_model": "SRC_TAP",
+  "engine": "../canonical_engine.py POWER1 physical marginal",
+  "events_source": "physical_event_contrast.py and online_packet_audit.py SPEC at 5ac914fa0ad53de454278d878962c68c2aebaabb",
+  "events": [
+    {
+      "event": "R5_A_M0_x10_16_V1",
+      "case": "R5_aA_m0",
+      "axis": "x",
+      "low": 10,
+      "high": 16,
+      "visit": 1,
+      "role": "harmful",
+      "previous_skip_gain_deg": 7.751
+    },
+    {
+      "event": "C01_A_x16_21_V1",
+      "case": "C01_A_M45_FULL",
+      "axis": "x",
+      "low": 16,
+      "high": 21,
+      "visit": 1,
+      "role": "harmful",
+      "previous_skip_gain_deg": 5.393
+    },
+    {
+      "event": "O03_y4_8_V1",
+      "case": "O03_O0_M45_FULL",
+      "axis": "y",
+      "low": 4,
+      "high": 8,
+      "visit": 1,
+      "role": "harmful",
+      "previous_skip_gain_deg": 1.798
+    },
+    {
+      "event": "C01_B_x16_21_V1",
+      "case": "C01_B_M45_FULL",
+      "axis": "x",
+      "low": 16,
+      "high": 21,
+      "visit": 1,
+      "role": "harmful",
+      "previous_skip_gain_deg": 4.34
+    },
+    {
+      "event": "C02_A_x4_10_V1",
+      "case": "C02_A_M45_FULL",
+      "axis": "x",
+      "low": 4,
+      "high": 10,
+      "visit": 1,
+      "role": "harmful",
+      "previous_skip_gain_deg": 1.775
+    },
+    {
+      "event": "R5_A_M0_x10_16_V2",
+      "case": "R5_aA_m0",
+      "axis": "x",
+      "low": 10,
+      "high": 16,
+      "visit": 2,
+      "role": "beneficial",
+      "previous_skip_gain_deg": -1.025
+    },
+    {
+      "event": "C01_A_x10_16_V1",
+      "case": "C01_A_M45_FULL",
+      "axis": "x",
+      "low": 10,
+      "high": 16,
+      "visit": 1,
+      "role": "beneficial",
+      "previous_skip_gain_deg": -3.079
+    },
+    {
+      "event": "O03_y4_8_V2",
+      "case": "O03_O0_M45_FULL",
+      "axis": "y",
+      "low": 4,
+      "high": 8,
+      "visit": 2,
+      "role": "beneficial",
+      "previous_skip_gain_deg": -15.347
+    },
+    {
+      "event": "O02_y4_8_V1",
+      "case": "O02_O0_M45_FULL",
+      "axis": "y",
+      "low": 4,
+      "high": 8,
+      "visit": 1,
+      "role": "beneficial",
+      "previous_skip_gain_deg": -4.33
+    },
+    {
+      "event": "R2_A_M45_x10_16_V1",
+      "case": "R2_aA_m45",
+      "axis": "x",
+      "low": 10,
+      "high": 16,
+      "visit": 1,
+      "role": "beneficial",
+      "previous_skip_gain_deg": -2.439
+    }
+  ],
+  "event_membership": "Use frozen RF-row pose coordinates, half-open [low,high), t>=0; maximal contiguous RF-row runs, visit index 1-based. No GT error or outcome selection. At least 3 RF rows. New route RF runs mapped to motion [first included RF index,last included RF index+1). Pose truth is used solely to recover the already frozen geometric event membership, not to select new events.",
+  "arms": {
+    "POWER1": {},
+    "SKIP": {
+      "skip_event": true
+    },
+    "D1": {
+      "channel": 1
+    },
+    "D2": {
+      "channel": 0
+    },
+    "D3": {
+      "oracle_heading": "truth heading at event entry"
+    },
+    "D4": {
+      "zero_psi_bg": true
+    },
+    "D5": {
+      "r_scale": 4
+    },
+    "D6": {
+      "block_bias": true
+    }
+  },
+  "arm_label": "ORACLE_DIAGNOSTIC for all event interventions and event-conditioned tables; POWER1 is the unchanged causal reference",
+  "scope": {
+    "decision": "all motion samples t>=30 seconds; old route samples are all RF",
+    "additional": [
+      "event entry through last included RF",
+      "event end through end+30 seconds"
+    ],
+    "packet_window": "entry-10 through end+30 seconds, actual RF rows only",
+    "divergence": "original minus SKIP wrapped heading degrees and gyro bias degrees/s at every motion sample in packet window",
+    "growth": "OLS natural-log absolute divergence versus seconds in first 10 seconds after event end; floors heading=1e-9 degrees, bias=1e-12 degrees/s; report floor hits and require >=3 samples"
+  },
+  "first_harmful_update": "First accepted event update with increase in instantaneous wrapped heading squared error >=max(0.01 deg^2,10% of largest positive event update increase). If none, NONE_ABOVE_LOCKED_THRESHOLD. Attribute channel using 2*prior_error*channel_delta + channel_delta*total_delta (equal allocation of cross term); report wrap nonadditivity rather than conceal it. GT is offline diagnostic only.",
+  "verification": {
+    "baseline_heading_rmse_deg_tolerance": 1e-06,
+    "baseline_gate_mismatches": 0,
+    "independent_scalar_scorer_max_abs_difference": 1e-09,
+    "D4_covariance": "Check every prior and posterior; any nonpositive eigenvalue is ERROR_NONSPD_NO_REPAIR, preserve other arms, no PSD repair"
+  },
+  "decision": {
+    "supported": "At least 3 of fixed 5 harmful events with positive canonical skip gain have D3/D4/D6 improvement >=50% of skip gain, with that same diagnostic worsening <=50% of SKIP worsening on ALL five fixed beneficial events. Beneficial skip sign changes or missing diagnostics leave safety NOT_ESTABLISHED; no events removed.",
+    "falsified": "At least 3 fixed harmful events have D1 or D2 recovery >=50% of positive skip gain and all D3/D4/D6 recovery <20%; errored or missing diagnostics cannot establish small effects.",
+    "otherwise": "NOT_ESTABLISHED",
+    "independence": "No p-values; old R2/R4/R5 and C01-C03 share corridor, O01-O03 share one office. No independent-scene or hardware generalization. No normalized Bayesian posterior claim."
+  },
+  "parent_protocol_sha256": "0140cd489db40e4f055e85d18dd3d7c6253b4d2ce487f7ba6fa82bb24dd3efea",
+  "change_scope": "Only exact detector-tap range equation and its P1 training labels/parameters change; frozen events, interventions, controls, observations, gates, thresholds and scoring stay identical.",
+  "source_parameters": {
+    "old": "T6 artifact 12236414588 OOF_PARAMETERS_SRC_TAP.csv.gz; same route-heldout splits and same-site exclusions",
+    "new": "Fit unchanged POWER_BIN_JOINT to all old Full RF SourceTap-adjusted labels; never train on new routes",
+    "range": "SourceTapRange; piecewise constant detected tap; no interpolation; no fitted offset",
+    "baseline_checks": "Run B_OLD POWER1 alongside and verify historical gates and KEY_B0; old SRC baseline also matches T6 source traces. Independently score all source replay results."
+  },
+  "input_artifact": {
+    "id": 12236414588,
+    "run_id": 39359601219,
+    "sha256": "89dae721d000c3f8897b39b4cefdf75bbe635bb1ceffbe830a8b56d2ef826011"
+  }
+}
