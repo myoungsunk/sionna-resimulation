@@ -1,6 +1,6 @@
 {
   "task": "S1_N1_EVENTS",
-  "version": "REVISED_GEOMETRIC_ROSTER_V1",
+  "version": "REVISED_GEOMETRIC_ROSTER_V2_EXACT_CSV_PARSE",
   "status": "PRE_RECURSIVE_EXECUTION",
   "original77_status": "BLOCKED_SOURCE_UNAVAILABLE",
   "user_revision": "Re-enumerate physical grid; no fixed event count; original30+47 not reconstructible.",
@@ -174,11 +174,26 @@
   },
   "scope_stop": "S1 only; no S2/S3, new gate/memory variants, RF simulation, T6 tap EKF or D4 replacement",
   "implementation_sources_sha256": {
-    "aggregate.py": "1d668a783ddbd36f2f9fa5cf59f17db82c851e5236f748c83d72e5a3e950d38a",
+    "aggregate.py": "956fb2416a57879e2aa1929db7a10af4567525d0e090c7da76993e0fcc5a3867",
     "enumerate_events.py": "748cc228f96d234ca6df03a5a69b348ed448a3215847c120c48ca8ed227d0bab",
     "independent_score.py": "bb727f9eaffebddd7dd0e1c98a3d3075f70a57d1095f5d9a331c909c8dfd6395",
     "prepare_new.py": "72eba4ea35b46fe5548de5cebe9cc4656323552e348660444d9dd088e743dcf1",
-    "replay_events.py": "dea1405d01388a0aaf6666c4ee63bc7a65cf6f7376352d6b71bb424c84ce6f38",
+    "replay_events.py": "35304dcadecd0008c378d6abebf05b0696d5360b1de17beb22fbdff4a97b8f13",
     "restore_t2.py": "955ad9786778cc8ebb391733aebd16a27d3e49ca327dba2921f814ca8661c2b3"
+  },
+  "amendment": {
+    "reason": "Default pandas CSV float parser changes5 saved event timestamps by <=1.4210854715202004e-14s. Use float_precision=round_trip, retaining exact float64 values; no tolerance relaxation. Detected by nonrecursive input audit; raw inputs, EVENT_LIST rows and scientific thresholds unchanged.",
+    "prior_lock_commit": "cccac1fee2892576f3a3b41ae4a6ecb54dd318d0",
+    "prior_lock_sha256": "8bda7dab15176964ffd012f25acb47414d741c572e89e4c733ddb5170a3db8e1",
+    "first_run_id": 39370673576,
+    "affected_routes": [
+      "R2",
+      "R5"
+    ],
+    "retry_routes": [
+      "R2",
+      "R5"
+    ],
+    "successful_other_routes_retained_under_V1": true
   }
 }

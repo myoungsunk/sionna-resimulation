@@ -1,0 +1,184 @@
+{
+  "task": "S1_N1_EVENTS",
+  "version": "REVISED_GEOMETRIC_ROSTER_V1",
+  "status": "PRE_RECURSIVE_EXECUTION",
+  "original77_status": "BLOCKED_SOURCE_UNAVAILABLE",
+  "user_revision": "Re-enumerate physical grid; no fixed event count; original30+47 not reconstructible.",
+  "event_count": 79,
+  "event_list_sha256": "20b2fde6a13491da1766979d0ae69d4324ca5dbd584e83706663e4ad22e124f9",
+  "enumeration_receipt_sha256": "0e9a8b47a68a433b8c150ecdeb8a4fab5035fafbf9305355a366453c4be9b909",
+  "physical_row_comparison_sha256": "f69bc6928932752e569d3b670ae036a5b28a3b6e950b9cdcbabee46ac630bebb",
+  "membership": {
+    "corridor_new_x_bins": [
+      [
+        1,
+        4
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        16,
+        21
+      ]
+    ],
+    "corridor_legacy_x_bins": [
+      [
+        1,
+        4
+      ],
+      [
+        4,
+        10
+      ],
+      [
+        10,
+        16
+      ],
+      [
+        16,
+        20
+      ]
+    ],
+    "office_y_bins": [
+      [
+        0,
+        4
+      ],
+      [
+        4,
+        8
+      ],
+      [
+        8,
+        12
+      ]
+    ],
+    "visit": "Maximal contiguous RF-row runs numbered1..5 before filtering; half-open bins; t>=0",
+    "minimum_RF_rows": 3,
+    "horizon": "Entire last event RF timestamp +30s must fit original motion timeline; excluded candidates retained in enumeration receipt",
+    "coordinate_source": "Immutable original RF-row truth coordinates solely for frozen geometric ORACLE_DIAGNOSTIC regions; never outcome-based selection"
+  },
+  "routes": [
+    "C01",
+    "C02",
+    "C03",
+    "O02",
+    "O03",
+    "R2",
+    "R4",
+    "R5"
+  ],
+  "populations": {
+    "legacy": {
+      "candidates": 49,
+      "included": 35
+    },
+    "new": {
+      "candidates": 61,
+      "included": 44
+    }
+  },
+  "biases": [
+    "B0",
+    "L2"
+  ],
+  "primary_bias": "B0",
+  "sensor_seed": 0,
+  "engine_commit": "034e57a7209a3bd1bb8857b24fd85c64942e1258",
+  "engine_sha256": "e725f92bd74e6a845b07418d6f3b7a2974a518b2cd03b16969518bf879ee11b8",
+  "T4_run_events_sha256": "356854dad08f230c97e9fa4cb18c59e06d27f1f87835661054574b6578bc6ccb",
+  "new_sensor_lock_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+  "range_model": "B_OLD",
+  "B_OLD_m": -0.5315983906250129,
+  "input_release_tags": [
+    "audit-inputs-20261020-r01",
+    "audit-traces-20261020-r01"
+  ],
+  "arms": [
+    "POWER1",
+    "SKIP",
+    "D1",
+    "D2",
+    "D7"
+  ],
+  "arm_definitions": {
+    "POWER1": "Unchanged fullRF POWER1 per-arm recursive prior",
+    "SKIP": "Skip all RF updates only in event RF membership",
+    "D1": "Skip range; s-only channel1; fixed marginal one-dof 99% gate",
+    "D2": "Skip s; range-only channel0; fixed marginal one-dof 99% gate",
+    "D7": "Original joint H/model/gate and per-arm recursive prior; event RF observed s replaced with actual samepose NativeLoS s and mu_s=0; rawFull z_r,mu_r,C(q),risk unchanged. No parameter refitting/provider, no LoS q."
+  },
+  "joint_gate": 9.210340371976184,
+  "single_channel_gate": 6.6348966010212145,
+  "D7_eligibility": "All event RF rows must have explicitly certified original los_exists=true and finite original observer LoS s; otherwise retain not-evaluable row. Missing legacy actual visibility metadata means NOT_EVALUABLE_LOS_STATUS_UNCERTIFIED, never fill true.",
+  "recursive_implementation": "S1 replay_events imports unchanged T4 run_events@034e57a run/normalize/event_indices/check_reference/packet/divergence; no invocation of old CLI POST30 aggregation-only guard; full timelines, no warmstart optimization.",
+  "window": "POST30 inclusive [last_event_RF_timestamp,last_event_RF_timestamp+30], all motion frames",
+  "metrics": [
+    "heading_rmse_deg",
+    "signed_heading_deg",
+    "heading_sigma_rms_deg",
+    "heading95",
+    "heading_nees",
+    "pose_nees",
+    "conditional_xy_nees",
+    "xy_rmse_m",
+    "bias_rmse_dps",
+    "bias_mean_dps",
+    "bias_final_dps"
+  ],
+  "bias_final_definition": "Estimate at last POST30 motion frame; bias error scored against actual injected B0=0 or L2=.2deg/s; time mean on uniform control clock",
+  "roles": {
+    "g": "POST30 RMSE_POWER1 - RMSE_SKIP",
+    "HARMFUL": "g>=.2deg",
+    "BENEFICIAL": "g<=-.2deg",
+    "NEUTRAL": "-.2<g<.2; no recovery/harm ratios"
+  },
+  "ratios": {
+    "harmful_r_arm": "(RMSE_POWER1-RMSE_arm)/g",
+    "beneficial_h_arm": "(RMSE_arm-RMSE_POWER1)/(-g)"
+  },
+  "decision": {
+    "SUPPORTED_BUT_LIMITED": "harmful r_D2>=.5 fraction>=2/3 AND beneficial h_D2<=.5 fraction>=2/3",
+    "FALSIFIED_FOR_TESTED": "harmful r_D2>=.5 fraction<=1/3",
+    "otherwise": "NOT_ESTABLISHED",
+    "empty_required_denominators": "NOT_ESTABLISHED",
+    "core_execution_failures_or_unknown_roles": "NOT_ESTABLISHED; retain missing/error rows, no optimistic dropping",
+    "groups": [
+      "overall",
+      "corridor",
+      "office"
+    ],
+    "scene_limit": "Shared corridor and one office, no p-values or independent-case sample-count claim"
+  },
+  "exploratory": {
+    "D7_D2": "Among evaluable harmful, both r>=.5: observation replacement recovered; rD7<.2 and rD2>=.5: limited filter-structure comparison pattern only, no causal necessity claim",
+    "online_features": "Existing T7A ONLINE_FEATURES.csv SPEC12 only, certify exact case/bin/visit/n/start/end match to revised roster; Spearman rank correlation feature vs rD2 on mapped B0 harmful events only; no p-values, no new feature definitions",
+    "online_features_sha256": "3d6f0096a41aac45fb494bedd064781b12d07b0ca12958fc39c2563d4b0afad0",
+    "first_harmful_update": "Unchanged T4 threshold max(.01deg2,.1*max positive accepted update increase in event); evaluator only",
+    "divergence": "Unchanged T4 post-event first10s log(abs(delta)) slopes, preserved floors1e-9deg and1e-12deg/s"
+  },
+  "QA": {
+    "historical_POWER1_heading_abs_difference_deg": 1e-06,
+    "gate_mismatches": 0,
+    "independent_common11_max_abs_difference": 1e-09,
+    "no_change_joint_adapter_state_cov_max": 1e-10,
+    "all_frame_cov_and_prior_SPD": "eigvalsh>0; no repair",
+    "engine_and_runner_byte_identity": "required before any filter call",
+    "events": "must exactly reproduce locked RF/motion indices and timestamps in B0 and L2"
+  },
+  "scope_stop": "S1 only; no S2/S3, new gate/memory variants, RF simulation, T6 tap EKF or D4 replacement",
+  "implementation_sources_sha256": {
+    "aggregate.py": "1d668a783ddbd36f2f9fa5cf59f17db82c851e5236f748c83d72e5a3e950d38a",
+    "enumerate_events.py": "748cc228f96d234ca6df03a5a69b348ed448a3215847c120c48ca8ed227d0bab",
+    "independent_score.py": "bb727f9eaffebddd7dd0e1c98a3d3075f70a57d1095f5d9a331c909c8dfd6395",
+    "prepare_new.py": "72eba4ea35b46fe5548de5cebe9cc4656323552e348660444d9dd088e743dcf1",
+    "replay_events.py": "dea1405d01388a0aaf6666c4ee63bc7a65cf6f7376352d6b71bb424c84ce6f38",
+    "restore_t2.py": "955ad9786778cc8ebb391733aebd16a27d3e49ca327dba2921f814ca8661c2b3"
+  }
+}

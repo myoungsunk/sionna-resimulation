@@ -7,7 +7,7 @@ HERE=Path(__file__).resolve().parent
 def dump(p,obj):p.write_text(json.dumps(obj,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
 def main():
  p=argparse.ArgumentParser();p.add_argument('--runs',type=Path,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
- lock=json.loads((HERE/'PROTOCOL_LOCK.json').read_text());roster=pd.read_csv(HERE/'EVENT_LIST.csv')
+ lock=json.loads((HERE/'PROTOCOL_LOCK.json').read_text());roster=pd.read_csv(HERE/'EVENT_LIST.csv',float_precision='round_trip')
  tables=[];run_errors=[];baseline=[];manifests=[]
  for route in lock['routes']:
   dirs=[q.parent for q in a.runs.rglob('INTERVENTIONS.csv') if q.parent.name==route]

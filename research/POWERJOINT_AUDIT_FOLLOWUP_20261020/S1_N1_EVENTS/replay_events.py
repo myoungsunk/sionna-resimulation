@@ -55,7 +55,7 @@ def main():
     lock_path=HERE/'PROTOCOL_LOCK.json';lock=json.loads(lock_path.read_text());list_path=HERE/'EVENT_LIST.csv'
     assert sha(list_path)==lock['event_list_sha256'],'EVENT_LIST_LOCK_HASH'
     assert os.getenv('GITHUB_SHA'),'COMMITTED_ACTIONS_EXECUTION_REQUIRED'
-    events=pd.read_csv(list_path).to_dict('records')
+    events=pd.read_csv(list_path,float_precision='round_trip').to_dict('records')
     assert len(events)==lock['event_count']
     engine_path=AUDIT/'canonical_engine.py'
     assert sha(engine_path)==PINNED_ENGINE and sha(Path(original.__file__))==PINNED_RUNNER,'PINNED_BYTE_IDENTITY'
