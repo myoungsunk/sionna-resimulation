@@ -22,10 +22,16 @@ def main():
    r=raw[case['id'],'los'];truth=r['truth_for_offline_scoring_only'][:,:3];state=np.c_[truth,np.zeros(len(truth))];hp=[];ho=[]
    for i in range(0,len(truth),48):
     hp.append(src.batch(state[i:i+48],case,gradient=False)[0][:,0]);ho.append(model.batch(state[i:i+48],case,gradient=False)[0][:,0])
-   hp=np.concatenate(hp);ho=np.concatenate(ho);shift=pd.Series(ho-hp,index=r['pose_id'])
+   hp=np.concatenate(hp);ho=np.concatenate(ho)
    for channel in ['full','los']:
-    ix=(adjusted.case==case['id'])&(adjusted.channel==channel);adjusted.loc[ix,'e_r']+=adjusted.loc[ix,'pose_id'].map(shift).to_numpy()
+    ix=(adjusted.case==case['id'])&(adjusted.channel==channel)
+    frame=adjusted.loc[ix];states=np.c_[frame.x_eval,frame.y_eval,frame.yaw_rad,np.zeros(len(frame))]
+    changes=[]
+    for j in range(0,len(states),48):
+     hs=src.batch(states[j:j+48],case,gradient=False)[0][:,0];hb=model.batch(states[j:j+48],case,gradient=False)[0][:,0];changes.extend(hb-hs)
+    adjusted.loc[ix,'e_r']=frame.e_r.to_numpy()+np.asarray(changes)
    native.extend(dict(case=case['id'],route=case['id'].split('_')[0],pose_id=int(pid),offset=float(obs-(dist+.5315983906250129))) for pid,obs,dist in zip(r['pose_id'],r['z_r_m'],ho))
+  if not np.isfinite(adjusted[['e_r','e_s']].to_numpy()).all():raise RuntimeError('NONFINITE_TRAINING_LABELS_AFTER_ROW_POSE_ADJUSTMENT')
   native=pd.DataFrame(native);full=adjusted[adjusted.channel=='full'].copy().reset_index(drop=True)
   plans={};fitinfo=[]
   for held,tr,te in original.feature_splits(np,full):
