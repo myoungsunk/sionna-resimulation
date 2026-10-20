@@ -96,3 +96,5 @@ lock `2f1b21b9f984ba0d5d3768f9a84a8f5b7d263683`, 모델/adapter `481c249e04164ff
 결과/원본 요약 498개 파일(101,231,274 bytes)은 18개 분할 커밋으로 게시했고 마지막 결과 커밋은 `4a0ec61cabbf73a028ca8096f57dd46374398f4e`다. 최종 metadata/검증 커밋은 이 결과 커밋의 후속이다. 전체 파일 hash는 OUTPUT_INDEX.json, 게시 내역은 PUBLICATION_RECEIPT.json이다.
 
 신규 Q 180셀의 T2 **공통 11지표 전체**를 같은 seed/bias/motion scope로 다시 대조했으며 최대 차이는 3.858247055177344e-12다(T2_METRIC_PARITY.csv). 역사적 gate는 seed 0에 한해 확인했고 seed 1–4는 명시된 재생성 reference다. 증거 보존 성공 run39376022836은 29개 원본 archive의 SHA/CRC 및 release 전체 readback을 확인했다. 최종 독립 검증은 provenance_tools/verify_local.py로 재현한다.
+
+최종 검증 영수증(FINAL_VERIFICATION.json): 게시 파일 532개 byte 일치, S0/S1/기존 감사 tree와 S1 요약 prefix 보존. 추론 특징 285,432행을 저장된 prior 좌표로 독립 재계산한 최대 차이는 3.8302694349567901e-15, μ/C 재계산 최대 차이는 1.6653345369377348e-16다. 최초 root summary 개행 정규화 오류는 정확한 pinned 원문 bytes 복구 후 재검증했고 ERRORS.json에 보존했다.
