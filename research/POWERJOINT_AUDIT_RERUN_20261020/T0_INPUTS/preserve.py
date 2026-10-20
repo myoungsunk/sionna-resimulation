@@ -4,7 +4,7 @@ Credential sources: GH_TOKEN in Actions; local Git credential helper otherwise.
 Credentials remain in memory, never in arguments, files, or logs.
 """
 from __future__ import annotations
-import argparse,datetime,hashlib,json,os,pathlib,subprocess,zipfile
+import argparse,datetime,hashlib,json,os,pathlib,subprocess,zipfile,time
 import requests
 REPO='myoungsunk/sionna-resimulation'
 HERE=pathlib.Path(__file__).resolve().parent
@@ -22,7 +22,10 @@ def api(s,path,method='GET',**kw):
 def sha(p):
     with p.open('rb') as f:return hashlib.file_digest(f,'sha256').hexdigest()
 def download(s,url,p,headers=None):
-    r=s.get(url,headers=headers,stream=True,timeout=(30,180));r.raise_for_status()
+    r=s.get(url+'?nonce='+str(time.time_ns()),headers=headers,allow_redirects=False,timeout=(15,30))
+    if r.status_code in (301,302,303,307,308):
+        r=requests.get(r.headers['Location'],stream=True,timeout=(15,60))
+    r.raise_for_status()
     with p.open('wb') as f:
         for b in r.iter_content(2**20):f.write(b)
 def main():
