@@ -82,7 +82,17 @@ def prepare_new_route(route_root, route_id):
         source_root=HERE.parents[2]
         generator_path=source_root/'research/POWERJOINT_M45_COMPACT_20261019/02_prepare_routes.py'
         spec=importlib.util.spec_from_file_location('frozen_route_generator',generator_path)
-        generator=importlib.util.module_from_spec(spec);spec.loader.exec_module(generator)
+        generator=importlib.util.module_from_spec(spec)
+        # Sensor-v2 and scene validators have distinct pinned qclean_uwb roots.
+        # Import validators in an isolated module cache, then restore sensor modules.
+        saved={k:v for k,v in sys.modules.items() if k=='qclean_uwb' or k.startswith('qclean_uwb.')}
+        old_path=sys.path.copy()
+        for key in saved: del sys.modules[key]
+        try: spec.loader.exec_module(generator)
+        finally:
+            for key in list(sys.modules):
+                if key=='qclean_uwb' or key.startswith('qclean_uwb.'): del sys.modules[key]
+            sys.modules.update(saved);sys.path[:]=old_path
         request_path=generator_path.with_name('01_ROUTE_REQUEST.json')
         request=json.loads(request_path.read_text())
         route=next(r for r in request['routes'] if r['id']==route_id)
