@@ -163,5 +163,22 @@
       "retry": true,
       "repair": "include exact src/qclean_uwb/__init__.py; frozen generator isolated import/generation preflight passed all six; no model, engine, lock, parameter change"
     }
+  ],
+  "preservation_verification_errors": [
+    {
+      "stage": "final publication verification",
+      "error": "S1 root summary prefix byte mismatch due to mixed line endings normalized on Windows; prose unchanged",
+      "retry": true,
+      "repair": "restore exact pinned S1 prefix bytes and append S2 bytes only",
+      "scientific_outputs_changed": false
+    },
+    {
+      "actions_run_id": 39375791934,
+      "stage": "read-only wait for existing evaluation run metadata",
+      "error": "ConnectionError RemoteDisconnected from GitHub GET",
+      "recursive_replay_rerun": false,
+      "retry": true,
+      "repair": "bounded idempotent GET retry only; uploads not implicitly retried"
+    }
   ]
 }

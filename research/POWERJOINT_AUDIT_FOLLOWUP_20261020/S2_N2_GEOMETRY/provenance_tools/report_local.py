@@ -21,8 +21,8 @@ def main():
  s+='\n## 실행·증거 보존\n\nlock `2f1b21b9f984ba0d5d3768f9a84a8f5b7d263683`, 모델/adapter `481c249e04164ffc5deccaaefbcc84c16a5779f3`. 학습 run39374401047, 기존/LoS run39374960558, 신규 성공 run39375649673. 입력 준비 중단 18개 route-job와 보존 단계의 GitHub 연결 중단을 원래 로그·artifact·SHA와 함께 보존했다. 판정·모델·엔진을 바꾸지 않았으며 성공 계산만을 재귀 재실행하지 않았다. MANIFEST.json에 모든 원본 artifact의 digest/bytes, release asset ID/URL, 전체 재다운로드 SHA, run/head를 기록했다.\n'
  manifest=json.loads((HERE/'MANIFEST.json').read_text());s+='\n미해결 입력: '+('없음(현재 S2 계약 범위). ' if d['technical']=='TECHNICAL_PASS' else 'ERRORS.json의 현재 오류 참조. ')+ '원래77개 명단 및 구현2·3 원본 소스 미확보는 S0/S1의 제한으로 그대로 남는다.\n'
  (HERE/'RESULTS_KO.md').write_text((HERE/'RESULTS_KO.md').read_text(encoding='utf-8')+s,encoding='utf-8')
- root=HERE.parent/'00_SUMMARY_KO.md';text=root.read_text(encoding='utf-8');assert '\n## S2 N2 기하 특징 검증 최종\n' not in text,'NO_DUPLICATE_S2_SUMMARY'
- text+=f'''\n\n## S2 N2 기하 특징 검증 최종
+ root=HERE.parent/'00_SUMMARY_KO.md';original_bytes=root.read_bytes();assert b'## S2 N2' not in original_bytes,'NO_DUPLICATE_S2_SUMMARY'
+ addition=f'''\n\n## S2 N2 기하 특징 검증 최종
 
 S1 감사 ACCEPT는 실행 증거와 NOT_ESTABLISHED를 인수하며 N1 지지를 뜻하지 않는다. S0/S1 본문·수치·실패 기록은 위에 그대로 보존한다.
 
@@ -32,5 +32,5 @@ S1 감사 ACCEPT는 실행 증거와 NOT_ESTABLISHED를 인수하며 N1 지지�
 
 공통 11지표 792행과 별도 LoS R0 4행을 보존했다. 주 평가는 t≥30 전체 motion clock·seed0이며 seed1–4는 같은 RF motion noise 반복이다. GEOM/GEOM_Q 잔차 평균·공분산은 사용자 승인 d 삼분위, 평균만 10/11차원이다. Native LoS 안전성과 seed 범위, 위반 셀은 S2_N2_GEOMETRY/RESULTS_KO.md 및 CSV에 보고했다. R2 A M45는 OUT_OF_TRAINING_RANGE_MOUNT다. 독립 장면 일반화·정규화 Bayesian posterior·하드웨어 실증·q 인과 기전은 주장하지 않는다. **S2에서 종료하며 S3는 시작하지 않았다.**
 '''
- root.write_text(text,encoding='utf-8');print('S2_REPORT_AND_ADDITIVE_SUMMARY_WRITTEN',flush=True)
+ root.write_bytes(original_bytes+addition.encode('utf-8'));print('S2_REPORT_AND_ADDITIVE_SUMMARY_WRITTEN',flush=True)
 if __name__=='__main__':main()
