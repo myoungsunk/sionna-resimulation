@@ -73,7 +73,28 @@ def prepare_new_route(route_root, route_id):
             raise ValueError('NONIDENTICAL_DUPLICATE_'+suffix)
         return found
 
-    motions = candidates('ROUTE_POSE.csv'); radios = candidates('RADIO_POSE.csv')
+    radios = candidates('RADIO_POSE.csv')
+    # Published releases omit full motion CSV. Reconstruct only through the
+    # frozen original route generator and require identical emitted RF CSV.
+    existing_motion=list(root.rglob('*ROUTE_POSE.csv'))
+    if not existing_motion:
+        source_root=HERE.parents[2]
+        generator_path=source_root/'research/POWERJOINT_M45_COMPACT_20261019/02_prepare_routes.py'
+        spec=importlib.util.spec_from_file_location('frozen_route_generator',generator_path)
+        generator=importlib.util.module_from_spec(spec);spec.loader.exec_module(generator)
+        request_path=generator_path.with_name('01_ROUTE_REQUEST.json')
+        request=json.loads(request_path.read_text())
+        route=next(r for r in request['routes'] if r['id']==route_id)
+        rows=generator.generate(request,route)
+        generated=root/'reconstructed_motion';generated.mkdir(exist_ok=True)
+        check=generated/(route_id+'_RADIO_CHECK.csv')
+        generator.emit_csv(check,[r for r in rows if r['rf_sample']])
+        if any(check.read_bytes()!=path.read_bytes() for path,_ in radios):
+            raise ValueError('BLOCKED_INPUT:ORIGINAL_GENERATOR_RF_CSV_NOT_BYTE_IDENTICAL')
+        motion_path=generated/(route_id+'_ROUTE_POSE.csv');generator.emit_csv(motion_path,rows)
+        expected[motion_path.resolve()]=sha(motion_path)
+        receipts.append(dict(kind='ORIGINAL_GENERATOR_RECONSTRUCTION',generator_sha256=sha(generator_path),request_sha256=sha(request_path),radio_csv_sha256=sha(check),full_motion_sha256=sha(motion_path),original_RF_byte_identical=True))
+    motions = candidates('ROUTE_POSE.csv')
     motion_path, motion = motions[0]; radio_path, radio = radios[0]
     required = ['pose_id', 't_s', 'x_m', 'y_m', 'z_m', 'yaw_body_deg', 'yaw_antenna_deg']
     for data in (motion, radio):
