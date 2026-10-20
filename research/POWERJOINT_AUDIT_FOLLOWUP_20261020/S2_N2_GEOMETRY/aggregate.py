@@ -5,7 +5,12 @@ import numpy as np
 import pandas as pd
 HERE=Path(__file__).resolve().parent
 def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
-def dump(p,x):p.write_text(json.dumps(x,ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
+def clean(x):
+ if isinstance(x,dict):return {k:clean(v) for k,v in x.items()}
+ if isinstance(x,list):return [clean(v) for v in x]
+ if isinstance(x,float) and not np.isfinite(x):return None
+ return x
+def dump(p,x):p.write_text(json.dumps(clean(x),ensure_ascii=False,indent=2,allow_nan=False)+'\n',encoding='utf-8')
 def main():
  p=argparse.ArgumentParser();p.add_argument('--execution',type=Path,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
  frames=[];aux=[];checks=[];refs=[];errors=[];manifests=[]
@@ -42,7 +47,7 @@ def main():
  violations=[]
  for group,column,denom in [(new,'geom_le_110pct_q','NEW_SEED0_36'),(old,'geom_le_110pct_dist','LEGACY_M0_12')]:
   for r in group.to_dict('records'):
-   if not r.get(column,False):violations.append(dict(denominator=denom,**r))
+   if not r['valid'] or not r.get(column,False):violations.append(dict(denominator=denom,**r))
  pd.DataFrame(violations).to_csv(a.out/'VIOLATIONS.csv',index=False)
  safety=[]
  for r in df[df.channel=='los'].to_dict('records'):
@@ -74,7 +79,7 @@ def main():
  pd.DataFrame(groups).to_csv(a.out/'GROUP_COMPARISON.csv',index=False)
  decision=dict(technical='TECHNICAL_PASS' if complete else 'ERROR_OR_INCOMPLETE',scientific='SUPPORTED_BUT_LIMITED' if complete and nnew==36 and nold==12 else 'NOT_ESTABLISHED',trained_rows=792,valid_rows=int(df.status.eq('TECHNICAL_PASS').sum()),los_R0_rows=len(reference),new_seed0=dict(pass_cells=nnew,denominator=36),legacy_M0=dict(pass_cells=nold,denominator=12),geom_q_additional=dict(improved_cells=nq,denominator=36,threshold_cells=19,limited_accuracy_statement_allowed=bool(complete and nq>=19)),violations=violations,independent_11_max_abs=float(df.scorer_max_abs_difference.max()),OOD='R2 A M45 heldout OUT_OF_TRAINING_RANGE_MOUNT',independence='old/C routes same corridor scene; office routes one office scene; seeds are motion-noise repeats; no p-value',stop='S2 finished only; S3 not started')
  history=[]
- for path in sorted((HERE/'INITIAL_FAILURES').glob('*.json')):history.extend(json.loads(path.read_text()))
+ for path in sorted((HERE/'INITIAL_FAILURES').glob('*ERRORS.json')):history.extend(json.loads(path.read_text()))
  decision['historical_preparation_failures_preserved']=len(history)
  dump(a.out/'DECISION.json',decision);dump(a.out/'ERRORS.json',dict(current_execution_errors=errors,historical_preparation_failures=history))
  dump(a.out/'MANIFEST.json',dict(task='S2_AGGREGATE',technical=decision['technical'],scientific=decision['scientific'],protocol_sha256=sha(HERE/'PROTOCOL_LOCK.json'),model_sha256=sha(HERE/'TRAIN_PARAMS.json'),routes=manifests,outputs={p.name:sha(p) for p in a.out.iterdir() if p.is_file() and p.name not in ['MANIFEST.json','RESULTS_KO.md']}))
