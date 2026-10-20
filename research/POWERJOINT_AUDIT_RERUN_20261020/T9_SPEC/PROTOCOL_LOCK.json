@@ -1,0 +1,25 @@
+{
+ "task":"T9_Q_DISTANCE", "version":1,"status":"LOCK_BEFORE_EXECUTION","range_model":"B_OLD",
+ "inputs":"Exact CHAIN run.py frozen_inputs; reference_ae/PACKETS_SOURCE_LABELS.csv.gz and OOF_PARAMETERS.csv.gz; Sensor-v2 seed0; unchanged SourceFFD observation model",
+ "folds":"original feature_splits: route-heldout R2/R4/R5 with identical-site exclusion >1e-4m; NativeLoS expected-q training uses exactly the matching (case,pose_id) keys of Full training rows; no held-route labels or new routes",
+ "q":"features.extract log_fp_power = log10(max(P1+P2,tiny)); use saved SourceFFD packet features, no NativeLoS H in inference",
+ "distance":"3D Euclidean d=sqrt((x-anchor_x)^2+(y-anchor_y)^2+(robot_z-anchor_z)^2), meters; training uses allowed offline pose, recursive inference uses x_prior only",
+ "theta":"wrap(atan2(anchor_y-y,anchor_x-x)-body_yaw-mount_deg*pi/180), radians in [-pi,pi); training pose offline, recursive inference prior only",
+ "expected_los_q":{
+   "training":"NativeLoS q labels; site_weights on matched train rows",
+   "model":"StandardScaler then Ridge(alpha=30,fit_intercept=true), sample_weight=site_weights; no hyperparameter search",
+   "features":["log10(max(d,1e-6))","log10(max(d,1e-6))^2","cos(theta)","sin(theta)","cos(2theta)","sin(2theta)","mount_deg/45","anchor_x/10","anchor_y/10","anchor_z/10"],
+   "delta_q":"observed Full-only q - fitted expected NativeLoS q at current prior; NativeLoS safety uses the same formula on NativeLoS observed q",
+   "adequacy":"Report train and held-route NativeLoS q RMSE as calibration diagnostic; do not retune or assert exact conditional expectation"
+ },
+ "arms":["JOINT4_R0","Q_POWER1","DELTA_Q_POWER1","DISTANCE_ONLY_POWER1"],
+ "power_fitter":"Existing scalar_power.ScalarPower, unmodified P1 fit_model POWER_BIN_JOINT: StandardScaler+Ridge alpha30, train-tertile scalar bins, weighted residual means and correlated covariance with original shrinkage/floors. All arms fit both e_r/e_s means and full2x2C; only conditioning scalar differs.",
+ "replays":"7 frozen Full cases x B0/L2 plus NativeLoS R2_aA_m0/R2_aA_m45 x B0/L2; t>=30s, original RF/control clock; unchanged gates and covariance update",
+ "verification":{"scalar_train_fitter_parity":1e-12,"Q_vs_cached_mu_C_max_abs":1e-10,"Q_heading_vs_historical_deg":1e-6,"Q_gate_mismatch":0,"B0_heading_vs_KEY_deg":1e-6,"independent_scalar_scorer_max_abs":1e-9},
+ "decision":{
+   "distance":"For each Full case/bias, POWER gain=R0_RMSE-Q_RMSE. If gain>1e-6deg, ratio=(R0_RMSE-DISTANCE_RMSE)/gain. SUPPORTED_BUT_LIMITED only when ALL positive-gain cells have ratio>=0.8 and at least one positive-gain cell exists. Nonpositive/tiny POWER gains are separately reported; no ratio or favorable replacement. Sum-positive-gain ratio is descriptive only.",
+   "delta_q":"Candidate for later adoption only if every Full case/bias DELTA_Q RMSE<=Q RMSE+1e-6deg AND each NativeLoS cell max(0,DELTA_Q-R0)<=max(0,Q-R0)+1e-6deg with strict LoS improvement>1e-6 in at least one cell. Otherwise NOT_ESTABLISHED, no automatic model replacement.",
+   "missing":"Any missing requested replay/parity failure prevents complete adoption/claim; preserve failures and all arms",
+   "limits":"No independent-scene generalization, normalized Bayesian posterior, hardware validation, or proof distance is a unique physical cause; expected-q regressor adequacy limits interpretation."
+ }
+}
