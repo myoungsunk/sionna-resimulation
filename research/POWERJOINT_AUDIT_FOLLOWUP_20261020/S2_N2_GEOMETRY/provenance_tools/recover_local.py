@@ -3,9 +3,13 @@ from pathlib import Path
 import argparse,hashlib,json,os,sys,time,zipfile
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'S0_CORRECTIONS'))
 from github_io import session,api,download
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 def main():
  p=argparse.ArgumentParser();p.add_argument('--preserve-run',type=int,required=True);p.add_argument('--expected-archives',type=int,required=True);p.add_argument('--out',type=Path,required=True);a=p.parse_args();a.out.mkdir(parents=True,exist_ok=True)
- rid=a.preserve_run;name=f'powerjoint-s2-results-{rid}.zip';s=session();deadline=time.monotonic()+7200
+ rid=a.preserve_run;name=f'powerjoint-s2-results-{rid}.zip';s=session()
+ s.mount('https://',HTTPAdapter(max_retries=Retry(total=3,connect=3,read=3,backoff_factor=1,status_forcelist=[502,503,504],allowed_methods=['GET','HEAD'])))
+ deadline=time.monotonic()+7200
  while True:
   release=api(s,'releases/tags/audit-traces-20261020-r01');page=1;asset=None
   while True:
