@@ -33,7 +33,7 @@ def main():
    path=root/rel
    if path.is_file():copy(path,dest/'input_receipts'/rel)
   copy(root/'OUTPUT_ARCHIVE_RECEIPT.json',dest/'OUTPUT_ARCHIVE_RECEIPT.json')
-  rec={k:record[k] for k in ['artifact_id','actions_run_id','source_commit','archive_sha256','archive_bytes','expires_at','full_archive_download_verified','all_member_CRC_verified']}
+  rec={k:record[k] for k in ['artifact_id','actions_run_id','source_commit','archive_sha256','archive_bytes','expires_at','full_archive_download_verified','all_member_CRC_verified','release_asset_id','release_asset_url','release_readback_sha256','release_readback_bytes']}
   rec.update(route=route,canonical=canonical)
   (selected if canonical else prior).append(rec)
  assert len(selected)==8 and {r['route'] for r in selected}==set(lock['routes'])
@@ -69,7 +69,9 @@ def main():
              max_adapter_covariance_difference=float(checks.adapter_identity_cov_max.max()),
              intervention_rows=len(table),original_failed_execution_errors=len(error_sources)),
      D7_not_evaluable_count=d['D7_unavailable_count'],original77_status='BLOCKED_SOURCE_UNAVAILABLE',
-     trace_policy='NPZ only in original Actions archives; expiry and full archive SHA above. No trace overwritten or deleted.',
+     trace_policy='NPZ in original Actions archives and durable audit-traces-20261020-r01 release mirrors, full SHA/CRC and complete release readback verified; expiry above applies to Actions only. No trace overwritten or deleted.',
+     preservation_actions_run_id=recovery.get('preservation_actions_run_id'),
+     output_recovery_transport='LOCAL_RECOVERY_TRANSPORT.json',
      S2_S3_executed=False,new_RF_simulation=False)
  dump(HERE/'MANIFEST.json',final)
  lines=['# S1 N1 이벤트 검증 결과','',f"**{d['technical']} / {d['scientific']}**. B0가 주 판정이며 L2는 보조다. 모든 이벤트 개입은 `ORACLE_DIAGNOSTIC`이다.",'',
@@ -87,7 +89,7 @@ def main():
  lines+=['','마지막 열은 이 D7/D2 비교에서만 나타난 제한된 패턴이며 필터 구조 변경의 인과적 필요성이나 모든 관측 교정의 불가능성을 뜻하지 않는다.','',
    '## Full-only 특징','',f"기존 T7A SPEC12 중 개정 포함 명단과 RF 행·시각이 정확히 맞는 이벤트는{d['feature_exact_matched']}/12이다. ONLINE_FEATURE_MAPPING.csv에서 누락/불일치를 표시했다. 온라인 특징 정의를 확대하지 않았다. r_D2와의 Spearman은 그중 B0 유해 이벤트에 한정되며 특징별 분모를 ONLINE_FEATURE_SPEARMAN.csv에 기록했다.",'',
    '## 산출물·정본','',
-   'EVENT_TABLE.csv와 EVENT_TABLE_L2.csv는 각각79개 고정 행이다. INTERVENTIONS.csv는790개 event×bias×arm의 POST30 지표·평가 불가 상태를 포함한다. 실행별 PACKET_LOG, FIRST_HARMFUL_UPDATE, DIVERGENCE, GROWTH와 원본 manifest는 execution/에 보존한다. MANIFEST.json에 run·artifact·archive SHA256·expiry와 엔진/센서 hash를 기록했다. 대용량NPZ는 원래 Actions artifact에 유지한다.','',
+   'EVENT_TABLE.csv와 EVENT_TABLE_L2.csv는 각각79개 고정 행이다. INTERVENTIONS.csv는790개 event×bias×arm의 POST30 지표·평가 불가 상태를 포함한다. 실행별 PACKET_LOG, FIRST_HARMFUL_UPDATE, DIVERGENCE, GROWTH와 원본 manifest는 execution/에 보존한다. MANIFEST.json에 run·artifact·archive SHA256·expiry와 엔진/센서 hash를 기록했다. 대용량NPZ는 원래 Actions artifact와 audit-traces-20261020-r01 release mirror에 보존했다. 각 원본 전체 SHA/CRC와 release 전체 readback을 확인했다. Windows 직접 전송 취소와 부분 파일 보존은 LOCAL_RECOVERY_TRANSPORT.json에 기록했다.','',
    f"엔진 `{lock['engine_commit']}`, SHA256 `{lock['engine_sha256']}`. 센서 lock SHA256 `{lock['new_sensor_lock_sha256']}`. B_OLD=−0.5315983906250129m이며 SRC_TAP은 사용하지 않았다.",'',
    '## 주장하지 않는 것','',
    '독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증, 온라인 정책의 성능, D7 패턴의 인과적 필요성, 원래77개 명단 복원을 주장하지 않는다. S0의 OPEN/NOT_ESTABLISHED 잔차 판정은 유지한다. S2/S3, 새 gate·기억 모델, RF 시뮬레이션, T6 tap EKF 및 D4 대체는 실행하지 않았다. S1 결과에서 멈춘다.']
