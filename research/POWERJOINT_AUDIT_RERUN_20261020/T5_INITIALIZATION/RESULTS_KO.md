@@ -1,11 +1,13 @@
-# T5 초기화 민감도 준비 상태
+# T5 초기화 민감도
 
-TECHNICAL: NOT_RUN. 과학 판정: NOT_ESTABLISHED.
+TECHNICAL: TECHNICAL_PASS; 과학 판정: NOT_ESTABLISHED.
 
-C03 A/B 첫 x∈[1,4) RF 방문과 O01 t∈[0,5] s를 고정했다. 원래 POWER1과 이벤트 skip에 동일 초기 공분산을 적용하며, 6개 분산배율과 3개 gyro bias σ 설정을 모두 실행하도록 준비했다. 5/10/30 s 평가를 함께 보고하고 주 판정은 C03 A t≥30 s로 고정한다.
+주 판정은 C03 A 전체 motion t≥30 s이다. 5/10 s 및 RF 시점 결과는 민감도 비교다. 모든 설정의 FULL과 skip에 동일한 초기 P를 적용했다. O01은 고정 t∈[0,5] s 대조다. 개입 비교는 ORACLE_DIAGNOSTIC이다.
 
-아직 수치 재귀나 RF 진단을 실행하지 않았다. lock 커밋과 T2 baseline POWER1 gate·RMSE 재현이 선행되어야 한다.
+≥50% 효과 소실 설정: 없음/미확립.
+
+초기화에 대한 민감성은 다중경로 부재나 유일 원인을 입증하지 않는다. baseline skip 효과가 양수가 아니면 주 가설을 지지하지 않는다.
 
 ## 주장하지 않는 것
 
-초기화 민감성은 다중경로 부재나 단일 원인을 증명하지 않는다. 독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다.
+독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 고정 seed0 센서 입력에서의 진단이다.

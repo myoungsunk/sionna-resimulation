@@ -1,11 +1,24 @@
-# T4 F1 이벤트 진단 준비 상태
+# T4 F1 병합 결과
 
-TECHNICAL: NOT_RUN. 과학 판정: NOT_ESTABLISHED.
+TECHNICAL: INCOMPLETE_OR_ERROR; 과학 판정: NOT_ESTABLISHED.
 
-고정된 10개 이벤트와 D1–D6, 원래 POWER1, skip의 실행 코드를 준비했다. 아직 수치 재귀나 RF 진단을 실행하지 않았다. protocol 커밋과 T1/T2 정본 입력에 대한 baseline parity가 선행되어야 한다. 기존 skip 개선량은 배경값이며 정본 재실행 값으로 제시하지 않는다.
-
-F1 판정은 전역 t≥30 s를 사용한다. 신규는 전체 motion 샘플, 기존은 원래 RF 샘플이며 신규 RF-only 비교도 별도로 제공한다. 고정 유익 이벤트 전체에 같은 진단의 안전성을 요구하는 보수적인 판정이다. 개입은 ORACLE_DIAGNOSTIC이다. D4의 비양정 공분산은 보정하지 않고 오류로 보존한다.
+고정 5+5 이벤트를 대상으로 같은 개입의 전체 유익 이벤트 안전성을 요구했다. 세부 회수 비율·부호 변경은 DECISION.json, 모든 지표는 INTERVENTIONS.csv에 보존한다.
 
 ## 주장하지 않는 것
 
-독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 구현·구문 검사는 F1 지지 증거가 아니다.
+독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 모든 개입 비교는 ORACLE_DIAGNOSTIC이다.
+
+全10イベントの baseline/skip/D1/D2/D3/D5/D6 は完了。D4 NONSPD failures=5; no covariance repair. Technical status: COMPLETE_WITH_PRESERVED_D4_NONSPD.
+
+| 이벤트 | 역할 | 정본 skip 개선량 ° | 부호 변경 | 기준 충족 개입 |
+|---|---|---|---|---|
+| R5_A_M0_x10_16_V1 | harmful | 3.0206525600748035 | False |  |
+| C01_A_x16_21_V1 | harmful | 2.898549853075122 | False |  |
+| O03_y4_8_V1 | harmful | 1.2544049993933042 | False |  |
+| C01_B_x16_21_V1 | harmful | 3.344581639284808 | False |  |
+| C02_A_x4_10_V1 | harmful | 0.7004760357696274 | False |  |
+| R5_A_M0_x10_16_V2 | beneficial | -0.7268475126163665 | False |  |
+| C01_A_x10_16_V1 | beneficial | -2.490803227327712 | False |  |
+| O03_y4_8_V2 | beneficial | -23.46871924446769 | False |  |
+| O02_y4_8_V1 | beneficial | -2.8572656016939586 | False |  |
+| R2_A_M45_x10_16_V1 | beneficial | -1.7773498996789372 | False |  |
