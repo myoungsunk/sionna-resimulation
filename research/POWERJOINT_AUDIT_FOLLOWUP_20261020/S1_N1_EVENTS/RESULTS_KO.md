@@ -18,7 +18,7 @@
 
 정본30개 case×bias에서 과거 POWER1 gate 불일치0, Heading 차이 최대1.3311574065255629e-13°. 현 실행 모든 유효 개입의11개 지표를 독립 scalar/Cholesky scorer로 재계산한 최대차는7.1054273576010019e-13이다. no-change joint adapter의 state/cov 최대차는0/0이다. pinned engine과 T4 helper는 원본 bytes를 유지했다.
 
-첫 run39370673576의 R2/R5에서 CSV 기본 float parser 때문에 원본 시각과 약1e-14s 차이가 발생했다. 오류10건과 모든 첫 출력은 FAILED_EXECUTION_R01/에 보존했다. V2 lock3062701은 round_trip parser만 적용하며 입력/이벤트 행/과학 임계값을 바꾸지 않았다. 재실행39370942876의 R2/R5와 첫 실행의 나머지6개 성공 결과를 정본으로 묶었다.
+첫 run39370673576의 R2/R5에서 CSV 기본 float parser 때문에 원본 시각과 약1e-14s 차이가 발생했다. 오류10건과 첫 실행 CSV·JSON은 FAILED_EXECUTION_R01/에 보존했고, NPZ를 포함한 원본 전체는 각 release archive에 보존했다. V2 lock3062701은 round_trip parser만 적용하며 입력/이벤트 행/과학 임계값을 바꾸지 않았다. 재실행39370942876의 R2/R5와 첫 실행의 나머지6개 성공 결과를 정본으로 묶었다.
 
 ## D7 적용 범위
 

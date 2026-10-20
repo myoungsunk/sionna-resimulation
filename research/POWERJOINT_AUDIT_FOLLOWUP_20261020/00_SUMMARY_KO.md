@@ -122,3 +122,5 @@ S0 본문·수치·기존 판정은 위에 그대로 보존한다. S0 잔차 평
 | S1 N1/D7 | TECHNICAL_PASS_CORE | NOT_ESTABLISHED | 79개; B0 유해 D2회수≥50% 12/18; 유익 안전성 9/48 | lock cccac1f/v2 3062701; runs39370673576,39370942876; 각artifact는 S1 MANIFEST |
 
 앞선 S1 입력 차단은 원래77개 source에 대해 유지하되, 사용자 승인 개정 격자79개 실행은 완료했다. 원래30+47 복원을 뜻하지 않는다. 첫 CSV parser 오류와 재실행을 모두 보존했으며 과학 기준은 동일하다. D7 미평가80개 event×bias 행과 특징 대응 분모는 S1 보고서에 명시했다. S0 수치·판정은 위에 그대로 유지한다. S2/S3로 진행하지 않았다.
+
+S1 수치·패킷 CSV 게시 커밋: `4a79ab3490326c10e8bcabc9c2dbcce46f5ad5b6` (42개 분할 커밋, 약226MB). 게시 내역은 S1 PUBLICATION_RECEIPT.json에 보존했다.
