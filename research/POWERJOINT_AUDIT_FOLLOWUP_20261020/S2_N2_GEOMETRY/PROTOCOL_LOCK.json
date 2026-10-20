@@ -1,0 +1,92 @@
+{
+  "task": "S2_N2_GEOMETRY",
+  "version": "V1_APPROVED_DISTANCE_STRATA",
+  "status": "PREREGISTERED_BEFORE_TRAIN_AND_RECURSION",
+  "S1_audit": "ACCEPT evidence and NOT_ESTABLISHED only; no S2 choices tuned from S1",
+  "S1_commit": "5b2f7c509863558e4de1f184d38f2404699d248e",
+  "approved_design": "Direct user approval: GEOM and GEOM_Q residual mean/covariance both conditioned on training d tertiles; explicit multivariate mean extension",
+  "engine_commit": "034e57a7209a3bd1bb8857b24fd85c64942e1258",
+  "engine_sha256": "e725f92bd74e6a845b07418d6f3b7a2974a518b2cd03b16969518bf879ee11b8",
+  "new_sensor_lock_sha256": "b05e7ead6cf658d20a4830094cec56332ffcc839e7dccf04fd4ce3a1f86ccef0",
+  "B_OLD": -0.5315983906250129,
+  "labels_sha256": "02038c4c967750905a80dde31b0bcd0b667bd5d11df1cb02e05023e06893ee4d",
+  "cached_oof_sha256": "207ef86a9c7c60037ca36439370ee12fe52f34eacf8c7046e64a76e669051f08",
+  "arms": [
+    "Q_POWER1",
+    "DIST_ONLY",
+    "GEOM",
+    "GEOM_Q"
+  ],
+  "mean_features": {
+    "Q_POWER1": [
+      "q"
+    ],
+    "DIST_ONLY": [
+      "raw_3D_d_m"
+    ],
+    "GEOM": [
+      "log10(max(d,1e-6))",
+      "log10(max(d,1e-6))^2",
+      "cos(theta_a)",
+      "sin(theta_a)",
+      "cos(2theta_a)",
+      "sin(2theta_a)",
+      "mount_deg/45",
+      "anchor_x/10",
+      "anchor_y/10",
+      "anchor_z/10"
+    ],
+    "GEOM_Q": "GEOM followed by current observed RF q"
+  },
+  "bins": {
+    "Q_POWER1": "training q tertiles",
+    "DIST_ONLY": "training raw3D d tertiles",
+    "GEOM": "training raw3D d tertiles",
+    "GEOM_Q": "same training d tertiles as GEOM",
+    "cutpoints": "np.unique(np.quantile(values,[1/3,2/3])) unweighted linear; searchsorted side=right; out-of-range exterior bins; no clipping",
+    "empty_or_small_bin": "error if n<15; retain failure; no fallback or jitter"
+  },
+  "training": "old Full only; exact T9 route-heldout/site-disjoint weights; four stored folds R2/R4/R5/ALL_OLD once; no C/O fit/scaler/bin/labels; GT geometry only for training",
+  "inference": "each arm own current pre-RF-update prior; observed q for Q/GEOM_Q only; nonradio returns zero mean/R0 and never accepts RF update; no GT/future/other arm prior",
+  "fitter": "StandardScaler unweighted; Ridge alpha30 sample_weight site weights; original row_cov and fix_cov; effective_n shrinkage to global, covariance floors/correlation cap unchanged; no hyperparameter search",
+  "primary_scope": "t>=30 on entire motion clock; RF-only auxiliary scored separately",
+  "case_counts": {
+    "legacy_full": 56,
+    "new_full": 720,
+    "native_los": 16,
+    "trained_arm_total": 792,
+    "los_R0_reference_separate": 4
+  },
+  "primary_seed": 0,
+  "other_seeds": "1..4 same RF motion-noise repeats; no independent-scene claim",
+  "decision": {
+    "GEOM_support": "all36 new seed0 cells GEOM<=1.10*Q AND all12 legacy M0 B0/L2 cells GEOM<=1.10*DIST_ONLY; normal valid violation NOT_ESTABLISHED; missing/failed forbids support",
+    "q_additional": "new seed0 36 cells GEOM_Q<.95*GEOM; >=19/36 permits bounded accuracy statement only",
+    "native_los_safety": "absolute and relative to JOINT4_R0 separately; not part of GEOM support; zero or tiny denominator no epsilon",
+    "tiny_denominator_threshold_deg": 1e-12,
+    "seed_repeat": "per case/bias/arm min/median/max, worst seed, count of seeds violating corresponding 10%/5% comparisons; do not offset seed0 failures",
+    "groups": "overall and corridor/office, legacy M0/M45 and per seed separate; no pooled majority or p-values"
+  },
+  "QA": {
+    "Q_historical_heading_abs_difference_deg": 1e-06,
+    "historical_gate_mismatch": 0,
+    "cached_mu_C_max_abs": 1e-10,
+    "scalar_adapter_max_abs": 1e-12,
+    "model_reload_max_abs": 0,
+    "independent_common11_max_abs": 1e-09,
+    "SPD": "all posterior/prior frames eig>0; no new repair",
+    "historical_trace_missing": "seed1..4 historical gates unverified; frozen T2 regenerated Q reference explicitly marked; compare T2 same seed/bias/motion metrics",
+    "source_model": "SourceFFD, original H/gate/update, engine body unchanged"
+  },
+  "OOD": "R2 A M45 heldout OUT_OF_TRAINING_RANGE_MOUNT; not solved by including mount feature",
+  "stop": "S2 only; no S3, RF regeneration, SRC_TAP, offset refit, new gate/memory, D4 substitute",
+  "contract_hashes": {
+    "CASE_MATRIX.csv": "00d6e62399f115840782ea1da998306c965a3b250687c0781be18708c78f63ab",
+    "LOS_REFERENCE_MATRIX.csv": "dd0473e31180ff0e62ee42a3080b5f148d1b78deac9b0a46eb317ee0cce8aedd",
+    "TRAIN_SPLITS.json": "b87f8098d346ca0b1690fdf17c4f98fab754d7a3fffd868696b886fd086c2ada",
+    "CASE_METADATA.json": "54b20a0d69bf40458f75d302846a94b3aa098dd966460afd19ea5d426109c6b1",
+    "model.py": "0441a13c67ebfdedfc12e7aaa6ea90b2861e9cfb9259c4a6293c191df141d0df",
+    "train.py": "31b97c0dcb381263f50258e4b7ddbe793be61234481f2d23ee0ab9df226a69c4",
+    "prepare_contract.py": "87e5133b9e781deebc7c628a3f0231c1641138424002b1e63d542fc40e1043fd"
+  }
+}
