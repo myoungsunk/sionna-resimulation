@@ -93,7 +93,7 @@ def sequential_update(x,P,z,R,case,model):
     y,Q,*_=single_update(y,Q,np.array([z[1]-a*z[0]]),np.array([h2[1]-a*h2[0]]),HH,np.array([[v]]))
     return y,Q
 
-def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,initial_cov=None):
+def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,initial_cov=None,parameter_provider=None):
     n=len(t);m=len(specs);nx=6;I=np.eye(nx)
     x=np.zeros((m,nx));x[:,:3]=initial_pose
     P=np.repeat(np.eye(nx)[None],m,axis=0);P[:,:4,:4]=PINIT if initial_cov is None else initial_cov
@@ -127,6 +127,9 @@ def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,ini
                 if i==a and 'oracle_heading' in spec:x[j,2]=spec['oracle_heading']
                 if a<=i<b and spec.get('zero_psi_bg'):P[j,2,3]=P[j,3,2]=0.
                 if a<=i<b and spec.get('r_scale'):Rs[-1]=Rs[-1]*spec['r_scale']
+            if parameter_provider is not None:
+                if spec.get('latent'):raise ValueError('dynamic provider is physical POWER only')
+                ms[-1],Rs[-1]=parameter_provider(i,x[j,:4].copy(),spec)
         ms=np.asarray(ms);Rs=np.asarray(Rs);Bs=np.asarray(Bs)
         xp[i]=x;pp[i]=P
         hp,H4=model.batch(x[:,:4],case,gradient=True)

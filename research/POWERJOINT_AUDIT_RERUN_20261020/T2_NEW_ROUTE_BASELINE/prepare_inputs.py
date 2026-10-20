@@ -65,6 +65,7 @@ def prepare_new_route(route_root, route_id):
     def candidates(suffix):
         found = []
         for path in root.rglob('*'+suffix):
+            if 'BATCHES' in path.parts: continue # partial chunks are not full-route duplicates
             data = pd.read_csv(path)
             if 'route_id' not in data or set(data.route_id.astype(str)) != {route_id}: continue
             verify(path); found.append((path, data))

@@ -1,0 +1,39 @@
+{
+  "task": "T5_INITIALIZATION",
+  "version": 1,
+  "status": "LOCK_BEFORE_EXECUTION",
+  "input": "T2 canonical B0 seed0 traces and exact case metadata; B_OLD SourceFFD observation with unchanged T2 mu/C and controls",
+  "events": [
+    {"event":"C03_A_x1_4_V1","case":"C03_A_M45_FULL","axis":"x","low":1,"high":4,"visit":1},
+    {"event":"C03_B_x1_4_V1","case":"C03_B_M45_FULL","axis":"x","low":1,"high":4,"visit":1},
+    {"event":"O01_initial_t0_5","case":"O01_O0_M45_FULL","time_start_s":0,"time_end_s":5}
+  ],
+  "event_membership": "C03 A/B half-open x=[1,4), maximal contiguous actual RF-row runs, visit1, t>=0, at least3 RF frames. Map to motion first RF index through last RF index+1. Frozen pose membership only, never outcome/GT-error selection. O01 initial region unspecified by original request: fixed inclusive time [0,5] seconds, actual RF rows, no geometry proxy or outcome selection.",
+  "settings": [
+    {"name":"BASELINE"},
+    {"name":"P_PSI_X05","diagonal":2,"variance_scale":0.5},
+    {"name":"P_PSI_X2","diagonal":2,"variance_scale":2},
+    {"name":"P_PSI_X4","diagonal":2,"variance_scale":4},
+    {"name":"P_BG_X05","diagonal":3,"variance_scale":0.5},
+    {"name":"P_BG_X2","diagonal":3,"variance_scale":2},
+    {"name":"P_BG_X4","diagonal":3,"variance_scale":4},
+    {"name":"BG_SIGMA_0001","bg_sigma_dps":0.001},
+    {"name":"BG_SIGMA_001","bg_sigma_dps":0.01},
+    {"name":"BG_SIGMA_01","bg_sigma_dps":0.1}
+  ],
+  "initialization": "Copy canonical_engine.PINIT, which has zero initial cross terms. Change only specified physical covariance diagonal; scale means variance, not standard deviation. bg sigma is converted from deg/s to rad/s and squared. All initial means, RF observations, learned parameters, radio mask, controls and truth arrays remain unchanged. BASELINE and sigma0.1 duplicate intentionally retained.",
+  "arms_per_setting": ["FULL_POWER1","SKIP_INITIAL_EVENT"],
+  "counterfactual": "For each initialization use identical changed P in FULL and SKIP; skip updates only inside fixed initial event, afterwards original POWER1 persists. No GT prior reset. Geometric event ablation comparison is ORACLE_DIAGNOSTIC.",
+  "evaluation_starts_s": [5,10,30],
+  "scope": "all motion samples at t>=evaluation_start; also RF-only at same starts for comparison. Main T5 criterion t>=30 all motion.",
+  "decision": {
+    "primary_case":"C03_A_M45_FULL",
+    "main_scope":"MOTION_T30",
+    "baseline_skip_gain":"Heading RMSE FULL baseline minus SKIP baseline; positive is harmful event",
+    "effect_removed":"1 - abs(changed_P_skip_gain)/abs(baseline_skip_gain). Sign reversal alone does not imply removal; abs reduction must reach50%.",
+    "supported":"C03 A baseline skip gain positive and nonzero, and any of nine predeclared nonbaseline settings removes>=50% of its magnitude at t>=30. SUPPORTED_BUT_LIMITED: initialization sensitivity in replay; do not claim multipath impossible or sole cause.",
+    "otherwise":"NOT_ESTABLISHED; comparison cases C03B/O01 do not replace primary case and all settings reported, no tuning or selected universal setting"
+  },
+  "verification": {"T2_POWER1_heading_rmse_deg_tolerance":1e-6,"T2_POWER1_gate_mismatches":0,"independent_scalar_scorer_max_abs_difference":1e-9,"covariance":"Every prior/posterior finite and positive definite; preserve errors without repair"},
+  "independence_and_limits":"Same corridor/office scene families, motion noise fixed seed0. No independent-scene generalization, normalized Bayesian posterior, or hardware validation. SOURCE model change or sensor change needs new protocol version and additive outputs."
+}

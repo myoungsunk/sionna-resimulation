@@ -1,0 +1,79 @@
+{
+  "task": "T2_NEW_ROUTE_BASELINE",
+  "status": "PRE_EXECUTION",
+  "route_request_revision": "81f716e5db1e2ff8a9ff1d6187d1a8c53329c24f",
+  "motion_dt_s": 0.25,
+  "motion_time_tolerance_s": 1e-09,
+  "rf_policy": "Use exact radio pose_id subset of full ROUTE_POSE; no H interpolation or RF at nonradio frames; radio_at_turn/scan/vertices retained",
+  "motion_truth": "Use released full motion CSV if present; otherwise exact original 02_prepare_routes.py at81f716e and frozen01_ROUTE_REQUEST. Require generated radio CSV byte identity to every released radio CSV; no RF/geometry interpolation.",
+  "sensor": "Exact pinned build_positive_bias_controls code, Sensor-v2 white-noise streams and initial errors; only motion_increments tolerance explicitly changed for CSV serialization",
+  "legacy_euler_lateral_tolerance_m": 2e-06,
+  "serialization_policy": "Projection onto published body direction via original motion_increments; log each discarded lateral residual. This is <=2um serialization tolerance, not geometry repair. Larger residual BLOCKED_INPUT.",
+  "bias_dps": {
+    "B0": 0,
+    "L0": 0.01,
+    "L1": 0.05,
+    "L2": 0.2
+  },
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "seed_interpretation": "motion noise and original paired initial-error stream repeats on same immutable RF; not independent RF or scene replicates",
+  "initial_pose_std_m_m_deg": [
+    0.1,
+    0.1,
+    5
+  ],
+  "initial_bias_std_dps": 0.1,
+  "gyro_N_dps_sqrt_s": 0.015,
+  "wheel_k_distance_m": 2e-05,
+  "gyro_scale_wheel_asymmetry_wheelbase_common_bias_rw": 0,
+  "slip": "off; B0 noise_pair also disables slip",
+  "arms": [
+    "DR4",
+    "JOINT4",
+    "POWER1"
+  ],
+  "cases": [
+    "C01_A",
+    "C01_B",
+    "C02_A",
+    "C02_B",
+    "C03_A",
+    "C03_B",
+    "O01_O0",
+    "O02_O0",
+    "O03_O0"
+  ],
+  "evaluation_t_min_s": 30,
+  "POWER_training": "All existing R2/R4/R5 Full source labels train-only; no C/O training. This differs from Chain F old R2-heldout R4/R5 fold.",
+  "LoS_flags": "Use source LOS_EXISTS.npy or explicit radio CSV los_exists field, preserve false rows; missing flags BLOCKED_INPUT",
+  "identity": "Verify extracted-file receipt hashes before sensor generation; duplicates accepted only when byte-identical; radio geometry/time must equal motion pose_id rows",
+  "reported_metrics": [
+    "heading_rmse_deg",
+    "signed_heading_deg",
+    "heading_sigma_rms_deg",
+    "heading95",
+    "heading_nees",
+    "pose_nees",
+    "conditional_xy_nees",
+    "xy_rmse_m",
+    "bias_rmse_dps",
+    "bias_mean_dps",
+    "bias_final_dps"
+  ],
+  "baseline_target": "BASELINE.csv seed0 canonical; seeds0-4 ranges explicitly motion-noise-repeat including original initial-error stream; previous F/crosscase comparisons row-wise",
+  "inference_exclusions": [
+    "GT pose",
+    "Native LoS H",
+    "future samples"
+  ],
+  "GT_allowed": "sensor generation and evaluation only",
+  "scientific_independence": "C01-C03 and legacy routes share one corridor scene; O01-O03 share one office scene; no independent-condition p-values",
+  "lock_revision": 2,
+  "revision_reason": "Original release contains only RADIO_POSE.csv; first run39358306921 stopped before sensor generation. Deterministic original generator recovery, no result-based parameter change."
+}
