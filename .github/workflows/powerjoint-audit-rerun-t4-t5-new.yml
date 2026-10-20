@@ -1,0 +1,69 @@
+name: Powerjoint audit T4 T5 canonical new events
+on:
+  workflow_dispatch:
+    inputs:
+      t2_run:
+        description: Successful canonical T2 run id
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  replay:
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [C01, C02, C03, O01, O02, O03]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: work/source
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020
+            research/CHAIN_HYPOTHESIS_20261019
+            research/CHAIN_VALIDATED_RESULTS_20261019
+            research/FFD_P0P3_20261016
+            research/EKF4_RANGE_S_STAGED_20261014
+            research/R5_N4B_20261015
+            research/R5_N4C_20261015
+            research/PHYSICS_RS_STAGED_20261015/code
+            research/R5_FULLRF_SAME_START_EKF4_20261015
+            results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 scikit-learn==1.8.0
+      - name: Restore immutable release inputs
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore.py
+      - name: Recover hash-verified canonical T2 traces
+        working-directory: work
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run ${{ inputs.t2_run }} --route ${{ matrix.route }} --out canonical_t2
+      - name: F1 frozen new-route events
+        if: contains(fromJSON('["C01","C02","O02","O03"]'), matrix.route)
+        continue-on-error: true
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/run_events.py --new-traces canonical_t2/t2_new/traces --case-config canonical_t2/CASES.json --source-root source --execution-root . --key-b0 source/research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv --out t4_new
+      - name: Frozen initialization sensitivity
+        if: contains(fromJSON('["C03","O01"]'), matrix.route)
+        working-directory: work
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/T5_INITIALIZATION/run_initialization.py --new-traces canonical_t2/t2_new/traces --case-config canonical_t2/CASES.json --source-root source --execution-root . --out t5_new
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-newdiag-${{ matrix.route }}-${{ github.run_id }}
+          path: |
+            work/t4_new
+            work/t5_new
+            work/canonical_t2/ARTIFACT_RECEIPT.json
+            work/RESTORE_RECEIPT.json
+          retention-days: 30
