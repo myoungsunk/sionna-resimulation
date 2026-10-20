@@ -1,0 +1,75 @@
+{
+  "status": "EXECUTED_FULL_ONLY_FEATURE_DESCRIPTIVE_AUDIT",
+  "n_observed_packets": 2647,
+  "n_routes": 6,
+  "n_anchors_routes": 9,
+  "n_preselected_events": 12,
+  "n_positive_skip_events": 7,
+  "online_input": [
+    "two time-aligned port CIR powers from current Full packet"
+  ],
+  "excluded_predictors": [
+    "H_LoS",
+    "H_Full-H_LoS",
+    "true_pose",
+    "true_heading",
+    "true_arrival",
+    "future_packets",
+    "coherent_cross_port_phase"
+  ],
+  "feature_windows_ns": [
+    4,
+    16,
+    40
+  ],
+  "offline_use": [
+    "known geometry episode identity",
+    "historical causal RF skip effects",
+    "Direct-LoS and geometric arrival timing diagnostics"
+  ],
+  "new_EKF_runs": 0,
+  "online_gate_or_model_selected": false,
+  "independent_event_or_environment_validation": false,
+  "hardware_replay": false,
+  "notes": [
+    "Raw H ideal simulation; hardware noise and sequential port synchronization not emulated",
+    "Measured |s| saturation is not Heading Jacobian",
+    "No current-prior covariance or likelihood-branch metrics computed in this artifact",
+    "Scalar AUROC is 12 selected correlated events, not validation",
+    "R4/R5 old or regenerated Mount45 excluded from this new six-route audit",
+    "Time oversampling compares grid only, no repeated CIR acquisition"
+  ],
+  "pure_path_qa": {
+    "phase_independent_per_port": "PASS",
+    "common_gain_invariance": "PASS",
+    "single_path_constant_port_ratio": "PASS",
+    "synthetic_single_path_leading_edge_bias": [
+      {
+        "factor": 4,
+        "tap_spacing_ns": 0.49885263893045995,
+        "detected_minus_geom_ns": -2.2667155542252786
+      },
+      {
+        "factor": 8,
+        "tap_spacing_ns": 0.24942631946522997,
+        "detected_minus_geom_ns": -2.5161418736905077
+      },
+      {
+        "factor": 16,
+        "tap_spacing_ns": 0.12471315973261499,
+        "detected_minus_geom_ns": -2.5161418736905077
+      },
+      {
+        "factor": 32,
+        "tap_spacing_ns": 0.06235657986630749,
+        "detected_minus_geom_ns": -2.5161418736905077
+      },
+      {
+        "factor": 64,
+        "tap_spacing_ns": 0.031178289933153747,
+        "detected_minus_geom_ns": -2.547320163623663
+      }
+    ],
+    "is_hardware_test": false
+  }
+}
