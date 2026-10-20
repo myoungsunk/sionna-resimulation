@@ -43,6 +43,21 @@ def main():
    else:assert r['delta'] is None and not r['enabled_v3'] and r['status']=='UNCALIBRATED_NO_OOF_SELECTION'
   oof_count+=len(f)
  assert oof_count==sum(x['included'] for x in lock['label_shards'])==351060
+ # Independently apply the locked decision rule to every saved online prediction.
+ action_rows=0;actions=np.array(['R0','INFLATE4','SKIP'])
+ for path in (HERE/'execution').rglob('ACTIONS_*.csv'):
+  f=pd.read_csv(path,float_precision='round_trip')
+  if 'predicted_utility_R0' not in f:continue
+  for (case,arm),part in f.groupby(['case','arm']):
+   fold=case.split('_')[0] if case.startswith('R') else 'ALL_OLD';pred=part[['predicted_utility_'+x for x in actions]].to_numpy()
+   if arm=='POLICY_V3':
+    adjustment=np.array([margins[fold][x]['delta'] if margins[fold][x]['enabled_v3'] else np.inf for x in actions]);pred=pred-adjustment
+   else:assert arm=='POLICY_NO_MARGIN'
+   j=np.argmax(pred,axis=1);best=pred[np.arange(len(pred)),j];expected=np.where(best>0,actions[j],'POWER');assert np.array_equal(expected,part.action.to_numpy()),('ONLINE_DECISION',path,arm)
+   action_rows+=len(part)
+ checks=pd.read_csv(HERE/'CHECKS.csv',float_precision='round_trip');seedchecks=checks[checks.check=='ACTUAL_SEED_CONTROLS'];assert len(seedchecks)==420
+ assert (seedchecks.loc[seedchecks.seed!=0,'seed0_max_abs_difference']>0).all() and (seedchecks.loc[seedchecks.seed==0,'seed0_max_abs_difference']==0).all()
+ assert action_rows>0
  manifest=json.loads((HERE/'MANIFEST.json').read_text())
  for r in manifest['original_artifacts']:
   assert r['archive_sha256']==r['release_readback_sha256'] and r['archive_bytes']==r['release_readback_bytes']
@@ -50,5 +65,5 @@ def main():
   for member in r['members']:
    if member.get('summary_extracted'):
     p=folder/member['name'];assert p.stat().st_size==member['bytes'] and sha(p)==member['sha256'],p
- print(json.dumps(dict(final_commit=head,remote_S3_files_byte_identical=n,preserved_S0_S1_S2_and_original_audit=True,S2_root_prefix_preserved=True,locked_evaluation_rows=288,locked_label_rows=oof_count,independent_11_max_abs=float(df.scorer_max_abs_difference.max()),margin_recalculation_max_abs=max_margin_error,original_archives_verified=len(manifest['original_artifacts']),full_pass=full,los_pass=los,scientific=d['scientific'])),flush=True)
+ print(json.dumps(dict(final_commit=head,remote_S3_files_byte_identical=n,preserved_S0_S1_S2_and_original_audit=True,S2_root_prefix_preserved=True,locked_evaluation_rows=288,locked_label_rows=oof_count,independent_11_max_abs=float(df.scorer_max_abs_difference.max()),margin_recalculation_max_abs=max_margin_error,online_action_rows_recomputed=action_rows,actual_seed_control_checks=420,original_archives_verified=len(manifest['original_artifacts']),full_pass=full,los_pass=los,scientific=d['scientific'])),flush=True)
 if __name__=='__main__':main()

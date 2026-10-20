@@ -23,9 +23,15 @@ def main():
  supported=bool(technical and not errors and full.pass_10pct.all() and los.pass_10pct.all())
  decision=dict(technical='TECHNICAL_PASS' if technical and not errors else 'ERROR_OR_INCOMPLETE',scientific='SUPPORTED_BUT_LIMITED' if supported else 'NOT_ESTABLISHED',go_no_go='GO_LIMITED' if supported else 'NO_GO',n_results=len(df),full_pass=int(full.pass_10pct.sum()),full_denominator=64,los_pass=int(los.pass_10pct.sum()),los_denominator=8,independent_11_max_abs_difference=maxscore,violations=v3[(v3.status=='VALID')&(~v3.pass_10pct)].to_dict('records'),technical_failures=v3[v3.status!='VALID'].to_dict('records'),no_margin=dict(full_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='full')].pass_10pct.sum()),los_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='los')].pass_10pct.sum())))
  df.to_csv(a.out/'POLICY_RESULTS.csv',index=False);comp.to_csv(a.out/'POLICY_COMPARISON.csv',index=False);checks.to_csv(a.out/'CHECKS.csv',index=False)
+ action_text=[]
  for name in ['ACTION_RATES','LABELS_SUMMARY']:
   parts=[pd.read_csv(p) for p in a.inputs.rglob(name+'.csv')]
-  if parts:pd.concat(parts,ignore_index=True,sort=False).to_csv(a.out/(name+'.csv'),index=False)
+  if parts:
+   combined=pd.concat(parts,ignore_index=True,sort=False);combined.to_csv(a.out/(name+'.csv'),index=False)
+   if name=='ACTION_RATES':
+    for (channel,arm),g in combined[combined.scope=='t30_radio'].groupby(['channel','arm']):
+     n=int(g.n_selected.sum());accepted=int(g.n_gate_accepted.sum());counts=g.groupby('action').n_selected.sum()
+     action_text.append('| '+channel+' | '+arm+' | '+str(n)+' | '+' / '.join(f'{x} {int(counts.get(x,0))/n:.4%}' for x in ['POWER','R0','INFLATE4','SKIP'])+' | '+f'{accepted/n:.4%}'+' |')
  dump(a.out/'DECISION.json',decision);dump(a.out/'ERRORS.json',errors)
  marginpath=next(a.inputs.rglob('MARGINS.json'));margins=json.loads(marginpath.read_text());mtext='\n'.join(f"| {outer} | {action} | {r['delta']} | {r['n_selected']} | {r['status']} |" for outer,acts in margins['margins'].items() for action,r in acts.items())
  vio='\n'.join(f"| {r['case']} | {r['channel']} | {r['bias']} | {r['reference_rmse_deg']:.9f} | {r['policy_rmse_deg']:.9f} | {r['ratio']:.6f} |" for r in decision['violations'])
@@ -48,6 +54,14 @@ TECHNICAL: {decision['technical']}. 과학 판정: {decision['scientific']} / {d
 | outer | action | delta (deg²) | OOF 선택 행 | 상태 |
 |---|---|---:|---:|---|
 {mtext}
+
+## 행동 선택과 gate 수락 (t≥30 s RF)
+
+| 입력 | arm | RF 결정 수 | 행동 선택 비율 | 전체 gate 수락 비율 |
+|---|---|---:|---|---:|
+{chr(10).join(action_text)}
+
+RF 결정 수는 동일 RF의 조건·bias 반복을 포함한 처리 횟수이며 독립 표본 수가 아니다. 자세한 셀별 수치는 ACTION_RATES.csv다. 선택과 수락을 구분한다.
 
 ## 해석 범위
 
