@@ -1,0 +1,90 @@
+{
+  "feature_names": [
+    "range_m",
+    "log_fp_power",
+    "abs_s_fp",
+    "early4",
+    "early8",
+    "early16",
+    "delay_rms_ns",
+    "peak_diff_ns",
+    "eta_fp_win80",
+    "s_diff4",
+    "s_diff8",
+    "s_diff16",
+    "tap_pol_var80",
+    "jones_diversity",
+    "freq_s_var",
+    "detector_s_span",
+    "detector_delay_span_ns",
+    "power_nis",
+    "sigma_psi_rad",
+    "P_psi_bg",
+    "H_spsi"
+  ],
+  "actions": [
+    "POWER",
+    "R0",
+    "INFLATE4",
+    "SKIP"
+  ],
+  "models": {
+    "R2": {
+      "file": "R2.pkl",
+      "sha256": "27b3e2195b5b06bb0e692ead2163b05d0b63ce57a9f09180c5132b801a8d338a",
+      "n_train": 142,
+      "training_routes": [
+        "R4",
+        "R5"
+      ]
+    },
+    "R4": {
+      "file": "R4.pkl",
+      "sha256": "65ea2625973931967cbc5e89bad54c81541016565a5896e994c9a3a36a86350b",
+      "n_train": 194,
+      "training_routes": [
+        "R2",
+        "R5"
+      ]
+    },
+    "R5": {
+      "file": "R5.pkl",
+      "sha256": "039b10d70b54ebe671fd3a2b680f49183bcaaa7da518fdb2583aec468c9fd2bb",
+      "n_train": 140,
+      "training_routes": [
+        "R2",
+        "R4"
+      ]
+    },
+    "ALL_OLD": {
+      "file": "ALL_OLD.pkl",
+      "sha256": "2e19ed295ed4b921b7cadc827dc561b745adf6a5772ffbd6cfe9d2d30bb52bcc",
+      "n_train": 238,
+      "training_routes": [
+        "R2",
+        "R4",
+        "R5"
+      ]
+    }
+  },
+  "input_sha256": {
+    "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/PROTOCOL_LOCK.json": "66709eb7f357897573f5b1b05e7dc410329e0507d36d5388875fde07cabb38a2",
+    "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/utility_policy.py": "49d3c18619765a675c9a0cfb90af66aa4c5b5115553f0cf50ffb62b9797764be",
+    "work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD/DECISION.json": "b0e8fd929970a68b8228def7021a653ae31e0a546bc53ea2a356c867cb50574c",
+    "work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD/MANIFEST.json": "a6cd44746cdab68c208c160029c397121df0567983a65a49f81305c802828d98",
+    "work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD/INTERVENTIONS.csv": "3fa0b14a261ef8ad1885321d23a5c1f5506e58b8730014dd27a27cbc2489dbf1",
+    "work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD/BASELINE_CHECKS.csv": "447cbbb6b663475ca5cc22d29f01ea80ba37e5be5b4362dc3482bd88b1d7a83e",
+    "/home/runner/work/sionna-resimulation/sionna-resimulation/work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T7_POLICY/RECOVERY_MANIFEST.json": "92ac82ba30347bcc9ef4762805b26b8e24d04b149928dba4c28cbff2957e6fd6",
+    "work/source/research/POWERJOINT_AUDIT_RERUN_20261020/T4_F1_EVENT/final_B_OLD/ERRORS.json": "756dcc9a23266af2278635918bd3d0490f320b9397eadb42b767a43d71464194",
+    "work/labels/policy-label-ALL_OLD-39361956622/MANIFEST.json": "f98a4b0c628651d3fbb15f7b23169590374b55948e4bc746e6204546c68712ff",
+    "work/labels/policy-label-ALL_OLD-39361956622/UTILITY_LABELS.csv": "e59ea5e4c7d07a7d40b58f68352d8f6e19a275d5dbd398a16f2fed785382bc6e",
+    "work/labels/policy-label-R2-39361956622/MANIFEST.json": "6bc6f840bcb96f5974f803c5e0a18c6139a072ec83f263f5a3f3eebe57c7364e",
+    "work/labels/policy-label-R2-39361956622/UTILITY_LABELS.csv": "1495b1983d946300dd5a738d1ec0e116fb577a64d2ea3303091ae97e75e00507",
+    "work/labels/policy-label-R4-39361956622/MANIFEST.json": "4ed934a346dcb2db2ee562f1dc6d8677451e043496c9e9d8312c4859afab2bdc",
+    "work/labels/policy-label-R4-39361956622/UTILITY_LABELS.csv": "122983a054022ea36cede20bf73fca4eb79266fe8d9c0fbf536126e87efec5d7",
+    "work/labels/policy-label-R5-39361956622/MANIFEST.json": "d5486939b3dfd4576ef24cedae1f8effbec1ee7267163954582248cd939e3884",
+    "work/labels/policy-label-R5-39361956622/UTILITY_LABELS.csv": "99065aa19a5fb86e44b561d0a6d980ff72dbc9b09297a5baa470836f8b4dab73"
+  },
+  "sklearn_version": "1.8.0",
+  "protocol_sha256": "66709eb7f357897573f5b1b05e7dc410329e0507d36d5388875fde07cabb38a2"
+}
