@@ -1,5 +1,8 @@
 name: Powerjoint audit T4 T5 canonical new events
 on:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [.github/workflows/powerjoint-audit-rerun-t4-t5-new.yml]
   workflow_dispatch:
     inputs:
       t2_run:
@@ -8,6 +11,7 @@ on:
         type: string
 permissions:
   contents: read
+  actions: read
 jobs:
   replay:
     strategy:
@@ -47,7 +51,7 @@ jobs:
         working-directory: work
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run ${{ inputs.t2_run }} --route ${{ matrix.route }} --out canonical_t2
+        run: python source/research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run ${{ inputs.t2_run || '39359952488' }} --route ${{ matrix.route }} --out canonical_t2
       - name: F1 frozen new-route events
         if: contains(fromJSON('["C01","C02","O02","O03"]'), matrix.route)
         continue-on-error: true

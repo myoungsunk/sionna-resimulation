@@ -93,15 +93,20 @@ def sequential_update(x,P,z,R,case,model):
     y,Q,*_=single_update(y,Q,np.array([z[1]-a*z[0]]),np.array([h2[1]-a*h2[0]]),HH,np.array([[v]]))
     return y,Q
 
-def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,initial_cov=None,parameter_provider=None):
+def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,initial_cov=None,parameter_provider=None,initial_state4=None,decision_provider=None):
     n=len(t);m=len(specs);nx=6;I=np.eye(nx)
     x=np.zeros((m,nx));x[:,:3]=initial_pose
+    if initial_state4 is not None:
+        initial_state4=np.asarray(initial_state4,float)
+        if initial_state4.shape!=(4,) or not np.isfinite(initial_state4).all():raise ValueError('INVALID_INITIAL_STATE4')
+        x[:,:4]=initial_state4
     P=np.repeat(np.eye(nx)[None],m,axis=0);P[:,:4,:4]=PINIT if initial_cov is None else initial_cov
     radio_mask=np.ones(n,bool) if radio_mask is None else np.asarray(radio_mask,bool)
     xs=np.zeros((n,m,nx));ps=np.zeros((n,m,nx,nx));xp=np.zeros_like(xs);pp=np.zeros_like(ps)
     nus=np.zeros((n,m,2));SS=np.zeros((n,m,2,2));Ks=np.zeros((n,m,nx,2));Hs=np.zeros((n,m,2,nx));hs=np.zeros((n,m,2))
     gates=np.zeros((n,m),bool);nis=np.zeros((n,m));proposed=np.zeros((n,m));linear_error=np.zeros((n,m));iterations=np.zeros((n,m),int)
     used_mu=np.zeros((n,m,2));used_R=np.zeros((n,m,2,2));loadings=np.zeros((n,m,2,2))
+    decisions=np.full((n,m),'POWER',dtype='<U8') if decision_provider is not None else None
     R0=np.diag([.0068578637,.0081]);min_eig=np.inf
     for i in range(n):
         dt=float(controls['dt_s'][i]) if i else .2
@@ -134,6 +139,17 @@ def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,ini
         xp[i]=x;pp[i]=P
         hp,H4=model.batch(x[:,:4],case,gradient=True)
         H=np.zeros((m,2,6));H[:,:,:4]=H4;H[:,:,4:]=Bs
+        action_skip=np.zeros(m,bool)
+        if decision_provider is not None and radio_mask[i]:
+            for j,spec in enumerate(specs):
+                if spec.get('latent') or spec.get('order') or 'diagnostic_event' in spec:
+                    raise ValueError('decision provider requires ordinary physical joint update')
+                action=decision_provider(i,x[j,:4].copy(),P[j,:4,:4].copy(),hp[j].copy(),H4[j].copy(),ms[j].copy(),Rs[j].copy(),spec)
+                if action not in ('POWER','R0','INFLATE4','SKIP'):raise ValueError('INVALID_DECISION_ACTION:'+str(action))
+                decisions[i,j]=action
+                if action=='R0':ms[j]=np.zeros(2);Rs[j]=R0.copy()
+                elif action=='INFLATE4':Rs[j]=Rs[j]*4.
+                elif action=='SKIP':action_skip[j]=True
         pred=hp+np.einsum('mab,mb->ma',Bs,x[:,4:])
         nu=z[i][None]-ms-pred;S=H@P@H.transpose(0,2,1)+Rs
         K=np.linalg.solve(S,H@P).transpose(0,2,1)
@@ -154,6 +170,7 @@ def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,ini
             if a<=i<b and 'channel' in spec:accept[j]=value[j]<=6.6348966010212145
             if spec.get('skip_all') or not radio_mask[i]:accept[j]=False
             if a<=i<b and spec.get('skip_event'):accept[j]=False
+            if action_skip[j]:accept[j]=False
         proposed[i]=d[:,2];nis[i]=value;gates[i]=accept;nus[i]=nu;SS[i]=S;Ks[i]=K;Hs[i]=H;hs[i]=hp;used_mu[i]=ms;used_R[i]=Rs;loadings[i]=Bs
         nxall=x+d;nxall[:,2]=wrap(nxall[:,2]);A=I[None]-K@H;pc=A@P@A.transpose(0,2,1)+K@Rs@K.transpose(0,2,1)
         for j,spec in enumerate(specs):
@@ -170,4 +187,6 @@ def run(t,controls,initial_pose,z,mu,C,risk,case,model,specs,radio_mask=None,ini
         xs[i]=x;ps[i]=P
         if i%250==0: print('RECURSIVE_PROGRESS',case['id'],i,n,flush=True)
     # Only x physical marginal is used for main accuracy/reliability evaluation.
-    return dict(t=t,state=xs,cov=ps,prior=xp,prior_cov=pp,innovation=nus,S=SS,K=Ks,H=Hs,h=hs,accepted=gates,nis=nis,proposal_dpsi=proposed,iterations=iterations,mean=used_mu,Rwhite=used_R,B=loadings,names=np.array([s['name'] for s in specs]),minimum_cov_eigenvalue=np.array(min_eig))
+    result=dict(t=t,state=xs,cov=ps,prior=xp,prior_cov=pp,innovation=nus,S=SS,K=Ks,H=Hs,h=hs,accepted=gates,nis=nis,proposal_dpsi=proposed,iterations=iterations,mean=used_mu,Rwhite=used_R,B=loadings,names=np.array([s['name'] for s in specs]),minimum_cov_eigenvalue=np.array(min_eig))
+    if decisions is not None:result['decisions']=decisions
+    return result
