@@ -19,7 +19,7 @@ def main():
  errors=[]
  for path in a.inputs.rglob('ERRORS.json'):
   for e in json.loads(path.read_text()):errors.append(dict(source=str(path),**e))
- checks=pd.concat([pd.read_csv(p) for p in a.inputs.rglob('CHECKS.csv')],ignore_index=True,sort=False);maxscore=float(df.scorer_max_abs_difference.max()) if 'scorer_max_abs_difference' in df else None
+ checks=pd.concat([pd.read_csv(p).assign(source_file=str(p.relative_to(a.inputs))) for p in a.inputs.rglob('CHECKS.csv')],ignore_index=True,sort=False);maxscore=float(df.scorer_max_abs_difference.max()) if 'scorer_max_abs_difference' in df else None
  supported=bool(technical and not errors and full.pass_10pct.all() and los.pass_10pct.all())
  decision=dict(technical='TECHNICAL_PASS' if technical and not errors else 'ERROR_OR_INCOMPLETE',scientific='SUPPORTED_BUT_LIMITED' if supported else 'NOT_ESTABLISHED',go_no_go='GO_LIMITED' if supported else 'NO_GO',n_results=len(df),full_pass=int(full.pass_10pct.sum()),full_denominator=64,los_pass=int(los.pass_10pct.sum()),los_denominator=8,independent_11_max_abs_difference=maxscore,violations=v3[(v3.status=='VALID')&(~v3.pass_10pct)].to_dict('records'),technical_failures=v3[v3.status!='VALID'].to_dict('records'),no_margin=dict(full_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='full')].pass_10pct.sum()),los_pass=int(comp[(comp.arm=='POLICY_NO_MARGIN')&(comp.channel=='los')].pass_10pct.sum())))
  df.to_csv(a.out/'POLICY_RESULTS.csv',index=False);comp.to_csv(a.out/'POLICY_COMPARISON.csv',index=False);checks.to_csv(a.out/'CHECKS.csv',index=False)
@@ -52,6 +52,8 @@ TECHNICAL: {decision['technical']}. 과학 판정: {decision['scientific']} / {d
 ## 해석 범위
 
 학습은 전수 RF×4 bias×5 seed이며 label loss는 현재 시점 제외 (t,t+10s]의 단발 개입 후 POWER 복귀다. 반면 평가 정책은 매 패킷 다시 행동을 선택한다. 이 단발 label과 지속 재귀 정책의 상태·목적함수 차이를 해소했다고 주장하지 않는다.
+
+R2-heldout은 학습에 M45 mount가 없는 OUT_OF_TRAINING_RANGE_MOUNT 평가를 포함한다. q 기반 모델과 gate는 기존 기준을 유지했으며 S2 GEOM은 채택하지 않았다.
 
 OOF는 고정 v2 prior-label에서 HGB 단계 route-heldout이다. ROUTE_DEPENDENCIES.csv에 상위 P1의 검증 route 의존성을 기록했다. 전체 pipeline OOF나 독립 보정·coverage 보장은 없다. 중첩 창과 동일 RF의 bias/seed 및 fold 중복은 독립 정보가 아니다. ALL_OLD 기준 고유 eligible RF 5,851개, greedy 비겹침 10초 창 120개는 조건별 합계이며 독립 장면 수가 아니다.
 
