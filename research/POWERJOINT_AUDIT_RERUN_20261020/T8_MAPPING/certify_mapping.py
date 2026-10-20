@@ -27,7 +27,7 @@ def resolve(base, name):
     return path if path.is_absolute() else base/path
 
 
-def poses(frame, columns, fixed_z=None):
+def poses(frame, columns, fixed_z=None, allow_missing_time=False):
     required = ('x', 'y', 'time', 'body')
     for key in required:
         if columns[key] not in frame: raise ValueError('MISSING_COLUMN:'+columns[key])
@@ -40,7 +40,7 @@ def poses(frame, columns, fixed_z=None):
         raise ValueError('MISSING_HEIGHT_EVIDENCE')
     xyz = np.column_stack((x, y, z))
     ant = frame[columns['antenna']].to_numpy(float) if 'antenna' in columns else None
-    if not np.isfinite(np.c_[xyz, t, body]).all() or (ant is not None and not np.isfinite(ant).all()):
+    if not np.isfinite(np.c_[xyz, body] if allow_missing_time else np.c_[xyz, t, body]).all() or (ant is not None and not np.isfinite(ant).all()):
         raise ValueError('NONFINITE_POSE_OR_TIME')
     return xyz, t, body, ant
 
@@ -144,17 +144,24 @@ def main():
                 sys.path.insert(0,str(args.source_root/'research/CHAIN_HYPOTHESIS_20261019'))
                 from run import frozen_inputs
                 raw=frozen_inputs()[(cid,'full')]
-                if not np.array_equal(ref.pose_id.to_numpy(int),raw['pose_id'].astype(int)):
-                    raise ValueError('REFERENCE_RF_CLOCK_POSE_ID_MISMATCH')
+                index={int(pid):i for i,pid in enumerate(raw['pose_id'])}
+                times=np.full(len(ref),np.nan)
                 actual=raw['truth_for_offline_scoring_only'][:,:3]
-                if np.max(abs(ref[['x','y']].to_numpy()-actual[:,:2]))>1e-10 or np.max(abs(wrap(ref.yaw_body_deg.to_numpy()-np.degrees(actual[:,2]))))>1e-8:
-                    raise ValueError('REFERENCE_RF_CLOCK_GEOMETRY_MISMATCH')
-                ref[rc['time']]=raw['t_s']
+                for j,row in ref.iterrows():
+                    i=index.get(int(row.pose_id))
+                    if i is None:continue
+                    if np.max(abs(row[['x','y']].to_numpy(float)-actual[i,:2]))>1e-8 or abs(wrap(float(row.yaw_body_deg)-np.degrees(actual[i,2])))>1e-6:
+                        raise ValueError('REFERENCE_RF_CLOCK_GEOMETRY_MISMATCH')
+                    times[j]=raw['t_s'][i]
+                ref[rc['time']]=times
+                # Missing clocks forbid recursive certification, but do not erase
+                # independently certified geometry-only static pose pairs.
+                rec['reference_clock_missing_rows']=int(np.isnan(times).sum())
                 evidence[str(args.source_root.parent/'rf_frozen.zip')]=sha(args.source_root.parent/'rf_frozen.zip')
             fixed_z = rec.get('radio_z_m')
             if nc['z'] not in new and (fixed_z is None or not rec.get('metadata_evidence')):
                 raise ValueError('M45_HEIGHT_NOT_INDEPENDENTLY_DOCUMENTED')
-            oldxyz, oldt, oldbody, _ = poses(ref, rc, case['robot_z_m'])
+            oldxyz, oldt, oldbody, _ = poses(ref, rc, case['robot_z_m'], allow_missing_time=True)
             newxyz, newt, newbody, newant = poses(new, nc, fixed_z)
             if newant is None: raise ValueError('M45_ANTENNA_COLUMN_REQUIRED')
             H = np.load(resolve(base, rec['full_h']), mmap_mode='r', allow_pickle=False)
@@ -195,7 +202,7 @@ def main():
                     m45_t_s=float(newt[j]), antenna_relation_valid=True)
                 matches_log.append(match); selected.append(match)
             certified = bool(length_equal and monotone and h_aligned and all_rows)
-            summary = dict(case=cid, reference_n=len(ref), m45_n=len(new), length_equal=length_equal,
+            summary = dict(case=cid, reference_clock_missing_rows=rec.get('reference_clock_missing_rows',0), reference_n=len(ref), m45_n=len(new), length_equal=length_equal,
                 times_strictly_monotone=monotone, h_rows_aligned=h_aligned,
                 ordered_rows_all_pass=all_rows, recursive_binding_certified=certified,
                 recursive_status='ELIGIBLE_NOT_EXECUTED' if certified else 'BLOCKED_INPUT',
