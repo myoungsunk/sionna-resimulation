@@ -40,7 +40,7 @@ def main():
    chunk=api(s,f'actions/runs/{rid}/artifacts',params={'per_page':100,'page':page})['artifacts'];metas+=chunk
    if len(chunk)<100:break
    page+=1
-  assert metas
+  if not metas:assert run['conclusion']!='success','SUCCESSFUL_RUN_WITHOUT_OUTPUT'
   dump(bundle/f'RUN_{rid}.json',{k:run.get(k) for k in ['id','status','conclusion','head_sha','html_url','created_at','updated_at']})
   # Failure logs remain in the durable summary as well as GitHub Actions.
   jobs=[];page=1
