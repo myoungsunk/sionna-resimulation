@@ -1,0 +1,44 @@
+name: POWERJOINT schema audit existing new RF pose metadata
+on:
+  push:
+    branches: ['research/powerjoint-crosscase-mechanism-20261020']
+    paths: ['.github/workflows/powerjoint-compare-mount45-physics.yml']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  schema:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [C01, O03]
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/POWERJOINT_CROSSCASE_20261020/**
+      - name: Fetch prior verified RF subset from existing run
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/source"
+          gh run download 39277485012 --repo myoungsunk/sionna-resimulation --name "powerjoint-newrf-${{ matrix.route }}-39277485012" --dir "$RUNNER_TEMP/source"
+      - name: Print and preserve exact physical route schema
+        shell: bash
+        run: |
+          set -euo pipefail
+          python research/POWERJOINT_CROSSCASE_20261020/inspect_route_schema.py "$RUNNER_TEMP/source" "$RUNNER_TEMP/result" "${{ matrix.route }}"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pj-physics-schemas-${{ matrix.route }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/result/**
+          retention-days: 21
+          if-no-files-found: warn
