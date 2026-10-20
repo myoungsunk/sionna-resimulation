@@ -1,0 +1,55 @@
+{
+  "stage": "S0_CORRECTIONS_ONLY",
+  "version": 1,
+  "status": "LOCK_BEFORE_EXECUTION",
+  "base_commit": "034e57a7209a3bd1bb8857b24fd85c64942e1258",
+  "branch": "research/powerjoint-audit-followup-20261020",
+  "ordered_gate": ["S0-5 preserve all referenced Actions artifacts, verify original digest/download/release readback bytes and SHA256", "Only after complete trace preservation: S0-1, S0-2, S0-3, S0-4, S0-6", "Stop at S0; no S1/S2/S3"],
+  "prohibited": ["New recursive filter calculations", "New RF simulation", "Overwrite or delete prior numeric evidence, locks, decisions or errors", "Use zero-range-Jacobian SRC_TAP as correction evidence", "p-values or independent-scene generalization", "Execute S1/S2/S3 without the user's later stage instruction"],
+  "range": {"model": "B_OLD", "offset_m": -0.5315983906250129, "c_m_s": 299792458.0, "nf": 257, "df_hz": 1950000.0, "delta_m": "c/(4*257*1.95e6)", "sigma_q_m": "delta/sqrt(12)", "no_fit": true},
+  "S0_5": {
+    "release": "audit-traces-20261020-r01",
+    "inventory": "Union of artifact IDs and Actions run references in base audit root00_SUMMARY_KO.md, every task MANIFEST.json and nested Actions/receipt JSON. Expand each explicitly referenced run to all its artifacts. Record every source path. Include input and summary-only artifacts, not only examples. Exclude followup's own newly-created receipt artifact to avoid an infinite self-reference; record it separately.",
+    "verification": "Original artifact digest if present, full original ZIP bytes and SHA256, immutable release asset URL/id, full release download readback bytes/SHA256. Existing same-name assets are reused only on byte/hash match, never overwritten. No missing original digest is PASS. Complete inventory reconciliation required before post-preservation analysis."
+  },
+  "S0_1": {
+    "validity": "INVALID_DESIGN_ZERO_RANGE_JACOBIAN",
+    "reason": "Range 행 Jacobian = 0으로 직접 Range 감도 제거, C_rs·gate 영향만 남음. Range 교정 근거로 사용 불가",
+    "preserve": "Numeric CSV and original decision/lock contents remain byte-identical. Append clearly post-hoc validity metadata to related manifest/results/locks; record original file SHA256 and original bytes in additive snapshots. Mark only SRC_TAP arms/_src comparison columns and SRC directories invalid; B_OLD/B_REFIT_ONLY remain valid.",
+    "population_correction": "Withdraw previous T6 BLOCKED_INPUT due to 7251 recursive-clock versus 9519 RF-archive population confusion; preserve original verdict as historical. Availability of requested archive points must be checked."
+  },
+  "S0_2": {
+    "input": "Original immutable reference_ae/PACKETS_SOURCE_LABELS.csv.gz channel==los, not any SRC_TAP-adjusted cache",
+    "expected_counts": {"R2_aA_m0":1303,"R2_aA_m45":1303,"R2_aB_m0":1303,"R4_aA_m0":922,"R4_aB_m0":922,"R5_aA_m0":1883,"R5_aB_m0":1883},
+    "residual": "e=z_r-(d(x_GT)+B_OLD); establish raw range and true geometric-distance columns/pose provenance. If only a precomputed residual is present, certify its generator formula against pinned source and independently reconstruct distance/range before using it. Never substitute a source-tap-adjusted residual.",
+    "statistics": ["n","mean_m","rmse_m","q01_m","q05_m","q50_m","q95_m","q99_m","fraction_abs_error_gt_delta_over2","rmse_over_sigma_q"],
+    "quantiles": "NumPy linear method; population RMSE and population mean; no sample filtering beyond channel==los and case identities. Nonfinite or duplicate keys are errors.",
+    "distance_bin_edges_m": [0,2,4,6,8,10,15,20,30,50,"inf"],
+    "theta_bin_edges_deg": [-180,-135,-90,-45,0,45,90,135,180],
+    "theta": "Confirmed original SourceFFD GT relative antenna azimuth convention, wrapped into [-180,180). Use original verified column or reconstruct from confirmed anchor/mount/pose contract; no guessed geometry.",
+    "bin_rules": "Half-open [low,high), last infinite distance bin; theta180 wraps to-180. Report empty bins explicitly.",
+    "tap_transition": "Within each case sort by original monotonic numeric pose_id, stable original row index as tie-break (duplicate pose_id is an error). Original detected common tap k=round(z_r/delta), verified |z_r/delta-k|<=1e-6; first row FIRST, later rows TRANSITION iff k differs from immediately preceding case row, else STABLE. Do not sort by residual or distance. If tap grid cannot be certified, report exact missing tap mapping rather than invent transitions.",
+    "clock_population": "Reconstruct prior7251 rows by exact case/pose_id membership from preserved native T6 evidence or frozen recursive traces, match to archive rows, and report full9519 versus recursive7251 side by side. Never change the requested archive count.",
+    "task_status_rule": "CLOSED_QUANTIZATION iff every case |mean_m|<0.01 and rmse_over_sigma_q in[0.8,1.2] and expected counts/inputs certified; else OPEN with failed/missing cases.",
+    "scientific": "If criteria satisfied: SUPPORTED_BUT_LIMITED for quantization-scale consistency; otherwise NOT_ESTABLISHED. No unique-cause or conditional-unbiasedness claim."
+  },
+  "S0_3": {
+    "old_source_commit": "f1be3f458bb4746f8a0868dd874343da7081386c",
+    "old_report": "research/R5_N4B_REPORT_20261015/RESULTS_KO.md",
+    "old_run": 38711275905,
+    "rule": "Trace generator code and explicit original frame inclusion/time window/row mapping before recomputing old population. Compare SourceFFD B_OLD e_r and SourceFFD e_s on original population and on frozen R2 t>=30s829-frame population. Identify old e_s LUT/SourceFFD by source evidence. Missing original mapping is a blocker, never inferred from nearby statistics.",
+    "slide_population_choice": "Use SourceFFD B_OLD t>=30s829-frame R2 population for the slide, explicitly labelled, if its original row mapping is certified. Old-population comparison is an audit column, not a replacement chosen by outcomes."
+  },
+  "S0_4": {
+    "label": "결과를 본 뒤 개정한 판정이며 사전등록 검증이 아님",
+    "source": "Unmodified B_OLD INTERVENTIONS.csv POST30 rows, original common post-event30s scope and masks from frozen execution receipts",
+    "diagnostics": ["D3","D6"],
+    "excluded": {"D4":"INVALID_PSD_NOT_GUARANTEED; deleting one covariance entry pair need not preserve PSD, so missing D4 is not evidence of zero effect"},
+    "support": "Original fixed5 harmful and5 beneficial events and original thresholds unchanged. At least3 harmful events with positive skip gain have D3 or D6 recovery>=0.5 and that same diagnostic has harm<=0.5 of skip harm on ALL fixed5 beneficial events. Missing/sign-changed beneficial safety cannot pass.",
+    "falsification": "At least3 fixed harmful events have D1 orD2 recovery>=0.5 and both valid D3,D6 effects<0.2. Missing valid diagnostics cannot establish small effect.",
+    "otherwise": "NOT_ESTABLISHED",
+    "D3_boundary": "D3 corrects event-entry psi prior mean only, with covariance retained; does not eliminate all prior/state/covariance error and cannot reject the entire prior mechanism."
+  },
+  "S0_6": {"implementation1":"검증된 실행 기준", "implementation2_3_disagreement":"DEFERRED_SOURCE_UNAVAILABLE", "T7B":"v2 정책 NO-GO; not a verdict on the entire utility-target approach"},
+  "report": "Separate task status, scientific verdict and validity. Preserve original and revised labels, original SHA256, run/artifact provenance, error/retry history. Claims excluded: independent-scene generalization, normalized Bayesian posterior, hardware demonstration, causal separation of s contamination versus filter pathway, physical mechanism of q."
+}
