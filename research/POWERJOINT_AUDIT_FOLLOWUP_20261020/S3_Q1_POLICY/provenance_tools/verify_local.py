@@ -59,6 +59,8 @@ def main():
  assert (seedchecks.loc[seedchecks.seed!=0,'seed0_max_abs_difference']>0).all() and (seedchecks.loc[seedchecks.seed==0,'seed0_max_abs_difference']==0).all()
  for key,g in seedchecks.groupby(['case','bias']):assert set(g.seed)==set(range(5)) and g.controls_sha256.nunique()==5,('FIVE_DISTINCT_ACTUAL_CONTROLS',key)
  assert action_rows>0
+ p1qa=pd.read_csv(HERE/'P1_NUMERICAL_EQUIVALENCE.csv',float_precision='round_trip');assert len(p1qa)==105 and not p1qa.artifact_id.duplicated().any() and p1qa.status.eq('PASS').all()
+ assert (p1qa.threshold==1e-12).all() and max(p1qa.parameter_max_abs.max(),p1qa.mu_cov_max_abs.max())<=1e-12
  manifest=json.loads((HERE/'MANIFEST.json').read_text())
  for r in manifest['original_artifacts']:
   assert r['archive_sha256']==r['release_readback_sha256'] and r['archive_bytes']==r['release_readback_bytes']
@@ -66,5 +68,5 @@ def main():
   for member in r['members']:
    if member.get('summary_extracted'):
     p=folder/member['name'];assert p.stat().st_size==member['bytes'] and sha(p)==member['sha256'],p
- print(json.dumps(dict(final_commit=head,remote_S3_files_byte_identical=n,preserved_S0_S1_S2_and_original_audit=True,S2_root_prefix_preserved=True,locked_evaluation_rows=288,locked_label_rows=oof_count,independent_11_max_abs=float(df.scorer_max_abs_difference.max()),margin_recalculation_max_abs=max_margin_error,online_action_rows_recomputed=action_rows,actual_seed_control_checks=420,original_archives_verified=len(manifest['original_artifacts']),full_pass=full,los_pass=los,scientific=d['scientific'])),flush=True)
+ print(json.dumps(dict(final_commit=head,remote_S3_files_byte_identical=n,preserved_S0_S1_S2_and_original_audit=True,S2_root_prefix_preserved=True,locked_evaluation_rows=288,locked_label_rows=oof_count,independent_11_max_abs=float(df.scorer_max_abs_difference.max()),margin_recalculation_max_abs=max_margin_error,online_action_rows_recomputed=action_rows,actual_seed_control_checks=420,p1_models_checked=105,p1_parameter_max_abs=float(p1qa.parameter_max_abs.max()),p1_mu_cov_max_abs=float(p1qa.mu_cov_max_abs.max()),original_archives_verified=len(manifest['original_artifacts']),full_pass=full,los_pass=los,scientific=d['scientific'])),flush=True)
 if __name__=='__main__':main()
