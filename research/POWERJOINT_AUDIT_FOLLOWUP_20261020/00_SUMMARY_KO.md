@@ -137,3 +137,12 @@ S1 감사 ACCEPT는 실행 증거와 NOT_ESTABLISHED를 인수하며 N1 지지�
 공통 11지표 792행과 별도 LoS R0 4행을 보존했다. 주 평가는 t≥30 전체 motion clock·seed0이며 seed1–4는 같은 RF motion noise 반복이다. GEOM/GEOM_Q 잔차 평균·공분산은 사용자 승인 d 삼분위, 평균만 10/11차원이다. Native LoS 안전성과 seed 범위, 위반 셀은 S2_N2_GEOMETRY/RESULTS_KO.md 및 CSV에 보고했다. R2 A M45는 OUT_OF_TRAINING_RANGE_MOUNT다. 독립 장면 일반화·정규화 Bayesian posterior·하드웨어 실증·q 인과 기전은 주장하지 않는다. **S2에서 종료하며 S3는 시작하지 않았다.**
 
 S2 결과 게시 커밋: `4a0ec61cabbf73a028ca8096f57dd46374398f4e` (18개 분할 커밋, 101,231,274 bytes). 원본29개 archive와 공개 release 전체 readback은 S2 MANIFEST/PUBLIC_BUNDLE_RECEIPT에 보존했다.
+
+
+## S3 Q1 v3
+
+| 과제 | TECHNICAL | 과학 판정 | 핵심 수치 | 증거 |
+|---|---|---|---|---|
+| S3 Q1 v3 | TECHNICAL_PASS | NOT_ESTABLISHED / NO_GO | Full 32/64, Native LoS 0/8 | S3_Q1_POLICY/MANIFEST.json 및 RESULTS_KO.md |
+
+S0/S1/S2 및 v2 NO-GO를 보존한다. HGB 단계 조건부 route OOF이며 전체 pipeline OOF·coverage 보장은 없다. S3 이후 다음 연구 단계는 시작하지 않는다.
