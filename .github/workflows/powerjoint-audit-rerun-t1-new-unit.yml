@@ -1,0 +1,52 @@
+name: Powerjoint audit T1 new stored rho0 parity
+on:
+  workflow_dispatch:
+  push:
+    branches: [research/powerjoint-audit-rerun-20261020]
+    paths: [.github/workflows/powerjoint-audit-rerun-t1-new-unit.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {route: C01, count: 8}
+          - {route: C02, count: 8}
+          - {route: C03, count: 8}
+          - {route: O01, count: 4}
+          - {route: O02, count: 4}
+          - {route: O03, count: 4}
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      NUMEXPR_NUM_THREADS: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py
+            research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/verify_new_rho0.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+      - run: python -m pip install numpy==2.3.5
+      - name: Restore verified immutable stored trajectories
+        run: python research/POWERJOINT_AUDIT_RERUN_20261020/restore_result.py --run 39359952488 --route ${{ matrix.route }} --out restored
+      - name: Verify POWER1 and MEMORY_RHO0 physical state covariance gates
+        run: python research/POWERJOINT_AUDIT_RERUN_20261020/T1_MEMORY/verify_new_rho0.py --traces restored/t2_new/traces --route ${{ matrix.route }} --expected-count ${{ matrix.count }} --out checks/NEW_RHO0_CHECKS.csv
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: powerjoint-audit-t1-new-unit-${{ matrix.route }}-${{ github.run_id }}
+          path: |
+            checks
+            restored/ARTIFACT_RECEIPT.json
+          retention-days: 30

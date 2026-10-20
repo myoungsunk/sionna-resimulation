@@ -1,13 +1,15 @@
-# T1 시간기억 정본 재실행
+# T1 시간기억 정본 재실행 완료
 
-기존 7조건 × 4 bias × 9 arm의 252행을 실제 실행했다. 구현 1의 원본 엔진을 검증된 정본으로 사용했다. 구현 2·3은 원본을 확보하지 못했으므로 BLOCKED_INPUT이며, 보고서에서 읽은 차이를 실제 코드 diff나 시험 통과로 간주하지 않는다.
+TECHNICAL_PASS. 기존 7조건 × 4 bias × 9 arm=252행과 신규 9조건 × 4 bias × 9 arm=324행을 합쳐 CANONICAL_RESULTS.csv 576행을 보존했다. 구 주로는 route-heldout, 신규 주로는 기존 R2/R4/R5 전체 학습과 T2 정본 seed0 센서를 사용했다.
 
-TECHNICAL_PASS(기존 7조건). Monte Carlo 500회: 올바른 기억 모델 NEES=1.0886208364, coverage95=0.934. RF rho0 재현 최대 상태 차=3.997e-14, 공분산 차=7.772e-16, gate 불일치=0. POWER1 과거 B0 heading 최대 차=1.262e-13도, 모든 bias gate 불일치=0. 독립 scorer 최대 차=2.274e-13.
+사전 등록 판정 NOT_ESTABLISHED; 채택 기준 FAIL. MEMORY의 Heading RMSE가 POWER1보다 10% 초과 악화된 셀은 14/64 (21.875%), heading95 개선은 60/64 (93.750%)다. 전체 셀별 결과는 MEMORY_CRITERION.csv에 남겼다. R5 A M0 B0는 4.556146 → 8.764142°로 악화가 남는다.
 
-MEMORY는 POWER1보다 Heading RMSE가 10% 넘게 악화된 셀이 14/28, coverage 개선은 24/28이다. R5 A M0 B0는 4.556146 → 8.764142도다. 새 주로 36셀이 모두 악화되지 않아도 전체 악화 비율 하한은 14/64=21.875%로 사전 등록 10%를 넘는다. 범용 시간기억의 승인 기준은 FALSIFIED_FOR_TESTED다. 신규 9조건 실행과 전체 정본 표 병합은 아직 진행 중이다.
+기존 수학 시험 500회 NEES=1.0886208364, coverage=.934; RF rho0 상태 최대 차3.997e−14, 공분산7.772e−16, gate 불일치0. 과거 POWER1 B0 RMSE 최대 차1.262e−13°, 독립 scorer2.274e−13. 신규 6개 작업도 수학 시험과 독립 scorer를 통과했다(T2 CHECKS/UNIT_TESTS_BY_ROUTE). T2 요약에는 신규 RF의 MEMORY_RHO0 상태·공분산·gate parity가 별도 저장되지 않아 이 재귀 검사 부분은 요약 회수만으로 재확인하지 못했다. 신규 기존 정본과의 역사적 gate parity는 존재하지 않으며 T2 자체를 첫 정본으로 고정한다.
 
-실행: run39358085399, artifact12236825429. 코드·CSV를 git에 보존했고 대용량 trace는 artifact에만 둔다.
+기준 구현은 원본3fc70f2280471954f1a0673009812ad75437d9ea이며 실제 실행 엔진 파일 hash/코드 revision은 MANIFEST와 각 artifact receipt에 보존했다. 구현2·3은 원본 미확보 BLOCKED_INPUT, 문서 재구성은 미시험이다. 이전 보고서의 FALSIFIED_FOR_TESTED 표현은 lock의 otherwise=NOT_ESTABLISHED와 달라 정정했다. 원문은 RESULTS_OLD_SUPERSEDED_KO.md에 그대로 남겼다.
+
+기존 run39358085399/artifact12236825429, 신규 run39359952488/6개 artifact. trace NPZ는 Actions에만 보존한다.
 
 ## 주장하지 않는 것
 
-독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 구현 2·3의 보고서 숫자를 원본 코드와 동등하게 인증하지 않는다.
+범용 기억 모델 승인, 독립 장면 일반화, 정규화 Bayesian posterior, 하드웨어 실증을 주장하지 않는다. 구현2·3 숫자·코드를 인증하지 않는다.
