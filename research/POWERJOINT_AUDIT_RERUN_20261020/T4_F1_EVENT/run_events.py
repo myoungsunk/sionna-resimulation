@@ -198,7 +198,7 @@ def divergence(baseline, skipped, data, event, a, b):
 
 def decide(rows):
     global_rows = { (r['event'], r['arm']): r for r in rows
-                    if r.get('scope') == 'GLOBAL_T30' and r.get('status') == 'TECHNICAL_PASS' }
+                    if r.get('scope') == LOCK.get('decision_scope','GLOBAL_T30') and r.get('status') == 'TECHNICAL_PASS' }
     def effect(event, arm):
         base = global_rows.get((event, 'POWER1')); other = global_rows.get((event, arm))
         return None if base is None or other is None else base['heading_rmse_deg']-other['heading_rmse_deg']
@@ -225,7 +225,7 @@ def decide(rows):
     # Support/falsification definitions cannot both apply to three out of five.
     verdict = ('SUPPORTED_BUT_LIMITED' if len(supported) >= 3 else
                'FALSIFIED_FOR_TESTED' if len(falsified) >= 3 else 'NOT_ESTABLISHED')
-    return dict(scientific=verdict, fixed_harmful_count=5, fixed_beneficial_count=5,
+    return dict(decision_scope=LOCK.get('decision_scope','GLOBAL_T30'), scientific=verdict, fixed_harmful_count=5, fixed_beneficial_count=5,
                 conservative_all_beneficial_safety=safe, supported_events=supported,
                 channel_only_events=falsified, events=detail)
 
@@ -255,8 +255,10 @@ def main():
     parser.add_argument('--key-b0', type=Path, default=REPO/'research/CHAIN_VALIDATED_RESULTS_20261019/evidence/KEY_B0_RESULTS.csv')
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--range-model', choices=['B_OLD','SRC_TAP'], default='B_OLD')
+    parser.add_argument('--decision-scope', choices=['GLOBAL_T30','POST30'], default='GLOBAL_T30')
     args = parser.parse_args(); args.out.mkdir(parents=True, exist_ok=True)
-    lock_path = HERE/('PROTOCOL_LOCK_SRC.json' if args.range_model == 'SRC_TAP' else 'PROTOCOL_LOCK.json')
+    lock_path = HERE/(('PROTOCOL_LOCK_SRC_POST30.json' if args.range_model == 'SRC_TAP' else 'PROTOCOL_LOCK_POST30.json') if args.decision_scope == 'POST30' else ('PROTOCOL_LOCK_SRC.json' if args.range_model == 'SRC_TAP' else 'PROTOCOL_LOCK.json'))
+    if args.decision_scope=='POST30' and not args.aggregate:raise ValueError('POST30_SCOPE_CORRECTION_AGGREGATION_ONLY_NO_REPLAY')
     LOCK = json.loads(lock_path.read_text(encoding='utf-8'))
     if args.aggregate:
         tables = [pd.read_csv(path) for path in args.aggregate]
