@@ -4,3 +4,6 @@
 - 5단(5BIN): train 5분위 경계별 κ.
 Arms: BASE(POWER_DIAG), REF_POWER1, V2LVL_S(편파만), V2LVL_R(range만), V2LVL_SR(둘 다), V5BIN_SR.
 보고(크기로): Full 14의 heading RMSE비·개선/악화·최악, NEES·coverage, xy RMSE비, L2 bias비, LoS(진단); 게이트/비게이트별 패킷 s95·r95·패킷 NEES(분산 calibration 확인). QA: BASE·REF_POWER1 재현.
+
+## 추가: 한쪽 방향 분리 테스트 (실행 전 고정)
+2단 보정과 같은 τ(train 80분위)·κ를 쓰되 한쪽만 적용. INFL_S/R/SR: \(|\Delta s_{+1}|\ge\tau\) 패킷만 \(\kappa^{hi}\)배, 나머지 1. DEFL_S/R/SR: \(|\Delta s_{+1}|<\tau\) 패킷만 \(\kappa^{lo}\)배, 나머지 1. 기준 BASE·REF_POWER1. 결과는 results_oneside/.
