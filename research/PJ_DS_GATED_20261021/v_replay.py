@@ -71,6 +71,10 @@ def factors(a, two, five, kind, chan):
     if kind == 'BASE': return np.ones_like(a)
     if kind == '2LVL':
         k = np.array(two[chan]); return k[(a >= two['tau']).astype(int)]
+    if kind == 'HI':  # inflate-only: large |ds| packets x kappa_hi, others unchanged
+        return np.where(a >= two['tau'], two[chan][1], 1.0)
+    if kind == 'LO':  # deflate-only: small |ds| packets x kappa_lo, others unchanged
+        return np.where(a >= two['tau'], 1.0, two[chan][0])
     k = np.array(five[chan]); return k[np.searchsorted(five['cuts'], a, side='right')]
 
 
@@ -86,9 +90,13 @@ def main():
     T = build_table(); tr = T[(T.channel == 'full') & (T.route != held)]
     two, five = calibrations(tr); print('CALIB', a.case, json.dumps({'two': two, 'five': five}), flush=True)
     feat = pd.read_csv(one('OBSERVATION_FEATURES_LABELS.csv.gz')); par = pd.read_csv(one('OOF_PARAMETERS.csv.gz'))
-    arms = [('BASE', 'POWER_DIAG', 'BASE', False, False), ('REF_POWER1', 'POWER1', 'BASE', False, False),
-            ('V2LVL_S', 'POWER_DIAG', '2LVL', True, False), ('V2LVL_R', 'POWER_DIAG', '2LVL', False, True),
-            ('V2LVL_SR', 'POWER_DIAG', '2LVL', True, True), ('V5BIN_SR', 'POWER_DIAG', '5BIN', True, True)]
+    arms = [('BASE', 'POWER_DIAG', 'BASE', False, False), ('REF_POWER1', 'POWER1', 'BASE', False, False)]
+    if os.environ.get('PJ_ARMSET', 'quick1') == 'oneside':
+        for kind, tag in [('HI', 'INFL'), ('LO', 'DEFL')]:
+            arms += [(f'{tag}_S', 'POWER_DIAG', kind, True, False), (f'{tag}_R', 'POWER_DIAG', kind, False, True), (f'{tag}_SR', 'POWER_DIAG', kind, True, True)]
+    else:
+        arms += [('V2LVL_S', 'POWER_DIAG', '2LVL', True, False), ('V2LVL_R', 'POWER_DIAG', '2LVL', False, True),
+                 ('V2LVL_SR', 'POWER_DIAG', '2LVL', True, True), ('V5BIN_SR', 'POWER_DIAG', '5BIN', True, True)]
     model = SourceFFD(); rows, qa, meas = [], [], []
     for bias, ch in CONDITIONS:
         stem = f'{a.case}_{ch}_{bias}'
