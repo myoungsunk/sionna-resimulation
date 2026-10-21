@@ -91,7 +91,13 @@ def main():
     two, five = calibrations(tr); print('CALIB', a.case, json.dumps({'two': two, 'five': five}), flush=True)
     feat = pd.read_csv(one('OBSERVATION_FEATURES_LABELS.csv.gz')); par = pd.read_csv(one('OOF_PARAMETERS.csv.gz'))
     arms = [('BASE', 'POWER_DIAG', 'BASE', False, False), ('REF_POWER1', 'POWER1', 'BASE', False, False)]
-    if os.environ.get('PJ_ARMSET', 'quick1') == 'oneside':
+    armset = os.environ.get('PJ_ARMSET', 'quick1')
+    if armset == 'all':
+        arms += [('V2LVL_S', 'POWER_DIAG', '2LVL', True, False), ('V2LVL_R', 'POWER_DIAG', '2LVL', False, True),
+                 ('V2LVL_SR', 'POWER_DIAG', '2LVL', True, True), ('V5BIN_SR', 'POWER_DIAG', '5BIN', True, True)]
+        for kind, tag in [('HI', 'INFL'), ('LO', 'DEFL')]:
+            arms += [(f'{tag}_S', 'POWER_DIAG', kind, True, False), (f'{tag}_R', 'POWER_DIAG', kind, False, True), (f'{tag}_SR', 'POWER_DIAG', kind, True, True)]
+    elif armset == 'oneside':
         for kind, tag in [('HI', 'INFL'), ('LO', 'DEFL')]:
             arms += [(f'{tag}_S', 'POWER_DIAG', kind, True, False), (f'{tag}_R', 'POWER_DIAG', kind, False, True), (f'{tag}_SR', 'POWER_DIAG', kind, True, True)]
     else:
@@ -127,9 +133,16 @@ def main():
             x, P, nis, yes, K = MC.update(x, P, z[k], h, H, MU[k], RR[k], RR[k], np.ones(J))
             X[k] = x; C[k] = P; acc[k] = yes
         sc = MC.score(X, C, t, truth, b_true); m = t >= 30
+        anc = np.asarray(case['anchor'], float); dz = anc[2] - float(case['robot_z_m'])
+        dtrue = np.sqrt((truth[:, 0] - anc[0]) ** 2 + (truth[:, 1] - anc[1]) ** 2 + dz ** 2)
+        uh = np.column_stack([truth[:, 0] - anc[0], truth[:, 1] - anc[1]]); uh /= np.linalg.norm(uh, axis=1, keepdims=True); ut = np.column_stack([-uh[:, 1], uh[:, 0]])
         for j, (arm, *_r) in enumerate(arms):
+            dhat = np.sqrt((X[:, j, 0] - anc[0]) ** 2 + (X[:, j, 1] - anc[1]) ** 2 + dz ** 2); rerr = (dhat - dtrue)[m]
+            exy = X[:, j, :2] - truth[:, :2]; rad = np.sum(exy * uh, axis=1)[m]; tan = np.sum(exy * ut, axis=1)[m]
             rows.append({'case': a.case, 'route': held, 'bias': bias, 'channel': ch, 'arm': arm, **sc[j], 'accepted_fraction': float(acc[m, j].mean()),
-                         'gated_fraction': float(np.mean(aa >= two['tau']))})
+                         'gated_fraction': float(np.mean(aa >= two['tau'])),
+                         'range_err_rmse_cm': float(np.sqrt(np.mean(rerr ** 2)) * 100), 'range_err_mean_cm': float(rerr.mean() * 100), 'range_err_median_abs_cm': float(np.median(np.abs(rerr)) * 100),
+                         'radial_rmse_cm': float(np.sqrt(np.mean(rad ** 2)) * 100), 'tangential_rmse_cm': float(np.sqrt(np.mean(tan ** 2)) * 100)})
         old_sc = pd.read_csv(one(stem + '_SCORES.csv')); old_sc = old_sc[old_sc['mode'] == 'NATURAL_RECURSIVE'].set_index('model')
         for arm, ref in [('BASE', 'POWER_DIAG'), ('REF_POWER1', 'POWER1')]:
             r = next(x for x in rows if x['arm'] == arm and x['bias'] == bias and x['channel'] == ch)

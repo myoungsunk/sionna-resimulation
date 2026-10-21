@@ -1,0 +1,109 @@
+name: POWERJOINT delta-s variance ranging metrics
+on:
+  push:
+    branches: ['research/powerjoint-ds-gated-plan-20261021']
+    paths: ['.github/workflows/powerjoint-ds-gated-ranging.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/pj_rg
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bankdownload
+  PJ_ARMSET: all
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/PJ_SEPARATE_RS_20261020/**
+            /research/PJ_CONSISTENCY_M123_20261021/*.py
+            /research/PJ_D1_TEMPORAL_20261021/results/D1_ACF.csv
+            /research/PJ_DS_GATED_20261021/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_STAGE_LOG.txt"
+      - name: Variance quick test replay
+        env:
+          PJ_D1_RESULTS: ${{ github.workspace }}/research/PJ_D1_TEMPORAL_20261021/results
+        run: |
+          set -o pipefail
+          python -u research/PJ_DS_GATED_20261021/v_replay.py --case '${{ matrix.case }}' 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_V_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: rg-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            /tmp/pj_rg/*.csv
+            /tmp/pj_rg/*.csv.gz
+            /tmp/pj_rg/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: replay
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/PJ_DS_GATED_20261021/**
+            /research/PJ_D1_TEMPORAL_20261021/results/D1_ACF.csv
+            /research/PJ_CONSISTENCY_M123_20261021/results/M_SCORES.csv
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 tabulate==0.9.0
+      - name: Aggregate and diagnose
+        env:
+          PJ_IN: /tmp/pj_rg_in
+          PJ_RESULTS: ${{ github.workspace }}/research/PJ_DS_GATED_20261021/results_ranging
+          PJ_D1_RESULTS: ${{ github.workspace }}/research/PJ_D1_TEMPORAL_20261021/results
+          PJ_M_RESULTS: ${{ github.workspace }}/research/PJ_CONSISTENCY_M123_20261021/results
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_IN" "$PJ_RESULTS/logs"
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --pattern 'rg-*' --dir "$PJ_IN"
+          for f in $(find "$PJ_IN" -name '*_LOG.txt'); do tail -c 20000 "$f" > "$PJ_RESULTS/logs/$(basename "$f")"; done
+          python -u research/PJ_DS_GATED_20261021/v_summary.py 2>&1 | tee "$PJ_RESULTS/logs/SUMMARY_LOG.txt" || echo SUMMARY_FAILED
+          cat "$PJ_RESULTS/RESULTS.md" >> "$GITHUB_STEP_SUMMARY" || true
+      - name: Commit results back to research branch
+        if: always()
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_DS_GATED_20261021/results_ranging || true
+          git commit -m "Variance ranging-metric results from run ${{ github.run_id }} (automated)" || echo 'nothing to commit'
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
