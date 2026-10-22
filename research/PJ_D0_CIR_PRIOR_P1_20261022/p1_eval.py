@@ -76,35 +76,6 @@ def compute_lut(model,te,delta):
     assert np.isfinite(s).all() and np.isfinite(gdeg).all()
     return s,gdeg
 
-def score(z,pose,delta,gr,gg,case,names):
-    res=[]
-    for gain_mode in GAIN_MODES:
-        if gain_mode=='GTREF_3DEG': gd=gg; sig=3.
-        else:
-            gd=gr
-            sig=3. if gain_mode=='LOCAL_3DEG' else max(3.,abs(delta))
-        K=sig*sig*gd/(sig*sig*gd*gd+0.01)
-        for arm,e_hat in names.items():
-            nu=(z-e_hat)-pose
-            post=np.full(len(nu),float(delta)) if arm=='PRIOR_ONLY' else delta+K*nu
-            los_err=z-e_hat-names['ORACLE_LOS']
-            abs_e=np.abs(post)
-            out={'delta':delta,'gain_mode':gain_mode,'arm':arm,
-                 'n':len(te_global_placeholder) if False else len(post),
-                 'heading_rmse_deg':rmse(post),
-                 'heading_mae_deg':float(abs_e.mean()),
-                 'heading_signed_bias_deg':float(np.mean(post)),
-                 'heading_q95_abs_deg':float(np.quantile(abs_e,.95)),
-                 'heading_q99_abs_deg':float(np.quantile(abs_e,.99)),
-                 'heading_max_abs_deg':float(abs_e.max()),
-                 'heading_improved_frac':float(np.mean(abs_e<abs(delta))) if delta else np.nan,
-                 'los_rmse':rmse(los_err),
-                 'innovation_oracle_rmse':rmse(nu-(z-names['ORACLE_LOS']-pose)),
-                 'gain_k_abs_mean':float(np.mean(np.abs(K))),
-                 'local_g_abs_med':float(np.median(np.abs(gr)))}
-            res.append((out,post,nu))
-    return res
-
 def main():
     p=argparse.ArgumentParser();p.add_argument('--held',required=True,choices=['R2','R4','R5'])
     p.add_argument('--out',required=True); a=p.parse_args()
@@ -132,7 +103,6 @@ def main():
                'CIR_PLUS_D0':e_d0, 'D0_DIRECT':z-s,'ORACLE_LOS':es}
         nu_cache[delta]={nm:z-eh-s for nm,eh in names.items()}
         # Evaluate all comparison arms under fixed-prior and diagnostic matched-prior gains.
-        gmode_data={}
         for gain_mode in GAIN_MODES:
             gd=gg if gain_mode=='GTREF_3DEG' else g
             sig=3. if gain_mode!='LOCAL_MATCHED' else max(3.,abs(delta))
@@ -163,10 +133,6 @@ def main():
                             'delta':delta,'arm':arm,'sF':z,'sL':te['sL_+0'].to_numpy(),
                             'h_prior':s,'s_clean':z-e_hat,'e_hat':e_hat,'d0':z-s,'local_g':g,'K':k,
                             'innovation':nu,'post_error_deg':post}))
-        if abs(delta)==1:
-            old={'R2':.9880157018709935,'R4':.9690106002806752,'R5':.9858921711457884}[a.held]
-            h=[row['heading_rmse_deg'] for row in met if row['delta']==delta and row['gain_mode']=='GTREF_3DEG' and row['arm']=='CIR_PLUS_D0'][-1]
-            # Per-sign RMSE can differ from previously reported +/- mean, checked at both signs below.
         print(f'P1_PRIOR_DONE {a.held} delta={delta:+g}',flush=True)
     mm=pd.DataFrame(met)
     for gm in GAIN_MODES:
