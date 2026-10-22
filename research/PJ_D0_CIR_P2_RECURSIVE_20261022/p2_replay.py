@@ -68,7 +68,7 @@ def update_one(x,P,z,h,H,mu,R,ronly=False):
     return xo[0],Po[0],float(nis[0]),bool(accepted[0])
 
 def propagate(model,case,controls,x_initial,P_initial,t,z,features,models,meds,Rs,
-              mu0,R0,sL,truth,arm_filter,featlabels):
+              mu0,R0,sL,arm_filter):
     """
     - Estimator loop never reads truth or sL EXCEPT for ORACLE arm.
     - All other correction arms use only current measured CIR features & prior.
@@ -76,7 +76,7 @@ def propagate(model,case,controls,x_initial,P_initial,t,z,features,models,meds,R
     arms=[arm for arm in ARMS if arm in arm_filter]
     J=len(arms);n=len(t)
     X=np.full((n,J,4),np.nan);C=np.full((n,J,4,4),np.nan)
-    rec={nm:np.full((n,J),np.nan) for nm in ['nis','d0','ehat','nu_s','nu_r','s_clean','psig','gpsi','prior_herr_deg']}
+    rec={nm:np.full((n,J),np.nan) for nm in ['nis','d0','ehat','nu_s','nu_r','s_clean','psig','gpsi','prior_heading_rad']}
     accept=np.zeros((n,J),bool)
     xs=np.repeat(x_initial[None,:],J,axis=0)
     Ps=np.repeat(P_initial[None,:,:],J,axis=0)
@@ -96,7 +96,7 @@ def propagate(model,case,controls,x_initial,P_initial,t,z,features,models,meds,R
             rec['gpsi'][k,j]=H[j,1,2]*math.pi/180
             d0=float(z[k,1]-h[j,1])
             rec['d0'][k,j]=d0
-            rec['prior_herr_deg'][k,j]=float(V.MC.wrap(state_prior[j,2]-truth[k,2])*DEG)
+            rec['prior_heading_rad'][k,j]=float(state_prior[j,2])
             if arm=='DR_ONLY':
                 accept[k,j]=False;X[k,j]=xs[j];C[k,j]=Ps[j];continue
             if arm in ('BASE_POWER','RANGE_ONLY','RAW_SHARED'):
@@ -163,7 +163,7 @@ def score(case,bias,ch,init,t,truth,X,C,acc,arms,rec):
             srow[f'{key}_accept']=float(acc[mask,j].mean())
         scores.append(srow)
         stream[f'{arm}__heading_err_deg']=he
-        stream[f'{arm}__heading_prior_err_deg']=rec['prior_herr_deg'][:,j]
+        stream[f'{arm}__heading_prior_err_deg']=np.asarray(V.MC.wrap(rec['prior_heading_rad'][:,j]-truth[:,2]))*DEG
         stream[f'{arm}__Ppsi_deg']=sigma
         stream[f'{arm}__xy_err_cm']=xy
         stream[f'{arm}__bias_dps']=np.degrees(X[:,j,3])
@@ -213,7 +213,7 @@ def main():
             xstate=np.r_[x0,0.]
             arms,X,C,accepted,rec=propagate(model,case,controls,xstate,p0,t,z,features,
                 train_models,med,Rs,mu0,R0,pk.set_index('pose_id').loc[ids]['sL_+0'].to_numpy() if ch=='full'
-                else z[:,1],truth,set(ARMS),d)
+                else z[:,1],set(ARMS))
             sc,st=score(case,bias,ch,init,t,truth,X,C,accepted,arms,rec)
             scores+=sc;series.append(st)
             if init=='NOM':
