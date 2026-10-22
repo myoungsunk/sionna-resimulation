@@ -24,7 +24,7 @@
 
 1. Train 3개 artifact 재사용 혹은 동일 seed/학습방식 재구축. **재학습한 경우 train R과 predicted teacher OOF parity도 재검사**.
 2. 7 case 별 독립 job: 3 conditions(full B0, full L2, los B0), 9 초기 조건(NOM,±10 P5/PM,±20 P5/PM). 동일 케이스의 세 condition을 하나의 source bank stage로 묶어 자산 다운로드 중복 감소.
-3. 모든 job 성공 전 aggregate 금지, 실패한 case를 삭제하지 말고 failure table에 포함. 총 7 case ×3 conditions×9 init×9 arm = 15309 case-condition-init-arm rows? 실제 산술은 7×3×9×9=1701 rows이다. 목표 1701 score rows.
+3. 모든 job 성공 전 aggregate 금지, 실패한 case를 삭제하지 말고 failure table에 포함. 총 7 case × 3 conditions × 9 init × 9 arm = **1,701개 score 행**을 누락 없이 생성해야 한다.
 4. t-split(0–2,2–10,10–30,>=30,all)과 prior heading/xy error d0, LoS ehat residual(offline), gate mask, update step, gyro bias 보존.
 5. Route-heldout R2/R4/R5의 heading RMSE/NEES/coverage/XY/range 별도 table. ±10/20 P5 초기과신과 PM matched prior 대조. P2 주행 중 GT-matched 동적 P 사용 금지.
 6. Bootstrap: 10s timeblock case별 paired bootstrap 2000개, 추정표본 3 route임을 명시. 선택된 case/path만 합격이라 주장하지 말 것.
