@@ -65,7 +65,7 @@
 - d0: 편파 극심 검출 0.999, 정답 없는 라벨로 POWER를 같은 품질로 재학습(1차 필터가 정확할 때). 같은 갱신 안에서 d0를 μ_s로 직접 빼는 것은 순환(ν_s = 0).
 
 ## 2. 브랜치와 포함 내용
-저장소 myoungsunk/sionna-resimulation. 각 브랜치는 앞 브랜치 위에 쌓였고, 최신 `research/powerjoint-ds-gated-plan-20261021`(head 3a3af98, 2026-10-22)이 아래 모든 브랜치를 포함한다(GitHub compare 기준 behind 0). 예외: `research/powerjoint-step2-gm-temporal-20261021`(Gauss-Markov 시간상관 모델, 3 commit)은 분기되어 포함되지 않음. default `main`에는 이 계열이 병합되지 않음.
+저장소 myoungsunk/sionna-resimulation. 각 브랜치는 앞 브랜치 위에 쌓였고, 최신 `research/powerjoint-ds-gated-plan-20261021`(이 문서 포함 head 6dd1261, 2026-10-22)이 아래 모든 브랜치를 포함한다(GitHub compare 기준 behind 0). 예외: `research/powerjoint-step2-gm-temporal-20261021`(Gauss-Markov 시간상관 모델, 3 commit)은 분기되어 포함되지 않음. default `main`에는 이 계열이 병합되지 않음.
 
 | 브랜치 (head) | 추가된 디렉터리·문서 | 내용 | 주요 run |
 |--|--|--|--|
@@ -77,7 +77,7 @@
 | powerjoint-ds-usage-map (1477e59) | PJ_DS_USAGE_MAP/00–01 | Δs 사용 지도 | 39543861322 |
 | powerjoint-method-a-ds-mean (91d7adf) | PJ_METHOD_A_DS_MEAN/00–01, heading_meas/ | Δs 편파 평균(방법 A), heading 측정 오차 robust 재분석 | 39544894508 |
 | powerjoint-sensitivity-strata (f5ed359) | PJ_SENS_STRATA/00–01, PJ_RANGE_DS_CHECK, PJ_DS_PATTERN | 민감도 분석, ranging만 확인, Δs 양상 | 39547230273 |
-| **powerjoint-ds-gated-plan (3a3af98)** | PJ_DS_GATED_20261021/00–16 | 아래 | 아래 |
+| **powerjoint-ds-gated-plan (6dd1261)** | PJ_DS_GATED_20261021/00–16 | 아래 | 아래 |
 
 PJ_DS_GATED_20261021 (ds-gated-plan) 세부
 | 문서 | 내용 | 코드 | 결과 디렉터리 | run |
