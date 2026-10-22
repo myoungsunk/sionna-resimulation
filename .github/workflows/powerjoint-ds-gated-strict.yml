@@ -1,0 +1,159 @@
+name: POWERJOINT strict held-route revalidation
+on:
+  push:
+    branches: ['research/powerjoint-ds-gated-plan-20261021']
+    paths: ['.github/workflows/powerjoint-ds-gated-strict.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/pj_st
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bankdownload
+jobs:
+  stageA:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 14
+      matrix:
+        include:
+          - {held: R2, case: R4_aA_m0}
+          - {held: R2, case: R4_aB_m0}
+          - {held: R2, case: R5_aA_m0}
+          - {held: R2, case: R5_aB_m0}
+          - {held: R4, case: R2_aA_m0}
+          - {held: R4, case: R2_aA_m45}
+          - {held: R4, case: R2_aB_m0}
+          - {held: R4, case: R5_aA_m0}
+          - {held: R4, case: R5_aB_m0}
+          - {held: R5, case: R2_aA_m0}
+          - {held: R5, case: R2_aA_m45}
+          - {held: R5, case: R2_aB_m0}
+          - {held: R5, case: R4_aA_m0}
+          - {held: R5, case: R4_aB_m0}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py > "$PJ_OUT/STAGE_LOG.txt" 2>&1
+      - name: Inner filters on training routes
+        run: |
+          set -o pipefail
+          python -u research/PJ_DS_GATED_20261021/strict_stageA.py --held '${{ matrix.held }}' --case '${{ matrix.case }}' 2>&1 | tee "$PJ_OUT/${{ matrix.held }}_${{ matrix.case }}_SA_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sa-${{ matrix.held }}-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            /tmp/pj_st/*.csv
+            /tmp/pj_st/*.csv.gz
+            /tmp/pj_st/*.json
+            /tmp/pj_st/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  stageB:
+    needs: stageA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py > "$PJ_OUT/STAGE_LOG.txt" 2>&1
+      - name: Held-route evaluation
+        env:
+          PJ_SA: /tmp/pj_sa
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/pj_sa
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --pattern 'sa-*' --dir /tmp/pj_sa
+          python -u research/PJ_DS_GATED_20261021/strict_replay.py --case '${{ matrix.case }}' 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_SB_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: sb-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            /tmp/pj_st/*.csv
+            /tmp/pj_st/*.csv.gz
+            /tmp/pj_st/*.json
+            /tmp/pj_st/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: [stageA, stageB]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Collect
+        run: |
+          set -euo pipefail
+          R=research/PJ_DS_GATED_20261021/results_strict; mkdir -p "$R/logs" /tmp/in
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --dir /tmp/in || true
+          for f in $(find /tmp/in -name '*_LOG.txt'); do tail -c 20000 "$f" > "$R/logs/$(basename "$f")"; done
+          python - <<'PY'
+          import pandas as pd, glob, json, os
+          R='research/PJ_DS_GATED_20261021/results_strict'
+          def cat(p, out):
+              fs = sorted(glob.glob('/tmp/in/**/' + p, recursive=True))
+              if fs: pd.concat([pd.read_csv(f) for f in fs], ignore_index=True).to_csv(os.path.join(R, out), index=False, compression='gzip' if out.endswith('.gz') else None)
+          cat('*_SA_SCORES.csv', 'SA_SCORES.csv'); cat('*_SA_D0.csv.gz', 'SA_D0.csv.gz'); cat('*_SB_SCORES.csv', 'SB_SCORES.csv')
+          cat('*_SB_SERIES.csv.gz', 'SB_SERIES.csv.gz'); cat('*_SB_DET.csv.gz', 'SB_DET.csv.gz')
+          cal = [json.load(open(f)) for f in sorted(glob.glob('/tmp/in/**/*_SB_CALIB.json', recursive=True))]
+          json.dump(cal, open(os.path.join(R, 'SB_CALIB.json'), 'w'), indent=2)
+          PY
+      - name: Commit results back
+        if: always()
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_DS_GATED_20261021/results_strict || true
+          git commit -m "Strict held-route revalidation results from run ${{ github.run_id }} (automated)" || echo 'nothing to commit'
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
