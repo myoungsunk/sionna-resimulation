@@ -1,0 +1,143 @@
+name: P2A CIR+D0 WIDE full 7-case recursive EKF held-route evaluation
+on:
+  push:
+    branches: ['research/d0-cir-p2-recursive-20261022']
+    paths: ['.github/workflows/p2-cir-d0-recursive-full.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/p2_full
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        include:
+          - {case: R2_aA_m0, held: R2}
+          - {case: R2_aA_m45, held: R2}
+          - {case: R2_aB_m0, held: R2}
+          - {case: R4_aA_m0, held: R4}
+          - {case: R4_aB_m0, held: R4}
+          - {case: R5_aA_m0, held: R5}
+          - {case: R5_aB_m0, held: R5}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 smoke dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD" /tmp/p2_models
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Reuse models trained on external routes only (P2 smoke run 39773370468)
+        run: |
+          set -euo pipefail
+          gh run download 39773370468 --repo myoungsunk/sionna-resimulation \
+            --name 'p2train-${{ matrix.held }}-39773370468' --dir /tmp/p2_models
+          MODEL=$(find /tmp/p2_models -name '${{ matrix.held }}_TRAIN.joblib' -print -quit)
+          QA=$(find /tmp/p2_models -name '${{ matrix.held }}_TRAIN_QA.json' -print -quit)
+          test -s "$MODEL" && test -s "$QA"
+          python - "$QA" '${{ matrix.held }}' <<'PY'
+          import json,sys
+          q=json.load(open(sys.argv[1]));h=sys.argv[2]
+          assert q['held']==h and h not in q['train_routes'] and len(q['train_routes'])==2, q
+          print('TRAIN_HELDOUT_PASS',h,q['train_routes'],q['R_cal'])
+          PY
+      - name: Full P2A recursive replay 3 conditions x 9 initializations x 9 arms
+        run: |
+          set -euo pipefail
+          MODEL=$(find /tmp/p2_models -name '${{ matrix.held }}_TRAIN.joblib' -print -quit)
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_replay.py \
+            --case '${{ matrix.case }}' --models "$MODEL" --mode full --out "$PJ_OUT" \
+              2>&1 | tee "$PJ_OUT/${{ matrix.case }}_P2_FULL_LOG.txt"
+      - name: Local source and output presence QA
+        run: |
+          set -euo pipefail
+          test -s "$PJ_OUT/${{ matrix.case }}_P2_SCORES.csv"
+          test -s "$PJ_OUT/${{ matrix.case }}_P2_SERIES.csv.gz"
+          test -s "$PJ_OUT/${{ matrix.case }}_P2_QA.json"
+          python - "$PJ_OUT/${{ matrix.case }}_P2_SCORES.csv" <<'PY'
+          import sys,pandas as pd
+          d=pd.read_csv(sys.argv[1]);assert len(d)==243,(len(d),'expected=3*9*9')
+          assert set(d.init)=={'NOM','E+10_P5','E-10_P5','E+20_P5','E-20_P5',
+                              'E+10_PM','E-10_PM','E+20_PM','E-20_PM'}
+          assert d.arm.nunique()==9
+          assert set(zip(d.bias,d.channel))=={('B0','full'),('L2','full'),('B0','los')}
+          print('CASE_COMPLETENESS_PASS',d.case.iloc[0],len(d))
+          PY
+      - name: Preserve raw logs, all filter traces, metrics, and QA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2full-${{ matrix.case }}-${{ github.run_id }}
+          path: /tmp/p2_full/
+          retention-days: 30
+          if-no-files-found: warn
+
+  aggregate:
+    needs: replay
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Download all cases; reject incomplete datasets
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p2_full_in research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+            --pattern 'p2full-*' --dir /tmp/p2_full_in
+          python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_aggregate.py \
+            --input /tmp/p2_full_in \
+            --out research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full --mode full \
+              | tee research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full/FULL_QA_LOG.txt
+          python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_analyze.py \
+            --scores research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full/P2_A_SCORES.csv \
+            --out research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full \
+              | tee research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full/FULL_ANALYSIS_LOG.txt
+      - name: Commit checked summary, route scores, QA, and analysis
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full
+          git commit -m "P2A full 7-case held-route recursive validation from run $GITHUB_RUN_ID" || echo no-changes
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
+      - name: Artifact checked aggregate and QA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2full-aggregate-${{ github.run_id }}
+          path: research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_full/
+          retention-days: 30
+          if-no-files-found: warn
