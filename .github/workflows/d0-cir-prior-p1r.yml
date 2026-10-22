@@ -1,0 +1,128 @@
+name: P1R heading prior recovery (matched prior, IEKF, calibrated R, wide retrain)
+on:
+  push:
+    branches: ['research/d0-cir-prior-p1-20261022']
+    paths: ['.github/workflows/d0-cir-prior-p1r.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/p1r_result
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  grid:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 14
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        part: [neg, pos]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2
+      - name: Stage original SourceFFD and sha-verified FFD banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Exact SourceFFD heading grid
+        run: |
+          set -euo pipefail
+          python -u research/PJ_D0_CIR_PRIOR_P1R_20261022/p1r_grid.py \
+            --case '${{ matrix.case }}' --part '${{ matrix.part }}' --out /tmp/p1r_grid
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p1r-grid-${{ matrix.case }}-${{ matrix.part }}-${{ github.run_id }}
+          path: /tmp/p1r_grid/
+          retention-days: 30
+          if-no-files-found: error
+  held:
+    needs: grid
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        held: [R2, R4, R5]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install scientific dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2
+      - name: Stage original SourceFFD and sha-verified FFD banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download heading grids
+        run: |
+          set -euo pipefail
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p1r-grid-*' --dir /tmp/p1r_grid
+      - name: P1R held-route evaluation
+        run: |
+          set -euo pipefail
+          python -u research/PJ_D0_CIR_PRIOR_P1R_20261022/p1r_eval.py \
+            --held '${{ matrix.held }}' --grid /tmp/p1r_grid --out "$PJ_OUT" | tee "$PJ_OUT/${{ matrix.held }}_P1R_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p1r-held-${{ matrix.held }}-${{ github.run_id }}
+          path: /tmp/p1r_result/
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: held
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Packages
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Aggregate 3 held routes
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p1r_in research/PJ_D0_CIR_PRIOR_P1R_20261022/results
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p1r-held-*' --dir /tmp/p1r_in
+          python research/PJ_D0_CIR_PRIOR_P1R_20261022/p1r_aggregate.py --input /tmp/p1r_in \
+            --out research/PJ_D0_CIR_PRIOR_P1R_20261022/results
+      - name: Commit summaries and QA only
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_PRIOR_P1R_20261022/results
+          git commit -m "P1R heading prior recovery results from run $GITHUB_RUN_ID" || echo no-changes
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
