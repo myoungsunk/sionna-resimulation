@@ -1,0 +1,40 @@
+name: D0-CIR heading gain pilot
+on:
+  push:
+    branches: ['research/d0-heading-gain-pilot-20261022']
+    paths: ['.github/workflows/d0-heading-gain-pilot.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install numpy==2.3.3 pandas==2.3.2
+      - name: Frozen held-route pilot
+        run: |
+          python -u research/PJ_D0_HEADING_GAIN_PILOT_20261022/heading_gain_pilot.py \
+            --input research/PJ_DS_GATED_20261021/results_los_bias/LOSC_PACKET_DIAGNOSTIC.csv.gz \
+            --out research/PJ_D0_HEADING_GAIN_PILOT_20261022/results
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: d0-heading-gain-pilot
+          path: research/PJ_D0_HEADING_GAIN_PILOT_20261022/results/
+      - name: Save results to research branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_HEADING_GAIN_PILOT_20261022/results
+          git commit -m "D0-CIR gain pilot results for run $GITHUB_RUN_ID" || echo 'no changes'
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
