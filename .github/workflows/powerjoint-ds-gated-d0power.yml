@@ -1,0 +1,185 @@
+name: POWERJOINT d0-label POWER refit
+on:
+  push:
+    branches: ['research/powerjoint-ds-gated-plan-20261021']
+    paths: ['.github/workflows/powerjoint-ds-gated-d0power.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/pj_d0p
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bankdownload
+jobs:
+  labels:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py > "$PJ_OUT/STAGE_LOG.txt" 2>&1
+      - name: Pass-1 label filters
+        run: |
+          set -o pipefail
+          python -u research/PJ_DS_GATED_20261021/d0p_labels.py --case '${{ matrix.case }}' 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_LBL_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d0l-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            /tmp/pj_d0p/*.csv
+            /tmp/pj_d0p/*.csv.gz
+            /tmp/pj_d0p/*.json
+            /tmp/pj_d0p/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  fit:
+    needs: labels
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py > "$PJ_OUT/STAGE_LOG.txt" 2>&1
+      - name: Refit POWER with swapped labels
+        env:
+          PJ_LABELS: /tmp/pj_labels
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/pj_labels
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --pattern 'd0l-*' --dir /tmp/pj_labels
+          python -u research/PJ_DS_GATED_20261021/d0p_fit.py 2>&1 | tee "$PJ_OUT/FIT_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d0f-${{ github.run_id }}
+          path: |
+            /tmp/pj_d0p/*.csv
+            /tmp/pj_d0p/*.csv.gz
+            /tmp/pj_d0p/*.json
+            /tmp/pj_d0p/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  replay:
+    needs: fit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Stage original source, verified banks and immutable final traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD" "$PJ_ART"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py > "$PJ_OUT/STAGE_LOG.txt" 2>&1
+      - name: Recursive replay
+        env:
+          PJ_PARAMS: /tmp/pj_params
+        run: |
+          set -o pipefail
+          mkdir -p /tmp/pj_params
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --name "d0f-${{ github.run_id }}" --dir /tmp/pj_params
+          python -u research/PJ_DS_GATED_20261021/d0p_replay.py --case '${{ matrix.case }}' 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_RP_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: d0r-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            /tmp/pj_d0p/*.csv
+            /tmp/pj_d0p/*.csv.gz
+            /tmp/pj_d0p/*.json
+            /tmp/pj_d0p/*_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: [labels, fit, replay]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Collect
+        run: |
+          set -euo pipefail
+          R=research/PJ_DS_GATED_20261021/results_d0power; mkdir -p "$R/logs" /tmp/in
+          gh run download "${{ github.run_id }}" --repo myoungsunk/sionna-resimulation --dir /tmp/in || true
+          for f in $(find /tmp/in -name '*_LOG.txt'); do tail -c 20000 "$f" > "$R/logs/$(basename $(dirname "$f"))_$(basename "$f")"; done
+          python - <<'PY'
+          import pandas as pd, glob, shutil, os
+          R='research/PJ_DS_GATED_20261021/results_d0power'
+          def cat(p, out):
+              fs = sorted(glob.glob('/tmp/in/**/' + p, recursive=True))
+              if fs: pd.concat([pd.read_csv(f) for f in fs], ignore_index=True).to_csv(os.path.join(R, out), index=False, compression='gzip' if out.endswith('.gz') else None)
+          cat('*_D0P_LABELS.csv.gz', 'D0P_LABELS.csv.gz'); cat('*_D0P_SCORES.csv', 'D0P_SCORES.csv')
+          for n in ['D0P_MEAS.csv', 'D0P_FITINFO.csv', 'D0P_FIT_QA.json']:
+              fs = glob.glob('/tmp/in/**/' + n, recursive=True)
+              if fs: shutil.copy(fs[0], os.path.join(R, n))
+          PY
+      - name: Commit results back
+        if: always()
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_DS_GATED_20261021/results_d0power || true
+          git commit -m "d0-label POWER refit results from run ${{ github.run_id }} (automated)" || echo 'nothing to commit'
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
