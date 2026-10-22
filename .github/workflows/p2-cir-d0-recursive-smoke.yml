@@ -1,0 +1,121 @@
+name: P2A CIR+D0 WIDE recursive EKF smoke
+on:
+  push:
+    branches: ['research/d0-cir-p2-recursive-20261022']
+    paths: ['.github/workflows/p2-cir-d0-recursive-smoke.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/p2_result
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  train:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        held: [R2, R4, R5]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Download frozen P1R SourceFFD prior grids
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p1r_grid /tmp/p2_train
+          gh run download 39752301964 --repo myoungsunk/sionna-resimulation --pattern 'p1r-grid-*' --dir /tmp/p1r_grid
+          test "$(find /tmp/p1r_grid -name 'GRID_*.npz' | wc -l)" -eq 14
+      - name: Fit outer training-only frozen HGB and R
+        run: |
+          set -euo pipefail
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_train.py \
+            --held '${{ matrix.held }}' --grid /tmp/p1r_grid --out /tmp/p2_train
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2train-${{ matrix.held }}-${{ github.run_id }}
+          path: /tmp/p2_train/
+          retention-days: 30
+          if-no-files-found: error
+  smoke:
+    needs: train
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage source and immutable RF traces
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD" /tmp/p2_models
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2train-*' --dir /tmp/p2_models
+      - name: Paired R4 recursive EKF validation, normal and ±10° initial
+        run: |
+          set -euo pipefail
+          MODEL=$(find /tmp/p2_models -name R4_TRAIN.joblib -print -quit)
+          test -f "$MODEL"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_replay.py \
+            --case R4_aA_m0 --models "$MODEL" --mode smoke --out "$PJ_OUT" | tee "$PJ_OUT/P2_SMOKE_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p2-smoke-${{ github.run_id }}
+          path: /tmp/p2_result/
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Packages
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Aggregate and verify BASE parity
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p2_smoke_in research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_smoke
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2-smoke-*' --dir /tmp/p2_smoke_in
+          python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_aggregate.py \
+            --input /tmp/p2_smoke_in --out research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_smoke --mode smoke
+      - name: Commit checked smoke summary
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_smoke
+          git commit -m "P2A baseline-parity smoke results from run $GITHUB_RUN_ID" || echo no-change
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
