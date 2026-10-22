@@ -17,14 +17,14 @@ for arm, g in S.groupby('arm', sort=False):
     g = g.set_index(key); bb = b.loc[g.index]
     d = pd.DataFrame({'route': g.route, 'h': g.heading_rmse_deg / bb.heading_rmse_deg, 'anchor': g.anchor_range_rmse_cm / bb.anchor_range_rmse_cm,
                       'xy': g.xy_rmse_cm / bb.xy_rmse_cm, 'tan': g.tangential_rmse_cm / bb.tangential_rmse_cm, 'nees': g.heading_nees_1d, 'nees_b': bb.heading_nees_1d,
-                      'cov': g.heading_cov95, 'cov_b': bb.heading_cov95, 'xynees': g.xy_nees_2d, 'xycov': g.xy_cov95, 'xycov_b': bb.xy_cov95})
+                      'hcov': g.heading_cov95, 'cov_b': bb.heading_cov95, 'xynees': g.xy_nees_2d, 'xycov': g.xy_cov95, 'xycov_b': bb.xy_cov95})
     for chn in ['full', 'los']:
         dd = d.xs(chn, level='channel')
         r = {'arm': arm, 'channel': chn, 'heading_ratio_med': dd.h.median(), 'h_better': int((dd.h < 1).sum()), 'h_worse10': int((dd.h > 1.1).sum()), 'h_worst': dd.h.max(),
              'anchor_ratio_med': dd.anchor.median(), 'xy_ratio_med': dd.xy.median(), 'tan_ratio_med': dd.tan.median(),
-             'heading_nees1d_med': dd.nees.median(), 'heading_cov95_med': dd.cov.median(), 'xy_nees2d_med': dd.xynees.median(), 'xy_cov95_med': dd.xycov.median()}
+             'heading_nees1d_med': dd.nees.median(), 'heading_cov95_med': dd.hcov.median(), 'xy_nees2d_med': dd.xynees.median(), 'xy_cov95_med': dd.xycov.median()}
         for rt, gr in dd.groupby('route'):
-            r[f'{rt}_h'] = gr.h.median(); r[f'{rt}_anchor'] = gr.anchor.median(); r[f'{rt}_xy'] = gr.xy.median(); r[f'{rt}_cov'] = gr.cov.median(); r[f'{rt}_covb'] = gr.cov_b.median()
+            r[f'{rt}_h'] = gr.h.median(); r[f'{rt}_anchor'] = gr.anchor.median(); r[f'{rt}_xy'] = gr.xy.median(); r[f'{rt}_cov'] = gr.hcov.median(); r[f'{rt}_covb'] = gr.cov_b.median()
             r[f'{rt}_nees'] = gr.nees.median(); r[f'{rt}_neesb'] = gr.nees_b.median()
         if chn == 'full':
             rts = sorted(dd.route.unique())
