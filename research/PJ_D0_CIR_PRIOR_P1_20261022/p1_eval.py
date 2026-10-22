@@ -138,9 +138,9 @@ def main():
             sig=3. if gain_mode!='LOCAL_MATCHED' else max(3.,abs(delta))
             k=sig*sig*gd/(sig*sig*gd*gd+0.01)
             for arm,e_hat in names.items():
-                nu=z-eh-s
+                nu=z-e_hat-s
                 post=np.full(len(te),delta,dtype=float) if arm=='PRIOR_ONLY' else delta+k*nu
-                er=z-eh-te['sL_+0'].to_numpy()
+                er=z-e_hat-te['sL_+0'].to_numpy()
                 ab=np.abs(post)
                 item={'route':a.held,'delta':delta,'abs_delta':abs(delta),
                      'gain_mode':gain_mode,'arm':arm,'n':len(te),
