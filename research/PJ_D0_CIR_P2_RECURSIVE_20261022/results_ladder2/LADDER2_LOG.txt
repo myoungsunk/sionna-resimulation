@@ -1,0 +1,26 @@
+LADDER2 heading rmse ratio (to/from), route median, t>=30 s
+route                                    R2     R4     R5
+step                            bias                     
+BASE: gate R V_s -> kappa V_s   B0    1.053  1.013  1.000
+                                L2    1.041  1.000  0.987
+BASE: update R V_s -> kappa V_s B0    0.995  0.996  0.993
+                                L2    1.002  1.002  1.007
+CIR: gate R V_s -> kappa V_s    B0    0.971  0.858  0.939
+                                L2    0.981  0.936  0.949
+CIR: update R V_s -> kappa V_s  B0    1.032  1.106  0.935
+                                L2    1.011  1.120  0.932
+WIDE: gate R V_s -> kappa V_s   B0    1.003  0.912  0.985
+                                L2    0.992  0.902  0.965
+WIDE: update R V_s -> kappa V_s B0    1.012  1.171  0.842
+                                L2    0.992  1.201  0.868
+reference: BASE -> WIDE_KV      B0    1.330  0.902  0.716
+                                L2    1.607  0.893  0.805
+reference: WIDE_KV -> ORACLE    B0    0.308  0.261  0.523
+                                L2    0.345  0.301  0.627
+same rule: BASE_KV -> CIR_KV    B0    1.313  0.912  0.818
+                                L2    1.773  0.992  0.932
+same rule: BASE_KV -> WIDE_KV   B0    1.181  0.894  0.721
+                                L2    1.517  0.891  0.805
+same rule: CIR_KV -> WIDE_KV    B0    0.900  1.017  0.875
+                                L2    0.893  0.907  0.855
+LADDER2_ALL_PASS {"parity_max": 1.3145040611561853e-12, "kappa": {"R2": {"BASE": 0.9424626394990429, "RAW": 0.8337219583579331, "CIR_ONLY": 0.5403233007167062, "CIR_PLUS_D0": 0.07455071628315009, "CIR_PLUS_D0_WIDE": 0.4478067997559385}, "R4": {"BASE": 1.021813183408946, "RAW": 1.0482372496627463, "CIR_ONLY": 0.5796665144715483, "CIR_PLUS_D0": 0.04863390373990607, "CIR_PLUS_D0_WIDE": 0.42137363917276477}, "R5": {"BASE": 0.9151204197939454, "RAW": 0.8435745033132023, "CIR_ONLY": 0.5470997208187511, "CIR_PLUS_D0": 0.07077673146596147, "CIR_PLUS_D0_WIDE": 0.4955614072811327}}, "spearman_eps2_vs_Vs": {"R2": {"BASE": 0.5768765135970407, "RAW": 0.4460738709225547, "CIR_ONLY": 0.4266048443635338, "CIR_PLUS_D0": 0.11244428237008224, "CIR_PLUS_D0_WIDE": 0.4259268441989464}, "R4": {"BASE": 0.47579483321830623, "RAW": 0.46608044309576985, "CIR_ONLY": 0.37977922417386883, "CIR_PLUS_D0": 0.17872779840476163, "CIR_PLUS_D0_WIDE": 0.3822367354665631}, "R5": {"BASE": 0.5718793868662833, "RAW": 0.5065069158688909, "CIR_ONLY": 0.5261346512125158, "CIR_PLUS_D0": 0.2254524836441087, "CIR_PLUS_D0_WIDE": 0.4945388941234413}}, "mse_ref_diff_max": 0.0}
