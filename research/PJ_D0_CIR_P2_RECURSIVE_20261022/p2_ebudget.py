@@ -28,7 +28,8 @@ SRC=['initial','odom','gyro','range','pol_c1_fp0','pol_c1_fp1','pol_c1_fp2','pol
 def replay(model,case,controls,x0,P0,z,features,l4,mu0,R0,sL,hgt):
     n=len(z);names=list(ARMS);J=len(names)
     out={nm:{'xm':np.zeros((n,4)),'xp':np.zeros((n,4)),'K':np.zeros((n,4,2)),'H':np.zeros((n,2,4)),'hm':np.zeros((n,2)),
-             'mu':np.zeros((n,2)),'ehat':np.zeros(n),'ehat_gt':np.zeros(n),'acc':np.zeros(n,bool),'P':np.zeros((n,4,4))} for nm in names}
+             'mu':np.zeros((n,2)),'ehat':np.zeros(n),'ehat_gt':np.zeros(n),'acc':np.zeros(n,bool),'P':np.zeros((n,4,4)),
+             'Pp':np.zeros((n,4,4)),'R':np.zeros((n,2,2)),'nis':np.zeros(n)} for nm in names}
     xs=np.repeat(x0[None],J,0);Ps=np.repeat(P0[None],J,0);pre={};mdl={}
     for nm,(mus,so,key) in ARMS.items():
         if so=='l4':
@@ -55,7 +56,7 @@ def replay(model,case,controls,x0,P0,z,features,l4,mu0,R0,sL,hgt):
             HP=H[j]@Ps[j];Se=HP@H[j].T+r;Se=.5*(Se+Se.T);Kk=np.linalg.solve(Se,HP).T
             xo,Po,nis,yes=S.update(xs[j][None],Ps[j][None],zk,h[j][None],H[j][None],mu[None],mu[None],r[None],r[None],np.array([False]))
             if yes[0]:o['K'][k]=Kk
-            o['acc'][k]=bool(yes[0]);xs[j],Ps[j]=xo[0],Po[0];o['xp'][k]=xs[j]
+            o['acc'][k]=bool(yes[0]);xs[j],Ps[j]=xo[0],Po[0];o['xp'][k]=xs[j];o['Pp'][k]=Ps[j];o['R'][k]=r;o['nis'][k]=float(nis[0])
         if k%250==0:print(f'EB_FRAME {case["id"]} k={k}/{n}',flush=True)
     return out
 
