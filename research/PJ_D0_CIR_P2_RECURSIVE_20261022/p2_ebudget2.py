@@ -66,6 +66,15 @@ def kernel(Wt,t,ev,c1,g):
                     'pol_c1_heading_deg':math.degrees(float(np.sum(Wk*c1[:ti+1])))})
     return out
 
+def acf_stats(x,dt,maxlag=400):
+    """lag-1 rho, integral correlation time to the first zero crossing, e-folding time, information factor 1+2*sum(rho)."""
+    x=np.asarray(x,float);x=x[np.isfinite(x)];x=x-x.mean();n=len(x);v=float(np.dot(x,x)/n)
+    if n<20 or v<=0:return {'rho1':np.nan,'tau_int_s':np.nan,'tau_e_s':np.nan,'info_factor':np.nan,'n':n}
+    L=min(maxlag,n//2);rho=np.array([np.dot(x[:n-l],x[l:])/(n*v) for l in range(1,L+1)])
+    neg=np.where(rho<=0)[0];l0=int(neg[0]) if len(neg) else L
+    s=float(rho[:l0].sum());ef=np.where(rho<1/np.e)[0];le=int(ef[0])+1 if len(ef) else L
+    return {'rho1':float(rho[0]),'tau_int_s':float(dt*(1+2*s)/2),'tau_e_s':float(dt*le),'info_factor':float(1+2*s),'n':n}
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument('--case',required=True);ap.add_argument('--l4models',required=True)
     ap.add_argument('--out',required=True);a=ap.parse_args()
@@ -76,7 +85,7 @@ def main():
     pk=pd.read_csv(R2.REPO/'research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz');pk=pk[pk.case==a.case].sort_values('pose_id')
     ref=pd.read_csv(HERE/'results_ladder4/LADDER4_SCORES.csv')
     refmap={'BASE':'L_BASE','CIR':'L_CIR','WIDE_NOES':'L_WIDE_NOES','PWIDE_NOES':'L_PWIDE_NOES','ORACLE':'L_ORACLE'}
-    model=V.SourceFFD();share=[];cov=[];cross=[];kern=[];qa={'case':a.case,'parity':{},'closure':{}}
+    model=V.SourceFFD();share=[];cov=[];cross=[];kern=[];acf=[];wq=[];qa={'case':a.case,'parity':{},'closure':{}}
     for bias in ('B0','L2'):
         stem=f'{a.case}_full_{bias}';old=np.load(V.one(stem+'_TRACE.npz'),allow_pickle=False)
         t=old['t_s'];ids=old['pose_id'];truth=old['truth_scoring_only'];n=len(t)
@@ -89,7 +98,20 @@ def main():
         ds_true,dth_true=RB.motion_increments(t,truth,convention='legacy-euler');b_true=math.radians(V.BIAS_LEVELS[bias])
         res=EB.replay(model,case,controls,x0,P0,z,features,l4,mu0,R0,sL,hgt)
         pr={nm:prep(o,z,hgt,truth,controls,b_true,np.asarray(ds_true),np.asarray(dth_true),fp) for nm,o in res.items()}
-        m=t>=30;ev=np.where(m)[0][::10]
+        m=t>=30;ev=np.where(m)[0][::10];dtm=float(np.median(np.diff(t)))
+        w0=next(iter(pr.values()))['w'];q_ds=2e-5*np.abs(controls['ds_odom']);q_g=math.radians(.015)**2*controls['dt_s']
+        for lab,mk in (('all',t>=0),('t>=30',m)):
+            mk=mk.copy();mk[0]=False
+            wq.append({'case':a.case,'route':Hr,'bias':bias,'window':lab,
+                       'odom_w2_over_q':float(np.mean(w0[mk,0]**2)/np.mean(q_ds[mk])),'gyro_w2_over_q':float(np.mean(w0[mk,1]**2)/np.mean(q_g[mk])),
+                       'odom_mean_norm2':float(np.mean(w0[mk,0]**2/np.maximum(q_ds[mk],1e-30))),'gyro_mean_norm2':float(np.mean(w0[mk,1]**2/q_g[mk])),
+                       'gyro_w_rms_deg':math.degrees(float(np.sqrt(np.mean(w0[mk,1]**2)))),'gyro_q_rms_deg':math.degrees(float(np.sqrt(np.mean(q_g[mk])))),
+                       'odom_rho1':acf_stats(w0[mk,0],dtm)['rho1'],'gyro_rho1':acf_stats(w0[mk,1],dtm)['rho1'],'dt_median_s':dtm})
+        for nm,p in pr.items():
+            for lab,mk in (('all',t>=0),('t>=30',m)):
+                for sig,x in (('pol_c1',p['c1']),('pol_c2',p['c2']),('pol_total',p['eps'][:,1]),('range',p['eps'][:,0])):
+                    acf.append({'case':a.case,'route':Hr,'bias':bias,'arm':nm,'window':lab,'signal':sig,
+                                'mean':float(np.mean(x[mk])),'rms':float(np.sqrt(np.mean(x[mk]**2))),**acf_stats(x[mk],dtm)})
         np.savez_compressed(out/f'{stem}_EB2_ARRAYS.npz',t=t,truth=truth,hgt=hgt,z=z,fp=fp,
             **{f'{nm}__{k}':v for nm,p in pr.items() for k,v in p.items()},**{f'{nm}__xp':o['xp'] for nm,o in res.items()},
             **{f'{nm}__xm':o['xm'] for nm,o in res.items()},**{f'{nm}__ehat':o['ehat'] for nm,o in res.items()})
@@ -117,6 +139,7 @@ def main():
         print(f'EB2_DONE {stem}',flush=True)
     pd.DataFrame(share).to_csv(out/f'{a.case}_EB2_SHARE.csv',index=False);pd.DataFrame(cov).to_csv(out/f'{a.case}_EB2_COV.csv',index=False)
     pd.DataFrame(cross).to_csv(out/f'{a.case}_EB2_CROSS.csv',index=False);pd.DataFrame(kern).to_csv(out/f'{a.case}_EB2_KERNEL.csv',index=False)
+    pd.DataFrame(acf).to_csv(out/f'{a.case}_EB2_ACF.csv',index=False);pd.DataFrame(wq).to_csv(out/f'{a.case}_EB2_WQ.csv',index=False)
     (out/f'{a.case}_EB2_QA.json').write_text(json.dumps(qa,indent=2));print('EB2_CASE_PASS',flush=True)
 
 if __name__=='__main__':main()
