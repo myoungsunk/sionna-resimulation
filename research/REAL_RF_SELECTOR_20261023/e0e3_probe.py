@@ -65,7 +65,7 @@ def make_dataset(repo,source_dir,models_dir,series_dir):
         d=load_csv(repo/f'research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_r2diag/{rt}_R2DIAG_PACKETS.csv.gz')
         d['route']=rt
         assert not d.duplicated(['case','pose_id']).any()
-        oracle[rt]=d[['case','pose_id','r_base','mu_oof','V','fp_shift_tap','e_true']]
+        oracle[rt]=d[['case','pose_id','r_base','mu_oof','V','e_true']]
     odf=pd.concat(list(oracle.values()),ignore_index=True)
     hp=hp.merge(odf,on=['case','pose_id'],how='left',validate='one_to_one')
     assert hp[['r_base','mu_oof','V','e_true']].notna().all().all()
