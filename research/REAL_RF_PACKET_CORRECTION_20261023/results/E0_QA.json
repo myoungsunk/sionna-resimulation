@@ -1,0 +1,38 @@
+{
+  "matched_rows": 9519,
+  "routes": {
+    "R2": 3909,
+    "R5": 3766,
+    "R4": 1844
+  },
+  "label": "Ds = (e-mu_POWER)^2-(e-mu_POWER-delta_hat_PWIDE)^2",
+  "features": {
+    "F0": [
+      "sF_+0",
+      "log_fp_power",
+      "fp_full"
+    ],
+    "F1": [
+      "sF_-8",
+      "sF_-4",
+      "sF_-2",
+      "sF_-1",
+      "sF_+1",
+      "sF_+2",
+      "sF_+4",
+      "sF_+8"
+    ]
+  },
+  "GT_only_diagnostics": [
+    "r_base",
+    "r_pwide",
+    "benefit",
+    "fp_large",
+    "clean",
+    "severe"
+  ],
+  "estimator": "train on other two routes' frozen OOF labels; inner crossfit nuisance is NOT strictly outer-held independent",
+  "scientific_status": "EXPLORATORY ONLY; requires train-only nested crossfit before E5/E6",
+  "prior_at_d0": "GT pose in frozen R2DIAG (not operational recursive prior)",
+  "recursive_ekf_executed": false
+}
