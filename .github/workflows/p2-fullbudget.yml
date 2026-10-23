@@ -1,0 +1,150 @@
+name: P2 full-state budget v4 and d0 feedback
+on:
+  push:
+    branches: ['research/d0-cir-p2-recursive-20261022']
+    paths: ['.github/workflows/p2-fullbudget.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/p2_out
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  fb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      max-parallel: 14
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        seeds: ['0,1,2', '3,4,5', '6,7,8', '9,10,11']
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 smoke dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download ladder-4 control models (run 39893308814)
+        run: |
+          set -euo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2)
+          gh run download 39893308814 --repo myoungsunk/sionna-resimulation --name "p2l4train-$H-39893308814" --dir /tmp/p2_l4train
+      - name: Full-state budget v4
+        run: |
+          set -uo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2); TAG=$(echo '${{ matrix.seeds }}' | tr ',' '_')
+          L4=$(find /tmp/p2_l4train -name "${H}_L4TRAIN.joblib" -print -quit)
+          LOG="$PJ_OUT/${{ matrix.case }}_FB_LOG_$TAG.txt"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_fullbudget.py --case '${{ matrix.case }}' --seeds '${{ matrix.seeds }}' --l4models "$L4" --out "$PJ_OUT" > "$LOG" 2>&1; rc=$?
+          tail -n 20 "$LOG"
+          if [ $rc -ne 0 ]; then tail -n 12 "$LOG" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: p2fb-${{ matrix.case }}-${{ strategy.job-index }}-${{ github.run_id }}
+          path: /tmp/p2_out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  d0fb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 14
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        bias: [B0, L2]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 smoke dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download ladder-4 control models (run 39893308814)
+        run: |
+          set -euo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2)
+          gh run download 39893308814 --repo myoungsunk/sionna-resimulation --name "p2l4train-$H-39893308814" --dir /tmp/p2_l4train
+      - name: d0 feedback
+        run: |
+          set -uo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2); L4=$(find /tmp/p2_l4train -name "${H}_L4TRAIN.joblib" -print -quit)
+          EXTRA=""; if [ '${{ matrix.bias }}' = 'B0' ]; then EXTRA="--curve"; fi
+          LOG="$PJ_OUT/${{ matrix.case }}_${{ matrix.bias }}_D0FB_LOG.txt"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_d0feedback.py --case '${{ matrix.case }}' --bias '${{ matrix.bias }}' --l4models "$L4" --out "$PJ_OUT" $EXTRA > "$LOG" 2>&1; rc=$?
+          tail -n 20 "$LOG"
+          if [ $rc -ne 0 ]; then tail -n 12 "$LOG" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: p2d0fb-${{ matrix.case }}-${{ matrix.bias }}-${{ github.run_id }}
+          path: /tmp/p2_out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [fb, d0fb]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Aggregate
+        run: |
+          set -euo pipefail
+          D=research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_fullbudget
+          mkdir -p /tmp/p2_in "$D"
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2fb-*' --dir /tmp/p2_in/fb || true
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2d0fb-*' --dir /tmp/p2_in/d0fb || true
+          python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_fb_aggregate.py --input /tmp/p2_in --out "$D" | tee "$D/FB_LOG.txt"
+          rm -f "$D"/FB_TS.csv.gz
+      - name: Commit summaries
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_fullbudget
+          git commit -m "P2 full-state budget v4 and d0 feedback from run $GITHUB_RUN_ID" || echo no-changes
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
