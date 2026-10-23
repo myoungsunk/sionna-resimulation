@@ -1,0 +1,28 @@
+LADDER4 heading rmse ratio (to/from), route median, t>=30 s
+route                                                     R2     R4     R5
+step                                             bias                     
+P: BASE -> PWIDE_NOES                            B0    1.710  0.939  0.792
+                                                 L2    1.783  0.930  0.740
+P: KU -> KV (gate R)                             B0    1.000  0.873  0.964
+                                                 L2    0.992  0.852  0.956
+P: PCIR -> PCIR3 (rows x3)                       B0    0.999  1.050  1.006
+                                                 L2    0.979  1.036  0.925
+P: PCIR3 -> PWIDE_SHUF (d0 column, no info)      B0    0.995  1.000  1.000
+                                                 L2    0.993  1.000  1.000
+P: PWIDE_NOES -> KU (update R)                   B0    1.008  1.151  0.857
+                                                 L2    1.024  1.176  0.909
+P: PWIDE_PREV -> PWIDE_NOES (early stopping off) B0    0.995  1.034  1.045
+                                                 L2    0.986  1.030  1.098
+P: PWIDE_SHUF -> PWIDE_NOES (d0 info)            B0    0.968  0.912  0.937
+                                                 L2    0.923  0.904  0.974
+W: CIR -> CIR3 (rows x3)                         B0    0.991  1.028  0.984
+                                                 L2    0.987  1.031  0.935
+W: CIR -> WIDE_NOES (total)                      B0    0.931  0.910  0.969
+                                                 L2    0.940  0.897  0.898
+W: CIR3 -> WIDE_SHUF (d0 column, no info)        B0    0.996  1.000  1.012
+                                                 L2    0.996  1.000  1.033
+W: WIDE_PREV -> WIDE_NOES (early stopping off)   B0    1.037  1.016  1.047
+                                                 L2    1.020  1.025  0.998
+W: WIDE_SHUF -> WIDE_NOES (d0 info)              B0    0.895  0.886  0.973
+                                                 L2    0.903  0.871  0.932
+LADDER4_ALL_PASS {"parity_max": 1.3145040611561853e-12, "l4train": {"R2": {"held": "R2", "train_routes": ["R4", "R5"], "kappa_P_D0": 0.8440853915369613, "info": {"W_X1": {"n_rows": 5610, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_X3": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_SHUF": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": true}, "W_D0": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_X1": {"n_rows": 5610, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_X3": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_SHUF": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_D0": {"n_rows": 16830, "n_iter": 160, "early_stopping": false, "has_d0": true}}, "loro_rms_P_D0": 0.1667928880891539, "loro_mean_P_D0": -0.036304846700987686}, "R4": {"held": "R4", "train_routes": ["R2", "R5"], "kappa_P_D0": 0.4546614941934677, "info": {"W_X1": {"n_rows": 7675, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_X3": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_SHUF": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": true}, "W_D0": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_X1": {"n_rows": 7675, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_X3": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_SHUF": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_D0": {"n_rows": 23025, "n_iter": 160, "early_stopping": false, "has_d0": true}}, "loro_rms_P_D0": 0.09681206917553493, "loro_mean_P_D0": -0.0037368815441745726}, "R5": {"held": "R5", "train_routes": ["R2", "R4"], "kappa_P_D0": 0.7347062073795905, "info": {"W_X1": {"n_rows": 5753, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_X3": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": false}, "W_SHUF": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": true}, "W_D0": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_X1": {"n_rows": 5753, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_X3": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": false}, "P_SHUF": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": true}, "P_D0": {"n_rows": 17259, "n_iter": 160, "early_stopping": false, "has_d0": true}}, "loro_rms_P_D0": 0.1709604692109226, "loro_mean_P_D0": -0.037460260576517385}}, "prev_info": {"R2": {"WIDE_PREV": {"n_iter": 160, "early_stopping": true}, "PWIDE_PREV": {"n_iter": 160, "early_stopping": true}}, "R4": {"WIDE_PREV": {"n_iter": 160, "early_stopping": true}, "PWIDE_PREV": {"n_iter": 160, "early_stopping": true}}, "R5": {"WIDE_PREV": {"n_iter": 160, "early_stopping": true}, "PWIDE_PREV": {"n_iter": 160, "early_stopping": true}}}}
