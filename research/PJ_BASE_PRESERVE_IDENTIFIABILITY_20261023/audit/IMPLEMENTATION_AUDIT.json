@@ -1,0 +1,54 @@
+{
+  "status": "PASS_WITH_NATIVE_INTEGRATION_NOT_RUN",
+  "scope": "Implementation, static review, and synthetic contract tests only",
+  "frozen_reference_sha": "0686b23ceeefb696bc158b32b39f8077c564ef5d",
+  "local_test_execution": {
+    "audit_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python scripts/base_rf_identifiability_v2.py audit-code --config <audit-only-config.json>",
+    "tests_run": 90,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "optimized_python_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python -O -m unittest discover -s research/PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023/tests",
+    "optimized_tests_run": 90,
+    "optimized_result": "PASS",
+    "compileall": "PASS",
+    "evidence_kind": "Execution results recorded in this implementation session; this file is a summary, not the raw test runner log"
+  },
+  "publication_verification": {
+    "method": "GitHub Git-tree blob identities compared with the locally tested source snapshot",
+    "all_python_files_match_audited_snapshot": true,
+    "manifest": "Same R01-R20 coverage entries; JSON formatting and documentation were finalized for publication",
+    "audited_python_blobs": {
+      "__init__.py": "496ce2e24efdbc03124c01a41b11f5365dc8b7b6",
+      "audit.py": "03702b114dcc313e90e41a0c45467d37dd28af96",
+      "cli.py": "8701def7dc9c1cdec37b3eca4e012ec453e27cec",
+      "common.py": "2deb9f55adc79cab37d16cf122c3fecc7e9f5966",
+      "diagnostics.py": "e440ec26cc8ae162c5d9a74814e383f42724fa7a",
+      "native.py": "820e1b0004f3b30a043f69efadb605c1a4fbdf88",
+      "numerics.py": "d715d87fbae443a4b62dbfa679e859f1a2348d50",
+      "oracle_scoring.py": "ab1d6a5faf89df8399e1ef06f4246b717d0a363c",
+      "replay.py": "5788eef163e7261afdcad3d9ef87cf717b818f6c",
+      "runtime_features.py": "a5204fcf9477eb7c5b9187deabba2ba176bf005a",
+      "scorecard.py": "084d3d6de53e95884adee247f9e6d177634661ca",
+      "stages.py": "e191eccedd205169844d40612e8752be044e3731",
+      "temporal.py": "c96b4466a7775d39cdc19d2562e77643eabe36ba",
+      "tests/test_protocol.py": "4876b4e89c7114630834eb34734940242fcda165",
+      "training.py": "143983384be46785efa9003e66f5709b010222c5"
+    }
+  },
+  "scientific_execution": {
+    "original_rf_replays": 0,
+    "real_data_model_fits": 0,
+    "github_actions_dispatches": 0,
+    "native_SourceFFD_integration": "NOT_RUN",
+    "actual_baseline_state_covariance_gate_parity": "NOT_RUN; mandatory S0 check implemented",
+    "candidate_performance": "NOT_MEASURED"
+  },
+  "limits": [
+    "Synthetic HGB fits use artificial rows only and are not trained RF models",
+    "All eight stage entrypoints are implemented; scientific completion is not asserted",
+    "S6 is diagnostic-only and does not install an operational temporal filter",
+    "This repository summary is not an executable-stage authorization receipt",
+    "Generate a fresh code/config-bound AUDIT_STATUS.json in the intended runtime before any separately authorized RF stage"
+  ]
+}

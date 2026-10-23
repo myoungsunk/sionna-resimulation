@@ -1,0 +1,61 @@
+{
+  "protocol": "BASE_RF_IDENTIFIABILITY_PLAN_V2",
+  "date": "2026-10-23",
+  "implementation_parent_sha": "aa41317b8467571d580e50928007d570b610bf56",
+  "frozen_reference_sha": "0686b23ceeefb696bc158b32b39f8077c564ef5d",
+  "source_plan": {
+    "file": "BASE_RF_IDENTIFIABILITY_PLAN_V2_KO.md",
+    "sha256": "ff64e511d5c62fecd818ce7d5def5ac8e3b60e408d0c4ee26016d0528bfac9f0"
+  },
+  "execution_default": "code audit only",
+  "scientific_stage_requires": "--execute-rf + fresh code/config-bound AUDIT PASS + upstream receipts + original verified assets + Python 3.11/pinned dependencies",
+  "unit_system": {
+    "state": ["m", "m", "rad", "rad/s"],
+    "control": ["m", "rad", "s"],
+    "R": "variance, not standard deviation",
+    "heading_report": "degrees",
+    "position_report": "cm"
+  },
+  "stages": {
+    "S0": {"entry": "stages.run_s0", "requires": ["AUDIT"], "scientific_status": "NOT_RUN", "implements": ["asset lock and frozen raw-manifest checks", "native observer and original-reference intermediate parity", "504 primary baseline results at full scope", "native LoS B0 controls", "noise mean/variance/mean-square audit"]},
+    "S1": {"entry": "stages.run_s1", "requires": ["S0"], "scientific_status": "NOT_RUN", "implements": ["frozen NOES and PCIR3/WIDE/ORACLE residuals", "c1/c2/c_model", "all/common/own gates", "signed strata and persistence"]},
+    "S2": {"entry": "stages.run_s2", "requires": ["S0"], "scientific_status": "NOT_RUN", "implements": ["state-axis/joint/covariance perturbations on fixed RF", "own-FP and measured-FP profile metrics", "state-orthogonal features", "FP/mask/anchor-axis flags"]},
+    "S3": {"entry": "stages.run_s3", "requires": ["S0", "S2"], "scientific_status": "NOT_RUN", "implements": ["P1_MU/P2_DB/P3_VS/P4_PERP/P4_SHUFFLE/P5_CROSSFIT", "frozen P0 refit and original teacher QA", "nested spatial groups and full fit ancestry", "P2/P4 paired absolute-bias prediction"]},
+    "S4": {"entry": "stages.run_s4", "requires": ["S0", "S3"], "scientific_status": "NOT_RUN", "implements": ["BASE/PWIDE/RANGE_ONLY common priors", "common/force/own masks", "exact one-update state and loss identities", "new-candidate finite responses"]},
+    "S5": {"entry": "stages.run_s5", "requires": ["S0", "S4"], "scientific_status": "NOT_RUN", "implements": ["packet/10-second actual clone-and-branch", "BASE suffix with own future d0/H/K/P/gate", "0/2/10/30/60/120-second and route-end horizons", "right censoring", "fixed-matrix control", "all4 source moment budget"]},
+    "S6": {"entry": "stages.run_s6", "requires": ["S0", "S3"], "scientific_status": "NOT_RUN", "conditional_extension": true, "installs_temporal_filter": false, "implements": ["train-only PSD spectral metric", "motion-induced temporal covariance", "constant/linear/free-packet nuisance controls", "RF-only versus prior-assisted identifiability", "nonlinear nuisance profile and independent bias-forecast diagnosis"]},
+    "S7": {"entry": "stages.run_s7", "requires": ["S0", "S1", "S5"], "scientific_status": "NOT_RUN", "implements": ["complete 7 x 2 x 12 paired matrix per candidate", "native LoS B0 negative controls", "original BASE_eta2 update-only comparator", "heading/XY/radial/tangential/bias and NEES1/2/3/4", "coverage/tails/episode-duration comparisons", "failure and uncertainty ledger"]}
+  },
+  "requirement_coverage": [
+    {"id":"R01","requirement":"Zero correction reproduces every BASE state/covariance/gate","tests":["Contracts.test_zero_correction_full_trace","Contracts.test_original_formula_all_updates"]},
+    {"id":"R02","requirement":"One application of POWER mean, incremental ORACLE target","tests":["Contracts.test_mu_once_and_oracle","Contracts.test_native_los_oracle_target_is_minus_mu"]},
+    {"id":"R03","requirement":"Measurement and same-prior state-loss identities","tests":["Mathematics.test_residual_benefit_identity","Mathematics.test_common_prior_closure"]},
+    {"id":"R04","requirement":"Independent branch state, PRNG and immutable inputs","tests":["Contracts.test_branch_copies","AdditionalSafetyTests.test_rng_is_deep_copied"]},
+    {"id":"R05","requirement":"Causal current packet and recomputed future priors","tests":["Contracts.test_future_tail_mutation","Contracts.test_future_derived_prior_recomputed"]},
+    {"id":"R06","requirement":"Truth/LoS/FP-shift excluded from runtime","tests":["Contracts.test_forbidden_field_mutation","Contracts.test_oracle_requires_diagnostic_permission"]},
+    {"id":"R07","requirement":"Fit ancestry for teacher, imputer, Omega and residual model","tests":["TrainingIntegration.test_outer_labels_do_not_affect_teacher","TrainingIntegration.test_nested_validation_teacher_never_fits_validation","LeakageAndExecution.test_lineage_parent_required"]},
+    {"id":"R08","requirement":"Units, FD, angle wrap and undefined anchor axes","tests":["Mathematics.test_finite_jacobian_units","Mathematics.test_heading_wrap","ObserverAndStatistics.test_anchor_projection_explicit_undefined"]},
+    {"id":"R09","requirement":"Projection rank/basis/unit invariance, duplicate taps","tests":["Mathematics.test_projection_column_rotation","Mathematics.test_duplicate_taps_do_not_add_information","FinalAuditRegression.test_information_unit_invariance"]},
+    {"id":"R10","requirement":"State-parallel RF bias and d0-only null controls","tests":["Mathematics.test_d0_only_no_orthogonal_information","Mathematics.test_state_parallel_bias_removed"]},
+    {"id":"R11","requirement":"Finite response across discontinuities and weak sensitivity","tests":["Mathematics.test_discontinuous_predictor_response_detected","Mathematics.test_small_denominator_response_undefined"]},
+    {"id":"R12","requirement":"FP boundary/zero power masks and bounded polarization","tests":["ObserverAndStatistics.test_fp_edge_not_clipped_to_valid","ObserverAndStatistics.test_zero_power_mask","ObserverAndStatistics.test_power_profile_bounds"]},
+    {"id":"R13","requirement":"Oversampled taps treated jointly, no invented information","tests":["Mathematics.test_duplicate_taps_do_not_add_information","Mathematics.test_motion_covariance_has_cross_time"]},
+    {"id":"R14","requirement":"PSD/conditioning/Joseph and correlated-noise signs","tests":["Mathematics.test_no_silent_covariance_floor","Mathematics.test_correlated_noise_sign","Mathematics.test_correlated_noise_bad_joint","AdditionalSafetyTests.test_nonfinite_update_not_silent_rejection"]},
+    {"id":"R15","requirement":"Centered covariance, mean square and signed budget closure","tests":["Mathematics.test_moments_centered","Mathematics.test_budget_all4_closure_and_shares","AdditionalSafetyTests.test_process_mean_square_is_not_variance"]},
+    {"id":"R16","requirement":"Actual timestamps, long-horizon right censoring","tests":["ObserverAndStatistics.test_branch_right_censor","ObserverAndStatistics.test_episode_uses_real_time"]},
+    {"id":"R17","requirement":"Paired seeds, failed/missing arms never silently dropped","tests":["LeakageAndExecution.test_missing_arm_not_dropped","ObserverAndStatistics.test_bootstrap_rejects_nonfinite","FinalAuditRegression.test_one_seed_not_certified_safe"]},
+    {"id":"R18","requirement":"ORACLE cannot certify an operational candidate","tests":["LeakageAndExecution.test_oracle_not_candidate_verdict"]},
+    {"id":"R19","requirement":"Native LoS baseline and incremental minus-mu target","tests":["Contracts.test_native_los_oracle_target_is_minus_mu"]},
+    {"id":"R20","requirement":"Hypothesis-prior changes preserve RF, no cross-port phase feature","tests":["Contracts.test_immutable_inputs","AdditionalSafetyTests.test_cross_port_constant_phase_is_not_a_feature"]}
+  ],
+  "limitations": [
+    "No RF replay or real-data training executed during implementation",
+    "Synthetic tests do not validate original SourceFFD physics or actual frozen-data parity; S0 remains mandatory",
+    "Twelve seeds vary motion/initialization on fixed RF, not independent RF scenes",
+    "Local orthogonality alone does not prove absolute-bias prediction",
+    "All tested routes are development data; no generalization or deployment safety claim",
+    "S6 is diagnosis only; no temporal filter is installed automatically"
+  ],
+  "protected": ["all original source and results", "existing workflows and branch references"],
+  "git_actions": "No workflow file changed; no dispatch; implementation commits use [skip ci]"
+}
