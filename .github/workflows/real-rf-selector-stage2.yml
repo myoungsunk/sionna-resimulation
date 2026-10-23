@@ -1,0 +1,118 @@
+name: Real RF correction E6 train-only heuristic selector recursive EKF pilot
+on:
+  push:
+    branches: ['research/real-rf-packet-selector-20261023']
+    paths: ['.github/workflows/real-rf-selector-stage2.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/rf_sel_rec
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 160
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        include:
+          - {case: R2_aA_m0, held: R2}
+          - {case: R2_aA_m45, held: R2}
+          - {case: R2_aB_m0, held: R2}
+          - {case: R4_aA_m0, held: R4}
+          - {case: R4_aB_m0, held: R4}
+          - {case: R5_aA_m0, held: R5}
+          - {case: R5_aB_m0, held: R5}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned libraries
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Recover and verify frozen RF source and SourceFFD
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD" /tmp/rf_sel_models
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download held route PWIDE models (frozen verification 2)
+        run: |
+          set -euo pipefail
+          gh run download 39885708483 --repo myoungsunk/sionna-resimulation \
+            --name 'p2ptrain-${{ matrix.held }}-39885708483' --dir /tmp/rf_sel_models
+          test -s /tmp/rf_sel_models/${{ matrix.held }}_PTRAIN.joblib
+      - name: Recursive RF quality selector replay with BASE parity
+        run: |
+          set -euo pipefail
+          python -u research/REAL_RF_SELECTOR_20261023/e5e6_replay.py \
+            --case '${{ matrix.case }}' \
+            --models '/tmp/rf_sel_models/${{ matrix.held }}_PTRAIN.joblib' \
+            --out "$PJ_OUT" 2>&1 | tee "$PJ_OUT/${{ matrix.case }}_E6_LOG.txt"
+          test -s "$PJ_OUT/${{ matrix.case }}_E6_SCORES.csv"
+          test -s "$PJ_OUT/${{ matrix.case }}_E6_TRACE.csv.gz"
+      - name: Preserve logs & all packet traces regardless of result
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: real-rf-e6-${{ matrix.case }}-${{ github.run_id }}
+          path: /tmp/rf_sel_rec/
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    needs: replay
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Require all seven replay cases and compute route medians
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/rf_sel_in research/REAL_RF_SELECTOR_20261023/results_stage2
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+            --pattern 'real-rf-e6-*' --dir /tmp/rf_sel_in
+          python -u research/REAL_RF_SELECTOR_20261023/e6_aggregate.py \
+            --input /tmp/rf_sel_in \
+            --out research/REAL_RF_SELECTOR_20261023/results_stage2 \
+            2>&1 | tee research/REAL_RF_SELECTOR_20261023/results_stage2/E6_AGGREGATE_LOG.txt
+      - name: Commit only checked summary and QA, raw case traces remain artifact
+        if: success()
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/REAL_RF_SELECTOR_20261023/results_stage2/
+          git commit -m "Real RF train-only E6 selector recursive EKF pilot ($GITHUB_RUN_ID)" || echo no-change
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
+      - name: Upload aggregate scores and QA
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: real-rf-e6-aggregate-${{ github.run_id }}
+          path: research/REAL_RF_SELECTOR_20261023/results_stage2/
+          retention-days: 30
+          if-no-files-found: warn
