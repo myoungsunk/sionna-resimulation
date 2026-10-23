@@ -49,6 +49,21 @@ def propagate(Wt,In):
         Hd[k]=D[:,2]
     return Hd
 
+def nobias_weights(Wt):
+    """Same realized gains, transition with the gyro-bias column removed (bias no longer feeds heading/position)."""
+    W=dict(Wt);F=Wt['F'].copy();F[:,:,3]=0.;F[:,3,3]=1.;W['F']=F;return W
+
+def memory(Wt,dp,t,m,T):
+    """Heading component carried by the state error older than T s (homogeneous propagation)."""
+    n=len(t);old=np.zeros(n);I=np.eye(4)
+    for k in np.where(m)[0]:
+        j0=np.searchsorted(t,t[k]-T)
+        if j0<=0:old[k]=dp[k,2];continue
+        d=dp[j0-1].copy()
+        for q in range(j0,k+1):d=(I-Wt['K'][q]@Wt['H'][q])@(Wt['F'][q]@d)
+        old[k]=d[2]
+    return old
+
 def kernel(Wt,t,ev,c1,g):
     """Polarization influence kernel W(t,k)=e_psi' Phi(t,k) K_k[:,1] for t in ev (subsampled)."""
     out=[];n=len(t)
@@ -85,7 +100,7 @@ def main():
     pk=pd.read_csv(R2.REPO/'research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz');pk=pk[pk.case==a.case].sort_values('pose_id')
     ref=pd.read_csv(HERE/'results_ladder4/LADDER4_SCORES.csv')
     refmap={'BASE':'L_BASE','CIR':'L_CIR','WIDE_NOES':'L_WIDE_NOES','PWIDE_NOES':'L_PWIDE_NOES','ORACLE':'L_ORACLE'}
-    model=V.SourceFFD();share=[];cov=[];cross=[];kern=[];acf=[];wq=[];qa={'case':a.case,'parity':{},'closure':{}}
+    model=V.SourceFFD();share=[];cov=[];cross=[];kern=[];acf=[];wq=[];path=[];qa={'case':a.case,'parity':{},'closure':{}}
     for bias in ('B0','L2'):
         stem=f'{a.case}_full_{bias}';old=np.load(V.one(stem+'_TRACE.npz'),allow_pickle=False)
         t=old['t_s'];ids=old['pose_id'];truth=old['truth_scoring_only'];n=len(t)
@@ -123,6 +138,14 @@ def main():
             rr=ref[(ref.case==a.case)&(ref.bias==bias)&(ref.arm==refmap[nm])];par=abs(math.degrees(math.sqrt(mse))-float(rr.iloc[0].heading_rmse_deg))
             qa['parity'][f'{stem}:{nm}']=par;assert par<1e-6,('EB2_PARITY_FAIL',stem,nm,par)
             C=(Hd[m].T@Hd[m])/m.sum()
+            Hn=propagate(nobias_weights(p),p);cb=Hd-Hn
+            prow={'case':a.case,'route':Hr,'bias':bias,'arm':nm,'heading_mse_deg2':math.degrees(1)**2*mse,
+                  'biaspath_share_total':float(np.mean(cb[m].sum(1)*tot)/mse),'nobias_heading_rmse_deg':math.degrees(float(np.sqrt(np.mean(Hn[m].sum(1)**2))))}
+            for i,si in enumerate(SRC):prow[f'biaspath_share_{si}']=float(np.mean(cb[m,i]*tot)/mse)
+            for T in (10.,30.):
+                old=memory(p,p['dp'],t,m,T);prow[f'memory_share_older_{int(T)}s']=float(np.mean(old[m]*tot)/mse)
+                prow[f'memory_rms_older_{int(T)}s_deg']=math.degrees(float(np.sqrt(np.mean(old[m]**2))))
+            path.append(prow)
             for i,si in enumerate(SRC):
                 share.append({'case':a.case,'route':Hr,'bias':bias,'arm':nm,'source':si,'C_diag_deg2':math.degrees(1)**2*C[i,i],
                               'share':float(C[i].sum()/mse),'rms_deg':math.degrees(math.sqrt(C[i,i])),'heading_mse_deg2':math.degrees(1)**2*mse})
@@ -140,6 +163,7 @@ def main():
     pd.DataFrame(share).to_csv(out/f'{a.case}_EB2_SHARE.csv',index=False);pd.DataFrame(cov).to_csv(out/f'{a.case}_EB2_COV.csv',index=False)
     pd.DataFrame(cross).to_csv(out/f'{a.case}_EB2_CROSS.csv',index=False);pd.DataFrame(kern).to_csv(out/f'{a.case}_EB2_KERNEL.csv',index=False)
     pd.DataFrame(acf).to_csv(out/f'{a.case}_EB2_ACF.csv',index=False);pd.DataFrame(wq).to_csv(out/f'{a.case}_EB2_WQ.csv',index=False)
+    pd.DataFrame(path).to_csv(out/f'{a.case}_EB2_PATH.csv',index=False)
     (out/f'{a.case}_EB2_QA.json').write_text(json.dumps(qa,indent=2));print('EB2_CASE_PASS',flush=True)
 
 if __name__=='__main__':main()

@@ -14,10 +14,12 @@ def cat(pat,n=None):
     if n:assert len(fs)==n,(pat,len(fs))
     return pd.concat([pd.read_csv(f) for f in fs],ignore_index=True)
 # ---------- error budget v2 ----------
+PA=cat('*_EB2_PATH.csv',7);PA.to_csv(dst/'EB2_PATH.csv',index=False)
 SH=cat('*_EB2_SHARE.csv',7);CV=cat('*_EB2_COV.csv',7);CR=cat('*_EB2_CROSS.csv',7);KE=cat('*_EB2_KERNEL.csv',7);AC=cat('*_EB2_ACF.csv',7);WQ=cat('*_EB2_WQ.csv',7)
 for n,d in (('SHARE',SH),('COV',CV),('CROSS',CR),('KERNEL',KE),('ACF',AC),('WQ',WQ)):d.to_csv(dst/f'EB2_{n}.csv',index=False)
 qa2=[json.loads(f.read_text()) for f in sorted(src.rglob('*_EB2_QA.json'))];assert len(qa2)==7
 print('== EB2 heading-MSE share by source (t>=30), route median\n'+SH.pivot_table(index=['arm','bias','route'],columns='source',values='share',aggfunc='median').round(3).to_string())
+print('\n== gyro-bias path share and memory shares (t>=30), route median\n'+PA.groupby(['arm','bias','route'])[['biaspath_share_total','nobias_heading_rmse_deg','memory_share_older_10s','memory_share_older_30s','memory_rms_older_10s_deg','memory_rms_older_30s_deg']].median().round(3).to_string())
 x=CR.pivot_table(index=['case','route','bias','arm'],columns=['inputs','weights'],values='heading_mse_deg2').reset_index()
 def g(r,i,w):return r[(i,w)]
 rows=[]
