@@ -1,0 +1,51 @@
+name: E0-E3 real RF packet correction benefit diagnostic
+on:
+  push:
+    branches: ['research/real-rf-packet-correction-e0e3-20261023']
+    paths: ['.github/workflows/real-rf-packet-e0e3.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  e0e3:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2 scipy==1.16.2 scikit-learn==1.7.2
+      - name: E0 data integrity, E1 oracle benefit, E3 observed RF feature separability
+        run: |
+          set -euo pipefail
+          python -u research/REAL_RF_PACKET_CORRECTION_20261023/e0e3_packet.py \
+            --out research/REAL_RF_PACKET_CORRECTION_20261023/results \
+            | tee research/REAL_RF_PACKET_CORRECTION_20261023/E0E3_LOG.txt
+      - name: Upload all QA/results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: real-rf-e0e3
+          path: |
+            research/REAL_RF_PACKET_CORRECTION_20261023/results/
+            research/REAL_RF_PACKET_CORRECTION_20261023/E0E3_LOG.txt
+          if-no-files-found: warn
+      - name: Commit results to experiment branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/REAL_RF_PACKET_CORRECTION_20261023/results \
+                     research/REAL_RF_PACKET_CORRECTION_20261023/E0E3_LOG.txt
+          git commit -m "RF packet oracle benefit and exploratory held-route separability run $GITHUB_RUN_ID" || echo no-change
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
