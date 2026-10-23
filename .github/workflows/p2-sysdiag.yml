@@ -1,0 +1,206 @@
+name: P2 system-level verification (stages 1-3)
+# Not triggered by this commit. To run: create or edit research/PJ_D0_CIR_P2_RECURSIVE_20261022/RUN_SYSDIAG.txt (push), or dispatch.
+on:
+  push:
+    branches: ['research/d0-cir-p2-recursive-20261022']
+    paths: ['research/PJ_D0_CIR_P2_RECURSIVE_20261022/RUN_SYSDIAG.txt']
+  workflow_dispatch:
+    inputs:
+      stage1:
+        description: 'Stage 1 (offline on v3 arrays: V1, V2, V2prime, V4, V6prime, V7)'
+        type: boolean
+        default: true
+      stage2:
+        description: 'Stage 2 (replay: NOPOL and R_s scale scan, 12 seeds)'
+        type: boolean
+        default: true
+      stage3:
+        description: 'Stage 3 (inner LORO / in-sample correctors, V5 and X1)'
+        type: boolean
+        default: true
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PJ_SOURCE_ROOT: /tmp/pj_src
+  PJ_OUT: /tmp/p2_out
+  PJ_ART: /tmp/pj_art
+  PJ_BANK_DOWNLOAD: /tmp/pj_bank
+jobs:
+  stage1:
+    if: ${{ github.event_name == 'push' || inputs.stage1 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download v3 arrays (run 39950207483 six cases, retry run 39954439738 R2_aA_m0) and P4 curves (run 39961254971)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/v3 /tmp/kappa
+          for c in R2_aA_m45 R2_aB_m0 R4_aA_m0 R4_aB_m0 R5_aA_m0 R5_aB_m0; do
+            gh run download 39950207483 --repo myoungsunk/sionna-resimulation --name "p2eb3-$c-39950207483" --dir "/tmp/v3/$c"
+          done
+          gh run download 39954439738 --repo myoungsunk/sionna-resimulation --name p2eb3-R2_aA_m0-39954439738 --dir /tmp/v3/R2_aA_m0
+          gh run download 39961254971 --repo myoungsunk/sionna-resimulation --pattern 'p2d0fb-*-B0-39961254971' --dir /tmp/kappa
+          find /tmp/v3 -name '*_EB3_ARRAYS.npz' | wc -l; find /tmp/kappa -name '*_D0FB_CURVE_ARRAYS.npz' | wc -l
+      - name: Stage 1
+        run: |
+          set -uo pipefail
+          LOG="$PJ_OUT/SYS_STAGE1_LOG.txt"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_sysdiag.py --input /tmp/v3 --kappa /tmp/kappa --out "$PJ_OUT" --workers 4 > "$LOG" 2>&1; rc=$?
+          tail -n 20 "$LOG"
+          if [ $rc -ne 0 ]; then tail -n 12 "$LOG" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: p2sys1-${{ github.run_id }}
+          path: /tmp/p2_out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  stage2:
+    if: ${{ github.event_name == 'push' || inputs.stage2 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 14
+      matrix:
+        case: [R2_aA_m0, R2_aA_m45, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        seeds: ['0,1,2', '3,4,5', '6,7,8', '9,10,11']
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download ladder-4 control models (run 39893308814)
+        run: |
+          set -euo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2)
+          gh run download 39893308814 --repo myoungsunk/sionna-resimulation --name "p2l4train-$H-39893308814" --dir /tmp/p2_l4train
+      - name: Stage 2 (NOPOL and R_s scan)
+        run: |
+          set -uo pipefail
+          H=$(echo '${{ matrix.case }}' | cut -c1-2); TAG=$(echo '${{ matrix.seeds }}' | tr ',' '_')
+          L4=$(find /tmp/p2_l4train -name "${H}_L4TRAIN.joblib" -print -quit); LOG="$PJ_OUT/${{ matrix.case }}_NOPOL_LOG_$TAG.txt"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_nopol.py --case '${{ matrix.case }}' --seeds '${{ matrix.seeds }}' --l4models "$L4" --out "$PJ_OUT" > "$LOG" 2>&1; rc=$?
+          tail -n 20 "$LOG"
+          if [ $rc -ne 0 ]; then tail -n 12 "$LOG" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: p2sys2-${{ matrix.case }}-${{ strategy.job-index }}-${{ github.run_id }}
+          path: /tmp/p2_out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  stage3:
+    if: ${{ github.event_name == 'push' || inputs.stage3 }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        held: [R2, R4, R5]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install exact P2 dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 joblib==1.6.0
+      - name: Stage and SHA-verify immutable RF traces and banks
+        run: |
+          set -euo pipefail
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_ART" "$PJ_BANK_DOWNLOAD"
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir "$PJ_SOURCE_ROOT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir "$PJ_BANK_DOWNLOAD"
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir "$PJ_ART"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+      - name: Download P1R heading grids (run 39752301964) and ladder-4 models (run 39893308814)
+        run: |
+          set -euo pipefail
+          gh run download 39752301964 --repo myoungsunk/sionna-resimulation --pattern 'p1r-grid-*' --dir /tmp/p1r_grid
+          gh run download 39893308814 --repo myoungsunk/sionna-resimulation --name 'p2l4train-${{ matrix.held }}-39893308814' --dir /tmp/p2_l4train
+      - name: Stage 3 (inner LORO, in-sample)
+        run: |
+          set -uo pipefail
+          L4=$(find /tmp/p2_l4train -name '${{ matrix.held }}_L4TRAIN.joblib' -print -quit); LOG="$PJ_OUT/${{ matrix.held }}_INNERLORO_LOG.txt"
+          python -u research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_innerloro.py --held '${{ matrix.held }}' --grid /tmp/p1r_grid --l4models "$L4" --out "$PJ_OUT" > "$LOG" 2>&1; rc=$?
+          tail -n 20 "$LOG"
+          if [ $rc -ne 0 ]; then tail -n 12 "$LOG" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: p2sys3-${{ matrix.held }}-${{ github.run_id }}
+          path: /tmp/p2_out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [stage1, stage2, stage3]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2
+      - name: Aggregate
+        run: |
+          set -euo pipefail
+          D=research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_sysdiag
+          mkdir -p /tmp/p2_in "$D"
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2sys*' --dir /tmp/p2_in || true
+          python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_sys_aggregate.py --input /tmp/p2_in --out "$D" | tee "$D/SYS_LOG.txt"
+      - name: Commit summaries
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_sysdiag
+          git commit -m "P2 system-level verification from run $GITHUB_RUN_ID" || echo no-changes
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
