@@ -1,0 +1,104 @@
+name: BASE RF identifiability S0-S7 pilot execution
+on:
+  push:
+    branches:
+      - research/base-rf-identifiability-v2-code-20261023
+    paths:
+      - .github/workflows/base-rf-pilot-execute.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: base-rf-pilot-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  sequential-pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONUNBUFFERED: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      PJ_SOURCE_ROOT: /tmp/brf_source
+      PJ_OUT: /tmp/brf_output/native_scratch
+      PJ_ART: /tmp/brf_art
+      PJ_BANK_DOWNLOAD: /tmp/brf_banks
+    steps:
+      - name: Checkout implementation including frozen history
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          lfs: false
+      - name: Setup original scientific Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned dependencies
+        run: python -m pip install --disable-pip-version-check -r research/PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023/requirements.txt
+      - name: Download original frozen assets and reference
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/brf_source /tmp/brf_output /tmp/brf_art /tmp/brf_banks /tmp/brf_models /tmp/brf_grid
+          git worktree add --detach /tmp/brf_reference 0686b23ceeefb696bc158b32b39f8077c564ef5d
+          gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir /tmp/brf_source
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir /tmp/brf_banks
+          gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir /tmp/brf_art
+          gh run download 39893308814 --repo myoungsunk/sionna-resimulation --pattern 'p2l4train-*' --dir /tmp/brf_models
+          gh run download 39752301964 --repo myoungsunk/sionna-resimulation --pattern 'p1r-grid-*' --dir /tmp/brf_grid
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+          find /tmp/brf_models -name '*L4TRAIN.joblib' | sort
+          find /tmp/brf_grid -name 'GRID_*.npz' | wc -l
+      - name: Prepare exact locked pilot configuration
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          c=dict(reference_root='/tmp/brf_reference',source_root='/tmp/brf_source',artifact_root='/tmp/brf_art',
+                 l4models_root='/tmp/brf_models',grid_root='/tmp/brf_grid',asset_lock='/tmp/brf_input_lock.json',
+                 work_dir='/tmp/brf_output',cases=['R2_aA_m0'],biases=['B0'],seeds=[0],
+                 noninferiority_margin=0.0,allow_real_experiments_by_default=False)
+          open('/tmp/brf_config.json','w').write(json.dumps(c,indent=2))
+          PY
+          python scripts/base_rf_identifiability_v2.py inventory --config /tmp/brf_config.json --lock-out /tmp/brf_input_lock.json
+          python scripts/base_rf_identifiability_v2.py audit-code --config /tmp/brf_config.json
+      - name: S0 reproduce original BASE PWIDE ORACLE and native LoS
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S0 --execute-rf --config /tmp/brf_config.json
+      - name: S1 measured residual and overcorrection
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S1 --execute-rf --config /tmp/brf_config.json
+      - name: S2 prior perturbation and profile projection
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S2 --execute-rf --config /tmp/brf_config.json
+      - name: S3 held-route residual training
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S3 --execute-rf --config /tmp/brf_config.json
+      - name: S4 same-prior observation and state update
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S4 --execute-rf --config /tmp/brf_config.json
+      - name: S5 clone-and-branch actual recursive response
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S5 --execute-rf --config /tmp/brf_config.json
+      - name: S6 temporal identifiability diagnostics
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S6 --execute-rf --config /tmp/brf_config.json
+      - name: S7 paired numerical and consistency assessment
+        run: python scripts/base_rf_identifiability_v2.py stage --stage S7 --execute-rf --config /tmp/brf_config.json
+      - name: Summarize actual completed stage receipts
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('/tmp/brf_output')
+          for name in ('AUDIT',*(f'S{i}' for i in range(8))):
+              path=root/(name+'_STATUS.json')
+              print(name, json.dumps(json.loads(path.read_text()),ensure_ascii=False)[:1100] if path.exists() else 'NOT_STARTED')
+          PY
+      - name: Upload original numerical outputs, QA, and exact failure receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: base-rf-pilot-stage-results-${{ github.run_id }}
+          path: |
+            /tmp/brf_output/
+            /tmp/brf_config.json
+          retention-days: 30
+          if-no-files-found: warn
