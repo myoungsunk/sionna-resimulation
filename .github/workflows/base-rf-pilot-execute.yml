@@ -11,7 +11,7 @@ permissions:
   actions: read
 concurrency:
   group: base-rf-pilot-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   sequential-pilot:
     runs-on: ubuntu-24.04
@@ -30,7 +30,7 @@ jobs:
       - name: Checkout implementation including frozen history
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           persist-credentials: false
           lfs: false
       - name: Setup original scientific Python
@@ -43,6 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/brf_source /tmp/brf_output /tmp/brf_art /tmp/brf_banks /tmp/brf_models /tmp/brf_grid
+          git fetch --no-tags --depth=1 origin 0686b23ceeefb696bc158b32b39f8077c564ef5d
           git worktree add --detach /tmp/brf_reference 0686b23ceeefb696bc158b32b39f8077c564ef5d
           gh run download 39256621315 --repo myoungsunk/sionna-resimulation --name powerjoint-chain-af-rf-snapshot-39256621315 --dir /tmp/brf_source
           gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir /tmp/brf_banks
