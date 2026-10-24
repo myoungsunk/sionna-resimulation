@@ -489,4 +489,63 @@ R2_aA_m45   L2      12                         0.06                             
  R5_aA_m0   L2      12                         0.37                                       0                              0.80                                            0                             0.61                                           0                              0.89                                            0                           0.12                                         0                               0.16                                             0                               0.71                                             0                              0.34                                            0                               0.84                                             0
  R5_aB_m0   B0      12                         0.09                                       0                              0.26                                            0                             0.12                                           0                              0.38                                            0                           0.03                                         0                               0.08                                             0                               0.40                                             1                              0.23                                            1                               0.54                                             0
  R5_aB_m0   L2      12                         0.32                                       1                              0.59                                            1                             0.43                                           1                              0.45                                            0                           0.15                                         0                               0.64                                             3                               1.42                                             5                              1.00                                            5                               0.84                                             1
-SYS_AGG_DONE {"stage1": {"kernel_vs_saved_float32": 3.722861754984485e-09, "bias_lever_vs_propagation": 2.8080836267374565e-17, "v2p_base_gain_maxabs": 2.886579864025407e-15, "v2p_base_state_maxabs": 1.2434497875801753e-13, "x2_physgain_state_vs_saved_maxabs_rad": 0.0341102898420036}, "stage1_json": {"n_files": 14, "kernel_vs_saved_max": 3.7228617549844856e-09, "v2p_base_gain_max": 2.886579864025407e-15, "v2p_base_state_max": 1.2434497875801753e-13, "h_gt_vs_saved_max": 2.6645352591003757e-15, "dt_spread_max": 4.551914400963142e-14}, "stage2_parity_max": 6.370015626089298e-12}
+
+== V5/X1 heading-equivalent bias by scope and arm (median over cases)
+                              bpsi_10s_rms_deg  bpsi_30s_rms_deg  bpsi_60s_rms_deg  bpsi_120s_rms_deg  packet_rms  slow30_rms   mean
+held scope      arm                                                                                                                 
+R2   held       BASE_OOF                 4.553             2.110             0.909              0.622       0.199       0.045  0.006
+                BLOCKCV_PD0              3.569             2.513             1.322              0.528       0.112       0.020  0.006
+                DEPLOYED_PD0             3.765             3.044             1.980              0.788       0.106       0.034 -0.019
+                INSAMPLE_PD0             1.420             1.001             0.766              0.359       0.040       0.010  0.002
+     inner_loro BASE                     4.640             1.642             1.102              0.512       0.169       0.072  0.007
+                PA2                      6.661             2.349             1.668              0.743       0.203       0.125  0.007
+                PD0                      5.119             2.251             1.657              0.838       0.149       0.103  0.004
+                PX1                      5.579             2.388             1.766              0.908       0.180       0.117  0.003
+                WD0                      2.345             1.438             1.116              0.625       0.101       0.032 -0.001
+R4   held       BASE_OOF                 2.258             1.454             0.743              0.202       0.173       0.058 -0.040
+                BLOCKCV_PD0              1.980             1.421             0.928              0.336       0.121       0.047 -0.016
+                DEPLOYED_PD0             1.519             1.072             0.693              0.344       0.093       0.033 -0.019
+                INSAMPLE_PD0             0.805             0.525             0.303              0.135       0.047       0.010 -0.002
+     inner_loro BASE                     4.691             2.229             1.353              0.881       0.179       0.033 -0.002
+                PA2                      5.890             2.701             1.133              0.564       0.176       0.033 -0.004
+                PD0                      2.524             1.784             0.957              0.474       0.089       0.020 -0.004
+                PX1                      3.267             2.062             1.044              0.726       0.116       0.024 -0.003
+                WD0                      3.043             1.767             0.807              0.447       0.074       0.020  0.006
+R5   held       BASE_OOF                 8.394             3.901             1.449              0.567       0.141       0.054  0.025
+                BLOCKCV_PD0              3.972             1.885             0.938              0.594       0.097       0.029  0.006
+                DEPLOYED_PD0             4.532             2.013             0.749              0.398       0.068       0.023 -0.014
+                INSAMPLE_PD0             1.385             0.757             0.459              0.265       0.032       0.008 -0.002
+     inner_loro BASE                     4.600             2.075             1.320              0.374       0.211       0.063  0.031
+                PA2                      6.351             3.197             2.075              0.529       0.242       0.112  0.071
+                PD0                      6.176             2.262             1.827              0.878       0.164       0.092  0.057
+                PX1                      6.399             2.691             2.187              1.066       0.191       0.096  0.061
+                WD0                      3.514             2.173             1.340              0.473       0.120       0.039  0.006
+
+== C1 inner (training-route-only) b_psi ratio vs held recursion ratio
+     case bias  mc_heading_ratio_pwide_base held  inner_bpsi60_ratio_PD0_BASE  inner_bpsi60_ratio_PA2_BASE
+ R2_aA_m0   B0                        1.154   R2                        1.327                        1.435
+ R2_aA_m0   L2                        1.097   R2                        1.327                        1.435
+R2_aA_m45   B0                        1.752   R2                        1.327                        1.435
+R2_aA_m45   L2                        1.837   R2                        1.327                        1.435
+ R2_aB_m0   B0                        1.716   R2                        1.327                        1.435
+ R2_aB_m0   L2                        1.677   R2                        1.327                        1.435
+ R4_aA_m0   B0                        1.053   R4                        0.630                        1.032
+ R4_aA_m0   L2                        1.057   R4                        0.630                        1.032
+ R4_aB_m0   B0                        0.729   R4                        0.630                        1.032
+ R4_aB_m0   L2                        0.702   R4                        0.630                        1.032
+ R5_aA_m0   B0                        0.551   R5                        1.385                        1.504
+ R5_aA_m0   L2                        0.433   R5                        1.385                        1.504
+ R5_aB_m0   B0                        1.029   R5                        1.385                        1.504
+ R5_aB_m0   L2                        2.399   R5                        1.385                        1.504
+
+== held-route b_psi(60 s) vs recursion ratio
+           BASE_OOF  BLOCKCV_PD0  DEPLOYED_PD0  INSAMPLE_PD0  deployed_over_base  mc_heading_ratio_pwide_base
+case                                                                                                         
+R2_aA_m0      1.322        1.440         1.999         0.859               1.512                        1.154
+R2_aA_m45     0.902        1.322         1.980         0.766               2.195                        1.752
+R2_aB_m0      0.909        0.834         1.061         0.550               1.167                        1.716
+R4_aA_m0      1.122        1.271         1.027         0.345               0.915                        1.053
+R4_aB_m0      0.364        0.584         0.360         0.261               0.990                        0.729
+R5_aA_m0      1.828        1.128         0.679         0.552               0.371                        0.551
+R5_aB_m0      1.070        0.748         0.819         0.367               0.766                        1.029
+SYS_AGG_DONE {"stage1": {"kernel_vs_saved_float32": 3.722861754984485e-09, "bias_lever_vs_propagation": 2.8080836267374565e-17, "v2p_base_gain_maxabs": 2.886579864025407e-15, "v2p_base_state_maxabs": 1.2434497875801753e-13, "x2_physgain_state_vs_saved_maxabs_rad": 0.0341102898420036}, "stage1_json": {"n_files": 14, "kernel_vs_saved_max": 3.7228617549844856e-09, "v2p_base_gain_max": 2.886579864025407e-15, "v2p_base_state_max": 1.2434497875801753e-13, "h_gt_vs_saved_max": 2.6645352591003757e-15, "dt_spread_max": 4.551914400963142e-14}, "stage2_parity_max": 6.370015626089298e-12, "spearman_held_bpsi_ratio_vs_recursion": 0.8571428571428573, "stage3": {"R2_INNERLORO_QA": {"held": "R2", "train_routes": ["R4", "R5"], "grid_plus1_vs_stored": 2.583870617467454e-15, "grid_slope_vs_central_diff_rel": 0.0029276271183210174, "retrain_parity_P_D0": 0.0}, "R4_INNERLORO_QA": {"held": "R4", "train_routes": ["R2", "R5"], "grid_plus1_vs_stored": 2.583870617467454e-15, "grid_slope_vs_central_diff_rel": 0.0029276271183210174, "retrain_parity_P_D0": 0.0}, "R5_INNERLORO_QA": {"held": "R5", "train_routes": ["R2", "R4"], "grid_plus1_vs_stored": 2.583870617467454e-15, "grid_slope_vs_central_diff_rel": 0.0029276271183210174, "retrain_parity_P_D0": 0.0}}}
