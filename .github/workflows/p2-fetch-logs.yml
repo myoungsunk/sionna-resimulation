@@ -1,0 +1,40 @@
+name: P2 fetch run logs into the branch
+# Push research/PJ_D0_CIR_P2_RECURSIVE_20261022/FETCH_LOGS.txt whose first line is "<run_id> [artifact glob]".
+on:
+  push:
+    branches: ['research/d0-cir-p2-recursive-20261022']
+    paths: ['research/PJ_D0_CIR_P2_RECURSIVE_20261022/FETCH_LOGS.txt']
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  fetch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+      - name: Download artifacts and copy text logs
+        run: |
+          set -euo pipefail
+          read -r RID PAT < research/PJ_D0_CIR_P2_RECURSIVE_20261022/FETCH_LOGS.txt
+          PAT=${PAT:-'*'}
+          D=research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_debug/$RID
+          mkdir -p /tmp/a "$D"
+          gh run download "$RID" --repo myoungsunk/sionna-resimulation --pattern "$PAT" --dir /tmp/a || true
+          find /tmp/a -name '*LOG*.txt' -exec sh -c 'for f; do cp "$f" "'"$D"'/$(basename "$(dirname "$f")")__$(basename "$f")"; done' sh {} +
+          find /tmp/a -name '*QA*.json' -exec sh -c 'for f; do cp "$f" "'"$D"'/$(basename "$(dirname "$f")")__$(basename "$f")"; done' sh {} +
+          ls -la "$D"
+      - name: Commit
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_debug
+          git commit -m "Logs of run $(cut -d' ' -f1 research/PJ_D0_CIR_P2_RECURSIVE_20261022/FETCH_LOGS.txt)" || echo no-changes
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
