@@ -1,5 +1,6 @@
 name: P2 system-level verification (stages 1-3)
-# Not triggered by this commit. To run: create or edit research/PJ_D0_CIR_P2_RECURSIVE_20261022/RUN_SYSDIAG.txt (push), or dispatch.
+# Runs when RUN_SYSDIAG.txt is pushed with [all] or [s1]/[s2]/[s3] in the commit message, or by dispatch.
+# Lines 'include <run_id> <stages>' in RUN_SYSDIAG.txt add artifacts of earlier runs to the aggregate.
 on:
   push:
     branches: ['research/d0-cir-p2-recursive-20261022']
@@ -32,7 +33,7 @@ env:
   PJ_BANK_DOWNLOAD: /tmp/pj_bank
 jobs:
   stage1:
-    if: ${{ github.event_name == 'push' || inputs.stage1 }}
+    if: ${{ (github.event_name == 'push' && (contains(github.event.head_commit.message, '[all]') || contains(github.event.head_commit.message, '[s1]'))) || inputs.stage1 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     steps:
@@ -79,7 +80,7 @@ jobs:
           if-no-files-found: warn
 
   stage2:
-    if: ${{ github.event_name == 'push' || inputs.stage2 }}
+    if: ${{ (github.event_name == 'push' && (contains(github.event.head_commit.message, '[all]') || contains(github.event.head_commit.message, '[s2]'))) || inputs.stage2 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     strategy:
@@ -128,7 +129,7 @@ jobs:
           if-no-files-found: warn
 
   stage3:
-    if: ${{ github.event_name == 'push' || inputs.stage3 }}
+    if: ${{ (github.event_name == 'push' && (contains(github.event.head_commit.message, '[all]') || contains(github.event.head_commit.message, '[s3]'))) || inputs.stage3 }}
     runs-on: ubuntu-24.04
     timeout-minutes: 240
     strategy:
@@ -194,6 +195,11 @@ jobs:
           D=research/PJ_D0_CIR_P2_RECURSIVE_20261022/results_sysdiag
           mkdir -p /tmp/p2_in "$D"
           gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation --pattern 'p2sys*' --dir /tmp/p2_in || true
+          # earlier runs listed as "include <run_id> <stage digits>" in RUN_SYSDIAG.txt (stages not rerun here)
+          grep '^include ' research/PJ_D0_CIR_P2_RECURSIVE_20261022/RUN_SYSDIAG.txt | while read -r _ RID ST; do
+            for d in $(echo "$ST" | grep -o .); do gh run download "$RID" --repo myoungsunk/sionna-resimulation --pattern "p2sys$d-*" --dir "/tmp/p2_in/prev_$RID" || true; done
+          done
+          find /tmp/p2_in -name '*LOG*.txt' -exec sh -c 'mkdir -p "'"$D"'/logs"; for f; do cp "$f" "'"$D"'/logs/"; done' sh {} + || true
           python research/PJ_D0_CIR_P2_RECURSIVE_20261022/p2_sys_aggregate.py --input /tmp/p2_in --out "$D" | tee "$D/SYS_LOG.txt"
       - name: Commit summaries
         run: |

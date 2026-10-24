@@ -26,10 +26,16 @@ import p2_l4train as L4                       # rows(), mk(), and the P1R / stri
 from p2_l4train import P, S, V
 DEG=180/math.pi;WINDOWS=[10.,30.,60.,120.]
 
-def case_times(cases):
+def case_times(cases,D):
+    """Time of every packet pose. The filter traces hold a subset of the poses, so the time of the others is
+    interpolated linearly in pose_id from the trace (poses are consecutive along the drive)."""
     out={}
     for c in cases:
-        z=np.load(V.one(f'{c}_full_B0_TRACE.npz'),allow_pickle=False);out[c]=pd.Series(z['t_s'],index=z['pose_id'].astype(int))
+        z=np.load(V.one(f'{c}_full_B0_TRACE.npz'),allow_pickle=False);pid=z['pose_id'].astype(int);ts=z['t_s'].astype(float)
+        o=np.argsort(pid);pid,ts=pid[o],ts[o];assert np.all(np.diff(ts)>0),('TRACE_TIME_NOT_MONOTONE_IN_POSE',c)
+        allp=np.sort(D.pose_id[D.case==c].to_numpy().astype(int));rate=float(np.polyfit(pid,ts,1)[0])
+        tt=np.interp(allp,pid,ts);lo=allp<pid[0];hi=allp>pid[-1];tt[lo]=ts[0]-(pid[0]-allp[lo])*rate;tt[hi]=ts[-1]+(allp[hi]-pid[-1])*rate
+        out[c]=pd.Series(tt,index=allp)
     return out
 
 def smooth_by_case(df,col,T,times):
@@ -64,7 +70,7 @@ def main():
     D=P.prepare();grid=P.load_grid(D,a.grid);obs=pd.read_csv(V.one('OBSERVATION_FEATURES_LABELS.csv.gz'))
     param=pd.read_csv(V.one('OOF_PARAMETERS.csv.gz'));l4=joblib.load(a.l4models);assert l4['held']==H
     trr=sorted(set(D.route)-{H});assert H not in trr and len(trr)==2
-    times=case_times(sorted(D.case.unique()))
+    times=case_times(sorted(D.case.unique()),D)
     s0,g0=grid.node(np.arange(len(D)),0.);sp,_=grid.node(np.arange(len(D)),1.);sm,_=grid.node(np.arange(len(D)),-1.)
     D['g_gt_rad']=g0*DEG;D['t']=[float(times[c].loc[p]) for c,p in zip(D.case,D.pose_id)]
     qa={'held':H,'train_routes':trr,'grid_plus1_vs_stored':float(np.max(np.abs(sp-D['sMGTp1_+0'].to_numpy()))) if 'sMGTp1_+0' in D else np.nan,
