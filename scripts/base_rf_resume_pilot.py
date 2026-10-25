@@ -89,6 +89,72 @@ def verify(config):
         code_sha256=CODE, config_sha256=CONFIG, source_hash=source_hash, receipt_file_counts=counts,
         runner_sha256=sha(Path(__file__)), scientific_changes=False, completed_stages_recomputed=False))
     print('CHECKPOINT_VERIFIED', counts, flush=True)
+    verify_input_parity(ws)
+
+
+
+def verify_input_parity(ws):
+    """Byte hashes of derived FFT arrays need not be portable across runner CPUs.
+
+    Never suppress a mismatch: require identical source bytes/identity, observable
+    arrays and full original-reference x/P/gate parity at the frozen S0 thresholds.
+    Store both hashes and actual maximum errors. No receipt is rewritten.
+    """
+    import numpy as np
+    from research.PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023.common import Trace, write_json, OFFSETS
+    from research.PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023.native import NativeAssets
+    from research.PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023.stages import units, trace_path
+    from research.PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023.numerics import delta
+    assets = NativeAssets(ws.config)
+    reports = []
+    for spec in units(ws.config, native_los=True):
+        inp, model, truth = assets.load(*spec)
+        old = {n: Trace.load(trace_path(ws, 'S0', inp, n)) for n in ('BASE', 'PWIDE_NOES', 'ORACLE')}
+        base = old['BASE']; a = base.arrays
+        demand(base.metadata['source_hash'] == inp.source_hash, 'Frozen source identity changed')
+        current = {'t': inp.t, 'pose_id': np.array([p.pose_id for p in inp.packets]),
+                   'z_raw': np.stack([p.z for p in inp.packets]), 'mu_B': np.stack([p.mu for p in inp.packets]),
+                   'R_gate': np.stack([p.R for p in inp.packets]),
+                   'feature_mask': np.stack([p.profile_valid for p in inp.packets]),
+                   'x0': inp.x0, 'P0': inp.P0}
+        reference = {**a, 'x0': a['x_minus'][0], 'P0': a['P_minus'][0]}
+        for key, values in current.items():
+            demand(np.array_equal(values, reference[key], equal_nan=True), f'Observable/initial data changed: {inp.tag}:{key}')
+        feature_difference = None
+        if inp.channel == 'full':
+            pk = assets.pk[assets.pk.case == inp.case].set_index('pose_id').loc[[p.pose_id for p in inp.packets]]
+            columns = [pk['sF_+0'].to_numpy(), pk.log_fp_power.to_numpy(), pk.fp_full.to_numpy()]
+            columns += [pk[f'sF_{o:+d}'].to_numpy() for o in OFFSETS[1:]]
+            columns += [(pk[f'sF_{o:+d}'] - pk['sF_+0']).to_numpy() for o in OFFSETS[1:]]
+            frozen_features = np.column_stack(columns)
+            features = np.stack([p.cir_features for p in inp.packets])
+            demand(np.array_equal(np.isnan(features), np.isnan(frozen_features)), 'Feature mask differs from frozen data')
+            feature_difference = float(np.nanmax(np.abs(features - frozen_features)))
+            demand(feature_difference < 1e-9, 'Frozen CIR observer features differ beyond original tolerance')
+        X, C, accepted = assets.independent_reference(inp, truth, model)
+        errors = {}
+        for j, name in enumerate(('BASE', 'PWIDE_NOES', 'ORACLE')):
+            b = old[name].arrays
+            xp = np.empty_like(X[:, j]); pp = np.empty_like(C[:, j]); xp[0] = inp.x0; pp[0] = inp.P0
+            for k in range(1, len(inp.packets)):
+                xp[k], pp[k] = assets.V.predict_one(X[k-1, j].copy(), C[k-1, j].copy(), *map(float, inp.controls[k]))
+            e = dict(x_plus=float(np.max(abs(delta(X[:, j], b['x_plus'])))),
+                     P_plus=float(np.max(abs(C[:, j] - b['P_plus']))),
+                     x_minus=float(np.max(abs(delta(xp, b['x_minus'])))),
+                     P_minus=float(np.max(abs(pp - b['P_minus']))),
+                     gate_mismatches=int(np.sum(accepted[:, j] != b['accepted'])))
+            demand(max(e[k] for k in ('x_plus', 'P_plus', 'x_minus', 'P_minus')) < 1e-7 and e['gate_mismatches'] == 0,
+                   f'Original S0 checkpoint numerical parity failed: {inp.tag}:{name}:{e}')
+            errors[name] = e
+        reports.append(dict(tag=inp.tag, identity=inp.identity, status='PASS', source_hash=inp.source_hash,
+            saved_derived_input_hash=base.metadata['raw_input_sha256'], regenerated_input_hash=inp.checksum(),
+            derived_hash_equal=base.metadata['raw_input_sha256'] == inp.checksum(),
+            observable_and_initial_arrays_exact=True, feature_error_vs_frozen=feature_difference,
+            native_reference_parity=errors, thresholds='Unchanged S0: state/cov <1e-7; gate exactly equal; CIR <1e-9'))
+        print('CHECKPOINT_NUMERICAL_PARITY', json.dumps(reports[-1]), flush=True)
+    write_json(Path('/tmp/brf_resume_meta/CHECKPOINT_NUMERICAL_PARITY.json'), dict(status='PASS',
+        code_sha256=CODE, config_sha256=CONFIG, runner_sha256=sha(Path(__file__)), units=reports,
+        comparison='Original reference algorithm replayed against saved S0; raw-file checks remain byte-exact'))
 
 
 def window_keys(inputs, seconds):
@@ -143,7 +209,10 @@ def shard(config, seconds):
     for spec in units(ws.config):
         inp, model, truth = assets.load(*spec)
         base = Trace.load(trace_path(ws, 'S0', inp, 'BASE'))
-        demand(base.metadata['raw_input_sha256'] == inp.checksum(), 'Restored raw inputs changed')
+        receipt = json.loads(Path('/tmp/brf_resume_meta/CHECKPOINT_NUMERICAL_PARITY.json').read_text())
+        verified = [r for r in receipt['units'] if r['tag'] == inp.tag]
+        demand(receipt['status'] == 'PASS' and receipt['runner_sha256'] == sha(Path(__file__)), 'Missing current checkpoint numerical parity')
+        demand(len(verified) == 1 and verified[0]['regenerated_input_hash'] == inp.checksum(), 'Inputs changed after checkpoint parity')
         demand(base.metadata['source_hash'] == inp.source_hash, 'Restored source hash changed')
         expected.extend(window_keys(inp, seconds))
         print('S6_SHARD_START', seconds, inp.tag, flush=True)
