@@ -41,3 +41,9 @@
 원본 경로 생성기의 motion 복원 분기는 합성 통합시험 범위 밖이다. 재실행 시 기존 reconstructed_motion이 있는 추출 디렉터리 대신 새 추출 경로를 사용한다. 기존 자료는 보존한다.
 
 gate의 source-only 재귀 prior 보정은 미완료다. Office 3개 경로와 Corridor 경로들은 각각 하나의 장면에 속한다. 표본 수·mount 분포 차이는 남아 있으므로 순수 환경 인과 효과나 독립 장면 반복 결과라고 주장하지 않는다. 실제 실행 전 각 held 경로의 동결 입력 목록과 자료 충분성을 확인해야 한다.
+
+## 4단계 코드 검토 보완
+- `freeze_input_contract.py`: target/control SHA manifest를 별도 단계에서 생성. 유일 artifact 파일, 고정 P2 checkout/경로/조건 확인, RF 연산 없음.
+- `replay`: Corridor 모델 QA에 저장된 control input manifest SHA와 현재 실제 학습 파일을 재검증하고 종료 전 다시 확인. 불일치 시 중단.
+- `O_POWER_C_PWIDE`: 추론 POWER 고정은 맞지만 teacher 대상(`μ_C,inner` 대 `μ_O,inner`)이 달라 순수 학습 환경 효과로 해석 불가함을 명시.
+- 추가 합성 contract 테스트 3개는 별도 격리 환경에서 통과. 실제 RF 학습/성능 평가는 미실행.

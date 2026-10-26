@@ -69,9 +69,10 @@ python office_transfer_cli.py replay \
   --models /mnt/transfer/models/OFFICE_TRAINED_MODELS.joblib \
   --corridor-models /mnt/transfer/corridor_models/R2/R2_C_PWIDE.joblib \
   --corridor-qa /mnt/transfer/corridor_models/R2/R2_C_PWIDE_QA.json \
+  --corridor-input-manifest /mnt/transfer/frozen/R2_aA_m45_full_B0/R2_control_inputs.json \
   --train-qa /mnt/transfer/models/OFFICE_TRAIN_QA.json \
   --source-qa /mnt/transfer/prepared_office/OFFICE_SOURCE_QA.json \
-  --input-manifest /mnt/transfer/frozen/R2_aA_m45_full_B0.json \
+  --input-manifest /mnt/transfer/frozen/R2_aA_m45_full_B0/R2_aA_m45_full_B0.json \
   --input-manifest-sha256 <pre-frozen-manifest-sha256> \
   --channel full \
   --case R2_aA_m45 --bias B0 \
@@ -94,16 +95,16 @@ Office와 Corridor는 같은 `PowerTransfer.fit`, `ResidualTransfer.fit`, 특징
 | C_PWIDE | 고정 Corridor OOF | 평가 경로 제외 Corridor | Corridor 내 PWIDE 효과 |
 | O_POWER | Office | 없음 | POWER 환경 전이 |
 | O_PWIDE | Office | Office | Office 전체 보정 전이 |
-| O_POWER_C_PWIDE | Office | 평가 경로 제외 Corridor | POWER를 고정하고 PWIDE 학습 환경 비교 |
+| O_POWER_C_PWIDE | Office | 평가 경로 제외 Corridor | Office POWER 고정 교차 진단(잔차 teacher 기준이 달라 순수 환경 효과 아님) |
 
-`C_PWIDE`도 매 시점 자신의 prior로 `d0`를 다시 계산합니다. POWER의 `mu_s`는 유지하고 예측 잔차만 관측에서 추가로 뺍니다. `Vs`는 다시 보정하지 않습니다. `O_PWIDE`와 `O_POWER_C_PWIDE`를 비교하면 Office POWER를 고정한 PWIDE 학습 환경 차이를 볼 수 있습니다. `O_PWIDE`와 `C_PWIDE`의 차이에는 POWER 학습 환경 변경도 함께 포함됩니다. 경로 수·표본 수·mount 분포 차이까지 통제한 인과 효과나 독립 장면 반복시험이라고 해석하지 마십시오.
+`C_PWIDE`도 매 시점 자신의 prior로 `d0`를 다시 계산합니다. POWER의 `mu_s`는 유지하고 예측 잔차만 관측에서 추가로 뺍니다. `Vs`는 다시 보정하지 않습니다. `O_PWIDE`와 `O_POWER_C_PWIDE`는 추론 시 Office POWER를 공통으로 사용하지만, 학습 목표는 각각 Office inner POWER teacher 및 Corridor inner POWER teacher의 잔차를 기준으로 합니다. 따라서 차이는 학습 환경 변화와 teacher 기준 차이가 합쳐진 **복합 효과**이며, PWIDE 학습 환경만의 순수한 인과 효과로 해석해서는 안 됩니다. `O_PWIDE`와 `C_PWIDE`의 차이에는 POWER 학습 환경 변경도 함께 포함됩니다. 경로 수·표본 수·mount 분포 차이까지 통제한 인과 효과나 독립 장면 반복시험이라고 해석하지 마십시오.
 
 ```bash
 python office_transfer_cli.py fit-corridor \
   --target-checkout /work/sionna-p2-0686b23 \
   --target-artifacts /mnt/frozen-p2-artifacts \
   --held R2 \
-  --input-manifest /mnt/transfer/frozen/R2_control_inputs.json \
+  --input-manifest /mnt/transfer/frozen/R2_aA_m45_full_B0/R2_control_inputs.json \
   --input-manifest-sha256 "<pre-frozen-manifest-sha256>" \
   --out /mnt/transfer/corridor_models/R2
 ```
@@ -176,3 +177,21 @@ LoS 조건은 condition/channel과 TRACE 이름을 `los`로 바꾸고 `files`에
 - Office T2 loader: https://github.com/myoungsunk/sionna-resimulation/blob/034e57a7209a3bd1bb8857b24fd85c64942e1258/research/POWERJOINT_AUDIT_RERUN_20261020/T2_NEW_ROUTE_BASELINE/prepare_inputs.py
 - Frozen P2: https://github.com/myoungsunk/sionna-resimulation/tree/0686b23ceeefb696bc158b32b39f8077c564ef5d/research/PJ_D0_CIR_P2_RECURSIVE_20261022
 - POWER: https://github.com/myoungsunk/sionna-resimulation/blob/0686b23ceeefb696bc158b32b39f8077c564ef5d/research/R5_N4B_20261015/n4b_rf_errors.py
+
+### 4단계 실행 전 교정 (09bb503 코드 검토 후)
+
+**입력 manifest는 별도 사전 동결 명령으로 생성합니다.** 해당 명령은 기존 파일의 SHA만 계산하며 RF 다운로드·학습·재귀 평가는 수행하지 않습니다. 최초 실행 전에 두 개의 frozen checkout과 P2 artifact를 준비한 뒤 다음을 실행합니다.
+
+```bash
+python freeze_input_contract.py \
+  --target-checkout /work/sionna-p2-0686b23 \
+  --target-artifacts /mnt/frozen-p2-artifacts \
+  --held R2 --case R2_aA_m45 --channel full --bias B0 \
+  --out /mnt/transfer/frozen/R2_aA_m45_full_B0
+```
+
+생성되는 `R2_control_inputs.json`과 `R2_aA_m45_full_B0.json`은 **별도 파일**입니다. `FREEZE_RECEIPT.json`의 두 SHA를 확인한 다음 `fit-corridor`의 `--input-manifest-sha256`과 `replay`의 `--input-manifest-sha256`에 각각 해당하는 값을 넣습니다. `replay`는 `--corridor-input-manifest`를 추가로 받아 학습 당시 사용한 control manifest와 현재 전체 학습 파일의 SHA를 다시 검사합니다. 변경이 감지되면 결과를 저장하지 않고 중단합니다. 입력 manifest의 사전 동결은 RF 결과에 맞춘 임계값 조정이나 학습 수행을 의미하지 않습니다.
+
+**해석 정정:** `O_POWER_C_PWIDE`의 추론 POWER는 `O_POWER`로 고정하지만 Corridor PWIDE 학습 목표 `e_s-μ_{C,inner}`와 Office PWIDE 학습 목표 `e_s-μ_{O,inner}`가 다릅니다. 따라서 이 Arm은 *교차 결합의 진단*이며 순수 PWIDE 학습 환경 효과의 식별 실험이 아닙니다. 중심 평가에서는 `O_POWER` 대비 `O_PWIDE`의 zero-shot 개선 여부와 동일 Arm의 in-domain 대비 성능 저하를 함께 보고합니다.
+
+**미해결:** Office GT 편파 잔차 q95 게이트는 source-only 실제 prior 보정이 되지 않은 탐색 Arm입니다. Full/LoS 실 RF 학습과 Corridor replay 및 원본 기준선 parity는 사용자의 승인 전 실행하지 않습니다.

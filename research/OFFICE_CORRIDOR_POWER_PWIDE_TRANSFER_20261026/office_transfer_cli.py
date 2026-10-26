@@ -16,6 +16,7 @@ import pandas as pd
 import joblib
 from office_transfer_core import (load_lock,sha256,download_release,restore_release_snapshot,source_dataset_one,
                                   load_source_ffd,PowerTransfer,ResidualTransfer,gate_decision)
+from freeze_input_contract import validate_control_origin
 from evidence_contract import (execution_record, fresh_output, validate_source_qa,
     training_provenance, validate_training, verify_input_manifest, check_baseline, validate_alignment)
 
@@ -165,6 +166,8 @@ def replay_corridor(args):
         raise ValueError('TRAIN_PACKAGE_NOT_OFFICE_ONLY')
     case=next(c for c in V.MANIFEST['cases'] if c['id']==args.case)
     if case['route'] not in ('R2','R4','R5'):raise ValueError('EVALUATION_CORRIDOR_ONLY')
+    control_origin=validate_control_origin(root,Path(args.target_artifacts),args.corridor_input_manifest,
+                                           args.corridor_qa,case['route'],args.lock)
     stem=f'{args.case}_{channel}_{args.bias}'
     inputs={name:Path(V.one(name)).resolve() for name in
             (stem+'_TRACE.npz','OBSERVATION_FEATURES_LABELS.csv.gz','OOF_PARAMETERS.csv.gz')}
@@ -257,6 +260,8 @@ def replay_corridor(args):
             'runtime_inputs':input_receipt,'execution':execution_record(args.lock)})
         raise
     load_control(args.corridor_models,args.corridor_qa,case['route'],args.lock)
+    validate_control_origin(root,Path(args.target_artifacts),args.corridor_input_manifest,
+                            args.corridor_qa,case['route'],args.lock)
     # Do not publish success if an input changed during this run.
     verify_input_manifest(args.input_manifest,args.input_manifest_sha256,inputs,
         args.case,channel,args.bias,lock['corridor_p2_commit'])
@@ -283,7 +288,7 @@ def replay_corridor(args):
         'target_fit_or_tuning':'NONE_ON_HELD_ROUTE','target':'Corridor '+args.case,
         'n_steps':len(t),'bias':args.bias,'source_P2_model':str(root),
         'runtime_paths':runtime,'runtime_modules':modules,'runtime_inputs':input_receipt,
-        'channel':channel,'baseline_parity':parity,'provenance':provenance,
+        'channel':channel,'baseline_parity':parity,'control_origin':control_origin,'provenance':provenance,
         'train_qa_sha256':sha256(args.train_qa),'input_manifest_sha256':sha256(args.input_manifest),
         'corridor_model_sha256':sha256(args.corridor_models),'corridor_qa_sha256':sha256(args.corridor_qa),
         'gate_status':'EXPLORATORY_GT_PROXY' if args.exploratory_gates else 'NOT_RUN',
@@ -321,6 +326,7 @@ def main(argv=None):
     a.add_argument('--models',type=Path,required=True)
     a.add_argument('--corridor-models',type=Path,required=True)
     a.add_argument('--corridor-qa',type=Path,required=True)
+    a.add_argument('--corridor-input-manifest',type=Path,required=True)
     a.add_argument('--train-qa',type=Path,required=True)
     a.add_argument('--source-qa',type=Path,required=True)
     a.add_argument('--input-manifest',type=Path,required=True)

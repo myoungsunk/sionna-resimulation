@@ -289,10 +289,12 @@ def test_synthetic_replay_all_office_arms_without_target_fit(tmp_path,monkeypatc
             file=root/key;file.write_bytes(b'synthetic_LOS_input')
             V.MANIFEST['cases'][0][key]=key;inputs[key]=file
     monkeypatch.setattr(cli,'load_p2_environment',lambda root:R2)
+    monkeypatch.setattr(cli,'validate_control_origin',lambda *args: {'status':'SYNTHETIC_UNIT_PASS'})
     monkeypatch.setattr(cli,'verify_checkout',lambda *args:'sha_pass')
     args=SimpleNamespace(lock=__import__('pathlib').Path(__file__).resolve().parents[1]/'lock.json')
     args.target_checkout=root;args.target_artifacts=V.ART;args.models=pkg;args.case=name;args.bias='B0';args.out=tmp_path/'out'
     args.channel=channel;args.exploratory_gates=gates;args.source_qa=source_qa;args.train_qa=train_qa
+    args.corridor_input_manifest=tmp_path/'synthetic_corridor_inputs.json'
     args.input_manifest=tmp_path/'inputs.json'
     args.input_manifest_sha256=input_manifest(args.input_manifest,lock_path,inputs,name,channel,'B0')
     import copy
