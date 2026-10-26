@@ -94,6 +94,54 @@ def safe_extract_tar(tar_path: Path, output: Path, expected_sha: str) -> Path:
     return output
 
 
+def restore_release_snapshot(archive: Path, output: Path, expected_sha: str) -> Path:
+    """Create/verify the exact data/ + extraction-receipt contract used by T2.
+
+    The receipt is written last. An incomplete directory is never overwritten.
+    Reconstructed motion belongs outside data/ and is verified by the T2 loader.
+    """
+    archive, output = Path(archive), Path(output)
+    digest = verify_digest(archive, expected_sha)
+    receipt = output / 'ARCHIVE_CONTENTS_AND_SHA.json'
+    if output.exists():
+        if not receipt.is_file():
+            raise ValueError('EXTRACTED_DIRECTORY_INCOMPLETE_NO_OVERWRITE:'+str(output))
+        record = json.loads(receipt.read_text(encoding='utf-8'))
+        if record.get('archive_sha256') != digest or not record.get('extracted'):
+            raise ValueError('EXTRACTION_RECEIPT_ARCHIVE_MISMATCH')
+        data_root = (output / 'data').resolve()
+        seen = set()
+        for row in record['extracted']:
+            relative = Path(row['name'])
+            path = data_root / relative
+            if (relative.is_absolute() or '..' in relative.parts or
+                    data_root not in path.resolve().parents or path.is_symlink()):
+                raise ValueError('EXTRACTION_RECEIPT_PATH_ESCAPE')
+            if path.resolve() in seen:
+                raise ValueError('EXTRACTION_RECEIPT_DUPLICATE')
+            seen.add(path.resolve())
+            if path.stat().st_size != row['bytes']:
+                raise ValueError('EXTRACTION_RECEIPT_SIZE_MISMATCH:'+row['name'])
+            verify_digest(path, row['sha256'])
+        actual = {x.resolve() for x in data_root.rglob('*') if x.is_file()}
+        if actual != seen:
+            raise ValueError('EXTRACTION_RECEIPT_FILE_SET_MISMATCH')
+        return output
+    safe_extract_tar(archive, output / 'data', digest)
+    extracted = [{'name': x.relative_to(output / 'data').as_posix(),
+                  'bytes': x.stat().st_size, 'sha256': sha256(x)}
+                 for x in sorted((output / 'data').rglob('*')) if x.is_file()]
+    if not extracted:
+        raise ValueError('EMPTY_RELEASE_ARCHIVE')
+    # T2 receipt_index resolves every entry as receipt.parent/data/<name>.
+    record = {'archive_sha256': digest, 'archive_name': archive.name,
+              'extracted': extracted}
+    with receipt.open('x', encoding='utf-8') as stream:
+        json.dump(record, stream, indent=2)
+        stream.write('\n')
+    return output
+
+
 def import_official_loader(audit_checkout: Path):
     """Use exact audited 2026-10-20 T2 pose/receipt/clock implementation."""
     root=Path(audit_checkout).resolve()
@@ -108,6 +156,8 @@ def import_official_loader(audit_checkout: Path):
 def load_source_ffd(checkout: Path):
     """Frozen source-model with the RF PHY bank, never an Office-learned LUT."""
     root=Path(checkout).resolve()
+    from runtime_contract import reject_foreign_modules, verify_loaded_modules
+    reject_foreign_modules(root)
     for item in [
         'research/EKF4_RANGE_S_STAGED_20261014',
         'research/FFD_P0P3_20261016',
@@ -125,6 +175,7 @@ def load_source_ffd(checkout: Path):
     if missing:raise FileNotFoundError('PINNED_FFD_BANK_ASSETS_MISSING: '+', '.join(missing))
     (bankroot/'ffd_p0p3/out').mkdir(parents=True,exist_ok=True)
     from source_model import SourceFFD
+    verify_loaded_modules(root)
     return SourceFFD()
 
 
@@ -234,7 +285,8 @@ def source_dataset_one(route_root: Path, route: str, audit_checkout: Path, model
         'model_vs_direct_los_rmse':float(np.sqrt(np.mean(parity**2))) if len(parity) else None,
         'pwide_rows_needing_imputation':int(((q.pwide_feature_imputations>0)&q.valid_for_training).sum()),
         'radio_sha256':m['files']['RADIO_POSE.csv'],'release_sha256':m['archive_sha256'],
-        'sensor_replay':'NOT_RUN','model_fitting':'NOT_RUN'}
+        'sensor_replay':'NOT_RUN','model_fitting':'NOT_RUN',
+        'official_input_metadata':prepared['metadata']}
     return q,qa
 
 
@@ -276,10 +328,10 @@ class PowerTransfer:
     q_train_range:tuple[float,float]=(float('-inf'),float('inf'))
 
     @classmethod
-    def fit(cls,train:pd.DataFrame):
+    def fit(cls,train:pd.DataFrame,scene:str="OFFICE_E"):
         from sklearn.preprocessing import StandardScaler
         from sklearn.linear_model import Ridge
-        if len(train)<60 or not (train.scene=='OFFICE_E').all():raise ValueError('POWER_SOURCE_OFFICE_ONLY')
+        if scene not in ('OFFICE_E','CORRIDOR') or len(train)<60 or not (train.scene==scene).all():raise ValueError('POWER_SOURCE_OFFICE_ONLY_OR_DECLARED_CORRIDOR')
         if not train[['log_fp_power','e_r','e_s']].notna().all().all():raise ValueError('POWER_NAN_TRAINING')
         w=site_weights(train)
         y=train[['e_r','e_s']].to_numpy(float)
@@ -301,7 +353,7 @@ class PowerTransfer:
             bs.append(alpha*mean_b+(1-alpha)*mu_global)
             cs.append(fix_cov(alpha*cov_b+(1-alpha)*cov_global,False))
         return cls(scaler,fit,cuts,np.asarray(bs),np.asarray(cs),tuple(sorted(train.route.unique())),
-                   q_train_range=(float(np.min(q)),float(np.max(q))))
+                   training_scene=scene,q_train_range=(float(np.min(q)),float(np.max(q))))
 
     def predict(self,log_power:np.ndarray,diag:bool=True)->tuple[np.ndarray,np.ndarray]:
         v=np.asarray(log_power,dtype=float).reshape(-1,1)
@@ -319,17 +371,18 @@ def as_pwide_features(frame:pd.DataFrame,medians:pd.Series | None=None)->tuple[p
     return d.fillna(medians).astype(float),medians
 
 
-def augment_d0(frame:pd.DataFrame,model:Any,rng:np.random.Generator,reps:int=3)->tuple[np.ndarray,np.ndarray]:
+def augment_d0(frame:pd.DataFrame,model:Any,rng:np.random.Generator,reps:int=3,cases:dict | None=None)->tuple[np.ndarray,np.ndarray]:
     """Source-only heading perturbation up to +/-20 degrees; no target GT."""
     rows=np.tile(np.arange(len(frame)),reps)
     delta=rng.uniform(-20,20,len(rows))
     o=np.empty(len(rows),float)
-    for route in sorted(frame.route.unique()):
-        sel=frame.route.to_numpy()[rows]==route
+    groups=frame['case'] if cases is not None else frame.route
+    for route in sorted(groups.unique()):
+        sel=groups.to_numpy()[rows]==route
         rr=rows[sel]
         state=np.c_[frame.x_eval.to_numpy()[rr],frame.y_eval.to_numpy()[rr],
                     np.deg2rad(frame.yaw_body_deg.to_numpy()[rr]+delta[sel]),np.zeros(len(rr))]
-        case={'id':route+'_O0_M45_FULL','anchor':[5.,2.2,2.65],'robot_z_m':.45,'mount_deg':45.}
+        case=cases[route] if cases is not None else {'id':route+'_O0_M45_FULL','anchor':[5.,2.2,2.65],'robot_z_m':.45,'mount_deg':45.}
         chunks=[]
         for j in range(0,len(state),64):chunks.append(model.batch(state[j:j+64],case,gradient=False)[0][:,1])
         o[sel]=np.concatenate(chunks)
@@ -343,13 +396,21 @@ class ResidualTransfer:
     gate_tau_d0:float
     training_routes:tuple[str,...]
     source_predictor_name:str='Full-CIR+prior-d0 P2 residual correction'
+    training_scene:str='OFFICE_E'
+    fold_audit:Any=None
 
     @classmethod
-    def fit(cls,frame:pd.DataFrame,model:Any,seed:int=20261022):
+    def fit(cls,frame:pd.DataFrame,model:Any,seed:int=20261022,scene:str="OFFICE_E",cases:dict | None=None):
         from sklearn.ensemble import HistGradientBoostingRegressor
         train=frame.copy().reset_index(drop=True)
-        if set(train.route.unique())!={'O01','O02','O03'}:raise ValueError('SOURCE_ALL_3_ROUTES_REQUIRED')
-        if not (train.scene=='OFFICE_E').all():raise ValueError('PWIDE_NOT_OFFICE_ONLY')
+        if scene=='OFFICE_E':
+            if set(train.route.unique())!={'O01','O02','O03'}:raise ValueError('SOURCE_ALL_3_ROUTES_REQUIRED')
+        elif scene=='CORRIDOR':
+            if len(set(train.route))!=2 or not set(train.route).issubset({'R2','R4','R5'}) or cases is None:
+                raise ValueError('CORRIDOR_EXACT_TWO_TRAIN_ROUTES_REQUIRED')
+        else:raise ValueError('UNKNOWN_TRAINING_SCENE')
+        if not (train.scene==scene).all():raise ValueError('PWIDE_NOT_OFFICE_ONLY_OR_DECLARED_CORRIDOR')
+        folds=[]
         # Strict source-route OOF POWER pseudo-label for PWIDE residual, never
         # in-sample teacher labels or Corridor target labels.
         mu=np.full(len(train),np.nan)
@@ -362,7 +423,8 @@ class ResidualTransfer:
             dist=cKDTree(train.loc[b,['x_eval','y_eval']].to_numpy(float)).query(a[['x_eval','y_eval']].to_numpy(float))[0]
             a=a.loc[dist>1e-4].copy()
             if len(a)<50:raise ValueError('INNER_SOURCE_NOT_ENOUGH')
-            power=PowerTransfer.fit(a)
+            power=PowerTransfer.fit(a,scene=scene)
+            folds.append({"validation_route":route,"teacher_routes":sorted(a.route.unique()),"teacher_rows":len(a),"embargo_removed":int((dist<=1e-4).sum())})
             mu[b]=power.predict(train.loc[b,'log_fp_power'].to_numpy())[0][:,1]
         if not np.isfinite(mu).all():raise AssertionError('INNER_OFFICE_POWER_INCOMPLETE')
         tr=train.copy();tr['delta']=tr.e_s.to_numpy()-mu
@@ -370,14 +432,14 @@ class ResidualTransfer:
         def make():return HistGradientBoostingRegressor(max_iter=160,learning_rate=.055,max_leaf_nodes=17,max_depth=5,
                                                         min_samples_leaf=20,l2_regularization=1.,random_state=20261022)
         pcir=make().fit(base,tr.delta.to_numpy(float))
-        rows,d0=augment_d0(tr,model,np.random.default_rng(seed),3)
+        rows,d0=augment_d0(tr,model,np.random.default_rng(seed),3,cases=cases)
         x=base.iloc[rows].reset_index(drop=True).copy();x['d0']=d0
         pwide=make().fit(x,tr.delta.to_numpy(float)[rows])
         # Pre-registered simple source-only |d0| tail, NOT recalibrated on target;
         # scoring GT helps source calibration only, never in target prediction.
         tau=float(np.quantile(np.abs(tr.d0_gt_source.to_numpy(float)),.95))
         if not np.isfinite(tau) or tau<0:raise ValueError('GATE_TAU_SOURCE_BAD')
-        return cls(pcir,pwide,med,tau,tuple(sorted(tr.route.unique())))
+        return cls(pcir,pwide,med,tau,tuple(sorted(tr.route.unique())),training_scene=scene,fold_audit=folds)
 
     def predict(self,frame:pd.DataFrame,d0:np.ndarray,kind:str)->np.ndarray:
         x,_=as_pwide_features(frame,self.medians)

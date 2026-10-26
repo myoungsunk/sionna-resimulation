@@ -199,7 +199,8 @@ def test_checkout_sha_fail_closed(tmp_path):
     with pytest.raises(ValueError,match='GIT_CHECKOUT_UNVERIFIED'):
         verify_checkout(tmp_path,'0'*40,'SOURCE_AUDIT')
 
-def test_synthetic_replay_all_office_arms_without_target_fit(tmp_path,monkeypatch):
+@pytest.mark.parametrize('channel,gates,fail_baseline',[('full',True,False),('full',False,False),('los',False,False),('full',False,True)])
+def test_synthetic_replay_all_office_arms_without_target_fit(tmp_path,monkeypatch,channel,gates,fail_baseline):
     """Exercise CLI replay control/data paths without any Release or real corridor RF."""
     import joblib
     from types import SimpleNamespace
@@ -207,21 +208,31 @@ def test_synthetic_replay_all_office_arms_without_target_fit(tmp_path,monkeypatc
     source=build_frame(n=45)
     power=PowerTransfer.fit(source)
     residual=ResidualTransfer.fit(source,DummySource())
+    from evidence_helpers import source_receipt,input_manifest
+    from evidence_contract import training_provenance
+    from fixtures import p2_math
+    from office_transfer_core import sha256
+    lock_path=Path(__file__).resolve().parents[1]/'lock.json'
+    source_qa=tmp_path/'source_qa.json';source_receipt(source_qa,lock_path)
+    provenance=training_provenance(source_qa,lock_path)
     pkg=tmp_path/'office.joblib'
     joblib.dump({'POWER':power,'RESIDUAL':residual,'source_only':True,
-                 'target_training_used':False},pkg)
+                 'target_training_used':False,'provenance':provenance},pkg)
+    train_qa=tmp_path/'train_qa.json'
+    train_qa.write_text(json.dumps({'status':'SOURCE_TRAINING_COMPLETE','model_sha256':sha256(pkg),'provenance':provenance}))
     root=tmp_path/'target';(root/'research/PJ_DS_GATED_20261021/results_hpath').mkdir(parents=True)
     name='R2_aA_m45'
     pose=np.arange(5)
     t=np.array([0.,10.,20.,30.,40.])
     truth=np.zeros((5,3),float)
-    trace=tmp_path/'trace.npz'
+    art=tmp_path/'art';art.mkdir()
+    trace=art/'trace.npz'
     np.savez_compressed(trace,t_s=t,pose_id=pose,truth_scoring_only=truth)
-    obs=tmp_path/'obs.csv.gz'
+    obs=art/'obs.csv.gz'
     z=np.array([.11,.12,.10,.14,.11])
-    pd.DataFrame({'case':[name]*5,'channel':['full']*5,'pose_id':pose,
+    pd.DataFrame({'case':[name]*5,'channel':[channel]*5,'pose_id':pose,
                   'range_m':[2.,2.1,2.2,2.1,2.], 's_fp':z}).to_csv(obs,index=False,compression='gzip')
-    par=tmp_path/'par.csv.gz';pd.DataFrame({'value':[1]}).to_csv(par,index=False,compression='gzip')
+    par=art/'par.csv.gz';pd.DataFrame({'value':[1]}).to_csv(par,index=False,compression='gzip')
     pd.DataFrame({'case':[name]*5,'pose_id':pose}).to_csv(
         root/'research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz',index=False,compression='gzip')
     X=source.iloc[:5].copy().reset_index(drop=True)
@@ -253,18 +264,60 @@ def test_synthetic_replay_all_office_arms_without_target_fit(tmp_path,monkeypatc
             h=np.zeros((n,2));h[:,0]=2.;h[:,1]=.02*np.sin(x[:,2])
             H=np.zeros((n,2,4));H[:,1,2]=.02*np.cos(x[:,2])
             return h,H
+    V.ROOT=root;V.ART=art;V.OUT=tmp_path/'out'
+    for key in ('PJ_SOURCE_ROOT','PJ_ART','PJ_OUT'):monkeypatch.delenv(key,raising=False)
     V.SourceFFD=Observ
     V.one=staticmethod(one)
-    R2=SimpleNamespace(V=V,full_features=lambda packets,ids:(X.copy(),None))
+    R2=SimpleNamespace(V=V,S=p2_math,full_features=lambda packets,ids:(X.copy(),None),
+        los_features=lambda case,ids,packets:(X.copy(),None))
+    # Independent frozen P2 update/score functions generate the synthetic reference.
+    states=[];covs=[];xx=np.zeros((1,4));pp=np.diag(np.r_[V.INITIAL_POSE_STD**2,V.BIAS_PRIOR_STD**2])[None]
+    for k in range(5):
+        hh,jj=Observ().batch(xx,None)
+        mm=np.zeros((1,2));rr=np.diag([.1,.2])[None]
+        xx,pp,_,_=p2_math.update(xx,pp,np.array([2.+[0,.1,.2,.1,0][k],z[k]]),hh,jj,mm,mm,rr,rr,np.array([False]))
+        states.append(xx.copy());covs.append(pp.copy())
+    reference,_=p2_math.score_extra(np.array(states),np.array(covs),t,truth,V.MANIFEST['cases'][0])
+    reference[0].update(case=name,channel=channel,bias='B0',arm='BASE')
+    if fail_baseline:reference[0]['heading_rmse_deg']+=.01
+    ref=root/'research/PJ_DS_GATED_20261021/results_strict/SB_SCORES.csv';ref.parent.mkdir()
+    pd.DataFrame(reference).to_csv(ref,index=False)
+    inputs={f'{name}_{channel}_B0_TRACE.npz':trace,'OBSERVATION_FEATURES_LABELS.csv.gz':obs,
+        'OOF_PARAMETERS.csv.gz':par,'HP_PACKETS.csv.gz':root/'research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz','SB_SCORES.csv':ref}
+    if channel=='los':
+        for key in ('los_path','samples_path'):
+            file=root/key;file.write_bytes(b'synthetic_LOS_input')
+            V.MANIFEST['cases'][0][key]=key;inputs[key]=file
     monkeypatch.setattr(cli,'load_p2_environment',lambda root:R2)
     monkeypatch.setattr(cli,'verify_checkout',lambda *args:'sha_pass')
     args=SimpleNamespace(lock=__import__('pathlib').Path(__file__).resolve().parents[1]/'lock.json')
-    args.target_checkout=root;args.models=pkg;args.case=name;args.bias='B0';args.out=tmp_path/'out'
+    args.target_checkout=root;args.target_artifacts=V.ART;args.models=pkg;args.case=name;args.bias='B0';args.out=tmp_path/'out'
+    args.channel=channel;args.exploratory_gates=gates;args.source_qa=source_qa;args.train_qa=train_qa
+    args.input_manifest=tmp_path/'inputs.json'
+    args.input_manifest_sha256=input_manifest(args.input_manifest,lock_path,inputs,name,channel,'B0')
+    import copy
+    from corridor_control import DEFINITION
+    control=copy.deepcopy(residual);control.training_scene='CORRIDOR';control.training_routes=('R4','R5')
+    identity={'definition':DEFINITION,'held':'R2','train_routes':['R4','R5'],'lock_sha256':sha256(lock_path)}
+    args.corridor_models=tmp_path/'control.joblib';args.corridor_qa=tmp_path/'control.json'
+    joblib.dump({'RESIDUAL':control,'identity':identity},args.corridor_models)
+    args.corridor_qa.write_text(json.dumps({'status':'CORRIDOR_CONTROL_TRAINED','identity':identity,'model_sha256':sha256(args.corridor_models)}))
+    if fail_baseline:
+        with pytest.raises(ValueError,match='STRICT_BASE_PARITY_FAIL'):cli.replay_corridor(args)
+        assert not list(args.out.glob('*TRANSFER_SCORES.csv'))
+        assert list(args.out.glob('*QA_BLOCKED.json'))
+        return
     cli.replay_corridor(args)
-    scores=pd.read_csv(args.out/f'{name}_full_B0_TRANSFER_SCORES.csv')
-    series=pd.read_csv(args.out/f'{name}_full_B0_TRANSFER_SERIES.csv.gz')
-    assert len(scores)==8 and len(series)==40
-    assert set(series.arm)=={'C_POWER','O_POWER','O_PWIDE','O_POWER_G','O_PWIDE_G',
-                            'O_PCIR','O_POWER_STATE_G','O_PWIDE_STATE_G'}
+    scores=pd.read_csv(args.out/f'{name}_{channel}_B0_TRANSFER_SCORES.csv')
+    series=pd.read_csv(args.out/f'{name}_{channel}_B0_TRANSFER_SERIES.csv.gz')
+    assert len(scores)==(10 if gates else 6) and len(series)==(50 if gates else 30)
+    expected={'C_POWER','C_PWIDE','O_POWER','O_PWIDE','O_POWER_C_PWIDE','O_PCIR'}
+    if gates:expected|={'O_POWER_G','O_PWIDE_G','O_POWER_STATE_G','O_PWIDE_STATE_G'}
+    assert set(series.arm)==expected
+    qa=json.loads((args.out/f'{name}_{channel}_B0_TRANSFER_QA.json').read_text())
+    assert qa['baseline_parity']['status']=='PASS'
+    assert qa['gate_status']==('EXPLORATORY_GT_PROXY' if gates else 'NOT_RUN')
+    for a,b in [('C_POWER','C_PWIDE'),('O_POWER','O_POWER_C_PWIDE')]:
+        assert np.array_equal(series[series.arm==a][['mu_s','Vs']].to_numpy(),series[series.arm==b][['mu_s','Vs']].to_numpy())
     assert series.office_q_out_of_range.dtype==bool
     assert series[['heading_error_deg','nis','Vs','heading_nees']].notna().all().all()
