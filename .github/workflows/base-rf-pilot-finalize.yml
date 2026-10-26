@@ -1,0 +1,115 @@
+name: BASE RF assemble verified S6 and completed S7 pilot
+on:
+  push:
+    branches: [research/base-rf-identifiability-v2-code-20261023]
+    paths: [.github/workflows/base-rf-pilot-finalize.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: base-rf-finalize-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  aggregate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PYTHONUNBUFFERED: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - name: Fetch execution-only assembler with frozen science package
+        run: |
+          set -euo pipefail
+          gh auth setup-git
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git config remote.origin.promisor true
+          git config remote.origin.partialclonefilter blob:none
+          git sparse-checkout init --cone
+          git sparse-checkout set research/PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023 scripts
+          git -c protocol.version=2 fetch --no-tags --filter=blob:none --depth=1 origin "$GITHUB_SHA"
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Require success of precisely the five designated S6 jobs and S7
+        run: |
+          python -u - <<'PY'
+          import json,subprocess,time
+          from pathlib import Path
+          jobs={40246591972:('ac1990d28e3e5715626d51d3bff884f9be0d300c',{'S6-w10','S6-w30','S6-w60','S7'}),
+                40247173990:('838662d755a5c746a99f119038c522bc103e3df6',{'S6-w2','S6-w5'})}
+          out=Path('/tmp/brf_final_meta');out.mkdir(exist_ok=True)
+          deadline=time.monotonic()+19500
+          while True:
+              pending=[];failed=[];records=[]
+              for run,(sha,names) in jobs.items():
+                  d=json.loads(subprocess.check_output(['gh','api',f'repos/myoungsunk/sionna-resimulation/actions/runs/{run}/jobs?per_page=100'],text=True))
+                  for name in sorted(names):
+                      found=[j for j in d['jobs'] if j['name']==name]
+                      if len(found)!=1: raise RuntimeError(f'Missing/duplicate selected job {run}:{name}')
+                      j=found[0]
+                      if j['head_sha']!=sha: raise RuntimeError('Unexpected source revision')
+                      row={k:j.get(k) for k in ('id','run_id','name','head_sha','status','conclusion','html_url')};records.append(row)
+                      if j['status']!='completed':pending.append(f'{run}:{name}')
+                      elif j['conclusion']!='success':failed.append(row)
+              (out/'PREREQUISITE_JOBS.json').write_text(json.dumps(dict(jobs=records,pending=pending,failed=failed),indent=2))
+              if failed: raise RuntimeError('Selected science job did not succeed: '+json.dumps(failed))
+              if not pending:break
+              if time.monotonic()>deadline:raise TimeoutError('No complete five-window evidence; no S6 PASS issued')
+              print('Awaiting prerequisite job outputs:', ', '.join(pending),flush=True)
+              time.sleep(60)
+          print('ALL_SELECTED_JOBS_SUCCESS',flush=True)
+          PY
+      - name: Install matching aggregation dependencies
+        run: python -m pip install --disable-pip-version-check -r research/PJ_BASE_PRESERVE_IDENTIFIABILITY_20261023/requirements.txt
+      - name: Restore unchanged upstream outputs and exact successful shard artifacts
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/brf_saved /tmp/brf_parts /tmp/brf_final_meta /tmp/brf_s7
+          gh run download 40063600117 --repo myoungsunk/sionna-resimulation --name base-rf-pilot-stage-results-40063600117 --dir /tmp/brf_saved
+          cp -a /tmp/brf_saved/brf_output /tmp/brf_output
+          cp /tmp/brf_saved/brf_config.json /tmp/brf_config.json
+          if [ -d /tmp/brf_output/S6 ]; then mv /tmp/brf_output/S6 /tmp/brf_final_meta/old_interrupted_S6; fi
+          for window in 10 30 60; do
+            gh run download 40246591972 --repo myoungsunk/sionna-resimulation --name "base-rf-resume-S6-w$window-40246591972" --dir "/tmp/brf_parts/w$window"
+          done
+          for window in 2 5; do
+            gh run download 40247173990 --repo myoungsunk/sionna-resimulation --name "base-rf-retry-S6-w$window-40247173990" --dir "/tmp/brf_parts/w$window"
+          done
+          gh run download 40246591972 --repo myoungsunk/sionna-resimulation --name base-rf-resume-S7-40246591972 --dir /tmp/brf_s7
+          cp -a /tmp/brf_s7/brf_output/S7 /tmp/brf_output/S7
+          cp /tmp/brf_s7/brf_output/S7_STATUS.json /tmp/brf_output/S7_STATUS.json
+      - name: Merge five windows without changing scientific values or old receipts
+        run: |
+          set -euo pipefail
+          python -u scripts/base_rf_merge_resume.py --parts /tmp/brf_parts --config /tmp/brf_config.json 2>&1 | tee /tmp/brf_final_meta/S6_MERGE_LOG.txt
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from scripts.base_rf_resume_pilot import workspace
+          ws=workspace('/tmp/brf_config.json')
+          records={f'S{i}':ws.require_stage(f'S{i}') for i in range(8)}
+          receipt=dict(scope='R2_aA_m0 B0 seed 0 pilot plus native LoS controls; not full 168-case matrix',
+                       stage_execution={k:v['status'] for k,v in records.items()},
+                       research_claim='NOT_ASSESSED; stage execution PASS does not imply improved estimator',
+                       source_runs=[40063600117,40246591972,40247173990],
+                       note='Original S7 finding ledger is preserved; S6 completion is recorded separately, not retroactively rewritten.')
+          Path('/tmp/brf_final_meta/PILOT_EXECUTION_RECEIPT.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2))
+          print(json.dumps(receipt,ensure_ascii=False))
+          PY
+      - name: Preserve assembled evidence or explicit failure records
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: base-rf-pilot-S0-S7-evidence-${{ github.run_id }}
+          path: |
+            /tmp/brf_output/
+            /tmp/brf_final_meta/
+            /tmp/brf_config.json
+          retention-days: 30
+          if-no-files-found: warn
