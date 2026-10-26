@@ -7,14 +7,25 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: write
 concurrency:
-  group: office-m0-rf-${{ github.ref }}
+  group: office-m0-snowball-receipt-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   migration-receipt:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
+      - name: Cancel superseded Actions RF and pending migration receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for run_id in 40327200137 40330542093; do
+            curl --silent --show-error --fail-with-body --request POST \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              --header "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/runs/$run_id/cancel"
+          done
       - name: Record active Snowball campaign
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" <<'RECEIPT'
@@ -32,6 +43,6 @@ jobs:
           Status: SNOWBALL_STATUS.json. Logs: LOGS/. Raw evidence: BATCHES/.
           On success, aggregation verifies all batches and creates O01/O02/O03_M0.tar.gz plus hashes.
           Original Actions workflow remains available at the source revision above.
-          This receipt cancels the superseded Actions campaign through its existing concurrency group.
+          This receipt cancels the superseded Actions campaign through an explicit cancellation request using the repository workflow token.
           RF completion and scientific acceptance are not claimed by this receipt.
           RECEIPT
