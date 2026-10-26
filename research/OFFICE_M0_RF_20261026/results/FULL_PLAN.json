@@ -1,0 +1,682 @@
+{
+  "schema": "OFFICE_M0_RF_V1",
+  "status": "PREPARED_NOT_RUN",
+  "source_commit": "df1bee938c71ac17b1910edbf94ae563e4610bb7",
+  "request": {
+    "schema": "OFFICE_M0_EXISTING_SCENE_REQUEST_V1",
+    "issued_date": "2026-10-26",
+    "status": "PREPARED_NOT_RUN",
+    "scope": "O01/O02/O03 only; same Office E geometry, O0 anchor, body motion and RF schedule as M45; antenna mount 0 degrees.",
+    "provenance": {
+      "office_branch": "claude/office-e-layout",
+      "office_ref_commit": "b05af070a87981f8712fdd41eac4c1bbb882e9c7",
+      "office_completed_sweep_source": "819fa93b152ca3cdf66297af09ff073880bd9d9b",
+      "office_setup_sha256": "7b48fc6682d1bc8a500913273722babcfb54166a71fae81ba097f421a30c5a41",
+      "source_ffd_ref": "research/ffd-source-p0p3-20261016",
+      "source_ffd_commit": "4b82e9801a1e065593fdd67a0f3ebd721ba29848",
+      "ffd_sha256": {
+        "LP_plus45": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+        "LP_minus45": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+      }
+    },
+    "scenes": {
+      "CORRIDOR_EXISTING": {
+        "size_m": [
+          20,
+          2.4,
+          2.7
+        ],
+        "anchors": {
+          "A": [
+            4,
+            0,
+            2.65
+          ],
+          "B": [
+            10,
+            0,
+            2.65
+          ]
+        },
+        "reuse_original_corridor_scene": true
+      },
+      "OFFICE_E_EXISTING": {
+        "size_m": [
+          10,
+          12,
+          2.7
+        ],
+        "anchors": {
+          "O0": [
+            5,
+            2.2,
+            2.65
+          ]
+        },
+        "office_source": "src/qclean_uwb/scenarios/office.py",
+        "configuration_source": "results/OFFICE_SETUP_20261007/OFFICE_SETUP.json",
+        "existing_35_stationary_pose_sweep_not_time_series": true,
+        "do_not_invent_anchor_B": true
+      }
+    },
+    "motion": {
+      "dt_s": 0.25,
+      "v_mps": 0.2,
+      "yaw_rate_dps": 15,
+      "rf_stride": 4,
+      "radio_at_vertices": true,
+      "radio_during_yaw_scan": true,
+      "z_m": 0.45,
+      "mount_deg": 0,
+      "sensor_v2_is_synthetic_not_measured": true
+    },
+    "radio": {
+      "frequency_Hz": {
+        "start": 6250400000,
+        "step": 1950000,
+        "count": 257
+      },
+      "H_shape": "[n_radio,257,2,2]",
+      "H_dtype": "complex128",
+      "H_axes": "radio frame, frequency, RX LP+/-, TX LP+/-",
+      "channels": [
+        "FULL",
+        "DIRECT_LOS"
+      ],
+      "full_and_los_same_pose_clock_jones_detector": true,
+      "no_legacy_native_mixing": true,
+      "avoid_false_direct_los_for_blocked": true,
+      "path_solver": {
+        "sionna_rt": "2.0.1",
+        "max_depth": 3,
+        "reflection": true,
+        "refraction": true,
+        "diffraction": false,
+        "diffuse": false
+      },
+      "baseline_seed": 20260924
+    },
+    "routes": [
+      {
+        "id": "O01",
+        "environment": "OFFICE_E_EXISTING",
+        "anchors": [
+          "O0"
+        ],
+        "priority": "required",
+        "name": "Bottom-bar transverse out and back, predominantly LoS",
+        "waypoints_xy_m": [
+          [
+            0.5,
+            0.75
+          ],
+          [
+            9.5,
+            0.75
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "claims": [
+          "P4",
+          "E1",
+          "E3"
+        ]
+      },
+      {
+        "id": "O02",
+        "environment": "OFFICE_E_EXISTING",
+        "anchors": [
+          "O0"
+        ],
+        "priority": "required",
+        "name": "Center longitudinal aisle out and back",
+        "waypoints_xy_m": [
+          [
+            3.3,
+            0.75
+          ],
+          [
+            3.3,
+            11.25
+          ],
+          [
+            3.3,
+            0.75
+          ]
+        ],
+        "claims": [
+          "E3",
+          "E4",
+          "P5"
+        ]
+      },
+      {
+        "id": "O03",
+        "environment": "OFFICE_E_EXISTING",
+        "anchors": [
+          "O0"
+        ],
+        "priority": "required",
+        "name": "Left/right wall aisle LoS obstruction and recovery",
+        "waypoints_xy_m": [
+          [
+            9.5,
+            0.75
+          ],
+          [
+            9.5,
+            11.25
+          ],
+          [
+            9.5,
+            0.75
+          ],
+          [
+            0.5,
+            0.75
+          ],
+          [
+            0.5,
+            11.25
+          ],
+          [
+            0.5,
+            0.75
+          ]
+        ],
+        "claims": [
+          "P4",
+          "P5",
+          "E4"
+        ]
+      }
+    ],
+    "outputs": [
+      "ROUTE_POSE.csv",
+      "H_FULL.npy",
+      "H_DIRECT_LOS.npy",
+      "LOS_EXISTS.npy",
+      "PATH_COUNTS.csv",
+      "FIRST_PATH.csv",
+      "SENSOR_V2.csv",
+      "SCENE_METADATA.json",
+      "RUN_MANIFEST.json",
+      "SHA256SUMS.txt"
+    ],
+    "acceptance": [
+      "source/geometry SHA fixed and no overwrite of old data",
+      "all poses collision-free and unique monotone t",
+      "A/B synchronized per corridor route; office O0 only",
+      "native Direct LoS and Full generated by one canonical traced scene/pose contract",
+      "two-port H frequency/port/yaw axes match pinned source",
+      "LoS blocked frames flagged, not assigned a fabricated direct ray",
+      "Sensor-v2 created from truth/time with synthetic labeling and stored seeds",
+      "train split disjoint from evaluation routes; same physical room not independent scenes",
+      "evaluate Heading, XY, bias, NIS, conditional narrow-axis NEES and 95 coverage; no scientific success from job exit"
+    ],
+    "excluded": [
+      "16 independent new scenes",
+      "Mount0 full factorial",
+      "office second anchor",
+      "claim of physical environmental generalization from route holdouts",
+      "using sparse 35-point static office sweeps as if they were continuous RF traces"
+    ]
+  },
+  "request_sha256": "794aac938701ec2acd5f6c74404bfc1deb114e925a3368db5637bc77d43319d5",
+  "pilot_final_sha256": "36ee844f62da2df3766f6273958bd189d5bb0be4e4942977cb7ba59c78b6acba",
+  "pilot_root": null,
+  "cases": [
+    {
+      "case_id": "O01_O0_M0_FULL",
+      "route": "O01",
+      "environment": "OFFICE_E_EXISTING",
+      "anchor": "O0",
+      "anchor_m": [
+        5,
+        2.2,
+        2.65
+      ],
+      "poses_file": "POSES/O01_RADIO_POSE.csv",
+      "poses_sha256": "019793564119fc35c3dd7d56594293df539d02eb1e85fdc98c4ac81e96fde6bc",
+      "count": 192,
+      "mount_deg": 0
+    },
+    {
+      "case_id": "O02_O0_M0_FULL",
+      "route": "O02",
+      "environment": "OFFICE_E_EXISTING",
+      "anchor": "O0",
+      "anchor_m": [
+        5,
+        2.2,
+        2.65
+      ],
+      "poses_file": "POSES/O02_RADIO_POSE.csv",
+      "poses_sha256": "0f00d9c8a6e647a883ee49caddd831fef1e4637bd0688c931de31467cdf73f49",
+      "count": 207,
+      "mount_deg": 0
+    },
+    {
+      "case_id": "O03_O0_M0_FULL",
+      "route": "O03",
+      "environment": "OFFICE_E_EXISTING",
+      "anchor": "O0",
+      "anchor_m": [
+        5,
+        2.2,
+        2.65
+      ],
+      "poses_file": "POSES/O03_RADIO_POSE.csv",
+      "poses_sha256": "9242da77248caa95ba439f2daa66039ede1f03ace951da8818768c0e3870f42f",
+      "count": 412,
+      "mount_deg": 0
+    }
+  ],
+  "batches": [
+    {
+      "batch_id": "O01_O0_M0_FULL_P0000_0020",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 0,
+      "stop": 20,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0000_0020.csv",
+      "poses_sha256": "34173e18d318753259cdb7c7853614e25f1d5ad307de8f55ad6b0e39b12c8a67"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0020_0040",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 20,
+      "stop": 40,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0020_0040.csv",
+      "poses_sha256": "db7a84ba3fb5228c5ada8447765d8c21a925e86f4c1eeaba373a554400eafb40"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0040_0060",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 40,
+      "stop": 60,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0040_0060.csv",
+      "poses_sha256": "ca2ee9faed17ef2b2642ee301976eb025a0b10a046710ddbd8a1bc125252bb67"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0060_0080",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 60,
+      "stop": 80,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0060_0080.csv",
+      "poses_sha256": "6622182925d9ad6e44a78bbc5a2adc6ea85a21f5c897291ad636945e3440a072"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0080_0100",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 80,
+      "stop": 100,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0080_0100.csv",
+      "poses_sha256": "04656d21ac12eed6570faf6783bf2cf2f4050e4663cbfa84705cf8efaaf076c2"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0100_0120",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 100,
+      "stop": 120,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0100_0120.csv",
+      "poses_sha256": "865fed9939bf2cf8d44d4aed665b10b0e7d5ecc730892b37c666e4cb445ddcd8"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0120_0140",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 120,
+      "stop": 140,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0120_0140.csv",
+      "poses_sha256": "65f31eae84efa8182798f98c6fa8d38390b7df6a70f24d62f0c7a0c07cca38ad"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0140_0160",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 140,
+      "stop": 160,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0140_0160.csv",
+      "poses_sha256": "53247ba4912648b33edb7642762cb2638d5f6484cc9cc7967c928a80a1dd1bf5"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0160_0180",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 160,
+      "stop": 180,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0160_0180.csv",
+      "poses_sha256": "841014e2d8f1443b88f0683fd1d38491b9e9121c98506c0be6ff2ed3494dec9a"
+    },
+    {
+      "batch_id": "O01_O0_M0_FULL_P0180_0192",
+      "case_id": "O01_O0_M0_FULL",
+      "start": 180,
+      "stop": 192,
+      "count": 12,
+      "poses_file": "BATCH_POSES/O01_O0_M0_FULL_P0180_0192.csv",
+      "poses_sha256": "1cf5f0d74decf40f77e0f0efa3980dae0c1c45794468f86b7d5b3bd8669f8cb0"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0000_0020",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 0,
+      "stop": 20,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0000_0020.csv",
+      "poses_sha256": "cceb446d813042c1b9407cca8863fbb02c8508de6d106ed7cca20a0172e4aa9c"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0020_0040",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 20,
+      "stop": 40,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0020_0040.csv",
+      "poses_sha256": "cef92b1da4f478b39196168ce0e5cf59f79f6596bc25a3ff9ba8328c40423b97"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0040_0060",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 40,
+      "stop": 60,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0040_0060.csv",
+      "poses_sha256": "3d00dc0ef0e8eb464d3cb7f20d8c5c1b1b4495a17786fe46c53e04a51a919791"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0060_0080",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 60,
+      "stop": 80,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0060_0080.csv",
+      "poses_sha256": "7074b5699a30a2a2501fee318e9ea54355bf90ac3c906d2fb22cf3b5954a87e5"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0080_0100",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 80,
+      "stop": 100,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0080_0100.csv",
+      "poses_sha256": "9e594d14ca5cc52d16a42331c881c1b7eba7063944623333997dd6adc66d6f22"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0100_0120",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 100,
+      "stop": 120,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0100_0120.csv",
+      "poses_sha256": "c6baa59ff8a271ad5b9d738185c5a6dd05ee6bd710fb8c5de38b443229afbfd2"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0120_0140",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 120,
+      "stop": 140,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0120_0140.csv",
+      "poses_sha256": "fff235f18cd2bcaa26f3d6db3bb81997c4dfaaa6abf8d985f4f22af2000dbf4c"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0140_0160",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 140,
+      "stop": 160,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0140_0160.csv",
+      "poses_sha256": "0d10d3adfb5e3f9be70fcaa7829849d938f2d81491ce007f1b3f561ef9030ccb"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0160_0180",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 160,
+      "stop": 180,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0160_0180.csv",
+      "poses_sha256": "831e1911c98390f1c5ad2daad4f356c0eb284107b4f92a3b766bf2ce36353bf4"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0180_0200",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 180,
+      "stop": 200,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0180_0200.csv",
+      "poses_sha256": "0be272e14d3d49182dc12d9e71cde31b4e954524bb4de78fcbc6d54db64530b2"
+    },
+    {
+      "batch_id": "O02_O0_M0_FULL_P0200_0207",
+      "case_id": "O02_O0_M0_FULL",
+      "start": 200,
+      "stop": 207,
+      "count": 7,
+      "poses_file": "BATCH_POSES/O02_O0_M0_FULL_P0200_0207.csv",
+      "poses_sha256": "1e4ab10d821bcf9960039933742a0ea5a5014fda77c12d2653ec5a508e35c5ce"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0000_0020",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 0,
+      "stop": 20,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0000_0020.csv",
+      "poses_sha256": "8f1c77a850842455214f981613c88078eb73ba7a0ba32a089fb5269708c2815f"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0020_0040",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 20,
+      "stop": 40,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0020_0040.csv",
+      "poses_sha256": "4448f1b73abb6702eb714e303a3393759245e0d984eaa9ad5ac914c81793613b"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0040_0060",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 40,
+      "stop": 60,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0040_0060.csv",
+      "poses_sha256": "bf5d109820af3d896ad964aef65a3f6cd4c4109097a4de8afffc793c9c10413c"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0060_0080",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 60,
+      "stop": 80,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0060_0080.csv",
+      "poses_sha256": "24c77e7dbdc6ea4b8fce2ca644961639b4a6745d18d66669c2a968dfc39e242c"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0080_0100",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 80,
+      "stop": 100,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0080_0100.csv",
+      "poses_sha256": "afe283289e5e3de33c66b3a003613d7d2c4fded5ae5aa0c3628e387395c15927"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0100_0120",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 100,
+      "stop": 120,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0100_0120.csv",
+      "poses_sha256": "1068aaf7ff5fb694100cff5357bf0d43c2a5effe0dfc0b102edd003803ab7e2f"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0120_0140",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 120,
+      "stop": 140,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0120_0140.csv",
+      "poses_sha256": "50ba7fcc704239bf4d6192be8ddc88d393ea0177bcc93ac87c499ea05acc4716"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0140_0160",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 140,
+      "stop": 160,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0140_0160.csv",
+      "poses_sha256": "380eba63bfdb26499984d4c589f6e1f5af0c409230f086aca46b248f69b58d83"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0160_0180",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 160,
+      "stop": 180,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0160_0180.csv",
+      "poses_sha256": "01c76f535d339b8a3a303a0bb878ea04b32e8975f2c73e709e6970dd7d060b8e"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0180_0200",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 180,
+      "stop": 200,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0180_0200.csv",
+      "poses_sha256": "50ee4d4f9a5373f4367ac6d8ff8cbbda2912dd0c85e36be15000d08e4496d36c"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0200_0220",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 200,
+      "stop": 220,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0200_0220.csv",
+      "poses_sha256": "870770a0e90da331005fe4ebd244e50c897c11441233c95499c986e366bfb87c"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0220_0240",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 220,
+      "stop": 240,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0220_0240.csv",
+      "poses_sha256": "37f552faddc2a499c6c0937461a0637749b87aabe136c2661bf2e1fd1dc13dde"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0240_0260",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 240,
+      "stop": 260,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0240_0260.csv",
+      "poses_sha256": "b2ee2472daba3b341e4718247f5608c52d59f31696716e593bbcd9c30701c93b"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0260_0280",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 260,
+      "stop": 280,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0260_0280.csv",
+      "poses_sha256": "2a59548d5a79be509c72aa9f47c54ca0be77eb0942fb2fd14ac90863baafa3a0"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0280_0300",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 280,
+      "stop": 300,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0280_0300.csv",
+      "poses_sha256": "d24bfe994b17f34802f5be790ba20429d7559d7bb5d686bcf4bed317f7c66075"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0300_0320",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 300,
+      "stop": 320,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0300_0320.csv",
+      "poses_sha256": "4786f919b2b7eccb368fef7d6b0d30d12c914ffc8cf1b4055bd15429efabceeb"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0320_0340",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 320,
+      "stop": 340,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0320_0340.csv",
+      "poses_sha256": "cf2e3430dc9b9353bdd0ac1e400b0470a9c89206665e7d25394681c857d4beea"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0340_0360",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 340,
+      "stop": 360,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0340_0360.csv",
+      "poses_sha256": "7788bba807202a6ba6e84a03851c917fe7505a34f8782f502c600f5d8013a555"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0360_0380",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 360,
+      "stop": 380,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0360_0380.csv",
+      "poses_sha256": "a6fd9eaf3e592f5c25d484173489a692b815782ae0c475aaed0ade078fe67a98"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0380_0400",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 380,
+      "stop": 400,
+      "count": 20,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0380_0400.csv",
+      "poses_sha256": "eaa158e2ce873751021f8798cc48b32a60180a525e240ef37d4243bd2812358c"
+    },
+    {
+      "batch_id": "O03_O0_M0_FULL_P0400_0412",
+      "case_id": "O03_O0_M0_FULL",
+      "start": 400,
+      "stop": 412,
+      "count": 12,
+      "poses_file": "BATCH_POSES/O03_O0_M0_FULL_P0400_0412.csv",
+      "poses_sha256": "a7e6f5ecc5e273e739e84dbedb6ca10bbf1a3e0247e5cc89d1afc94a1cddee05"
+    }
+  ],
+  "thresholds": {
+    "relative_complex": 0.0001,
+    "delay_s": 1e-12,
+    "s_absolute": 0.0001,
+    "fp_tap_equal": true
+  },
+  "unique_route_poses": 811,
+  "pose_anchor_conditions": 811,
+  "frequency_bins": 257,
+  "expected_pathsolver_calls": 416854,
+  "runtime_image": "GitHub ubuntu-24.04 Python3.11 pinned packages",
+  "remote_root": null,
+  "bank_root": null,
+  "worker_count": 2,
+  "worker_cpus": 4,
+  "worker_memory_gib": 8,
+  "worker_cpu_shares": 128,
+  "stop_on_qa_failure": true,
+  "no_automatic_rf_retry": true,
+  "sensor_v2_generated": false,
+  "claim_boundary": "Native full-route channel/observation parity only; no estimation-performance acceptance.",
+  "user_authorization": "2026-10-26 user requested Office O01/O02/O03 Mount0 GitHub Actions",
+  "mount_deg": 0,
+  "reference_m45_plan_sha256": "a8d9a2cc14575f90c5d0523552f15a901d5aaef39e07bc9cb3d534b41c5abc35"
+}
