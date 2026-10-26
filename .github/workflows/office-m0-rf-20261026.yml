@@ -1,170 +1,37 @@
-name: Office Mount0 Full and Direct-LoS RF
+name: Office Mount0 Snowball migration receipt
 on:
   push:
     branches: [research/office-mount0-rf-20261026]
     paths:
       - .github/workflows/office-m0-rf-20261026.yml
   workflow_dispatch:
-    inputs:
-      mode:
-        description: "preflight only, or full paired RF campaign"
-        type: choice
-        options: [full, preflight]
-        default: full
 permissions:
   contents: read
 concurrency:
   group: office-m0-rf-${{ github.ref }}
-  cancel-in-progress: false
-env:
-  OPENBLAS_NUM_THREADS: '1'
-  OMP_NUM_THREADS: '4'
-  MKL_NUM_THREADS: '1'
-  PYTHONUNBUFFERED: '1'
+  cancel-in-progress: true
 jobs:
-  prepare:
+  migration-receipt:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    outputs:
-      pilot: ${{ steps.prepare.outputs.pilot }}
-      full: ${{ steps.prepare.outputs.full }}
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: research/OFFICE_M0_RF_20261026
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: python -m pip install numpy==2.2.6
-      - name: Restore sealed M45 source and prepare matched M0 poses
-        id: prepare
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py prepare --root work
-      - name: RF-free positive and negative checks
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py selftest --root work
-      - name: Restore exact FFD source banks
-        if: github.event_name == 'push' || inputs.mode == 'full'
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py banks --root work
-      - name: Preserve prepared source, both clocks, hashes and failure evidence
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: office-m0-prepared-${{ github.run_id }}
-          path: work/
-          compression-level: 0
-          retention-days: 30
-          if-no-files-found: error
-  pilot:
-    needs: prepare
-    if: github.event_name == 'push' || inputs.mode == 'full'
-    strategy:
-      fail-fast: true
-      max-parallel: 2
-      matrix: ${{ fromJSON(needs.prepare.outputs.pilot) }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: research/OFFICE_M0_RF_20261026
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: actions/download-artifact@v4
-        with:
-          name: office-m0-prepared-${{ github.run_id }}
-          path: work
-      - name: Pinned native Sionna CPU runtime
+      - name: Record active Snowball campaign
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y libllvm18
-          python research/OFFICE_M0_RF_20261026/runtime_env.py
-          python -m pip install numpy==2.2.6 scipy==1.15.3 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
-          python -m pip freeze > work/RUNTIME_PACKAGES.txt
-      - name: Full-frequency 20-pose pilot with original parity and raw replay gates
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py batch --root work --batch ${{ matrix.batch }} --pilot
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
-        with:
-          name: office-m0-batch-${{ matrix.batch }}-${{ github.run_id }}
-          path: |
-            work/BATCHES/
-            work/FAILURE_RECEIPT.json
-            work/RUNTIME_PACKAGES.txt
-            work/RUNTIME_SETUP.json
-          retention-days: 30
-          if-no-files-found: error
-  full:
-    needs: [prepare, pilot]
-    strategy:
-      fail-fast: true
-      max-parallel: 2
-      matrix: ${{ fromJSON(needs.prepare.outputs.full) }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 180
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: research/OFFICE_M0_RF_20261026
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - uses: actions/download-artifact@v4
-        with:
-          name: office-m0-prepared-${{ github.run_id }}
-          path: work
-      - name: Pinned native Sionna CPU runtime
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y libllvm18
-          python research/OFFICE_M0_RF_20261026/runtime_env.py
-          python -m pip install numpy==2.2.6 scipy==1.15.3 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
-          python -m pip freeze > work/RUNTIME_PACKAGES.txt
-      - name: Remaining paired native RF batch
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py batch --root work --batch ${{ matrix.batch }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
-        with:
-          name: office-m0-batch-${{ matrix.batch }}-${{ github.run_id }}
-          path: |
-            work/BATCHES/
-            work/FAILURE_RECEIPT.json
-            work/RUNTIME_PACKAGES.txt
-            work/RUNTIME_SETUP.json
-          retention-days: 30
-          if-no-files-found: error
-  aggregate:
-    needs: [prepare, pilot, full]
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          sparse-checkout: research/OFFICE_M0_RF_20261026
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - run: python -m pip install numpy==2.2.6
-      - uses: actions/download-artifact@v4
-        with:
-          name: office-m0-prepared-${{ github.run_id }}
-          path: work
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: office-m0-batch-*-${{ github.run_id }}
-          path: work
-          merge-multiple: true
-      - name: Verify all 42 batches, aggregate 3 routes and preserve blocked LoS
-        run: python research/OFFICE_M0_RF_20261026/pipeline.py aggregate --root work
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        if: always()
-        with:
-          name: office-m0-final-${{ github.run_id }}
-          path: |
-            work/O0*_M0.tar.gz
-            work/O0*_M0_ARCHIVE_SHA.json
-            work/CAMPAIGN_RECEIPT.json
-            work/PREPARATION_RECEIPT.json
-            work/FAILURE_RECEIPT.json
-          retention-days: 30
-          if-no-files-found: error
-
+          cat >> "$GITHUB_STEP_SUMMARY" <<'RECEIPT'
+          ## Office O01/O02/O03 Mount0: computing on Snowball
+          User requested Snowball execution with an 8-hour target.
+          The remote controller is running; input selftest passed and native RF output has started.
+          Root: /home/KMS/OFFICE_M0_RF_20261026_01a17631
+          Controller PID at launch: 3734979
+          Source revision: b38a65748ae75c6678d87a6a963e8102ba392a78
+          Runtime image: sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f
+          Input archive SHA256: 6db5a88148b4fe0050816fb5956ced4c3acbc02cb309c9b32b170a706c06fe6b
+          Scope: 811 matched RF poses, 257 frequencies, Full/Direct-LoS pairs, 42 batches.
+          Gate: all 3 full-frequency pilots must pass before remaining batches.
+          Resources: 8 concurrent full batches, 4 CPU and 8 GiB per batch.
+          Status: SNOWBALL_STATUS.json. Logs: LOGS/. Raw evidence: BATCHES/.
+          On success, aggregation verifies all batches and creates O01/O02/O03_M0.tar.gz plus hashes.
+          Original Actions workflow remains available at the source revision above.
+          This receipt cancels the superseded Actions campaign through its existing concurrency group.
+          RF completion and scientific acceptance are not claimed by this receipt.
+          RECEIPT
