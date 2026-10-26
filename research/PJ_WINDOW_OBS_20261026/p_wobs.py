@@ -153,6 +153,37 @@ class Gram:
         bot = np.concatenate([np.transpose(Ixb, (0, 2, 1)), Ibb], 2)
         return np.concatenate([top, bot], 1)
 
+    def info_windows(self, d, starts, N, aug=None):
+        """Plan formula accumulated directly per window (no cumulative-sum differencing):
+        Phi starts at I and is multiplied by F_i step by step. Returns (I_start, I_end) for the window
+        start state and the window end state (I_end = Phi_ks^-T I_start Phi_ks^-1)."""
+        F, H, R, acc = d['F'], d['H'], d['R'], d['acc']
+        J = len(starts)
+        E = None if aug is None else self.E[aug]
+        nb = 0 if E is None else E.shape[1]
+        Phi = np.repeat(np.eye(4)[None], J, 0)
+        Ixx = np.zeros((J, 4, 4)); Ixb = np.zeros((J, 4, nb)); Ibb = np.zeros((J, nb, nb))
+        for m in range(N + 1):
+            i = starts + m
+            if m > 0:
+                Phi = np.einsum('kij,kjl->kil', F[i], Phi)
+            HP = np.einsum('kij,kjl->kil', H[i], Phi)
+            Ri = self.Rinv[i]
+            Ixx += np.einsum('kji,kjl,klm->kim', HP, Ri, HP)
+            if nb:
+                Ixb += np.einsum('kji,kjl,lm->kim', HP, Ri, E)
+                Ibb += np.einsum('ji,kjl,lm->kim', E, Ri, E)
+        Pinv = np.linalg.inv(Phi)
+        def full(Txx, Txb):
+            if not nb:
+                return Txx
+            top = np.concatenate([Txx, Txb], 2)
+            bot = np.concatenate([np.transpose(Txb, (0, 2, 1)), Ibb], 2)
+            return np.concatenate([top, bot], 1)
+        Is = full(Ixx, Ixb)
+        Ie = full(np.einsum('kji,kjl,klm->kim', Pinv, Ixx, Pinv), np.einsum('kji,kjl->kil', Pinv, Ixb))
+        return Is, Ie
+
     def info_direct(self, d, s, k, ref):
         """Literal plan formula (loop) for QA."""
         F, H, R, acc = d['F'], d['H'], d['R'], d['acc']
@@ -332,16 +363,19 @@ def process_stem(f, stem, case, bias, route, pk, se, frames, cont, cfac, qa, rng
             for L in LENS:
                 cfac.append({'case': case, 'bias': bias, 'channel': chn, 'window_s': L, 'window_info_factor': window_factor(r, L / dt)})
         # --- QA: cumsum Gramian equals literal formula
-        errs = []
+        errs, errs_c = [], []
         for _ in range(15):
             Ls = int(rng.choice([5, 25, 75, 150]))
             k = int(rng.integers(Ls, n))
             s = k - Ls
             Jd = G.info_direct(d, s, k, s)
+            Jb = G.info_windows(d, np.array([s]), Ls)[0][0]
             Jc = G.info(np.array([s]), np.array([k]), np.array([s]))[0]
-            errs.append(float(np.max(np.abs(Jd - Jc)) / max(np.max(np.abs(Jd)), 1e-30)))
-        q['gram_cumsum_vs_loop_relerr'] = max(errs)
-        assert q['gram_cumsum_vs_loop_relerr'] < 1e-8
+            errs.append(float(np.max(np.abs(Jd - Jb)) / max(np.max(np.abs(Jd)), 1e-30)))
+            errs_c.append(float(np.max(np.abs(Jd - Jc)) / max(np.max(np.abs(Jd)), 1e-30)))
+        q['gram_batched_vs_loop_relerr'] = max(errs)
+        q['gram_cumsum_vs_loop_relerr'] = max(errs_c)
+        assert q['gram_batched_vs_loop_relerr'] < 1e-10
         # --- windows
         every = int(round(END_EVERY_S / dt))
         ends_all = np.arange(0, n, every)
@@ -366,8 +400,7 @@ def process_stem(f, stem, case, bias, route, pk, se, frames, cont, cfac, qa, rng
             # deterministic, plan formula: rank / eigen at the window start, sigma at the window end
             for vn, aug in (('D4', None), ('D5s', 'bs'), ('D6', 'brs')):
                 names = NAMES4 + ([] if aug is None else (['bs'] if aug == 'bs' else ['br', 'bs']))
-                Js = G.info(starts, ends, starts, aug)
-                Je = G.info(starts, ends, ends, aug)
+                Js, Je = G.info_windows(d, starts, N, aug)
                 ms = det_metrics(Js, names)
                 me = det_metrics(Je, names)
                 res[vn] = {'rank': ms['rank'], 'eig_min_scaled': ms['eig_min_scaled'], 'cond_scaled': ms['cond_scaled'],
