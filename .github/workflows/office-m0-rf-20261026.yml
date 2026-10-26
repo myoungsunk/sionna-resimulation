@@ -21,10 +21,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           for run_id in 40327200137 40330542093; do
-            curl --silent --show-error --fail-with-body --request POST \
+            http_code=$(curl --silent --show-error --output /tmp/cancel-response --write-out "%{http_code}" --request POST \
               --header "Authorization: Bearer $GH_TOKEN" \
               --header "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/runs/$run_id/cancel"
+              "https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/runs/$run_id/cancel")
+            case "$http_code" in
+              202|409) echo "Superseded run $run_id stopped or already complete" ;;
+              *) cat /tmp/cancel-response; exit 1 ;;
+            esac
           done
       - name: Record active Snowball campaign
         run: |
