@@ -1,0 +1,145 @@
+from pathlib import Path
+import json,hashlib,datetime
+import pandas as pd
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+R=Path(__file__).resolve().parent
+d=pd.read_csv(R/'LINEAR_GATE.csv');g=d[d.window=='t_ge_30'].copy()
+result=json.loads((R/'EXECUTION_RESULT.json').read_text());assert result['status']=='STOP_LINEAR_GATE'
+finish=json.loads((R/'MANAGED_FINISH.json').read_text(encoding='utf-8-sig'))['processes'][0]
+assert finish['exit_code']==0 and all(finish[k]['state']=='absent' for k in ['actual_process','actual_supervisor','job'])
+checks=json.loads((R/'CHECKS.json').read_text())
+closure=[x['max_abs_difference'] for x in checks if 'nonlinear_closure' in x['name']]
+assert len(d)==56 and len(closure)==28 and len(g)==28
+figs=R/'figures';figs.mkdir(exist_ok=True)
+plt.rcParams.update({'font.size':11,'axes.spines.top':False,'axes.spines.right':False,'savefig.dpi':170})
+fig,axs=plt.subplots(1,2,figsize=(13,5),layout='constrained')
+for ax,window,title in zip(axs,['all','t_ge_30'],['Full timeline','Score window: t >= 30 s']):
+    dd=d[d.window==window]
+    for arm,color,marker in [('BB','#27689b','o'),('MM','#c66c36','^')]:
+        z=dd[dd.arm==arm];ax.scatter(z.relative_rmse_difference*100,z.correlation,label=arm,color=color,marker=marker,s=45,alpha=.8)
+    ax.axvline(5,color='#374151',ls='--');ax.axhline(.9,color='#374151',ls='--')
+    ax.set(xlabel='Absolute relative RMSE difference (%)',ylabel='Heading-series correlation',title=title)
+    ax.grid(alpha=.2);ax.legend();ax.set_xlim(left=0)
+fig.suptitle('X2 fidelity gate: correlation >= 0.90 AND RMSE difference <= 5%')
+fig.savefig(figs/'01_linear_gate.png');plt.close(fig)
+# Show the largest relative RMSE mismatch per arm in the scoring interval.
+chosen=[];fig,axs=plt.subplots(2,1,figsize=(12,7),layout='constrained')
+for ax,arm in zip(axs,['BB','MM']):
+    row=g[g.arm==arm].sort_values('relative_rmse_difference',ascending=False).iloc[0];chosen.append(row.to_dict())
+    z=np.load(R/'linear'/f'{row.case}_{row.bias}_{arm}.npz',allow_pickle=False)
+    ax.plot(z['t_s'],np.degrees(z['actual_error'][:,2]),color='#374151',label='Actual nonlinear error',lw=1.5)
+    ax.plot(z['t_s'],np.degrees(z['linear_error'][:,2]),color='#27689b',ls='--',label='Frozen linear replay',lw=1.3)
+    ax.axvline(30,color='#8b9198',ls=':');ax.set(xlabel='Time (s)',ylabel='Heading error (deg)',title=f'{row.case} / {row.bias} / {arm}: RMSE difference {row.relative_rmse_difference*100:.1f}%')
+    ax.grid(alpha=.2);ax.legend()
+fig.suptitle('Largest scoring-window relative RMSE discrepancy in each arm')
+fig.savefig(figs/'02_failure_timelines.png');plt.close(fig)
+def table(head,rows):return '\n'.join(['| '+' | '.join(head)+' |','| '+' | '.join(['---']*len(head))+' |']+['| '+' | '.join(map(str,row))+' |' for row in rows])
+tab=table(['Case','Bias','Arm','상관','실제 RMSE (deg)','선형 RMSE (deg)','RMSE 차이','판정'],[[x.case,x.bias,x.arm,f'{x.correlation:.4f}',f'{x.actual_rmse_deg:.4f}',f'{x.linear_rmse_deg:.4f}',f'{100*x.relative_rmse_difference:.2f}%', 'PASS' if x.gate_pass else 'FAIL'] for x in g.itertuples()])
+counts=table(['구간','BASE (BB)','MU_R_EXDS (MM)'],[[label]+[f"{int(d[(d.window==window)&(d.arm==arm)].gate_pass.sum())}/14" for arm in ['BB','MM']] for window,label in [('all','전체 시간'),('t_ge_30','t≥30초')]])
+text=fr'''---
+title: Δs 보정 X2 — 선형 기여 분해의 선행 검증
+date: 2026-10-26
+status: stopped-at-linear-fidelity-gate
+---
+
+# X2 실행 결과: 선형 근사 기준 미충족
+
+> **판정: STOP_LINEAR_GATE**
+> 14조건의 BASE와 MU_R_EXDS에 대해 선형 replay를 실행했다. 평가 구간에서 각각 7/14조건만 사전 기준을 통과했다. 따라서 패킷별 기여와 Range–편파 교차항을 이용한 ‘상쇄 붕괴’ 판정은 수행하지 않았다.
+> 이 결과는 상쇄 붕괴 가설의 기각이 아니라, **현재 선형 근사가 그 가설을 판정할 만큼 충분히 재현되지 않았다는 뜻**이다.
+
+## 1. X0a 통과 후에도 검사가 필요했던 이유
+
+X0a는 원본 비선형 필터와 독립 구현의 수치 일치를 검증했다. X2는 다른 질문이다. 실제 비선형 측정 함수를 선형 오차 전파식으로 근사했을 때도 실제 Heading 오차를 유지하는지 확인해야 한다.
+
+X1의 고정 입력과 14조건을 그대로 사용했다. BB는 BASE, MM은 MU_R_EXDS이며, 각 Arm 자신의 비선형 궤적에서 얻은 K/H/F와 mask를 고정했다. BASE의 gain을 모든 Arm에 공통 적용한 실험이나 gain Shapley 분해는 아니다. 먼저 각 Arm 자신의 gain을 유지하는 근사부터 검증했다.
+
+## 2. 선형 replay의 정의
+
+상태는 위치 x/y, Heading ψ, gyro bias b_g의 4차원이다. 오차의 부호는 추정값−정답이며, 각도 차이는 원본과 같은 국소 각도 좌표에서 계산했다.
+
+$$
+u_k=z_k-h(x_k^{{true}})-widehatmu_k,qquad
+w_k=f(x_{{k-1}}^{{true}},a_k)-x_k^{{true}}
+$$
+
+u는 정답 상태에서 본 보정 후 측정 오차다. 필터 innovation과는 다르다. w는 실제 주행 입력을 정답 상태에 적용했을 때 생기는 전파 오차로, 입력 잡음과 운동 모델의 영향을 포함한다. 정답은 이 오프라인 진단에만 사용했다.
+
+$$
+A_k=I-K_kH_k,qquad T_k=A_kF_k
+$$
+
+$$
+widetilde x_k^{{lin}}=T_kwidetilde x_{{k-1}}^{{lin}}+A_kw_k+K_ku_k
+$$
+
+K는 거절 패킷에서 0으로 설정했다. F는 원본 transition 함수가 해당 Arm의 직전 posterior에서 계산한 Jacobian이고, H와 K는 X1에 저장된 값이다. 최초 오차도 실제 초기 prior와 정답의 차이를 그대로 사용했다. 초기 상태와 주행 입력의 기여를 빠뜨려 RF에 잘못 배분하지 않도록 별도 성분으로 유지했다.
+
+### 구현 검사와 근사 정확도 검사의 구분
+
+실제 궤적과 선형식의 비선형 잔여항도 계산했다. 잔여항을 포함한 식이 원래 상태 오차를 복원하는지 검사한 결과, 28개 조건-Arm 모두 통과했고 최대 절대 차이는 {max(closure):.3e}였다. 이 값은 상태 성분의 각 단위(m, rad, rad/s)에서 얻은 수치 차이이며 물리적인 통합 오차 지표가 아니다.
+
+원본 전파와 저장된 prior 일치 등을 포함한 구현 검사는 {len(checks):,}개 통과했다. **잔여항을 넣어 실제 오차를 복원하는 것은 대수적 일관성 검사이며 선형 근사의 성공이 아니다.** 아래 정확도 판정에는 잔여항을 넣지 않았다.
+
+## 3. 사전 기준과 결과
+
+계획서의 기준은 Heading 시계열 상관 ≥0.9 및 실제 대비 Heading RMSE 차이 ≤5%다. 실행 전에 전체 시간축과 t≥30초 구간을 모두 확인하도록 PROTOCOL.md에 고정했다. 어느 조건이든 실패하면 전체 비교의 패킷 기여 해석을 중단한다.
+
+{counts}
+
+전체 시간축 조건을 추가했기 때문에만 중단한 것은 아니다. 기존 점수 구간인 t≥30초만 보아도 28개 조건-Arm 중 14개가 실패한다.
+
+![선형 근사 통과 기준과 실제 값](figures/01_linear_gate.png)
+
+상관이 높아도 RMSE가 일치하지 않는 경우가 많다. 예를 들어 R5_aA_m0/L2의 MM은 상관이 약 0.987이지만 Heading RMSE를 약 19.3% 작게 추정했다. R2_aA_m45/L2의 BB에서는 약 33.1%의 차이가 생겼다. R5_aB_m0/L2의 MM은 상관 0.8979로 상관 기준도 충족하지 못했다.
+
+![Arm별 가장 큰 RMSE 차이 조건의 시간 추이](figures/02_failure_timelines.png)
+
+두 그림은 각 Arm에서 평가 구간의 상대 RMSE 차이가 가장 큰 조건을 골랐다. 전체 환경의 대표성이 아니라 근사 실패의 크기를 보여주는 진단 예시다. 회색 점선은 평가 시작 시각 30초다.
+
+## 4. 조건별 결과
+
+RMSE 차이는 |RMSE_linear/RMSE_actual−1|이다. 패킷 개수나 독립 환경 수로 가중하지 않은 조건별 진단이다.
+
+{tab}
+
+## 5. X2에서 확정한 것과 남은 것
+
+확정한 것은 현재의 궤적별 고정 K/H/F 선형 오차 모델이 모든 조건에서 원래 Heading 오차를 재현하지 못한다는 점이다. 측정 함수 또는 운동 전파의 비선형 잔여항을 무시한 영향이 실제로 남아 있다. 어느 셀 경계·FP 전환·시간대가 이를 지배하는지는 이번 검사만으로 확정하지 않았다.
+
+따라서 다음 값은 과학적 결과로 산출하거나 해석하지 않았다.
+
+- 패킷 j가 후속 시각 t의 Heading에 미친 c[t,j] 기여량.
+- 신규 수용·기존 수용 패킷의 기여 부호 분포.
+- BASE와 MU_R의 Range–편파 교차항 부호 변화 및 ‘상쇄 붕괴’ 판정.
+- d0 gate가 상쇄 패킷을 제거한다는 C6 판정. 이번 입력에는 B_GATE5 궤적이 없으며, BASE/MU_R 결과만으로 이를 확정할 수도 없다.
+
+선형 replay 계산 과정의 초기/주행·Range·편파 합계와 비선형 잔여항은 원인 조사 재료로 보존했다. 이 성분들을 검증된 실제 기여량으로 사용하면 안 된다. 통과 조건만 사후 선택해 전체 가설을 지지하는 결과로 제시하지 않았다.
+
+다음 단계의 타당한 후보는 X1과 같은 **비선형 replay에서 특정 패킷 집합의 채널을 직접 개입하는 비교**다. 해당 비교도 상호작용 때문에 단일 기여율을 주지는 않지만 선형 근사 실패를 우회해 가설을 검증할 수 있다. 이번 요청에서는 X2 선행 검사와 결과 기록에서 종료했으며 추가 실험은 실행하지 않았다.
+
+## 6. 산출물과 실행 증거
+
+- 입력 및 소스 SHA256: INPUT_LOCK.json. X1 산출물 manifest와 원본 입력 해시를 읽고 실행 전·후 확인했다.
+- 사전 정의: PROTOCOL.md. 실행 스크립트와 protocol의 해시는 INPUT_LOCK.json에 저장했다.
+- 조건·Arm·구간별 gate: LINEAR_GATE.csv, LINEAR_GATE.json.
+- 실제/선형 오차·Jacobian 전파 행렬·입력 오차·잔여항: linear/*.npz (28개).
+- 구현 검사: CHECKS.json. 최종 상태: EXECUTION_RESULT.json.
+- 관리 프로세스: `{finish['id']}`, run `{finish['creator']}`.
+- 실행 시각 UTC: `{finish['started']}` ~ `{finish['ended']}`. exit code 0, 정상 종료. 본체·감독 프로세스·Job 모두 부재 확인.
+- 원본 X0a/X1 결과와 입력은 변경하지 않았다. 결과는 이 X2 전용 폴더에만 저장했다.
+
+코드의 정상 종료와 X2 정확도 gate 실패는 별개다. `STOP_LINEAR_GATE`를 실행 성공이나 가설 PASS로 바꾸어 기록하지 않았다.
+'''
+(R/'RESULTS_KO.md').write_text(text,encoding='utf8')
+assert not any(ord(c)<32 and c not in '\n\r\t' for c in text)
+assert text.count('$$')==6
+manifest=[]
+for f in sorted(R.rglob('*')):
+    if f.is_file() and f.name!='OUTPUT_SHA256.json':
+        manifest.append(dict(path=f.relative_to(R).as_posix(),bytes=f.stat().st_size,sha256=hashlib.sha256(f.read_bytes()).hexdigest()))
+(R/'OUTPUT_SHA256.json').write_text(json.dumps(dict(utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),files=manifest),indent=2),encoding='utf8')
+print(json.dumps(dict(status=result['status'],report=str(R/'RESULTS_KO.md'),max_closure_difference=max(closure),scoring_pass=int(g.gate_pass.sum()),checks=len(checks)),ensure_ascii=False))
