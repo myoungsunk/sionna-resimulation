@@ -14,7 +14,7 @@ Per window [s, k] (end k, length L seconds) and variant:
 F, H (at the BASE prior state), R (POWER), accept mask: the realized BASE filter.
 """
 from __future__ import annotations
-import argparse, json, math, sys
+import argparse, json, math, sys, traceback
 from pathlib import Path
 import numpy as np
 import pandas as pd
@@ -274,7 +274,19 @@ def main():
         stem = f.name.replace('_EB3_ARRAYS.npz', '')
         case, bias = stem.split('_full_')
         route = case.split('_')[0]
+        try:
+            process_stem(f, stem, case, bias, route, pk, se, frames, cont, cfac, qa, rng)
+        except Exception:
+            tb = traceback.format_exc()
+            log('WOBS_STEM_FAIL ' + stem + '\n' + tb)
+            qa[stem] = {'error': tb}
+    finish(out, frames, cont, cfac, qa)
+
+
+def process_stem(f, stem, case, bias, route, pk, se, frames, cont, cfac, qa, rng):
+    if True:
         d = load_stem(f)
+        log('WOBS_KEYS ' + stem + ' ' + json.dumps({k: list(v.shape) for k, v in d.items()}))
         t = d['t']
         n = len(t)
         dt = float(np.median(np.diff(t)))
@@ -386,8 +398,13 @@ def main():
             log(f'WOBS_LEN {stem} L={L} windows={len(ends)}')
         qa[stem] = q
         log('WOBS_QA ' + json.dumps({stem: q}))
+
+
+def finish(out, frames, cont, cfac, qa):
+    (out / 'WOBS_QA.json').write_text(json.dumps(qa, indent=2))
+    assert frames, 'NO_WINDOWS'
     W = pd.concat(frames, ignore_index=True)
-    W.to_csv(out / 'WOBS_WINDOWS.csv.gz', index=False)
+    W.to_csv(out / 'WOBS_WINDOWS.csv.gz', index=False, float_format='%.5g')
     # summaries
     def q10(x): return float(np.nanpercentile(x, 10))
     def q90(x): return float(np.nanpercentile(x, 90))
@@ -421,6 +438,10 @@ def main():
     pd.DataFrame(cont).to_csv(out / 'WOBS_CONTAM.csv', index=False)
     pd.DataFrame(cfac).to_csv(out / 'WOBS_CORR_FACTOR.csv', index=False)
     (out / 'WOBS_QA.json').write_text(json.dumps(qa, indent=2))
+    nfail = sum('error' in v for v in qa.values())
+    log(f'WOBS_DONE stems={len(qa)} failed={nfail}')
+    if nfail:
+        sys.exit(2)
     log('WOBS_ALL_PASS')
 
 

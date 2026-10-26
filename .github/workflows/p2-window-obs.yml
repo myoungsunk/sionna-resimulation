@@ -34,12 +34,12 @@ jobs:
           find /tmp/eb3 -name '*_EB3_ARRAYS.npz' | sort
       - name: Window observability
         run: |
-          set -uo pipefail
+          set +e
           D=research/PJ_WINDOW_OBS_20261026/results;mkdir -p "$D"
           H=research/PJ_DS_GATED_20261021/results_hpath
           python -u research/PJ_WINDOW_OBS_20261026/p_wobs.py --input /tmp/eb3 --packets "$H/HP_PACKETS.csv.gz" --series "$H/HP_SERIES.csv.gz" --out "$D" > "$D/WOBS_LOG.txt" 2>&1; rc=$?
-          grep -v WOBS_LEN "$D/WOBS_LOG.txt" | tail -n 40
-          if [ $rc -ne 0 ]; then tail -n 12 "$D/WOBS_LOG.txt" | while IFS= read -r l; do echo "::error::$l"; done; exit $rc; fi
+          echo "$rc" > "$D/WOBS_RC.txt"
+          grep -v WOBS_LEN "$D/WOBS_LOG.txt" | tail -n 40 || true
       - name: Commit
         run: |
           set -euo pipefail
@@ -49,3 +49,4 @@ jobs:
           git commit -m "Window observability results from run $GITHUB_RUN_ID (automated, no model change)" || echo no-changes
           git pull --rebase origin "$GITHUB_REF_NAME"
           git push origin HEAD:"$GITHUB_REF_NAME"
+          rc=$(cat research/PJ_WINDOW_OBS_20261026/results/WOBS_RC.txt); exit "$rc"
