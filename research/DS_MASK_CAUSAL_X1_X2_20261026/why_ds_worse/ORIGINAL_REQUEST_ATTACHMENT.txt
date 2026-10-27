@@ -1,0 +1,180 @@
+# 실험 계획: Δs 보정은 왜 BASE보다 나빠지는가
+
+- 기준 브랜치: `research/ds-x1-x2-results-20261026`
+- 기준 commit: `2ee731336fc2b37ffcd67f96a07bdaf3dccc2898`
+- 산출 폴더(신규): `research/DS_MASK_CAUSAL_X1_X2_20261026/why_ds_worse/`
+- 기존 산출물, Q, 학습 결과, 편파 평균/R, mask는 수정하지 않는다.
+
+## 0. 배경과 질문
+
+**이미 확인된 사실** (eaf198a C_SCORES, B0):
+
+| case | BASE Heading | BASE + CUT_AZ | MB Heading | MB + CUT_AZ |
+|---|---|---|---|---|
+| R2_aA_m45 | 0.985 | 1.009 | 1.250 | 1.114 |
+| R4_aA | 0.712 | 0.655 | 0.801 | 0.659 |
+| R4_aB | 1.442 | 1.330 | 1.574 | 1.344 |
+
+- BASE에서는 방위각을 거치는 경로(range → 접선 → 방위각 → Heading)가 Heading을 크게 해치지 않는다.
+- MB에서는 같은 경로가 해롭다.
+- m45에서 기하 경로를 차단(CUT_ALL)하면 BASE의 XY는 오히려 나빠진다(0.082 → 0.099). BASE에서는 이 경로가 위치를 돕는다는 뜻이다.
+
+**질문:** 같은 기하, 같은 필터에서 range 평균만 μ_B → μ_M으로 바꿨는데, 왜 이 경로가 해로운 쪽으로 뒤집히는가?
+
+**보정 오차의 관계** (확인 필요, 0.3-④): 보정 range가 z − μ라면 다음이 성립한다.
+
+```
+e_r^MB = e_r^BB − c_k,   c_k = μ_M,k − μ_B,k,   e_r = (z − μ) − r_GT
+```
+
+따라서 MB와 BB의 차이는 packet별 c_k 하나로 표현된다. E1의 α 선형 용량-반응(R² 0.94–1.00)도 이와 맞는다.
+
+## 1. 가설
+
+| ID | 가설 | 예측 (지지될 때) |
+|---|---|---|
+| W1 근거리 오보정 | c는 전체 평균으로는 range를 개선하지만, d < 1.5 m에서는 \|e_r\|를 키우거나 부호가 일정한 잔차를 남긴다 | D1에서 MB의 near 구간 \|mean e_r\| > BB. T1에서 near-only가 손상을 재현하고 far-only는 재현하지 않음 |
+| W2 시간 일관성 | BB의 근거리 오차는 통과 안에서 부호가 바뀌는 고주파(FP tap 점프)라 상쇄된다. c는 느리고 일관돼 접선 오프셋으로 적분된다 | D3에서 통과 창 gain 가중 forcing \|F\|가 MB > BB (RMS가 비슷해도). T3에서 순서 섞기·평균 제거가 gap을 줄임 |
+| W3 상쇄 붕괴 | BASE의 근거리 range 오차가 다른 모델 오차(편파 평균, Q/R 학습)와 상쇄되고 있었고, 더 정확한 range가 이 상쇄를 깬다 | T2에서 근거리 range를 GT로 바꾸면 Heading이 BASE보다 나빠짐 |
+| W4 기하 상관 | c가 ψ, 지그재그 위상, 측면 위치 y와 상관돼 매 통과 같은 방향으로 옆을 민다 | D4 회귀가 유의함. T3 부호 반전이 접선 오프셋과 Heading bias 부호를 뒤집음 |
+| W5 gain 차이 | MB가 근거리에서 R_rr을 바꿔 gain이 커진다 | D0에서 R_rr 차이가 있을 때만 검사. 차이가 없으면 W5 기각 |
+
+여러 가설이 동시에 맞을 수 있다(W1과 W2가 공존하는 등). 판정은 가설별로 독립적으로 한다.
+
+## 2. 단계 0: 기술 통계 (replay 없음, 기존 E1 trace 사용)
+
+입력은 E1의 α = 0 (BB)과 α = 1 (MB), mask A_B, 14조건 전체다. 주 판정은 3 case 그룹(R2_aA_m45, R4_aA, R4_aB) × B0/L2로 한다.
+
+### D0 보정 구조 확인
+- `μ_B`, `μ_M`, `R_rr^B`, `R_rr^M`를 packet별로 출력한다.
+- e_r^MB = e_r^BB − c_k를 1e-10 m 이내로 확인한다. 실패하면 0.3-④에 따라 중단하고 보고한다.
+- R_rr이 다르면 W5 검사(T4)를 활성화한다.
+
+### D1 거리별 range 오차
+- 거리 bin(GT 수평거리 d): [0, 0.5), [0.5, 1), [1, 1.5), [1.5, 2), [2, 3), [3, 4), [4, 6), [6, 8), [8, ∞)
+- bin × arm마다 다음을 계산한다: n, mean e_r, RMS e_r, mean c, RMS c, 증폭 가중 측면 오차 `e_lat = e_r · r_GT / d`의 mean과 RMS.
+- 같은 값을 **통과별**(GT 통과 episode마다, R5는 전부)로도 계산한다. 부호 일관성 = 통과들의 mean e_r 부호가 같은 비율.
+- 출력: `D1_RANGE_ERR_BY_BIN.csv`, `D1_RANGE_ERR_BY_PASS.csv`
+
+### D2 절대 접선 오차 (차이가 아닌 각 arm 자체)
+- GT 접선축(GT 앵커→로봇 방향의 수직)으로 투영한 posterior 위치 오차 `e_t^arm`
+- 각 통과의 pre/post 창 평균은 기존 0.3 정의를 따른다: pre 30 s, 최소 5 s; post 30 s, 최소 10 s, 다음 통과 전까지.
+- BB와 MB **각각**에 대해 통과 전후 변화량 `Δe_t = post − pre`, 그 부호, 통과 사이의 부호 일관성을 계산한다.
+- 출력: `D2_ABS_TANGENT_BY_PASS.csv`
+- 예측: BB의 \|Δe_t\|는 작거나 통과마다 부호가 바뀌고, MB의 \|Δe_t\|는 크고 부호가 일정하다.
+
+### D3 통과 창 forcing 분해
+통과 확장 창 [start − 10 s, end + 10 s] 동안 range 갱신이 만든 XY 이동을 GT 축으로 나누어 적분한다.
+
+```
+F_t^arm = Σ_k t̂_GT,kᵀ (K_r,k ν_r,k)_xy        F_rad^arm = Σ_k r̂_GT,kᵀ (K_r,k ν_r,k)_xy
+```
+
+MB − BB 차이를 다음 두 항으로 분해한다. 합은 1e-10 이내로 닫혀야 한다.
+- 보정항 `−Σ K_r,k^MB c_k`: c 자체의 효과
+- gain 차이항 `Σ (K_r,k^MB − K_r,k^BB) ν_r,k^BB`: 궤적이 달라져 gain이 달라진 효과
+
+추가로 forcing의 **자기상관 시간**(통과 창 안의 e_r 자기상관이 0.5로 떨어지는 lag)을 BB와 MB에 대해 각각 계산한다.
+
+출력: `D3_FORCING.csv`
+
+### D4 c의 상관 구조
+- 근거리(d < 1.5 m)와 원거리 각각에서 c_k를 다음 변수에 회귀한다: ψ_GT의 sin·cos, (ψ_GT − β_GT)의 sin·cos, 측면 y_GT, d_GT, 지그재그 방향 부호.
+- 출력: R², 계수, 통과 단위 블록 bootstrap 95% CI (2000회, seed 고정)
+- 출력 파일: `D4_C_REGRESSION.csv`
+
+**단계 0 산출 판정** (기술값이며 인과 판정은 아님):
+- W1 후보: 주 case 3개 중 2개 이상에서 near bin의 \|mean e_r^MB\| > \|mean e_r^BB\|
+- W2 후보: \|F_t^MB\| > 2\|F_t^BB\|, MB 자기상관 시간 > BB의 2배
+- W4 후보: near 회귀 R² ≥ 0.3이고 CI가 0을 포함하지 않음
+
+## 3. 단계 1: 개입 replay
+
+공통 조건:
+- mask는 A_B로 고정한다.
+- 모든 arm은 OFF가 E1을 1e-10 이내로 재현해야 실행한다.
+- 거리 switch는 **GT 수평거리 d_GT**(oracle 진단)로 한다.
+- 개입 대상은 c_k(평균 차이)뿐이다. R, Q, 편파는 바꾸지 않는다.
+
+### T1 거리 분할 보정 (W1)
+c를 거리 구간에서만 적용한다.
+
+| arm | 적용 |
+|---|---|
+| NEAR_ONLY | d_GT < D에서만 μ_M, 나머지는 μ_B |
+| FAR_ONLY | d_GT ≥ D에서만 μ_M |
+
+D ∈ {1.0, 1.5, 2.5} m.
+
+- 예측(W1 지지): NEAR_ONLY가 MB의 Heading gap을 ≥ 70% 재현하고, FAR_ONLY는 ≤ 30% 재현하면서 거리 RMSE 개선을 ≥ 70% 유지한다.
+- FAR_ONLY가 이 조건을 만족하면 실사용 후보가 된다. 이 경우 추정 거리 d̂ switch 버전을 별도로 재실행한다(T1-est).
+
+### T2 근거리 oracle range (W3)
+통과 확장 창 안에서만 range를 다음으로 바꾼다.
+
+| arm | 창 안 range |
+|---|---|
+| ORACLE0 | r_GT (오차 0) |
+| ORACLE_BB | r_GT + e_r^BB |
+| ORACLE_MB | r_GT + e_r^MB |
+
+- ORACLE_BB와 ORACLE_MB는 OFF와 같은 값이어야 한다(검산용).
+- 예측(W3 지지): ORACLE0의 Heading RMSE가 BB보다 10% 이상 나쁨. 근거리 range가 정확해질수록 나빠진다는 뜻이다.
+- 예측(W3 기각, W1·W2 쪽): ORACLE0 ≤ BB.
+
+### T3 c의 구조 교란 (W2, W4)
+통과 확장 창 안의 c만 아래처럼 바꾸고, 창 밖은 μ_M을 그대로 쓴다.
+
+| arm | 창 안 c |
+|---|---|
+| C_MEAN0 | c − mean_pass(c) (통과 평균 제거) |
+| C_MEANONLY | mean_pass(c) (상수만) |
+| C_PERM | 통과 안에서 c 순서를 무작위로 섞음 (20 seeds, 분포 보고) |
+| C_FLIP | −c |
+
+- W2 지지: C_PERM이 gap을 ≥ 50% 줄인다. 시간 순서가 중요하다는 뜻이다.
+- W4 지지: C_FLIP에서 통과 후 Δe_t 부호와 Heading bias 이동 부호가 뒤집힌다(주 case 2/3 이상).
+- C_MEAN0 / C_MEANONLY: 통과 단위 상수와 변동 중 어느 쪽이 손상을 만드는지 본다. 기존 전역 성분 분리(76c4695)와 비교한다.
+
+### T4 gain 교환 (W5, D0에서 R_rr 차이가 있을 때만)
+- MB_RB: μ_M + R_rr^B
+- BB_RM: μ_B + R_rr^M
+
+## 4. 평가 지표와 판정
+
+- 주 지표:
+  - t ≥ 30 s Heading RMSE, signed bias
+  - XY RMSE
+  - 앵커 거리 RMSE
+  - 첫 통과 post 창의 Δe_t (GT 접선)
+- gap 감소: 기존 정의 f_magnitude = 1 − \|G_arm\| / \|G_MB\|. 여기서 G = arm − BB(α = 0)이다. 분모가 0.01° 이하이거나 0.1 cm 이하이면 NA.
+- B0/L2는 쌍으로 보고하고, 독립 표본으로 세지 않는다. 주 case 3 그룹 중 2개 이상이면 "지지"로 본다. 14조건 전체는 기술값으로만 보고한다.
+- R2_aA_m0, R2_aB, R5_aA, R5_aB는 기술값으로만 보고한다. 특히 R2_aB(Δs로 악화되지만 체인으로는 설명되지 않음)는 D1–D3 결과를 따로 표시한다.
+
+## 5. 산출물
+
+- `PROTOCOL.md`: 이 문서 + 실행 전 확정 수치
+- `INPUT_LOCK.json`, `OUTPUT_SHA256.json`, `CHECKS.json` (OFF 재현, D3 분해 닫힘, e_r 관계)
+- CSV: `D0_STRUCTURE.csv`, `D1_*`, `D2_*`, `D3_*`, `D4_*`, `T1_SCORES.csv`, `T2_SCORES.csv`, `T3_SCORES.csv`(C_PERM은 seed별 + 요약), `T4_SCORES.csv`(해당 시)
+- `HYPOTHESIS_DECISIONS.csv`: 가설 × case × bias × 판정(지지/기각/NA) + 사용 수치
+- 그림:
+  - F1: D1 거리 bin별 mean e_r (BB vs MB), e_lat
+  - F2: D2 통과별 절대 Δe_t, BB vs MB, R5는 통과 3회 모두
+  - F3: 고정 사례(R2_aA_m45 B0)의 통과 창 시간축. c_k, e_r^BB, e_r^MB, 누적 F_t
+  - F4: T1–T3 arm별 Heading RMSE와 XY RMSE (BB와 MB 기준선 표시)
+- `RESULTS_KO.md`: 가설별 결론 한 줄 + 표. 기술값과 인과 판정을 구분해 쓴다.
+
+## 6. 실행 순서와 중단 조건
+
+1. D0을 계산한다. e_r 관계(0.3-④)가 실패하면 중단하고 보정 구조를 보고한다.
+2. D1–D4를 계산한다. 단계 0 결과와 무관하게 T1–T3를 모두 실행한다. 단계 0은 해석 보조로만 쓴다.
+3. T1–T3(+T4)를 실행한다. OFF 재현에 실패한 arm은 실행하지 않는다.
+4. 실행 실패와 판정 기준 미충족을 구분해 보고한다.
+
+## 0.3 확인이 필요한 정의 (실행 전 Codex가 답할 것)
+
+1. **통과 창:** 기존 P3·CUT_RT와 같은 정의를 쓴다. GT 수평거리 < 1.5 m 연속 packet, 첫 통과가 주 판정, 확장 창은 ±10 s.
+2. **c_k의 범위:** A_B로 수용된 packet만 사용한다. 거절 packet은 c를 정의하지 않는다.
+3. **D3의 GT 축:** 장부(2a)는 prior 추정 축을 썼다. 여기서는 오차 비교를 위해 GT 축을 쓴다. 두 축의 결과를 모두 출력하고 차이를 보고한다.
+4. **보정 range 식:** MU_R 계열의 보정 range가 z − μ이고, MU_R_EXDS가 R_rr도 바꾸는지 코드에서 확인해 보고한다.
+5. **학습 데이터:** 편파 평균/R과 Q가 어떤 데이터·궤적으로 학습됐는지(BASE 필터 궤적인지, GT인지) 보고한다. W3 해석에 필요하다.
