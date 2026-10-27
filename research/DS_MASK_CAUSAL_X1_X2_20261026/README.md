@@ -63,3 +63,10 @@ GEOMETRY_PACKAGING_VERIFICATION.json은 새 결과 파일의 byte-identical 복�
 B resumed with each case/bias own BASE mask. Primary six conditions completed; both transplant directions exceed 0.7 under both denominators. Component effects differ by route; secondary conditions remain a separate track. Earlier B-stop artifacts are preserved.
 
 Two previously committed Python cache files are removed. [Declared cache exclusions](CACHE_EXCLUSIONS.json) reconcile the preserved original geometry output manifest with the published package. Bytecode is ignored.
+
+## Tangential ledger and CUT_ODO (2026-10-27)
+
+- [Step 0/1 trace-only recalculation and exact increment ledger](tangent_ledger/RESULTS_KO.md): 78 checks passed; includes rotating tangent basis term.
+- [CUT_ODO replay](cut_odo/RESULTS_KO.md): 364 checks passed, including E1 OFF parity. Position propagation uses previous GT starting heading; gyro-bias position path remains.
+
+Azimuth gaps remain in all six primary conditions. Results are scoped to the recorded interventions; CUT_RT was not run. Original artifacts are preserved.
