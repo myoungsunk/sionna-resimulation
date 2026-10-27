@@ -1,6 +1,8 @@
 # Office -> Corridor POWER / PWIDE / polarization gate transfer — code V1
 
-**Status: CODE IMPLEMENTED / SYNTHETIC UNIT QA PASSED / REAL RF FIT & REPLAY NOT EXECUTED.**
+**2026-10-27 status: Office Mount 0°/45° source training and 21 Corridor recursive evaluations completed; all baseline checks and 79 tests passed.**
+
+실제 저장 RF 데이터에 대한 실행 결과와 제한은 [Mount 0°/45° 실행 보고서](run_mount0_45_20261027/README_KO.md)를 참조한다. Full 채널에서 O_PWIDE의 O_POWER 대비 개선은 확인되지 않았으며, Gate는 계속 탐색적 비교군이다. 아래 V1 구현·가이드의 미실행 표기는 당시 단계 기록이다.
 
 ## What is implemented
 

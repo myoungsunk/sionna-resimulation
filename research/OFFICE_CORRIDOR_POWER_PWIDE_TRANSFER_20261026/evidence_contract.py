@@ -38,6 +38,20 @@ def fresh_output(path):
 
 def validate_source_qa(path, lock_path, table=None):
     qa = read_json(path);lock = load_lock(lock_path)
+    if qa.get('technical') == 'SOURCE_DATASET_PREPARED_MOUNT_0_45':
+        from office_mount_inputs import validate_outputs
+        folder = Path(path).resolve().parent
+        manifest_path = folder.parent / 'INPUT_MANIFEST.json'
+        manifest = read_json(manifest_path)
+        if (manifest.get('original_45_lock_sha256') != sha256(lock_path) or
+                qa.get('source_commit') != lock['source_audit_commit']):
+            raise ValueError('SOURCE_QA_IDENTITY_MISMATCH')
+        validate_outputs(folder, manifest_path, qa['input_manifest_sha256'])
+        label_sha = qa['outputs_sha256']['OFFICE_SOURCE_LABELS.csv.gz']
+        if table is not None and sha256(table) != label_sha:
+            raise ValueError('SOURCE_TABLE_SHA_MISMATCH')
+        # Normalize the two input schemas for the existing model provenance chain.
+        return dict(qa, label_file_sha256=label_sha, lock_sha256=sha256(lock_path))
     if (qa.get('technical') != 'SOURCE_DATASET_PREPARED' or
             qa.get('source_commit') != lock['source_audit_commit'] or
             qa.get('lock_sha256') != sha256(lock_path)):

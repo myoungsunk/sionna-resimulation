@@ -90,22 +90,29 @@ def fit_office(args):
     tr=data.loc[data.valid_for_training].copy().reset_index(drop=True)
     if not (tr.los_exists.all() and (tr.scene=='OFFICE_E').all()):raise AssertionError('TRAIN_SOURCE_LEAK')
     if set(tr.route.unique())!={'O01','O02','O03'}:raise ValueError('ALL_SOURCE_ROUTES_NEED_VISIBLE_LOS')
-    if (data.duplicated(['route','pose_id']).any() or
+    joint = prepared_qa['technical'] == 'SOURCE_DATASET_PREPARED_MOUNT_0_45'
+    if (data.duplicated(['case','pose_id'] if joint else ['route','pose_id']).any() or
             not np.isfinite(tr[['log_fp_power','e_r','e_s','d0_gt_source']].to_numpy(float)).all() or
             len(tr)!=prepared_qa['valid_training_rows']):
         raise ValueError('TRAIN_TABLE_ALIGNMENT_OR_FINITE_INVALID')
     for row in prepared_qa['routes']:
-        if len(data[data.route==row['route']])!=row['n_rf'] or len(tr[tr.route==row['route']])!=row['n_train_valid']:
+        col, identity = ('case', row['case']) if joint else ('route', row['route'])
+        if len(data[data[col]==identity])!=row['n_rf'] or len(tr[tr[col]==identity])!=row['n_train_valid']:
             raise ValueError('TRAIN_TABLE_ROUTE_COUNT_MISMATCH')
     model=load_source_ffd(root)
     power=PowerTransfer.fit(tr)
-    residual=ResidualTransfer.fit(tr,model)
+    cases = ({r['case']: {'id':r['case'], 'anchor':[5.,2.2,2.65],
+                          'robot_z_m':.45, 'mount_deg':float(r['mount_deg'])}
+              for r in prepared_qa['routes']} if joint else None)
+    residual=ResidualTransfer.fit(tr,model,cases=cases)
     package={'POWER':power,'RESIDUAL':residual,'source_route_set':sorted(tr.route.unique()),
              'source_only':True,'target_training_used':False,'threshold':residual.gate_tau_d0,
              'status':'TRAINING_ONLY_NO_TARGET_REPLAY','provenance':provenance}
     job=output/'OFFICE_TRAINED_MODELS.joblib';joblib.dump(package,job,compress=3)
     save_json(output/'OFFICE_TRAIN_QA.json',{'model_sha256':sha256(job),'training_rows':len(tr),
         'source_count':tr.groupby('route').size().to_dict(),'training_file_sha256':sha256(args.source_table),
+        'source_mounts':sorted(tr.mount_deg.unique().tolist()) if joint else [45],
+        'source_case_count':tr.groupby('case').size().to_dict() if joint else {},
         'power_features':['log_fp_power'],'pwide_features':list(residual.medians.index)+['d0'],
         'gate_tau_source_gt_proxy':residual.gate_tau_d0,
         'warning':'source-GT calibrated gate threshold is not a source-prior distribution; evaluate caution',
