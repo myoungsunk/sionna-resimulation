@@ -70,3 +70,10 @@ Two previously committed Python cache files are removed. [Declared cache exclusi
 - [CUT_ODO replay](cut_odo/RESULTS_KO.md): 364 checks passed, including E1 OFF parity. Position propagation uses previous GT starting heading; gyro-bias position path remains.
 
 Azimuth gaps remain in all six primary conditions. Results are scoped to the recorded interventions; CUT_RT was not run. Original artifacts are preserved.
+
+## World-coordinate ledger and CUT_RT (2026-10-27)
+
+- [World-coordinate accumulation and CUT_ODO timing audit](DS_WORLD_LEDGER_20261027/RESULTS_KO.md): radial/tangential range decomposition; 9,840 saved predictions reconstructed with zero state/covariance difference.
+- [CUT_RT intervention](DS_CUT_RT_20261027/RESULTS_KO.md): 5,300 checks passed; six primary conditions. Direct range tangent gain removed using current GT tangent axis and Joseph covariance.
+
+Azimuth-gap reduction is partial for R4_aA and unsupported for R2_m45/R4_aB under this intervention. Descriptive channel attribution is distinct from causal necessity. Prior results remain preserved.
