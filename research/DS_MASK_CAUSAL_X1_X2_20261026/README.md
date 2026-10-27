@@ -55,3 +55,11 @@ B는 B0/L2의 BASE 수용 집합 차이로 조건별 평균 c가 달라 사전 �
 원본 h_s: research/FFD_P0P3_20261016/source_model.py의 SourceFFD.spectrum / batch. 새 구현은 방향 u와 거리 r를 물리량 단위로 교체하며 태그/앵커 양쪽에 동일한 u를 적용한다. 코드와 입력의 로컬 절대 경로는 실행 당시 provenance를 위해 보존했다. 이 폴더 단독으로 실행 환경/외부 입력 전체를 제공하는 것은 아니다.
 
 GEOMETRY_PACKAGING_VERIFICATION.json은 새 결과 파일의 byte-identical 복사를 확인한다. 기존 X1/X2/E1–E4 원본 결과는 보존했다.
+
+## Component sweep and azimuth transplant (2026-10-27)
+
+[Scoped final report](component_azimuth/RESULTS_KO.md) | [Protocol](component_azimuth/PROTOCOL.md) | [Validation](component_azimuth/REPORT_VALIDATION.json)
+
+B resumed with each case/bias own BASE mask. Primary six conditions completed; both transplant directions exceed 0.7 under both denominators. Component effects differ by route; secondary conditions remain a separate track. Earlier B-stop artifacts are preserved.
+
+Two previously committed Python cache files are removed. [Declared cache exclusions](CACHE_EXCLUSIONS.json) reconcile the preserved original geometry output manifest with the published package. Bytecode is ignored.
