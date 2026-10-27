@@ -42,3 +42,16 @@ X2: t≥30초에서 BASE와 MU_R_EXDS 각각 7/14조건만 선형 근사 기준�
 패키지의 Git base는 `0686b23ceeefb696bc158b32b39f8077c564ef5d`이다. 실제 MR 재현 소스의 commit/blob은 `x1/source_blob_lock.json`과 `INPUT_LOCK.json`에 별도로 고정되어 있으므로 패키징 base와 실험 소스를 혼동하지 않는다.
 
 Office 확장, 새 학습, R 재보정, Δs 대 d0 직접 비교, X3 이후 실험은 포함하지 않는다. 14조건을 독립된 14개 환경으로 해석하지 않는다.
+
+
+## 물리량 단위 기하 진단 A0″ / A / C 및 B 중단 (2026-10-27)
+
+[결과와 시각화](geometry_physical/RESULTS_KO.md) · [고정 정의](geometry_physical/PROTOCOL.md) · [기하 차단 관측모델](geometry_physical/geometry_model.py) · [검증 기록](geometry_physical/REPORT_VALIDATION.json)
+
+A0″·A·C 완료. 주 분석 6조건의 CUT_ALL Heading signed-bias gap 크기는 71.81~98.26% 감소했다. R4 두 경로는 방위각 단독 차단에서도 70% 기준을 넘었다. 이는 GT를 사용한 oracle 개입이며 이후 공분산/gain 변화도 포함한다. 기술적 위치 등가 오차와 인과 개입을 구분하며, B0/L2를 독립 표본으로 세지 않는다.
+
+B는 B0/L2의 BASE 수용 집합 차이로 조건별 평균 c가 달라 사전 동일성 검산에서 중단했다. B sweep은 실행하지 않았고 기준을 변경하지 않았다. STOP_B_PAIRED_CONSTANT_GATE를 전체 실험 성공으로 해석하지 않는다.
+
+원본 h_s: research/FFD_P0P3_20261016/source_model.py의 SourceFFD.spectrum / batch. 새 구현은 방향 u와 거리 r를 물리량 단위로 교체하며 태그/앵커 양쪽에 동일한 u를 적용한다. 코드와 입력의 로컬 절대 경로는 실행 당시 provenance를 위해 보존했다. 이 폴더 단독으로 실행 환경/외부 입력 전체를 제공하는 것은 아니다.
+
+GEOMETRY_PACKAGING_VERIFICATION.json은 새 결과 파일의 byte-identical 복사를 확인한다. 기존 X1/X2/E1–E4 원본 결과는 보존했다.
