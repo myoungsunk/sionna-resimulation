@@ -1,0 +1,233 @@
+name: Reflection-aware polarization observer V0-V3
+# Runs ONLY when RUN_REQUEST.json is committed/changed (or by manual dispatch). Pushing code alone runs nothing.
+on:
+  push:
+    branches: ['research/ds-x1-x2-results-20261026']
+    paths: ['research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model/RUN_REQUEST.json']
+  workflow_dispatch:
+    inputs:
+      stages:
+        description: 'comma list of V0,V1,V2,V3'
+        default: 'V0'
+permissions:
+  contents: read
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  CODE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      v01: ${{ steps.p.outputs.v01 }}
+      v1: ${{ steps.p.outputs.v1 }}
+      v2: ${{ steps.p.outputs.v2 }}
+      v3: ${{ steps.p.outputs.v3 }}
+      v1_cases: ${{ steps.p.outputs.v1_cases }}
+      v1_variants: ${{ steps.p.outputs.v1_variants }}
+      v2_cases: ${{ steps.p.outputs.v2_cases }}
+      fp_range: ${{ steps.p.outputs.fp_range }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - id: p
+        name: Read the run request
+        env:
+          DISPATCH_STAGES: ${{ github.event.inputs.stages }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          req = pathlib.Path(os.environ['CODE_DIR']) / 'RUN_REQUEST.json'
+          r = json.loads(req.read_text()) if req.exists() else {}
+          if os.environ.get('DISPATCH_STAGES'):
+              r['stages'] = [s.strip() for s in os.environ['DISPATCH_STAGES'].split(',') if s.strip()]
+          st = set(r.get('stages', ['V0']))
+          cases = r.get('v2_cases', ['R2_aA_m0','R2_aB_m0','R2_aA_m45','R4_aA_m0','R4_aB_m0','R5_aA_m0','R5_aB_m0'])
+          out = dict(v01=str(bool(st & {'V0','V1','V2','V3'})).lower(), v1=str(bool(st & {'V1','V2','V3'})).lower(),
+                     v2=str('V2' in st).lower(), v3=str('V3' in st).lower(),
+                     v1_cases=r.get('v1_cases','all'), v1_variants=r.get('v1_variants','all'),
+                     v2_cases=json.dumps(cases), fp_range=str(bool(r.get('v2_fp_range', False))).lower())
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              for k, v in out.items(): f.write(f'{k}={v}\n')
+          print(json.dumps(out, indent=1))
+          PY
+
+  inputs:
+    needs: plan
+    if: needs.plan.outputs.v01 == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - name: Fetch and hash-lock all inputs (code subset, banks, ray-traced channels, E1 control traces)
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          bash "$CODE_DIR/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          du -sh "$REFLECT_ROOT"/*
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reflect-inputs-${{ github.run_id }}
+          path: ${{ runner.temp }}/reflect/
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
+  v01:
+    needs: [plan, inputs]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Stage inputs
+        run: gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect"
+      - name: V0 unit and parity checks (stop on failure)
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          python -u "$CODE_DIR/exp_v01.py" --stage V0 2>&1 | tee "$REFLECT_ROOT/out/V0_LOG.txt"
+      - name: V1 model validation against the stored full channel
+        if: needs.plan.outputs.v1 == 'true'
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          python -u "$CODE_DIR/exp_v01.py" --stage V1 --cases ${{ needs.plan.outputs.v1_cases }} --variants ${{ needs.plan.outputs.v1_variants }} 2>&1 | tee "$REFLECT_ROOT/out/V1_LOG.txt"
+          cat "$REFLECT_ROOT/out/V1_DECISION.json"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reflect-v01-${{ github.run_id }}
+          path: ${{ runner.temp }}/reflect/out/
+          retention-days: 30
+          if-no-files-found: error
+
+  v2:
+    needs: [plan, v01]
+    if: needs.plan.outputs.v2 == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 7
+      matrix:
+        case: ${{ fromJSON(needs.plan.outputs.v2_cases) }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Stage inputs and V1 outputs
+        run: |
+          set -euo pipefail
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect/out"
+      - name: V2 replay for one route-case (B0 and L2)
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          FP=""; [ "${{ needs.plan.outputs.fp_range }}" = "true" ] && FP="--fp-range"
+          python -u "$CODE_DIR/exp_v2.py" --cases ${{ matrix.case }} --biases B0,L2 --workers 2 $FP 2>&1 | tee "$REFLECT_ROOT/out/V2_LOG_${{ matrix.case }}.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reflect-v2-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/reflect/out/V2_*
+            ${{ runner.temp }}/reflect/out/MANIFEST_V2_*
+          retention-days: 30
+          if-no-files-found: warn
+
+  v2-aggregate:
+    needs: [plan, v01, v2]
+    if: needs.plan.outputs.v2 == 'true' && !cancelled()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Merge shards and decide
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          mkdir -p "$REFLECT_ROOT/out"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$REFLECT_ROOT/out"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --pattern 'reflect-v2-*-${{ github.run_id }}' --dir "$RUNNER_TEMP/shards"
+          find "$RUNNER_TEMP/shards" -type f -name 'V2_*' -exec cp {} "$REFLECT_ROOT/out/" \;
+          find "$RUNNER_TEMP/shards" -type f -name 'MANIFEST_V2_*' -exec cp {} "$REFLECT_ROOT/out/" \;
+          python -u "$CODE_DIR/exp_v2.py" --aggregate 2>&1 | tee "$REFLECT_ROOT/out/V2_AGG_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reflect-v2-result-${{ github.run_id }}
+          path: ${{ runner.temp }}/reflect/out/
+          retention-days: 30
+          if-no-files-found: error
+
+  v3:
+    needs: [plan, v01]
+    if: needs.plan.outputs.v3 == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Stage inputs and V1 outputs
+        run: |
+          set -euo pipefail
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect/out"
+      - name: V3 scene-description robustness
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect"
+          python -u "$CODE_DIR/exp_v3.py" --cases primary 2>&1 | tee "$REFLECT_ROOT/out/V3_LOG.txt"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reflect-v3-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/reflect/out/V3_*
+            ${{ runner.temp }}/reflect/out/MANIFEST_V3.json
+          retention-days: 30
+          if-no-files-found: warn
