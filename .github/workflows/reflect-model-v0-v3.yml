@@ -10,7 +10,7 @@ on:
         description: 'comma list of V0,V1,V2,V3'
         default: 'V0'
 permissions:
-  contents: read
+  contents: write
   actions: read
 env:
   GH_TOKEN: ${{ github.token }}
@@ -122,6 +122,28 @@ jobs:
           path: ${{ runner.temp }}/reflect/out/
           retention-days: 30
           if-no-files-found: error
+      - name: Publish v01 results to the branch (small text/npz outputs only)
+        if: always()
+        env:
+          SUB: v01
+          PATTERN: '*'
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/reflect/out"
+          [ -d "$SRC" ] || exit 0
+          DEST="$CODE_DIR/results/run_${{ github.run_id }}/$SUB"
+          W="$RUNNER_TEMP/pub_$SUB"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"
+          git sparse-checkout set --no-cone "/$CODE_DIR/results/"
+          mkdir -p "$DEST"
+          ( cd "$SRC" && for f in $PATTERN; do [ -e "$f" ] && cp -r "$f" "$W/$DEST/"; done ) || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -q -m "reflect-model results: run ${{ github.run_id }} $SUB" || exit 0
+          for i in 1 2 3 4 5; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*5)); done
+          exit 1
 
   v2:
     needs: [plan, v01]
@@ -196,6 +218,28 @@ jobs:
           path: ${{ runner.temp }}/reflect/out/
           retention-days: 30
           if-no-files-found: error
+      - name: Publish v2 results to the branch (small text/npz outputs only)
+        if: always()
+        env:
+          SUB: v2
+          PATTERN: 'V2_* MANIFEST_V2*'
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/reflect/out"
+          [ -d "$SRC" ] || exit 0
+          DEST="$CODE_DIR/results/run_${{ github.run_id }}/$SUB"
+          W="$RUNNER_TEMP/pub_$SUB"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"
+          git sparse-checkout set --no-cone "/$CODE_DIR/results/"
+          mkdir -p "$DEST"
+          ( cd "$SRC" && for f in $PATTERN; do [ -e "$f" ] && cp -r "$f" "$W/$DEST/"; done ) || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -q -m "reflect-model results: run ${{ github.run_id }} $SUB" || exit 0
+          for i in 1 2 3 4 5; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*5)); done
+          exit 1
 
   v3:
     needs: [plan, v01]
@@ -231,3 +275,25 @@ jobs:
             ${{ runner.temp }}/reflect/out/MANIFEST_V3.json
           retention-days: 30
           if-no-files-found: warn
+      - name: Publish v3 results to the branch (small text/npz outputs only)
+        if: always()
+        env:
+          SUB: v3
+          PATTERN: 'V3_* MANIFEST_V3.json'
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/reflect/out"
+          [ -d "$SRC" ] || exit 0
+          DEST="$CODE_DIR/results/run_${{ github.run_id }}/$SUB"
+          W="$RUNNER_TEMP/pub_$SUB"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"
+          git sparse-checkout set --no-cone "/$CODE_DIR/results/"
+          mkdir -p "$DEST"
+          ( cd "$SRC" && for f in $PATTERN; do [ -e "$f" ] && cp -r "$f" "$W/$DEST/"; done ) || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -q -m "reflect-model results: run ${{ github.run_id }} $SUB" || exit 0
+          for i in 1 2 3 4 5; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*5)); done
+          exit 1
