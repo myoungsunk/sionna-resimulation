@@ -1,0 +1,97 @@
+name: DS four priorities - variance and incremental delta information
+on:
+  push:
+    branches: ['research/ds-variance-delta-info-failure-audit-20261028']
+    paths:
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/ds_four_priorities_20261028/RUN_REQUEST.json'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  BASE: research/DS_MASK_CAUSAL_X1_X2_20261026
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/ds_four_priorities_20261028
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install $PIP_PKGS
+      - name: Audit variance based baseline and failure clusters
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/result"
+          python "$BASE/ds_four_priorities_20261028/audit_pb_scores.py" --scores "$BASE/pol_bias_model/results/run_40652679303/PB_SCORES.csv" --out "$RUNNER_TEMP/result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ds-p1-p4-${{ github.run_id }}
+          path: ${{ runner.temp }}/result
+          if-no-files-found: error
+  incremental:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/ds_four_priorities_20261028
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install $PIP_PKGS
+      - name: Fetch original bank, RF and E1 inputs with source locks
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/delta_source"
+          bash "$BASE/reflect_model/fetch_inputs.sh"
+      - name: P3 incremental signed delta information
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/delta_source"
+          python -u "$BASE/ds_four_priorities_20261028/incremental_delta_info.py" --input-root "$REFLECT_ROOT" --out "$RUNNER_TEMP/result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ds-p3-${{ github.run_id }}
+          path: ${{ runner.temp }}/result
+          if-no-files-found: warn
+  publish:
+    runs-on: ubuntu-24.04
+    needs: [audit,incremental]
+    if: always()
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download successful result artifacts
+        env:
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          gh run download "$GITHUB_RUN_ID" --repo "$GH_REPO" --pattern 'ds-p*' --dir "$RUNNER_TEMP/out" || true
+      - name: Commit finished evidence to branch
+        run: |
+          set -euo pipefail
+          DEST="$BASE/ds_four_priorities_20261028/results/run_$GITHUB_RUN_ID"
+          mkdir -p "$DEST"
+          cp -R "$RUNNER_TEMP/out"/. "$DEST/" || true
+          printf '{"run_id":"%s","audit":"%s","incremental":"%s","sha":"%s"}\n' "$GITHUB_RUN_ID" "${{ needs.audit.result }}" "${{ needs.incremental.result }}" "$GITHUB_SHA" > "$DEST/WORKFLOW_STATUS.json"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add "$DEST"
+          git commit -m "DS P1-P4 evidence run $GITHUB_RUN_ID" || exit 0
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin HEAD:"$GITHUB_REF_NAME"
