@@ -62,21 +62,59 @@ jobs:
           set -euo pipefail
           export REFLECT_ROOT="$RUNNER_TEMP/delta_source"
           python -u "$BASE/ds_four_priorities_20261028/incremental_delta_info.py" --input-root "$REFLECT_ROOT" --out "$RUNNER_TEMP/result"
+      - name: P2 conditional information and Schur QA
+        run: |
+          set -euo pipefail
+          python "$BASE/ds_four_priorities_20261028/p2_conditional_info.py" --p3-scores "$RUNNER_TEMP/result/P3_HELD_ROUTE_R2.csv" --out "$RUNNER_TEMP/result"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: ds-p3-${{ github.run_id }}
           path: ${{ runner.temp }}/result
           if-no-files-found: warn
+  packet:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/ds_four_priorities_20261028
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: pip install $PIP_PKGS
+      - name: Fetch locked original filter inputs
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/packet"
+          FETCH_RF=0 bash "$BASE/reflect_model/fetch_inputs.sh"
+      - name: P4 packet-wise original vs variance Kalman gain audit
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/packet"
+          python -u "$BASE/ds_four_priorities_20261028/packet_var_diagnostic.py" --out "$RUNNER_TEMP/result"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ds-p4-packet-${{ github.run_id }}
+          path: ${{ runner.temp }}/result
+          if-no-files-found: warn
   publish:
     runs-on: ubuntu-24.04
-    needs: [audit,incremental]
+    needs: [audit,incremental,packet]
     if: always()
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/ds_four_priorities_20261028
       - name: Download successful result artifacts
         env:
           GH_REPO: ${{ github.repository }}
