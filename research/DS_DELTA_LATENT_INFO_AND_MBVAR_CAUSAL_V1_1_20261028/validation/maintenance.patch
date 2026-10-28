@@ -1,0 +1,45 @@
+--- original/ds_info_audit.py
++++ v1.1/ds_info_audit.py
+@@ -383,6 +383,12 @@
+         'n_scoring':int((d.t>=30).sum())}
+ 
+ 
++def combine_case_frames(frames):
++    df=pd.concat(frames,ignore_index=True)
++    if len(df.case.unique())!=len(CASE_IDS):raise RuntimeError('MISSING_CASES')
++    return df
++
++
+ def analyze_real(args):
+     import importlib
+     code_path=args.code_root.resolve()
+@@ -414,9 +420,7 @@
+             Unsafe[d.case['id']]=unstable
+             digest[d.case['id']]=checksum
+             print('[PARITY]',d.key,'n',len(table),'unstable_J',int(unstable.sum()),flush=True)
+-        df=pd.concat(frames,ignore_index=True)
+-        expected={x.case:x for x in frames}
+-        if len(df.case.unique())!=len(CASE_IDS):raise RuntimeError('MISSING_CASES')
++        df=combine_case_frames(frames)
+         # B0 only, not fake independent L0/L1/L2 RF copies.
+         folds={route:fit_fold(df,route) for route in ('R2','R4','R5')}
+         casefold={case:folds[case.split('_')[0]] for case in CASE_IDS}
+--- original/test_ds_info_audit.py
++++ v1.1/test_ds_info_audit.py
+@@ -7,6 +7,16 @@
+ import ds_info_audit as a
+ 
+ class Tests(unittest.TestCase):
++    def test_real_case_frame_aggregation(self):
++        frames=[pd.DataFrame({'case':[case,case], 'pose_id':[10,12],
++                              'accepted':[True,False]}) for case in a.CASE_IDS]
++        result=a.combine_case_frames(frames)
++        pd.testing.assert_frame_equal(result,pd.concat(frames,ignore_index=True))
++        self.assertEqual(len(result),2*len(a.CASE_IDS))
++        self.assertEqual(result.index.tolist(),list(range(len(result))))
++        with self.assertRaisesRegex(RuntimeError,'MISSING_CASES'):
++            a.combine_case_frames(frames[:-1])
++
+     def test_centered_native_gap(self):
+         t=np.array([0.,.2,.4,5.,5.2,5.4])
+         v=np.array([1.,1.,1.,9.,9.,9.])

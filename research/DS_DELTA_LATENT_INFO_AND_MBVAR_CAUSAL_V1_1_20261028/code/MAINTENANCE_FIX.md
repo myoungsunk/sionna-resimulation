@@ -1,0 +1,1 @@
+V1.1 maintenance fix: remove unused Series-key dictionary from real-data aggregation. Extract unchanged concat and case-count gate into combine_case_frames for regression coverage. No model, threshold, mask, or input changes. Original package and failed output preserved.
