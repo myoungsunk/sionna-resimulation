@@ -48,11 +48,32 @@ for bg in ("BB", "MB"):
     ARMS += [(f"{bg}_ORIG", bg, dict(mode="orig")), (f"{bg}_VAR", bg, dict(mode="var")),
              (f"{bg}_GM03", bg, dict(mode="gm", L=0.3)), (f"{bg}_GM1Y20", bg, dict(mode="gm", L=1.0, Psi=20.0)),
              (f"{bg}_WIN05Y10", bg, dict(mode="win", W=0.5, Y=10.0)), (f"{bg}_WIN1Y5", bg, dict(mode="win", W=1.0, Y=5.0)),
-             (f"{bg}_ORPOL", bg, dict(mode="orpol"))]
+             (f"{bg}_ORPOL", bg, dict(mode="orpol")),
+             # data-built variance tables (build_sig_tables.py -> sig_tables.json); looked up with the filter's own state
+             (f"{bg}_VARM", bg, dict(mode="vartab", kind="1d_mount", loro=False)),
+             (f"{bg}_VARM_LORO", bg, dict(mode="vartab", kind="1d_mount", loro=True)),
+             (f"{bg}_VAR2D", bg, dict(mode="vartab", kind="2d", loro=False)),
+             (f"{bg}_VAR2D_LORO", bg, dict(mode="vartab", kind="2d", loro=True))]
 
 
 def sig(r):
     return float(np.interp(r, SIG_R, SIG_V))
+
+
+def sig_table(tab, rho, shat):
+    """1D: interp over rho;  2D: bin lookup over (rho, |s_hat|) where s_hat = predicted s at the filter state."""
+    if "r" in tab:
+        return float(np.interp(rho, tab["r"], tab["sig"]))
+    i = min(np.searchsorted(tab["rho_edges"], rho, side="right") - 1, len(tab["sig"]) - 1)
+    j = min(np.searchsorted(tab["shat_edges"], shat, side="right") - 1, len(tab["sig"][0]) - 1)
+    return float(tab["sig"][max(i, 0)][max(j, 0)])
+
+
+def resolve_table(cfg, case_id):
+    tabs = json.loads((HERE / "sig_tables.json").read_text())
+    mount = case_id.split("_")[-1]; route = case_id[:2]
+    key = (f"1D_{mount}" if cfg["kind"] == "1d_mount" else "2D") + (f"_LORO_{route}" if cfg["loro"] else "")
+    return tabs[key], key
 
 
 def build_controls(t, pose, level, seed=0):
@@ -128,6 +149,8 @@ def run(D, mu, cfg, model):
                 z[1] = D["hg"][k, 1] + mu[k, 1]
             if mode == "var":
                 Rk[1, 1] += sg ** 2
+            if mode == "vartab":
+                Rk[1, 1] += sig_table(cfg["table"], rh, abs(float(h[1]))) ** 2
             if stateful:
                 Ha = np.c_[H, [0.0, 1.0]]; hh = h + np.r_[0.0, x[4]]
             else:
@@ -215,9 +238,11 @@ def main():
     for name, bg, cfg in ARMS:
         if a.arms != "all" and name not in a.arms.split(","):
             continue
+        if cfg["mode"] == "vartab":
+            cfg = dict(cfg); cfg["table"], cfg["table_key"] = resolve_table(cfg, a.case)
         t0 = time.time(); X, PX, B, nwin = run(D, mus[bg], cfg, model)
         r = dict(sig_tag=a.tag or "m0table", case=a.case, mount=spec["mount_deg"], anchor=a.case[4], route=a.case[:2], bias=a.bias, arm=name, background=bg,
-                 method=name.split("_", 1)[1], nwin=nwin, sec=round(time.time() - t0, 1))
+                 method=name.split("_", 1)[1], nwin=nwin, sec=round(time.time() - t0, 1), table=cfg.get("table_key", ""))
         r.update(scores(D, X, PX))
         if cfg["mode"] in ("gm", "win"):
             acc = D["acc"]; esm = es - mus[bg][:, 1]

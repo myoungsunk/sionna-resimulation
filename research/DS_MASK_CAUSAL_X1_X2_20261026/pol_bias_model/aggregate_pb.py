@@ -10,7 +10,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "reflect_model"))
 import common as C  # noqa: E402
 
-METHODS = ["VAR", "GM03", "GM1Y20", "WIN05Y10", "WIN1Y5"]
+METHODS = ["VAR", "GM03", "GM1Y20", "WIN05Y10", "WIN1Y5", "VARM", "VARM_LORO", "VAR2D", "VAR2D_LORO"]
 
 
 def main():
