@@ -1,0 +1,1661 @@
+diff --git a/dsreassess/fisher_independent.py b/dsreassess/fisher_independent.py
+new file mode 100644
+--- /dev/null
++++ b/dsreassess/fisher_independent.py
+@@ -0,0 +1,199 @@
++"""Independent, real-input Stage-5 numerical Fisher audit.
++
++Does NOT import/call observability.fisher, eig_summary, coherent_window,
++transition, or its analytic transition Jacobian.  Forward kinematics are
++written independently and Phi uses centered finite differences at every step.
++SourceFFD is the frozen common physical measurement oracle; selected H*Phi
++columns are additionally checked against fully perturbed observer rollouts.
++"""
++from __future__ import annotations
++import math
++import numpy as np
++
++
++FD_STEPS=np.array([1e-4,1e-4,2e-6,1e-6],float)
++
++
++def _wrap(value):
++    return (value+math.pi)%(2*math.pi)-math.pi
++
++
++def _step(x, ds, gyro, dt):
++    """Standalone motion function equivalent to the frozen 4-state odometry."""
++    y=np.asarray(x,float).copy()
++    a=float(gyro-x[3]*dt)
++    sinc=math.sin(.5*a)/(.5*a) if abs(a)>1e-7 else 1-a*a/24+a**4/1920
++    th=float(x[2]+.5*a)
++    y[0]+=ds*sinc*math.cos(th)
++    y[1]+=ds*sinc*math.sin(th)
++    y[2]=_wrap(float(x[2]+a))
++    return y
++
++
++def _jacobian_numerical(x,ds,gyro,dt):
++    J=np.empty((4,4))
++    for j,eps in enumerate(FD_STEPS):
++        xp=np.asarray(x,float).copy();xm=xp.copy()
++        xp[j]+=eps;xm[j]-=eps
++        diff=_step(xp,ds,gyro,dt)-_step(xm,ds,gyro,dt)
++        diff[2]=_wrap(float(diff[2]))
++        J[:,j]=diff/(2*eps)
++    return J
++
++
++def independent_nominal(d,span,nominal):
++    s,e=span[1:]
++    x=np.asarray(d.truth[s] if nominal=='GT' else d.ref['prior'][s,0],float).copy()
++    X=np.empty((e-s,4));PHI=np.empty((e-s,4,4))
++    phi=np.eye(4)
++    for i,k in enumerate(range(s,e)):
++        if i:
++            ds=float(d.controls['ds_odom'][k]);gyro=float(d.controls['dtheta_gyro'][k]);dt=float(d.controls['dt_s'][k])
++            J=_jacobian_numerical(x,ds,gyro,dt)
++            x=_step(x,ds,gyro,dt)
++            phi=J@phi
++        X[i]=x;PHI[i]=phi
++    return X,PHI
++
++
++def _state_scale(n):
++    q=[1.,1.,math.radians(5.),math.radians(.1)]
++    if n==5:q.append(.1)
++    return np.diag(q)
++
++
++def independent_fisher(d,span,X,PHI,H4,*,pol,prior,bias5,bias_prior_var=None):
++    """Build data likelihood design matrix independently, then SVD/eigen."""
++    s,e=span[1:];n=5 if bias5 else 4
++    D=_state_scale(n)
++    anc=np.asarray(d.case['anchor'],float)
++    height=anc[2]-float(d.case['robot_z_m'])
++    design=[];rows_k=[]
++    for i,k in enumerate(range(s,e)):
++        if not bool(d.mask[k]):continue
++        dxy=X[i,:2]-anc[:2]
++        rr=math.sqrt(float(dxy@dxy)+height*height)
++        hr4=np.zeros(4);hr4[:2]=dxy/rr
++        hr=np.r_[hr4,1.] if bias5 else hr4
++        if bias5:
++            phi=np.eye(5);phi[:4,:4]=PHI[i]
++            hs=np.r_[H4[i,1],0.]
++        else:
++            phi=PHI[i];hs=H4[i,1]
++        rvar=float(d.R[k,0,0]);svar=float(d.R[k,1,1])
++        if rvar<=0 or svar<=0:raise RuntimeError('nonpositive data-only R')
++        if abs(float(d.R[k,0,1]))>1e-12 or abs(float(d.R[k,1,0]))>1e-12:
++            raise RuntimeError('original Fisher assumes diagonal R')
++        design.append((hr@phi)/math.sqrt(rvar))
++        rows_k.append((k,'r'))
++        if pol:
++            design.append((hs@phi)/math.sqrt(svar))
++            rows_k.append((k,'s'))
++    B=np.asarray(design,float).reshape(-1,n)
++    if prior:
++        P=np.asarray(d.ref['Pprior'][s,0],float)
++        if bias5:
++            enlarged=np.zeros((5,5));enlarged[:4,:4]=P
++            # Standalone Stage 5 uses the frozen 8 cm prior for this experiment.
++            # The caller must supply the exact configured bias prior variance.
++            biasvar=bias_prior_var
++            if biasvar is None:raise RuntimeError('independent Fisher missing bias prior contract')
++            enlarged[4,4]=biasvar
++            P=enlarged
++        # Cholesky factor L L^T = P^-1, rows L^T whiten the prior.
++        LP=np.linalg.cholesky(np.linalg.inv(P)).T
++        B=np.vstack([B,LP])
++    weighted=B@D
++    W=weighted.T@weighted
++    W=.5*(W+W.T)
++    vals,V=np.linalg.eigh(W)
++    if vals.min() < -1e-8*max(float(vals.max()),1.):
++        raise RuntimeError('independent Fisher not PSD')
++    vals=np.maximum(vals,0.)
++    largest=max(float(vals[-1]),1e-30)
++    threshold=max(1e-12,largest*1e-8)
++    rank=int(np.sum(vals>threshold))
++    sv=np.linalg.svd(weighted,compute_uv=False)
++    rank_svd=int(np.count_nonzero(sv**2>threshold))
++    if rank!=rank_svd:
++        raise RuntimeError(f'SVD/eigen rank disagree {rank} != {rank_svd}')
++    Phi_end=np.eye(n)
++    Phi_end[:4,:4]=PHI[-1]
++    rad=X[-1,:2]-anc[:2]
++    un=np.linalg.norm(rad)
++    if un<1e-7:raise RuntimeError('terminal tangent undefined')
++    ut=np.array([-rad[1],rad[0]])/un
++    target=np.zeros(n);target[:2]=ut
++    target=D.T@Phi_end.T@target
++    projection=V.T@target
++    null_frac=float(np.linalg.norm(projection[vals<=threshold])/max(np.linalg.norm(projection),1e-30))
++    sig=(math.inf if null_frac>1e-5 else
++         100*float(np.sqrt(np.sum(projection[vals>threshold]**2/vals[vals>threshold]))))
++    start=X[0,:2]-anc[:2]
++    gauge=np.zeros(n);gauge[:2]=[-start[1],start[0]];gauge[2]=1.
++    gn=np.linalg.solve(D,gauge);gn=gn/np.linalg.norm(gn)
++    grel=float(max(0.,gn@W@gn)/largest)
++    # Tolerance and state-unit sensitivity are DIAGNOSTICS, not fitted tuning.
++    sensitivity={}
++    for factor in (.1,10.):
++        sensitivity[f'rank_cutoff_x{factor:g}']=int(np.count_nonzero(vals>threshold*factor))
++    for factor in (.5,2.):
++        q=np.ones(n);q[2]=q[3]=factor
++        sensitivity[f'rank_angles_x{factor:g}']=int(np.count_nonzero(
++            np.linalg.eigvalsh(np.diag(q)@W@np.diag(q))>
++            max(1e-12,float(np.linalg.eigvalsh(np.diag(q)@W@np.diag(q))[-1])*1e-8)))
++    out={'rank':rank,'rank_svd':rank_svd,'lambda_min':float(vals[0]),
++         'lambda_max':float(vals[-1]),'null_target_fraction':null_frac,
++         'sigma_terminal_tan_cm':sig,'gauge_rayleigh_over_lambda_max':grel,
++         'min_psd_eigenvalue':float(np.linalg.eigvalsh(W)[0]),
++         'sensitivity':sensitivity}
++    return out,W,B,rows_k
++
++
++def fd_chain_samples(ctx,d,span,nominal,X,PHI,H4,*,points=5):
++    """Perturb *initial* motion states; validate nonlinear h(f^k(x0)) Jacobian.
++
++    A changed tap/cell is recorded NONSMOOTH, never asserted to satisfy a
++    within-cell analytic derivative.  Reuses no observability Jacobian code.
++    """
++    s,e=span[1:];n=e-s
++    choices=np.unique(np.linspace(0,n-1,min(points,n),dtype=int))
++    rows=[];stable=0
++    x0=np.array(X[0],copy=True)
++    for j,eps in enumerate(FD_STEPS):
++        xp=x0.copy();xm=x0.copy();xp[j]+=eps;xm[j]-=eps
++        pp=xp.copy();pm=xm.copy()
++        sampled={}
++        for i,k in enumerate(range(s,e)):
++            if i:
++                ds=float(d.controls['ds_odom'][k]);g=float(d.controls['dtheta_gyro'][k]);dt=float(d.controls['dt_s'][k])
++                pp=_step(pp,ds,g,dt);pm=_step(pm,ds,g,dt)
++            if i in choices:sampled[i]=(pp.copy(),pm.copy())
++        for i in choices:
++            p,m=sampled[int(i)]
++            source=np.vstack([X[i],p,m])
++            hh,_,diag=ctx.model.batch(source,d.case,gradient=False,return_diagnostics=True)
++            tap=diag['tap'];cell=diag['cells']
++            ok=(int(tap[0])==int(tap[1])==int(tap[2]) and
++                np.array_equal(cell[0],cell[1]) and np.array_equal(cell[0],cell[2]))
++            fdd=(hh[1]-hh[2])/(2*eps)
++            expected=np.asarray(H4[i]@PHI[i][:,j],float)
++            # The original SourceFFD range channel remains differentiable.
++            rerr=float(abs(fdd[0]-expected[0]))
++            serr=float(abs(fdd[1]-expected[1]))
++            if rerr>max(.005,abs(expected[0])*.005):
++                raise RuntimeError(f'range nonlinear FD chain failure {d.key} {i}/{j}: {rerr}')
++            if ok:
++                stable+=1
++                if serr>max(.02,abs(expected[1])*.005):
++                    raise RuntimeError(f'polarization stable FD chain failure {d.key} {i}/{j}: {serr}')
++            rows.append({'case':d.case['id'],'bias':d.bias,'window':span[0],
++                         'nominal':nominal,'packet_index':int(s+i),
++                         't_s':float(d.t[s+i]),'initial_state_axis':('x_m','y_m','psi_rad','bg_rad_s')[j],
++                         'tap_cell_stable':bool(ok),'status':'STABLE_PASS' if ok else 'NONSMOOTH_SEPARATE',
++                         'hphi_r_fd':float(fdd[0]),'hphi_r_analytic':float(expected[0]),
++                         'hphi_s_fd':float(fdd[1]),'hphi_s_analytic':float(expected[1]),
++                         'abs_range_error':rerr,'abs_pol_error':serr})
++    if stable==0:
++        raise RuntimeError(f'NO_STABLE_FD_CHAIN_SAMPLES {d.key}/{span[0]}/{nominal}')
++    return rows
+diff --git a/dsreassess/io.py b/dsreassess/io.py
+--- a/dsreassess/io.py
++++ b/dsreassess/io.py
+@@ -302,7 +302,8 @@
+         if np.max(abs(measured_s-d.z[:,1]))>1e-9:
+             raise RuntimeError(f'NATIVE_RF_SFP_VS_E1_MISMATCH {cid}: '
+                                f'{np.max(abs(measured_s-d.z[:,1]))}')
+-        val={'tap':measured_tap,'margin':measured_margin,'s_fp':measured_s}
++        val={'tap':measured_tap,'margin':measured_margin,'s_fp':measured_s,
++              'raw_sample_index':row_index.astype(np.int64)}
+         self._native_fp_cache[cid]=val
+         self._verified[p]=sha256(p)
+         self._verified[sample]=sha256(sample)
+diff --git a/dsreassess/observability.py b/dsreassess/observability.py
+--- a/dsreassess/observability.py
++++ b/dsreassess/observability.py
+@@ -104,7 +104,8 @@
+ 
+ 
+ def fisher(ctx:Context,d:CaseData, *, span:tuple,nominal='GT',anchors=None,
+-           use_pol=False,use_prior=False,bias5=False,measurement_filter='A_B'):
++           use_pol=False,use_prior=False,bias5=False,measurement_filter='A_B',
++           diagnostics=None):
+     """Anchor geometry counterfactual; DO NOT pair relocated-anchor range with measured s.
+ 
+     `use_pol=True` is valid only when the *original* anchor is retained.
+@@ -165,6 +166,13 @@
+     gauge=np.zeros(n)
+     gauge[:2]=[-(startxy[1]-default[1]), startxy[0]-default[0]]
+     gauge[2]=1.
++    if diagnostics is not None:
++        # Audit snapshot captures the ACTUAL reference Fisher accumulator and
++        # associated real-input linearizations; not a second calculation.
++        diagnostics.update(W=W.copy(),X=X.copy(),Phi=PHI.copy(),
++                           H4=H4.copy(),R=d.R[s:e].copy(),
++                           mask=d.mask[s:e].copy(),P0=P0.copy(),
++                           anchor=np.array(anchors),s=s,e=e)
+     metrics=eig_summary(W,Phi_end,ut,gauge,n)
+     del metrics['eigenvalues']
+     return {'case':d.case['id'],'bias':d.bias,'window':span[0],
+diff --git a/dsreassess/stage12.py b/dsreassess/stage12.py
+--- a/dsreassess/stage12.py
++++ b/dsreassess/stage12.py
+@@ -1,5 +1,7 @@
+ """1: fixed-mask EX delta; 2: RF residual covariance/serial-correlation audit."""
+ from __future__ import annotations
++import hashlib
++from itertools import product
+ import numpy as np
+ import pandas as pd
+ from .io import Context,StageWriter
+@@ -37,52 +39,198 @@
+                    'oracle_truth':'R_ORACLE uses z_r minus GT geometric range (diagnosis only)'})
+ 
+ 
+-def acf_one(x,lag):
+-    x=np.asarray(x,float)
+-    if len(x)<lag+3:return np.nan
+-    a=x[:-lag]-np.mean(x[:-lag]);b=x[lag:]-np.mean(x[lag:])
+-    den=np.sqrt((a@a)*(b@b))
++# Legacy acf_one(array, lag) was invalid for a filtered, gappy packet sequence.
++# All lag statistics below use a stable row number from the original Full RF.
++BOOT_SECONDS=(8.,16.,32.)
++LAGS=(1,5)
++MIN_LAG_PAIRS=8
++MIN_BOOT_BLOCKS=4
++
++
++def acf_paired(x0, x1, min_pairs=MIN_LAG_PAIRS):
++    """Pearson correlation on eligible *original packet* (k,k+lag) pairs."""
++    a=np.asarray(x0,float);b=np.asarray(x1,float)
++    if len(a)<min_pairs:return np.nan
++    a=a-a.mean();b=b-b.mean()
++    den=float(np.sqrt((a@a)*(b@b)))
+     return float(a@b/den) if den>1e-24 else np.nan
+ 
+ 
+-def block_bootstrap_cov(x,y,t,*,seconds=8.,reps=300,seed=2710):
+-    """Contiguous nonoverlapping blocks; resample blocks, not i.i.d. packets."""
++def original_lag_pairs(base, *, distance_bin, sample, lag, min_pairs=MIN_LAG_PAIRS):
++    """Return valid pair indices, diagnostics, and elapsed-time distribution.
++
++    base is the unfiltered `whole/all` sequence with unique native RF row IDs.
++    Missing E1 packets, rejected packets and distance-bin excursions MUST NOT
++    become new neighbors after filtering. pose_id is a key, never a clock.
++    """
++    if sample not in ('all','accepted_A_B') or distance_bin not in ('whole','near','mid','far'):
++        raise ValueError('unknown sample or distance bin')
++    b=base.sort_values('packet_index',kind='stable').reset_index(drop=True)
++    native=b.raw_sample_index.to_numpy(np.int64)
++    stored=b.packet_index.to_numpy(np.int64)
++    time=b.t_s.to_numpy(float)
++    if len(native)<2 or np.any(np.diff(native)<=0) or np.any(np.diff(stored)!=1) or np.any(np.diff(time)<=0):
++        raise RuntimeError('original packet order/time not strictly increasing')
++    if b.pose_id.duplicated().any():raise RuntimeError('duplicate raw pose_id in E1 sequence')
++    # Find the actual native Full RF packet at +lag, NOT position i+lag after filtering.
++    j=pd.Index(native).get_indexer(native+lag)
++    exists=j>=0
++    i=np.flatnonzero(exists)
++    v=j[i]
++    inbin=(np.ones(len(b),bool) if distance_bin=='whole' else
++           b.distance_bin.to_numpy(str)==distance_bin)
++    inbin_pair=inbin[i]&inbin[v]
++    acc=b.accepted_ab.to_numpy(bool)
++    acc_pair=acc[i]&acc[v]
++    good=inbin_pair if sample=='all' else (inbin_pair&acc_pair)
++    i_good=i[good];j_good=v[good]
++    seconds=time[j_good]-time[i_good]
++    result={'lag_packet':int(lag),'n_pairs':int(len(i_good)),
++            'candidate_existing_pairs':int(len(i)),
++            'excluded_missing_native':int(np.count_nonzero((native+lag<=native[-1])&~exists)),
++            'excluded_distance_bin':int(np.count_nonzero(~inbin_pair)),
++            'excluded_accept_mask':int(np.count_nonzero(inbin_pair&~acc_pair)) if sample=='accepted_A_B' else 0,
++            'elapsed_min_s':float(seconds.min()) if len(seconds) else np.nan,
++            'elapsed_med_s':float(np.median(seconds)) if len(seconds) else np.nan,
++            'elapsed_max_s':float(seconds.max()) if len(seconds) else np.nan,
++            'status':'PASS' if len(i_good)>=min_pairs else 'NA_INSUFFICIENT_NATIVE_LAG_PAIRS'}
++    return i_good,j_good,result
++
++
++def block_bootstrap_cov(x,y,t, *, origin_s, seconds=8., reps=300,
++                        seed=2710,min_blocks=MIN_BOOT_BLOCKS):
++    """Fixed-origin time blocks with paired, block-resampled centered covariance.
++
++    Block boundaries are anchored to the ORIGINAL case start, never the first
++    accepted/binned packet. Resample nonempty blocks (pairs stay together).
++    All nonavailability is explicit rather than reported as a zero covariance.
++    """
+     x=np.asarray(x,float);y=np.asarray(y,float);t=np.asarray(t,float)
+-    if len(x)<6:return (np.nan,np.nan,np.nan)
+-    blocks=np.floor((t-t[0])/seconds).astype(int)
+-    block_ids=np.unique(blocks)
+-    if len(block_ids)<4:return (np.nan,np.nan,float(len(block_ids)))
+-    ids=[np.flatnonzero(blocks==b) for b in block_ids]
++    if not (x.shape==y.shape==t.shape) or seconds<=0 or reps<10:
++        raise ValueError('bootstrap covariance parameters/shapes invalid')
++    if not len(x):
++        return {'lo':np.nan,'hi':np.nan,'n_blocks':0,'block_n_min':0,
++                'block_n_median':np.nan,'block_n_max':0,'status':'NA_NO_SAMPLES'}
++    if np.any(np.diff(t)<0):raise ValueError('bootstrap needs original time order')
++    if np.any(t < origin_s-1e-7):raise ValueError('origin after first sample')
++    # Epsilon only avoids roundoff when a packet falls on a nominal boundary.
++    bid=np.floor((t-origin_s)/seconds+1e-10).astype(np.int64)
++    _,rev=np.unique(bid,return_inverse=True)
++    B=int(rev.max()+1)
++    counts=np.bincount(rev,minlength=B)
++    out={'n_blocks':B,'block_n_min':int(counts.min()),
++         'block_n_median':float(np.median(counts)),'block_n_max':int(counts.max())}
++    if B<min_blocks or len(x)<8:
++        return dict(out,lo=np.nan,hi=np.nan,status='NA_INSUFFICIENT_BLOCKS_OR_PACKETS')
++    # Block sufficient statistics: no concatenation and O(B*reps) memory.
++    nx=counts.astype(float)
++    sx=np.bincount(rev,weights=x,minlength=B)
++    sy=np.bincount(rev,weights=y,minlength=B)
++    sxy=np.bincount(rev,weights=x*y,minlength=B)
+     gen=np.random.default_rng(seed)
+-    outcomes=[]
+-    for _ in range(reps):
+-        picks=gen.integers(0,len(ids),size=len(ids))
+-        take=np.concatenate([ids[i] for i in picks])
+-        outcomes.append(np.cov(x[take],y[take],ddof=1)[0,1])
+-    return (*map(float,np.percentile(outcomes,[2.5,97.5])),float(len(ids)))
+-
+-
+-def summary_residuals(df, *, secs=8., reps=300):
++    pick=gen.integers(0,B,size=(reps,B))
++    n=nx[pick].sum(axis=1)
++    u=sx[pick].sum(axis=1);v=sy[pick].sum(axis=1)
++    w=sxy[pick].sum(axis=1)
++    vals=(w-u*v/n)/(n-1)
++    if not np.isfinite(vals).all():
++        raise RuntimeError('nonfinite bootstrap covariance')
++    lo,hi=np.percentile(vals,[2.5,97.5])
++    return dict(out,lo=float(lo),hi=float(hi),status='PASS')
++
++
++def summary_residuals(df, *, secs=8., reps=300, block_sizes=BOOT_SECONDS,
++                      min_lag_pairs=MIN_LAG_PAIRS):
++    """Per-bin, selected-population diagnostics on the unfiltered raw time axis.
++
++    Expected `df`: one copy of each raw packet for sample=all/accepted_A_B,
++    and for distance_bin=(original bin, whole). The original distance-labelled all rows supply
++    packet alignment; observed E1/native gaps are never bridged.
++    """
++    required={'case','bias','arm','distance_bin','sample','packet_index',
++              'raw_sample_index','pose_id','accepted_ab','t_s','er_m','es',
++              'Rrr','Rss'}
++    if m:=required-set(df.columns):raise ValueError(f'missing residual columns {m}')
++    if tuple(float(v) for v in block_sizes)!=BOOT_SECONDS:
++        raise ValueError('pre-registered bootstrap block sizes must be 8/16/32s')
++    # Keep the native distance labels: the whole copy is for reporting only.
++    native=df[(df['sample']=='all') & df['distance_bin'].isin(('near','mid','far'))]
++    source={key:g.sort_values('packet_index',kind='stable').reset_index(drop=True)
++            for key,g in native.groupby(['case','bias','arm'],observed=True)}
++    expected_keys=set(map(tuple,df[['case','bias','arm']].drop_duplicates().to_numpy()))
++    if set(source)!=expected_keys:
++        raise ValueError('original distance-labelled all population required')
++    groups={key:g for key,g in df.groupby(
++        ['case','bias','arm','distance_bin','sample'],observed=True)}
+     out=[]
+-    for (case,bias,arm,bin_name,sample),g in df.groupby(['case','bias','arm','distance_bin','sample'],observed=True):
+-        if len(g)<8:continue
++    # Explicit rows even when a bin or its accepted subset has no observations.
++    for (case,bias,arm),bin_name,sample in product(
++            sorted(source),('whole','near','mid','far'),('all','accepted_A_B')):
++        g=groups.get((case,bias,arm,bin_name,sample),df.iloc[:0])
++        full=source[(case,bias,arm)]
++        valid_ids=set(full.raw_sample_index.to_numpy(np.int64))
++        if (len(full.raw_sample_index)!=len(valid_ids) or
++                not set(g.raw_sample_index.to_numpy(np.int64)).issubset(valid_ids)):
++            raise RuntimeError('subset does not match original RF packet index')
++        g=g.sort_values('packet_index',kind='stable')
+         x=g['er_m'].to_numpy(float);y=g['es'].to_numpy(float)
+         px=g['Rrr'].to_numpy(float);py=g['Rss'].to_numpy(float)
+-        cov=float(np.cov(x,y,ddof=1)[0,1]);cxy=np.corrcoef(x,y)[0,1]
+-        low,high,nb=block_bootstrap_cov(x,y,g.t_s.to_numpy(),seconds=secs,reps=reps,
+-                                         seed=abs(sum(map(ord,case+bias+arm+str(bin_name)+sample)))+2710)
+-        out.append({'case':case,'bias':bias,'arm':arm,'distance_bin':bin_name,'sample':sample,
+-                    'n_packets':len(g),'duration_s':float(g.t_s.max()-g.t_s.min()),
+-                    'mean_er_m':float(np.mean(x)),'mean_es':float(np.mean(y)),
+-                    'var_er_centered':float(np.var(x,ddof=1)),'var_es_centered':float(np.var(y,ddof=1)),
+-                    'Rrr_mean':float(np.mean(px)),'Rss_mean':float(np.mean(py)),
+-                    'err_over_assumed_Rrr':float(np.var(x,ddof=1)/np.mean(px)),
+-                    'err_over_assumed_Rss':float(np.var(y,ddof=1)/np.mean(py)),
+-                    'cov_er_es':cov,'corr_er_es':float(cxy),
+-                    'cross_moment_er_es':float(np.mean(x*y)),
+-                    'cov_block_CI95_lo':low,'cov_block_CI95_hi':high,
+-                    'n_blocks':nb,'acf1_er':acf_one(x,1),'acf1_es':acf_one(y,1),
+-                    'acf5_er':acf_one(x,5),'acf5_es':acf_one(y,5)})
++        enough=len(g)>=8
++        sample_status=('PASS' if enough else
++                       'NA_NO_SAMPLES' if not len(g) else 'NA_INSUFFICIENT_PACKETS')
++        cov=float(np.cov(x,y,ddof=1)[0,1]) if enough else np.nan
++        varx=float(np.var(x,ddof=1)) if enough else np.nan
++        vary=float(np.var(y,ddof=1)) if enough else np.nan
++        def mean_or_na(values):
++            return float(np.mean(values)) if len(values) else np.nan
++
++        corr=float(cov/np.sqrt(varx*vary)) if varx>0 and vary>0 else np.nan
++        label=f'{case}|{bias}|{arm}|{bin_name}|{sample}'
++        seed=int.from_bytes(hashlib.sha256(label.encode('utf-8')).digest()[:8],'little')
++        result={'case':case,'bias':bias,'arm':arm,'distance_bin':bin_name,'sample':sample,
++                'n_packets':len(g),'duration_s':float(g.t_s.max()-g.t_s.min()),
++                'sample_status':sample_status,
++                'mean_er_m':mean_or_na(x) if enough else np.nan,
++                'mean_es':mean_or_na(y) if enough else np.nan,
++                'var_er_centered':varx,'var_es_centered':vary,
++                'Rrr_mean':mean_or_na(px),'Rss_mean':mean_or_na(py),
++                'err_over_assumed_Rrr':float(varx/mean_or_na(px)),
++                'err_over_assumed_Rss':float(vary/mean_or_na(py)),
++                'cov_er_es':cov,'corr_er_es':corr,
++                'cross_moment_er_es':mean_or_na(x*y) if enough else np.nan,
++                'original_origin_s':float(full.t_s.iloc[0])}
++        selected=full.raw_sample_index.isin(g.raw_sample_index).to_numpy()
++        expected=(np.ones(len(full),bool) if bin_name=='whole' else
++                  full.distance_bin.to_numpy(str)==bin_name)
++        if sample=='accepted_A_B':expected &= full.accepted_ab.to_numpy(bool)
++        if int(selected.sum())!=len(g) or not np.array_equal(selected,expected):
++            raise AssertionError('population mismatch')
++        for lag in LAGS:
++            ii,jj,m=original_lag_pairs(full,distance_bin=bin_name,sample=sample,
++                                        lag=lag,min_pairs=min_lag_pairs)
++            for col in ('er_m','es'):
++                vec=full[col].to_numpy(float)
++                result[f'acf{lag}_{"er" if col=="er_m" else "es"}']=acf_paired(vec[ii],vec[jj],min_lag_pairs)
++            for key,val in m.items():result[f'lag{lag}_{key}']=val
++        signs=[];n_ok=0
++        for duration in BOOT_SECONDS:
++            name=str(int(duration))
++            boot=block_bootstrap_cov(x,y,g.t_s.to_numpy(float),
++                                     origin_s=float(full.t_s.iloc[0]),
++                                     seconds=duration,reps=reps,seed=seed+int(duration))
++            for col,val in boot.items():result[f'boot_{name}_{col}']=val
++            if boot['status']=='PASS':
++                n_ok+=1
++                signs.append(1 if boot['lo']>0 else -1 if boot['hi']<0 else 0)
++        # Preserve legacy 8-second columns for easy comparison of old tables.
++        result.update(cov_block_CI95_lo=result['boot_8_lo'],
++                      cov_block_CI95_hi=result['boot_8_hi'],
++                      n_blocks=result['boot_8_n_blocks'])
++        result['bootstrap_stability']=(
++            'STABLE_POS' if n_ok==3 and signs==[1,1,1] else
++            'STABLE_NEG' if n_ok==3 and signs==[-1,-1,-1] else
++            'INSUFFICIENT_8_16_32' if n_ok<3 else 'SENSITIVE_OR_INCLUDES_ZERO')
++        out.append(result)
+     return pd.DataFrame(out)
+ 
+ 
+@@ -121,6 +269,8 @@
+         for arm,mu in [('BASE',d.mu_b),('EX',d.mu_ex),('EXDS',d.mu_exds)]:
+             frame=pd.DataFrame({'case':d.case['id'],'route':d.case['route'],
+                                 'bias':d.bias,'arm':arm,'t_s':d.t,'pose_id':d.ids,
++                                'packet_index':np.arange(len(d.t),dtype=np.int64),
++                                'raw_sample_index':native['raw_sample_index'],
+                                 'distance_bin':dist_bin,'d_gt_m':dg,
+                                 'er_m':er_true-mu,'es':es_true-d.mu_s,
+                                 'Rrr':d.R[:,0,0],'Rss':d.R[:,1,1],
+@@ -141,26 +291,21 @@
+         model_checks.append({'case':d.case['id'],'bias':d.bias,'taps_gt_changes':int(tap_transition.sum()),
+                              'measured_tap_transitions':int(measured_transition.sum()),
+                              'n_full_minus_los_tap_nonzero':int(np.count_nonzero(tap_shift)),
++                             'n_missing_native_rf_rows_between_e1_packets':int(np.sum(np.maximum(
++                                 np.diff(native['raw_sample_index'])-1,0))),
+                              'min_predicted_fp_margin':float(margin.min()),
+                              'min_measured_fp_margin':float(measured_margin.min()),
+                              'note':'Native full RF FP tap is recomputed from input CIR; LoS tap is frozen SourceFFD prediction at GT'})
+     df=pd.concat(rows,ignore_index=True)
+     df.to_csv(writer.dir/'RESIDUALS.csv.gz',index=False,compression='gzip',float_format='%.16g')
+-    # Whole-sequence correlations (t bins are not contiguous; lag only all window).
+-    result=summary_residuals(df[df['distance_bin']=='far'],secs=ctx.cfg.block_seconds)
+-    more=[]
+-    for key,g in df.groupby(['case','bias','arm','sample'],observed=True):
+-        if len(g)<8:continue
+-        h=g.sort_values('t_s').copy()
+-        h['distance_bin']='whole'
+-        more.append(h)
+-    whole=pd.concat(more,ignore_index=True)
+-    result=pd.concat([result,summary_residuals(whole,secs=ctx.cfg.block_seconds)],ignore_index=True)
+-    # Add near and mid without interpreting gappy bins as continuous time lags.
+-    bins=summary_residuals(df[df['distance_bin']!='far'],secs=ctx.cfg.block_seconds)
+-    for field in ['acf1_er','acf1_es','acf5_er','acf5_es']:
+-        bins[field]=np.nan
+-    writer.csv('RESIDUAL_STATS.csv',pd.concat([result,bins],ignore_index=True))
++    # All groups are aligned against the same original packet sequence.
++    # Distance bins and accepted groups remain explicit subsets; neither
++    # ACF nor bootstrap interprets their filtered rows as adjacent packets.
++    entire=df.copy()
++    entire['distance_bin']='whole'
++    statistics_input=pd.concat([df,entire],ignore_index=True)
++    result=summary_residuals(statistics_input,reps=300)
++    writer.csv('RESIDUAL_STATS.csv',result)
+     writer.csv('SOURCE_GT_DIAGNOSTICS.csv',model_checks)
+     tap_stats=[]
+     for key,g in df[(df['sample']=='all')&(df['bias']=='B0')].groupby(['route','case','arm','fp_shift_class'],observed=True):
+@@ -174,6 +319,122 @@
+                           'RMS_es':float(np.sqrt(np.mean(b*b))),
+                           'RMS_er_m':float(np.sqrt(np.mean(a*a)))})
+     writer.csv('MEASURED_FP_SHIFT_STRATA.csv',tap_stats)
+-    writer.finish({'note':'B0/L2 share the same RF; no i.i.d. packet confidence intervals. Discontiguous distance-bin ACF not reported.',
++    writer.finish({'note':'B0/L2 share the same RF; no i.i.d. packet confidence intervals. Distance-bin ACF uses native packet lag pairs, never filtered adjacency.',
+                    'measurement_vs_prediction_tap':'Measured full RF FP tap is recomputed from original 4x Hann/IFFT/30-percent algorithm and checked against E1 s_fp.',
+-                   'R_target':'Rrr/Rss are prior POWER covariances; centered residual variance does not absorb mean bias.'})
++                   'R_target':'Rrr/Rss are prior POWER covariances; centered residual variance does not absorb mean bias.',
++                   'lag_definition':'native Full RF row index difference = 1/5; both endpoints pass subset masks',
++                   'bootstrap':'8/16/32 s; fixed original RF sequence start; explicit NA for insufficient blocks',
++                   'statistics_revision':'v2 packet-aligned, sample-consistent lag statistics; no EKF replay'})
++
++
++def stage2_from_verified_cache(ctx:Context,writer:StageWriter,old_results_root):
++    """Recalculate *statistics only* from the original hashed Stage-2 residuals.
++
++    No Full CIR FFT/SourceFFD batch is rerun. The original 450a21f residuals
++    must match its SHA manifest; packet indices come from the original native
++    `samples_path` order AND frozen E1 trace. No CSV row order is trusted.
++    """
++    from pathlib import Path
++    from .io import sha256,read_json
++    old=Path(old_results_root).resolve()/'02_residuals'
++    manifest=read_json(old/'OUTPUT_SHA256.json')
++    required=['RESIDUALS.csv.gz','SOURCE_GT_DIAGNOSTICS.csv',
++              'MEASURED_FP_SHIFT_STRATA.csv','CHECKS.json','RUN_STATUS.json']
++    for fn in required:
++        path=old/fn
++        if not path.is_file() or fn not in manifest or sha256(path)!=manifest[fn]:
++            # RUN_STATUS.json was written AFTER OUTPUT_SHA256.json in the
++            # original StageWriter, so it is not in the old per-stage manifest.
++            if fn=='RUN_STATUS.json' and path.is_file() and fn not in manifest:
++                continue
++            raise RuntimeError(f'UNVERIFIED_STAGE2_CACHE: {path}')
++    status=read_json(old/'RUN_STATUS.json')
++    if status.get('status')!='CODE_EXECUTION_PASS_NOT_SCIENTIFIC_VALIDATION':
++        raise RuntimeError('cached Stage2 was not a completed technical PASS')
++    original_check=read_json(old/'CHECKS.json')
++    if not original_check or any(x.get('status')!='PASS' for x in original_check):
++        raise RuntimeError('cached Stage2 CHECKS are missing/failed')
++    df=pd.read_csv(old/'RESIDUALS.csv.gz',compression='gzip')
++    cols={'case','route','bias','arm','sample','distance_bin','t_s','pose_id',
++          'er_m','es','accepted_ab','Rrr','Rss'}
++    if m:=cols-set(df.columns):raise RuntimeError(f'cached Stage2 missing fields {m}')
++    if df.duplicated(['case','bias','arm','sample','pose_id']).any():
++        raise RuntimeError('duplicate cache case/arm/population packet')
++    fixed=[];provenance=[]
++    # Key by exact original pose_id instead of relying on inferred integer
++    # continuity or on the stored Stage-2 CSV sorting convention.
++    contexts={(d.case['id'],d.bias):d for d in ctx.cases()}
++    valid_pairs=set(contexts)
++    cached_pairs=set(zip(df.case,df.bias))
++    if cached_pairs!=valid_pairs:
++        raise RuntimeError('cached and requested case/bias populations differ')
++    native_cache={}
++    for (caseid,bias),d in contexts.items():
++        if caseid not in native_cache:
++            sample=ctx.cfg.source_root/d.case['samples_path']
++            original_lock=read_json(ctx.base/'e1_e4/INPUT_LOCK.json')
++            rel=d.case['samples_path'].replace('\\','/')
++            digest_candidates=[r['sha256'] for r in original_lock['files']
++                               if r['path'].replace('\\','/').endswith('/'+rel)]
++            if len(digest_candidates)!=1 or sha256(sample)!=digest_candidates[0]:
++                raise RuntimeError(f'ORIGINAL_SAMPLE_SNAPSHOT_SHA256_MISMATCH: {sample}')
++            ctx.verify_manifest_file(sample)
++            source=read_json(sample)
++            raw_ids=pd.DataFrame(source)['pose_id'].to_numpy()
++            native_index=pd.Index(raw_ids)
++            if native_index.has_duplicates:raise RuntimeError('duplicate native Full RF pose_id')
++            native_cache[caseid]=native_index
++        native_index=native_cache[caseid]
++        raw_ix=native_index.get_indexer(d.ids)
++        if np.any(raw_ix<0) or np.any(np.diff(raw_ix)<=0):
++            raise RuntimeError(f'E1/native RF original order mismatch: {d.key}')
++        align=pd.DataFrame({'pose_id':d.ids,'packet_index':np.arange(len(d.ids)),
++                            'raw_sample_index':raw_ix,'reference_time':d.t,
++                            'reference_accepted':d.mask})
++        cut=df[(df.case==caseid)&(df.bias==bias)].drop(
++            columns=['packet_index','raw_sample_index'],errors='ignore').merge(
++            align,on='pose_id',how='left',validate='many_to_one')
++        if cut.packet_index.isna().any() or cut.raw_sample_index.isna().any():
++            raise RuntimeError(f'cached packet outside frozen E1: {d.key}')
++        if len(cut)!=len(df[(df.case==caseid)&(df.bias==bias)]):
++            raise RuntimeError('cached row count changed in alignment')
++        cut.packet_index=cut.packet_index.astype(np.int64)
++        cut.raw_sample_index=cut.raw_sample_index.astype(np.int64)
++        writer.check(d.key+'_cached_times',cut.t_s,cut.reference_time,1e-10)
++        writer.check(d.key+'_cached_accept',cut.accepted_ab.to_numpy(bool),
++                     cut.reference_accepted.to_numpy(bool),0)
++        for arm in ('BASE','EX','EXDS'):
++            part=cut[(cut.arm==arm)&(cut['sample']=='all')]
++            if len(part)!=len(d.t) or set(part.pose_id)!=set(d.ids):
++                raise RuntimeError(f'cached full packet coverage incomplete {d.key}/{arm}')
++            acc=cut[(cut.arm==arm)&(cut['sample']=='accepted_A_B')]
++            if len(acc)!=int(d.mask.sum()) or not acc.accepted_ab.all():
++                raise RuntimeError(f'cached accepted subset inconsistent {d.key}/{arm}')
++        fixed.append(cut.drop(columns=['reference_time','reference_accepted']))
++        provenance.append({'case':caseid,'bias':bias,'n_E1':len(d.t),
++                           'n_native':len(native_index),'n_native_gaps':int(
++                               np.maximum(np.diff(raw_ix)-1,0).sum()),
++                           'SHA256_native_sample_id_manifest':ctx._verified[sample.resolve()]})
++    full_df=pd.concat(fixed,ignore_index=True)
++    expected_rows=len(df)
++    if len(full_df)!=expected_rows:raise RuntimeError('cached residual rows changed')
++    # The second copy is only for grouping `whole`; all pair alignment uses
++    # the original, unchanged `whole/all` packet population.
++    whole=full_df.copy();whole['distance_bin']='whole'
++    summary=summary_residuals(pd.concat([full_df,whole],ignore_index=True),reps=300)
++    if summary.empty:raise RuntimeError('empty statistics after cache alignment')
++    full_df.to_csv(writer.dir/'RESIDUALS.csv.gz',index=False,
++                   compression='gzip',float_format='%.16g')
++    writer.csv('RESIDUAL_STATS.csv',summary)
++    for fn in ('SOURCE_GT_DIAGNOSTICS.csv','MEASURED_FP_SHIFT_STRATA.csv'):
++        writer.csv(fn,pd.read_csv(old/fn))
++    writer.csv('CACHE_NATIVE_ALIGNMENT.csv',provenance)
++    writer.json('CACHED_INPUT_IDENTITY.json',{'source_Stage2':str(old),
++                 'old_manifest_sha256':sha256(old/'OUTPUT_SHA256.json'),
++                 'old_residuals_sha256':sha256(old/'RESIDUALS.csv.gz'),
++                 'raw_inputs_sha256_verified':True,
++                 'mode':'DERIVED_FROM_VERIFIED_ORIGINAL_CACHE_NO_NEW_RF_EXTRACTION'})
++    writer.finish({'statistics_revision':'packet-native-indexed ACF, fixed-origin 8/16/32 bootstrap',
++                   'upstream':'old Stage2 RF measurement predictions reused byte-verifiably',
++                   'new_physics_runs':0,'new_filter_runs':0,
++                   'comparison':'Stage3 will use regenerated selected populations; original E1 frozen'})
+diff --git a/dsreassess/stage34.py b/dsreassess/stage34.py
+--- a/dsreassess/stage34.py
++++ b/dsreassess/stage34.py
+@@ -13,39 +13,57 @@
+     return 'near' if d<1.5 else ('mid' if d<4 else 'far')
+ 
+ 
+-def fit_held_route_cov(df, *, target_route, arm, dist_bin, minimum):
+-    """Route-heldout B0-only calibration. Do not train on target/B0's L2 duplicate.
+-
+-    Center within each training route, average the route covariance matrices
+-    with equal route weights. Means are retained independently for audit.
+-    """
+-    tr=df[(df['route']!=target_route)&(df['bias']=='B0')&
+-          (df['arm']==arm)&(df['sample']=='all')&(df['distance_bin']==dist_bin)]
+-    status='BIN'
++def fit_held_route_cov(df, *, target_route, arm, dist_bin, minimum,
++                       sample_condition):
++    """Held-route R from exactly one stated observation population.
++
++    All conditions use B0 only and EXCLUDE the target route. An insufficient
++    accepted-only distance bin may fall back to the accepted-only whole
++    sequence on other routes; it can NEVER borrow rejected packets.
++    """
++    if sample_condition not in ('all','accepted_A_B'):
++        raise ValueError('invalid covariance training population')
++    if dist_bin not in ('near','mid','far'):
++        raise ValueError('invalid covariance distance bin')
++    primary=df[(df['route']!=target_route)&(df['bias']=='B0') &
++               (df['arm']==arm)&(df['sample']==sample_condition)]
++    tr=primary[primary['distance_bin']==dist_bin]
++    # Preserve exactly the legacy ALL-population fallback criterion so the
++    # original DIAG/FULL results can be compared at 1e-10. For accepted_A_B
++    # this same rule is applied WITHIN the accepted population only.
+     if len(tr)<minimum or tr.route.nunique()<2:
+-        tr=df[(df['route']!=target_route)&(df['bias']=='B0')&
+-              (df['arm']==arm)&(df['sample']=='all')]
+-        status='WHOLE_HELD_ROUTE_FALLBACK'
+-    chunks=[];means=[];names=[]
++        tr=primary
++        status='WHOLE_SAME_POPULATION_FALLBACK'
++    else:
++        status='BIN_SAME_POPULATION'
++    if len(tr)<minimum or tr.route.nunique()<2:
++        counts=tr.groupby('route').size().to_dict()
++        raise RuntimeError(f'INSUFFICIENT_HELD_ROUTE_{sample_condition}: '
++                           f'{target_route}/{arm}/{dist_bin} train counts={counts}')
++    chunks=[];means=[];names=[];counts=[]
+     for route,g in tr.groupby('route'):
+-        if len(g)<max(5,minimum//3):continue
++        if route==target_route:raise AssertionError('training/test route leakage')
+         dat=g[['er_m','es']].to_numpy(float)
++        if len(dat)<max(5,minimum//3):
++            raise RuntimeError('population-specific held-route count is insufficient')
+         chunks.append(np.cov(dat,rowvar=False,ddof=1))
+         means.append(dat.mean(axis=0))
+-        names.append(route)
++        names.append(route);counts.append(len(g))
+     if len(chunks)<2:
+-        raise RuntimeError(f'Insufficient 2 independent heldout routes for {target_route}/{arm}/{dist_bin}')
+-    cov=np.mean(chunks,axis=0)
++        raise RuntimeError(f'Insufficient heldout-route populations {target_route}/{arm}/{dist_bin}/{sample_condition}')
++    cov=np.mean(chunks,axis=0) # Equal route weight; NOT packet-weighted pooling.
+     eigen=np.linalg.eigvalsh(cov)
+-    if eigen.min()< -1e-12:raise RuntimeError('held-route sample covariance unexpectedly indefinite')
+-    if eigen.min()<1e-10:
+-        cov=cov+np.eye(2)*(1e-10-eigen.min())
++    if eigen.min()<-1e-12:raise RuntimeError('held-route sample covariance indefinite')
++    if eigen.min()<1e-10:cov=cov+np.eye(2)*(1e-10-eigen.min())
+     return cov,{'target_route':target_route,'arm':arm,'distance_bin':dist_bin,
++                'sample_condition':sample_condition,
+                 'source':'B0 only','train_routes':','.join(names),
+-                'n_train':len(tr),'status':status,
++                'train_route_sizes':';'.join(str(v) for v in counts),
++                'n_train':int(sum(counts)),'status':status,
+                 'route_mean_er_m':float(np.mean([m[0] for m in means])),
+                 'route_mean_es':float(np.mean([m[1] for m in means])),
+-                'var_r':float(cov[0,0]),'cov_rs':float(cov[0,1]),'var_s':float(cov[1,1])}
++                'var_r':float(cov[0,0]),'cov_rs':float(cov[0,1]),
++                'var_s':float(cov[1,1])}
+ 
+ 
+ def build_R_rule(ctx,d,emp_cov,variant):
+@@ -103,57 +121,108 @@
+ 
+ 
+ def stage3(ctx:Context,writer:StageWriter):
++    """All-vs-accepted covariance population × DIAG-vs-FULL structure.
++
++    The old population-all arms keep their exact legacy names (`BB_DIAG`,
++    `BB_FULL`, `MB_DIAG`, `MB_FULL`). New `*_ACC_*` arms differ ONLY in
++    the training population. TAP remains an old exploratory arm; it is
++    deliberately NOT swept in this confounder-isolation experiment.
++    """
+     inputs=ctx.cfg.output_root/'02_residuals/RESIDUALS.csv.gz'
+     if not inputs.is_file():
+-        raise FileNotFoundError('Run stage 2 first: '+str(inputs))
++        raise FileNotFoundError('Run amended Stage 2 first: '+str(inputs))
+     from .io import read_json,sha256
+     manifest=read_json(ctx.cfg.output_root/'02_residuals/OUTPUT_SHA256.json')
+     if sha256(inputs)!=manifest.get(inputs.name):
+-        raise RuntimeError('STAGE2_RESIDUALS_SHA_MISMATCH: do not reuse altered calibration inputs')
++        raise RuntimeError('STAGE2_RESIDUALS_SHA_MISMATCH')
+     df=pd.read_csv(inputs,compression='gzip')
+-    expected={'case','route','bias','arm','sample','distance_bin','er_m','es'}
+-    if miss:=expected-set(df.columns):raise RuntimeError(f'stage2 residual columns missing {miss}')
+-    scores=[];cal=[];finite=[]
++    expected={'case','route','bias','arm','sample','distance_bin',
++              'er_m','es','packet_index','raw_sample_index'}
++    if miss:=expected-set(df.columns):
++        raise RuntimeError(f'patched Stage 2 residual columns missing {miss}')
++    scores=[];cal=[];finite=[];contrast=[]
+     for d in ctx.cases():
+         fitted={}
+         for arm in ('BASE','EXDS'):
+             fitted[arm]={}
+-            for bin_name in ('near','mid','far'):
+-                fitted[arm][bin_name],record=fit_held_route_cov(df,target_route=d.case['route'],
+-                                                                 arm=arm,dist_bin=bin_name,
+-                                                                 minimum=ctx.cfg.min_train_n)
+-                cal.append(dict(case=d.case['id'],bias=d.bias,**record))
++            for population in ('all','accepted_A_B'):
++                fitted[arm][population]={}
++                for bin_name in ('near','mid','far'):
++                    cov,record=fit_held_route_cov(
++                        df,target_route=d.case['route'],arm=arm,
++                        dist_bin=bin_name,minimum=ctx.cfg.min_train_n,
++                        sample_condition=population)
++                    fitted[arm][population][bin_name]=cov
++                    cal.append(dict(case=d.case['id'],bias=d.bias,**record))
+         arms={}
+         for prefix,mu in (('BB','BASE'),('MB','EXDS')):
+             arms[prefix+'_OFF']=replay(ctx,d,prefix+'_OFF',mu_kind=mu)
+-            # DIAG/ FULL condition R on prior estimated d; GT used only for
+-            # heldout training stats, never for online selection.
+-            for variant in ('DIAG','FULL','TAP'):
+-                # TAP builds from held-route full covariance, adds fp-margin inflation.
+-                rr_kind='FULL' if variant=='TAP' else variant
+-                rr=build_R_rule(ctx,d,fitted[mu],rr_kind)
+-                if variant=='TAP':
+-                    def rr_tap(k,x,R0,h,H, rr=rr):
+-                        R=rr(k,x,R0,h,H)
+-                        _,_,diag=ctx.model.batch(x[None,:4],d.case,gradient=False,return_diagnostics=True)
+-                        if float(diag['fp_margin'][0])<0.02:
+-                            scale=np.diag([1.,2.])
+-                            R=scale@R@scale
+-                        return maybe_spd(R)
+-                    rr=rr_tap
+-                arms[prefix+'_'+variant]=replay(ctx,d,prefix+'_'+variant,mu_kind=mu,R_rule=rr)
++            for population,marker in (('all',''),('accepted_A_B','ACC_')):
++                for structure in ('DIAG','FULL'):
++                    name=prefix+'_'+marker+structure
++                    rule=build_R_rule(ctx,d,fitted[mu][population],structure)
++                    arms[name]=replay(ctx,d,name,mu_kind=mu,R_rule=rule)
+         assert_off_parity(writer,d,arms['BB_OFF'],0)
+         assert_off_parity(writer,d,arms['MB_OFF'],4)
+         for arm in arms.values():
+             scores.extend([score(d,arm),score_window(d,arm,ctx)])
+             save_replay(writer,d,arm)
++        # Make the isolated population contrast explicit at fixed shrink and R shape.
++        for prefix in ('BB','MB'):
++            for structure in ('DIAG','FULL'):
++                a=score(d,arms[prefix+'_'+structure])
++                b=score(d,arms[prefix+'_ACC_'+structure])
++                off=score(d,arms[prefix+'_OFF'])
++                contrast.append({'case':d.case['id'],'bias':d.bias,'mean_model':prefix,
++                                 'structure':structure,'cov_shrink':ctx.cfg.cov_shrink,
++                                 'all_arm':prefix+'_'+structure,
++                                 'accepted_arm':prefix+'_ACC_'+structure,
++                                 **{key+'_all':a[key] for key in (
++                                    'heading_rmse_deg','xy_rmse_m','anchor_range_rmse_cm','heading_nees')},
++                                 **{key+'_accepted':b[key] for key in (
++                                    'heading_rmse_deg','xy_rmse_m','anchor_range_rmse_cm','heading_nees')},
++                                 **{key+'_off':off[key] for key in (
++                                    'heading_rmse_deg','xy_rmse_m','anchor_range_rmse_cm','heading_nees')},
++                                 'delta_heading_accepted_minus_all_deg':
++                                    b['heading_rmse_deg']-a['heading_rmse_deg']})
+         finite.extend(finite_difference_H(ctx,d,stride=ctx.cfg.fd_stride))
++    if hasattr(ctx.cfg,'repo_root'):
++        # Hard gate: the pre-existing all-population DIAG/FULL and OFF arms must
++        # remain byte-numerically equal to the previous published scientific data.
++        from .io import sha256,read_json
++        old_root=(ctx.cfg.repo_root/'research/DS_REASSESS_1_TO_6_20261027/results/03_RF_R_H')
++        old_scores=old_root/'SCORES.csv'
++        old_manifest=read_json(old_root/'OUTPUT_SHA256.json')
++        if not old_scores.is_file() or sha256(old_scores)!=old_manifest.get('SCORES.csv'):
++            raise RuntimeError('ORIGINAL_STAGE3_SCORES_NOT_VERIFIED')
++        ref=pd.read_csv(old_scores)
++        current=pd.DataFrame(scores)
++        retained={'BB_OFF','BB_DIAG','BB_FULL','MB_OFF','MB_DIAG','MB_FULL'}
++        index=['case','bias','arm','scope']
++        old=ref[ref.arm.isin(retained)].set_index(index).sort_index()
++        new=current[current.arm.isin(retained)].set_index(index).sort_index()
++        if old.index.has_duplicates or new.index.has_duplicates or not old.index.equals(new.index):
++            raise RuntimeError('STAGE3_LEGACY_ARM_COVERAGE_MISMATCH')
++        metric_cols=['heading_rmse_deg','heading_signed_bias_deg','heading_nees',
++                     'xy_rmse_m','anchor_range_rmse_cm']
++        max_diff=float(np.max(np.abs(old[metric_cols].to_numpy(float)-new[metric_cols].to_numpy(float))))
++        if not np.isfinite(max_diff) or max_diff>1e-10:
++            raise RuntimeError(f'STAGE3_ALL_POPULATION_PARITY_FAILED max_diff={max_diff}')
++        writer.json('LEGACY_ALL_PARITY.json',{'status':'PASS','comparisons':int(len(old)),
++                    'metrics':metric_cols,'max_abs_diff':max_diff,
++                    'baseline_SHA256':sha256(old_scores)})
++    else:
++        # Synthetic FakeCtx has no remote baseline and cannot claim that QA.
++        writer.json('LEGACY_ALL_PARITY.json',{'status':'SYNTHETIC_NOT_REAL_EVIDENCE'})
+     writer.csv('SCORES.csv',scores)
+     writer.csv('LORO_COVARIANCE.csv',cal)
++    writer.csv('R_SAMPLE_CONTRASTS.csv',contrast)
+     writer.csv('FFD_FINITE_DIFFERENCE.csv',finite)
+-    writer.finish({'note':'Held-route empirical covariance is an exploratory R model; stable-H discrepancy is a diagnostic, not auto-corrected.',
+-                   'safety':'R switched by prior estimated distance. TAP is modeled as extra inflation, not a repaired Gaussian likelihood.',
+-                   'covariance_shrink_toward_R_POWER':ctx.cfg.cov_shrink})
++    writer.finish({'comparison_axes':'BASE/EXDS x all/accepted_A_B x DIAG/FULL; fixed 0.5 POWER shrink',
++                   'training':'B0 on other routes only, equal route weight; fallback stays in same sample_condition',
++                   'legacy_parity':'old DIAG/FULL outputs unchanged as the all-sample reference; OFF E1 mandatory',
++                   'scope':'TAP held for future experiment, not part of this isolation sweep',
++                   'interpretation':'centered covariance does not remove residual mean, true conditional noise or selection bias'})
+ 
+ 
+ def axis_gt_or_est(ctx,d,*,axis,window):
+diff --git a/dsreassess/stage56.py b/dsreassess/stage56.py
+--- a/dsreassess/stage56.py
++++ b/dsreassess/stage56.py
+@@ -5,27 +5,126 @@
+ from .io import Context,StageWriter,PRIMARY
+ from .engine import replay,score,score_window,assert_off_parity,save_replay
+ from .observability import first_pass_windows,fisher
++from .fisher_independent import independent_nominal, independent_fisher, fd_chain_samples
+ 
+ 
+ def stage5(ctx:Context,writer:StageWriter):
+-    metrics=[]
++    """Real-input independent observability audit of all 4/5-state scenarios.
++
++    The *reference* nominal path/analytic Phi and W are captured from existing
++    fisher(), while independent path/Phi come from centered numerical motion
++    differentiation and the W/SVD/rank/sigma use a separate matrix codepath.
++    No Stage 1, Stage 4 or Stage 6 replay is touched.
++    """
++    metrics=[];audit=[];fd_rows=[];rank_sensitivity=[]
+     for d in ctx.cases():
+         for span in first_pass_windows(ctx,d):
+             for nominal in ('GT','PRIOR'):
++                cap={}
++                independent_X,independent_Phi=independent_nominal(d,span,nominal)
++                blocks={}
++                # The original frozen physics is the one common SourceFFD model.
++                # Its local H is checked by separate *initial-state perturbation*
++                # of the complete observer chain below.
++                H_ind=np.empty((len(independent_X),2,4))
++                for a in range(0,len(independent_X),32):
++                    b=min(len(independent_X),a+32)
++                    _,h=ctx.model.batch(independent_X[a:b],d.case)
++                    H_ind[a:b]=h
+                 for channels in ('RANGE_ONLY','RANGE_PLUS_POL'):
+                     for bias5 in (False,True):
+                         for use_prior in (False,True):
+-                            r=fisher(ctx,d,span=span,nominal=nominal,
+-                                     use_pol=channels=='RANGE_PLUS_POL',
+-                                     use_prior=use_prior,bias5=bias5)
+-                            metrics.append(dict(channels=channels,**r))
++                            pol=channels=='RANGE_PLUS_POL'
++                            captured_this_scenario={}
++                            reference=fisher(ctx,d,span=span,nominal=nominal,
++                                             use_pol=pol,use_prior=use_prior,
++                                             bias5=bias5,diagnostics=captured_this_scenario)
++                            if not cap:cap=captured_this_scenario
++                            metrics.append(dict(channels=channels,**reference))
++                            indep,Wscaled,B,rows_k=independent_fisher(
++                                d,span,independent_X,independent_Phi,H_ind,
++                                pol=pol,prior=use_prior,bias5=bias5,
++                                bias_prior_var=ctx.cfg.augmented_br_prior_std_m**2)
++                            if not cap:raise RuntimeError('failed to capture reference Fisher inputs')
++                            # Independent rank from SVD and normal-matrix spectrum.
++                            if indep['rank']!=int(reference['rank']):
++                                raise RuntimeError(f'Fisher rank mismatch: {d.key} {span[0]} {nominal} '
++                                                   f'{channels}/{bias5}/{use_prior}: {indep["rank"]} '
++                                                   f'vs {reference["rank"]}')
++                            n=5 if bias5 else 4
++                            q=np.array([1.,1.,np.radians(5.),np.radians(.1)]+([.1] if bias5 else []))
++                            # Compare with THIS scenario's original Fisher matrix.
++                            W_ref=q[:,None]*captured_this_scenario['W']*q[None,:]
++                            error=float(np.max(np.abs(W_ref-Wscaled)))
++                            atol=max(2e-5,1e-5*max(1.,float(np.max(np.abs(W_ref)))))
++                            writer.check(f'{d.key}_{span[0]}_{nominal}_{channels}_{bias5}_{use_prior}_W',
++                                         Wscaled,W_ref,atol)
++                            sigma0=float(reference['sigma_terminal_tan_cm'])
++                            sigma1=float(indep['sigma_terminal_tan_cm'])
++                            if np.isinf(sigma0)!=np.isinf(sigma1):
++                                raise RuntimeError('independent Fisher sigma null/finite mismatch')
++                            if np.isfinite(sigma0):
++                                writer.check(f'{d.key}_{span[0]}_{nominal}_{channels}_{bias5}_{use_prior}_sigma',
++                                             np.array([sigma1]),np.array([sigma0]),
++                                             max(.02,.005*max(1.,sigma0)))
++                            null0=float(reference['null_target_fraction'])
++                            if abs(null0-indep['null_target_fraction'])>1e-3:
++                                raise RuntimeError('Fisher null projection discrepancy')
++                            # Single-anchor Range ONLY must preserve rotational gauge.
++                            if not pol and not use_prior:
++                                if indep['rank']>=n or indep['gauge_rayleigh_over_lambda_max']>1e-7:
++                                    raise RuntimeError('single-anchor range-only rotational gauge violated')
++                            key=dict(case=d.case['id'],bias=d.bias,window=span[0],
++                                     nominal=nominal,channels=channels,
++                                     bias5=bias5,use_prior=use_prior)
++                            audit.append(dict(**key,rank_ref=int(reference['rank']),
++                                              rank_independent=indep['rank'],rank_svd=indep['rank_svd'],
++                                              reference_sigma_cm=sigma0,
++                                              independent_sigma_cm=sigma1,
++                                              W_abs_max_diff=error,W_tolerance=atol,
++                                              min_psd_eigen=indep['min_psd_eigenvalue'],
++                                              null_fraction_ref=null0,
++                                              null_fraction_independent=indep['null_target_fraction'],
++                                              gauge_rayleigh_normalized=indep['gauge_rayleigh_over_lambda_max'],
++                                              status='PASS'))
++                            rank_sensitivity.append(dict(**key,**indep['sensitivity'],
++                                                         nominal_rank=indep['rank'],
++                                                         sensitive=any(v!=indep['rank'] for v in indep['sensitivity'].values())))
++                            blocks[f'Wref_{channels}_{bias5}_{use_prior}']=W_ref
++                            blocks[f'Wind_{channels}_{bias5}_{use_prior}']=Wscaled
++                # Capture one reference source-path trace per (case,bias,window,nominal).
++                for field,a,b,tol in (
++                    ('X',independent_X,cap['X'],2e-8),
++                    ('Phi',independent_Phi,cap['Phi'],3e-4),
++                    ('H',H_ind,cap['H4'],3e-4)):
++                    writer.check(f'{d.key}_{span[0]}_{nominal}_{field}_independent',a,b,tol)
++                fd_rows.extend(fd_chain_samples(ctx,d,span,nominal,independent_X,
++                                                independent_Phi,H_ind,points=5))
++                writer.npz(f'{d.key}_{span[0]}_{nominal}_FISHER_AUDIT.npz',
++                           reference_X=cap['X'],reference_Phi=cap['Phi'],
++                           reference_H4=cap['H4'],independent_X=independent_X,
++                           independent_Phi=independent_Phi,independent_H4=H_ind,
++                           R=cap['R'],accepted_mask=cap['mask'],
++                           t_s=d.t[span[1]:span[2]],pose_id=d.ids[span[1]:span[2]],
++                           anchor_xyz=np.asarray(d.case['anchor'],float),
++                           prior_P4=d.ref['Pprior'][span[1],0],
++                           **blocks)
+     writer.csv('FULL_STATE_FISHER.csv',metrics)
+-    df=pd.DataFrame(metrics)
+-    if df.empty:raise RuntimeError('stage 5: empty windows')
+-    writer.finish({'interpretation':'data-only rank vs prior-aided condition distinguish geometric identifiability from assumed prior',
+-                   'scale':'diag(1m,1m,5degree,.1degree/s,[.1m bias])',
+-                   'assumptions':'locally linear SourceFFD; frozen original A_B; independent RF packets, optimistic information; no new RF simulation',
+-                   'sigma_inf':'infinite when target tangent projection lies in Fisher nullspace'})
++    writer.csv('FISHER_INDEPENDENT_AUDIT.csv',audit)
++    writer.csv('H_PHI_FD_CHAIN_AUDIT.csv',fd_rows)
++    writer.csv('FISHER_RANK_SENSITIVITY.csv',rank_sensitivity)
++    df=pd.DataFrame(metrics);qa=pd.DataFrame(audit)
++    if df.empty or qa.empty or not writer.checks:
++        raise RuntimeError('Stage 5 must produce nonempty real-input independent checks')
++    if not set(qa.status)=={'PASS'}:
++        raise RuntimeError('some Fisher independent audits did not pass')
++    writer.finish({'interpretation':'Data-only rank vs prior-aided; single-range gauge, full SourceFFD local observability',
++                   'independent_checks':len(writer.checks),
++                   'independent_math':'numeric F products, whitened B SVD, independent eigen, gauge and target-null projections',
++                   'fd_chain':'selected full nonlinear SourceFFD tap/cell-stable H(Phi) vs perturbed initial motion',
++                   'sensitivity':'0.1x/10x eigen cutoffs and 0.5x/2x angle state scales; change flagged, not tuned',
++                   'uncertainty':'temporally independent RF likelihood only; reported sigmas are not empirical RMSE',
++                   'stage6_note':'if Stage 5 original Fisher changes, quarantine old Stage 6 layout Fisher until revalidated'})
+ 
+ 
+ def geometry_layouts(case):
+diff --git a/run_selective.py b/run_selective.py
+new file mode 100644
+--- /dev/null
++++ b/run_selective.py
+@@ -0,0 +1,245 @@
++#!/usr/bin/env python3
++"""Stage2 statistics / Stage3 population / Stage5 Fisher audit, no 1/4/6 replay.
++
++The original 450a21f code+data remains untouched.  Each stage writes a new
++folder beneath an external output root. Failure always causes nonzero exit.
++"""
++from __future__ import annotations
++import argparse
++import json
++import hashlib
++import subprocess
++import sys
++import traceback
++from pathlib import Path
++import numpy as np
++import pandas as pd
++from dsreassess.io import Context,Config,StageWriter,write_json,sha256,PRIMARY,read_json
++from dsreassess.stage12 import stage2_from_verified_cache
++from dsreassess.stage34 import stage3
++from dsreassess.stage56 import stage5
++
++BASE_SHA='450a21fd38cf6be510d55352ae3741c8e808bc0a'
++RELATIVE='research/DS_REASSESS_1_TO_6_20261027'
++EXPECTED_ALL=('R2_aA_m45','R4_aA_m0','R4_aB_m0','R2_aA_m0',
++              'R2_aB_m0','R5_aA_m0','R5_aB_m0')
++
++
++def verify_patch_code_unchanged():
++    manifest=Path(__file__).resolve().parent/'PATCHED_PY_SHA256.json'
++    if not manifest.is_file():
++        raise RuntimeError('PATCH_CODE_MANIFEST_MISSING: use APPLY_PATCH, not raw old ZIP')
++    for rel,expected in read_json(manifest)['sha256'].items():
++        p=Path(__file__).resolve().parent/rel
++        if not p.is_file() or sha256(p)!=expected:
++            raise RuntimeError(f'PATCHED_CODE_HASH_MISMATCH: {p}')
++
++
++def verify_cached_source(old):
++    root=old/'02_residuals'
++    from dsreassess.io import sha256
++    manifest=read_json(root/'OUTPUT_SHA256.json')
++    needed=['RESIDUALS.csv.gz','CHECKS.json','MEASURED_FP_SHIFT_STRATA.csv',
++            'SOURCE_GT_DIAGNOSTICS.csv']
++    if not all((root/name).is_file() and manifest.get(name)==sha256(root/name)
++               for name in needed):
++        raise RuntimeError('OLD_STAGE2_INPUT_HASH_OR_MISSING: extract Git LFS/cached data')
++    status=read_json(root/'RUN_STATUS.json')
++    if status.get('status')!='CODE_EXECUTION_PASS_NOT_SCIENTIFIC_VALIDATION':
++        raise RuntimeError('OLD_STAGE2_NOT_TECHNICAL_PASS')
++    r3=old/'03_RF_R_H'
++    if (not (r3/'SCORES.csv').is_file() or
++        read_json(r3/'OUTPUT_SHA256.json').get('SCORES.csv')!=sha256(r3/'SCORES.csv')):
++        raise RuntimeError('OLD_STAGE3_PARITY_REFERENCE_HASH_OR_MISSING')
++    return {k:sha256(root/k) for k in needed}
++
++
++def validate_selected_output(root,steps):
++    results={}
++    for step,folder in [('2','02_residuals'),('3','03_RF_R_H'),('5','05_full_observability')]:
++        if step not in steps:continue
++        path=root/folder
++        status=read_json(path/'RUN_STATUS.json')
++        if status.get('status')!='CODE_EXECUTION_PASS_NOT_SCIENTIFIC_VALIDATION':
++            raise RuntimeError(f'NOT_PASS_{folder}')
++        manifest=read_json(path/'OUTPUT_SHA256.json')
++        for name,sha in manifest.items():
++            if sha256(path/name)!=sha:raise RuntimeError(f'OUTPUT_HASH_MISMATCH {folder}/{name}')
++        checks=read_json(path/'CHECKS.json')
++        if not checks or any(x.get('status')!='PASS' for x in checks):
++            raise RuntimeError(f'NO_REAL_CHECKS_PASS_{folder}')
++        results[folder]={'n_checks':len(checks),'n_hashed_outputs':len(manifest)}
++    if '3' in steps:
++        val=read_json(root/'03_RF_R_H/LEGACY_ALL_PARITY.json')
++        if val.get('status')!='PASS' or val.get('max_abs_diff',1)>1e-10:
++            raise RuntimeError('Stage3 legacy all arm parity must pass')
++        results['legacy_stage3_parity']=val
++    if '5' in steps:
++        qa=pd.read_csv(root/'05_full_observability/FISHER_INDEPENDENT_AUDIT.csv')
++        chains=pd.read_csv(root/'05_full_observability/H_PHI_FD_CHAIN_AUDIT.csv')
++        if (qa.empty or not qa.status.eq('PASS').all() or
++                not set(chains.status).issubset({'STABLE_PASS','NONSMOOTH_SEPARATE'}) or
++                not chains.status.eq('STABLE_PASS').any()):
++            raise RuntimeError('Stage5 independent Fisher QA not usable')
++        results['stage5_real_fisher_scenarios']=len(qa)
++        results['stage5_stable_fd_checks']=int(chains.status.eq('STABLE_PASS').sum())
++        results['stage5_nonsmooth_fd_separate']=int(chains.status.eq('NONSMOOTH_SEPARATE').sum())
++    if '2' in steps:
++        stats=pd.read_csv(root/'02_residuals/RESIDUAL_STATS.csv')
++        need=['lag1_n_pairs','lag5_n_pairs','boot_8_status','boot_16_status',
++              'boot_32_status','bootstrap_stability','original_origin_s']
++        if stats.empty or any(n not in stats.columns for n in need):
++            raise RuntimeError('Stage2 packet-aligned statistics absent')
++        results['stage2_statistics_rows']=len(stats)
++        results['stage2_bootstrap_stability_counts']=stats.bootstrap_stability.value_counts().to_dict()
++    return results
++
++
++STAGE_FOLDERS={'2':'02_residuals','3':'03_RF_R_H','5':'05_full_observability'}
++
++
++def verify_stage_receipt(root,step,contract):
++    receipt=read_json(root/f'PATCH_STAGE_{step}.json')
++    if (receipt.get('status')!='STAGE_TECHNICAL_QA_PASS' or
++            receipt.get('step')!=step or receipt.get('contract')!=contract):
++        raise RuntimeError(f'STAGE_CONTRACT_MISMATCH_{step}')
++    folder=root/STAGE_FOLDERS[step]
++    for name in ('RUN_STATUS.json','OUTPUT_SHA256.json'):
++        if receipt.get('receipt_hashes',{}).get(name)!=sha256(folder/name):
++            raise RuntimeError(f'STAGE_RECEIPT_HASH_MISMATCH_{step}/{name}')
++    validate_selected_output(root,(step,))
++    return receipt
++
++
++def record_stage_completion(root,step,contract):
++    validation=validate_selected_output(root,(step,))
++    folder=root/STAGE_FOLDERS[step]
++    receipt={'status':'STAGE_TECHNICAL_QA_PASS','step':step,
++             'contract':contract,'validation':validation,
++             'receipt_hashes':{n:sha256(folder/n) for n in
++                               ('RUN_STATUS.json','OUTPUT_SHA256.json')}}
++    with (root/f'PATCH_STAGE_{step}.json').open('x',encoding='utf-8') as f:
++        json.dump(receipt,f,indent=2,ensure_ascii=False,allow_nan=False)
++    return receipt
++
++
++def finalize_available(root,contract):
++    # A per-stage invocation may complete the set, but never claims missing work.
++    completed=[]
++    for step in STAGE_FOLDERS:
++        if (root/f'PATCH_STAGE_{step}.json').is_file():
++            verify_stage_receipt(root,step,contract)
++            completed.append(step)
++    missing=[s for s in STAGE_FOLDERS if s not in completed]
++    progress={'status':'PARTIAL_TECHNICAL_QA_PASS' if missing else
++              'TECHNICAL_QA_PASS_NOT_SCIENTIFIC_ADOPTION',
++              'completed_steps':completed,'missing_steps':missing,
++              'contract':contract,'output_root':str(root)}
++    if not missing:
++        # Recheck all hashes and all stage-specific gates at finalization time.
++        progress['validation']=validate_selected_output(root,tuple(STAGE_FOLDERS))
++        final=root/'PATCH_V2_FINAL.json'
++        if final.exists():
++            if read_json(final)!=progress:
++                raise RuntimeError('FINAL_RECEIPT_ALREADY_EXISTS_WITH_DIFFERENT_CONTENT')
++        else:
++            with final.open('x',encoding='utf-8') as f:
++                json.dump(progress,f,indent=2,ensure_ascii=False,allow_nan=False)
++    elif (root/'PATCH_V2_FINAL.json').exists():
++        raise RuntimeError('FINAL_RECEIPT_EXISTS_WITH_INCOMPLETE_STAGE_SET')
++    write_json(root/'PATCH_PROGRESS.json',progress)
++    return progress
++
++
++def make_args():
++    p=argparse.ArgumentParser(description='Immutable 450a21f Stage2/3/5 audit-only rerun')
++    p.add_argument('--repo-root',required=True,type=Path)
++    p.add_argument('--source-root',required=True,type=Path)
++    p.add_argument('--artifacts-root',required=True,type=Path)
++    p.add_argument('--output-root',required=True,type=Path)
++    p.add_argument('--step',required=True,choices=('preflight','2','3','5','all'))
++    p.add_argument('--fd-stride',type=int,default=20)
++    p.add_argument('--cov-shrink',type=float,default=.5)
++    p.add_argument('--min-train-n',type=int,default=30)
++    return p.parse_args()
++
++
++def main():
++    a=make_args()
++    verify_patch_code_unchanged()
++    repo=a.repo_root.expanduser().resolve()
++    out=a.output_root.expanduser().resolve()
++    old=repo/RELATIVE/'results'
++    # Git checkout of the exact completed experiment is not rewritten.
++    cmd=subprocess.run(['git','-C',str(repo),'rev-parse','HEAD'],
++                       capture_output=True,text=True,check=True)
++    sha=cmd.stdout.strip()
++    if sha!=BASE_SHA:
++        raise RuntimeError(f'EXACT_450a21f_CHECKOUT_REQUIRED: {sha}, expected {BASE_SHA}')
++    if repo in out.parents or repo==out or out==old or out in old.parents:
++        raise RuntimeError('NEW_OUTSIDE_GIT_OUTPUT_DIRECTORY_REQUIRED')
++    inputs=verify_cached_source(old)
++    cfg=Config(repo,a.source_root,a.artifacts_root,out,
++               cases=EXPECTED_ALL,biases=('B0','L2'),
++               fd_stride=a.fd_stride,cov_shrink=a.cov_shrink,
++               min_train_n=a.min_train_n,strict_source=True,
++               block_seconds=8.)
++    ctx=Context(cfg)
++    cases=list(ctx.cases())
++    if len(cases)!=14:raise RuntimeError('EXACT_14_PAIRED_INPUT_CASES_REQUIRED')
++    print('[PREFLIGHT] 450a21f exact, 14 E1 cells, prior Stage2/3 inputs SHA PASS',flush=True)
++    base_detail={'base_commit':BASE_SHA,'source_reused_sha256':inputs,
++                 'source_code_hashes':ctx.evidence_metadata()['package_code_sha256'],
++                 'E1_reference_count':len(cases),
++                 'unchanged_steps':['1','4','6'],'new_steps':['2','3','5']}
++    contract=json.loads(json.dumps({
++        'revision':'2.1',**base_detail,
++        'config':ctx.evidence_metadata()['config'],
++        'initial_input_sha256':ctx.evidence_metadata()['input_sha256'],
++        'runner_sha256':sha256(Path(__file__).resolve()),
++        'patched_manifest_sha256':sha256(Path(__file__).resolve().parent/'PATCHED_PY_SHA256.json'),
++        'old_stage3_scores_sha256':sha256(old/'03_RF_R_H/SCORES.csv')},sort_keys=True))
++    # Validate any completed stages before starting more work in this output root.
++    for previous in STAGE_FOLDERS:
++        if (out/f'PATCH_STAGE_{previous}.json').exists():
++            verify_stage_receipt(out,previous,contract)
++    if a.step=='preflight':
++        _=ctx.model
++        write_json(out/'PATCH_PREFLIGHT.json',dict(status='PASS_ONLY_PRECHECK',**base_detail))
++        return 0
++    planned=('2','3','5') if a.step=='all' else (a.step,)
++    mapping={'2':('02_residuals',lambda w:stage2_from_verified_cache(ctx,w,old)),
++             '3':('03_RF_R_H',lambda w:stage3(ctx,w)),
++             '5':('05_full_observability',lambda w:stage5(ctx,w))}
++    completed=[]
++    for step in planned:
++        if step=='3':
++            verify_stage_receipt(out,'2',contract)
++        name,fn=mapping[step]
++        writer=StageWriter(ctx,name)
++        try:
++            print(f'[START] STAGE_{step} {name}',flush=True)
++            fn(writer)
++            record_stage_completion(out,step,contract)
++            completed.append(step)
++            checks=read_json(writer.dir/'CHECKS.json')
++            print(f'[PASS] STAGE_{step}: {len(checks)} real checks',flush=True)
++        except BaseException as exc:
++            writer.json('RUN_FAILURE.json',{'step':step,'error':str(exc),
++                           'traceback':traceback.format_exc()})
++            raise
++    record=finalize_available(out,contract)
++    if record['missing_steps']:
++        print('[PARTIAL] Verified stages: '+','.join(record['completed_steps'])+
++              '; missing: '+','.join(record['missing_steps'])+'; no final verdict.',flush=True)
++    else:
++        print('[DONE] Stage 2/3/5 independently validated; Stage 1/4/6 not rerun.',flush=True)
++    print(json.dumps(record,indent=2,ensure_ascii=False),flush=True)
++    return 0
++
++
++if __name__=='__main__':
++    try:raise SystemExit(main())
++    except Exception as err:
++        print(f'[HARD STOP] {type(err).__name__}: {err}',file=sys.stderr)
++        raise
+diff --git a/tests/test_numerics.py b/tests/test_numerics.py
+--- a/tests/test_numerics.py
++++ b/tests/test_numerics.py
+@@ -3,7 +3,7 @@
+ import numpy as np
+ import pytest
+ from dsreassess.numerics import transition,propagate,joint_update,augment,range_h,psd_check,wrap
+-from dsreassess.stage12 import acf_one,block_bootstrap_cov
++from dsreassess.stage12 import acf_paired,block_bootstrap_cov,original_lag_pairs
+ from dsreassess.stage34 import fit_held_route_cov
+ 
+ 
+@@ -74,9 +74,9 @@
+     ts=np.arange(n)*.2
+     x=rng.normal(0,.1,size=n)
+     y=.3*x+rng.normal(0,.02,size=n)
+-    assert acf_one(x,1)<1
+-    a,b,nb=block_bootstrap_cov(x,y,ts,seconds=2.,reps=50)
+-    assert nb>=4 and a<=b
++    assert acf_paired(x[:-1],x[1:])<1
++    boot=block_bootstrap_cov(x,y,ts,origin_s=0.,seconds=2.,reps=50)
++    assert boot['status']=='PASS' and boot['n_blocks']>=4 and boot['lo']<=boot['hi']
+     import pandas as pd
+     rows=[]
+     for route in ('R2','R4','R5'):
+@@ -84,7 +84,7 @@
+             rows.append({'case':route,'route':route,'bias':'B0','arm':'BASE','sample':'all','distance_bin':'mid',
+                          'er_m':x[j],'es':y[j]})
+     df=pd.DataFrame(rows)
+-    cov,rec=fit_held_route_cov(df,target_route='R2',arm='BASE',dist_bin='mid',minimum=10)
++    cov,rec=fit_held_route_cov(df,target_route='R2',arm='BASE',dist_bin='mid',minimum=10,sample_condition='all')
+     assert set(rec['train_routes'].split(','))=={'R4','R5'}
+     assert np.linalg.eigvalsh(cov).min()>0
+ 
+diff --git a/tests/test_patch_v2.py b/tests/test_patch_v2.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_patch_v2.py
+@@ -0,0 +1,161 @@
++"""Targeted failure-mode tests for the 450a21f Stage2/3/5 audit patch."""
++from __future__ import annotations
++import numpy as np
++import pandas as pd
++import pytest
++from dsreassess.stage12 import original_lag_pairs, acf_paired, block_bootstrap_cov, summary_residuals
++from dsreassess.stage34 import fit_held_route_cov
++from dsreassess.observability import fisher,first_pass_windows
++from dsreassess.fisher_independent import independent_nominal,independent_fisher
++from test_synthetic_stages import make_ctx
++
++
++def _base_original():
++    raw=np.array([0,1,4,5,6,10],dtype=int)
++    return pd.DataFrame(dict(case='R2',bias='B0',arm='EXDS',sample='all',
++        distance_bin=['near','near','near','near','far','far'],
++        packet_index=np.arange(6),raw_sample_index=raw,
++        pose_id=101+raw*4,t_s=[0.,.2,.8,1.,1.2,2.],
++        accepted_ab=[True,True,True,False,True,True],
++        er_m=[.2,.1,-.1,-.2,.4,.6],es=[.2,.09,-.07,-.2,.3,.5],
++        Rrr=.01,Rss=.01))
++
++
++def test_lag_real_native_gaps_not_filtered_adjacency():
++    b=_base_original()
++    i,j,diag=original_lag_pairs(b,distance_bin='whole',sample='all',lag=1,min_pairs=2)
++    assert list(zip(b.raw_sample_index.iloc[i],b.raw_sample_index.iloc[j]))==[(0,1),(4,5),(5,6)]
++    assert diag['n_pairs']==3
++    assert diag['excluded_missing_native']>0
++    i,j,sel=original_lag_pairs(b,distance_bin='near',sample='accepted_A_B',lag=1,min_pairs=1)
++    assert [(int(b.raw_sample_index.iloc[q]),int(b.raw_sample_index.iloc[r])) for q,r in zip(i,j)]==[(0,1)]
++    assert sel['excluded_distance_bin']>=1 and sel['excluded_accept_mask']==1
++    assert sel['elapsed_med_s']==pytest.approx(.2)
++    assert np.isnan(acf_paired(b.er_m.to_numpy()[i],b.er_m.to_numpy()[j],min_pairs=5))
++    _,_,lag5=original_lag_pairs(b,distance_bin='whole',sample='all',lag=5,min_pairs=1)
++    assert lag5['n_pairs']==3  # native rows 0->5, 1->6 and 5->10
++
++
++def test_fixed_origin_three_block_lengths_and_explicit_na():
++    rng=np.random.default_rng(122)
++    t=np.arange(160)*.2
++    x=rng.normal(size=len(t));y=x*.4+rng.normal(size=len(t))*.1
++    keep=(t>=3)&(t<=17)
++    z=block_bootstrap_cov(x[keep],y[keep],t[keep],origin_s=0.,seconds=8.,reps=80)
++    assert z['status']=='NA_INSUFFICIENT_BLOCKS_OR_PACKETS'
++    full=block_bootstrap_cov(x,y,t,origin_s=0.,seconds=8.,reps=80)
++    assert full['status']=='PASS' and full['n_blocks']==4
++    n=160
++    g=pd.DataFrame(dict(case='R2',bias='B0',arm='EXDS',sample='all',
++        distance_bin=np.where(np.arange(n)%15<6,'near','far'),
++        packet_index=np.arange(n),raw_sample_index=np.arange(n),
++        pose_id=100+np.arange(n)*4,t_s=np.arange(n)*.2,
++        accepted_ab=(np.arange(n)%7!=0),er_m=x,es=y,
++        Rrr=np.full(n,.01),Rss=np.full(n,.01)))
++    accepted=g[g.accepted_ab].copy();accepted['sample']='accepted_A_B'
++    whole=pd.concat([g,accepted],ignore_index=True)
++    whole['distance_bin']='whole'
++    stats=summary_residuals(pd.concat([g,accepted,whole],ignore_index=True),reps=30,min_lag_pairs=1)
++    assert 'boot_8_status' in stats and 'boot_16_status' in stats and 'boot_32_status' in stats
++    assert 'lag1_n_pairs' in stats and 'lag5_n_pairs' in stats
++    assert stats['bootstrap_stability'].str.len().gt(0).all()
++    assert stats['original_origin_s'].eq(0).all()
++
++
++def test_covariance_sample_specific_heldout_fallback():
++    rng=np.random.default_rng(17)
++    r=[]
++    for route in ('R2','R4','R5'):
++        for i in range(40):
++            y=float(rng.normal())
++            for samp in ('all','accepted_A_B'):
++                if samp=='accepted_A_B' and i>=12:continue
++                r.append(dict(route=route,bias='B0',case=route,arm='BASE',
++                              sample=samp,distance_bin='near' if i<3 else 'far',
++                              er_m=y+(50 if samp=='all' else 0),es=y/4))
++    df=pd.DataFrame(r)
++    # Primary accepted near has too few observations => same-population whole fallback.
++    # With minimum=20 even whole accepted (2 routes x 12) is enough.
++    cov,meta=fit_held_route_cov(df,target_route='R2',arm='BASE',
++                                dist_bin='near',minimum=20,sample_condition='accepted_A_B')
++    assert meta['status']=='WHOLE_SAME_POPULATION_FALLBACK'
++    assert meta['n_train']==24 and meta['train_routes']=='R4,R5'
++    assert abs(meta['route_mean_er_m'])<10 # rejected/whole +50 offset never leaked
++    with pytest.raises(RuntimeError,match='INSUFFICIENT_HELD_ROUTE'):
++        fit_held_route_cov(df,target_route='R2',arm='BASE',dist_bin='near',
++                           minimum=200,sample_condition='accepted_A_B')
++    assert np.linalg.eigvalsh(cov).min()>0
++
++
++def test_independent_fisher_real_input_synthetic(tmp_path):
++    ctx=make_ctx(tmp_path)
++    d=next(ctx.cases())
++    span=first_pass_windows(ctx,d)[0]
++    x,phi=independent_nominal(d,span,'GT')
++    _,h=ctx.model.batch(x,d.case)
++    for use_pol in (False,True):
++        for bias5 in (False,True):
++            for use_prior in (False,True):
++                ref=fisher(ctx,d,span=span,nominal='GT',use_pol=use_pol,
++                           use_prior=use_prior,bias5=bias5)
++                qa,W,B,_=independent_fisher(d,span,x,phi,h,pol=use_pol,
++                                             prior=use_prior,bias5=bias5,
++                                             bias_prior_var=ctx.cfg.augmented_br_prior_std_m**2)
++                assert ref['rank']==qa['rank']==qa['rank_svd']
++                if np.isinf(ref['sigma_terminal_tan_cm']):
++                    assert np.isinf(qa['sigma_terminal_tan_cm'])
++                else:
++                    assert ref['sigma_terminal_tan_cm']==pytest.approx(qa['sigma_terminal_tan_cm'],abs=.02)
++                assert np.all(np.linalg.eigvalsh(W)>=-1e-7)
++    # Independently calculated design matrix should not silently accept a
++    # deliberately rotated/incorrect nominal Jacobian.
++    wrong=h.copy();wrong[:,1,0]+=.5
++    qa_bad,Wbad,_,_=independent_fisher(d,span,x,phi,wrong,pol=True,
++                                       prior=False,bias5=False)
++    qa_ok,Wok,_,_=independent_fisher(d,span,x,phi,h,pol=True,
++                                    prior=False,bias5=False)
++    assert np.max(abs(Wbad-Wok))>1.0
++
++
++def test_verified_cache_stage2_reanalysis_without_rf_recompute(tmp_path):
++    """End-to-end synthetic cache import, hash gating and source packet alignment."""
++    import json,hashlib
++    from pathlib import Path
++    from dsreassess.io import StageWriter,sha256
++    from dsreassess.stage12 import stage2,stage2_from_verified_cache
++    original=tmp_path/'old';new=tmp_path/'new'
++    original.mkdir();new.mkdir()
++    ctx=make_ctx(original)
++    stage2(ctx,StageWriter(ctx,'02_residuals'))
++    ctx.cfg.output_root=new
++    ctx.cfg.source_root=tmp_path/'native'
++    evidence=tmp_path/'evidence'
++    evidence.joinpath('e1_e4').mkdir(parents=True)
++    ctx.base=evidence
++    ctx._verified={}
++    ctx.verify_manifest_file=lambda p:ctx._verified.update({Path(p).resolve():sha256(Path(p))})
++    snap=[]
++    seen=set()
++    for d in ctx.cases():
++        if d.case['id'] in seen:continue
++        seen.add(d.case['id'])
++        rel=d.case['id']+'/SAMPLES.json'
++        d.case['samples_path']=rel
++        fn=ctx.cfg.source_root/rel
++        fn.parent.mkdir(parents=True,exist_ok=True)
++        fn.write_text(json.dumps([{'pose_id':int(x)} for x in d.ids]),encoding='utf-8')
++        snap.append({'path':'D:/frozen/p2/'+rel,'sha256':sha256(fn)})
++    (evidence/'e1_e4/INPUT_LOCK.json').write_text(json.dumps({'files':snap}))
++    stage2_from_verified_cache(ctx,StageWriter(ctx,'02_residuals'),original)
++    output=pd.read_csv(new/'02_residuals/RESIDUAL_STATS.csv')
++    assert len(output)>0
++    assert 'lag1_excluded_missing_native' in output.columns
++    assert int(output.lag1_excluded_missing_native.max())==0
++    assert output.bootstrap_stability.notna().all()
++    # Corrupting one original byte must cause a hard failure, never fallback.
++    f=original/'02_residuals/RESIDUALS.csv.gz'
++    f.write_bytes(f.read_bytes()+b'CRASH')
++    other=tmp_path/'bad';other.mkdir()
++    ctx.cfg.output_root=other
++    with pytest.raises(RuntimeError,match='UNVERIFIED_STAGE2_CACHE'):
++        stage2_from_verified_cache(ctx,StageWriter(ctx,'02_residuals'),original)
+diff --git a/tests/test_patch_v21.py b/tests/test_patch_v21.py
+new file mode 100644
+--- /dev/null
++++ b/tests/test_patch_v21.py
+@@ -0,0 +1,168 @@
++"""Regression tests for the three reviewed v2 defects; synthetic inputs only."""
++import json
++from itertools import product
++import numpy as np
++import pandas as pd
++import pytest
++from dsreassess.stage12 import summary_residuals
++from dsreassess.io import sha256, write_json
++import run_selective as runner
++
++
++def population(labels,accepted=None,raw=None):
++    n=len(labels)
++    g=pd.DataFrame(dict(case='R2',bias='B0',arm='EXDS',sample='all',
++        distance_bin=labels,packet_index=np.arange(n),
++        raw_sample_index=np.arange(n) if raw is None else raw,
++        pose_id=100+np.arange(n)*4,t_s=np.arange(n)*.2,
++        accepted_ab=np.ones(n,bool) if accepted is None else accepted,
++        er_m=np.sin(np.arange(n)*.1),es=np.cos(np.arange(n)*.1),Rrr=.01,Rss=.01))
++    a=g[g.accepted_ab].copy();a['sample']='accepted_A_B'
++    native=pd.concat([g,a],ignore_index=True)
++    whole=native.copy();whole['distance_bin']='whole'
++    return g,pd.concat([native,whole],ignore_index=True)
++
++
++def test_summary_preserves_native_distance_bins_and_actual_pairs():
++    mask=np.ones(300,bool);mask[10]=False
++    raw=np.arange(300);raw[50:]+=2
++    g,df=population(['near']*100+['mid']*100+['far']*100,mask,raw)
++    stats=summary_residuals(df,reps=30)
++    for b,sample,lag in product(('whole','near','mid','far'),('all','accepted_A_B'),(1,5)):
++        pairs=[(i,j) for i in range(len(g)) for j in range(i+1,len(g))
++               if raw[j]-raw[i]==lag and
++               (b=='whole' or g.distance_bin.iloc[i]==g.distance_bin.iloc[j]==b) and
++               (sample=='all' or mask[i] and mask[j])]
++        row=stats[(stats.distance_bin==b)&(stats['sample']==sample)].iloc[0]
++        assert row[f'lag{lag}_n_pairs']==len(pairs)>0
++        expected=np.corrcoef([g.er_m.iloc[i] for i,j in pairs],
++                             [g.er_m.iloc[j] for i,j in pairs])[0,1]
++        assert row[f'acf{lag}_er']==pytest.approx(expected)
++
++
++@pytest.mark.parametrize('count',[0,1,7])
++def test_sparse_and_empty_bins_are_explicit(count):
++    g,df=population(['near']*count+['far']*150,accepted=np.zeros(count+150,bool))
++    stats=summary_residuals(df,reps=30)
++    assert len(stats)==8
++    near=stats[(stats.distance_bin=='near')&(stats['sample']=='all')].iloc[0]
++    assert near.n_packets==count
++    assert near.sample_status==('NA_NO_SAMPLES' if count==0 else 'NA_INSUFFICIENT_PACKETS')
++    assert np.isnan(near.cov_er_es) and np.isnan(near.acf1_er)
++    assert near.boot_8_status.startswith('NA_')
++    empty=stats[(stats.distance_bin=='mid')|(stats['sample']=='accepted_A_B')]
++    assert empty.n_packets.eq(0).all()
++    assert empty.sample_status.eq('NA_NO_SAMPLES').all()
++    assert empty.boot_32_status.eq('NA_NO_SAMPLES').all()
++
++
++def completed_output(root,step):
++    path=root/runner.STAGE_FOLDERS[step];path.mkdir(exist_ok=True)
++    write_json(path/'CHECKS.json',[{'status':'PASS','label':'synthetic'}])
++    if step=='2':
++        pd.DataFrame([dict(lag1_n_pairs=9,lag5_n_pairs=8,boot_8_status='PASS',
++            boot_16_status='PASS',boot_32_status='PASS',bootstrap_stability='STABLE_POS',
++            original_origin_s=0)]).to_csv(path/'RESIDUAL_STATS.csv',index=False)
++    if step=='3':
++        write_json(path/'LEGACY_ALL_PARITY.json',{'status':'PASS','max_abs_diff':0})
++    if step=='5':
++        pd.DataFrame([{'status':'PASS'}]).to_csv(path/'FISHER_INDEPENDENT_AUDIT.csv',index=False)
++        pd.DataFrame([{'status':'STABLE_PASS'}]).to_csv(path/'H_PHI_FD_CHAIN_AUDIT.csv',index=False)
++    write_json(path/'OUTPUT_SHA256.json',{p.name:sha256(p) for p in path.iterdir()})
++    write_json(path/'RUN_STATUS.json',{'status':'CODE_EXECUTION_PASS_NOT_SCIENTIFIC_VALIDATION'})
++
++
++def test_separate_stages_accumulate_and_only_all_create_final(tmp_path):
++    contract={'code':'v21','inputs':'frozen','config':{'cov_shrink':.5}}
++    for i,step in enumerate(('2','3','5'),1):
++        completed_output(tmp_path,step)
++        runner.record_stage_completion(tmp_path,step,contract)
++        status=runner.finalize_available(tmp_path,contract)
++        assert status['completed_steps']==['2','3','5'][:i]
++        assert (tmp_path/'PATCH_V2_FINAL.json').exists()==(i==3)
++    assert status['status']=='TECHNICAL_QA_PASS_NOT_SCIENTIFIC_ADOPTION'
++    before=(tmp_path/'PATCH_V2_FINAL.json').read_bytes()
++    runner.finalize_available(tmp_path,contract)
++    assert (tmp_path/'PATCH_V2_FINAL.json').read_bytes()==before
++
++
++def test_stage5_alone_is_partial(tmp_path):
++    completed_output(tmp_path,'5')
++    runner.record_stage_completion(tmp_path,'5',{'code':'v21'})
++    r=runner.finalize_available(tmp_path,{'code':'v21'})
++    assert r['completed_steps']==['5'] and r['missing_steps']==['2','3']
++    assert r['status']=='PARTIAL_TECHNICAL_QA_PASS'
++    assert not (tmp_path/'PATCH_V2_FINAL.json').exists()
++
++
++@pytest.mark.parametrize('key',['code','inputs','config'])
++def test_mixed_stage_contracts_cannot_finalize(tmp_path,key):
++    original={'code':'v21','inputs':'frozen','config':{'cov_shrink':.5}}
++    completed_output(tmp_path,'2');runner.record_stage_completion(tmp_path,'2',original)
++    changed={**original,key:'different'}
++    with pytest.raises(RuntimeError,match='STAGE_CONTRACT_MISMATCH'):
++        runner.finalize_available(tmp_path,changed)
++    assert not (tmp_path/'PATCH_V2_FINAL.json').exists()
++
++
++@pytest.mark.parametrize('file',['CHECKS.json','RUN_STATUS.json','OUTPUT_SHA256.json'])
++def test_prior_stage_tampering_prevents_final(tmp_path,file):
++    for step in ('2','3','5'):
++        completed_output(tmp_path,step);runner.record_stage_completion(tmp_path,step,{})
++    target=tmp_path/'02_residuals'/file
++    target.write_bytes(target.read_bytes()+b' ')
++    with pytest.raises(RuntimeError,match='HASH_MISMATCH'):
++        runner.finalize_available(tmp_path,{})
++    assert not (tmp_path/'PATCH_V2_FINAL.json').exists()
++
++
++def test_failed_stage_cannot_record_completion(tmp_path):
++    completed_output(tmp_path,'5')
++    p=tmp_path/'05_full_observability'
++    write_json(p/'CHECKS.json',[{'status':'FAIL'}])
++    m=json.loads((p/'OUTPUT_SHA256.json').read_text())
++    m['CHECKS.json']=sha256(p/'CHECKS.json');write_json(p/'OUTPUT_SHA256.json',m)
++    with pytest.raises(RuntimeError,match='NO_REAL_CHECKS_PASS'):
++        runner.record_stage_completion(tmp_path,'5',{})
++    assert not (tmp_path/'PATCH_STAGE_5.json').exists()
++
++
++@pytest.mark.parametrize('mode',['all','separate'])
++def test_main_dispatch_and_receipts_without_rf(tmp_path,monkeypatch,capsys,mode):
++    from types import SimpleNamespace
++    repo=tmp_path/'repo';repo.mkdir()
++    old=repo/runner.RELATIVE/'results'/'03_RF_R_H';old.mkdir(parents=True)
++    (old/'SCORES.csv').write_text('synthetic parity reference')
++    output=tmp_path/'output';calls=[]
++    args=SimpleNamespace(repo_root=repo,output_root=output,source_root=tmp_path/'source',
++        artifacts_root=tmp_path/'artifacts',fd_stride=20,cov_shrink=.5,min_train_n=30,step='all')
++    class SyntheticContext:
++        def __init__(self,cfg):
++            self.cfg=cfg;cfg.output_root.mkdir(exist_ok=True)
++        def cases(self):return iter([None]*14)
++        def evidence_metadata(self):
++            return {'package_code_sha256':{'synthetic':'fixed'},
++                    'input_sha256':{'synthetic_input':'fixed'},
++                    'config':{k:str(v) if hasattr(v,'__fspath__') else v for k,v in vars(self.cfg).items()}}
++    monkeypatch.setattr(runner,'make_args',lambda:args)
++    monkeypatch.setattr(runner,'Context',SyntheticContext)
++    monkeypatch.setattr(runner,'verify_patch_code_unchanged',lambda:None)
++    monkeypatch.setattr(runner,'verify_cached_source',lambda old:{'cached':'fixed'})
++    monkeypatch.setattr(runner.subprocess,'run',lambda *a,**k:SimpleNamespace(stdout=runner.BASE_SHA))
++    actual_sha=runner.sha256
++    monkeypatch.setattr(runner,'sha256',lambda p:'synthetic_manifest' if p.name=='PATCHED_PY_SHA256.json' else actual_sha(p))
++    def stage(step,w):
++        calls.append(step);completed_output(output,step)
++    monkeypatch.setattr(runner,'stage2_from_verified_cache',lambda ctx,w,old:stage('2',w))
++    monkeypatch.setattr(runner,'stage3',lambda ctx,w:stage('3',w))
++    monkeypatch.setattr(runner,'stage5',lambda ctx,w:stage('5',w))
++    for step in (['all'] if mode=='all' else ['2','3','5']):
++        args.step=step
++        assert runner.main()==0
++        text=capsys.readouterr().out
++        if step in ('2','3'):
++            assert '[PARTIAL]' in text and '[DONE]' not in text
++            assert not (output/'PATCH_V2_FINAL.json').exists()
++    assert calls==['2','3','5']
++    final=json.loads((output/'PATCH_V2_FINAL.json').read_text())
++    assert final['completed_steps']==['2','3','5'] and not final['missing_steps']
+diff --git a/tests/test_synthetic_stages.py b/tests/test_synthetic_stages.py
+--- a/tests/test_synthetic_stages.py
++++ b/tests/test_synthetic_stages.py
+@@ -42,7 +42,8 @@
+     def cases(self):return iter(self._dataset)
+     def native_fp(self,d):
+         tap=np.arange(len(d.t))%6+20
+-        return {'tap':tap,'margin':np.full(len(d.t),.5),'s_fp':d.z[:,1]}
++        return {'tap':tap,'margin':np.full(len(d.t),.5),'s_fp':d.z[:,1],
++                'raw_sample_index':np.arange(len(d.t),dtype=np.int64)}
+     def first_pass(self,case,bias):
+         return pd.Series({'window_start_s':8.,'window_end_s':17.,
+                           'post_start_s':17.,'post_end_s':30.})
