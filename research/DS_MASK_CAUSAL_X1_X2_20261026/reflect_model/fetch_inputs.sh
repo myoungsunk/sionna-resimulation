@@ -34,6 +34,7 @@ EOF
 # 3) ray-traced channels (plain git blobs, ~15-30 MB each) and pose lists
 BLK=results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C
 for c in $CASES; do
+  [ "${FETCH_RF:-1}" = "1" ] || break        # FETCH_RF=0: skip channels (filter-only experiments)
   [ -s "$ROOT/rf/H_$c.npy" ]     || git -C "$BARE" cat-file -p "$COMMIT:$BLK/FULL_RF/H_$c.npy" > "$ROOT/rf/H_$c.npy"
   [ -s "$ROOT/rf/H_LoS_$c.npy" ] || git -C "$BARE" cat-file -p "$COMMIT:$BLK/H_LoS_$c.npy"     > "$ROOT/rf/H_LoS_$c.npy"
   [ -s "$ROOT/rf/SAMPLES_$c.json" ] || git -C "$BARE" cat-file -p "$COMMIT:$BLK/$c/SAMPLES.json" > "$ROOT/rf/SAMPLES_$c.json"
