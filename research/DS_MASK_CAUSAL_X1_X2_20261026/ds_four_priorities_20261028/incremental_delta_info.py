@@ -59,6 +59,8 @@ D=pd.concat(rows,ignore_index=True)
 D=D[D.bias=="B0"].copy()
 base=["mean_s","prior_pol_innov","prior_range_innov","log_first_power"]
 plus=base+[f"ds_{o}" for o in OFF]
+base_no_d0=["mean_s","prior_range_innov","log_first_power"]
+plus_no_d0=base_no_d0+[f"ds_{o}" for o in OFF]
 def fit(tr,te,cols):
  x=tr[cols].to_numpy(float);xt=te[cols].to_numpy(float)
  y=tr.target_residual_s.to_numpy(float)
@@ -73,7 +75,7 @@ for held in ["R2","R4","R5"]:
  tr=D[D.route!=held].replace([np.inf,-np.inf],np.nan).dropna(subset=plus+["target_residual_s"])
  te=D[D.route==held].replace([np.inf,-np.inf],np.nan).dropna(subset=plus+["target_residual_s"])
  assert len(te)>100 and len(tr)>100
- preds={k:fit(tr,te,cols) for k,cols in [("BASE",base),("BASE_PLUS_DELTA",plus)]}
+ preds={k:fit(tr,te,cols) for k,cols in [("BASE",base),("BASE_PLUS_DELTA",plus),("NO_D0",base_no_d0),("NO_D0_PLUS_DELTA",plus_no_d0)]}
  for case,g in te.groupby("case"):
   ix=te.index.get_indexer(g.index);y=g.target_residual_s.to_numpy()
   for model,pred in preds.items():
@@ -83,7 +85,8 @@ score=pd.DataFrame(scores)
 score.to_csv(out/"P3_HELD_ROUTE_R2.csv",index=False,float_format="%.16g")
 piv=score.pivot(index="case",columns="model",values="r2_uncentered")
 piv["incremental_R2"]=piv.BASE_PLUS_DELTA-piv.BASE
+piv["incremental_R2_NO_D0"]=piv.NO_D0_PLUS_DELTA-piv.NO_D0
 piv.reset_index().to_csv(out/"P3_INCREMENTAL.csv",index=False,float_format="%.16g")
-status={"status":"MEASUREMENT_INFO_ONLY_NOT_EKF_ADOPTION","n_cases":len(piv),"n_routes":3,"incremental_positive_cases":int((piv.incremental_R2>0).sum()),"median_incremental_r2":float(piv.incremental_R2.median()),"limitations":["LORO is not independent new-scene validation","R2 gain does not establish conditional Fisher information of a five-state filter","reuse of s(fp) inside signed delta requires explicit covariance in any future EKF"]}
+status={"status":"MEASUREMENT_INFO_ONLY_NOT_EKF_ADOPTION","n_cases":len(piv),"n_routes":3,"incremental_positive_cases":int((piv.incremental_R2>0).sum()),"median_incremental_r2":float(piv.incremental_R2.median()),"incremental_positive_without_d0":int((piv.incremental_R2_NO_D0>0).sum()),"median_incremental_without_d0":float(piv.incremental_R2_NO_D0.median()),"limitations":["LORO is not independent new-scene validation","R2 gain does not establish conditional Fisher information of a five-state filter","reuse of s(fp) inside signed delta requires explicit covariance in any future EKF"]}
 (out/"P3_DECISION.json").write_text(json.dumps(status,indent=2),encoding="utf8")
 print(json.dumps(status,indent=2))
