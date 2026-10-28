@@ -158,7 +158,14 @@ def scores(D, X, PX):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--case", required=True); ap.add_argument("--bias", required=True)
     ap.add_argument("--arms", default="all")
+    ap.add_argument("--sig", default=None, help="override sigma table 'r0,r1,..:s0,s1,..' (e.g. mount-specific)")
+    ap.add_argument("--sig-scale", type=float, default=1.0)
+    ap.add_argument("--tag", default="")
     a = ap.parse_args()
+    global SIG_R, SIG_V
+    if a.sig:
+        rs, ss = a.sig.split(":"); SIG_R = np.array([float(v) for v in rs.split(",")]); SIG_V = np.array([float(v) for v in ss.split(",")])
+    SIG_V = SIG_V * a.sig_scale
     spec = C.CASES[a.case]; model = C.base_model()
     ref = C.load_control(a.case, "B0")                      # packets are bias-level independent
     jb, jm = ref["jb"], ref["jm"]
@@ -194,7 +201,7 @@ def main():
         if a.arms != "all" and name not in a.arms.split(","):
             continue
         t0 = time.time(); X, PX, B, nwin = run(D, mus[bg], cfg, model)
-        r = dict(case=a.case, mount=spec["mount_deg"], anchor=a.case[4], route=a.case[:2], bias=a.bias, arm=name, background=bg,
+        r = dict(sig_tag=a.tag or "m0table", case=a.case, mount=spec["mount_deg"], anchor=a.case[4], route=a.case[:2], bias=a.bias, arm=name, background=bg,
                  method=name.split("_", 1)[1], nwin=nwin, sec=round(time.time() - t0, 1))
         r.update(scores(D, X, PX))
         if cfg["mode"] in ("gm", "win"):
@@ -206,7 +213,7 @@ def main():
             if r["parity_vs_trace"] > 1e-8:
                 raise RuntimeError(f"ORIG_PARITY_FAIL {name} {r['parity_vs_trace']}")
         rows.append(r); print(json.dumps({k: (round(v, 4) if isinstance(v, float) else v) for k, v in r.items()}), flush=True)
-    tag = f"{a.case}_{a.bias}"
+    tag = f"{a.case}_{a.bias}" + (f"_{a.tag}" if a.tag else "")
     C.OUT.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows).to_csv(C.OUT / f"PB_SCORES_{tag}.csv", index=False)
     (C.OUT / f"PB_META_{tag}.json").write_text(json.dumps(dict(case=a.case, bias=a.bias, checks=checks, arms=[n for n, _, _ in ARMS],
