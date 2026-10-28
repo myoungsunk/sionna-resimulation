@@ -13,6 +13,10 @@ res=pd.DataFrame({'case':piv.index,'rms_base':piv.BASE,'rms_plus_delta':piv.BASE
 res['mse_ratio']=(res.rms_plus_delta/res.rms_base)**2
 res['gain_proxy_nats_per_packet']=np.log(res.rms_base/res.rms_plus_delta)
 res['incremental_gain']=1-res.mse_ratio
+if {'NO_D0','NO_D0_PLUS_DELTA'} <= set(piv.columns):
+ res['rms_no_d0']=piv.NO_D0.to_numpy()
+ res['rms_plus_delta_no_d0']=piv.NO_D0_PLUS_DELTA.to_numpy()
+ res['incremental_gain_no_d0']=1-(res.rms_plus_delta_no_d0/res.rms_no_d0)**2
 # Demonstrate exact linear-algebra identity: nuisance-state Schur information.
 # For whitened linear model and an independent q observation with precision p>0,
 # conditional information for psi increases relative to nuisance unmeasured q.
@@ -32,6 +36,8 @@ status={'status':'REAL_HELD_ROUTE_PREDICTIVE_INFORMATION_AND_SYNTHETIC_SCHUR_QA_
  'n_cases':len(res),'n_predictive_information_gain_positive':int((res.incremental_gain>0).sum()),
  'median_mse_improvement_fraction':float(res.incremental_gain.median()),
  'median_log_error_gain_nats':float(res.gain_proxy_nats_per_packet.median()),
+ 'n_gain_positive_no_d0':int((res.incremental_gain_no_d0>0).sum()) if 'incremental_gain_no_d0' in res else None,
+ 'median_gain_fraction_no_d0':float(res.incremental_gain_no_d0.median()) if 'incremental_gain_no_d0' in res else None,
  'synthetic_schur_information_gain':float(gain),
  'state':'[x,y,psi,b_g,q_delta]',
  'measurement':'[range,s_fp,delta_s]',
