@@ -169,7 +169,10 @@ jobs:
         run: |
           set -euo pipefail
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect"
-          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect/out"
+          # gh run download refuses to overwrite: stage V1 outputs separately, then copy over out/
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/v01_out"
+          mkdir -p "$RUNNER_TEMP/reflect/out" && cp -rf "$RUNNER_TEMP/v01_out/." "$RUNNER_TEMP/reflect/out/"
+          test -s "$RUNNER_TEMP/reflect/out/V1_DECISION.json" && test -s "$RUNNER_TEMP/reflect/out/V1_RS_BY_BIN.csv"
       - name: V2 replay for one route-case (B0 and L2)
         run: |
           set -euo pipefail
@@ -185,6 +188,25 @@ jobs:
             ${{ runner.temp }}/reflect/out/MANIFEST_V2_*
           retention-days: 30
           if-no-files-found: warn
+      - name: Publish this shard (scores, meta, log) to the branch
+        if: always()
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/reflect/out"
+          [ -d "$SRC" ] || exit 0
+          DEST="$CODE_DIR/results/run_${{ github.run_id }}/v2_shards"
+          W="$RUNNER_TEMP/pub_shard"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"
+          git sparse-checkout set --no-cone "/$CODE_DIR/results/"
+          mkdir -p "$DEST"
+          ( cd "$SRC" && for f in V2_LOG_* V2_SCORES_* V2_META_* MANIFEST_V2_*; do [ -e "$f" ] && cp "$f" "$W/$DEST/"; done ) || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"
+          git commit -q -m "reflect-model results: run ${{ github.run_id }} v2 shard ${{ matrix.case }}" || exit 0
+          for i in 1 2 3 4 5 6 7 8; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*4)); done
+          exit 1
 
   v2-aggregate:
     needs: [plan, v01, v2]
@@ -260,7 +282,10 @@ jobs:
         run: |
           set -euo pipefail
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect"
-          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/reflect/out"
+          # gh run download refuses to overwrite: stage V1 outputs separately, then copy over out/
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name reflect-v01-${{ github.run_id }} --dir "$RUNNER_TEMP/v01_out"
+          mkdir -p "$RUNNER_TEMP/reflect/out" && cp -rf "$RUNNER_TEMP/v01_out/." "$RUNNER_TEMP/reflect/out/"
+          test -s "$RUNNER_TEMP/reflect/out/V1_DECISION.json" && test -s "$RUNNER_TEMP/reflect/out/V1_RS_BY_BIN.csv"
       - name: V3 scene-description robustness
         run: |
           set -euo pipefail
