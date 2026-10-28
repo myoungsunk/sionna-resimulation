@@ -3,9 +3,12 @@
   python exp_pb.py --case R4_aA_m0 --bias L1
 
 Inputs (REFLECT_ROOT, from reflect_model/fetch_inputs.sh): FFD banks, code subset, E1 CONTROL traces (B0, L2).
-Packets (z, mu_B, mu_M, R, acceptance mask A_B, truth) are identical for every gyro-bias level (verified for B0 vs L2:
-z 2e-16, mu/R/acc identical).  Controls for B0/L0/L1/L2 are regenerated with the original sensor generator
-(r2_bias_replay.build_positive_bias_controls, seed 0) and checked against the stored B0/L2 traces.
+Packets (z, mu_B, mu_M, R, truth) are identical for every gyro-bias level (verified for B0 vs L2: z 2e-16, mu/R identical).
+The acceptance mask A_B is NOT: it is the NIS gate (GATE_JOINT = 9.2103) of the BASE (mu_B) filter and moves with the
+gyro bias (R2_aA_m0: 8 packets, R5_aA_m0: 1 packet differ between B0 and L2).  It is therefore regenerated per level by
+running the gated BASE filter; this reproduces the stored B0 and L2 masks exactly on all 14 stored conditions.
+Controls for B0/L0/L1/L2 are regenerated with the original sensor generator (r2_bias_replay.build_positive_bias_controls,
+seed 0) and checked against the stored B0/L2 traces.
 
 Arms (background mu: BB = mu_B, MB = mu_M = Delta-s correction):
   {BB,MB}_ORIG       original filter (parity with the stored trace for B0/L2)
@@ -68,6 +71,24 @@ def build_controls(t, pose, level, seed=0):
     x0 = np.asarray(pose[0] + rng(seed, "initial").standard_normal(3) * INITIAL_POSE_STD)
     x0[2] = float(wrap(x0[2]))
     return np.asarray(inputs["ds_odom"]), np.asarray(inputs["dtheta_gyro"]), np.asarray(inputs["dt_s"]), x0
+
+
+GATE_JOINT = 9.210340371976184
+
+
+def gated_mask(z, mu, R, ds, gy, dt, x0, P0, spec, model):
+    """Acceptance mask A_B of the original BASE filter (joint NIS gate); reproduces stored E1 masks exactly."""
+    x = x0.copy(); P = P0.copy(); acc = np.zeros(len(z), bool)
+    for k in range(len(z)):
+        if k:
+            q = np.diag([2e-5 * abs(ds[k]), math.radians(0.015) ** 2 * dt[k], 0.0])
+            x, P, _, _ = predict(x, P, float(ds[k]), float(gy[k]), float(dt[k]), q)
+        h, H = model.batch(x[None], spec); h = h[0]; H = H[0]
+        v = z[k] - h - mu[k]; S_ = H @ P @ H.T + R[k]
+        if np.isfinite(z[k]).all() and float(v @ np.linalg.solve(S_, v)) <= GATE_JOINT:
+            K = np.linalg.solve(S_, H @ P).T; y = x + K @ v; y[2] = wrap(y[2])
+            A_ = np.eye(4) - K @ H; P = A_ @ P @ A_.T + K @ R[k] @ K.T; P = 0.5 * (P + P.T); x = y; acc[k] = True
+    return acc
 
 
 def run(D, mu, cfg, model):
@@ -148,17 +169,23 @@ def main():
     stored = {}
     if a.bias in ("B0", "L2"):
         tr = C.load_control(a.case, a.bias); stored = tr
-        for nm, src in (("acc", "acc"), ("mu", "mu"), ("R", "R")):
+        for nm, src in (("mu", "mu"), ("R", "R")):
             checks[f"packets_{nm}_equal_B0"] = float(np.max(np.abs(tr[src].astype(float) - ref[src].astype(float))))
         dss, gys, _ = C.controls_from(tr["x"][:, jb], tr["prior"][:, jb], t)
         checks["controls_ds_vs_trace"] = float(np.max(np.abs(ds[1:] - dss[1:])))
         checks["controls_gyro_vs_trace"] = float(np.max(np.abs(gy[1:] - gys[1:])))
         checks["x0_vs_trace"] = float(np.max(np.abs(np.r_[x0, 0.0] - tr["prior"][0, jb])))
         for kk, v in checks.items():
-            if v > 1e-10:
+            if kk.startswith(("packets_", "controls_", "x0_")) and v > 1e-10:
                 raise RuntimeError(f"PARITY_FAIL {kk}={v}")
+    acc = gated_mask(z, ref["mu"][:, jb], ref["R"][:, jb], ds, gy, dt, np.r_[x0, 0.0], ref["Pprior"][0, jb], spec, model)
+    if stored:
+        checks["mask_vs_trace_mismatch"] = float(np.sum(acc != stored["acc"][:, jb].astype(bool)))
+        if checks["mask_vs_trace_mismatch"] > 0:
+            raise RuntimeError(f"MASK_PARITY_FAIL {checks['mask_vs_trace_mismatch']}")
+    checks["mask_changed_vs_B0"] = float(np.sum(acc != ref["acc"][:, jb].astype(bool)))
     hg, _ = model.batch(np.c_[gt[:, :3], np.zeros(len(t))], spec)
-    D = dict(t=t, gt=gt, z=z, R=ref["R"][:, jb], acc=ref["acc"][:, jb].astype(bool), ds=ds, gy=gy, dt=dt,
+    D = dict(t=t, gt=gt, z=z, R=ref["R"][:, jb], acc=acc, ds=ds, gy=gy, dt=dt,
              x0=np.r_[x0, 0.0], P0=ref["Pprior"][0, jb], spec=spec, anchor=np.array(spec["anchor"][:2]), hg=hg)
     mus = dict(BB=ref["mu"][:, jb], MB=ref["mu"][:, jm])
     es = z[:, 1] - hg[:, 1]
