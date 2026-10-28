@@ -33,9 +33,11 @@ for case in CASE:
   for name,var in [("MB_ORIG",False),("MB_VAR",True)]:
    x=D["x0"].copy();P=D["P0"].copy(); trace=[]
    for k in range(len(t)):
+    # Exact upstream exp_pb.run convention: distance-dependent variance is
+    # evaluated on the previous posterior BEFORE the current propagation.
+    rr=float(np.linalg.norm(x[:2]-D["anchor"]))
     if k:x,P=C.predict_one(x,P,ds[k],gy[k],dt[k])
     xp=x.copy();Pp=P.copy()
-    rr=float(np.linalg.norm(x[:2]-D["anchor"]))
     hk,Hk=model.batch(x[None],sig);h=hk[0];H=Hk[0]
     nu=z[k]-h-mu[k];R=ref["R"][k,jb].copy()
     if var:R[1,1]+=E.sig(rr)**2
