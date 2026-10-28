@@ -166,15 +166,28 @@ def main():
     if a.sig:
         rs, ss = a.sig.split(":"); SIG_R = np.array([float(v) for v in rs.split(",")]); SIG_V = np.array([float(v) for v in ss.split(",")])
     SIG_V = SIG_V * a.sig_scale
-    spec = C.CASES[a.case]; model = C.base_model()
-    ref = C.load_control(a.case, "B0")                      # packets are bias-level independent
-    jb, jm = ref["jb"], ref["jm"]
-    t = ref["t_s"]; gt = ref["truth_scoring_only"]
-    z = ref["nu"][:, jb] + ref["h"][:, jb] + ref["mu"][:, jb]
-    ds, gy, dt, x0 = build_controls(t, gt[:, :3], a.bias)
+    model = C.base_model()
     checks = {}
     stored = {}
-    if a.bias in ("B0", "L2"):
+    pk_path = HERE / "packets" / f"PACKETS_{a.case}.npz"
+    if a.case in C.CASES:
+        spec = C.CASES[a.case]
+        ref = C.load_control(a.case, "B0")                      # packets are bias-level independent
+        jb, jm = ref["jb"], ref["jm"]
+        t = ref["t_s"]; gt = ref["truth_scoring_only"]
+        z = ref["nu"][:, jb] + ref["h"][:, jb] + ref["mu"][:, jb]
+        muB, muM, R = ref["mu"][:, jb], ref["mu"][:, jm], ref["R"][:, jb]; P0 = ref["Pprior"][0, jb]; accB0 = ref["acc"][:, jb].astype(bool)
+        if pk_path.exists():                                     # regenerated packets must equal the stored E1 inputs
+            pk = np.load(pk_path)
+            for nm, mine, theirs in (("z", pk["z"], z), ("mu_B", pk["mu_B"], muB), ("mu_M", pk["mu_M"], muM), ("R", pk["R"], R)):
+                checks[f"packets_regen_{nm}"] = float(np.max(np.abs(mine - theirs)))
+    else:                                                        # new mount-45 case: regenerated packets (m45_gen/)
+        pk = np.load(pk_path)
+        spec = dict(anchor=tuple(float(v) for v in pk["anchor"]), robot_z_m=0.45, mount_deg=float(pk["mount_deg"]))
+        t = pk["t_s"]; gt = pk["truth_scoring_only"]; z = pk["z"]; muB, muM, R = pk["mu_B"], pk["mu_M"], pk["R"]
+        P0 = np.diag(np.r_[INITIAL_POSE_STD ** 2, math.radians(0.1) ** 2]); accB0 = None; jb = jm = 0
+    ds, gy, dt, x0 = build_controls(t, gt[:, :3], a.bias)
+    if a.case in C.CASES and a.bias in ("B0", "L2"):
         tr = C.load_control(a.case, a.bias); stored = tr
         for nm, src in (("mu", "mu"), ("R", "R")):
             checks[f"packets_{nm}_equal_B0"] = float(np.max(np.abs(tr[src].astype(float) - ref[src].astype(float))))
@@ -182,19 +195,21 @@ def main():
         checks["controls_ds_vs_trace"] = float(np.max(np.abs(ds[1:] - dss[1:])))
         checks["controls_gyro_vs_trace"] = float(np.max(np.abs(gy[1:] - gys[1:])))
         checks["x0_vs_trace"] = float(np.max(np.abs(np.r_[x0, 0.0] - tr["prior"][0, jb])))
-        for kk, v in checks.items():
-            if kk.startswith(("packets_", "controls_", "x0_")) and v > 1e-10:
-                raise RuntimeError(f"PARITY_FAIL {kk}={v}")
-    acc = gated_mask(z, ref["mu"][:, jb], ref["R"][:, jb], ds, gy, dt, np.r_[x0, 0.0], ref["Pprior"][0, jb], spec, model)
+    for kk, v in checks.items():
+        if kk.startswith(("packets_", "controls_", "x0_")) and v > 1e-10:
+            raise RuntimeError(f"PARITY_FAIL {kk}={v}")
+    acc = gated_mask(z, muB, R, ds, gy, dt, np.r_[x0, 0.0], P0, spec, model)
     if stored:
         checks["mask_vs_trace_mismatch"] = float(np.sum(acc != stored["acc"][:, jb].astype(bool)))
         if checks["mask_vs_trace_mismatch"] > 0:
             raise RuntimeError(f"MASK_PARITY_FAIL {checks['mask_vs_trace_mismatch']}")
-    checks["mask_changed_vs_B0"] = float(np.sum(acc != ref["acc"][:, jb].astype(bool)))
+    if accB0 is not None:
+        checks["mask_changed_vs_B0"] = float(np.sum(acc != accB0))
+    checks["accept_fraction"] = float(acc.mean())
     hg, _ = model.batch(np.c_[gt[:, :3], np.zeros(len(t))], spec)
-    D = dict(t=t, gt=gt, z=z, R=ref["R"][:, jb], acc=acc, ds=ds, gy=gy, dt=dt,
-             x0=np.r_[x0, 0.0], P0=ref["Pprior"][0, jb], spec=spec, anchor=np.array(spec["anchor"][:2]), hg=hg)
-    mus = dict(BB=ref["mu"][:, jb], MB=ref["mu"][:, jm])
+    D = dict(t=t, gt=gt, z=z, R=R, acc=acc, ds=ds, gy=gy, dt=dt,
+             x0=np.r_[x0, 0.0], P0=P0, spec=spec, anchor=np.array(spec["anchor"][:2]), hg=hg)
+    mus = dict(BB=muB, MB=muM)
     es = z[:, 1] - hg[:, 1]
     rows = []
     for name, bg, cfg in ARMS:

@@ -1,4 +1,4 @@
-name: Polarization-bias modelling (variance / state / sliding window), 7 routes x B0-L0-L1-L2
+name: Polarization-bias modelling (variance / state / sliding window), 12 routes x B0-L0-L1-L2
 # Runs ONLY when pol_bias_model/RUN_REQUEST.json is committed/changed (or by manual dispatch).
 on:
   push:
@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        case: [R2_aA_m0, R2_aB_m0, R2_aA_m45, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        case: [R2_aA_m0, R2_aB_m0, R2_aA_m45, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0, R2_aB_m45, R4_aA_m45, R4_aB_m45, R5_aA_m45, R5_aB_m45]
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:

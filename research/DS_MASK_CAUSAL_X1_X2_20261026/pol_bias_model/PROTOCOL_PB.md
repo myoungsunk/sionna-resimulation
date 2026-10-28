@@ -31,3 +31,9 @@ Heading RMSE, signed bias, XY RMSE, 앵커 거리 RMSE, heading z RMS(오차/보
 - P2 (강건성): 모든 조건에서 heading RMSE ≤ 1.10 × BB_ORIG.
 - P3 (불확실성 정직성): heading z RMS 중앙값 ≤ 1.5 그리고 XY 95% 포함률 중앙값 ≥ 0.80.
 - 보고: ORPOL까지의 격차 중 줄인 비율 중앙값 (MB_ORIG − M)/(MB_ORIG − MB_ORPOL), bias 단계별·마운트별 중앙값.
+
+## 추가 (2026-10-28): 마운트 45 다섯 경로
+- R2_aB_m45, R4_aA_m45, R4_aB_m45, R5_aA_m45, R5_aB_m45 × B0/L0/L1/L2 = 20조건 추가 (총 48조건).
+- packet 입력은 `m45_gen/`의 절차로 원래 특징·OOF 코드와 원래 fold 학습 집합으로 생성했다(재현 gate 통과, `m45_gen/README_KO.md`).
+- 기존 28조건의 사전 판정(PREREG_original7)은 그대로 보고하고, 마운트 0(24)·마운트 45(24)·전체(48) 부분집합을 별도로 보고한다. 부분집합의 P1 기준은 조건 수의 75%(올림)다. 이 부분집합 판정은 사전 등록이 아니다.
+- σ 표와 창 파라미터는 바꾸지 않는다.
