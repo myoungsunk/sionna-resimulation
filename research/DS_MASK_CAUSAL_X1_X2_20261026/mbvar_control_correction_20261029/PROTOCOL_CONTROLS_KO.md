@@ -318,3 +318,99 @@ H_TC가 맞다면 다음이 함께 나타나야 한다.
 - 결론 문장은 처치가 바꾼 요인 범위 안에서만 쓴다.
   - 예: "E4 PERM에서 X가 변했다"는 쓸 수 있다.
   - "시간상관이 실제 환경에서 X를 일으킨다"는 쓰지 않는다.
+
+## 실행 전 수정 (2026-10-29, 구현 시 확정 — 실행 후 변경 금지)
+
+본문에서 연산 정의가 비어 있던 부분을 아래와 같이 고정한다.
+
+### A1. 공통
+
+- **seed 0 parity 기준:** CSV(유효숫자 6자리)가 아니라 `exp_pb.run` 직접 호출과 비교한다. 상태 최대 차이 ≤ 1e-10이어야 한다.
+- **E1·E4의 수용 집합:** BASE mask 전체 시간(t < 30 포함)을 쓴다. 06a8a09 DEC와 동일하다. 점수는 t ≥ 30이다.
+- **E1·E4의 요약 표본:** S_base(all window)이다. thinning된 packet도 prior가 있으므로 ν·δh는 계산된다.
+
+### A2. E1 해석 규칙의 수치 정의
+
+**선택 의존**
+- 같은 m에서 DEC 위상 간 Heading RMSE 분산 / RAND 20회 분산 > 1이면 "선택 의존"으로 판정한다(seed 0).
+
+**RSC_TOTAL 위치**
+- RAND_m의 Heading RMSE·XY RMSE 2.5–97.5% 구간 안이면 "구분 불가"로 판정한다(seed 0).
+
+**채널 귀속**
+- 회복분 G = base − DEC_m(위상 평균)으로 정의한다(Heading RMSE).
+- THIN_S_m(위상 평균)이 G의 ≥ 70%를 회복하고 THIN_R_m이 ≤ 30%를 회복하면 "s 채널 귀속"으로 판정한다.
+- 반대 조건이면 "r 채널 귀속"으로 판정한다.
+- G ≤ 0.02°이면 NA로 둔다.
+
+### A3. E2 특징 u
+
+- ρ̂, ρ̂², h_s(x̂⁻), ∂h_s/∂ψ, |∂h_s/∂ψ|, anchor 상대 방위의 cos·sin, ‖∂h_r/∂p‖²를 쓴다. 모두 prior에서만 계산한다.
+- tap 상태는 FETCH_RF = 0이므로 제외한다.
+- **학습 표본:** 학습 route들의 MB_ORIG 고정 gate run(seed 0)에서 유한 packet 전체의 (u, ε)이다.
+
+### A4. E3 공분산 추정
+
+- 거리 bin 대신 knot [0.75, 2.25, 4.5, 8, 12] m의 hat-basis 가중 원점 2차 모멘트를 쓴다. 학습은 ρ_true, 적용은 ρ̂(σ_b와 같은 사후 상태)로 한다.
+- **arm 범위:**
+  - MB_ORIG: COV_RR/SS/RS/ALL
+  - MB_VAR: COV_RR, COV_RS (R_ss = R₀ + σ_b²는 유지)
+
+### A5. E4
+
+**block 정의**
+- 층별 시간순 구성원을 k = L/0.2 s개씩 묶고, block 순서를 순열한다. PERM은 k = 1이다.
+
+**SIGNFLIP**
+- 층 평균 m에 대해 m + s_b(ε − m), s_b = ±1이다.
+- 편차 2차 모멘트는 정확히 보존된다. 평균은 기대값으로만 보존된다.
+
+**1차 판정 지표**
+- 각 (case, seed)에서 반복 중앙값을 쓴다.
+
+**기준 1–3 (seed별)**
+1. \|cross_share_s(PERM)\| ≤ 0.10
+2. \|log z_ψ(PERM)\| < \|log z_ψ(ID)\| 이고 \|log mr_dh2_HPH_s(PERM)\| < \|log mr_dh2_HPH_s(ID)\|
+3. Heading·XY RMSE가 PERM < ID
+
+**기준 4 (seed 0, 20회 중앙값)**
+- 순서 [PERM, B1, B2, B4, B8, ID]와 지표(\|cross_share_s\|, Heading RMSE)의 Spearman이 모두 ≥ 0.8이어야 한다.
+
+**기준 5**
+- R5_aB의 Heading RMSE 중앙값이 PERM ≤ 1.10 × ID이어야 한다.
+
+**판정**
+- **지지:** R5_aA·R4_aB 모두에서 기준 1–3을 동시에 만족한 seed가 8/10 이상이고, 기준 4와 5를 만족하면 지지한다.
+- **부분 지지:** 1은 8/10 이상인데 3은 미달이면 부분 지지로 둔다.
+- **기각:** 1이 미달이면 기각한다.
+
+### A6. E5
+
+- **실패 창:** case·arm별로 seed 0 고정 gate run에서 Heading MSE가 최대인 30 s 창(시작 30, 40, …)이다.
+- **1-step replay:** 그 창 시작의 직전 posterior에서 20 packet을 재생한다.
+- **처치:** ID, PERM(rep 0), RSC_TOTAL_8, COV_RS(S_all 추정)
+
+### A7. E6
+
+**1단계**
+- 고정 mask run(U0 = MB_ORIG, UV = MB_VAR)의 prior에서 R₀·R_VAR gate의 수용 여부를 계산한다. σ_b는 직전 posterior 기준이다.
+
+**2단계 판정**
+- 10 seed에서 \|ΔHeading\|/고정UV와 \|ΔXY\|/고정UV의 중앙값이 모두 ≤ 5%이면 G0UV ≡ 고정 UV로 판정한다(thr p99).
+
+### A8. E7
+
+- P0 감사는 저장소 코드 조사로 수행하고, 결과를 `E7_P0_AUDIT.json`에 기록한다.
+- nested LORO는 감사 결과가 "재현 가능"일 때 별도 계약으로 진행한다. 이번 실행에는 포함하지 않는다.
+
+### A9. E4 조작 점검 기준 보정 (smoke 실행 후, 본 실행 전)
+
+**관찰 (smoke, R4_aB seed 0)**
+- PERM 후 ε_s lag-1은 0.73 → 0.19로 내려갔다.
+- 남은 상관은 층 평균 차이(조건부 평균 구조)에서 온다. 이 구조는 설계상 보존 대상이다.
+
+**보정**
+- "PERM lag-1 < 0.1" 점검은 **층 평균을 뺀 편차의 lag-1**(`chk_lag1_s_dm`)으로 판정한다.
+- 원 lag-1(`chk_lag1_s`)도 함께 보고한다.
+- 기준을 통과하지 못한 PERM 반복은 판정에서 제외하고, 제외 수를 보고한다.
+- 판정 규칙(A5)은 바꾸지 않는다.

@@ -1,0 +1,29 @@
+{
+ "audit": "E7 P0 - can mu_B, mu_M and R be retrained inside an outer route fold?",
+ "date": "2026-10-29",
+ "method": "repository code inspection only (no retraining executed)",
+ "findings": [
+  {"component": "mu_M (Delta-s mean, arm MU_R_EXDS)",
+   "source": "research/PJ_DS_GATED_20261021/mu_recursive.py @ 902ddcaf0f8e59734bb8026d3bcdc36eab506a27 (original MR run 39574195919)",
+   "training": "sklearn HistGradientBoostingRegressor on EXIST+DS features, rows with channel=='full' and route != held route (one model per held route)",
+   "how_mu_M_reached_traces": "x1/PROTOCOL.md: per-packet mu_r reconstructed from published MR residuals (mu_r = e_r - MR_meas_r_cm/100) and applied as frozen packet-keyed constants",
+   "route_held_out": true},
+  {"component": "mu_B and R (POWER_DIAG)",
+   "source": "research/PJ_SEPARATE_RS_20261020/experiment.py fit_models",
+   "training": "route != held and >1e-4 m from test positions",
+   "route_held_out": true},
+  {"component": "sigma_b hand table",
+   "source": "pol_bias_model/PROTOCOL_PB.md",
+   "training": "chosen from mount-0 B0 statistics and trials (in-sample)",
+   "route_held_out": false}
+ ],
+ "nested_requirements": [
+  "mu_recursive.py + v_replay / d1_core (PJ_D1_TEMPORAL_20261021) + series_dump at 902ddca",
+  "OBSERVATION_FEATURES_LABELS.csv.gz and OOF_PARAMETERS.csv.gz (GitHub Actions artifacts of earlier runs; retention-limited)",
+  "full-RF channels H_<case>.npy (git blobs, available via fetch_inputs.sh FETCH_RF=1)",
+  "scikit-learn (not in the current workflow pins)"
+ ],
+ "indirect_leakage_in_06a8a09_D1": "sigma_b LORO used stored residuals of training routes whose mu_M models were themselves trained with the outer route included (e.g. R2 residuals from a model trained on R4+R5 when R5 is the outer route).",
+ "verdict": "CONDITIONALLY_FEASIBLE_NOT_EXECUTED",
+ "summary": "mu_M/mu_B/R were each fit route-held-out, so the published per-route values are OOF; a fully nested LORO needs retraining mu_M (HGB) and R inside each outer fold from the 902ddca code and artifact inputs whose availability was not verified here. Until then 06a8a09 D1 is named '고정 OOF mu,R 위에서의 2단계 분산표 경로 제외 재적합'."
+}

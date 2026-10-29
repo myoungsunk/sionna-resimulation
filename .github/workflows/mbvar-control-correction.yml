@@ -1,0 +1,131 @@
+name: MB_VAR control-condition correction (C0, E1-E6), mount 0 x 10 seeds
+# Runs ONLY when mbvar_control_correction_20261029/RUN_REQUEST.json is committed/changed (or by manual dispatch).
+on:
+  push:
+    branches: ['research/mbvar-control-correction-20261029']
+    paths: ['research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_control_correction_20261029/RUN_REQUEST.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  CTL_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_control_correction_20261029
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2
+jobs:
+  inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - name: Fetch and hash-lock inputs (code subset, FFD banks, E1 control traces; no channels)
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ctl"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          du -sh "$REFLECT_ROOT"/*
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ctl-inputs-${{ github.run_id }}
+          path: ${{ runner.temp }}/ctl/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
+  run:
+    needs: inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        case: [R2_aA_m0, R2_aB_m0, R4_aA_m0, R4_aB_m0, R5_aA_m0, R5_aB_m0]
+        job: ['A s0', 'E1 s0', 'E1 sx', 'E4 s0', 'E4 sx', 'E23 s0', 'E6 s0']
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_control_correction_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Stage inputs
+        run: gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name ctl-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/ctl"
+      - name: Run shard
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ctl" CTL_OUT="$RUNNER_TEMP/out"; mkdir -p "$CTL_OUT"
+          read STAGE PART <<< "${{ matrix.job }}"
+          python -u "$CTL_DIR/run_stage.py" --stage "$STAGE" --case ${{ matrix.case }} --part "$PART" 2>&1 | tee "$CTL_OUT/LOG_${STAGE}_${{ matrix.case }}_${PART}.txt"
+      - name: Shard artifact name
+        if: always()
+        id: nm
+        run: echo "name=ctl-shard-$(echo '${{ matrix.job }}' | tr ' ' '_')-${{ matrix.case }}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ${{ steps.nm.outputs.name }}
+          path: ${{ runner.temp }}/out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  aggregate:
+    needs: run
+    if: always() && needs.run.result != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_control_correction_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Collect shards and apply pre-registered rules
+        run: |
+          set -euo pipefail
+          export CTL_OUT="$RUNNER_TEMP/out"; mkdir -p "$CTL_OUT" "$RUNNER_TEMP/shards"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --pattern 'ctl-shard-*' --dir "$RUNNER_TEMP/shards"
+          find "$RUNNER_TEMP/shards" -type f \( -name '*.csv' -o -name '*.json' -o -name 'LOG_*.txt' \) -exec cp {} "$CTL_OUT/" \;
+          ls "$CTL_OUT" | wc -l
+          python -u "$CTL_DIR/aggregate_ctl.py" 2>&1 | tee "$CTL_OUT/AGG_LOG.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ctl-aggregate-${{ github.run_id }}
+          path: ${{ runner.temp }}/out/
+          retention-days: 30
+      - name: Publish results to the branch (csv/json/md/txt only; npz logs stay as artifacts)
+        if: always()
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/out"; [ -d "$SRC" ] || exit 0
+          DEST="$CTL_DIR/results/run_${{ github.run_id }}"
+          W="$RUNNER_TEMP/pub"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"; git sparse-checkout set --no-cone "/$CTL_DIR/results/"
+          mkdir -p "$DEST"; find "$SRC" -maxdepth 1 -type f \( -name '*.csv' -o -name '*.json' -o -name '*.md' -o -name '*.txt' \) -exec cp {} "$DEST"/ \;
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"; git commit -q -m "mbvar-control-correction results: run ${{ github.run_id }}" || exit 0
+          for i in 1 2 3 4 5 6; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*4)); done
+          exit 1
