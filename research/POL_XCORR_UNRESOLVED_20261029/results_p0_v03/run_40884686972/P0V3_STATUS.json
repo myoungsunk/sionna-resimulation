@@ -1,0 +1,84 @@
+{
+  "role": "IMPLEMENTER",
+  "contract_id": "POL-XCORR-001",
+  "phase": "P0V3_DELTA_PREFLIGHT_ONLY",
+  "status": "P0V3_CORE_TECHNICAL_PASS",
+  "checks": {
+    "NEGATIVE_FIXTURES": {
+      "class": "CORE",
+      "status": "PASS",
+      "count": 21
+    },
+    "LOCKED_INPUT_SHA256": {
+      "class": "CORE",
+      "status": "PASS",
+      "missing": [],
+      "mismatch": [],
+      "n_assets": 32
+    },
+    "TRACE_SET_HASHES": {
+      "class": "T4_ONLY",
+      "status": "PASS",
+      "expected_npz": 925,
+      "expected_receipts": 925,
+      "aggregate_expected": "6c2a49986526012074b9d679648cb94efb8b499f7fcf8f13a4d28dfda0910a48",
+      "aggregate_calculated": "6c2a49986526012074b9d679648cb94efb8b499f7fcf8f13a4d28dfda0910a48",
+      "errors_count": 0,
+      "errors_first": []
+    },
+    "R04_DIRECT_TAP_BRANCH_VALID": {
+      "class": "CORE",
+      "status": "PASS",
+      "rows_checked": 19038,
+      "cases_channels": 14,
+      "mismatch_total": 0,
+      "first20": []
+    },
+    "R14_DIRECT_J_PORT_BALANCE": {
+      "class": "CORE",
+      "status": "PASS",
+      "q_identity_max": 3.469446951953614e-18,
+      "eps_identity_max": 1.1102230246251565e-16,
+      "u_inverse_max": 1.7208456881689926e-14,
+      "inverse_n_checked": 9506,
+      "inverse_n_skipped": 13,
+      "inverse_skip_counts": {
+        "NEAR_BALANCED_INVERSE_ILL_CONDITIONED": 13
+      },
+      "n_valid": 9519,
+      "n_weak": 3492
+    },
+    "R02_R12_R13A_REFERENCE_RECHECK": {
+      "class": "CORE",
+      "status": "PASS",
+      "checks": {
+        "R-02": {
+          "status": "PASS",
+          "reason": "MATCHED",
+          "n": 9519,
+          "max_abs": 1.1102230246251565e-16,
+          "tolerance_abs": 1e-09
+        },
+        "R-12": {
+          "status": "PASS",
+          "reason": "MATCHED",
+          "n": 9519,
+          "max_abs": 1.3322676295501878e-15,
+          "tolerance_abs": 1e-09
+        },
+        "R-13a": {
+          "status": "PASS",
+          "reason": "MATCHED",
+          "n": 9519,
+          "max_abs": 7.105427357601002e-15,
+          "tolerance_abs": 1e-09
+        }
+      }
+    }
+  },
+  "errors": [],
+  "science": "NOT_RUN",
+  "auditor": "NOT_ASSIGNED",
+  "frozen": false,
+  "S0_P1_P2_P3": "BLOCKED_CONTRACT_INCOMPLETE"
+}
