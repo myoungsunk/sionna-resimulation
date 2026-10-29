@@ -1,0 +1,50 @@
+name: MBVAR-INFO contract check (mechanical QA only)
+# Mechanical checks for MBVAR-INFO-001. A green run is NOT a scientific result (COMMON_CONTRACT IV, CI_REQUIREMENTS).
+on:
+  push:
+    branches: ['research/mbvar-info-*']
+    paths:
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/**'
+      - 'docs/research-governance/**'
+      - 'AGENTS.md'
+      - '.github/workflows/mbvar-info-*.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          fetch-depth: 50
+          sparse-checkout: |
+            AGENTS.md
+            docs/research-governance
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Governance files present (else BLOCKED_GOVERNANCE_NOT_INSTALLED)
+        run: |
+          for f in docs/research-governance/COMMON_CONTRACT.md docs/research-governance/ROLE_IMPLEMENTER.md docs/research-governance/ROLE_AUDITOR.md docs/research-governance/ROLE_PROPOSER.md "$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md"; do
+            test -f "$f" || { echo "BLOCKED_GOVERNANCE_NOT_INSTALLED: $f"; exit 1; }; done
+          grep -q "MB_VAR controlled-information experiments" AGENTS.md || { echo "BLOCKED_GOVERNANCE_NOT_INSTALLED: AGENTS router"; exit 1; }
+      - name: Math / field / validator tests incl. negative fixtures
+        run: python -m pytest -q -p no:cacheprovider "$EXP/tests"
+      - name: Contract structure (draft or frozen)
+        run: |
+          if grep -q "## FROZEN_LOCK" "$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md"; then
+            export MBVAR_GOVERNANCE_SHA=$(python "$EXP/scripts/validate_contract.py" --contract "$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md" --mode draft --print-governance)
+            python "$EXP/scripts/validate_contract.py" --contract "$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md" --mode frozen --phase G2
+          else
+            python "$EXP/scripts/validate_contract.py" --contract "$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md" --mode draft
+          fi

@@ -1,0 +1,199 @@
+name: MBVAR-INFO phase run (P0 / S0 / S1 only; RT phases are not runnable here)
+# Runs ONLY when MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json changes (or by manual dispatch).
+on:
+  push:
+    branches: ['research/mbvar-info-001-20261029']
+    paths: ['research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  BASE_SHA: af8e0a1b5299ae5e279f9b602afd2f1bb710c4e3
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      phase: ${{ steps.p.outputs.phase }}
+      governance: ${{ steps.p.outputs.governance }}
+      mode: ${{ steps.p.outputs.mode }}
+      gate: ${{ steps.p.outputs.gate }}
+      matrix: ${{ steps.p.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - id: p
+        run: |
+          J=$(python3 "$EXP/code/run_phase.py" plan)
+          echo "$J"
+          echo "phase=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["phase"])')" >> "$GITHUB_OUTPUT"
+          echo "governance=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["governance"])')" >> "$GITHUB_OUTPUT"
+          echo "mode=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["contract_mode"])')" >> "$GITHUB_OUTPUT"
+          echo "gate=$(echo "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin)["gate"])')" >> "$GITHUB_OUTPUT"
+          echo "matrix=$(echo "$J" | python3 -c 'import sys,json;print(json.dumps(json.load(sys.stdin)["matrix"]))')" >> "$GITHUB_OUTPUT"
+
+  gate:
+    needs: plan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          fetch-depth: 30
+          filter: blob:none
+          sparse-checkout: |
+            AGENTS.md
+            docs/research-governance
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Tests (incl. negative fixtures)
+        run: python -m pytest -q -p no:cacheprovider "$EXP/tests"
+      - name: Contract mode for this phase + protected paths
+        env:
+          MBVAR_GOVERNANCE_SHA: ${{ needs.plan.outputs.governance }}
+        run: |
+          C="$EXP/contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md"
+          if [ "${{ needs.plan.outputs.mode }}" = "draft" ]; then
+            python "$EXP/scripts/validate_contract.py" --contract "$C" --mode draft --base-sha "$BASE_SHA"
+          else
+            python "$EXP/scripts/validate_contract.py" --contract "$C" --mode frozen --phase "${{ needs.plan.outputs.gate }}" --base-sha "$BASE_SHA"
+          fi
+
+  inputs:
+    needs: [plan, gate]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - name: Fetch and hash-lock inputs (code subset, FFD banks, control traces; no channels)
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          if [ "${{ needs.plan.outputs.phase }}" = "P0_PREFLIGHT" ]; then
+            C=9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13; BLK=results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C
+            mkdir -p "$REFLECT_ROOT/rf_p0"
+            for c in R4_aB_m0 R5_aA_m0; do
+              curl -fsSL -o "$REFLECT_ROOT/rf_p0/H_$c.npy" "https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/$C/$BLK/FULL_RF/H_$c.npy"
+              curl -fsSL -o "$REFLECT_ROOT/rf_p0/SAMPLES_$c.json" "https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/$C/$BLK/$c/SAMPLES.json"
+            done
+            ( cd "$REFLECT_ROOT" && sha256sum rf_p0/* >> out/INPUT_LOCK.sha256 )
+          fi
+          du -sh "$REFLECT_ROOT"/*
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mi-inputs-${{ github.run_id }}
+          path: ${{ runner.temp }}/mi/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+
+  run:
+    needs: [plan, inputs]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Stage inputs
+        run: gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name mi-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
+      - name: Run shard
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"; OUT="$RUNNER_TEMP/out"; mkdir -p "$OUT"
+          python -u "$EXP/code/run_phase.py" run --shard "${{ matrix.shard }}" --out "$OUT" 2>&1 | tee "$OUT/LOG_shard.txt"
+      - name: Shard name
+        if: always()
+        id: nm
+        run: echo "name=mi-shard-$(echo '${{ matrix.shard }}' | md5sum | cut -c1-10)" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ${{ steps.nm.outputs.name }}
+          path: ${{ runner.temp }}/out/
+          retention-days: 30
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [plan, run]
+    if: always() && needs.run.result != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Collect shards and aggregate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/shards" "$RUNNER_TEMP/agg"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --pattern 'mi-shard-*' --dir "$RUNNER_TEMP/shards" || true
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name mi-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          python -u "$EXP/code/run_phase.py" aggregate --shards "$RUNNER_TEMP/shards" --out "$RUNNER_TEMP/agg" 2>&1 | tee "$RUNNER_TEMP/agg/AGG_LOG.txt" || true
+          find "$RUNNER_TEMP/shards" -type f \( -name '*.csv' -o -name '*.json' -o -name '*.txt' -o -name '*.md' \) -exec cp -n {} "$RUNNER_TEMP/agg/" \;
+          ls "$RUNNER_TEMP/agg" | head -50
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mi-aggregate-${{ github.run_id }}
+          path: ${{ runner.temp }}/agg/
+          retention-days: 30
+      - name: Publish to the branch (csv/json/md/txt)
+        if: always()
+        run: |
+          set -euo pipefail
+          SRC="$RUNNER_TEMP/agg"; [ -d "$SRC" ] || exit 0
+          DEST="$EXP/results/${{ needs.plan.outputs.phase }}_run_${{ github.run_id }}"
+          W="$RUNNER_TEMP/pub"; rm -rf "$W"
+          git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
+          cd "$W"; git sparse-checkout set --no-cone "/$EXP/results/"
+          mkdir -p "$DEST"; find "$SRC" -maxdepth 1 -type f \( -name '*.csv' -o -name '*.json' -o -name '*.md' -o -name '*.txt' \) -exec cp {} "$DEST"/ \;
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$DEST"; git commit -q -m "MBVAR-INFO ${{ needs.plan.outputs.phase }} results: run ${{ github.run_id }} [skip ci]" || exit 0
+          for i in 1 2 3 4 5 6; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*4)); done
+          exit 1
