@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MBVAR-INFO phase run manifest",
+  "type": "object",
+  "required": [
+    "contract_id",
+    "phase",
+    "execution_status",
+    "utc_completed",
+    "source_git_sha",
+    "governance_git_sha",
+    "contract_sha256",
+    "config_sha256",
+    "input_lock_sha256",
+    "source_code_sha256",
+    "output_sha256",
+    "seed_ledger_sha256",
+    "run_command",
+    "scientific_verdict",
+    "independence_unit",
+    "limitations"
+  ],
+  "properties": {
+    "contract_id": {
+      "const": "MBVAR-INFO-001"
+    },
+    "phase": {
+      "enum": [
+        "P0_PREFLIGHT",
+        "P0",
+        "P1_S0",
+        "P2_S1",
+        "P3_RT_CANARY",
+        "P4_RT_PILOT",
+        "P5_RT_CONFIRM",
+        "P6_RELEASE"
+      ]
+    },
+    "execution_status": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED",
+        "NOT_RUN"
+      ]
+    },
+    "scientific_verdict": {
+      "enum": [
+        "NOT_EVALUATED",
+        "SUPPORTED",
+        "MIXED",
+        "NOT_SUPPORTED",
+        "INCONCLUSIVE"
+      ]
+    },
+    "utc_completed": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_git_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "governance_git_sha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "contract_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "config_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "input_lock_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "source_code_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "output_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[a-f0-9]{64}$"
+      }
+    },
+    "seed_ledger_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "run_command": {
+      "type": "string",
+      "minLength": 5
+    },
+    "independence_unit": {
+      "enum": [
+        "field_realization",
+        "scene_variant_within_family",
+        "mathematical_deterministic"
+      ]
+    },
+    "scene_hash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "pose_ledger_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "solver_config_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "measurement_extractor_sha256": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "reviewer_status": {
+      "enum": [
+        "PENDING",
+        "SELF_REVIEW_ONLY",
+        "ACCEPT_WITH_BOUNDARIES",
+        "REVISION_REQUIRED",
+        "REDESIGN_REQUIRED",
+        "BLOCKED_EVIDENCE"
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "phase": {
+            "enum": [
+              "P3_RT_CANARY",
+              "P4_RT_PILOT",
+              "P5_RT_CONFIRM"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "scene_hash",
+          "pose_ledger_sha256",
+          "solver_config_sha256",
+          "measurement_extractor_sha256"
+        ]
+      }
+    }
+  ],
+  "additionalProperties": true
+}

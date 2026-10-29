@@ -1,0 +1,84 @@
+{
+  "contract_id": "MBVAR-INFO-001",
+  "status": "DRAFT_ONLY",
+  "as_of_utc_date": "2026-10-29",
+  "governance_commit": "P0_TO_RESOLVE_GOVERNANCE_SHA",
+  "base_commit": "P0_TO_RESOLVE_SOURCE_SHA",
+  "mathematical_s0": {
+    "rho": [0.0, 0.5, 0.9],
+    "reference_sigma": 1.0,
+    "same_sign_analytic_ratio_at_rho_0p9": 0.5263157894736842,
+    "opposite_sign_analytic_ratio_at_rho_0p9": 10.0,
+    "abs_tolerance": 1e-10,
+    "state_order": ["px_m", "py_m", "psi_rad", "gyro_bias_rad_per_s"],
+    "fixed_state_scales": [0.1, 0.1, 0.08726646259971647, 0.003490658503988659]
+  },
+  "synthetic_s1": {
+    "primary_mu": [0.0, 0.0],
+    "sigma_r_m": 0.05,
+    "sigma_s": 0.02,
+    "r_s_corr": 0.0,
+    "low_spatial": {"alpha_pose": 0.0, "alpha_time": 0.0, "alpha_iid": 1.0},
+    "high_spatial": {"alpha_pose": 0.7, "alpha_time": 0.0, "alpha_iid": 0.3},
+    "pose_corr_length_m": 0.5,
+    "pose_corr_yaw_deg": 20.0,
+    "time_only_sensitivity": {"alpha_time": 0.3, "tau_seconds": [1.0, 5.0]},
+    "r_s_sensitivity_corr": 0.3,
+    "field_seeds_pilot": 10,
+    "field_seeds_confirmation_proposal": 30,
+    "sensor_seeds_per_field": 3,
+    "physical_s_domain_abs_max": 1.0,
+    "ffd_preselection_abs_s_max": 0.7,
+    "no_clipping": true
+  },
+  "world": {
+    "width_m": 12.0,
+    "length_m": 12.0,
+    "robot_antenna_height_m": 0.45,
+    "anchor_height_m": 2.65,
+    "mount_deg": 0.0,
+    "anchors": {
+      "A": [2.0, 2.0, 2.65],
+      "B_RESERVE": [10.0, 2.0, 2.65],
+      "C": [6.0, 10.0, 2.65]
+    },
+    "trajectory_pose_spacing_m": 0.05,
+    "trajectories": {
+      "T1_HORIZONTAL": "x=2..10,y=6,yaw=0, every 0.05 m",
+      "T4_S_CURVE": "x=2..10,y=5.5+0.8*sin(2*pi*(x-2)/8),yaw=atan(dy/dx), arc-length resample <=0.05m",
+      "T5_SPIN": "x=6,y=6,yaw=0,5,..,355,360deg; first last same physical pose"
+    },
+    "v_dt_legal_pairs": [
+      {"v_m_s": 0.1, "dt_s": 0.5, "dd_m": 0.05},
+      {"v_m_s": 0.1, "dt_s": 1.0, "dd_m": 0.1},
+      {"v_m_s": 0.2, "dt_s": 0.5, "dd_m": 0.1},
+      {"v_m_s": 0.2, "dt_s": 1.0, "dd_m": 0.2}
+    ]
+  },
+  "rf_canary": {
+    "scenes": ["C00_DIRECT", "C01_FLOOR", "C10_PLATE_PAR"],
+    "anchors": ["A", "C"],
+    "primary_paths": ["T1_HORIZONTAL", "T4_S_CURVE"],
+    "pose_count_per_path_per_anchor_per_scene_max": 24,
+    "total_config_cap_proposal": 288,
+    "solver_version_proposal": "sionna-rt==2.0.1",
+    "full_frequency_bins_proposal": 257,
+    "max_specular_depth_proposal": 3,
+    "first_path_leading_edge": 0.3,
+    "observation_zero_padding_factor": 4,
+    "base_plate_center_xyz_m": [6.0, 1.5, 1.35],
+    "base_plate_length_m": 2.0,
+    "base_plate_height_m": 2.7,
+    "base_plate_rotation_deg": [0.0, 45.0],
+    "plate_material": "P0_TO_RESOLVE_MATERIAL",
+    "plate_thickness_m_proposal": 0.005,
+    "parity_tolerances": "P0_TO_RESOLVE_DIRECT_PARITY_TOL",
+    "user_approved_compute_budget": "P0_TO_RESOLVE_RF_BUDGET"
+  },
+  "source_selection_and_holdout": {
+    "geometry_classification": "P0_TO_RESOLVE_HGEOMETRY",
+    "independent_field_or_scene_splits": "P0_TO_RESOLVE_FINAL_SPLITS",
+    "effect_size_threshold": "P0_TO_RESOLVE_EFFECT_SIZE",
+    "retrospective_only": ["Corridor R2/R4/R5", "Office O01/O02/O03"]
+  }
+}
