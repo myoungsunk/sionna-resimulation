@@ -19,7 +19,7 @@ def priors(D,arr,k):
     ds,gy,dt=[float(D[n][k]) for n in ("ds","gy","dt")]
     q=np.diag([2e-5*abs(ds),math.radians(.015)**2*dt,0])
     return A.predict(arr[0][k-1],arr[1][k-1],ds,gy,dt,q)[:2]
-def nis_shadow(D,mus,x,P,k,sg,semantic,case,level):
+def nis_shadow(D,mus,model,x,P,k,sg,semantic,case,level):
     h,H=model.batch(x[None],D["spec"]);h,H=h[0],H[0]
     out={}
     for mean,mu in mus.items():
@@ -51,7 +51,7 @@ def gate_analysis(D,mus,model,case,level,var):
     k=int(dif[0]);x,P=priors(D,fixed,k);xx,PP=priors(D,self_,k)
     gap=max(maxdiff(x,xx),maxdiff(P,PP),abs(fixed[3][k]-self_[3][k]))
     must(gap<1e-10,"ERR_FIRST_FLIP_PRIOR_PARITY "+case+level+var+" "+str(gap))
-    shadow=nis_shadow(D,mus,x,P,k,fixed[3][k],var,case,level)
+    shadow=nis_shadow(D,mus,model,x,P,k,fixed[3][k],var,case,level)
     q.update(first_flip=k,first_time_s=float(D["t"][k]),
       first_fixed_accept=bool(fixed[2][k]),first_self_accept=bool(self_[2][k]),
       prior_parity_max=gap,posterior_x_gap=maxdiff(fixed[0][k],self_[0][k]),
