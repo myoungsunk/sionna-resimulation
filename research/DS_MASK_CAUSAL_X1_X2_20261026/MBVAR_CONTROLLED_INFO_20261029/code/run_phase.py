@@ -19,7 +19,8 @@ REQ = EXP / "RUN_REQUEST.json"
 PHASES = {"P0_PREFLIGHT": dict(mode="draft", gate="G1"), "P1_S0": dict(mode="frozen", gate="G2"),
           "P2_S1": dict(mode="frozen", gate="G3"), "P0_GEO2": dict(mode="frozen", gate="G2"), "P0_GEO2_REEVAL": dict(mode="frozen", gate="G2"),
           "P1_S0V2": dict(mode="frozen", gate="G2"), "P2_S1V2": dict(mode="frozen", gate="G3"),
-          "P2_S1V2_REEVAL": dict(mode="frozen", gate="G3"), "P2_C2": dict(mode="frozen", gate="G3")}
+          "P2_S1V2_REEVAL": dict(mode="frozen", gate="G3"), "P2_C2": dict(mode="frozen", gate="G3"),
+          "P2_S1V3": dict(mode="frozen", gate="G3"), "P2_C3": dict(mode="frozen", gate="G3")}
 
 
 def request():
@@ -38,7 +39,9 @@ def plan():
         shards = ["geo"] + [f"c1:{f}" for f in r["c1_fields"]]
     if ph == "P2_C2":
         shards = [f"{f}:{g}" for f in r["c2_fields"] for g in ("LH", "RV")]
-    if ph in ("P2_S1", "P2_S1V2"):
+    if ph == "P2_C3":
+        shards = [f"{f}:{g}" for f in r["c3_fields"] for g in ("LH", "RV")]
+    if ph in ("P2_S1", "P2_S1V2", "P2_S1V3"):
         ids = r["field_ids"]; k = int(r.get("n_shards", 8))
         shards = [",".join(map(str, ids[i::k])) for i in range(k) if ids[i::k]]
     print(json.dumps(dict(phase=ph, governance=r["governance_git_sha"], contract_mode=PHASES[ph]["mode"],
@@ -65,6 +68,12 @@ def run(shard, out):
     elif ph == "P2_C2":
         f, g = shard.split(":")
         cmd = [sys.executable, str(HERE / "c2_conv.py"), "run", "--field", f, "--group", g, "--out", str(out)]
+    elif ph == "P2_C3":
+        f, g = shard.split(":")
+        cmd = [sys.executable, str(HERE / "c3_verify.py"), "run", "--field", f, "--group", g, "--out", str(out)]
+        env["S1V3_RUN"] = r["s1v3_run"]
+    elif ph == "P2_S1V3":
+        cmd = [sys.executable, str(HERE / "s1v3.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
     elif ph == "P1_S0V2":
         cmd = [sys.executable, str(HERE / "s0v2.py"), "--out", str(out)]
     elif ph == "P2_S1V2":
@@ -87,6 +96,12 @@ def aggregate(shards, out):
     if ph == "P2_C2":
         env["S1V2_DEV_RUN"] = r["s1v2_dev_run"]
         return subprocess.call([sys.executable, str(HERE / "c2_conv.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_C3":
+        env["S1V3_RUN"] = r["s1v3_run"]
+        return subprocess.call([sys.executable, str(HERE / "c3_verify.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_S1V3":
+        env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])
+        return subprocess.call([sys.executable, str(HERE / "s1v3.py"), "aggregate", "--shards", shards, "--split", r["split"], "--out", out], env=env)
     if ph in ("P2_S1V2", "P2_S1V2_REEVAL"):
         env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])
         return subprocess.call([sys.executable, str(HERE / "s1v2.py"), "aggregate", "--shards", shards, "--split", r["split"], "--out", out], env=env)

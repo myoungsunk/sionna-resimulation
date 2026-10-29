@@ -175,7 +175,7 @@ jobs:
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name mi-inputs-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
           export REFLECT_ROOT="$RUNNER_TEMP/mi"
           python -u "$EXP/code/run_phase.py" aggregate --shards "$RUNNER_TEMP/shards" --out "$RUNNER_TEMP/agg" 2>&1 | tee "$RUNNER_TEMP/agg/AGG_LOG.txt" || true
-          find "$RUNNER_TEMP/shards" -type f \( -name '*.csv' -o -name '*.json' -o -name '*.txt' -o -name '*.md' \) -exec cp -n {} "$RUNNER_TEMP/agg/" \;
+          find "$RUNNER_TEMP/shards" -type f \( -name '*.csv' -o -name '*.json' -o -name '*.txt' -o -name '*.md' -o -name 'S1V3_INPUTS_*.zip' \) -exec cp -n {} "$RUNNER_TEMP/agg/" \;
           ls "$RUNNER_TEMP/agg" | head -50
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
@@ -183,7 +183,7 @@ jobs:
           name: mi-aggregate-${{ github.run_id }}
           path: ${{ runner.temp }}/agg/
           retention-days: 30
-      - name: Publish to the branch (csv/json/md/txt)
+      - name: Publish to the branch (csv/json/md/txt; S1V3_INPUTS_*.zip input receipts, AMENDMENT-008)
         if: always()
         run: |
           set -euo pipefail
@@ -192,7 +192,7 @@ jobs:
           W="$RUNNER_TEMP/pub"; rm -rf "$W"
           git clone -q --depth 1 --filter=blob:none --sparse -b "$GITHUB_REF_NAME" "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$W"
           cd "$W"; git sparse-checkout set --no-cone "/$EXP/results/"
-          mkdir -p "$DEST"; find "$SRC" -maxdepth 1 -type f \( -name '*.csv' -o -name '*.json' -o -name '*.md' -o -name '*.txt' \) -exec cp {} "$DEST"/ \;
+          mkdir -p "$DEST"; find "$SRC" -maxdepth 1 -type f \( -name '*.csv' -o -name '*.json' -o -name '*.md' -o -name '*.txt' -o -name 'S1V3_INPUTS_*.zip' \) -exec cp {} "$DEST"/ \;
           git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add "$DEST"; git commit -q -m "MBVAR-INFO ${{ needs.plan.outputs.phase }} results: run ${{ github.run_id }} [skip ci]" || exit 0
           for i in 1 2 3 4 5 6; do git push -q && exit 0; git pull -q --rebase || true; sleep $((i*4)); done
