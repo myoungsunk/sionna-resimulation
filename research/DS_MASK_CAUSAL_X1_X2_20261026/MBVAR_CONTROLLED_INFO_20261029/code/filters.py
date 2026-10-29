@@ -110,3 +110,75 @@ def batch_map(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, iters=20, tol=1e-10
     Cth = np.linalg.inv(0.5 * (Prec + Prec.T))
     Pst = [J[k] @ Cth @ J[k].T for k in range(n)]
     return X, Pst, dict(iters=it + 1, cost=float(prev[0]) if prev else np.nan)
+
+
+# ============================================================================ AMENDMENT-003: batch_map_v2
+# batch_map (v1) above is kept byte-identical for reproduction of the runs made under the original freeze.
+# v2 fixes the audit finding: v1 applied the last proposed step without checking that it lowered the cost, and it
+# never recorded why it stopped. v2 accepts a step only if the cost strictly decreases, stops on the Newton decrement
+# (predicted remaining cost decrease, chi^2 units), and reports NONCONVERGED_* otherwise.
+V2_DEC_TOL = 1e-10
+V2_MAX_ITER = 100
+V2_LAM_MAX = 1e12
+
+
+def _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x0, v, jac=True):
+    n = len(z); nth = 4 + 2 * (n - 1)
+    X, Fs, Gs = _rollout(x0, v, ds, gy, dt)
+    h, H = h_batch(X)
+    res = (z - h - mu).reshape(-1)
+    d0 = np.r_[x0[:2] - m0[:2], wrap(x0[2] - m0[2]), x0[3] - m0[3]]
+    sq = np.sqrt(qv[1:].reshape(-1))
+    b = np.r_[np.linalg.solve(Lm, res), -np.linalg.solve(L0, d0), -(v[1:].reshape(-1)) / sq]
+    if not jac:
+        return float(b @ b), X
+    J = np.zeros((n, 4, nth)); J[0, :, :4] = np.eye(4)
+    for k in range(1, n):
+        J[k] = Fs[k] @ J[k - 1]; J[k, :, 4 + 2 * (k - 1):4 + 2 * k] += Gs[k]
+    Hm = np.einsum("kij,kjt->kit", H, J).reshape(2 * n, nth)
+    A = np.zeros((len(b), nth))
+    A[:2 * n] = np.linalg.solve(Lm, Hm); A[2 * n:2 * n + 4, :4] = np.linalg.solve(L0, np.eye(4)); A[2 * n + 4:, 4:] = np.diag(1.0 / sq)
+    return float(b @ b), X, A, b, J
+
+
+def batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, max_iter=V2_MAX_ITER, dec_tol=V2_DEC_TOL, theta0=None,
+                 lam0=1e-6):
+    """Levenberg-Marquardt MAP over theta=(x0, v_1..v_N-1) with strict-decrease acceptance.
+    Returns X_hat, Pstate list (at the final accepted theta), info dict with status in
+    {CONVERGED, NONCONVERGED_MAXITER, NONCONVERGED_LAMBDA} and the diagnostics the audit asked for."""
+    n = len(z)
+    qv = np.array([[Q_DS * abs(ds[k]), Q_GY * dt[k]] for k in range(n)])
+    if np.any(qv[1:] <= 0):
+        raise ValueError("ZERO_CONTROL_VARIANCE (stationary segment not supported by batch_map)")
+    Lm = np.linalg.cholesky(0.5 * (Sig_model + Sig_model.T)); L0 = np.linalg.cholesky(P0)
+    x0 = np.asarray(m0 if theta0 is None else theta0[0], float).copy()
+    v = np.zeros((n, 2)) if theta0 is None else np.asarray(theta0[1], float).copy()
+    cost0 = None; lam = lam0; n_acc = n_rej = 0; status = "NONCONVERGED_MAXITER"; last_step = np.nan; dec = np.nan
+    it = 0
+    for it in range(1, max_iter + 1):
+        c, X, A, b, J = _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x0, v)
+        cost0 = c if cost0 is None else cost0
+        N_ = A.T @ A; g = A.T @ b
+        s_gn = np.linalg.solve(N_, g); dec = float(g @ s_gn)
+        if dec <= dec_tol:
+            status = "CONVERGED"; break
+        D = np.diag(np.diag(N_)); accepted = False
+        while lam <= V2_LAM_MAX:
+            s = np.linalg.solve(N_ + lam * D, g)
+            x1 = x0 + s[:4]; x1[2] = wrap(x1[2]); v1 = v.copy(); v1[1:] = v[1:] + s[4:].reshape(n - 1, 2)
+            c1, _ = _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x1, v1, jac=False)
+            if c1 < c:
+                x0, v = x1, v1; lam = max(lam / 10.0, 1e-12); n_acc += 1; last_step = float(np.max(np.abs(s))); accepted = True
+                break
+            lam *= 10.0; n_rej += 1
+        if not accepted:
+            status = "NONCONVERGED_LAMBDA"; break
+    # final quantities at the current (last accepted) theta
+    c, X, A, b, J = _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x0, v)
+    N_ = A.T @ A; g = A.T @ b; dec = float(g @ np.linalg.solve(N_, g))
+    Cth = np.linalg.inv(0.5 * (N_ + N_.T))
+    Pst = [J[k] @ Cth @ J[k].T for k in range(n)]
+    info = dict(status=status, iters=it, n_accept=n_acc, n_reject=n_rej, cost=c, cost_initial=cost0, newton_decrement=dec,
+                grad_scaled_inf=float(np.max(np.abs(g) / np.sqrt(np.diag(N_)))), last_step_inf=last_step, lam=lam,
+                theta=(x0.copy(), v.copy()))
+    return X, Pst, info
