@@ -51,7 +51,7 @@ jobs:
         run: |
           set -uo pipefail
           OUT="research/POL_XCORR_UNRESOLVED_20261029/results_p0/run_${GITHUB_RUN_ID}"
-          echo "OUT=$OUT" >> "$GITHUB_ENV"
+          export OUT; echo "OUT=$OUT" >> "$GITHUB_ENV"
           ARGS=(--repo-root . --out "$OUT")
           if [ -n "${R13B_PATH:-}" ]; then ARGS+=(--g5-artifact "$R13B_PATH"); fi
           python -u research/POL_XCORR_UNRESOLVED_20261029/scripts/p0_preflight.py "${ARGS[@]}"
