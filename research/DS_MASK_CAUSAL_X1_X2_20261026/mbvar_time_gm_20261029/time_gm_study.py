@@ -153,9 +153,9 @@ def main():
     dat={c:DG.load(c,'B0',model) for c in CASES}
     fits={};train_rows=[];acf_rows=[];allrows=[];parity=[]
     for route in ('R2','R4','R5'):
-        fit,rows=fit_train=fit({c:D for c,D in dat.items() if c[:2]!=route},route)
-        fits[route]=fit;train_rows.extend(dict(held_route=route,**rr) for rr in rows)
-        print('TRAIN',route,fit,flush=True)
+        fitval,rows=fit({c:D for c,D in dat.items() if c[:2]!=route},route)
+        fits[route]=fitval;train_rows.extend(dict(held_route=route,**rr) for rr in rows)
+        print('TRAIN',route,fitval,flush=True)
         for c,D in dat.items():
             if c[:2]==route:
                 acf_rows.append(dict(case=c,held_route=route,**whiten_diagnostic(D,fit['phi'])))
