@@ -95,7 +95,32 @@ def main(args):
    source="original delivered 23 NPZ, original theta_t/phi_t")
  (out/"G3_25_SPECULAR_GEOMETRY_QA.json").write_text(json.dumps(summary,indent=2))
  print(json.dumps(summary))
+ if args.r2a is not None:
+  with args.r2a.open("rb") as ff:raw=ff.read()
+  if hashlib.sha256(raw).hexdigest()!="d962e8c6f98484d851617bfea77fe24836c0d2caec6705ebeb8be2219c6004b6":
+   raise RuntimeError("ERR_R2A_SOURCE_SHA")
+  with np.load(io.BytesIO(raw),allow_pickle=False) as z:
+   tau=float(z["tau"][62]);x=float(z["x"]);y=float(z["y"]);theta=float(z["ang"][0,62]);phi=float(z["ang"][1,62])
+  tx=np.array([4.,0.,2.65]);rx=np.array([x,y,.45])
+  dic=image_delays(tx,rx,20,1.2,2.7);ds=[(seq,float(abs(tau-d)),valid_geometry(tx,rx,seq)) for seq,d in dic.items()]
+  near=min(ds,key=lambda q:q[1]);dep=direction(theta,phi)
+  candidates=[]
+  for seq,d,g in ds:
+   if d>2e-13:continue
+   angle=float(math.degrees(math.acos(np.clip(dep@g["depart"],-1.,1.))))
+   candidates.append(dict(seq=">".join(seq) if seq else "LOS",residual_s=d,finite_face_valid=g["valid"],angular_error_deg=angle))
+  good=[x for x in candidates if x["finite_face_valid"]]
+  best=min(good,key=lambda z:z["angular_error_deg"]) if good else None
+  qa=dict(case="R2_aA",pose_id=915,ray_index=62,raw_tau_s=tau,
+    merged_and_unmerged_strict_excess=True,nearest_image_sequence=">".join(near[0]),
+    nearest_image_residual_s=near[1],original_raw_sha256=hashlib.sha256(raw).hexdigest(),
+    original_tau_float32_exact=bool(tau==float(np.float32(tau))),
+    best_finite_specular=best,n_physical_candidate=len(good),
+    physical_material_jones="NOT_VERIFIED",candidate_window_s=2e-13)
+  (out/"G3_R2A_26TH_SPECULAR_QA.json").write_text(json.dumps(qa,indent=2))
+  print(json.dumps(qa))
 if __name__=="__main__":
  ap=argparse.ArgumentParser()
  for k in ("zip","lock","out"):ap.add_argument("--"+k,required=True,type=pathlib.Path)
+ ap.add_argument("--r2a",type=pathlib.Path)
  main(ap.parse_args())
