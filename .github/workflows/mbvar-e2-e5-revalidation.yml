@@ -28,7 +28,7 @@ jobs:
           persist-credentials: false
           lfs: false
           sparse-checkout: research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
-      - name: Reuse the original locked input acquisition (no RF channel downloads)
+      - name: Reuse the original locked input acquisition
         run: |
           set -euo pipefail
           export REFLECT_ROOT="$RUNNER_TEMP/inputs"
@@ -96,16 +96,16 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with: {python-version: '3.11'}
       - run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2 tabulate==0.9.0
-      - name: Collect and check all paired seeds
+      - name: Collect exact score shards and validate their manifests
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/shards" "$RUNNER_TEMP/out"
           gh run download "$GITHUB_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern 'reval-R*' --dir "$RUNNER_TEMP/shards"
           find "$RUNNER_TEMP/shards" -type f -exec cp {} "$RUNNER_TEMP/out/" \;
           mkdir -p "$RUNNER_TEMP/out/code_snapshot"
-          cp "$DEST/revalidate.py" "$RUNNER_TEMP/out/code_snapshot/"
+          cp "$DEST/"{revalidate.py,aggregate_recovery.py} "$RUNNER_TEMP/out/code_snapshot/"
           cp "$BASE/mbvar_control_correction_20261029/"{ctl_core.py,run_stage.py,aggregate_ctl.py,PROTOCOL_CONTROLS_KO.md} "$RUNNER_TEMP/out/code_snapshot/"
-          python -u "$DEST/revalidate.py" --aggregate --out "$RUNNER_TEMP/out" 2>&1 | tee "$RUNNER_TEMP/out/AGGREGATE_LOG.txt"
+          python -u "$DEST/aggregate_recovery.py" --input "$RUNNER_TEMP/out" --out "$RUNNER_TEMP/out/corrected" 2>&1 | tee "$RUNNER_TEMP/out/AGGREGATE_LOG.txt"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
@@ -117,12 +117,10 @@ jobs:
         run: |
           set -euo pipefail
           TARGET="$DEST/results/run_$GITHUB_RUN_ID"
-          mkdir -p "$TARGET"
-          cp -R "$RUNNER_TEMP/out/". "$TARGET/"
+          mkdir -p "$TARGET"; cp -R "$RUNNER_TEMP/out/". "$TARGET/"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add "$TARGET"
-          git commit -m "MB_VAR E2/E5 corrective evidence run $GITHUB_RUN_ID" || exit 0
+          git add "$TARGET"; git commit -m "MB_VAR E2/E5 corrective evidence run $GITHUB_RUN_ID" || exit 0
           AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
           for i in 1 2 3; do
             git -c http.extraheader="$AUTH" push origin HEAD:"$GITHUB_REF_NAME" && exit 0
