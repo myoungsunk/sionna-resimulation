@@ -110,10 +110,12 @@ def run_arms(S, w, cn, z, sensor_rng, trace=None):
                 Sm = {"IID_BATCH": Bd, "ORACLE_CORR_BATCH": Sig}.get(arm)
                 if arm == "XMODEL_BATCH":
                     Sm = S["Sig"][(w["role"], S0V2.XMODEL[cn])]
-                X, Pst, info = FL.batch_map_v2(hb, z, mu, Sm, ds_m, gy_m, w["dts"], x0, P0M)
+                X, Pst, info = FL.batch_map_v2_ms(hb, z, mu, Sm, ds_m, gy_m, w["dts"], x0, P0M)
                 Pf = Pst[-1]
                 row = dict(arm=arm, status="OK", conv=info["status"], stop_reason=info["stop_reason"], iters=info["iters"], n_used=N,
-                           cost=info["cost"], newton_decrement=info["newton_decrement"], gn_shift_end_sd=info["gn_shift_end_sd"], n_reject=info["n_reject"])
+                           cost=info["cost"], newton_decrement=info["newton_decrement"], gn_shift_end_sd=info["gn_shift_end_sd"], n_reject=info["n_reject"],
+                           ms_triggered=info["ms_triggered"], ms_best_k=info["ms_best_k"], ms_n_distinct_minima=info["ms_n_distinct_minima"],
+                           ms_final_misfit=info["ms_final_misfit"], ms_cost_start0=info["ms_cost_start0"])
                 if trace is not None:
                     hh, _ = hb(X); Lm = np.linalg.cholesky(0.5 * (Sm + Sm.T)); wr = np.linalg.solve(Lm, (z - hh).reshape(-1)).reshape(N, 2)
                     for k in range(N):
@@ -364,11 +366,11 @@ def cmd_aggregate(shards, split, out):
     (out / f"S1V2_DECISION_{split}.json").write_text(json.dumps(res, indent=1, default=M._json))
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md"],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("S1V2_*")),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict=dec["verdict"] if (split == "HOLDOUT2" and ok) else "NOT_EVALUATED", unit="field_realization",
                       limitations=["synthetic additive noise on the FFD LOS model; not RF physics", "batch arms: tap-conditioned FFD model (detector index observed)",
-                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003"))
+                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004"))
     print("S1V2 aggregate", split, status, dec["verdict"], "| converged-only", decc["verdict"])
     return 0 if status == "PASS" else 1
 

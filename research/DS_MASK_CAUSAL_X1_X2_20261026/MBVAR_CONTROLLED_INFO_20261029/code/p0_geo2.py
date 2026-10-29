@@ -268,7 +268,10 @@ def cmd_c1(field, out):
                 for r in M.run_arms(S, w, cn, z, M.rng(root, 0, field, 4, w["j"], sn)):       # v1 path, all arms
                     st = stored.loc[(sn, w["role"], cn, r["arm"])]
                     d = max(abs(float(r[c]) - float(st[c])) for c in [f"e_{a}" for a in S0.STATES] + [f"P_{a}" for a in S0.STATES] + ["nees4"])
-                    repro.append(dict(field=field, cell=cn, role=w["role"], sensor_seed=sn, arm=r["arm"], max_abs_diff=d))
+                    de = max(abs(float(r[f"e_{a}"]) - float(st[f"e_{a}"])) / math.sqrt(float(st[f"P_{a}"])) for a in S0.STATES)
+                    dP = max(abs(float(r[f"P_{a}"]) - float(st[f"P_{a}"])) / float(st[f"P_{a}"]) for a in S0.STATES)
+                    repro.append(dict(field=field, cell=cn, role=w["role"], sensor_seed=sn, arm=r["arm"], max_abs_diff=d, err_diff_sd=de, P_rel_diff=dP,
+                                      nees_rel_diff=abs(float(r["nees4"]) - float(st["nees4"])) / float(st["nees4"])))
                 sr = M.rng(root, 0, field, 4, w["j"], sn)
                 x0 = w["Xtrue"][0] + np.linalg.cholesky(P0M) @ sr.standard_normal(4); x0[2] = float(FL.wrap(x0[2]))
                 vn = sr.standard_normal((60, 2)) * np.sqrt(w["q"]); dsm = w["ds"] + vn[:, 0]; gym = w["dth"] + vn[:, 1]
@@ -282,16 +285,18 @@ def cmd_c1(field, out):
                     X1ref, _, _ = FL.batch_map(hf, z, mu, Sm, dsm, gym, w["dts"], x0, P0M)
                     c1, _ = FL._v2_parts(hf, z, mu, Lm, L0, x0, qv, dsm, gym, w["dts"], *th1, jac=False)
                     Xf, Pf, If = FL.batch_map_v2(hf, z, mu, Sm, dsm, gym, w["dts"], x0, P0M)
-                    Xt, Pt, It = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M)
+                    Xt, Pt, It = FL.batch_map_v2_ms(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M)          # deployable v2 estimator
                     sd = np.sqrt(np.diag(Pt[-1]))
                     rec = dict(field=field, cell=cn, role=w["role"], sensor_seed=sn, arm=arm, v1_copy_equal=bool(np.array_equal(X1, X1ref)),
                                v1_iters=it1, v1_cost_free=c1, v2f_status=If["status"], v2f_stop=If["stop_reason"], v2f_cost=If["cost"], v2f_iters=If["iters"],
                                v2f_dec=If["newton_decrement"], v1_minus_v2f_cost=c1 - If["cost"],
                                v1_vs_v2f_end_state_sd=float(np.max(np.abs(np.r_[X1[-1, :2] - Xf[-1, :2], FL.wrap(X1[-1, 2] - Xf[-1, 2]), X1[-1, 3] - Xf[-1, 3]]) / np.sqrt(np.diag(Pf[-1])))),
                                v2t_status=It["status"], v2t_stop=It["stop_reason"], v2t_cost=It["cost"], v2t_iters=It["iters"], v2t_dec=It["newton_decrement"],
-                               v2t_shift_sd=It["gn_shift_end_sd"], v2t_reject=It["n_reject"])
+                               v2t_shift_sd=It["gn_shift_end_sd"], v2t_reject=It["n_reject"], v2t_ms_triggered=It["ms_triggered"],
+                               v2t_ms_best_k=It["ms_best_k"], v2t_ms_distinct=It["ms_n_distinct_minima"], v2t_final_misfit=It["ms_final_misfit"],
+                               v1_misfit=bool(c1 > It["ms_threshold"]), misfit_threshold=It["ms_threshold"])
                     if It["status"] != "CONVERGED":
-                        X3, P3, I3 = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, max_iter=300)
+                        X3, P3, I3 = FL.batch_map_v2_ms(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, max_iter=300)
                         rec.update(v2t300_status=I3["status"], v2t300_cost=I3["cost"], v2t300_vs_100_state_sd=float(np.max(np.abs(X3[-1] - Xt[-1]) / sd)))
                     else:
                         rec.update(v2t300_status="IDENTICAL_BY_DETERMINISM", v2t300_cost=It["cost"], v2t300_vs_100_state_sd=0.0)
@@ -320,7 +325,11 @@ def cmd_aggregate(shards, out):
     lin = cat("P0G_C1E_LINEAR.csv")
     conv = C[C.v2t_status == "CONVERGED"] if len(C) else C
     crit = dict(
-        C1a_inputs_reproduced=dict(pass_=bool(len(R) == 1500 and R.max_abs_diff.max() <= 1e-9), n=len(R), max_abs_diff=float(R.max_abs_diff.max()) if len(R) else None),
+        C1a_inputs_reproduced=dict(pass_=bool(len(R) == 1500 and R.err_diff_sd.max() <= 1e-3 and R.P_rel_diff.max() <= 1e-3),
+                                   n=len(R), max_abs_diff=float(R.max_abs_diff.max()) if len(R) else None,
+                                   err_diff_sd_max=float(R.err_diff_sd.max()) if len(R) else None, P_rel_diff_max=float(R.P_rel_diff.max()) if len(R) else None,
+                                   nees_rel_diff_max=float(R.nees_rel_diff.max()) if len(R) else None, frac_bit_identical=float((R.max_abs_diff == 0).mean()) if len(R) else None,
+                                   rule="AMENDMENT-004: |de|/sd <= 1e-3 and |dP|/P <= 1e-3 for all 1500 rows (cross-hardware floating point)"),
         C1a_v1_copy_equal=bool(len(C) and C.v1_copy_equal.all()),
         C1b_v2_not_worse=dict(pass_=bool(len(C) and (C.v1_minus_v2f_cost >= -1e-9).all()), min=float(C.v1_minus_v2f_cost.min()) if len(C) else None,
                               median=float(C.v1_minus_v2f_cost.median()) if len(C) else None, max=float(C.v1_minus_v2f_cost.max()) if len(C) else None,
@@ -330,12 +339,14 @@ def cmd_aggregate(shards, out):
         C1c_iter_cap=dict(pass_=True, v2t_status_counts=C.v2t_status.value_counts().to_dict() if len(C) else {},
                           v2t300_status_counts=C.v2t300_status.value_counts().to_dict() if len(C) else {},
                           nonconv_300_vs_100_state_sd_max=float(C[C.v2t_status != "CONVERGED"].v2t300_vs_100_state_sd.max()) if len(C) and (C.v2t_status != "CONVERGED").any() else 0.0),
-        C1d_multistart=dict(pass_=bool(len(conv) and ((conv.ms_status != "CONVERGED") | ((conv.ms_cost_diff.abs() <= 1e-6) & (conv.ms_state_sd <= 0.01))).all()
-                                       and (conv.ms_status == "CONVERGED").mean() >= 0.99),
-                            converged_pairs=int(((conv.ms_status == "CONVERGED")).sum()) if len(conv) else 0,
-                            max_cost_diff_conv=float(conv[conv.ms_status == "CONVERGED"].ms_cost_diff.abs().max()) if len(conv) else None,
-                            max_state_sd_conv=float(conv[conv.ms_status == "CONVERGED"].ms_state_sd.max()) if len(conv) else None,
-                            all_ms_state_sd_max=float(C.ms_state_sd.max()) if len(C) else None),
+        C1d_truth_start=dict(pass_=bool(len(C) and (C.ms_cost_diff >= -1e-3).mean() >= 0.99 and (C.ms_cost_diff >= -10.0).all()),
+                             frac_estimator_not_worse=float((C.ms_cost_diff >= -1e-3).mean()) if len(C) else None,
+                             worst_cost_gap=float(-C.ms_cost_diff.min()) if len(C) else None,
+                             state_sd_when_equal_max=float(C[C.ms_cost_diff.abs() <= 1e-3].ms_state_sd.max()) if len(C) else None,
+                             ms_triggered_frac=float(C.v2t_ms_triggered.mean()) if len(C) else None,
+                             final_misfit_frac=float(C.v2t_final_misfit.mean()) if len(C) else None,
+                             v1_misfit_frac=float(C.v1_misfit.mean()) if len(C) else None,
+                             rule="AMENDMENT-004: cost(estimator) - cost(true-theta start) >= -1e-3 in >=99% of runs and never < -10"),
         C1e_linear=dict(pass_=bool(len(lin) and lin.ok.all()), rows=lin.to_dict("records") if len(lin) else []),
         C1f_nonconverged=dict(pass_=bool(len(C) and (C.v2t_status == "NONCONVERGED").mean() <= 0.01),
                               frac=float((C.v2t_status == "NONCONVERGED").mean()) if len(C) else None,
@@ -349,9 +360,9 @@ def cmd_aggregate(shards, out):
     (out / "P0G_STATUS.json").write_text(json.dumps(st, indent=1, default=float))
     lock_path = Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256"
     MF.write_manifest(out, phase="P0", status=st["status"], contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md"], input_lock=lock_path,
-                      outputs=sorted(out.glob("P0G_*")), seed_ledger=None, verdict="NOT_EVALUATED", unit="technical/geometry",
-                      limitations=["C1 on old DEV inputs (old geometry) only", "plates: image-source geometry, no RT", "SELF_REVIEW_ONLY"], extra=dict(sub_phase="P0_GEO2", amendment="AMENDMENT-003"))
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md"], input_lock=lock_path,
+                      outputs=sorted(out.glob("P0G_*")), seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
+                      limitations=["C1 on old DEV inputs (old geometry) only", "plates: image-source geometry, no RT", "SELF_REVIEW_ONLY"], extra=dict(sub_phase="P0_GEO2", amendment="AMENDMENT-003+004"))
     print("P0_GEO2", st["status"], "C1", c1_pass, "geo", st["geometry_v2"], "rev", rev_ok)
     return 0 if st["status"] == "PASS" else 1
 

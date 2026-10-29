@@ -190,3 +190,34 @@ def batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, max_iter=V2_MAX_
                 grad_scaled_inf=float(np.max(np.abs(g) / np.sqrt(np.diag(N_)))), last_step_inf=last_step, lam=lam,
                 theta=(x0.copy(), v.copy()))
     return X, Pst, info
+
+
+# ============================================================================ AMENDMENT-004: misfit-triggered heading multi-start
+# C1-d (AMENDMENT-003) showed that from the prior mean a single LM run can converge to a spurious basin (cost ~3000 for
+# 2N = 120 residuals, ~1 m error) when the initial heading is ~1.7 prior sd off. Deployable rule (no truth): if the final
+# cost exceeds the chi^2_{0.999}(2N) quantile, re-run from heading offsets k*sd_psi(P0), k in MS_K, and keep the minimum.
+MS_K = (0, -1, 1, -2, 2, -3, 3)
+
+
+def chi2_quantile_wh(k, z=3.090232306167813):
+    """Wilson-Hilferty chi^2 quantile (default p = 0.999)."""
+    a = 2.0 / (9.0 * k)
+    return k * (1.0 - a + z * math.sqrt(a)) ** 3
+
+
+def batch_map_v2_ms(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, **kw):
+    n = len(z); thr = chi2_quantile_wh(2 * n); sd_psi = math.sqrt(P0[2, 2])
+    X, Pst, info = batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, **kw)
+    best = (info["cost"], 0, X, Pst, info); costs = {0: info["cost"]}; trig = info["cost"] > thr
+    if trig:
+        for k in MS_K[1:]:
+            x0 = np.asarray(m0, float).copy(); x0[2] = wrap(x0[2] + k * sd_psi)
+            Xk, Pk, Ik = batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, theta0=(x0, np.zeros((n, 2))), **kw)
+            costs[k] = Ik["cost"]
+            if Ik["cost"] < best[0]:
+                best = (Ik["cost"], k, Xk, Pk, Ik)
+    c, kb, Xb, Pb, Ib = best
+    cv = sorted(costs.values()); distinct = 1 + sum(1 for a, b in zip(cv, cv[1:]) if b - a > 1.0)
+    Ib = dict(Ib, ms_triggered=bool(trig), ms_threshold=thr, ms_best_k=int(kb), ms_n_starts=len(costs), ms_n_distinct_minima=distinct,
+              ms_cost_start0=costs[0], ms_final_misfit=bool(c > thr))
+    return Xb, Pb, Ib
