@@ -70,9 +70,21 @@ def main():
    if dh!=EXPECTED_DIGEST[c]:err.append("ERR_SOURCE_HASH")
    if tuple(z.shape)!=(n,257,2,2):err.append("ERR_H_SHAPE")
    if len(timeline)!=EXPECTED_T[route]:err.append("ERR_TIMELINE_COUNT")
-   # Source model bank frequency spacing is separately verified by the native bank SHA gate.
-   # Do not invent df here. Rather than fabricate range, explicit BLOCKED_FREQ_BANK.
-   q={"case":c,"raw_sha256":dh,"expected_sha256":EXPECTED_DIGEST[c],"sha_valid":dh==EXPECTED_DIGEST[c],"h_shape":list(z.shape),"samples":len(samples),"timeline":len(timeline),"keys_errors":err,"range_s_native":"BLOCKED_FREQ_BANK_NO_VERIFIED_DF","packet_replay":"BLOCKED_PACKET_TRACE_NOT_MATERIALIZED"}
+   bank=d/"bank.npz"
+   bank_url="https://media.githubusercontent.com/media/myoungsunk/sionna-resimulation/"+SRC+"/LP_plus45_bank.npz"
+   try:
+    load(bank_url,bank)
+    bh=sha(bank)
+    if bh!="b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b":err.append("ERR_BANK_HASH")
+    with np.load(bank) as bx: freq=bx["freqs_hz"]
+    if len(freq)!=257 or not np.all(np.isfinite(freq)) or not np.allclose(np.diff(freq),freq[1]-freq[0],rtol=1e-10,atol=1e-4):
+     err.append("ERR_FREQUENCY_GRID")
+    else:
+     obs=native(z,float(freq[1]-freq[0]))
+     (d/"OBS_NATIVE.csv").write_text("pose_id,first_tap,range_m,s\n"+"".join(f"{i},{x[0]},{x[1]:.15g},{x[2]:.15g}\n" for i,x in enumerate(obs)))
+   except Exception as be:
+    obs=[];err.append("ERR_BANK_UNAVAILABLE_"+str(be)[:110])
+   q={"case":c,"raw_sha256":dh,"expected_sha256":EXPECTED_DIGEST[c],"sha_valid":dh==EXPECTED_DIGEST[c],"h_shape":list(z.shape),"samples":len(samples),"timeline":len(timeline),"keys_errors":err,"range_s_native":"RECOMPUTED_FROM_SHA_VERIFIED_H_BANK" if obs else "BLOCKED_FREQ_BANK","raw_native_n":len(obs),"packet_replay":"BLOCKED_PACKET_TRACE_NOT_MATERIALIZED"}
    qa.append(q);issues.extend(err)
   except Exception as ex:
    qa.append({"case":c,"status":"BLOCKED_INPUT","error":str(ex)});issues.append("ERR_INPUT_FETCH")
