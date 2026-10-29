@@ -1,0 +1,54 @@
+{
+  "schema": "POL_XCORR_P0_REFERENCES_V1",
+  "contract_id": "POL-XCORR-001",
+  "role": "PROPOSER",
+  "status": "DRAFT_P0_REFERENCE_DESIGNATION",
+  "basis": "Implementer request (2026-10-29 20:33 KST): designate stored historical reference tables for R-02, R-12, R-13. Resolves P0_TO_RESOLVE items without changing any v0.2 science rule.",
+  "independence_rule": "A parity PASS is valid only against a value stored by an earlier, separate pipeline run. Re-running the same function twice in this run is self-consistency (recorded separately), never parity.",
+  "label_isolation": "Reference tables contain label columns (e_s, e_r, ...). Readers MUST load only the key and reference columns listed below (pandas usecols). No label column may be loaded in P0.",
+  "references": {
+    "R-02": {
+      "table": "research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz",
+      "sha256": "c45a14c82816ba40bad74f77b0c8c93df14533eeb70f82329bada691418dcfbe",
+      "git_blob": "14a93d4626b1b388534e36249cc36dad7e43480e",
+      "columns": ["case", "pose_id", "sF_+0"],
+      "channel": "full",
+      "compare": "s_fp (new) vs sF_+0",
+      "tolerance_abs": 1e-9,
+      "coverage": "all 9519 (case, pose_id), one-to-one"
+    },
+    "R-12": {
+      "table": "research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz",
+      "sha256": "c45a14c82816ba40bad74f77b0c8c93df14533eeb70f82329bada691418dcfbe",
+      "columns": ["case", "pose_id", "log_fp_power"],
+      "channel": "full",
+      "compare": "log_fp_power = log10(max(P_plus(n0)+P_minus(n0), tiny)) vs stored log_fp_power",
+      "tolerance_abs": 1e-9,
+      "note": "Proposer pre-check: UM_POSE_TABLE.log_fp_power and HP_PACKETS.log_fp_power are identical (max abs diff 0.0, 9519 rows), so both derive from the same upstream feature artifact; their mutual agreement is not counted as independent evidence."
+    },
+    "R-13a": {
+      "class": "CORE",
+      "table": "research/PJ_DS_USAGE_MAP_20261021/results/UM_POSE_TABLE.csv.gz",
+      "sha256": "3e590d4ec4d5ad991b845dd6aad33e1756a95264595d788b0608398fa1ea000c",
+      "git_blob": "01a8744dfde13be785a2aa167f5b7c4d22e689ba",
+      "producer": "research/PJ_DS_USAGE_MAP_20261021/usage_map.py (sha256 4bedc56e2c8a3a0e96ed0e129c63d16b21161d2788a4a7e2c92cab5ea01ad544): copies the Full-channel G5 columns of OBSERVATION_FEATURES_LABELS.csv.gz (run 39376076166) row by row",
+      "columns": ["case", "pose_id", "range_m", "log_fp_power", "abs_s_fp", "early4", "early8", "early16", "delay_rms_ns", "peak_diff_ns", "eta_fp_win80", "s_diff4", "s_diff8", "s_diff16", "tap_pol_var80", "jones_diversity", "freq_s_var", "detector_s_span", "detector_delay_span_ns"],
+      "channel": "full (table has no channel column; all rows are Full)",
+      "tolerance_abs": 1e-9,
+      "nan_rule": "NaN pattern must match exactly; finite values compared with tolerance",
+      "coverage": "all 9519 Full (case, pose_id), one-to-one"
+    },
+    "R-13b": {
+      "class": "SUPPLEMENTARY (covers LoS channel; LoS G5 is not used by deployable M0)",
+      "source": "GitHub Actions artifact POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 (run 39376076166, artifact id 12243278686, expires 2026-11-19T05:41:39Z), file OBSERVATION_FEATURES_LABELS.csv.gz",
+      "sha256_reported_elsewhere": "6a69a36ad0f521e33a130a1bc1fbde5a4b7aae17ba62ec347ccc611fdd5c6fe4 (DS_MASK_CAUSAL_X1_X2_20261026 INPUT_LOCK, local copy; provenance link to this run not proven) — record observed sha256, do not fail on mismatch",
+      "columns": ["case", "channel", "pose_id", "range_m", "log_fp_power", "abs_s_fp", "early4", "early8", "early16", "delay_rms_ns", "peak_diff_ns", "eta_fp_win80", "s_diff4", "s_diff8", "s_diff16", "tap_pol_var80", "jones_diversity", "freq_s_var", "detector_s_span", "detector_delay_span_ns"],
+      "tolerance_abs": 1e-9,
+      "if_unavailable": "R-13b = BLOCKED_REFERENCE_UNAVAILABLE; does not block P0 CORE when R-13a PASS"
+    },
+    "R-01": {
+      "status": "T4_ONLY_BLOCKED accepted for this P0 run",
+      "reason": "Re-synthesis needs FFD banks (LP_plus45_bank.npz / LP_minus45_bank.npz) stored as Git LFS objects; realignment algorithm not yet implemented. T4 is excluded; P1–P3 unaffected per contract v0.2."
+    }
+  }
+}

@@ -207,6 +207,59 @@ def load_source(path):
     return module
 
 
+def compare_reference(new, ref, keys, cols, tol):
+    """Stored-reference parity: exact NaN pattern + finite abs diff. EXECUTION PATCH (proposer session)."""
+    m = new[keys+cols].merge(ref[keys+cols], on=keys, suffixes=('_new','_ref'), how='outer', validate='one_to_one', indicator=True)
+    cover = {'rows_new': int(len(new)), 'rows_ref': int(len(ref)), 'matched': int((m['_merge']=='both').sum()),
+             'only_new': int((m['_merge']=='left_only').sum()), 'only_ref': int((m['_merge']=='right_only').sum())}
+    m = m[m['_merge']=='both']
+    per = {}
+    worst = 0.0; nan_mismatch = 0
+    for c in cols:
+        a = m[c+'_new'].to_numpy(float); b = m[c+'_ref'].to_numpy(float)
+        nm = int(np.sum(np.isnan(a) != np.isnan(b))); fin = np.isfinite(a) & np.isfinite(b)
+        d = float(np.max(np.abs(a[fin]-b[fin]))) if fin.any() else 0.0
+        per[c] = {'max_abs': d, 'nan_mismatch': nm, 'n_finite': int(fin.sum())}
+        worst = max(worst, d); nan_mismatch += nm
+    ok = cover['only_new']==0 and cover['only_ref']==0 and nan_mismatch==0 and worst<=tol
+    return {'status': 'PASS' if ok else 'FAIL', 'coverage': cover, 'max_abs': worst, 'nan_mismatch': nan_mismatch,
+            'tolerance_abs': tol, 'per_column': per}
+
+
+def reference_parity(root, scope, g5, feat_module, g5_artifact):
+    """R-02 / R-12 / R-13a / R-13b against stored references designated in config/P0_REFERENCES_v0.2.json.
+    Only key + reference columns are loaded (label isolation). EXECUTION PATCH (proposer session)."""
+    refs = json.loads((scope/'config/P0_REFERENCES_v0.2.json').read_text())['references']
+    G5 = list(feat_module.GROUPS['G5']); full = g5[g5.channel=='full'].copy(); out = {}
+    for rid in ('R-02', 'R-13a'):
+        e = refs[rid]; p = root/e['table']
+        out[rid+'_table_sha256'] = {'expected': e['sha256'], 'observed': sha(p), 'match': sha(p)==e['sha256']}
+    hp = refs['R-02']; hp_df = pd.read_csv(root/hp['table'], usecols=['case','pose_id','sF_+0','log_fp_power'])
+    ren = hp_df.rename(columns={'sF_+0':'s_fp'})
+    out['R-02'] = compare_reference(full, ren, ['case','pose_id'], ['s_fp'], hp['tolerance_abs'])
+    out['R-12'] = compare_reference(full, ren, ['case','pose_id'], ['log_fp_power'], refs['R-12']['tolerance_abs'])
+    um = refs['R-13a']; um_df = pd.read_csv(root/um['table'], usecols=um['columns'])
+    out['R-13a'] = compare_reference(full, um_df, ['case','pose_id'], G5, um['tolerance_abs'])
+    if not out['R-02_table_sha256']['match']:  # HP_PACKETS backs both R-02 and R-12
+        out['R-02']['status'] = 'FAIL'; out['R-12']['status'] = 'FAIL'
+    if not out['R-13a_table_sha256']['match']:
+        out['R-13a']['status'] = 'FAIL'
+    b = refs['R-13b']
+    if g5_artifact and Path(g5_artifact).is_file():
+        cols = pd.read_csv(g5_artifact, nrows=0).columns
+        need = b['columns']; missing = [c for c in need if c not in cols]
+        if missing:
+            out['R-13b'] = {'status':'FAIL','reason':'missing columns','missing':missing}
+        else:
+            art = pd.read_csv(g5_artifact, usecols=need)
+            out['R-13b'] = compare_reference(g5, art, ['case','channel','pose_id'], G5, b['tolerance_abs'])
+        out['R-13b']['artifact_sha256'] = sha(g5_artifact)
+        out['R-13b']['sha256_reported_elsewhere'] = b['sha256_reported_elsewhere'].split()[0]
+    else:
+        out['R-13b'] = {'status':'BLOCKED_REFERENCE_UNAVAILABLE','path':str(g5_artifact)}
+    return out
+
+
 def measure_channels(root,manifest,feat_module,g5_ref,hp_ref,params):
     fpath=next(e for e in manifest['_lock_assets'] if e['kind']=='FREQUENCY')['path']
     freqs=np.load(root/fpath,allow_pickle=False)
@@ -312,18 +365,23 @@ def run(args):
         record('R05_POSE_JOIN','CORE','PASS',summary.to_dict(orient='records'))
         src=next(x['path'] for x in lock['assets'] if x['path'].endswith('/features.py'))
         features=load_source(root/src)
-        hp_path=next(x['path'] for x in lock['assets'] if x['path'].endswith('HP_PACKETS.csv.gz'))
-        hp_ref=pd.read_csv(root/hp_path)
-        refpath=Path(args.g5_reference).resolve() if args.g5_reference else None
-        g5_ref=pd.read_csv(refpath) if refpath and refpath.is_file() else None
-        g5,los,parity,m=measure_channels(root,manifest,features,g5_ref,hp_ref,params)
-        # No Full metric/label table exported: G5 parity sheet contains checks only.
-        json_save(out/'G5_PARITY.json',{'by_case':parity,'summary':m,'reference':str(refpath) if refpath else None})
-        pd.DataFrame(parity).to_csv(out/'G5_PARITY.csv',index=False)
+        # EXECUTION PATCH (proposer session, 2026-10-29): references come from config/P0_REFERENCES_v0.2.json,
+        # loaded with key+reference columns only (no label columns). measure_channels gets no references.
+        g5,los,parity,m=measure_channels(root,manifest,features,None,None,params)
+        art=args.g5_artifact or args.g5_reference
+        refp=reference_parity(root,scope,g5,features,Path(art).resolve() if art else None)
+        json_save(out/'REFERENCE_PARITY.json',refp);files_written.append('REFERENCE_PARITY.json')
+        json_save(out/'G5_PARITY.json',{'by_case':parity,'self_consistency_summary':m,
+                  'note':'self_consistency = independent observer vs locked features.py in this run (not parity); parity is REFERENCE_PARITY.json'})
+        rows=[{'check':k,'status':v.get('status'),'max_abs':v.get('max_abs'),'nan_mismatch':v.get('nan_mismatch'),
+               **({f'cov_{a}':b for a,b in v.get('coverage',{}).items()})} for k,v in refp.items() if k.startswith('R-') and isinstance(v,dict) and 'status' in v]
+        pd.DataFrame(rows).to_csv(out/'G5_PARITY.csv',index=False)
         files_written.extend(['G5_PARITY.json','G5_PARITY.csv'])
-        record('R02_S_FP','CORE','PASS' if m['r02_count']==len(g5[g5.channel=='full']) and m['r02_hp_max']<=1e-9 else 'FAIL',m)
-        record('R12_LOG_POWER','CORE','PASS' if m['r12_count']>0 and m['r12_log_max']<=1e-9 else 'BLOCKED',m)
-        record('R13_G5','CORE','PASS' if m['r13_count']==len(g5) and m['r13_g5_max']<=1e-9 else 'BLOCKED',m)
+        record('R02_S_FP','CORE',refp['R-02']['status'],{k:refp['R-02'][k] for k in ('coverage','max_abs','nan_mismatch','tolerance_abs')})
+        record('R12_LOG_POWER','CORE',refp['R-12']['status'],{k:refp['R-12'][k] for k in ('coverage','max_abs','nan_mismatch','tolerance_abs')})
+        record('R13A_G5_FULL_STORED','CORE',refp['R-13a']['status'],{k:refp['R-13a'][k] for k in ('coverage','max_abs','nan_mismatch','tolerance_abs')})
+        r13b=refp['R-13b'];record('R13B_G5_FULL_LOS_ARTIFACT','SUPPLEMENTARY',r13b['status'],{k:v for k,v in r13b.items() if k!='per_column'})
+        record('SELF_CONSISTENCY_OBSERVER_VS_FEATURES','MEASURED','MEASURED',{'dt_ns':m['dt_ns'],'note':'independent_observer vs features.extract agree within s_fp tolerance on every chunk (else exception)'})
         # R04 common first-path tap is checked in independent_observer vs features.extract;
         # explicit boundary status is generated for every channel and every pose.
         record('R04_COMMON_TAP','CORE','PASS',{'source':'independent_observer vs locked features.extract','all_rows':len(g5)})
@@ -369,7 +427,8 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--repo-root',required=True)
     ap.add_argument('--out',required=True,help='New, nonexistent append-only output directory')
-    ap.add_argument('--g5-reference',help='Previously saved A_FEATURES_LABELS.csv.gz; absent means R13 BLOCKED')
+    ap.add_argument('--g5-reference',help='(legacy alias of --g5-artifact)')
+    ap.add_argument('--g5-artifact',help='OBSERVATION_FEATURES_LABELS.csv.gz from run 39376076166 (R-13b, supplementary); absent -> R-13b BLOCKED_REFERENCE_UNAVAILABLE')
     ap.add_argument('--fixtures-only',action='store_true',help='Unit fixtures only, never real P0 PASS')
     args=ap.parse_args()
     status=run(args)
