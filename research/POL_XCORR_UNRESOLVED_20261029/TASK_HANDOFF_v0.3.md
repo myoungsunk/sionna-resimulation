@@ -18,10 +18,10 @@
 
 For each of seven cases × Full and LoS channel = 19038 records:
 1. Use locked 257-bin H and SAME tx index 0. Reproduce the common stronger-port 30% first-path index.
-2. Assert **array equality**, without tolerance, for \`tap_independent == tap_features\`, \`branch_independent == branch_features\`, \`valid_independent == valid_features\`.
+2. Assert **array equality**, without tolerance, for \`tap_independent == tap_features\` and \`branch_independent == branch_features\`. **Validity semantics must be audited separately**: \`features.extract.valid = (selected_peak>0) AND (tap+80<=4*257)\`; independent_observer's current \`valid = (selected_peak>0) AND (FP_port_power_sum>tiny)\` does **not** enforce the 80-tap feature window. Independently calculate \`valid_g5_expected\` and compare exactly to \`features.extract.valid\`. Independently log \`valid_fp_expected\` and compare to the observer's current flag. On the 19038 historical rows these may coincide, but do NOT assert equality of the two definitions as a general fixture.
 3. Also verify both RX port powers are extracted at the exact single common tap, not separately selected port taps.
 4. Report per-case/channel mismatched counts, first 20 adversarial keys if any. Zero total mismatches is CORE PASS. Never infer tap identity only from scalar s_fp/log-power closeness.
-5. Negative tests: deliberately offset a tap in one record; swap selected branch; change valid flag; change RX port order while holding reference fixed. Every fixture MUST fail parity.
+5. Negative tests: deliberately offset a tap in one record; swap selected branch; change the feature-valid flag; change RX port order while holding reference fixed; include a detector-valid but `tap+80>4*257` edge case to prove FP and G5 valid definitions remain separate. Every intentionally false assertion MUST fail its specific parity test.
 
 Output: \`P0V3_TAP_BRANCH_PARITY.csv\` + negative-fixture JSON.
 
