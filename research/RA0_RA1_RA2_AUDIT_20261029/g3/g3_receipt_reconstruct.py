@@ -97,7 +97,7 @@ def main(outdir):
                                n_nodes=r.get("n_nodes"),checksum_status="FROM_SHA256_VERIFIED_ARCHIVE"))
   g3=json.loads(raw("f100a983cc389fcdef073592a254add61e7115da",RUN+case+".json"))
   reference=int(g3["unmatched_paths_total"]["tol_5e-14"])
-  totals.append({"case":case,"receipt_strict_paths":bad,"g3_strict_paths":reference,"stations":len(rr),"affected_tags":sum(r["case"]==case for r in rows)})
+  totals.append({"case":case,"receipt_strict_paths":bad,"g3_strict_paths":reference,"stations":len(rr),"total_ray_paths":sum(int(v["n_paths"]) for v in rr.values()),"strict_path_rate":bad/sum(int(v["n_paths"]) for v in rr.values()),"affected_tags":sum(r["case"]==case for r in rows)})
   if bad!=reference:raise SystemExit(f"ERR_G3_COUNT_PARITY {case} receipts {bad} vs g3 {reference}")
  if sum(x["receipt_strict_paths"] for x in totals)!=26:raise SystemExit("ERR_TOTAL_26")
 
@@ -148,11 +148,11 @@ def main(outdir):
       "n_image","n_image_classes","max_class_shift_s","n_image_shift_gt_strict","min_image_gap_s"]
  dumpcsv(out/"G3_26_OFFENDING_STATIONS.csv",rows,col)
  (out/"G3_26_EVIDENCE.json").write_text(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","frozen_archive_sha256":ARCHIVE_SHA,
-      "raw_tau_npz_in_original_bundle":False,"total_receipts":len(receipts),"total_strict_paths":26,
+      "raw_tau_npz_in_original_bundle":False,"total_receipts":len(receipts),"total_ray_paths":sum(v["total_ray_paths"] for v in totals),"total_strict_paths":26,
       "n_offending_stations":len(rows),"H_scope":scope_summary,"max_coordinate_delta_m":max(x["coordinate_delta_m"] for x in rows),"max_delay_explainable_by_timeline_rounding_s":max(x["coordinate_max_delay_s"] for x in rows),"groups":totals,"records":block_receipts,
       "raw_tau_status":"DROPPED_PATH_ONLY; missing non-dropped per-ray tau must be retrieved from preserved source or regenerated",
       "audit_limit":"Cannot classify all 26 path IDs and change H without original per-ray tau and Jones responses."},indent=2))
  print(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","records":len(receipts),
-  "offending_stations":len(rows),"failed_paths":26,"archived_dropped_tau":sum(r["n_archived_tau"] for r in rows),
+  "offending_stations":len(rows),"total_ray_paths":sum(v["total_ray_paths"] for v in totals),"failed_paths":26,"archived_dropped_tau":sum(r["n_archived_tau"] for r in rows),
   "confirmed_merge":sum(r["n_confirmed_merge_causes"] for r in rows),"groups":totals}))
 if __name__=="__main__":main(sys.argv[1] if len(sys.argv)>1 else "g3_out")
