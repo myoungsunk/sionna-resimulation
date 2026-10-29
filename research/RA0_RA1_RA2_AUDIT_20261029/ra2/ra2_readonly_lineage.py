@@ -40,14 +40,15 @@ def check_keys(samples,timeline,n):
  t={int(x["pose_id"]):x for x in timeline}
  errs=[]
  if len(samples)!=n or set(ids)!=set(range(n)) or len(ids)!=len(set(ids)):errs.append("ERR_DUPLICATE_KEY_OR_MISSING_POSE")
- if len(timeline)!=len(t) or min(t)!=0:errs.append("ERR_TIMELINE_KEY")
+ if not t or len(timeline)!=len(t) or min(t)!=0:errs.append("ERR_TIMELINE_KEY")
+ if len(t)<min(len(samples),2):errs.append("ERR_TIMELINE_COUNT")
  for i in (set(ids)&set(t)):
   a=samples[i];b=t[i]
   if abs(float(a["x"])-float(b["x"]))>5e-6 or abs(float(a["y"])-float(b["y"]))>5e-6:errs.append("ERR_POSE_ALIGNMENT");break
  return sorted(set(errs))
 def negative_tests():
  a=[dict(pose_id=i,x=float(i),y=0) for i in range(3)];t=[dict(pose_id=i,x=float(i),y=0) for i in range(2)]
- assert not check_keys(a,t,3)
+ assert "ERR_TIMELINE_COUNT" in check_keys(a,t[:1],3)
  assert "ERR_DUPLICATE_KEY_OR_MISSING_POSE" in check_keys(a[:2]+[dict(a[0])],t,3)
  b=[dict(x) for x in a];b[1]["x"]=100
  assert "ERR_POSE_ALIGNMENT" in check_keys(b,t,3)
