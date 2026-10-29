@@ -33,7 +33,12 @@ def main():
     for item in frozen:
         rp=Path(item["original_relpath"])
         # relpath includes results/S2/traces_CASE/x_TAG_trace.npz
-        raw=a.s2_parent/rp
+        # Accept only these deterministic layouts; report the actual path used.
+        # --s2-parent may be the archive job root or the literal S2 directory.
+        candidates=[a.s2_parent/rp,
+                    a.s2_parent/rp.relative_to("results/S2"),
+                    a.s2_parent/"S2"/rp.relative_to("results/S2")]
+        raw=next((f for f in candidates if f.is_file()), candidates[0])
         receipt=raw.with_name(raw.name.replace("_trace.npz","_trace_receipt.json"))
         v=dict(case=item["case"],tag=item["tag"],raw_path=str(raw),receipt_path=str(receipt),source_root=str(a.s2_parent))
         v["raw_found"]=raw.is_file()
