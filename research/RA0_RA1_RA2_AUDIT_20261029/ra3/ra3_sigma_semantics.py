@@ -16,8 +16,10 @@ import exp_pb as E
 import common as C
 from core import predict,wrap
 
-CASES=("R4_aB_m0","R5_aA_m0")
-LEVELS=("B0","L2")
+CANARY_CASES=("R4_aB_m0","R5_aA_m0")
+ALL_CASES=("R2_aA_m0","R2_aB_m0","R2_aA_m45","R4_aA_m0","R4_aB_m0","R5_aA_m0","R5_aB_m0")
+CANARY_LEVELS=("B0","L2")
+ALL_LEVELS=("B0","L0","L1","L2")
 MODES=("BB","MB")
 def sh(p):
  h=hashlib.sha256()
@@ -64,14 +66,18 @@ def math_fixture():
          "delta_s_update":float(upd(s0)[1]-upd(s1)[1])}
 def main(out):
  out=pathlib.Path(out);out.mkdir(parents=True,exist_ok=True)
+ scope=os.environ.get("RA3_SCOPE","canary")
+ if scope not in ("canary","full"):raise RuntimeError("INVALID_SCOPE")
+ cases=ALL_CASES if scope=="full" else CANARY_CASES
+ levels=ALL_LEVELS if scope=="full" else CANARY_LEVELS
  model=C.base_model();results=[];qa=[]
- for case in CASES:
+ for case in cases:
   spec=C.CASES[case];anchor=np.asarray(spec["anchor"][:2],float)
   ref=C.load_control(case,"B0")
   jb,jm=ref["jb"],ref["jm"]
   t=ref["t_s"];gt=ref["truth_scoring_only"]
   z=ref["nu"][:,jb]+ref["h"][:,jb]+ref["mu"][:,jb]
-  for level in LEVELS:
+  for level in levels:
    ds,gy,dt,x0=E.build_controls(t,gt[:,:3],level)
    acc=E.gated_mask(z,ref["mu"][:,jb],ref["R"][:,jb],ds,gy,dt,np.r_[x0,0.],ref["Pprior"][0,jb],spec,model)
    if level in ("B0","L2"):
@@ -81,6 +87,8 @@ def main(out):
    hg,_=model.batch(np.c_[gt[:,:3],np.zeros(len(t))],spec)
    D=dict(t=t,gt=gt,z=z,R=ref["R"][:,jb],acc=acc,ds=ds,gy=gy,dt=dt,
        x0=np.r_[x0,0.],P0=ref["Pprior"][0,jb],spec=spec,anchor=anchor,hg=hg)
+   bxo,bpo,_,_=E.run(D,ref["mu"][:,jb],dict(mode="orig"),model)
+   base_score=E.scores(D,bxo,bpo)
    for bg,j in (("BB",jb),("MB",jm)):
     mu=ref["mu"][:,j]
     Xo,Po,_,_=E.run(D,mu,dict(mode="var"),model)
@@ -100,6 +108,11 @@ def main(out):
       delta_head_rmse_deg=float(sn["head_rmse"]-so["head_rmse"]),
       delta_xy_rmse_cm=float(sn["xy_rmse_cm"]-so["xy_rmse_cm"]),
       head_orig_deg=so["head_rmse"],head_pred_deg=sn["head_rmse"],
+      BB_ORIG_head_deg=base_score["head_rmse"],BB_ORIG_xy_cm=base_score["xy_rmse_cm"],
+      joint_improved_before=bool(so["head_rmse"]<base_score["head_rmse"] and so["xy_rmse_cm"]<base_score["xy_rmse_cm"]),
+      joint_improved_after=bool(sn["head_rmse"]<base_score["head_rmse"] and sn["xy_rmse_cm"]<base_score["xy_rmse_cm"]),
+      head_improved_before=bool(so["head_rmse"]<base_score["head_rmse"]),head_improved_after=bool(sn["head_rmse"]<base_score["head_rmse"]),
+      xy_improved_before=bool(so["xy_rmse_cm"]<base_score["xy_rmse_cm"]),xy_improved_after=bool(sn["xy_rmse_cm"]<base_score["xy_rmse_cm"]),
       xy_orig_cm=so["xy_rmse_cm"],xy_pred_cm=sn["xy_rmse_cm"],
       delta_max_x_m=float(np.max(abs(Xa[:,:2]-Xb[:,:2]))),
       delta_max_P=float(np.max(abs(Pa-Pb))),
@@ -109,12 +122,13 @@ def main(out):
  df=pd.DataFrame(results)
  df.to_csv(out/"RA3_SIGMA_LOOKUP_CANARY.csv",index=False)
  (out/"RA3_SIGMA_LOOKUP_QA.json").write_text(json.dumps(dict(
-  status="TECHNICAL_CANARY_COMPLETED",fixture=math_fixture(),n_arms=len(results),qa=qa,
+  status="TECHNICAL_REPLAY_COMPLETED",scope=scope,fixture=math_fixture(),n_arms=len(results),qa=qa,
+  MBVAR_vs_BBORIG_counts={k:int(df.loc[df.bg=="MB",k].sum()) for k in ("head_improved_before","head_improved_after","xy_improved_before","xy_improved_after","joint_improved_before","joint_improved_after")},
   source_git_sha="f100a983cc389fcdef073592a254add61e7115da",
   input_lock=(C.ROOT/"out/INPUT_LOCK.sha256").read_text() if (C.ROOT/"out/INPUT_LOCK.sha256").exists() else "MISSING",
   code_sha256={"exp_pb.py":sh(BASE/"pol_bias_model/exp_pb.py"),"common.py":sh(BASE/"reflect_model/common.py"),"ra3_script":sh(HERE)},
   scientific_claim="Descriptive paired canary; no hypothesis or new H validity assertion.",
   additional_arms="All 7 cases x B0/L0/L1/L2 to be run only if lookup semantics must be changed.",
   self_review_only=True),indent=2))
- print(json.dumps({"status":"TECHNICAL_CANARY_COMPLETED","arms":len(results),"max_delta_head_rmse_deg":float(df.delta_head_rmse_deg.abs().max()),"max_delta_xy_cm":float(df.delta_xy_rmse_cm.abs().max())}))
+ print(json.dumps({"status":"TECHNICAL_REPLAY_COMPLETED","scope":scope,"arms":len(results),"max_delta_head_rmse_deg":float(df.delta_head_rmse_deg.abs().max()),"max_delta_xy_cm":float(df.delta_xy_rmse_cm.abs().max())}))
 if __name__=="__main__":main(sys.argv[1] if len(sys.argv)>1 else "ra3_out")
