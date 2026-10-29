@@ -21,7 +21,8 @@
 ## RA3 필터 정의 (IMPLEMENTER → AUDITOR)
 - `exp_pb.run`/원 `ctl_core`: `sigma_b`를 **이전 posterior/현재 predict 이전**에 조회. 일부 후속 코드 `run_four_priorities.py`는 **현재 predicted prior**에서 조회. `MB_VAR` 동일 명칭 아래 의미를 섞지 말고 `MB_VAR_LEGACY`, `MB_VAR_PRIOR`로 분리.
 - [RA3 8개 canary #40851671917](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40851671917) — 원 state/P 재구현 최대 절대차 **0**, 바뀐 것은 분산 조회 시점뿐; 8개 Arm Heading RMSE 차이 최대 **0.00549°**, XY 차이 최대 **0.09075 cm**.
-- [원 7 case×4 gyro 전체 28조건 재검산 #40852149539](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40852149539) — 결과 완료 확인 전 성능 개선 개수 판정을 변경하지 않음.
+- [원 7 case×4 gyro 전체 28조건 재검산 #40852149539](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40852149539) — **completed/success**, 원 source state/P 절대차 0, 56 arm(7 case×4 gyro×BB/MB)의 원래 BB_ORIG 대비 MB_VAR Heading **23/28→23/28**, XY **20/28→20/28**, 동시 **19/28→19/28**. 개선/미개선 판정이 바뀐 조건은 **0/28**. 연속 점수는 변함: 주요 MB_VAR Heading RMSE 변화 최대 **0.006278°**, XY RMSE 변화 최대 **0.060967 cm**. 모든 BB/MB arm 포함한 최대치는 각각 **0.010476°**, **0.237204 cm**.
+- [RA3 전체 상세 실행 정의·검산 보고서](ra3/RA3_FULL_SEMANTICS_AUDIT_20261029.md) — 같은 명칭 아래 posterior-before-predict와 predicted-prior 구현 혼용 금지, 원 MB_VAR 이름/기준 성능은 LEGACY로 유지. 기존 RF 물리 유효성에 대한 승인은 별개.
 
 ## AUDITOR 경계
 실제 원 source/아카이브 근거 산술은 별도 방식으로 검산했지만 모든 업무가 동일 모델 세션의 작업이므로 **SELF_REVIEW_ONLY**. 5개 경로군 원 tau 미확보, RT 물리 solver 내부 오차 귀속과 25 ray의 물리적 H 영향은 **BLOCKED_EVIDENCE**. GitHub Actions 성공은 연구 독립 승인이나 새로운 물리적 주장 PASS가 아니다.
