@@ -15,7 +15,7 @@ def main(source,out):
     qpaths=list(source.rglob("A4_FACTORIAL_QA.json"))
     must(len(paths)==len(qpaths)==3,"ERR_FACTORIAL_CASES_MISSING "+str((len(paths),len(qpaths))))
     rows=pd.concat([pd.read_csv(p) for p in paths],ignore_index=True)
-    must(set(rows["case"])==CASE_SET and len(rows)==192 and rows[F+["gate","case"]].drop_duplicates().shape[0]==192,"ERR_DUPLICATE_FACTORIAL")
+    must(set(rows["case"])==CASE_SET and len(rows)==192 and rows[list(F)+["gate","case"]].drop_duplicates().shape[0]==192,"ERR_DUPLICATE_FACTORIAL")
     for p in qpaths:
         q=json.loads(p.read_text());must(q["status"]=="PASS_A4_FACTORIAL_TECHNICAL","ERR_NONPASS_SOURCE")
     main=[]
