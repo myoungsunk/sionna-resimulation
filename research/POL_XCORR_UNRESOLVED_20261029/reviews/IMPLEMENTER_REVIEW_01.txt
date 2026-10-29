@@ -1,0 +1,297 @@
+POL-XCORR-001 — 구현자 관점 독립 검토
+1. GitHub 브랜치 확인
+GitHub에 연결된 저장소에서 요청하신 브랜치를 직접 확인했습니다.
+원격 브랜치 검증 결과
+일치 확인
+
+Repository
+
+myoungsunk/sionna-resimulation
+
+Branch
+
+research/pol-xcorr-unresolved-plan-20261029
+
+Remote HEAD
+
+a77aff40ecc6399ba8eeff15d59eaa3894b3834a
+
+보고된 a77aff40과 원격 브랜치를 비교한 결과 identical, ahead 0, behind 0으로 확인됐습니다.
+
+검증된 커밋 확인
+
+계획 메모뿐 아니라 contracts/, config/, package_provenance/, SCIENCE_SPEC.md, TASK_HANDOFF.md 등의 파일도 원격 브랜치에 존재하는 것을 확인했습니다.
+
+이하 검토에서는 구현자(ROLE_IMPLEMENTER) 관점을 적용하고, 제안자의 설계를 그대로 수용하는 대신 실제 구현 가능성과 과학적 타당성, 실행 권한을 구분합니다.
+2. 종합 판정
+구현 가능성
+조건부 진행 가능
+
+제안의 주요 물리 가설과 실험 흐름은 구현 가능한 수준으로 정의되어 있습니다. 그러나 계약을 그대로 동결하여 P1~P3까지 진행하기에는 추가 명세가 필요합니다.
+계약 형식·출처	대체로 충족
+P0 코드 개발	착수 가능
+P0 검증 통과	미확인
+S0/P1~P3 실행	현재 금지
+실측·하드웨어 적용	증거 부족
+독립적인 과학적 확증	Holdout 없음
+
+
+이는 제안의 방향을 부정하는 판정이 아닙니다. 구현 전에 확인할 수 있는 문제와 실제 데이터에서 검증해야 하는 문제를 분리해야 한다는 뜻입니다.
+3. 구현자로서 이해한 연구 목적과 시스템 구조
+제가 이해한 핵심은 기존 편파 전력비 변동만으로는 구별하기 어려운 미분해 다중경로 오염을, 두 수신 편파의 복소 신호 구조 및 공간적 변동으로 추가 식별할 수 있는가입니다.
+
+이는 현재 연구 중인 EKF의 heading RMSE를 직접 개선하는 실험이 아니라, 그 전에 사용할 수 있는 관측 품질 정보가 실제로 존재하는지를 검증하는 실험입니다.
+
+물리적 검증 가설
+단일 LoS 성분과 하나의 근접 반사를 다음과 같이 모델링합니다.
+\[
+\mathbf h(t)=\mathbf a p(t)+
+\widetilde{\mathbf b}p(t-\delta)
+\]
+
+\(\mathbf a,\widetilde{\mathbf b}\in\mathbb C^2\)는 두 RX 포트에서 관측되는 복소 응답입니다.
+
+관측 창의 coherency 행렬
+\[
+\mathbf J=\sum_{t\in W}\mathbf h(t)\mathbf h(t)^H
+\]
+
+을 이용해 두 편파 응답이 하나의 공통 파형으로 설명되는지 검사합니다.
+- M0: 기존 \(|\Delta s_1|\), first-path power 기준선.
+- M1: coherency의 rank 변화. 반사에 의해 서로 독립적인 편파-시간 성분이 생기는지 확인.
+- M2: 두 편파 사이 교차상관의 상대 지연과 비대칭 구조. M1 이상의 정보가 존재하는지 확인.
+- M3/M4: CIR 파형 형태 및 이동 중 편파별 differential fading. 시간적으로 결맞은 복소 신호를 확보하지 못하는 시스템의 대안까지 탐색.
+가장 중요한 비교는 M0 대비 M1의 추가 판별력 \(E_1=\Delta\mathrm{AUC}\)입니다. M2의 추가 정보량과 M4의 이동 창 정보는 별도로 평가합니다.
+
+결론적으로 복소 편파 관측이 \(\Delta s\) 왜곡을 구별하는 추가 정보를 제공하는지를 먼저 검증하고, 그 결과가 긍정적일 때 별도의 필터 통합 연구로 확장하는 구조로 이해했습니다.
+
+근거: SCIENCE_SPEC 원문
+4. 실제 원본 입력을 확인하면서 발견한 사항
+4.1. R-05: SAMPLES와 timeline은 단순한 행 수 불일치가 아닙니다
+저장소에 있는 SAMPLES.json과 timeline_*_Tnone.csv를 직접 읽어 pose_id 집합을 대조했습니다.
+Route	SAMPLES	Timeline	Timeline 외 추가 pose
+R2	1,303	979	324
+R4	922	742	180
+R5	1,883	1,415	468
+
+추가 pose의 구조도 확인했습니다.
+- R2: 18개 고정 XY 위치 × 18개 yaw
+- R4: 10개 고정 XY 위치 × 18개 yaw
+- R5: 26개 고정 XY 위치 × 18개 yaw
+따라서 이들은 단순한 누락 행이 아니라 timeline 뒤에 추가된 고정 위치 yaw sweep 데이터입니다. 반대로 timeline의 모든 pose_id는 해당 SAMPLES에 존재하며 중복 ID도 없습니다.
+
+이 발견에 따른 구현 판단은 다음과 같습니다.
+1. Timeline 기반 이동·주행거리 계산에는 timeline에 존재하는 pose만 사용해야 합니다.
+2. 추가 yaw sweep은 별도 probe 또는 static_yaw_sweep 층으로 보존해야 합니다.
+3. 이들을 임의로 drive나 turn에 포함하면 공간 주기 및 block bootstrap 해석이 왜곡될 수 있습니다.
+4. P1에서 7개 case 전체를 사용할지, timeline 대응 부분만 사용할지 계약에 명시해야 합니다.
+즉, R-05는 해결 가능한 데이터 정합성 문제이지만, phase 정의를 변경 없이 그대로 구현해서는 안 됩니다.
+
+또한 기존 v_replay.py에 이미 CIR 계산과 pose_id 기준 정렬 검사가 있어, P0의 observer parity 구현에 재사용 가능한 원전이 존재합니다.
+4.2. R-01: Path trace 원본은 존재하지만 집계 해시는 보완이 필요합니다
+원격 Git tree를 확인한 결과 STORED_PATH_TRACES_R2_aA에 다음이 존재합니다.
+자산	확인 수
+*_trace.npz	925
+*_trace_receipt.json	925
+scene_shard* 디렉터리	32
+
+따라서 R-01은 파일 부재가 아니라 경로별 Jones 계수, delay, signature의 대응 관계를 복구할 수 있느냐의 문제입니다.
+
+또한 INPUT_LOCK.json을 확인한 결과 30개 항목 중 25개는 기존 manifest 일치로 표시되고, 5개는 신규 잠금 항목입니다.
+
+다만 제가 이번 검토에서 모든 바이너리 파일의 SHA256을 독립 재계산한 것은 아닙니다. 기존 제안자의 해시 확인 기록과 GitHub의 파일 존재·구조 검증을 구분해야 합니다.
+
+특히 925개 trace가 단일 glob 문자열과 하나의 SHA256으로 기록돼 있으므로, P0에서 다음을 고정할 필요가 있습니다.
+- 925개 개별 경로와 SHA256 목록
+- 파일명 정렬 및 집합 해시 계산 규칙
+- 누락·중복·추가 파일의 검출 규칙
+이 부분은 P0에서 보완할 수 있습니다.
+
+근거: INPUT_LOCK.json
+5. 구현 전에 수정·확인해야 할 과학적 문제
+문서를 수동 검토하면서 다음 사항을 발견했습니다. 이 중 일부는 단순 코드 구현 문제가 아니라 물리적 가정이나 수치 명세를 명확히 해야 하는 문제입니다.
+5.1. [중요] LoS의 rank-1 가정은 실제 FFD 채널에서 보장되지 않습니다
+제안자는 단일 경로에서
+\[
+\mathbf h(t)=\mathbf a p(t)
+\]
+
+이면 \(\mathbf J\)가 rank-1이므로 \(\epsilon_W=0\)이라고 가정합니다.
+
+이 유도 자체는 정확합니다. 다만 \(\mathbf a\)가 주파수에 무관한 동일한 복소 벡터여야 합니다.
+
+실제 채널은 두 수신 포트의 안테나 패턴이 주파수에 따라 달라질 수 있으므로
+\[
+\mathbf H_{\rm LoS}(f)=
+\begin{bmatrix}
+a_+(f)\\a_-(f)
+\end{bmatrix}
+e^{-j2\pi f\tau}
+\]
+
+가 됩니다.
+
+여기서 \(a_+(f)/a_-(f)\)가 주파수에 따라 변하면, 반사가 하나도 없더라도 CIR의 두 성분이 완전히 비례하지 않을 수 있습니다.
+
+실제 원본 SourceFFD 구현에서도 안테나 전계가 주파수별 배열로 보관·보간됩니다.
+
+구현 판단: 이상적인 F1은 성립하지만, 원본 LoS H에 대한 ε ≤ 1e-8은 검증할 조건이지 이미 성립한 사실이 아닙니다.
+
+이 시험이 실패하면 숫자 허용오차만 완화해서는 안 됩니다. 실제 LoS에서 생기는 rank 증가와 반사에 의해 생기는 rank 증가를 구별할 수 있는지 재검토해야 합니다.
+5.2. [수정 필요] ε의 정의가 SCIENCE_SPEC 내부에서 서로 다릅니다
+현재 F2에서 사용하는 정의는
+\[
+q=\frac{4\det\mathbf J}{(\operatorname{tr}\mathbf J)^2}
+\]
+
+인 반면, M1a의 실제 지표는
+\[
+\epsilon_W=1-\sqrt{1-q}
+\]
+
+입니다.
+
+둘은 동일하지 않습니다. 작은 \(q\)에서는 \(\epsilon_W\approx q/2\)입니다.
+
+따라서 F2의 식에서 ε ≡ 4detJ/(trJ)²를 쓰는 부분은 q로 분리하는 것이 적절합니다. 기울기 2라는 예측 자체는 유지되지만, 수치 fixture와 검증 보고서에서는 정의를 통일해야 합니다.
+5.3. [수정 필요] IFFT의 정확한 tap 간격이 설정값과 다릅니다
+원본 메타데이터의 주파수 범위는 6.2504–6.7496 GHz, 257개 bin입니다.
+
+따라서 주파수 간격은 1.95 MHz입니다. 기존 코드처럼 IFFT(4×257)을 하면 정확한 시간 샘플 간격은
+\[
+\Delta t =
+\frac{1}{(4\cdot257)\cdot1.95\,\mathrm{MHz}}
+\approx0.498853\,\mathrm{ns}
+\]
+
+입니다.
+
+현재 계획의 0.5008 ns는 \(1/(4B)\) 근삿값이며, 차이는 약 1.95 ps/tap입니다.
+
+이 차이가 모든 P0 검사를 실패시킨다는 뜻은 아닙니다. 하지만 1 ps 지연 허용오차를 사용하는 image-method 시험과 P3의 포트 시간정렬·재표본화 계산에는 정확한 시간축이 필요합니다.
+
+권고: 실제 freqs_hz.npy에서 주파수 간격을 읽어 시간축을 생성하고, 사전 지정된 근삿값과 구분해서 기록해야 합니다.
+5.4. [수정 필요] S0의 δ² 기울기는 반송파 위상을 통제해야 합니다
+F2의 예측에는
+\[
+\epsilon\propto
+\frac{\delta^2|\mathbf a\wedge\mathbf b|^2}
+{|\mathbf a+\widetilde{\mathbf b}|^4}
+\]
+
+가 포함됩니다.
+
+\(\widetilde{\mathbf b}=\mathbf b e^{-j2\pi f_c\delta}\)이므로, \(\delta\)를 바꾸면 반송파 위상도 바뀌고 분모도 변할 수 있습니다.
+
+따라서 δ < 0.5/B라는 조건만으로 측정된 log–log 기울기가 항상 2라고 단정할 수 없습니다.
+
+S0의 법칙 검증에서는 상대 반송파 위상 \(\psi\)를 고정한 실험과 실제 \(\delta\) 변화에 따른 위상 회전을 포함한 실험을 구분해야 합니다. 또한 \(\delta=0\)은 로그 적합에서 제외하고, 거의 완전한 상쇄가 발생하는 조건을 별도 층화해야 합니다.
+5.5. 구현 상세의 추가 모호성
+항목	현재 문제	필요한 조치
+M0 log_fp_power	합산 포트, 로그 밑, 0 처리 미정	정확한 수식 고정
+M1/M2 window	7-tap 창과 ±8-tap lag, 경계 처리	유효 overlap, tie, zero denominator 명시
+M4 label	창 평균 label의 train 분위수 방식	fold별 기준 명확화
+P1 표본	timeline 밖 yaw sweep 포함 여부	주분석·진단 분리
+Bootstrap	동일 route의 anchor/mount가 상관됨	동일 공간 block 공동 resampling
+Turn 분석	고정 XY 회전에는 1 m 공간 block 부적합	별도 추정량·불확실성 정의
+F-11 검정력	P0에서 label–metric 관계 관찰 금지	사전 가정에 따른 power simulation만 허용
+P3 E5	시간오차가 이산 grid로 주어짐	연속 최대치가 아닌 최대 시험 지점으로 보고
+
+이 사항들을 계약 동결 이전에 해결할 항목으로 분류합니다. 특히 모델 정의를 결과 관찰 후 수정하면 exploratory 변경이 되기 때문에 우선순위가 높습니다.
+6. Governance 및 역할 분리에 대한 판정
+COMMON_CONTRACT와 ROLE_IMPLEMENTER를 확인했습니다.
+
+현재 governance는 MBVAR 전용 문서입니다. ROLE_IMPLEMENTER의 시작 헤더와 일부 gate 조건도 MBVAR-INFO-001, EKF covariance, GP field 등을 전제로 작성되어 있습니다.
+
+따라서 단순히 POL-XCORR에서 이를 참조했다고 선언하는 것만으로 모든 규칙이 명확해지지는 않습니다.
+
+제가 권고하는 조치는 다음과 같습니다.
+1. Root AGENTS.md에 POL-XCORR 범위를 append-only로 추가합니다. 기존 MBVAR 규칙은 유지합니다.
+2. POL-XCORR 전용 적용표를 만들어 공통 규칙과 MBVAR 고유 규칙을 구별합니다.
+3. Governance 변경 커밋 SHA를 확정하고 계약 및 package manifest에 반영합니다.
+4. 구현자는 P0에 한정한 코드를 작성하고, 제안자는 P0 결과를 검토해 후속 동결 여부를 결정합니다.
+5. 독립 감사자는 별도 계산 경로로 수학적 가정·P0 결과·freeze 준비 상태를 검증합니다.
+현재 저의 역할은 구현 가능성 검토자 겸 잠재적 IMPLEMENTER입니다. 이번 분석은 독립 감사자의 서명이나 verdict를 대신하지 않습니다.
+
+추가로 R-01에 대한 예외 규칙을 명확히 해야 합니다. 계약은 trace 정렬 실패 시 T4만 제외하도록 허용하지만, P0 전체 판정에는 모든 tolerance PASS라는 문구가 있습니다. T4_ONLY_BLOCKED와 핵심 입력·observer 무결성 실패를 구분하는 게 적절합니다.
+7. 사용자 결정 및 외부 입력 사항
+ID	권고 판단	P0 차단 여부
+R-09 Governance router	Append 권고. 변경 SHA 재고정	형식 확정 필요
+R-10 독립 auditor	별도 세션 또는 독립 실행자로 지정	P0 자체는 허용, FROZEN 차단
+R-11 신규 scene RT 예산	현재는 보류 권고	차단 안 함
+R-07 DW1000 jitter	실제 포트 간 정렬 오차 자료 확보	P3 하드웨어 해석 제한
+R-08 VNA 2×2	측정 파일·포트·캘리브레이션 조건 확보	P4 차단
+
+R-11은 반드시 지금 승인할 필요가 없습니다. 신규 scene을 생성하지 않고 회고적(retrospective) 정보량 검증까지만 수행하는 계약으로 동결할 수 있기 때문입니다.
+
+단, 새로운 scene 없이 여러 anchor·route에서 반복해도 독립 RF scene 수는 1개입니다. 향후 이 결과를 일반화하거나 실측 검증으로 주장하려면 별도 데이터 확보가 필요합니다.
+8. 권고하는 실제 구현 순서
+01
+
+P0 입력·출처 검증
+
+GO
+
+모든 입력 SHA 재계산, 원본 observer 검증, 추가 yaw sweep 분리, 결과·실패 로그 보존
+
+
+02
+
+P0 수학·물리 검증
+
+GO
+
+rank-1 LoS, 정확한 시간축, 이득 불변성, trace 재정렬·재합성 독립 검증
+
+
+03
+
+계약 보정 및 독립 감사
+
+PENDING
+
+결과에 따른 계약 변경을 투명하게 기록하고, 미해결 수학·통계 정의 및 governance 적용 범위 확정
+
+
+04
+
+FROZEN 계약 체결
+
+BLOCKED
+
+제안자 승인, 독립 감사자 서명, 변경된 계약·config·governance 해시 고정
+
+
+05
+
+S0 → P1 → P2 → P3
+
+BLOCKED
+
+합성 물리 법칙, 증분 판별력, 공간적 분리 가능성, 하드웨어 오차 강건성 순차 평가
+
+
+
+P0 수행 시 요구할 구현자 산출물
+기존 TASK_HANDOFF.md를 기본으로 다음 산출물이 필요합니다.
+산출물	내용
+P0_CHECKS.json	R-01~R-05 및 수학·불변성 시험의 예상값, 관측값, tolerance, 판정
+TRACE_REALIGN.csv	경로 정렬 대응, 예측 delay, matching 오차, 검증 실패 경로
+LOS_RANK1.csv	전체 LoS pose의 coherency 지표와 수치 floor
+POSE_ALIGNMENT.csv	Timeline, drive/turn, 추가 yaw sweep 구분
+MANIFEST.json	전체 소스 SHA, 입력·출력 hash, 실행 명령, 환경·버전
+IMPLEMENTER_REPORT.md	통과·실패 원인, 의존성 차단, 수정 필요 사항, 다음 gate
+
+이는 새로운 RT 실행이나 P1 분류 성능 계산 없이 작성할 수 있는 범위입니다. 생성물은 기존 데이터와 구분된 신규 경로에 저장해야 하며, 실패도 기록으로 남겨야 합니다.
+9. 최종 결론
+현재 제안은 구현할 가치가 있는 과학적 검증 계획이며, 구현자가 P0 단계에 착수할 만큼 구체화되어 있습니다. 그러나 계약을 그대로 FROZEN 처리할 준비가 끝났다고 판단하지는 않습니다.
+
+특히 이번 검토에서 발견한 다음 세 가지를 우선 해결해야 합니다.
+- 데이터: timeline 외 추가된 972개의 yaw-sweep pose가 있고, 7개 case 기준으로는 2,268개의 관측 행에 해당합니다. P1 학습·평가 포함 여부를 사전에 고정해야 합니다.
+- 수학: coherency 지표의 정의와 실제 IFFT 시간 간격을 수정해야 하며, LoS rank-1이 실제 주파수 의존 안테나 패턴에서 성립하는지 검증해야 합니다.
+- Governance: POL-XCORR 적용 범위와 MBVAR 전용 규칙의 예외를 명시하고 독립 감사 체계를 확정해야 합니다.
+진행 권고는 P0_PREFLIGHT: GO, FROZEN: NOT READY, S0/P1/P2/P3: NO-GO입니다.
+
+아직 구현 코드 작성, P0 시험 실행, 계약 서명 또는 새로운 commit/push는 수행하지 않았습니다. 이번 검토는 원격 브랜치와 텍스트 원본·입력 메타데이터의 직접 확인에 근거한 사전 구현 준비성 평가입니다.
+
+검토 문서: TASK_HANDOFF · Freeze Checklist

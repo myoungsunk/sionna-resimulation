@@ -13,3 +13,14 @@ COMMON_CONTRACT I에 따라 계약 작성 전에 proposer가 실행하거나 관
 | 7 | 〃 | HP_PACKETS 열 목록·case별 행 수 | 9,519행, 63열(e_s, e_r, sF/sL 등) | label·baseline 정의 |
 
 **관찰하지 않은 것:** Full/LoS H에서 ε, ρ, τ*, A_k, M3, M4 계산 결과; 어떤 지표와 e_s·e_r·η의 관계. 선행 메모 `00_PLAN_KO.md`(v0)는 #1–#6 이후, 지표 계산 전에 작성됐다.
+
+## 추가 (v0.2, 2026-10-29 20:0x KST — 구현자 검토 답변 작성 중)
+
+| # | 실행 | 관찰 | 계약에 준 영향 |
+|---|---|---|---|
+| 8 | SAMPLES vs timeline pose_id 집합 대조 | 추가 pose R2 324 / R4 180 / R5 468, 각각 18·10·26 XY × 18 yaw, id는 timeline 뒤에 연속, 7 case 2,268행 | 주분석 timeline 한정, STATIC_YAW_SWEEP 진단층 |
+| 9 | `freqs_hz.npy` 간격 | Δf = 1.95 MHz 균일, Δt = 0.4988526 ns | Δt 정정 |
+| 10 | `FFD_P0P3_20261016/source_model.py` 구조 열람 | 포트 field가 주파수별 배열 | F1′ 추가, R-03 재정의 |
+| 11 | `PHYSICS_RS_STAGED_20261015/code/features.py`, `RESULTS_KO.md` 열람 | 기존 G0–G5 feature 존재. \|s_full−s_los\|와 Spearman: range_m .63–.65, jones_diversity .41–.56, freq_s_var .56–.59 등. 대역 전체 jones_diversity 중앙값 LoS .0041 / Full .103 | M0 = G5 + \|ds1\|, H2 기대 하향, 거리 층화 |
+
+M1–M4(q_W, ε_ρ, τ*, A_k, M3, M4)의 계산 결과와 label 관계는 여전히 관찰하지 않았다. #11은 기존 retrospective 결과의 열람이며 이 계약의 결과가 아니다.

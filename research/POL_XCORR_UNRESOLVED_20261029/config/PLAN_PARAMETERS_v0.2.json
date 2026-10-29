@@ -1,0 +1,225 @@
+{
+  "schema": "POL_XCORR_PLAN_PARAMETERS_V2",
+  "contract_id": "POL-XCORR-001",
+  "status": "DRAFT_CANDIDATE_VALUES_NOT_FROZEN (v0.2)",
+  "note": "Values become binding only when the contract is FROZEN with proposer+auditor sign-off. Changing any value after an outcome is seen requires AMENDMENT-XXX and marks affected runs EXPLORATORY.",
+  "data": {
+    "cases": [
+      "R2_aA_m0",
+      "R2_aB_m0",
+      "R2_aA_m45",
+      "R4_aA_m0",
+      "R4_aB_m0",
+      "R5_aA_m0",
+      "R5_aB_m0"
+    ],
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "H_layout": "pose,frequency,rx(+45,-45),tx(+45,-45)",
+    "tx_index_primary": 0,
+    "tx_index_primary_meaning": "+45 LP single-port anchor (deployment-matched)",
+    "tx_both_role": "UPPER_BOUND_DIAGNOSTIC_ONLY",
+    "full_channel": "FULL_RF/H_*.npy (max_depth 3)",
+    "reference_channel": "H_LoS_*.npy (max_depth 0) -- ORACLE_ONLY for labels",
+    "pose_phase_strata": [
+      "drive",
+      "turn"
+    ],
+    "scene_family": "CORRIDOR_BLOCK_C",
+    "independent_scene_units_available": 1,
+    "data_classification": "RETROSPECTIVE (previously analyzed corridor corpus)",
+    "primary_sample": "timeline pose_ids only (drive, turn)",
+    "diagnostic_strata": {
+      "STATIC_YAW_SWEEP": "SAMPLES pose_ids not in timeline: R2 324 (18 XY x 18 yaw), R4 180 (10x18), R5 468 (26x18); 2268 rows over 7 cases; diagnostic only (LoS floor yaw dependence)"
+    }
+  },
+  "observer": {
+    "window": "Hann over 257 bins",
+    "zero_pad_factor": 4,
+    "first_path_rule": "stronger-RX port, first tap >= 0.30 * that port's peak amplitude (identical to v_replay.ds1)",
+    "common_tap_for_both_ports": true,
+    "s_definition": "s=(P_plus-P_minus)/(P_plus+P_minus) at first-path tap",
+    "tap_spacing_rule": "dt = 1/(4*257*df), df read from freqs_hz.npy at runtime (current assets: df=1.95 MHz -> 0.4988526 ns); nominal 1/(4B) value forbidden",
+    "log_fp_power": "log10(max(P_plus(n0)+P_minus(n0), tiny)) as in PHYSICS_RS_STAGED/code/features.py; parity with HP_PACKETS checked in P0 (R-12)"
+  },
+  "metrics": {
+    "W_taps_primary": [
+      -2,
+      4
+    ],
+    "W_taps_sensitivity": [
+      [
+        -1,
+        3
+      ],
+      [
+        -3,
+        5
+      ]
+    ],
+    "W_weights": "uniform",
+    "xcorr_lag_range_taps": [
+      -8,
+      8
+    ],
+    "asymmetry_k_taps": [
+      1,
+      2
+    ],
+    "shape_moments_window_taps": [
+      -2,
+      6
+    ],
+    "L_m_primary": 0.6,
+    "L_m_sensitivity": [
+      0.3,
+      1.2
+    ],
+    "temporal_window_primary": "causal (past samples only)",
+    "temporal_window_diagnostic": "centered",
+    "highpass_cutoff_rule": "spatial frequency above which s_LoS retains <=5% of its segment variance; computed per segment from LoS channel (ORACLE_ONLY, P2a diagnostic only, never in a deployable metric)",
+    "min_segment_length_m": 2.0,
+    "primary_coherency": "q_W = 4*det(J)/tr(J)^2 ; 1-DoP = 1-sqrt(1-q) reported as derived only",
+    "window_validity": "valid iff n0-2>=0 and n0+6<N and all lag-shifted h_minus indices in [0,N); else INVALID_WINDOW flag retained, no clamp",
+    "xcorr": "R(tau)=sum_{t in W} h_plus(t) conj(h_minus(t-tau)), h_minus from full CIR (no zero-fill); rho(tau)=R/sqrt(sum_W|h_plus|^2 * sum_{W-tau}|h_minus|^2); denominator<=tiny -> NaN + NULL_PORT",
+    "argmax_tie_rule": "smallest |tau|, then negative lag first"
+  },
+  "labels_ORACLE_ONLY": {
+    "T1": "e_s = s_Full - s_LoS",
+    "T2": "e_r (existing HP_PACKETS column)",
+    "T3": "eta_W = sum_W |h_Full - h_LoS|^2 / sum_W |h_LoS|^2 over both ports, tx=0",
+    "T4": "per-path delta_k and |a wedge b_k| from realigned R2_aA traces; usable only if R-01 PASS",
+    "positive_class_quantile": 0.8,
+    "positive_class_threshold_source": "training routes only (leave-one-route-out)",
+    "window_label_threshold": "per fold: q0.80 of training-route causal-window mean |T1|"
+  },
+  "models": {
+    "baseline_M0": "G5 (PHYSICS_RS_STAGED/code/features.py: range_m, log_fp_power, abs_s_fp, early4, early8, early16, delay_rms_ns, peak_diff_ns, eta_fp_win80, s_diff4, s_diff8, s_diff16, tap_pol_var80, jones_diversity, freq_s_var, detector_s_span, detector_delay_span_ns) + |ds1|",
+    "primary_learner": "logistic regression, standardized, C=1.0 fixed, no search",
+    "sensitivity_learner": "RandomForest n_estimators=160, max_depth=6, min_samples_leaf=40, random_state=20261015 (prior study setting)",
+    "arms": {
+      "E1": "M0+[q_W, eps_rho] vs M0",
+      "E1b": "M0 with jones_diversity replaced by q_W vs M0",
+      "E2": "M0+M1+[tau_star,A1,A2] vs M0+M1",
+      "E4": "M0+M1+[M4a,M4b] vs M0+M1"
+    },
+    "no_hyperparameter_search": true
+  },
+  "statistics": {
+    "split": "leave-one-route-out (R2/R4/R5); cases of the held-out route all held out",
+    "bootstrap": "1.0 m travelled-distance blocks within route on timeline poses; block indices resampled jointly across cases sharing the route (aA, aB, m45); 2000 resamples, seed 20261029",
+    "primary_effect": "delta AUC (candidate - baseline) per held-out route",
+    "go_rule_engineering": "lower 95% CI of delta AUC > 0 in >= 2 of 3 held-out routes AND sign positive in 3 of 3",
+    "scientific_verdict_ceiling": "RETROSPECTIVE data, 1 independent scene: verdict may not exceed SUPPORTED_RETROSPECTIVE; confirmatory claim requires new scene variants (BLOCKED)",
+    "turn_blocks": "each contiguous turn-phase run = 1 block; no spatial-period analysis on turns",
+    "report_strata": [
+      "phase(drive/turn)",
+      "range_m tercile (train-route cut points)"
+    ],
+    "power_analysis": "label-free: real block counts + synthetic labels under assumed delta AUC in {0.02, 0.05}; recorded before freeze"
+  },
+  "tolerances_fixed_before_run": {
+    "s_fp_parity_abs": 1e-09,
+    "gain_invariance_rel": 1e-12,
+    "image_method_first_order_delay_ps": 1.0,
+    "trace_resynthesis_rel_error_max": 0.001,
+    "s0_delta_square_slope": [
+      1.9,
+      2.1
+    ],
+    "s0_parallel_jones_eps_max": 1e-10,
+    "p2b_period_match_rel": 0.2,
+    "los_floor_rule": {
+      "q_ref_condition": {
+        "delta_ns": 1.0,
+        "amp_ratio_db": -10,
+        "normalized_wedge": 0.3,
+        "psi": "16-point uniform mean excluding near-cancel"
+      },
+      "NEGLIGIBLE": "LoS q_W q95 <= 0.1*q_ref",
+      "NUISANCE": "0.1*q_ref < q95 <= q_ref",
+      "REDESIGN_REQUIRED": "q95 > q_ref (M1/M2 stop)",
+      "evaluated_at": "S0 (after freeze); P0 only measures",
+      "post_hoc_relaxation": "forbidden"
+    },
+    "g5_parity_abs": 1e-09,
+    "log_fp_power_parity_abs": 1e-09,
+    "s0_delta_fit_range_ns": [
+      0.05,
+      1.0
+    ],
+    "s0_near_cancel_rule": "|a + b*exp(j*psi)| < 0.3|a| stratified and excluded from slope test"
+  },
+  "s0_synthetic": {
+    "delta_ns_grid": "0 to 4 step 0.05",
+    "psi_grid": "0 to 2pi, 16 points",
+    "wedge_grid": "|a wedge b| / (|a||b|) in {0, 0.1, 0.3, 0.6, 1.0}",
+    "snr_db_grid": [
+      30,
+      20,
+      15,
+      10
+    ],
+    "port_timing_offset_ps_grid": [
+      0,
+      25,
+      50,
+      100,
+      250
+    ],
+    "noise_seeds": "0..199",
+    "rng": "numpy PCG64",
+    "model": "h = a p(t) + b exp(j psi) p(t-delta), psi independent of delta (LAW mode); PHYSICAL mode psi=-2*pi*f_c*delta reported without slope criterion",
+    "amp_ratio_db_grid": [
+      -20,
+      -10,
+      -6,
+      -3
+    ]
+  },
+  "p3_hardware_arms": {
+    "per_packet_port_phase": "uniform [0,2pi), per pose",
+    "per_packet_port_gain_db": "normal(0, 1.0)",
+    "port_timing_offset_ps_sigma": [
+      0,
+      25,
+      50,
+      100,
+      250
+    ],
+    "snr_db": [
+      30,
+      20,
+      15,
+      10
+    ],
+    "dw1000_tap_ns": 1.0016,
+    "seeds": "1000..1049",
+    "allowed_auc_loss": 0.05,
+    "E5_reporting": "largest tested grid point meeting allowed_auc_loss",
+    "offset_application": "frequency domain exp(-j*2*pi*f*Delta) on minus port; independent of tap grid"
+  },
+  "supersedes": "config/PLAN_PARAMETERS.json (v0.1)",
+  "change_basis": "reviews/PROPOSER_RESPONSE_01.md",
+  "p0_status_classes": {
+    "CORE_FAIL": [
+      "input hash",
+      "R-02 s_fp parity",
+      "R-12 log_fp_power parity",
+      "R-13 G5 parity",
+      "R-04 common tap/window",
+      "R-05 pose join",
+      "math invariance fixtures"
+    ],
+    "T4_ONLY_BLOCKED": [
+      "R-01 trace realign/resynthesis"
+    ],
+    "MEASURED": [
+      "R-03 LoS q floor",
+      "block counts"
+    ]
+  }
+}
