@@ -102,7 +102,7 @@ def main():
             value=float(tau[ray])
             origseq,origdelay=min(unmerged,key=lambda q:abs(value-q[1]))
             clsseq,clsdelay=min(merged,key=lambda q:abs(value-q[1]))
-            fp=float(np.float32(value))
+            f32=float(np.float32(value))
             ulp=float(np.spacing(np.float32(value)))
             delta_m=float(original_res[ray]); delta_u=float(m[ray])
             category="TIE_CLASS_ARTIFACT" if delta_u<=STRICT else "UNMERGED_STRICT_FAIL"
@@ -113,8 +113,8 @@ def main():
                 case="R2_aA",station=station,tag=tag,ray_index=int(ray),n_rays=len(tau),
                 pose_ids=";".join(map(str,smap.get(tag,[]))),x_trace=float(rx[0]),y_trace=float(rx[1]),
                 x_timeline=float(entry["timeline"]["x"]),y_timeline=float(entry["timeline"]["y"]),
-                tau_s=value,tau_source_dtype=dtype,tau_float32_roundtrip_s=fp,
-                tau_float32_ulp_s=ulp,tau_vs_float32_s=abs(value-fp),
+                tau_s=value,tau_source_dtype=dtype,tau_float32_roundtrip_s=f32,
+                tau_float32_ulp_s=ulp,tau_vs_float32_s=abs(value-f32),
                 raw_best_sequence=">".join(origseq) if origseq else "LOS",
                 class_best_sequence=">".join(clsseq) if clsseq else "LOS",
                 image_raw_s=float(origdelay),image_class_s=float(clsdelay),
