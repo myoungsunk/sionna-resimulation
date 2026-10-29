@@ -1,0 +1,109 @@
+name: RA5 Stage 0 source replay to Stage 1 mathematical invariants
+on:
+  push:
+    branches: ['audit/ra5-staged-execution-20261029']
+    paths:
+      - '.github/workflows/ra5-stage0-source-stage1-math.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  BASE: research/DS_MASK_CAUSAL_X1_X2_20261026
+  EXP: research/RA0_RA1_RA2_AUDIT_20261029/ra5
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  stage0_source:
+    strategy:
+      fail-fast: false
+      matrix:
+        case:
+          - R2_aA_m0
+          - R2_aB_m0
+          - R2_aA_m45
+          - R4_aA_m0
+          - R4_aB_m0
+          - R5_aA_m0
+          - R5_aB_m0
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          fetch-depth: 5
+          sparse-checkout: |
+            research/RA0_RA1_RA2_AUDIT_20261029/ra4
+            research/RA0_RA1_RA2_AUDIT_20261029/ra2
+            research/RA0_RA1_RA2_AUDIT_20261029/ra5
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.3.3 pandas==2.3.2 scipy==1.16.2
+      - name: Source-locked code, banks and packet controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ra5input"
+          FETCH_RF=0 bash "$BASE/reflect_model/fetch_inputs.sh"
+          test -s "$REFLECT_ROOT/out/INPUT_LOCK.sha256"
+      - name: Fetch ONLY matched historical Full/LoS pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ra5input"
+          CASE="${{ matrix.case }}"
+          COMMIT="9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13"
+          BLK="results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C"
+          mkdir -p "$ROOT/rf"
+          git -C "$ROOT/.src.git" cat-file -p "$COMMIT:$BLK/FULL_RF/H_$CASE.npy" > "$ROOT/rf/H_$CASE.npy"
+          git -C "$ROOT/.src.git" cat-file -p "$COMMIT:$BLK/H_LoS_$CASE.npy" > "$ROOT/rf/H_LoS_$CASE.npy"
+          git -C "$ROOT/.src.git" cat-file -p "$COMMIT:$BLK/$CASE/SAMPLES.json" > "$ROOT/rf/SAMPLES_$CASE.json"
+      - name: Verify complete source and raw-CIR observer parity
+        shell: bash
+        run: |
+          set -o pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ra5input"
+          mkdir -p "$RUNNER_TEMP/ra5p0"
+          python -u "$EXP/ra5_p0_source_taps.py" --case "${{ matrix.case }}" --out "$RUNNER_TEMP/ra5p0" 2>&1 | tee "$RUNNER_TEMP/ra5p0/RUN_LOG.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ra5-p0-${{ matrix.case }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/ra5p0/
+          retention-days: 30
+          if-no-files-found: warn
+  stage1_math:
+    needs: stage0_source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/RA0_RA1_RA2_AUDIT_20261029/ra5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.3.3
+      - name: Fail-closed covariance transformation and negative fixtures
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/ra5p1"
+          python -u "$EXP/ra5_p1_math_fixtures.py" "$RUNNER_TEMP/ra5p1" 2>&1 | tee "$RUNNER_TEMP/ra5p1/RUN_LOG.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ra5-p1-math-${{ github.run_id }}
+          path: ${{ runner.temp }}/ra5p1/
+          retention-days: 30
+          if-no-files-found: warn
