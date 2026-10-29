@@ -43,8 +43,8 @@ jobs:
           sha256sum "$f"
       - name: P0V3 delta preflight on locked inputs
         run: |
-          set -uo pipefail
-          OUT="research/POL_XCORR_UNRESOLVED_20261029/results_p0_v03/run_${GITHUB_RUN_ID}"
+          set +e; set -uo pipefail   # capture a non-zero P0V3 exit code; the final step propagates it
+          OUT="research/POL_XCORR_UNRESOLVED_20261029/results_p0_v03/run_${GITHUB_RUN_ID}"; export OUT
           echo "OUT=$OUT" >> "$GITHUB_ENV"
           ARGS=(--repo-root . --out "$OUT" --execution-git-sha "$GITHUB_SHA")
           if [ -n "${R13B_PATH:-}" ]; then ARGS+=(--g5-artifact "$R13B_PATH" --archive-r13b); fi
