@@ -24,3 +24,11 @@ COMMON_CONTRACT I에 따라 계약 작성 전에 proposer가 실행하거나 관
 | 11 | `PHYSICS_RS_STAGED_20261015/code/features.py`, `RESULTS_KO.md` 열람 | 기존 G0–G5 feature 존재. \|s_full−s_los\|와 Spearman: range_m .63–.65, jones_diversity .41–.56, freq_s_var .56–.59 등. 대역 전체 jones_diversity 중앙값 LoS .0041 / Full .103 | M0 = G5 + \|ds1\|, H2 기대 하향, 거리 층화 |
 
 M1–M4(q_W, ε_ρ, τ*, A_k, M3, M4)의 계산 결과와 label 관계는 여전히 관찰하지 않았다. #11은 기존 retrospective 결과의 열람이며 이 계약의 결과가 아니다.
+
+## 추가 (P0 실행 후, 2026-10-29 20:5x KST)
+
+| # | 실행 | 관찰 | 계약에 준 영향 |
+|---|---|---|---|
+| 12 | P0 Actions run 40867063352, 40867521966의 LoS 채널 측정값 열람 (label 미사용) | LoS q_W 중앙값 ≈ 0.0011–0.0014, q95 ≈ 0.0056–0.0062, 최대 0.014; turn > drive. ε_ρ는 LoS에서 q95 0.035–0.185, 최대 0.92 | R-14(ε_ρ 약포트 guard/강등) 제안. R-03 판정은 S0까지 보류(q_ref 미계산) |
+
+Full 채널 M1–M4 값과 label 관계는 여전히 계산·관찰하지 않았다.
