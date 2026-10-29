@@ -128,10 +128,17 @@ def parity():
     return out
 
 
+def candidate_sets():
+    """(anchor, trajectory, fn): original T1/T4/T5 for A and C + AMENDMENT-001 (anchor A)."""
+    out = [(a, tr, fn) for a in Wd.PRIMARY_ANCHORS for tr, fn in Wd.TRAJ.items()]
+    out += [(a, tr, fn) for a in Wd.AMEND1_ANCHORS for tr, fn in Wd.AMEND1.items()]
+    return out
+
+
 def pose_ledger():
     rows = []
-    for a in Wd.PRIMARY_ANCHORS:
-        for tr, fn in Wd.TRAJ.items():
+    for a, tr, fn in candidate_sets():
+        if True:
             P = fn(); h, H = Wd.h_H(P, a)
             for i, p in enumerate(P):
                 chk = Wd.pose_checks(*p, a)
@@ -141,6 +148,7 @@ def pose_ledger():
                                  **chk))
     df = pd.DataFrame(rows)
     spin = df[df.trajectory == "T5_SPIN"]
+    df["amendment"] = np.where(df.trajectory.isin(list(Wd.AMEND1)), "AMENDMENT-001", "ORIGINAL")
     same = all(spin[spin.anchor == a].pose_key.iloc[0] == spin[spin.anchor == a].pose_key.iloc[-1] for a in Wd.PRIMARY_ANCHORS)
     return df, dict(spin_first_last_same_key=bool(same), anchor_B="RESERVE_NOT_EVALUATED")
 
@@ -159,9 +167,11 @@ def window_info(P, anchor):
 
 def geometry(ledger):
     rows = []
-    for a in Wd.PRIMARY_ANCHORS:
-        for tr in ("T1_HORIZONTAL", "T4_S_CURVE"):
-            P = Wd.TRAJ[tr]()
+    for a, tr, fn in candidate_sets():
+        if tr == "T5_SPIN":
+            continue                                   # stationary diagnostic stratum, not a moving-window candidate
+        if True:
+            P = fn()
             for w, st in enumerate(range(0, len(P) - WIN_N + 1, WIN_N)):
                 Pw = P[st:st + WIN_N]
                 r = dict(anchor=a, trajectory=tr, window=w, start_idx=st, n=WIN_N, t_span_s=(WIN_N - 1) * WIN_DT)
@@ -202,7 +212,7 @@ def geometry(ledger):
                    n_valid_windows=len(cand), n_pairs=len(pairs), all_pairs=pairs[:50],
                    rule="PLAN_P0_P6 §K: N=60 @0.5 s, Q-aware batch posterior at window end, D^T I D, G=1/2 log(Ipsi/Ipsi_prior)+1/2 log(Itan/Itan_prior), "
                         "|h_s|<=0.7, range median/IQR diff <=0.5 m, no shared pose indices, max dG, tie lexicographic",
-                   sigma_obs_selection=SIG_SEL, prior_P0="diag(STATE_SCALES^2)")
+                   sigma_obs_selection=SIG_SEL, prior_P0="diag(STATE_SCALES^2)", amendment="AMENDMENT-001 candidates included")
 
 
 def main():

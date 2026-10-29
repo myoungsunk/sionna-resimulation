@@ -79,7 +79,23 @@ def t5_spin():
     return np.c_[np.full(len(yaw), 6.0), np.full(len(yaw), 6.0), yaw]
 
 
+def t2_tangent_a_y7():                                  # AMENDMENT-001
+    x = np.round(np.arange(2.0, 10.0 + 1e-9, SPACING), 10)
+    return np.c_[x, np.full(len(x), 7.0), np.zeros(len(x))]
+
+
+def _arc_a(rh, t0=10.0, t1=80.0):                      # AMENDMENT-001: CCW arc about anchor A, yaw = tangent
+    cx, cy = ANCHORS["A"][:2]
+    L = rh * math.radians(t1 - t0); s = np.r_[np.arange(0.0, L, SPACING), L]; th = math.radians(t0) + s / rh
+    return np.c_[cx + rh * np.cos(th), cy + rh * np.sin(th), np.angle(np.exp(1j * (th + math.pi / 2)))]
+
+
 TRAJ = {"T1_HORIZONTAL": t1_horizontal, "T4_S_CURVE": t4_s_curve, "T5_SPIN": t5_spin}
+# AMENDMENT-001 candidates (anchor A only); radii from the 3-D range medians of the already-valid windows
+AMEND1 = {"T2_TANGENT_A_Y7": t2_tangent_a_y7,
+          "T3_ARC_A_R4266": lambda: _arc_a(math.sqrt(4.80 ** 2 - 2.2 ** 2)),
+          "T3_ARC_A_R5345": lambda: _arc_a(math.sqrt(5.78 ** 2 - 2.2 ** 2))}
+AMEND1_ANCHORS = ("A",)
 
 
 def canonical_yaw_deg(yaw_rad: float) -> float:
