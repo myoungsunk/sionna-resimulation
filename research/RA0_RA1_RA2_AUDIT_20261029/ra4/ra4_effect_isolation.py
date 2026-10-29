@@ -157,7 +157,7 @@ def main():
               entries.append(fmt_result(D,X,P,mask,sg,nis,case,level,mean,variance,gate))
       print(json.dumps({"completed_case":case,"rows":len([r for r in entries if r["case"]==case]),"elapsed_s":round(time.monotonic()-start,2)}),flush=True)
     effects,gates,lut=contrasts(entries)
-    assert len(entries)==336 and len(parity)==112 and len(effects)==112 and len(gates)==168
+    assert len(entries)==336 and len(parity)==112 and len(effects)==224 and len(gates)==168
     def counts(variance,gate):
       rs=[]
       for c in CASES:
@@ -171,7 +171,7 @@ def main():
     if totals["LEGACY/BASE_FIXED"]!=dict(head=23,xy=20,both=19):
       raise RuntimeError("ERR_HISTORIC_COUNT_PARITY "+str(totals["LEGACY/BASE_FIXED"]))
     csv_dump(out/"RA4_336_ARMS.csv",entries)
-    csv_dump(out/"RA4_112_INTERACTIONS.csv",effects)
+    csv_dump(out/"RA4_224_INTERACTIONS.csv",effects)
     csv_dump(out/"RA4_168_GATE_CONTRASTS.csv",gates)
     csv_dump(out/"RA4_112_PARITY.csv",parity)
     qa=dict(status="TECHNICAL_RETROSPECTIVE_COMPLETE",source_commit=HISTORIC_SOURCE,
