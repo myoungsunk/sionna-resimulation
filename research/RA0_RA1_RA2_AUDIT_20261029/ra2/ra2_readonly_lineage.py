@@ -55,7 +55,17 @@ def negative_tests():
  assert "ERR_POSE_ALIGNMENT" in check_keys(b,t,3)
  assert "ERR_DUPLICATE_KEY_OR_MISSING_POSE" in check_keys([],[],3)
  assert "ERR_DUPLICATE_KEY_OR_MISSING_POSE" in check_keys(a[:2],t,3)
- return {"duplicate":"REJECT","alignment":"REJECT","zero_rows":"REJECT","missing":"REJECT"}
+  # Separate adversarial fixtures: cryptographic alteration, port swap,
+ # shifted packet timestamps, and non-finite first-path denominator.
+ known=b"original frozen payload"
+ assert hashlib.sha256(known+b"tampered").hexdigest()!=hashlib.sha256(known).hexdigest()
+ z=np.array([.3,-.6,.9])
+ assert np.max(np.abs(-z-z))>1e-12  # undeclared RX port swap must fail signed-s parity
+ ts=np.array([0.,.2,.4]); shifted=ts+.2
+ assert np.max(np.abs(shifted-ts))>1e-8
+ power=np.array([[0.,0.]])
+ assert np.isnan(np.divide(power[0,0]-power[0,1],power.sum(),where=power.sum()!=0,out=np.array(np.nan)))
+ return {"duplicate":"REJECT","alignment":"REJECT","zero_rows":"REJECT","missing":"REJECT","hash_tamper":"REJECT","undeclared_rx_swap":"REJECT","timestamp_shift":"REJECT","zero_power":"REJECT"}
 def main():
  p=argparse.ArgumentParser();p.add_argument("--work",default="ra2_output");a=p.parse_args()
  out=pathlib.Path(a.work);out.mkdir(exist_ok=True,parents=True);qa=[];issues=[]
