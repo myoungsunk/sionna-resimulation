@@ -104,6 +104,14 @@ def main(argv=None):
         lk = lock_of(text); print(lk["governance_git_sha"] if lk else ""); return 0
     errs = []; report = dict(contract=str(p), contract_sha256=sha, mode=a.mode, phase=a.phase)
     lock = lock_of(text)
+    if a.mode == "frozen" and lock:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
+        import contract_lock as CL
+        try:
+            lock = CL.effective_lock(contract=p)          # frozen contract + FROZEN amendment locks named in RUN_REQUEST
+            report["applied_amendment_locks"] = lock.get("applied_amendment_locks", [])
+        except SystemExit as e:
+            errs.append(str(e))
     if a.mode == "draft":
         placeholders = sorted(set(re.findall(r"P0_TO_RESOLVE_[A-Z_]+", text)))
         report.update(placeholders=placeholders, frozen_lock_present=bool(lock), unlocks_experiments=False)

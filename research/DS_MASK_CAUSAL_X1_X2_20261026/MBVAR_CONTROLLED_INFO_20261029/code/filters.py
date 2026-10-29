@@ -141,13 +141,17 @@ def _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x0, v, jac=True):
     return float(b @ b), X, A, b, J
 
 
+V2_NONSMOOTH_DEC = 0.05
+V2_NONSMOOTH_SHIFT_SD = 0.1
+
+
 def batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, max_iter=V2_MAX_ITER, dec_tol=V2_DEC_TOL, theta0=None,
-                 lam0=1e-6):
+                 lam0=1e-6, q_scale=1.0):
     """Levenberg-Marquardt MAP over theta=(x0, v_1..v_N-1) with strict-decrease acceptance.
     Returns X_hat, Pstate list (at the final accepted theta), info dict with status in
     {CONVERGED, NONCONVERGED_MAXITER, NONCONVERGED_LAMBDA} and the diagnostics the audit asked for."""
     n = len(z)
-    qv = np.array([[Q_DS * abs(ds[k]), Q_GY * dt[k]] for k in range(n)])
+    qv = q_scale * np.array([[Q_DS * abs(ds[k]), Q_GY * dt[k]] for k in range(n)])
     if np.any(qv[1:] <= 0):
         raise ValueError("ZERO_CONTROL_VARIANCE (stationary segment not supported by batch_map)")
     Lm = np.linalg.cholesky(0.5 * (Sig_model + Sig_model.T)); L0 = np.linalg.cholesky(P0)
@@ -175,10 +179,14 @@ def batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, max_iter=V2_MAX_
             status = "NONCONVERGED_LAMBDA"; break
     # final quantities at the current (last accepted) theta
     c, X, A, b, J = _v2_parts(h_batch, z, mu, Lm, L0, m0, qv, ds, gy, dt, x0, v)
-    N_ = A.T @ A; g = A.T @ b; dec = float(g @ np.linalg.solve(N_, g))
+    N_ = A.T @ A; g = A.T @ b; s_gn = np.linalg.solve(N_, g); dec = float(g @ s_gn)
     Cth = np.linalg.inv(0.5 * (N_ + N_.T))
     Pst = [J[k] @ Cth @ J[k].T for k in range(n)]
-    info = dict(status=status, iters=it, n_accept=n_acc, n_reject=n_rej, cost=c, cost_initial=cost0, newton_decrement=dec,
+    shift = float(np.max(np.abs(J[-1] @ s_gn) / np.sqrt(np.diag(Pst[-1]))))   # remaining GN shift at the window end, sd units
+    stop = status
+    if status != "CONVERGED":
+        status = "CONVERGED_NONSMOOTH" if (dec <= V2_NONSMOOTH_DEC and shift <= V2_NONSMOOTH_SHIFT_SD) else "NONCONVERGED"
+    info = dict(status=status, stop_reason=stop, gn_shift_end_sd=shift, iters=it, n_accept=n_acc, n_reject=n_rej, cost=c, cost_initial=cost0, newton_decrement=dec,
                 grad_scaled_inf=float(np.max(np.abs(g) / np.sqrt(np.diag(N_)))), last_step_inf=last_step, lam=lam,
                 theta=(x0.copy(), v.copy()))
     return X, Pst, info

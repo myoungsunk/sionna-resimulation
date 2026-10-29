@@ -174,3 +174,99 @@ def motion_window(poses: np.ndarray, dt: float):
         _, _, Fk, Gk = predict(X[k - 1], np.zeros((4, 4)), ds, dth, dt, q)
         F.append(np.asarray(Fk)); Q.append(np.asarray(Gk) @ q @ np.asarray(Gk).T); ds_l.append(ds); dth_l.append(dth)
     return X, F, Q, np.array(ds_l), np.array(dth_l)
+
+
+# ============================================================================ AMENDMENT-003
+def taps_of(states, anchor_id):
+    """First-path tap index the detector reports at `states` (observable of the receiver)."""
+    s = np.atleast_2d(states)
+    if s.shape[1] == 3:
+        s = np.c_[s, np.zeros(len(s))]
+    _, _, dg = model().batch(s, spec(anchor_id), return_diagnostics=True)
+    return np.asarray(dg["tap"], int)
+
+
+def h_H_tap(states, anchor_id, taps):
+    """FFD LOS observation and Jacobian with the first-path tap index fixed to `taps` (tap-conditioned model).
+    Same chain as SourceFFD.batch (Hann window, 4x zero padding, two-port power ratio at the tap) without the
+    detector's argmax, so h is continuous in the state; equals SourceFFD.batch when taps are its own taps."""
+    s = np.atleast_2d(np.asarray(states, float))
+    if s.shape[1] == 3:
+        s = np.c_[s, np.zeros(len(s))]
+    m = model(); h, dh, dist, dr, cells, rho = m.spectrum(s, spec(anchor_id), True)
+    nf = m.nf; n = len(s); ii = np.arange(n); idx = np.asarray(taps, int)
+    cir = np.fft.ifft(h * m.window[None, :, None], n=4 * nf, axis=1) * nf
+    dcir = np.fft.ifft(dh * m.window[None, :, None, None], n=4 * nf, axis=1) * nf
+    cf = cir[ii, idx]; dcp = dcir[ii, idx]
+    power = np.abs(cf) ** 2; dpower = 2 * np.real(cf.conj()[..., None] * dcp); den = power.sum(axis=1)
+    sv = (power[:, 0] - power[:, 1]) / den
+    jac = (dpower[:, 0] - dpower[:, 1] - sv[:, None] * dpower.sum(axis=1)) / den[:, None]
+    J = np.zeros((n, 2, 4)); J[:, 0, :3] = dr; J[:, 1, :3] = jac
+    B = sys.modules[type(m).__module__].B_OLD
+    return np.column_stack([dist + B, sv]), J
+
+
+def _arc_resample(xs, ys):
+    seg = np.hypot(np.diff(xs), np.diff(ys)); s = np.r_[0.0, np.cumsum(seg)]
+    L = s[-1]; tg = np.r_[np.arange(0.0, L, SPACING), L]
+    x = np.interp(tg, s, xs); y = np.interp(tg, s, ys)
+    return x, y
+
+
+def _sinus(c, A, lam):
+    def fn():
+        xs = np.linspace(2.0, 10.0, 200001); ys = c + A * np.sin(2 * np.pi * (xs - 2.0) / lam)
+        x, _ = _arc_resample(xs, ys); y = c + A * np.sin(2 * np.pi * (x - 2.0) / lam)
+        dy = A * (2 * np.pi / lam) * np.cos(2 * np.pi * (x - 2.0) / lam)
+        return np.c_[x, y, np.arctan2(dy, 1.0)]
+    return fn
+
+
+def _line_y(c):
+    def fn():
+        x = np.round(np.arange(2.0, 10.0 + 1e-9, SPACING), 10)
+        return np.c_[x, np.full(len(x), float(c)), np.zeros(len(x))]
+    return fn
+
+
+def _diag(d):
+    def fn():
+        x0 = max(2.0, d - 11.5); x1 = min(10.0, d - 0.5)
+        L = (x1 - x0) * math.sqrt(2); t = np.r_[np.arange(0.0, L, SPACING), L] / math.sqrt(2)
+        x = x0 + t
+        return np.c_[x, d - x, np.full(len(x), -math.pi / 4)]
+    return fn
+
+
+GEO2 = {}
+for _c in (5, 6, 7, 8, 9):
+    GEO2[f"L_y{_c}"] = _line_y(_c)
+for _c in (5.5, 6.5, 7.5):
+    for _A in (0.4, 0.8, 1.2):
+        for _W in (4, 8):
+            GEO2[f"S_c{_c}_A{_A}_W{_W}"] = _sinus(_c, _A, _W)
+for _d in (12, 14):
+    GEO2[f"D_{_d}"] = _diag(_d)
+GEO2_ANCHORS = ("A", "C")
+
+
+def _rev(c, x0, kind):
+    def fn():
+        k = np.r_[np.arange(0, 31), np.arange(29, 0, -1)] if kind == "REV60" else np.arange(0, 60)
+        x = np.round(x0 + SPACING * k, 10)
+        return np.c_[x, np.full(len(x), float(c)), np.zeros(len(x))]
+    return fn
+
+
+REVISIT_CANDIDATES = [(c, x0) for c in (7, 6, 8) for x0 in (3.0, 4.0, 5.0, 3.5, 4.5)]
+REVISIT = {}
+for _c, _x0 in REVISIT_CANDIDATES:
+    for _k in ("REV60", "FWD60"):
+        REVISIT[f"{_k}_y{_c}_x{_x0}"] = _rev(_c, _x0, _k)
+
+
+def traj_fn(name):
+    for d in (TRAJ, AMEND1, GEO2, REVISIT):
+        if name in d:
+            return d[name]
+    raise KeyError(name)

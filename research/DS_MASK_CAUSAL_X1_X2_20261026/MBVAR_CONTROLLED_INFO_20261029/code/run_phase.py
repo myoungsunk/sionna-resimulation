@@ -17,7 +17,8 @@ HERE = Path(__file__).resolve().parent
 EXP = HERE.parent
 REQ = EXP / "RUN_REQUEST.json"
 PHASES = {"P0_PREFLIGHT": dict(mode="draft", gate="G1"), "P1_S0": dict(mode="frozen", gate="G2"),
-          "P2_S1": dict(mode="frozen", gate="G3")}
+          "P2_S1": dict(mode="frozen", gate="G3"), "P0_GEO2": dict(mode="frozen", gate="G2"),
+          "P1_S0V2": dict(mode="frozen", gate="G2"), "P2_S1V2": dict(mode="frozen", gate="G3")}
 
 
 def request():
@@ -32,7 +33,9 @@ def request():
 def plan():
     r = request(); ph = r["phase"]
     shards = ["all"]
-    if ph == "P2_S1":
+    if ph == "P0_GEO2":
+        shards = ["geo"] + [f"c1:{f}" for f in r["c1_fields"]]
+    if ph in ("P2_S1", "P2_S1V2"):
         ids = r["field_ids"]; k = int(r.get("n_shards", 8))
         shards = [",".join(map(str, ids[i::k])) for i in range(k) if ids[i::k]]
     print(json.dumps(dict(phase=ph, governance=r["governance_git_sha"], contract_mode=PHASES[ph]["mode"],
@@ -49,6 +52,13 @@ def run(shard, out):
         rc = subprocess.call([sys.executable, str(HERE / "s0_math.py"), "--out", str(out)], env=env)
         rc2 = subprocess.call([sys.executable, str(EXP / "audit" / "audit_s0_independent.py"), "--s0", str(out), "--out", str(out)], env=env)
         return rc or rc2
+    elif ph == "P0_GEO2":
+        cmd = [sys.executable, str(HERE / "p0_geo2.py"), "geo", "--out", str(out)] if shard == "geo" else \
+              [sys.executable, str(HERE / "p0_geo2.py"), "c1", "--field", shard.split(":")[1], "--out", str(out)]
+    elif ph == "P1_S0V2":
+        cmd = [sys.executable, str(HERE / "s0v2.py"), "--out", str(out)]
+    elif ph == "P2_S1V2":
+        cmd = [sys.executable, str(HERE / "s1v2.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
     else:
         cmd = [sys.executable, str(HERE / "s1_mc.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
     print(" ".join(cmd), flush=True)
@@ -62,6 +72,11 @@ def aggregate(shards, out):
         env["S0_RESULTS_DIR"] = str(EXP / r["s0_results"])
         return subprocess.call([sys.executable, str(HERE / "s1_mc.py"), "aggregate", "--shards", shards, "--split", r["split"],
                                 "--out", out], env=env)
+    if ph == "P0_GEO2":
+        return subprocess.call([sys.executable, str(HERE / "p0_geo2.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_S1V2":
+        env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])
+        return subprocess.call([sys.executable, str(HERE / "s1v2.py"), "aggregate", "--shards", shards, "--split", r["split"], "--out", out], env=env)
     return 0
 
 

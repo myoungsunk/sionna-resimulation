@@ -26,8 +26,11 @@ import validate_contract as VC  # noqa: E402
 STATES = ("rad", "tan", "psi", "bg")
 
 
+import contract_lock as CL  # noqa: E402
+
+
 def lock():
-    lk = VC.lock_of(MF.CONTRACT.read_text())
+    lk = CL.effective_lock()
     if not lk or lk.get("status") != "FROZEN":
         raise SystemExit("ERR_CONTRACT_DRAFT: S0 requires FROZEN_LOCK")
     return lk
@@ -36,7 +39,7 @@ def lock():
 def window(defn: str):
     """'A|T1_HORIZONTAL|0' -> dict with poses, anchor, motion, H."""
     a, tr, st = defn.split("|"); st = int(st)
-    fn = Wd.TRAJ.get(tr) or Wd.AMEND1[tr]
+    fn = Wd.traj_fn(tr)
     P = fn()[st:st + 60]
     X, F, Q, ds, dth = Wd.motion_window(P, 0.5)
     h, H = Wd.h_H(X, a)
