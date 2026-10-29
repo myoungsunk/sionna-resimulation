@@ -17,7 +17,6 @@ jobs:
       OMP_NUM_THREADS: '1'
       MKL_NUM_THREADS: '1'
       PYTHONHASHSEED: '0'
-      REFLECT_ROOT: ${{ runner.temp }}/reflect_inputs
       FETCH_RF: '0'
     steps:
       - name: Sparse checkout without LFS smudge
@@ -42,7 +41,9 @@ jobs:
       - name: Load frozen original inputs, no full RF
         run: |
           set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect_inputs"
           bash research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model/fetch_inputs.sh
+          echo "REFLECT_ROOT=$REFLECT_ROOT" >> "$GITHUB_ENV"
       - name: Controlled B0 replay with parity and synthetic diagnostics
         shell: bash
         run: |
