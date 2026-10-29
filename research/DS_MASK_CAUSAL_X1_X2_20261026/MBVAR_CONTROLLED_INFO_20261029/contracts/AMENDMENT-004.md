@@ -48,6 +48,8 @@ Geometry v2 objective and choice rule, revisit rule, plate rule, decision rules,
 
 Appended after a P0_GEO2 re-run with this estimator reports `PASS`.
 
+Lock history: a first lock (commit `c0eb83c`) was superseded before any run executed under it. Its P1_S0V2 request, run `40863373175`, failed at the gate: the validator applied amendment locks to test-fixture contracts. The validator was fixed and the lock re-issued with the new code sha256. Nothing else changed.
+
 Frozen after P0_GEO2 run `40862934784` = PASS. The last json block governs.
 
 ```json
@@ -427,7 +429,7 @@ Frozen after P0_GEO2 run `40862934784` = PASS. The last json block governs.
   "code/s1_mc.py": "2457cfd5764bde987b7ddc4bf89233d56b03ca0b2a08b81b86df122b722443e2",
   "code/s1v2.py": "33be66f46eab25c56f1a0b997f970de936b23ee76c3f21b3e285136c6c126a3d",
   "code/world.py": "7544be2772351c1a6afaa70b29b7465dbad6bf4a5a44dd60a85e05bf76e98f69",
-  "scripts/validate_contract.py": "747ca81c05d202353ccda63955ede7ab0012f4b9d38655c9cab0447d004728ff",
+  "scripts/validate_contract.py": "1f3438dca634abe2db4d8ef65008a68164ac9304ca463cee0a9e45c428b0720f",
   "tests/test_contract_validator.py": "6a32fa27dc94e833e834de931f030fbb2d368032b7d528353b5558f8160c4947",
   "tests/test_rt_keys.py": "35939bf3f23a7776f1ab32d4c32ee459afea420b0a37635df0f65a61fcf43c85",
   "tests/test_s0_math_contract.py": "a836c83e115666a5a3b662e40fdbeebd6b7bd7632415732be863346c75cc25f2",

@@ -108,7 +108,8 @@ def main(argv=None):
         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "code"))
         import contract_lock as CL
         try:
-            lock = CL.effective_lock(contract=p)          # frozen contract + FROZEN amendment locks named in RUN_REQUEST
+            if p.resolve() == CL.CONTRACT.resolve():       # amendment locks apply only to the experiment's own contract file
+                lock = CL.effective_lock(contract=p)       # frozen contract + FROZEN amendment locks named in RUN_REQUEST
             report["applied_amendment_locks"] = lock.get("applied_amendment_locks", [])
         except SystemExit as e:
             errs.append(str(e))
