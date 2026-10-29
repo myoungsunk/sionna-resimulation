@@ -1,0 +1,14 @@
+{
+ "check": "Is the corridor drive-sim RF observation a deterministic function of pose (no RF noise realisation)?",
+ "date": "2026-10-29",
+ "case": "R4_aB_m0",
+ "inputs": {
+  "channel": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy @ 9bcd5da (922 x 257 x 2 x 2 complex128)",
+  "samples": "BLOCK_C/R4_aB_m0/SAMPLES.json @ 9bcd5da",
+  "consumed_z": "why_ds_worse CONTROL trace R4_aB_m0_B0: z = nu + h + mu (OFF_BB)"
+ },
+ "method": "noise-free first-path s from H (Hann window, 4x IFFT, 0.3 x strongest-branch threshold; same selector as ds_state_info_forensics.feature) matched by pose_id",
+ "result": {"matched_packets": 742, "max_abs_diff_z_s": 2.220446049250313e-16, "rms_diff": 5.0e-17, "rms_z_s": 0.4746, "repeated_pose_ids_in_trace": 0},
+ "conclusion": "z_s is the noise-free deterministic feature of the pose channel. Residual autocorrelation in this corpus is pose (spatial/attitude) correlation sampled along the trajectory; there is no independent temporal RF component. observation.py supports adding complex Gaussian noise to H before the IFFT, but it was not active for these packets.",
+ "scope_limit": "range component and other cases not rechecked here; same pipeline, expected identical"
+}
