@@ -35,7 +35,7 @@
 - 23/23 위치에는 `TIE_S=10⁻¹³초` class 병합으로 엄밀 초과가 발생할 수 있는 **후보**가 있으나, 원 25개의 path index와 tau를 알 수 없으므로 실제 원인 배정 불가.
 - Sionna 내부 누적 정밀도/경로 유효성/반사 순서/경로 solver 문제는 여전히 `UNKNOWN`. 단순 오차 상한이 작다고 모든 H가 물리적으로 옳다고 단정 금지.
 
-증거: [23개 원 receipt 수치 검사](g3/../g3/g3_numeric_bounds.py), [원 original_relpath 23개와 receipt SHA 동결](../g3/G3_23_ORIGINAL_SOURCE_LOCK.json), [원시 데이터 요청](../g3/REQUEST_25_ORIGINAL_RAW_RAYS.md).
+증거: [23개 원 receipt 수치 검사](../g3/g3_numeric_bounds.py), [원 original_relpath 23개와 receipt SHA 동결](../g3/G3_23_ORIGINAL_SOURCE_LOCK.json), [원시 데이터 요청](../g3/REQUEST_25_ORIGINAL_RAW_RAYS.md).
 
 ## H 수정과 재실행의 두 단계 gate
 1. **검사기-only 결함** (`stations=0` PASS 수정, 경로 중복 class attribution 수정): 원 H/Jones/packet은 그대로 — 기존 BB/MB_VAR H 기반 성능 재실행 필요 없음.
