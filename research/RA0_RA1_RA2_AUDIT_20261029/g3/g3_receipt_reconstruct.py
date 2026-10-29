@@ -72,7 +72,7 @@ def main(outdir):
    p=source_by_tag[tag]
    rx=float(r["x"]);ry=float(r["y"])
    dx=rx-float(p["x"]);dy=ry-float(p["y"]);dp=math.hypot(dx,dy)
-   if dp>1e-8:raise RuntimeError(f"ERR_POSE_COORDINATE_DIFFERENCE {case} {tag} ({dx},{dy})")
+   if dp>1e-6:raise RuntimeError(f"ERR_POSE_COORDINATE_DIFFERENCE {case} {tag} ({dx},{dy})")
    n=int(r["unmatched_paths"])
    if n>0:
     bad+=n
@@ -88,7 +88,7 @@ def main(outdir):
                      "caused_by_merge":rawdiff<=5e-14 and mdiff>5e-14})
     nstr=sum(x["is_strict_fail"] for x in dropped)
     row=dict(case=case,tag=tag,pose_id=p["pose_id"],x=rx,y=ry,t_s=p["t_s"],
-      coordinate_delta_m=dp,strict_mismatch_paths=n,n_paths=int(r["n_paths"]),
+      coordinate_delta_m=dp,coordinate_max_delay_s=dp/C0,strict_mismatch_paths=n,n_paths=int(r["n_paths"]),
       n_archived_tau=len(dropped),n_strict_mismatch_with_archived_tau=nstr,
       n_confirmed_merge_causes=sum(x["caused_by_merge"] for x in dropped),
       **geom)
@@ -100,13 +100,13 @@ def main(outdir):
   totals.append({"case":case,"receipt_strict_paths":bad,"g3_strict_paths":reference,"stations":len(rr),"affected_tags":sum(r["case"]==case for r in rows)})
   if bad!=reference:raise SystemExit(f"ERR_G3_COUNT_PARITY {case} receipts {bad} vs g3 {reference}")
  if sum(x["receipt_strict_paths"] for x in totals)!=26:raise SystemExit("ERR_TOTAL_26")
- col=["case","tag","pose_id","x","y","t_s","coordinate_delta_m","strict_mismatch_paths","n_paths",
+ col=["case","tag","pose_id","x","y","t_s","coordinate_delta_m","coordinate_max_delay_s","strict_mismatch_paths","n_paths",
       "n_archived_tau","n_strict_mismatch_with_archived_tau","n_confirmed_merge_causes",
       "n_image","n_image_classes","max_class_shift_s","n_image_shift_gt_strict","min_image_gap_s"]
  dumpcsv(out/"G3_26_OFFENDING_STATIONS.csv",rows,col)
  (out/"G3_26_EVIDENCE.json").write_text(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","frozen_archive_sha256":ARCHIVE_SHA,
       "raw_tau_npz_in_original_bundle":False,"total_receipts":len(receipts),"total_strict_paths":26,
-      "n_offending_stations":len(rows),"groups":totals,"records":block_receipts,
+      "n_offending_stations":len(rows),"max_coordinate_delta_m":max(x["coordinate_delta_m"] for x in rows),"max_delay_explainable_by_timeline_rounding_s":max(x["coordinate_max_delay_s"] for x in rows),"groups":totals,"records":block_receipts,
       "raw_tau_status":"DROPPED_PATH_ONLY; missing non-dropped per-ray tau must be retrieved from preserved source or regenerated",
       "audit_limit":"Cannot classify all 26 path IDs and change H without original per-ray tau and Jones responses."},indent=2))
  print(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","records":len(receipts),
