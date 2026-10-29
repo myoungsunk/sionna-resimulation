@@ -1,0 +1,60 @@
+name: G3 original R2-A 925-ray forensic reconstruction
+on:
+  push:
+    branches: ['audit/g3-ray-forensics-ra3-20261029']
+    paths:
+      - 'research/RA0_RA1_RA2_AUDIT_20261029/g3/r2aa_raw_ray_forensics.py'
+      - '.github/workflows/g3-r2aa-raw-ray-forensics.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  forensic:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ROOT: results/DRIVE_SIM_20261007
+      EXP: research/RA0_RA1_RA2_AUDIT_20261029/g3
+      BLK: results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/qclean_uwb/**
+            /research/RA0_RA1_RA2_AUDIT_20261029/g3/**
+            /results/DRIVE_SIM_20261007/S1/routes/timeline_R2_Tnone.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/STORED_PATH_TRACES_R2_aA/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.3.3 scipy==1.16.2
+      - name: Inventory original raw traces and receipts
+        run: |
+          set -eu
+          test -f "$BLK/R2_aA_m0/SAMPLES.json"
+          test -f "$ROOT/S1/routes/timeline_R2_Tnone.csv"
+          echo "raw_npz_count=$(find "$BLK/STORED_PATH_TRACES_R2_aA" -maxdepth 1 -name '*_trace.npz' | wc -l)"
+          echo "receipt_count=$(find "$BLK/STORED_PATH_TRACES_R2_aA" -maxdepth 1 -name '*_trace_receipt.json' | wc -l)"
+      - name: Full R2-A G3 925 station independent forensic audit
+        run: |
+          set -o pipefail
+          python -u "$EXP/r2aa_raw_ray_forensics.py" \
+            --traces "$BLK/STORED_PATH_TRACES_R2_aA" \
+            --timeline "$ROOT/S1/routes/timeline_R2_Tnone.csv" \
+            --samples "$BLK/R2_aA_m0/SAMPLES.json" \
+            --out "$RUNNER_TEMP/g3" 2>&1 | tee "$RUNNER_TEMP/FORENSIC_LOG.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: g3-r2aa-925-raw-forensic-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/g3/
+            ${{ runner.temp }}/FORENSIC_LOG.txt
+          retention-days: 30
+          if-no-files-found: warn
