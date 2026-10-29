@@ -1,0 +1,229 @@
+{
+  "fixtures": [
+    {
+      "fixture": "baseline_chunk",
+      "test": "all_R04",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "offset_tap_one_record",
+      "test": "tap",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "swap_branch_one_record",
+      "test": "branch",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "flip_feature_valid",
+      "test": "valid_g5",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "swap_rx_port_order",
+      "test": "s_fp_common_tap|branch",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": {
+        "s_mismatch": 64,
+        "branch_mismatch": 64
+      }
+    },
+    {
+      "fixture": "edge_tap_plus80_beyond_cir",
+      "test": "valid_fp_vs_valid_g5_separate",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "tap": 995,
+        "valid_fp": true,
+        "valid_g5": false,
+        "features_valid": false
+      }
+    },
+    {
+      "fixture": "tiny_nonzero_one_port",
+      "test": "weak_flag_valid",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "VALID",
+        "u": 1e-18
+      }
+    },
+    {
+      "fixture": "balanced_two_port",
+      "test": "not_weak",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "VALID",
+        "u": 0.5
+      }
+    },
+    {
+      "fixture": "rank1_jones",
+      "test": "q_zero",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "q": 0.0
+      }
+    },
+    {
+      "fixture": "null_port_0_over_0",
+      "test": "NULL_PORT",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "NULL_PORT"
+      }
+    },
+    {
+      "fixture": "nan_in_window",
+      "test": "NONFINITE",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "NONFINITE"
+      }
+    },
+    {
+      "fixture": "inf_in_window",
+      "test": "NONFINITE",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "NONFINITE"
+      }
+    },
+    {
+      "fixture": "significantly_negative_det",
+      "test": "NEGATIVE_DET",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "NEGATIVE_DET",
+        "d_raw": -3.0
+      }
+    },
+    {
+      "fixture": "window_lower_boundary",
+      "test": "INVALID_WINDOW",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "INVALID_WINDOW"
+      }
+    },
+    {
+      "fixture": "window_upper_boundary",
+      "test": "INVALID_WINDOW",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "INVALID_WINDOW"
+      }
+    },
+    {
+      "fixture": "window_lower_inside",
+      "test": "VALID",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "VALID"
+      }
+    },
+    {
+      "fixture": "window_upper_inside",
+      "test": "VALID",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": {
+        "status": "VALID"
+      }
+    },
+    {
+      "fixture": "ref_identical",
+      "test": "compare_reference_v3",
+      "expect_fail": false,
+      "observed_fail": false,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "ref_nan_pattern",
+      "test": "compare_reference_v3",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "ref_inf_vs_finite",
+      "test": "compare_reference_v3",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "ref_inf_vs_finite_OLD_compare_reference",
+      "test": "p0_preflight.compare_reference (proposer patch)",
+      "expect_fail": true,
+      "observed_fail": false,
+      "ok": false,
+      "detail": "documents the v0.2 defect if this fixture is not ok"
+    },
+    {
+      "fixture": "ref_absent_key",
+      "test": "compare_reference_v3",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "ref_duplicate_key",
+      "test": "compare_reference_v3",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    },
+    {
+      "fixture": "ref_swapped_port_mapping",
+      "test": "compare_reference_v3",
+      "expect_fail": true,
+      "observed_fail": true,
+      "ok": true,
+      "detail": null
+    }
+  ]
+}

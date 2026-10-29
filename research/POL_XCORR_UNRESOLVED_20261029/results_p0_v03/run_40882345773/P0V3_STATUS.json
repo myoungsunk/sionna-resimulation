@@ -1,0 +1,301 @@
+{
+  "role": "IMPLEMENTER",
+  "contract_id": "POL-XCORR-001",
+  "phase": "P0V3_DELTA_PREFLIGHT_ONLY",
+  "contract_status": "DRAFT_v0.3",
+  "base_git_sha": "250d617ad89a4105fa1af546cc83ceed9de98f42",
+  "governance_git_sha": "d5f84d9d04d28d465f3357e9299352eb184e6bfc",
+  "execution_git_sha": "4d2c18078732146de9019b9af761a6a98ddaf84e",
+  "result_status": "TECHNICAL_QA_ONLY",
+  "independent_auditor": "NONE (R-10 pending)",
+  "scientific_verdict": "NOT_ISSUED",
+  "s0_p1_p2_p3": "BLOCKED (DRAFT)",
+  "checks": {
+    "V02_FILES_IMMUTABLE": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v0.2.md": {
+          "expected": "468249a7b32c9699c20a3227fc0241eef3ab92773d00bc52a981a32cf6e56ddb",
+          "observed": "468249a7b32c9699c20a3227fc0241eef3ab92773d00bc52a981a32cf6e56ddb"
+        },
+        "SCIENCE_SPEC_v0.2.md": {
+          "expected": "0beeab98c28e3a2933845069172bb8288ac91809325437549d0c4d9d7733efa1",
+          "observed": "0beeab98c28e3a2933845069172bb8288ac91809325437549d0c4d9d7733efa1"
+        },
+        "config/INPUT_LOCK_v2.json": {
+          "expected": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184",
+          "observed": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184"
+        },
+        "config/PLAN_PARAMETERS_v0.2.json": {
+          "expected": "c73a5e7fe36eb5922854e1382e0f8f916672b76fcb395fdc59139f41e3f70d3a",
+          "observed": "c73a5e7fe36eb5922854e1382e0f8f916672b76fcb395fdc59139f41e3f70d3a"
+        }
+      }
+    },
+    "V03_DOC_SOURCE_SHA256_RECORDED": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v0.3.md": "39c396c72688d88efa84d0fcb7779ad2b5b693891ab87aaae803bd26793cb76e",
+        "SCIENCE_SPEC_v0.3.md": "5db75dcc0a332833de50d87ba2081bea5ca0cd74e7e093ae00ce987728368450",
+        "config/PLAN_PARAMETERS_v0.3.json": "c9ffef3ead75fba48c5f6172d8ff69215f336db88f84508d762e957763f56d9c",
+        "reviews/PROPOSER_DECISION_03.md": "2d5984680342f6f184ad9baa3c4b27025e4dd55b382f0840883f8ca1a38f6c77",
+        "TASK_HANDOFF_v0.3.md": "d88ee5307558bea7cc1a7a0cf935104997995c9217440fd520d21321428a1c2d",
+        "PROPOSER_FREEZE_CHECKLIST_v0.3.md": "ba972c69a0186ae55cb9945ed8382898e090ba8f057c712c62964f4f7adb2cdb",
+        "PRE_CONTRACT_DISCLOSURE_v0.3.md": "075a1a98bd148f1a23dbff4f8aedf01b5af67f99de73a09c0f1c9ccc8889196f",
+        "config/P0_REFERENCES_v0.2.json": "7aa63e90405112edc099698b5ac9f018287c763ce7774ae687991548cc9ae583",
+        "scripts/p0v3_preflight.py": "121c83f0300262f36c0d693e9d553f96c351f2c966d6a173f49d11686067e5a2",
+        "scripts/p0_preflight.py": "c46192c495239c76258159be879db3a73643fc4471bb4ac10d3fefcd9084726c",
+        ".github/workflows/pol-xcorr-p0v3-preflight.yml": "9f21d38e44ac3cf3ecf8748f7d18e9ac23d3a70cc5c89011c65dc7acce233cfc"
+      }
+    },
+    "INPUT_CORE_SHA256": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "missing": [],
+        "mismatch": []
+      }
+    },
+    "INPUT_T4_SHA256": {
+      "class": "T4_ONLY",
+      "status": "PASS",
+      "observed": {
+        "status": "PASS",
+        "errors_count": 0
+      }
+    },
+    "R05_POSE_JOIN": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "rows": 9519,
+        "timeline": 7251
+      }
+    },
+    "R04_TAP_BRANCH_VALID_EXACT": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "records": 19038,
+        "total_mismatches": 0,
+        "per_test": {
+          "mismatch_tap": 0,
+          "mismatch_branch": 0,
+          "mismatch_valid_g5": 0,
+          "mismatch_valid_fp_old_observer": 0,
+          "mismatch_s_fp_common_tap": 0,
+          "mismatch_log_fp_power_common_tap": 0
+        },
+        "adversarial_first20": [],
+        "n_fp_valid_not_g5_valid": 0,
+        "n_port_taps_differ_info": 9252,
+        "n_per_port_tap_s_differs_from_features": 9252,
+        "common_tap_discrimination": "features.s_fp equals the common-tap extraction in every row while the per-port-tap alternative differs in the rows counted here",
+        "note": "valid_g5 vs features.valid and valid_fp vs old observer flag compared separately; their mutual equality is NOT asserted"
+      }
+    },
+    "R14_MATH_IDENTITIES": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "q_identity_rel_max": 5.612791238308546e-16,
+        "eps_identity_abs_max": 1.1102230246251565e-16,
+        "u_inverse_abs_max": 3.241851231905457e-14,
+        "n_inverse_checked": 9510,
+        "n_inverse_skipped": 9
+      }
+    },
+    "R14_COUNTS_AUDIT_GUARD": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "counts": {
+          "n_valid": 9519,
+          "n_weak": 3492,
+          "timeline_weak": 3105,
+          "timeline_n": 7251,
+          "n_total": 9519,
+          "status_counts": {
+            "VALID": 9519
+          }
+        },
+        "expected": {
+          "n_valid": 9519,
+          "n_weak": 3492,
+          "timeline_weak": 3105,
+          "timeline_n": 7251
+        }
+      }
+    },
+    "R14_P0_RECONCILIATION": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "only_new": 0,
+        "only_p0": 0,
+        "status_mismatch": 0,
+        "q_max_abs": 9.558326352632207e-16,
+        "eps_max_abs": 1.285430095698814e-15
+      }
+    },
+    "R02_LINEAGE": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "coverage": {
+          "rows_new": 9519,
+          "rows_ref": 9519,
+          "matched": 9519,
+          "only_new": 0,
+          "only_ref": 0
+        },
+        "max_abs": 1.1102230246251565e-16,
+        "reasons": []
+      }
+    },
+    "R12_LINEAGE": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "coverage": {
+          "rows_new": 9519,
+          "rows_ref": 9519,
+          "matched": 9519,
+          "only_new": 0,
+          "only_ref": 0
+        },
+        "max_abs": 1.7763568394002505e-15,
+        "reasons": []
+      }
+    },
+    "R13a_LINEAGE": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "coverage": {
+          "rows_new": 9519,
+          "rows_ref": 9519,
+          "matched": 9519,
+          "only_new": 0,
+          "only_ref": 0
+        },
+        "max_abs": 7.105427357601002e-15,
+        "reasons": []
+      }
+    },
+    "R13b_LINEAGE": {
+      "class": "SUPPLEMENTARY",
+      "status": "PASS",
+      "observed": {
+        "coverage": {
+          "rows_new": 19038,
+          "rows_ref": 19038,
+          "matched": 19038,
+          "only_new": 0,
+          "only_ref": 0
+        },
+        "max_abs": 7.105427357601002e-15,
+        "reasons": [],
+        "artifact_sha256": "6a69a36ad0f521e33a130a1bc1fbde5a4b7aae17ba62ec347ccc611fdd5c6fe4"
+      }
+    },
+    "R13_INDEPENDENCE_NOTE": {
+      "class": "MEASURED",
+      "status": "MEASURED",
+      "observed": "R-13a and R-13b share upstream (run 39376076166); not independent science replicates"
+    },
+    "NEGATIVE_FIXTURES": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "n": 24,
+        "failed": []
+      }
+    },
+    "V02_COMPARE_REFERENCE_INF_DEFECT": {
+      "class": "MEASURED",
+      "status": "DEFECT_CONFIRMED",
+      "observed": "p0_preflight.compare_reference treats inf vs finite as equal (excluded from the finite diff); hardened in compare_reference_v3"
+    },
+    "LABEL_ISOLATION": {
+      "class": "CORE",
+      "status": "PASS",
+      "observed": {
+        "tabular_reads": [
+          {
+            "path": "/home/runner/work/sionna-resimulation/sionna-resimulation/research/POL_XCORR_UNRESOLVED_20261029/results_p0/run_40867521966/LOS_FLOOR.csv",
+            "columns": [
+              "case",
+              "pose_id",
+              "q_W",
+              "eps_rho",
+              "status"
+            ]
+          },
+          {
+            "path": "/home/runner/work/sionna-resimulation/sionna-resimulation/research/PJ_DS_GATED_20261021/results_hpath/HP_PACKETS.csv.gz",
+            "columns": [
+              "sF_+0",
+              "pose_id",
+              "log_fp_power",
+              "case"
+            ]
+          },
+          {
+            "path": "/home/runner/work/sionna-resimulation/sionna-resimulation/research/PJ_DS_USAGE_MAP_20261021/results/UM_POSE_TABLE.csv.gz",
+            "columns": [
+              "pose_id",
+              "log_fp_power",
+              "abs_s_fp",
+              "early4",
+              "early8",
+              "early16",
+              "delay_rms_ns",
+              "peak_diff_ns",
+              "eta_fp_win80",
+              "s_diff4",
+              "s_diff8",
+              "s_diff16",
+              "tap_pol_var80",
+              "jones_diversity",
+              "freq_s_var",
+              "detector_s_span",
+              "detector_delay_span_ns",
+              "range_m",
+              "case"
+            ]
+          },
+          {
+            "path": "/tmp/r13b/prepared/OBSERVATION_FEATURES_LABELS.csv.gz",
+            "columns": [
+              "case",
+              "channel",
+              "pose_id",
+              "range_m",
+              "log_fp_power",
+              "abs_s_fp",
+              "early4",
+              "early8",
+              "early16",
+              "delay_rms_ns",
+              "peak_diff_ns",
+              "eta_fp_win80",
+              "s_diff4",
+              "s_diff8",
+              "s_diff16",
+              "tap_pol_var80",
+              "jones_diversity",
+              "freq_s_var",
+              "detector_s_span",
+              "detector_delay_span_ns"
+            ]
+          }
+        ],
+        "violations": []
+      }
+    }
+  },
+  "problems": []
+}
