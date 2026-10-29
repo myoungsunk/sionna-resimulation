@@ -46,7 +46,9 @@ def run(shard, out):
         cmd = [sys.executable, str(HERE / "p0_preflight.py"), "--out", str(out), "--rf-dir", str(Path(os.environ["REFLECT_ROOT"]) / r["rf_dir"]),
                "--draft-contract-sha256", r["draft_contract_sha256"]]
     elif ph == "P1_S0":
-        cmd = [sys.executable, str(HERE / "s0_math.py"), "--out", str(out)]
+        rc = subprocess.call([sys.executable, str(HERE / "s0_math.py"), "--out", str(out)], env=env)
+        rc2 = subprocess.call([sys.executable, str(EXP / "audit" / "audit_s0_independent.py"), "--s0", str(out), "--out", str(out)], env=env)
+        return rc or rc2
     else:
         cmd = [sys.executable, str(HERE / "s1_mc.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
     print(" ".join(cmd), flush=True)
@@ -57,6 +59,7 @@ def aggregate(shards, out):
     r = request(); ph = r["phase"]
     env = dict(os.environ, MBVAR_GOVERNANCE_SHA=r["governance_git_sha"])
     if ph == "P2_S1":
+        env["S0_RESULTS_DIR"] = str(EXP / r["s0_results"])
         return subprocess.call([sys.executable, str(HERE / "s1_mc.py"), "aggregate", "--shards", shards, "--split", r["split"],
                                 "--out", out], env=env)
     return 0

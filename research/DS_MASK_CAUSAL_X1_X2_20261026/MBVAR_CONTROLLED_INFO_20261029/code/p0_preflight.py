@@ -165,6 +165,20 @@ def window_info(P, anchor):
     return post, prior, h, H
 
 
+JAC_FD_EPS = 1e-5        # AMENDMENT-002: central finite-difference step (m, m, rad, rad/s)
+KINK_REL = 1e-4          # pose is non-differentiable if max|H_fd - H| > KINK_REL * max|H| (FD noise floor ~1e-8)
+KINK_FRAC_MAX = 0.05     # window invalid if more than 5 % of its poses sit on a non-differentiable point of h
+
+
+def kink_poses(X, H, anchor):
+    Hf = np.zeros_like(H)
+    for j in range(4):
+        d = np.zeros(4); d[j] = JAC_FD_EPS
+        Hf[:, :, j] = (Wd.h_H(X + d, anchor)[0] - Wd.h_H(X - d, anchor)[0]) / (2 * JAC_FD_EPS)
+    dev = np.abs(Hf - H).max(axis=(1, 2)) / np.abs(H).max()
+    return dev > KINK_REL, float(dev.max())
+
+
 def geometry(ledger):
     rows = []
     for a, tr, fn in candidate_sets():
@@ -179,14 +193,17 @@ def geometry(ledger):
                     post, prior, h, H = window_info(Pw, a)
                     a3 = np.array(Wd.ANCHORS[a]); rng3 = np.linalg.norm(np.c_[Pw[:, :2], np.full(WIN_N, Wd.ROBOT_Z)] - a3, axis=1)
                     ok_h = bool(np.max(np.abs(h[:, 1])) <= 0.7)
+                    kink, kdev = kink_poses(np.c_[Pw, np.zeros(WIN_N)], H, a)
+                    ok_s = bool(kink.mean() <= KINK_FRAC_MAX)
                     ratios = post / prior
-                    valid = ok_h and bool(np.all(np.isfinite(ratios))) and ratios[1] > 0 and ratios[2] > 0
+                    valid = ok_h and ok_s and bool(np.all(np.isfinite(ratios))) and ratios[1] > 0 and ratios[2] > 0
                     G = 0.5 * math.log(ratios[2]) + 0.5 * math.log(ratios[1]) if valid else np.nan
                     r.update(max_abs_hs=float(np.max(np.abs(h[:, 1]))), hs_domain_ok=ok_h, range_median_m=float(np.median(rng3)),
                              range_iqr_m=float(np.subtract(*np.percentile(rng3, [75, 25]))),
                              **{f"Ipost_{n}": float(v) for n, v in zip(("rad", "tan", "psi", "bg"), post)},
                              **{f"Iprior_{n}": float(v) for n, v in zip(("rad", "tan", "psi", "bg"), prior)},
-                             G=G, valid=valid, fail_reason="" if valid else ("HS_DOMAIN" if not ok_h else "INFO_RATIO"))
+                             n_kink_poses=int(kink.sum()), jac_fd_max_rel_dev=kdev, h_smooth_ok=ok_s,
+                             G=G, valid=valid, fail_reason="" if valid else ("HS_DOMAIN" if not ok_h else ("H_NONSMOOTH" if not ok_s else "INFO_RATIO")))
                 except Exception as e:  # noqa: BLE001
                     r.update(valid=False, fail_reason=f"EXC:{e}")
                 rows.append(r)
@@ -211,8 +228,9 @@ def geometry(ledger):
     return G, dict(status="RESOLVED" if choice else "BLOCKED_GEOMETRY_MATCH", chosen=choice, n_candidate_windows=len(G),
                    n_valid_windows=len(cand), n_pairs=len(pairs), all_pairs=pairs[:50],
                    rule="PLAN_P0_P6 §K: N=60 @0.5 s, Q-aware batch posterior at window end, D^T I D, G=1/2 log(Ipsi/Ipsi_prior)+1/2 log(Itan/Itan_prior), "
-                        "|h_s|<=0.7, range median/IQR diff <=0.5 m, no shared pose indices, max dG, tie lexicographic",
-                   sigma_obs_selection=SIG_SEL, prior_P0="diag(STATE_SCALES^2)", amendment="AMENDMENT-001 candidates included")
+                        "|h_s|<=0.7, range median/IQR diff <=0.5 m, no shared pose indices, max dG, tie lexicographic; "
+                        "AMENDMENT-002: <=5% of poses with FD-vs-analytic Jacobian deviation >1e-4 (h differentiable)",
+                   sigma_obs_selection=SIG_SEL, prior_P0="diag(STATE_SCALES^2)", amendment="AMENDMENT-001 candidates + AMENDMENT-002 smoothness rule")
 
 
 def main():
