@@ -181,3 +181,7 @@ A task is complete only when Codex reports:
 7. Next recommended command
 
 For staged cleanup/reorganization work, stop before the next stage and give a short status brief. Wait for explicit user approval before moving to the next stage.
+
+## Research proposal, implementation, and audit
+
+For scientific experiments, model changes, validation, and claim-bearing analysis, read [the common contract](docs/research-governance/COMMON_CONTRACT.md) and the relevant proposer, implementer, or auditor role linked there. Record the question ID, baseline/code commit, and policy commit or hash. Separate execution success, audit completion, defect resolution, revalidation, and adoption. Preserve frozen evidence and stop gates. These rules do not authorize experiments, hardware actions, delegation, or changes beyond the user's scope; routine non-research edits do not require a new campaign.
