@@ -210,6 +210,14 @@ def cmd_run(fields, split, out):
 
 
 # ----------------------------------------------------------------------------- decision (AMENDMENT-003 §H)
+def _boot(tables, fn):
+    """Field bootstrap on the fields common to all tables (identical to s1_mc.boot when the tables are paired)."""
+    idx = sorted(set.intersection(*[set(t.index) for t in tables]))
+    if not idx:
+        return dict(est=np.nan, lo=np.nan, hi=np.nan, se=np.nan, n_fields=0)
+    return M.boot([t.loc[idx] for t in tables], fn)
+
+
 def decide_v2(rows, pred, did_pred, rvpred, sep_pred, eff):
     lf = math.log(eff["equivalence_factor"]); out = dict(H1=[], H2=[], H3=[], CAL=[], SENS=[], H4=[], H4_REPRO=[])
     li = lambda m, a: math.log(m[0][f"mse_{a}"] / m[0][f"claim_{a}"])  # noqa: E731
@@ -217,7 +225,7 @@ def decide_v2(rows, pred, did_pred, rvpred, sep_pred, eff):
         for cell in LH_CELLS:
             for a in STATES:
                 ft = M.field_table(rows, "IID_BATCH", role, cell)[[f"mse_{a}", f"claim_{a}"]]; p = float(pred.loc[(role, cell), f"infl_iid_{a}"])
-                b = M.boot([ft], lambda m, a=a, p=p: li(m, a) - math.log(p))
+                b = _boot([ft], lambda m, a=a, p=p: li(m, a) - math.log(p))
                 rec = dict(test="H1_reproduction", role=role, cell=cell, state=a, infl_S1=math.exp(b["est"]) * p, infl_S0=p, log_dev=b["est"],
                            lo=b["lo"], hi=b["hi"], se=b["se"], verdict=M.band_verdict(b["lo"], b["hi"], lf))
                 (out["H1"] if (cell in M.PRIMARY and a in ("tan", "psi")) else out["SENS"]).append(rec)
@@ -228,20 +236,20 @@ def decide_v2(rows, pred, did_pred, rvpred, sep_pred, eff):
         def did(ms, a=a):
             v = {k: li([m], a) for k, m in zip(keys, ms)}
             return (v[("LOW", "POSE_HIGH")] - v[("LOW", "LOWCORR")]) - (v[("HIGH", "POSE_HIGH")] - v[("HIGH", "LOWCORR")])
-        b = M.boot(fts, did); p = float(did_pred[(did_pred.state == a) & (did_pred.quantity == "infl_iid")].DID_log.iloc[0])
+        b = _boot(fts, did); p = float(did_pred[(did_pred.state == a) & (did_pred.quantity == "infl_iid")].DID_log.iloc[0])
         out["H2"].append(dict(test="H2_interaction", state=a, primary=a == "psi", DID_S1=b["est"], lo=b["lo"], hi=b["hi"], se=b["se"], DID_S0=p,
                               testable=abs(p) >= math.log(eff["did_min_predicted_factor"]), verdict=_sided(b, p, eff)))
     for role in ("LOW", "HIGH"):
         for a in ("tan", "psi"):
             fo = M.field_table(rows, "ORACLE_CORR_BATCH", role, "POSE_HIGH")[[f"mse_{a}"]]; fi = M.field_table(rows, "IID_BATCH", role, "POSE_HIGH")[[f"mse_{a}"]]
-            b = M.boot([fo, fi], lambda m, a=a: math.log(m[0][f"mse_{a}"] / m[1][f"mse_{a}"])); p = float(pred.loc[(role, "POSE_HIGH"), f"mse_ratio_oracle_iid_{a}"])
+            b = _boot([fo, fi], lambda m, a=a: math.log(m[0][f"mse_{a}"] / m[1][f"mse_{a}"])); p = float(pred.loc[(role, "POSE_HIGH"), f"mse_ratio_oracle_iid_{a}"])
             app = p <= eff["oracle_gain_ratio_max"]
             out["H3"].append(dict(test="H3_oracle_gain", role=role, state=a, ratio_S1=math.exp(b["est"]), lo=math.exp(b["lo"]), hi=math.exp(b["hi"]), se_log=b["se"],
                                   ratio_S0=p, applicable=app, verdict="NOT_APPLICABLE" if not app else ("PASS" if b["hi"] < 0 else ("FAIL" if b["lo"] > 0 else "UNDETERMINED"))))
     for role in ("LOW", "HIGH"):
         for cell in M.PRIMARY:
             for a in ("tan", "psi"):
-                ft = M.field_table(rows, "ORACLE_CORR_BATCH", role, cell)[[f"mse_{a}", f"claim_{a}"]]; b = M.boot([ft], lambda m, a=a: li(m, a))
+                ft = M.field_table(rows, "ORACLE_CORR_BATCH", role, cell)[[f"mse_{a}", f"claim_{a}"]]; b = _boot([ft], lambda m, a=a: li(m, a))
                 out["CAL"].append(dict(test="CAL_oracle", role=role, cell=cell, state=a, infl=math.exp(b["est"]), log_dev=b["est"], lo=b["lo"], hi=b["hi"],
                                        se=b["se"], verdict=M.band_verdict(b["lo"], b["hi"], lf)))
     # H4: revisit separability and reproduction
@@ -249,7 +257,7 @@ def decide_v2(rows, pred, did_pred, rvpred, sep_pred, eff):
         for arm in ("XMODEL_BATCH", "IID_BATCH"):
             for a in ("psi", "tan"):
                 fr = M.field_table(rows, arm, "REV60", dc)[[f"mse_{a}", f"claim_{a}"]]; ff = M.field_table(rows, arm, "FWD60", dc)[[f"mse_{a}", f"claim_{a}"]]
-                b = M.boot([fr, ff], lambda m, a=a: li([m[0]], a) - li([m[1]], a))
+                b = _boot([fr, ff], lambda m, a=a: li([m[0]], a) - li([m[1]], a))
                 sp = sep_pred[(sep_pred.cell == dc) & (sep_pred.arm == arm) & (sep_pred.state == a)].iloc[0]
                 out["H4"].append(dict(test="H4b_separability", cell=dc, arm=arm, state=a, SEP_S1=b["est"], lo=b["lo"], hi=b["hi"], se=b["se"],
                                       SEP_S0=float(sp.SEP_log), testable=bool(sp.testable), verdict=_sided(b, float(sp.SEP_log), eff)))
@@ -260,7 +268,7 @@ def decide_v2(rows, pred, did_pred, rvpred, sep_pred, eff):
                     continue
                 for a in ("psi", "tan"):
                     ft = M.field_table(rows, arm, role, dc)[[f"mse_{a}", f"claim_{a}"]]; p = float(rvpred.loc[(role, dc, arm), f"infl_{a}"])
-                    b = M.boot([ft], lambda m, a=a, p=p: li(m, a) - math.log(p))
+                    b = _boot([ft], lambda m, a=a, p=p: li(m, a) - math.log(p))
                     out["H4_REPRO"].append(dict(test="H4_repro", role=role, cell=dc, arm=arm, state=a, infl_S1=math.exp(b["est"]) * p, infl_S0=p, log_dev=b["est"],
                                                 lo=b["lo"], hi=b["hi"], se=b["se"], verdict=M.band_verdict(b["lo"], b["hi"], lf)))
     h1 = [r["verdict"] for r in out["H1"]]; h2p = [r for r in out["H2"] if r["primary"]][0]
@@ -302,8 +310,10 @@ def cmd_aggregate(shards, split, out):
     req = json.loads((Wd.EXP / "RUN_REQUEST.json").read_text()); expected = sorted(req["field_ids"])
     if split == "HOLDOUT2":
         rule_ok = expected == sorted(lk["splits"]["S_field"]["HOLDOUT2"][:len(expected)]) and len(expected) in (plan["n_confirm_default"], plan["n_confirm_large"])
-    else:
+    elif split == "DEV":
         rule_ok = expected == sorted(plan["fields_DEV"])
+    else:
+        rule_ok = set(expected) <= set(lk["splits"]["S_field"][split])
     got = sorted(int(x) for x in rows.field.unique()) if len(rows) else []
     rows.to_csv(out / f"S1V2_RESULTS_{split}.csv", index=False, float_format="%.12g"); seeds.to_csv(out / "SEED_LEDGER.csv", index=False)
     qa.to_csv(out / f"S1V2_QA_{split}.csv", index=False, float_format="%.12g")
