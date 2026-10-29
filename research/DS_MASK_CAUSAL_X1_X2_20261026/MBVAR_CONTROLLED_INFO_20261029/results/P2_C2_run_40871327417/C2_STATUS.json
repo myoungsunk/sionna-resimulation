@@ -1,0 +1,144 @@
+{
+ "status": "FAIL",
+ "gating": [
+  "C2a_inputs_identical_to_S1V2_DEV",
+  "C2b_no_wrong_basin",
+  "C2c_state_stability",
+  "C2d_nonconverged_per_cell_original",
+  "C2e_iter_cap"
+ ],
+ "criteria": {
+  "C2a_inputs_identical_to_S1V2_DEV": {
+   "pass_": false,
+   "n": 1080,
+   "n_expected": 1080,
+   "max": 0.011935571788156036
+  },
+  "C2b_no_wrong_basin": {
+   "pass_": true,
+   "max_gap": 0.164660062191,
+   "n_gt_1": 0
+  },
+  "C2c_state_stability": {
+   "pass_": true,
+   "per_arm": {
+    "IID_BATCH": {
+     "n": 480,
+     "frac_state_le_05": 1.0,
+     "max_state": 0.100562631871,
+     "frac_strict_cost": 0.9833333333333333,
+     "max_gap": 0.00608612785027
+    },
+    "ORACLE_CORR_BATCH": {
+     "n": 480,
+     "frac_state_le_05": 0.9979166666666667,
+     "max_state": 0.549497139508,
+     "frac_strict_cost": 0.925,
+     "max_gap": 0.10514976324
+    },
+    "XMODEL_BATCH": {
+     "n": 120,
+     "frac_state_le_05": 0.9916666666666667,
+     "max_state": 0.637424072542,
+     "frac_strict_cost": 0.8583333333333333,
+     "max_gap": 0.164660062191
+    }
+   }
+  },
+  "C2c_strict_cost_REPORTED": {
+   "pass_": false,
+   "gating": false
+  },
+  "C2d_nonconverged_per_cell_original": {
+   "pass_": false,
+   "cells_failing": {
+    "ORACLE_CORR_BATCH|LOW|POSE_HIGH": "1/30",
+    "ORACLE_CORR_BATCH|LOW|POSE_HIGH_C03": "1/30",
+    "XMODEL_BATCH|REV60|POSE_HIGH": "1/30",
+    "XMODEL_BATCH|REV60|TIME_HIGH_5": "1/30"
+   },
+   "pooled": 0.003703703703703704
+  },
+  "C2e_iter_cap": {
+   "pass_": true,
+   "max_sd": 0.0,
+   "frac_not_converged": 0.35833333333333334
+  },
+  "C2f_kink_hypothesis_REPORTED": {
+   "frac_kink_flagged": 0.9192399049881235,
+   "frac_kink_converged": 0.0,
+   "n_flagged": 421,
+   "near_opt_spread_sd_max": 0.194497218435
+  },
+  "C2g_xmodel_REPORTED": {
+   "rows": 120,
+   "max_gap": 0.164660062191,
+   "trigger_frac": 0.38333333333333336,
+   "truth_start_worse_than_E_frac": 0.16574074074074074
+  }
+ },
+ "C1_original_contract": {
+  "run": "40857100181",
+  "C1f_per_cell_original": {
+   "pass_": false,
+   "cells_failing": {
+    "ORACLE_CORR_BATCH|HIGH|POSE_HIGH": "1/30",
+    "ORACLE_CORR_BATCH|LOW|POSE_HIGH": "3/30",
+    "ORACLE_CORR_BATCH|LOW|POSE_HIGH_C03": "2/30"
+   }
+  },
+  "C1d_strict_A004": {
+   "pass_": false,
+   "frac": 0.9783333333333334
+  },
+  "C1d_A005_auxiliary_wrong_basin": {
+   "pass_": true
+  },
+  "judgement": "C1 under the ORIGINAL contract = FAIL (C1-d strict and C1-f per-cell). A005 auxiliary PASS is an engineering check only; no retroactive PASS."
+ },
+ "S1V2_DEV_original_rule": {
+  "run": "P2_S1V2_run_40867939262",
+  "nonconverged_by_cell": {
+   "IID_BATCH|FWD60|LOWCORR": 0.0,
+   "IID_BATCH|FWD60|POSE_HIGH": 0.0,
+   "IID_BATCH|FWD60|TIME_HIGH_5": 0.0,
+   "IID_BATCH|HIGH|LOWCORR": 0.0,
+   "IID_BATCH|HIGH|POSE_HIGH": 0.0,
+   "IID_BATCH|HIGH|POSE_HIGH_C03": 0.0,
+   "IID_BATCH|HIGH|TIME_1": 0.0,
+   "IID_BATCH|HIGH|TIME_5": 0.0,
+   "IID_BATCH|LOW|LOWCORR": 0.0,
+   "IID_BATCH|LOW|POSE_HIGH": 0.0,
+   "IID_BATCH|LOW|POSE_HIGH_C03": 0.0,
+   "IID_BATCH|LOW|TIME_1": 0.0,
+   "IID_BATCH|LOW|TIME_5": 0.0,
+   "IID_BATCH|REV60|LOWCORR": 0.0,
+   "IID_BATCH|REV60|POSE_HIGH": 0.0,
+   "IID_BATCH|REV60|TIME_HIGH_5": 0.0,
+   "ORACLE_CORR_BATCH|FWD60|LOWCORR": 0.0,
+   "ORACLE_CORR_BATCH|FWD60|POSE_HIGH": 0.0,
+   "ORACLE_CORR_BATCH|FWD60|TIME_HIGH_5": 0.0,
+   "ORACLE_CORR_BATCH|HIGH|LOWCORR": 0.0,
+   "ORACLE_CORR_BATCH|HIGH|POSE_HIGH": 0.0,
+   "ORACLE_CORR_BATCH|HIGH|POSE_HIGH_C03": 0.0,
+   "ORACLE_CORR_BATCH|HIGH|TIME_1": 0.0,
+   "ORACLE_CORR_BATCH|HIGH|TIME_5": 0.0,
+   "ORACLE_CORR_BATCH|LOW|LOWCORR": 0.0,
+   "ORACLE_CORR_BATCH|LOW|POSE_HIGH": 0.0,
+   "ORACLE_CORR_BATCH|LOW|POSE_HIGH_C03": 0.03333333333333333,
+   "ORACLE_CORR_BATCH|LOW|TIME_1": 0.0,
+   "ORACLE_CORR_BATCH|LOW|TIME_5": 0.0,
+   "ORACLE_CORR_BATCH|REV60|LOWCORR": 0.0,
+   "ORACLE_CORR_BATCH|REV60|POSE_HIGH": 0.0,
+   "ORACLE_CORR_BATCH|REV60|TIME_HIGH_5": 0.0,
+   "XMODEL_BATCH|FWD60|POSE_HIGH": 0.0,
+   "XMODEL_BATCH|FWD60|TIME_HIGH_5": 0.0,
+   "XMODEL_BATCH|REV60|POSE_HIGH": 0.03333333333333333,
+   "XMODEL_BATCH|REV60|TIME_HIGH_5": 0.06666666666666667
+  },
+  "qa_pass_as_recorded": false,
+  "per_cell_original_pass": false
+ },
+ "holdout2_allowed": false,
+ "holdout2_note": "HOLDOUT2 additionally requires the AMENDMENT-007 lock re-audit by an independent auditor (audit 2026-10-29 sequence step 3)"
+}
