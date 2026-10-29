@@ -217,7 +217,29 @@ def batch_map_v2_ms(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, **kw):
             if Ik["cost"] < best[0]:
                 best = (Ik["cost"], k, Xk, Pk, Ik)
     c, kb, Xb, Pb, Ib = best
+    rescued = False
+    if Ib["status"] == "NONCONVERGED":                 # AMENDMENT-006 rescue: re-linearise with a smoothed (central-FD) Jacobian
+        hs = _fd_smoothed(h_batch)
+        Xr, Pr, Ir = batch_map_v2(hs, z, mu, Sig_model, ds, gy, dt, m0, P0, theta0=Ib["theta"], **kw)
+        Xa, Pa, Ia = batch_map_v2(h_batch, z, mu, Sig_model, ds, gy, dt, m0, P0, theta0=Ir["theta"], **kw)
+        if Ia["cost"] <= c + 1e-9 and Ia["status"] != "NONCONVERGED" or Ia["cost"] < c - 1e-9:
+            c, Xb, Pb, Ib, rescued = Ia["cost"], Xa, Pa, Ia, True
     cv = sorted(costs.values()); distinct = 1 + sum(1 for a, b in zip(cv, cv[1:]) if b - a > 1.0)
     Ib = dict(Ib, ms_triggered=bool(trig), ms_threshold=thr, ms_best_k=int(kb), ms_n_starts=len(costs), ms_n_distinct_minima=distinct,
-              ms_cost_start0=costs[0], ms_final_misfit=bool(c > thr))
+              ms_cost_start0=costs[0], ms_final_misfit=bool(c > thr), rescued=rescued)
     return Xb, Pb, Ib
+
+
+FD_SMOOTH_STEP = (1e-2, 1e-2, math.radians(0.1), 1e-6)
+
+
+def _fd_smoothed(h_batch):
+    """h with a central finite-difference Jacobian (steps FD_SMOOTH_STEP): averages one-sided derivatives across the 1-degree
+    pattern-cell kinks. Used only by the AMENDMENT-006 rescue of NONCONVERGED runs."""
+    def hb(X):
+        h, _ = h_batch(X); H = np.zeros((len(X), 2, 4))
+        for j, e in enumerate(FD_SMOOTH_STEP):
+            d = np.zeros(4); d[j] = e
+            H[:, :, j] = (h_batch(X + d)[0] - h_batch(X - d)[0]) / (2 * e)
+        return h, H
+    return hb

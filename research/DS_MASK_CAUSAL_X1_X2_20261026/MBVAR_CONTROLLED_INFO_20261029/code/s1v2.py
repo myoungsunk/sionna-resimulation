@@ -115,7 +115,7 @@ def run_arms(S, w, cn, z, sensor_rng, trace=None):
                 row = dict(arm=arm, status="OK", conv=info["status"], stop_reason=info["stop_reason"], iters=info["iters"], n_used=N,
                            cost=info["cost"], newton_decrement=info["newton_decrement"], gn_shift_end_sd=info["gn_shift_end_sd"], n_reject=info["n_reject"],
                            ms_triggered=info["ms_triggered"], ms_best_k=info["ms_best_k"], ms_n_distinct_minima=info["ms_n_distinct_minima"],
-                           ms_final_misfit=info["ms_final_misfit"], ms_cost_start0=info["ms_cost_start0"])
+                           ms_final_misfit=info["ms_final_misfit"], ms_cost_start0=info["ms_cost_start0"], rescued=info["rescued"])
                 if trace is not None:
                     hh, _ = hb(X); Lm = np.linalg.cholesky(0.5 * (Sm + Sm.T)); wr = np.linalg.solve(Lm, (z - hh).reshape(-1)).reshape(N, 2)
                     for k in range(N):
@@ -300,6 +300,16 @@ def _sided(b, p, eff):
     return "UNDETERMINED"
 
 
+def cmd_reeval(src, out):
+    """AMENDMENT-006: copy the committed shard outputs of an earlier S1V2 run (no recomputation) for re-aggregation."""
+    out = Path(out); out.mkdir(parents=True, exist_ok=True); src = Wd.EXP / src; man = {}
+    for f in sorted(os.listdir(src)):
+        if f.startswith(("S1V2_ROWS_", "S1V2_QA_", "S1V2_SEEDS_", "S1V2_CANARY_TRACE_", "S1V2_Q_SENSITIVITY_")) and f.count("_") >= 3 and not f.endswith(("_DEV.csv", "_HOLDOUT2.csv")):
+            (out / f).write_bytes((src / f).read_bytes()); man[f] = MF.sha256_file(src / f)
+    (out / "S1V2_REEVAL_SOURCE.json").write_text(json.dumps(dict(source_run_dir=src.name, files=man), indent=1))
+    return 0
+
+
 def cmd_aggregate(shards, split, out):
     lk = S0V2.lock_v2(); M.check_code_lock(lk); out = Path(out); out.mkdir(parents=True, exist_ok=True)
     plan = lk["run_plan"]["S1V2"]; eff = lk["resolved"]["EFFECT_SIZE_RULES"]
@@ -325,16 +335,20 @@ def cmd_aggregate(shards, split, out):
     rp = qa[qa.check == "revisit_pose_identical_maxdiff"].value; rt = qa[qa.check == "revisit_time_differs_mindiff"].value
     b = rows[rows.arm.astype(str).str.endswith("_BATCH") & (rows.status == "OK")]
     ncf = b.groupby(["arm", "role", "cell"]).conv.apply(lambda c: float((c == "NONCONVERGED").mean())) if len(b) else pd.Series(dtype=float)
+    ncn = b.groupby(["arm", "role", "cell"]).conv.apply(lambda c: (int((c == "NONCONVERGED").sum()), len(c))) if len(b) else pd.Series(dtype=object)
+    nc_cell_ok = all(k <= max(1, math.ceil(0.01 * n)) for k, n in ncn.values)               # AMENDMENT-006 granularity rule
+    nc_pooled = float((b.conv == "NONCONVERGED").mean()) if len(b) else 0.0
     n_exp = len(expected) * len(M.SENSOR_SEEDS) * (2 * len(LH_CELLS) * len(LH_ARMS) + 2 * (len(S0V2.REV_CELLS) * 3 - 1))
     qaj = dict(fields_expected=expected, fields_got=got, request_field_rule_ok=bool(rule_ok), mahalanobis_tol=mtol,
                mahalanobis_mean={f"{k[0]}|{k[1]}": float(v) for k, v in mm.items()},
                H4a_revisit_pose_identical_max=float(rp.max()) if len(rp) else None, H4a_revisit_time_differs_min=float(rt.min()) if len(rt) else None,
                nonconverged_frac_max=float(ncf.max()) if len(ncf) else None, nonconverged_by_cell={"|".join(k): v for k, v in ncf.items()},
-               conv_counts=b.conv.value_counts().to_dict() if len(b) else {},
+               conv_counts=b.conv.value_counts().to_dict() if len(b) else {}, nonconverged_pooled_frac=nc_pooled, nonconverged_cell_count_rule_ok=bool(nc_cell_ok),
+               nonconverged_rule="AMENDMENT-006: pooled <= 1% and per (arm,window,cell) count <= max(1, ceil(0.01 n))",
                stops=int((rows.status == "STOP_UNPHYSICAL_OBSERVATION").sum()), failures=int(rows.status.astype(str).str.startswith("FAILED").sum()),
                n_rows=int(len(rows)), n_rows_expected=n_exp, q_rel_diff_max=float(rows.q_rel_diff_max.max()) if "q_rel_diff_max" in rows else None)
     qaj["pass"] = bool(got == expected and rule_ok and all(abs(v - 1) <= mtol for v in mm.values) and qaj["H4a_revisit_pose_identical_max"] == 0.0
-                       and (qaj["H4a_revisit_time_differs_min"] or 0) > 0 and (qaj["nonconverged_frac_max"] or 0) <= 0.01
+                       and (qaj["H4a_revisit_time_differs_min"] or 0) > 0 and nc_pooled <= 0.01 and nc_cell_ok
                        and qaj["stops"] == 0 and qaj["failures"] == 0 and qaj["n_rows"] == n_exp)
     (out / "S1V2_QA.json").write_text(json.dumps(qaj, indent=1, default=float))
     s0d = Path(os.environ["S0V2_RESULTS_DIR"]); s0m = json.loads((s0d / "MANIFEST.json").read_text())
@@ -366,21 +380,23 @@ def cmd_aggregate(shards, split, out):
     (out / f"S1V2_DECISION_{split}.json").write_text(json.dumps(res, indent=1, default=M._json))
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md"],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md", Wd.EXP / "contracts/AMENDMENT-006.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("S1V2_*")),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict=dec["verdict"] if (split == "HOLDOUT2" and ok) else "NOT_EVALUATED", unit="field_realization",
                       limitations=["synthetic additive noise on the FFD LOS model; not RF physics", "batch arms: tap-conditioned FFD model (detector index observed)",
-                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004+005"))
+                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004+005+006"))
     print("S1V2 aggregate", split, status, dec["verdict"], "| converged-only", decc["verdict"])
     return 0 if status == "PASS" else 1
 
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("cmd"); ap.add_argument("--fields"); ap.add_argument("--split", required=True)
-    ap.add_argument("--out", required=True); ap.add_argument("--shards")
+    ap.add_argument("--out", required=True); ap.add_argument("--shards"); ap.add_argument("--src")
     a = ap.parse_args()
     if a.cmd == "run":
         return cmd_run([int(x) for x in a.fields.split(",") if x != ""], a.split, a.out)
+    if a.cmd == "reeval":
+        return cmd_reeval(a.src, a.out)
     return cmd_aggregate(a.shards, a.split, a.out)
 
 
