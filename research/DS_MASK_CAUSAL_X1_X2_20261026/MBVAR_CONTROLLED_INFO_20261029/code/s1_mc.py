@@ -358,7 +358,7 @@ def cmd_aggregate(shards, split, out):
     (out / "S1_COVARIANCE_QA.json").write_text(json.dumps(qaj, indent=1, default=_json))
     # ---- S0 predictions (committed run under the same frozen contract)
     s0dir = Path(os.environ["S0_RESULTS_DIR"]); s0m = json.loads((s0dir / "MANIFEST.json").read_text())
-    s0_ok = s0m.get("status") == "PASS" and s0m.get("contract_sha256") == MF.sha256_file(MF.CONTRACT)
+    s0_ok = s0m.get("execution_status") == "PASS" and s0m.get("contract_sha256") == MF.sha256_file(MF.CONTRACT)
     pred = pd.read_csv(s0dir / "S0_PREDICTIONS.csv").set_index(["role", "cell"]); did_pred = pd.read_csv(s0dir / "S0_DID.csv")
     # ---- descriptive table (all arms, all cells; not decisional)
     st = []
