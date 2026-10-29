@@ -1,0 +1,63 @@
+name: MBVAR time FOGM LORO and differencing math
+on:
+  push:
+    branches: ['research/mbvar-time-gm-differencing-math-20261029']
+    paths:
+      - '.github/workflows/mbvar-time-gm-loro-20261029.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_time_gm_20261029/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  time-gm-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      PYTHONHASHSEED: '0'
+      FETCH_RF: '0'
+    steps:
+      - name: Sparse checkout without LFS checkout
+        env:
+          GIT_LFS_SKIP_SMUDGE: '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_time_gm_20261029/**\n/research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_premodel_diag_20261029/code/**\n/research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model/**\n/research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model/**\n' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install pinned numerical dependencies
+        run: python -m pip install numpy==1.26.4 scipy==1.13.1 pandas==2.2.3
+      - name: Fetch hash-pinned E1 inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/reflect_inputs"
+          bash research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model/fetch_inputs.sh
+          echo "REFLECT_ROOT=$REFLECT_ROOT" >> "$GITHUB_ENV"
+      - name: Execute time FOGM LORO B0 and L2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/time_gm_results"
+          python -u research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_time_gm_20261029/time_gm_study.py --out "$RUNNER_TEMP/time_gm_results" --biases B0 L2 | tee "$RUNNER_TEMP/time_gm_run.log"
+      - name: Upload full evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mbvar-time-gm-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/time_gm_results/**
+            ${{ runner.temp }}/time_gm_run.log
+          if-no-files-found: warn
+          retention-days: 30
