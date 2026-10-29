@@ -4,7 +4,7 @@
 |---|---|
 | Status | `UNSIGNED_DRAFT`. Not executable; no RT job may read it. |
 | Contract | MBVAR-INFO-001 FROZEN (`68d73bd2…`) + AMENDMENT-003/004 |
-| Needs before signing | (1) a **numeric RT budget approved by the user**; (2) an independent auditor review of the AMENDMENT-003/004 results (P0_GEO2, S0V2, S1V2); (3) a decision on the open design item D1 below |
+| Needs before signing | (1) a **numeric RT budget approved by the user**; (2) an independent re-audit of the AMENDMENT-003…007 results (P0_GEO2, S0V2, S1V2, C2) |
 | Author | IMPLEMENTER (proposal only), SELF_REVIEW_ONLY |
 
 All values below are **proposals**. They resolve the contract's deferred RF fields (`MATERIAL`, `DIRECT_PARITY_TOL`, `RF_BUDGET`) only when signed.
@@ -73,3 +73,45 @@ The §D plate rule optimised only geometric containment. The reported specular *
 A reflection arriving 26 taps after the first path barely touches the first-path tap. The HIGH C10 intervention on `s` could therefore be close to null, and that would confound the scene contrast.
 
 Proposal: add the constraint "median excess delay ≤ 8 taps (1.2 m)" to §D and re-select by the same objective and tie-breaks, before any RT. This is a design choice that must be made without RT outcomes, so it is left for the user/auditor.
+
+
+---
+
+## REVISION 2 (2026-10-29, AMENDMENT-007): proposer decisions D1–D4 after the re-audit
+
+This section supersedes §1 (scope), §4 (budget) and §6 (D1) above. Everything else in the draft stays a proposal.
+
+**D1 — FINAL (proposer).** Use one shared C10 plate for every window:
+- Centre (2.75, 1.50) m, length 2.0 m, orientation 0°, z 0–2.7 m, ITU `metal`, 5 mm.
+- Specular point inside the plate for 100 % of poses in LOW, HIGH, REV60 and FWD60.
+- Excess delay ≤ 6.32 taps at every pose; the rule is ≤ 8 taps at all poses.
+- LoS not cut, footprint clearance ≥ 0.10 m, anchor distance 0.50 m.
+- C11 is excluded from confirmatory comparison until a shared C11 passes the same rules.
+- Plates are never moved after RT outcomes.
+
+**D2 — initial canary scope (proposal).**
+- 3 scenes (C00 DIRECT, C01 FLOOR, C10 SHARED) × 3 windows (LOW, HIGH, REV60) × 8 poses, at window indices round(k·59/7), k = 0…7. REV60 uses its first 8 unique poses.
+- Total 72 configurations, plus 4 repeat-pose QA = **76**.
+- **Stage 1** (8 C00 configurations): DIRECT complex parity and extractor check. Any failure stops the canary.
+- A mismatch is decomposed by phase reference, port orientation, frequency mapping and tap. Tolerances are not relaxed silently.
+- **Stage 2:** the C01/C10 comparisons, including the measured Δs of the first-path observation.
+
+**D3 — physics/numerics.** As in §2/§3:
+- Sionna RT 2.0.1, exact install and hash verified.
+- Same 257 bins and FFD banks.
+- C00 = direct only; C01 = C00 + concrete floor sheet; C10 = C01 + shared metal plate.
+- Max depth 3; diffuse, diffraction and refraction off.
+- Frozen extractor.
+- Outputs: complex H, paths, delays, first-path tap, r, s, and a per-pose configuration hash (`rt_keys.rf_cache_key`).
+- The DIRECT parity tolerances stay candidates, not proof of equivalence. The metal-reflection-coefficient claim must be checked per frequency.
+
+**D4 — budget (REQUEST FOR USER APPROVAL; not approved).**
+
+| Item | Proposal |
+|---|---|
+| Configurations | ≤ 76 |
+| Parallelism | ≤ 4 workers |
+| Total | ≤ 8 runner-hours |
+| Checkpoint | parity after the first 8 configurations |
+| Platform | one able to reproduce the earlier RF computations |
+| Scale-up | no automatic scale-up; a 24-pose expansion needs a separate approval |

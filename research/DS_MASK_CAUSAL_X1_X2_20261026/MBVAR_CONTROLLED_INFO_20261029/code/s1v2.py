@@ -343,12 +343,12 @@ def cmd_aggregate(shards, split, out):
                mahalanobis_mean={f"{k[0]}|{k[1]}": float(v) for k, v in mm.items()},
                H4a_revisit_pose_identical_max=float(rp.max()) if len(rp) else None, H4a_revisit_time_differs_min=float(rt.min()) if len(rt) else None,
                nonconverged_frac_max=float(ncf.max()) if len(ncf) else None, nonconverged_by_cell={"|".join(k): v for k, v in ncf.items()},
-               conv_counts=b.conv.value_counts().to_dict() if len(b) else {}, nonconverged_pooled_frac=nc_pooled, nonconverged_cell_count_rule_ok=bool(nc_cell_ok),
-               nonconverged_rule="AMENDMENT-006: pooled <= 1% and per (arm,window,cell) count <= max(1, ceil(0.01 n))",
+               conv_counts=b.conv.value_counts().to_dict() if len(b) else {}, nonconverged_pooled_frac=nc_pooled, A006_granularity_rule_ok_REPORTED=bool(nc_cell_ok),
+               nonconverged_rule="AMENDMENT-007: ORIGINAL AMENDMENT-003 rule, NONCONVERGED <= 1% per (arm,window,cell) (A006 granularity rule reported only)",
                stops=int((rows.status == "STOP_UNPHYSICAL_OBSERVATION").sum()), failures=int(rows.status.astype(str).str.startswith("FAILED").sum()),
                n_rows=int(len(rows)), n_rows_expected=n_exp, q_rel_diff_max=float(rows.q_rel_diff_max.max()) if "q_rel_diff_max" in rows else None)
     qaj["pass"] = bool(got == expected and rule_ok and all(abs(v - 1) <= mtol for v in mm.values) and qaj["H4a_revisit_pose_identical_max"] == 0.0
-                       and (qaj["H4a_revisit_time_differs_min"] or 0) > 0 and nc_pooled <= 0.01 and nc_cell_ok
+                       and (qaj["H4a_revisit_time_differs_min"] or 0) > 0 and (qaj["nonconverged_frac_max"] or 0) <= 0.01
                        and qaj["stops"] == 0 and qaj["failures"] == 0 and qaj["n_rows"] == n_exp)
     (out / "S1V2_QA.json").write_text(json.dumps(qaj, indent=1, default=float))
     s0d = Path(os.environ["S0V2_RESULTS_DIR"]); s0m = json.loads((s0d / "MANIFEST.json").read_text())
@@ -380,11 +380,11 @@ def cmd_aggregate(shards, split, out):
     (out / f"S1V2_DECISION_{split}.json").write_text(json.dumps(res, indent=1, default=M._json))
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md", Wd.EXP / "contracts/AMENDMENT-006.md"],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md", Wd.EXP / "contracts/AMENDMENT-006.md", Wd.EXP / "contracts/AMENDMENT-007.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("S1V2_*")),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict=dec["verdict"] if (split == "HOLDOUT2" and ok) else "NOT_EVALUATED", unit="field_realization",
                       limitations=["synthetic additive noise on the FFD LOS model; not RF physics", "batch arms: tap-conditioned FFD model (detector index observed)",
-                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004+005+006"))
+                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003..007"))
     print("S1V2 aggregate", split, status, dec["verdict"], "| converged-only", decc["verdict"])
     return 0 if status == "PASS" else 1
 
