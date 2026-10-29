@@ -12,7 +12,7 @@
 |---|---|---|
 | R-02, R-05, R-12, R-13a | **ACCEPT technical parity** | Full key coverage, existing reference and hash preserved; no scientific superiority claim. |
 | R-13b | **ACCEPT supplementary** | 19038 Full+LoS rows from historical artifact; same upstream lineage as R-13a, NOT an independent scientific replication. Retain source artifact receipt, checksum and expiry. |
-| R-04 | **PARTIAL / additional direct check required** | The P0 code compares s_fp/log-power against features.py but does not explicitly assert per-packet equality of \`tap\`, \`branch\` and \`valid\`; add such direct checks on 19038 Full+LoS rows, with negative fixtures. |
+| R-04 | **PARTIAL / additional direct check required** | The P0 code compares s_fp/log-power against features.py but does not explicitly assert per-packet equality of \`tap\`, \`branch\` and \`valid\`; add such direct checks on 19038 Full+LoS rows, with negative fixtures. **Important:** `features.valid` additionally requires an 80-tap feature window (`tap+80<=1028`), whereas independent_observer's current `valid` checks the first tap/denominator only; assert two separately recomputed definitions, not their general equality. |
 | R-01 | **ACCEPT T4_ONLY_BLOCKED** | 925+925 file schemas and hashes are intact; no independently verified Jones/signature/tau reordering or H resynthesis. T4 omitted, P1/P2/P3 still permitted after freeze under v0.3. |
 | R-03 | **ACCEPT measured only** | LoS q_W floor is measured; no q_ref or NEGLIGIBLE/NUISANCE/REDESIGN judgment until S0 after freeze under unchanged predeclared rule. |
 | R-09 | **ACCEPT and IMPLEMENT** | Append-only root AGENTS.md role router installed in this branch. Governance commit sha as above; existing MBVAR governance untouched. |
