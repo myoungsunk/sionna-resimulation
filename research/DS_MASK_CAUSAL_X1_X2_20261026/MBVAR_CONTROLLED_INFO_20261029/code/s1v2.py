@@ -366,11 +366,11 @@ def cmd_aggregate(shards, split, out):
     (out / f"S1V2_DECISION_{split}.json").write_text(json.dumps(res, indent=1, default=M._json))
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md"],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("S1V2_*")),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict=dec["verdict"] if (split == "HOLDOUT2" and ok) else "NOT_EVALUATED", unit="field_realization",
                       limitations=["synthetic additive noise on the FFD LOS model; not RF physics", "batch arms: tap-conditioned FFD model (detector index observed)",
-                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004"))
+                                   "anchor A only", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY", f"{split} split"], extra=dict(sub_phase="P2_S1V2", amendment="AMENDMENT-003+004+005"))
     print("S1V2 aggregate", split, status, dec["verdict"], "| converged-only", decc["verdict"])
     return 0 if status == "PASS" else 1
 

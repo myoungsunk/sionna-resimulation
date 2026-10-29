@@ -149,11 +149,11 @@ def main():
     (out / "S0V2_STATUS.json").write_text(json.dumps(dict(status=status, problems=problems, windows={k: v["id"] for k, v in W.items()},
                                                           DID_psi=dpsi, SEP=SP.to_dict("records")), indent=1, default=float))
     MF.write_manifest(out, phase="P1_S0", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md"],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("S0V2_*")),
                       seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
                       limitations=["linear-Gaussian algebra at truth linearisation", "FFD LOS Jacobians; tap-conditioned model equals free model at truth",
-                                   "auditor SELF_REVIEW_ONLY"], extra=dict(sub_phase="P1_S0V2", amendment="AMENDMENT-003+004"))
+                                   "auditor SELF_REVIEW_ONLY"], extra=dict(sub_phase="P1_S0V2", amendment="AMENDMENT-003+004+005"))
     print("S0V2", status, problems)
     return 0 if status == "PASS" else 1
 

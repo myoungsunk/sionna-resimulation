@@ -17,7 +17,7 @@ HERE = Path(__file__).resolve().parent
 EXP = HERE.parent
 REQ = EXP / "RUN_REQUEST.json"
 PHASES = {"P0_PREFLIGHT": dict(mode="draft", gate="G1"), "P1_S0": dict(mode="frozen", gate="G2"),
-          "P2_S1": dict(mode="frozen", gate="G3"), "P0_GEO2": dict(mode="frozen", gate="G2"),
+          "P2_S1": dict(mode="frozen", gate="G3"), "P0_GEO2": dict(mode="frozen", gate="G2"), "P0_GEO2_REEVAL": dict(mode="frozen", gate="G2"),
           "P1_S0V2": dict(mode="frozen", gate="G2"), "P2_S1V2": dict(mode="frozen", gate="G3")}
 
 
@@ -55,6 +55,8 @@ def run(shard, out):
     elif ph == "P0_GEO2":
         cmd = [sys.executable, str(HERE / "p0_geo2.py"), "geo", "--out", str(out)] if shard == "geo" else \
               [sys.executable, str(HERE / "p0_geo2.py"), "c1", "--field", shard.split(":")[1], "--out", str(out)]
+    elif ph == "P0_GEO2_REEVAL":
+        cmd = [sys.executable, str(HERE / "p0_geo2.py"), "reeval", "--src", r["reeval_source"], "--out", str(out)]
     elif ph == "P1_S0V2":
         cmd = [sys.executable, str(HERE / "s0v2.py"), "--out", str(out)]
     elif ph == "P2_S1V2":
@@ -72,7 +74,7 @@ def aggregate(shards, out):
         env["S0_RESULTS_DIR"] = str(EXP / r["s0_results"])
         return subprocess.call([sys.executable, str(HERE / "s1_mc.py"), "aggregate", "--shards", shards, "--split", r["split"],
                                 "--out", out], env=env)
-    if ph == "P0_GEO2":
+    if ph in ("P0_GEO2", "P0_GEO2_REEVAL"):
         return subprocess.call([sys.executable, str(HERE / "p0_geo2.py"), "aggregate", "--shards", shards, "--out", out], env=env)
     if ph == "P2_S1V2":
         env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])

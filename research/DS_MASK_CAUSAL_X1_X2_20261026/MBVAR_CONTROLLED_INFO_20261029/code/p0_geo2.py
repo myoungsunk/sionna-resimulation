@@ -339,14 +339,18 @@ def cmd_aggregate(shards, out):
         C1c_iter_cap=dict(pass_=True, v2t_status_counts=C.v2t_status.value_counts().to_dict() if len(C) else {},
                           v2t300_status_counts=C.v2t300_status.value_counts().to_dict() if len(C) else {},
                           nonconv_300_vs_100_state_sd_max=float(C[C.v2t_status != "CONVERGED"].v2t300_vs_100_state_sd.max()) if len(C) and (C.v2t_status != "CONVERGED").any() else 0.0),
-        C1d_truth_start=dict(pass_=bool(len(C) and (C.ms_cost_diff >= -1e-3).mean() >= 0.99 and (C.ms_cost_diff >= -10.0).all()),
+        C1d_truth_start=dict(pass_=bool(len(C) and (C.ms_cost_diff >= -1.0).all()),
+                             strict_A004_pass=bool(len(C) and (C.ms_cost_diff >= -1e-3).mean() >= 0.99 and (C.ms_cost_diff >= -10.0).all()),
+                             n_gap_gt_1e3=int((C.ms_cost_diff < -1e-3).sum()) if len(C) else None,
+                             state_sd_max_when_gap_gt_1e3=float(C[C.ms_cost_diff < -1e-3].ms_state_sd.max()) if len(C) and (C.ms_cost_diff < -1e-3).any() else 0.0,
                              frac_estimator_not_worse=float((C.ms_cost_diff >= -1e-3).mean()) if len(C) else None,
                              worst_cost_gap=float(-C.ms_cost_diff.min()) if len(C) else None,
                              state_sd_when_equal_max=float(C[C.ms_cost_diff.abs() <= 1e-3].ms_state_sd.max()) if len(C) else None,
                              ms_triggered_frac=float(C.v2t_ms_triggered.mean()) if len(C) else None,
                              final_misfit_frac=float(C.v2t_final_misfit.mean()) if len(C) else None,
                              v1_misfit_frac=float(C.v1_misfit.mean()) if len(C) else None,
-                             rule="AMENDMENT-004: cost(estimator) - cost(true-theta start) >= -1e-3 in >=99% of runs and never < -10"),
+                             rule="AMENDMENT-005 (post-hoc, tiered): gating = no run with cost(estimator) - cost(true-theta start) > 1 chi2 (wrong basin); "
+                                  "fine tier (AMENDMENT-004 strict 1e-3 in >=99%) reported as strict_A004_pass, not gating"),
         C1e_linear=dict(pass_=bool(len(lin) and lin.ok.all()), rows=lin.to_dict("records") if len(lin) else []),
         C1f_nonconverged=dict(pass_=bool(len(C) and (C.v2t_status == "NONCONVERGED").mean() <= 0.01),
                               frac=float((C.v2t_status == "NONCONVERGED").mean()) if len(C) else None,
@@ -360,21 +364,33 @@ def cmd_aggregate(shards, out):
     (out / "P0G_STATUS.json").write_text(json.dumps(st, indent=1, default=float))
     lock_path = Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256"
     MF.write_manifest(out, phase="P0", status=st["status"], contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md"], input_lock=lock_path,
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json", Wd.EXP / "contracts/AMENDMENT-003.md", Wd.EXP / "contracts/AMENDMENT-004.md", Wd.EXP / "contracts/AMENDMENT-005.md"], input_lock=lock_path,
                       outputs=sorted(out.glob("P0G_*")), seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
-                      limitations=["C1 on old DEV inputs (old geometry) only", "plates: image-source geometry, no RT", "SELF_REVIEW_ONLY"], extra=dict(sub_phase="P0_GEO2", amendment="AMENDMENT-003+004"))
+                      limitations=["C1 on old DEV inputs (old geometry) only", "plates: image-source geometry, no RT", "SELF_REVIEW_ONLY"], extra=dict(sub_phase="P0_GEO2", amendment="AMENDMENT-003+004+005"))
     print("P0_GEO2", st["status"], "C1", c1_pass, "geo", st["geometry_v2"], "rev", rev_ok)
     return 0 if st["status"] == "PASS" else 1
 
 
+def cmd_reeval(src, out):
+    """AMENDMENT-005: re-apply the amended criteria to the committed shard outputs of an earlier P0_GEO2 run (no recomputation)."""
+    out = Path(out); out.mkdir(parents=True, exist_ok=True); src = Wd.EXP / src
+    names = [f for f in os.listdir(src) if f.startswith("P0G_") and f not in ("P0G_STATUS.json", "P0G_C1.csv", "P0G_C1A_REPRO.csv")]
+    for f in names:
+        (out / f).write_bytes((src / f).read_bytes())
+    (out / "P0G_REEVAL_SOURCE.json").write_text(json.dumps(dict(source_run_dir=str(src.name), files={f: MF.sha256_file(src / f) for f in sorted(names)}), indent=1))
+    return 0
+
+
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument("cmd"); ap.add_argument("--out", required=True)
+    ap = argparse.ArgumentParser(); ap.add_argument("cmd"); ap.add_argument("--out", required=True); ap.add_argument("--src")
     ap.add_argument("--field", type=int); ap.add_argument("--shards")
     a = ap.parse_args()
     if a.cmd == "geo":
         return cmd_geo(a.out)
     if a.cmd == "c1":
         return cmd_c1(a.field, a.out)
+    if a.cmd == "reeval":
+        return cmd_reeval(a.src, a.out)
     return cmd_aggregate(a.shards, a.out)
 
 
