@@ -1,0 +1,89 @@
+{
+ "stage": "MBVAR_PREMODEL_DIAG_20261029",
+ "run_utc_window": "2026-10-29T02:42Z..03:01Z",
+ "executor": "Claude (cloud session), not GitHub Actions",
+ "source_branch": "research/ds-state-info-var-forensics-20261028",
+ "source_commit": "4ad94fe652d847592aa78ba017dd0a6a517652a1",
+ "reused_unchanged": {
+  "pol_bias_model/exp_pb.py": "a637c3ef0322546215cab7aef76889f1e6e256048bb2821f1b9967679e534972"
+ },
+ "inputs": {
+  "fetch": "reflect_model/fetch_inputs.sh (commit 9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13, FETCH_RF=0)",
+  "lock": "INPUT_LOCK.sha256"
+ },
+ "config": {
+  "cases": [
+   "R2_aA_m0",
+   "R2_aB_m0",
+   "R4_aA_m0",
+   "R4_aB_m0",
+   "R5_aA_m0",
+   "R5_aB_m0"
+  ],
+  "biases": [
+   "B0",
+   "L0",
+   "L1",
+   "L2"
+  ],
+  "gate_joint": 9.210340371976184,
+  "score_window": "t>=30 s",
+  "sigma_hand": {
+   "r": [
+    0,
+    1.5,
+    3,
+    6,
+    10
+   ],
+   "sig": [
+    0.011,
+    0.02,
+    0.05,
+    0.12,
+    0.24
+   ]
+  },
+  "sigma_fit": "hat-basis E[eps_s^2 - R_ss | rho_true], MB background, all finite B0 packets, floor 0.005",
+  "overcount": {
+   "m": [
+    1,
+    2,
+    4,
+    8,
+    16
+   ],
+   "phases": "0 and m//2",
+   "arms": [
+    "MB_ORIG",
+    "MB_VAR"
+   ],
+   "bias": "B0"
+  }
+ },
+ "commands": [
+  "REFLECT_ROOT=<inputs> python3 -I code/diag_mbvar.py --out results",
+  "REFLECT_ROOT=<inputs> python3 -I code/diag_overcount.py --out results"
+ ],
+ "note": "Scripts executed from a scratch copy with absolute import paths; repository copy differs only in two path lines (PB_DIR, sys.path) and was re-verified on R5_aA_m0 B0 MB_VAR fixed/self (scores and n_used identical).",
+ "code_sha256": {
+  "code/diag_mbvar.py": "1fc906ae2c30ffface52fc97adfa93cd8702b8c33475529a17bb9b2753635af1",
+  "code/diag_overcount.py": "92aa185a364796986a34d81b69ab442babeedc9b731e500bc07ca62665b86e23"
+ },
+ "outputs_sha256": {
+  "results/D1_GENERALIZATION_SCORES.csv": "5f059d2cde8401a3aa098a95c91074cff1a53691511149b7fa64485bab0606fa",
+  "results/D1_SIGMA_TABLES.csv": "70ff6c568a64b6bb105531c98d58eda769fd5a136fd48be76b2b5da4f5b61e1a",
+  "results/D2_GATE_FLIPS.csv": "e4fe0892e296097b20673778f5f5321a6a99ed61a36acca2728c602c80a8b5a4",
+  "results/D2_GATE_SCORES.csv": "4fe55fa6128ff3d4777144d5febf68b08c6b40f9a8e5ee833fd6658aea6b53ff",
+  "results/D3_DECOMPOSITION.csv": "3750571bb8e1402800b96fc9220a27276ddb9248ae7882a5f4dd0c37e7b5c304",
+  "results/D3_EPS_BY_DISTANCE.csv": "51e9e8edac14688c9c06c3ab5455bcbd2965690eefdee79bf14b276aa1416710",
+  "results/D3_EPS_TEMPORAL.csv": "9137aaced55a4474f6b0f414ddf8c766df4a76e9f4fbab81c28c9be148637029",
+  "results/D3_R5A_WINDOWS.csv": "3515ebefeebd380f8b294cef8e33c3d1bd845583c758d1cdd37921f687d3c7f9",
+  "results/D3b_OVERCOUNT_TEST.csv": "63a65d28ea10af928abdda7379cf46bd31cc53691b3593cc166ef78a294650d2",
+  "results/PARITY.csv": "459b1da5cb92a95040d1738675c1c57cb70747de02d16959dffec1d52d125c31"
+ },
+ "parity": {
+  "stored_R4_aB_m0_B0": "BB_ORIG/BB_VAR/MB_ORIG/MB_VAR identical to run 40652679303 logs",
+  "bb_orig_self_gate_vs_BASE_mask": "0 mismatches, 24/24"
+ }
+}
