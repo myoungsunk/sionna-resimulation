@@ -76,7 +76,7 @@ def main():
         if max_relative_source>5e-9:
             raise RuntimeError(f"BLOCKED_H_SOURCE_NO_PARITY mount={mount},relative={max_relative_source}")
         d=patched-replay
-        obs0=observation(ref,freq);obs1=observation(ref+d,freq)
+        obs0=observation(ref,freqs);obs1=observation(ref+d,freqs)
         change_r=abs(obs1["range_m"]-obs0["range_m"])
         change_s=abs(obs1["s"]-obs0["s"])
         results.append(dict(mount_deg=mount,pose_id=915,raw_h_sha256=H_SHA[str(mount)],stored_H_reconstruction_max_abs=float(np.max(np.abs(diff_source))),
