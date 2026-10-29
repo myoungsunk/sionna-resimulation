@@ -158,7 +158,7 @@ def main():
         print('TRAIN',route,fitval,flush=True)
         for c,D in dat.items():
             if c[:2]==route:
-                acf_rows.append(dict(case=c,held_route=route,**whiten_diagnostic(D,fit['phi'])))
+                acf_rows.append(dict(case=c,held_route=route,**whiten_diagnostic(D,fitval['phi'])))
     for c in CASES:
         route=c[:2]
         for bias in a.biases:
