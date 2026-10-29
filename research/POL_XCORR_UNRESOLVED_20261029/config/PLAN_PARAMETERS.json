@@ -1,0 +1,102 @@
+{
+  "schema": "POL_XCORR_PLAN_PARAMETERS_V1",
+  "contract_id": "POL-XCORR-001",
+  "status": "DRAFT_CANDIDATE_VALUES_NOT_FROZEN",
+  "note": "Values become binding only when the contract is FROZEN with proposer+auditor sign-off. Changing any value after an outcome is seen requires AMENDMENT-XXX and marks affected runs EXPLORATORY.",
+
+  "data": {
+    "cases": ["R2_aA_m0", "R2_aB_m0", "R2_aA_m45", "R4_aA_m0", "R4_aB_m0", "R5_aA_m0", "R5_aB_m0"],
+    "routes": ["R2", "R4", "R5"],
+    "H_layout": "pose,frequency,rx(+45,-45),tx(+45,-45)",
+    "tx_index_primary": 0,
+    "tx_index_primary_meaning": "+45 LP single-port anchor (deployment-matched)",
+    "tx_both_role": "UPPER_BOUND_DIAGNOSTIC_ONLY",
+    "full_channel": "FULL_RF/H_*.npy (max_depth 3)",
+    "reference_channel": "H_LoS_*.npy (max_depth 0) -- ORACLE_ONLY for labels",
+    "pose_phase_strata": ["drive", "turn"],
+    "scene_family": "CORRIDOR_BLOCK_C",
+    "independent_scene_units_available": 1,
+    "data_classification": "RETROSPECTIVE (previously analyzed corridor corpus)"
+  },
+
+  "observer": {
+    "window": "Hann over 257 bins",
+    "zero_pad_factor": 4,
+    "tap_spacing_ns": 0.5008,
+    "first_path_rule": "stronger-RX port, first tap >= 0.30 * that port's peak amplitude (identical to v_replay.ds1)",
+    "common_tap_for_both_ports": true,
+    "s_definition": "s=(P_plus-P_minus)/(P_plus+P_minus) at first-path tap"
+  },
+
+  "metrics": {
+    "W_taps_primary": [-2, 4],
+    "W_taps_sensitivity": [[-1, 3], [-3, 5]],
+    "W_weights": "uniform",
+    "xcorr_lag_range_taps": [-8, 8],
+    "asymmetry_k_taps": [1, 2],
+    "shape_moments_window_taps": [-2, 6],
+    "L_m_primary": 0.6,
+    "L_m_sensitivity": [0.3, 1.2],
+    "temporal_window_primary": "causal (past samples only)",
+    "temporal_window_diagnostic": "centered",
+    "highpass_cutoff_rule": "spatial frequency above which s_LoS retains <=5% of its segment variance; computed per segment from LoS channel (ORACLE_ONLY, P2a diagnostic only, never in a deployable metric)",
+    "min_segment_length_m": 2.0
+  },
+
+  "labels_ORACLE_ONLY": {
+    "T1": "e_s = s_Full - s_LoS",
+    "T2": "e_r (existing HP_PACKETS column)",
+    "T3": "eta_W = sum_W |h_Full - h_LoS|^2 / sum_W |h_LoS|^2 over both ports, tx=0",
+    "T4": "per-path delta_k and |a wedge b_k| from realigned R2_aA traces; usable only if R-01 PASS",
+    "positive_class_quantile": 0.80,
+    "positive_class_threshold_source": "training routes only (leave-one-route-out)"
+  },
+
+  "models": {
+    "baseline_M0": "logistic regression, standardized [|ds1|, log_fp_power], no regularization tuning (C=1.0 fixed)",
+    "candidate_M0_plus_M1": "same + [eps_rho]",
+    "candidate_M0_plus_M1_M2": "same + [eps_rho, tau_star, A_1, A_2]",
+    "candidate_M0_plus_M4": "same + [M4a, M4b] (P2c)",
+    "no_hyperparameter_search": true
+  },
+
+  "statistics": {
+    "split": "leave-one-route-out (R2/R4/R5); cases of the held-out route all held out",
+    "bootstrap": "block bootstrap, block = 1.0 m of travelled distance within case, 2000 resamples, seed 20261029",
+    "primary_effect": "delta AUC (candidate - baseline) per held-out route",
+    "go_rule_engineering": "lower 95% CI of delta AUC > 0 in >= 2 of 3 held-out routes AND sign positive in 3 of 3",
+    "scientific_verdict_ceiling": "RETROSPECTIVE data, 1 independent scene: verdict may not exceed SUPPORTED_RETROSPECTIVE; confirmatory claim requires new scene variants (BLOCKED)"
+  },
+
+  "tolerances_fixed_before_run": {
+    "s_fp_parity_abs": 1e-9,
+    "los_rank1_eps_max": 1e-8,
+    "gain_invariance_rel": 1e-12,
+    "image_method_first_order_delay_ps": 1.0,
+    "trace_resynthesis_rel_error_max": 1e-3,
+    "s0_delta_square_slope": [1.9, 2.1],
+    "s0_delta_fit_range": "delta < 0.5/B",
+    "s0_parallel_jones_eps_max": 1e-10,
+    "p2b_period_match_rel": 0.20
+  },
+
+  "s0_synthetic": {
+    "delta_ns_grid": "0 to 4 step 0.05",
+    "psi_grid": "0 to 2pi, 16 points",
+    "wedge_grid": "|a wedge b| / (|a||b|) in {0, 0.1, 0.3, 0.6, 1.0}",
+    "snr_db_grid": [30, 20, 15, 10],
+    "port_timing_offset_ps_grid": [0, 25, 50, 100, 250],
+    "noise_seeds": "0..199",
+    "rng": "numpy PCG64"
+  },
+
+  "p3_hardware_arms": {
+    "per_packet_port_phase": "uniform [0,2pi), per pose",
+    "per_packet_port_gain_db": "normal(0, 1.0)",
+    "port_timing_offset_ps_sigma": [0, 25, 50, 100, 250],
+    "snr_db": [30, 20, 15, 10],
+    "dw1000_tap_ns": 1.0016,
+    "seeds": "1000..1049",
+    "allowed_auc_loss": 0.05
+  }
+}
