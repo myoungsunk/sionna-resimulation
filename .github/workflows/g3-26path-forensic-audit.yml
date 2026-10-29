@@ -30,6 +30,7 @@ jobs:
       - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2
       - name: Recover strict-failure positions and compute unmerged image-class diagnostic
         run: |
+          set -euo pipefail
           python -u research/RA0_RA1_RA2_AUDIT_20261029/g3/g3_receipt_reconstruct.py "$RUNNER_TEMP/g3" 2>&1 | tee "$RUNNER_TEMP/g3-forensic.log"
       - name: Upload receipts regardless of verdict
         if: always()
