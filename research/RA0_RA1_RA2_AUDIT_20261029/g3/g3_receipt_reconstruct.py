@@ -100,13 +100,56 @@ def main(outdir):
   totals.append({"case":case,"receipt_strict_paths":bad,"g3_strict_paths":reference,"stations":len(rr),"affected_tags":sum(r["case"]==case for r in rows)})
   if bad!=reference:raise SystemExit(f"ERR_G3_COUNT_PARITY {case} receipts {bad} vs g3 {reference}")
  if sum(x["receipt_strict_paths"] for x in totals)!=26:raise SystemExit("ERR_TOTAL_26")
+
+ # Compute exact H row and dependent case scope. A path failure belongs to the
+ # original isotropic Jones trace, shared by mount=0 and mount=45 for that anchor.
+ allposes={}
+ for route in ("R2","R4","R5"):
+  poses=json.loads(raw(SRC,f"results/DRIVE_SIM_20261007/S1/routes/rf_poses_{route}.json"))
+  tagmap={}
+  for p in poses:
+   tagmap.setdefault(tag_of(float(p["x"]),float(p["y"])),[]).append(int(p["pose_id"]))
+  allposes[route]=tagmap
+ hscope=[]
+ for rec in rows:
+  route=rec["case"][:2];anchor=rec["case"][-1]
+  ids=allposes[route].get(rec["tag"],[])
+  if not ids:raise RuntimeError("ERR_RISK_POSE_ID_JOIN "+rec["case"]+":"+rec["tag"])
+  rec["h_pose_ids"]=";".join(map(str,ids));rec["n_affected_h_pose_ids"]=len(ids)
+  for mount in (0,45):
+   hscope.append(dict(case=rec["case"],trace_tag=rec["tag"],pose_ids=rec["h_pose_ids"],
+    h_path=f"H_{route}_a{anchor}_m{mount}.npy",n_h_rows=len(ids),
+    strict_failed_paths=rec["strict_mismatch_paths"],H_effect="UNKNOWN_ORIGINAL_RAY_GEOMETRY"))
+ hcols=["case","trace_tag","pose_ids","h_path","n_h_rows","strict_failed_paths","H_effect"]
+ dumpcsv(out/"G3_AT_RISK_H_ROWS.csv",hscope,hcols)
+ # Eight gyro/bias and algorithm variants reuse one H store; count dependent source cases.
+ study_cases=("R2_aA_m0","R2_aB_m0","R2_aA_m45","R4_aA_m0","R4_aB_m0","R5_aA_m0","R5_aB_m0")
+ cs=[]
+ for case in study_cases:
+  code=case[:5]; stations=[r for r in rows if r["case"]==code]
+  assert stations
+  cs.append(dict(case=case,first_potentially_affected_pose_id=min(int(x) for r in stations for x in r["h_pose_ids"].split(";")),
+     n_bad_trace_positions=len(stations),n_strict_paths=sum(r["strict_mismatch_paths"] for r in stations),
+     baseline_arms="BB_ORIG;MB_ORIG;MB_VAR",bias_levels="B0;L0;L1;L2",
+     rerun_if_H_or_packet_changes="FULL_RECURSIVE_TRACE_OR_CHECKPOINT_BEFORE_FIRST_BAD",
+     rerun_if_only_G3_check_changes="NONE"))
+ dumpcsv(out/"G3_AT_RISK_MBVAR_CASES.csv",cs,list(cs[0]))
+ affected_stores=sorted({r["h_path"] for r in hscope})
+ scope_summary={"n_risk_h_stores":len(affected_stores),"risk_h_stores":affected_stores,
+   "n_risk_h_rows_store_specific":sum(x["n_h_rows"] for x in hscope),
+   "n_risk_trace_positions":len(rows),"n_risk_source_cases":len(cs),
+   "cases":cs,"strict_paths":26,"rerun_status":"CONDITIONAL_PHYSICAL_H_CHANGE_NOT_ESTABLISHED",
+   "old_s6_maximum_original_score_rows_in_scope":54000,
+   "old_E1_PB_maximum_score_rows_in_scope":392}
+ (out/"G3_H_AND_FILTER_SCOPE.json").write_text(json.dumps(scope_summary,indent=2))
+
  col=["case","tag","pose_id","x","y","t_s","coordinate_delta_m","coordinate_max_delay_s","strict_mismatch_paths","n_paths",
-      "n_archived_tau","n_strict_mismatch_with_archived_tau","n_confirmed_merge_causes",
+      "h_pose_ids","n_affected_h_pose_ids","n_archived_tau","n_strict_mismatch_with_archived_tau","n_confirmed_merge_causes",
       "n_image","n_image_classes","max_class_shift_s","n_image_shift_gt_strict","min_image_gap_s"]
  dumpcsv(out/"G3_26_OFFENDING_STATIONS.csv",rows,col)
  (out/"G3_26_EVIDENCE.json").write_text(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","frozen_archive_sha256":ARCHIVE_SHA,
       "raw_tau_npz_in_original_bundle":False,"total_receipts":len(receipts),"total_strict_paths":26,
-      "n_offending_stations":len(rows),"max_coordinate_delta_m":max(x["coordinate_delta_m"] for x in rows),"max_delay_explainable_by_timeline_rounding_s":max(x["coordinate_max_delay_s"] for x in rows),"groups":totals,"records":block_receipts,
+      "n_offending_stations":len(rows),"H_scope":scope_summary,"max_coordinate_delta_m":max(x["coordinate_delta_m"] for x in rows),"max_delay_explainable_by_timeline_rounding_s":max(x["coordinate_max_delay_s"] for x in rows),"groups":totals,"records":block_receipts,
       "raw_tau_status":"DROPPED_PATH_ONLY; missing non-dropped per-ray tau must be retrieved from preserved source or regenerated",
       "audit_limit":"Cannot classify all 26 path IDs and change H without original per-ray tau and Jones responses."},indent=2))
  print(json.dumps({"status":"LOCATIONS_RECOVERED_TAU_PARTIAL","records":len(receipts),
