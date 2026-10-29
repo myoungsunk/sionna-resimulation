@@ -37,7 +37,7 @@ def med3(s):
 def main():
     dec = {}
     md = ["# MB_VAR 대조조건 정정 실행 결과 (자동 생성)", "",
-          "판정은 PROTOCOL_CONTROLS_KO.md 본문과 '실행 전 수정' A1–A8의 규칙을 기계적으로 적용한 것이다. 해석 문장은 포함하지 않는다.", ""]
+          "판정은 PROTOCOL_CONTROLS_KO.md 본문과 '실행 전 수정' A1–A9의 규칙을 기계적으로 적용한 것이다. 해석 문장은 포함하지 않는다.", ""]
 
     # ---------------------------------------------------------------- shard status
     st = [json.loads(Path(f).read_text()) for f in sorted(glob.glob(str(OUT / "SHARD_*.json")))]
@@ -195,6 +195,7 @@ def main():
     # ---------------------------------------------------------------- E2 / E3
     E23 = cat("E23_*.csv"); ACF = cat("E2_ACF_*.csv")
     if len(E23):
+        E23["est"] = E23["est"].fillna("-")          # empty est (E2 rows) is read as NaN and groupby would drop it
         b = E23[E23.family == "BASE"][["case", "arm", "seed", "head_rmse", "xy_rmse_cm", "head_z_rms"]].rename(columns=lambda x: x if x in ("case", "arm", "seed") else "b_" + x)
         E = E23[E23.family != "BASE"].merge(b, on=["case", "arm", "seed"])
         E["d_head"] = E.head_rmse - E.b_head_rmse; E["d_xy"] = E.xy_rmse_cm - E.b_xy_rmse_cm; E["d_z"] = E.head_z_rms - E.b_head_z_rms
