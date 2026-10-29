@@ -1,0 +1,58 @@
+{
+ "contract_id": "MBVAR-INFO-001",
+ "phase": "P2_S1",
+ "execution_status": "PASS",
+ "utc_completed": "2026-10-29T08:54:01Z",
+ "source_git_sha": "f038c9fb03c23b5bf9d23c1176d67bf3d36bce10",
+ "governance_git_sha": "250d617ad89a4105fa1af546cc83ceed9de98f42",
+ "contract_sha256": "68d73bd22bf467625559f3092433f250cbe91cb2fef011f92151975975b00f34",
+ "config_sha256": "90ae3db6ec2ee33a47c8f33d8d612a96d6e4bd986235068d8afd60984bf1684c",
+ "config_files": {
+  "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/config/PLAN_PARAMETERS.json": "bba7fbc5e165359da2583f94b16c78ed8e475e216c6935080361a38442b28bbc"
+ },
+ "input_lock_sha256": "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee",
+ "source_code_sha256": {
+  "code/filters.py": "b90bbaaa69764131728fc6b1757def570884af6ab736fca5308280876d8130ff",
+  "code/info_core.py": "358180d64d769c5c4f7dde17cc7931550f5cd1ba65169105b4b5ffdc3950c1d4",
+  "code/manifest.py": "f63cb34e10c613aeeb8ddb96d1cf09ff8783220609ece00f634f5b676059e370",
+  "code/p0_preflight.py": "1351cf624e7387942241a99233edb68a7f82d9735b28a719ae1f56bdc1bbc1ba",
+  "code/run_phase.py": "c8ff754bb038730eb7693ce2956bd88b6ea2fe070fc4ea3808b342b6ca580467",
+  "code/s0_math.py": "3ebdf9a726d08cc89d787018c4387f76bdd89c1792341e79328811073a00e3cc",
+  "code/s1_mc.py": "2457cfd5764bde987b7ddc4bf89233d56b03ca0b2a08b81b86df122b722443e2",
+  "code/world.py": "ac6e2de5ada3c1e418cabd27498cfe1b7809ab2ab4181121fb8be65d60818e4f",
+  "scripts/validate_contract.py": "aa33b75bf613fd1c873116b080c0bf407793814bd86ce7e4998a80100d61a99a",
+  "tests/test_contract_validator.py": "6a32fa27dc94e833e834de931f030fbb2d368032b7d528353b5558f8160c4947",
+  "tests/test_s0_math_contract.py": "a836c83e115666a5a3b662e40fdbeebd6b7bd7632415732be863346c75cc25f2",
+  "tests/test_s1_field_contract.py": "5b343fe326bf38ef2b963c0c0b290657350e1f3db07eab2c94ece87ab76c0e76",
+  "audit/audit_s0_independent.py": "1f371284aa041711b8e3315283a078a8ea4e45c18c0b597c39c4658009ffe3e3"
+ },
+ "output_sha256": {
+  "S1_CAL_DEV.csv": "322946bd1b6710f7925a6eb79c3c55f999a71e5fbb0c42b24560ef2d181683f9",
+  "S1_COVARIANCE_QA.json": "b35d47bce8cc7d278fb94b807c32149f53726adc26276ec636b9de0f81035558",
+  "S1_DECISION_DEV.json": "42bc8b9a5524a29a5a49d9d3071a939ceaf3818d4e216f7316c8655b613b1528",
+  "S1_H1_DEV.csv": "ddfcdedfd09ff89411edb7a5026f3ec891b72f5dfdb4423a6816bbc5f1ad452b",
+  "S1_H2_DEV.csv": "3d9260d2eb93ebbf6628a6cb6f968f708ca1e040caf4183f96c48b12cb0975df",
+  "S1_H3_DEV.csv": "f2e492e8225ba55bb2c76d5d75ff9d38fa321ef428f4816e691dcd4df440fa8c",
+  "S1_POWER_DEV.csv": "2936af588fd55f736aa42a24602c59efeca970522ee4dc756883105e7b62cf3f",
+  "S1_QA_DEV.csv": "925612a19c894a16e22ad50e793f537d77733340c3c754a5f55108d8310148d6",
+  "S1_RESULTS_DEV.csv": "f9134a3dedca636626f665039c02b8668c0cb988b56f8aab69e0022f2ca59051",
+  "S1_SENS_DEV.csv": "ef537b55b92ebee0d78470675f656c1ee7468fea8eff771aeae8ac10770ab0aa",
+  "S1_STATS_DEV.csv": "d8d38ba972f90d6607eb265c4ebeda434e8d7136a825c60d4bfa53201895c466"
+ },
+ "seed_ledger_sha256": "91f028c4a639e0a0162844fd176abe6917240bbf7b61483c2581218d8d9519a8",
+ "run_command": "/opt/hostedtoolcache/Python/3.11.17/x64/bin/python /home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1_mc.py aggregate --shards /home/runner/work/_temp/shards --split DEV --out /home/runner/work/_temp/agg",
+ "scientific_verdict": "NOT_EVALUATED",
+ "independence_unit": "field_realization",
+ "limitations": [
+  "synthetic additive observation noise on the FFD LOS model; not RF physics",
+  "q-consistent synthetic control noise; x0 drawn from P0",
+  "anchor A windows only (anchor C outside the |h_s| domain)",
+  "auditor SELF_REVIEW_ONLY; release TECHNICAL_QA_ONLY",
+  "DEV split = pilot (power only)"
+ ],
+ "python": "3.11.17",
+ "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+ "github_run_id": "40844896963",
+ "reviewer_status": "SELF_REVIEW_ONLY",
+ "manifest_schema_errors": []
+}
