@@ -44,3 +44,17 @@ R2-A 한 ray의 지연을 이상적인 image delay로 *가상 조정*했을 때 
 - [R2-A 원 trace Action #40850815112](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40850815112)
 - [R2-A 단일 ray H 반사실적 시험 Action #40851669162](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40851669162)
 - [RA3 56-arm 전수 실행 Action #40852149539](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40852149539)
+
+
+## 5. 범위의 엄밀한 분리: 국소 patch와 전역 solver 수정은 다르다
+
+**감사자 추가 주의사항:** 위의 '최대 48행'은 `24개 엄밀 초과 위치의 기존 trace만 국소적으로 교정하고, 나머지 trace·solver·FFD 모델은 불변`이라는 조건부 상한이다. **RT solver·재질·주파수·패턴 구현을 전역 수정하는 경우 절대 상한이 아니다.** 엄밀 기준을 통과한 다른 위치들도 바뀔 수 있다.
+
+- 전체 S6 H 12개 store의 총 pose-row 수는 `4×(1303+922+1883)=16,432`이다.
+- 현재 MB_VAR 원 7 case가 사용하는 H row 수는 `3×1303+2×922+2×1883=9,519`이다(같은 route에서 일부 H 재사용; 독립 RF realization 개수와 다름).
+- 국소 24위치/48행만 H가 바뀌어도 최초 바뀐 packet부터 해당 condition 전체 downstream EKF `x,P,mask`에 영향이 퍼질 수 있다.
+- **전역 변경이면 반드시 전체 12개 H 파일에 대한 bitwise/digest 또는 `ΔH` 행별 스크리닝**을 수행하여 변화가 생긴 행의 실제 집합을 새로 산출하고 나서 필요한 filter/S6 범위를 결정한다. 이전 48행 범위를 그대로 상한으로 인용하면 안 된다.
+- packet 변경 후의 필터 점수는 `BASE gate를 예전 값으로 고정한 순수 관측 변화 시험`과 `변경된 packet에서 BASE gate를 새로 계산한 실제 시스템 시험`을 분리해야 한다. 두 조건을 혼용하지 말 것.
+- 원 이미지 `image_delays()`가 나열한 187개 후보 중 가장 가까운 것에 맞는다는 것만으로 해당 Sionna ray의 **실제 반사 순서·벽면 내 유효 반사점·가림 정책**이 검증됐다고 볼 수 없다. 이에 대한 물리 감사가 추가로 필요하다.
+
+이 단계에서 가능한 결론은 **검사기만 수정한 경우 H 불변**과 **특정한 한 ray 가상 delay 수정의 영향 관측**이다. 전역 solver 수정의 H 불변/영향 범위는 source patch 없이 확정할 수 없다.
