@@ -1,0 +1,38 @@
+name: G3 original Snowball archives raw source inventory
+on:
+  push:
+    branches: ['audit/g3-ray-forensics-ra3-20261029']
+    paths:
+      - 'research/RA0_RA1_RA2_AUDIT_20261029/g3/g3_source_archive_inventory.py'
+      - '.github/workflows/g3-archive-source-inventory.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/RA0_RA1_RA2_AUDIT_20261029/g3/g3_source_archive_inventory.py
+            /results/DRIVE_SIM_20261007/SNOWBALL_ROUTE_RUNS/01a11669/final_20261007T140446Z/final_20261007T140446Z.tar.gz
+            /results/DRIVE_SIM_20261007/SNOWBALL_ROUTE_RUNS/01a11669/snapshot_20261007T134706Z/snapshot_20261007T134706Z.tar.gz
+      - name: Inspect original archives without extracting or replaying
+        run: |
+          set -euo pipefail
+          python research/RA0_RA1_RA2_AUDIT_20261029/g3/g3_source_archive_inventory.py --out "$RUNNER_TEMP/g3" \
+            results/DRIVE_SIM_20261007/SNOWBALL_ROUTE_RUNS/01a11669/final_20261007T140446Z/final_20261007T140446Z.tar.gz \
+            results/DRIVE_SIM_20261007/SNOWBALL_ROUTE_RUNS/01a11669/snapshot_20261007T134706Z/snapshot_20261007T134706Z.tar.gz
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: g3-archive-inventory-${{ github.run_id }}
+          path: ${{ runner.temp }}/g3/G3_ARCHIVE_INVENTORY.json
+          retention-days: 30
+          if-no-files-found: warn
