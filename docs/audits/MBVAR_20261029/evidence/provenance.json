@@ -1,0 +1,383 @@
+{
+  "question_ids": [
+    "MBVAR-AUDIT-S1-GAP-CLOSURE-20261029",
+    "MBVAR-AUDIT-S2-INPUT-TIME-ALIGNMENT-20261029"
+  ],
+  "recorded_date": "2026-10-29",
+  "repository": "myoungsunk/sionna-resimulation",
+  "policy_commit": "73d589ebd0b9da37fc60d2e34c87de5ffb95c107",
+  "frozen_source_ref": "9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13",
+  "branches": [
+    {
+      "branch": "research/ds-state-info-var-forensics-20261028",
+      "audit_head": "4ad94fe652d847592aa78ba017dd0a6a517652a1",
+      "publish_remote_head": "4ad94fe652d847592aa78ba017dd0a6a517652a1",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    },
+    {
+      "branch": "research/mbvar-premodel-diag-20261029",
+      "audit_head": "06a8a0922e0f4b2fef79316bcfd77035475c2715",
+      "publish_remote_head": "06a8a0922e0f4b2fef79316bcfd77035475c2715",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    },
+    {
+      "branch": "research/mbvar-control-correction-20261029",
+      "audit_head": "0a0e2237f085fa32683e4ae603cf5ca2372d2130",
+      "publish_remote_head": "0a0e2237f085fa32683e4ae603cf5ca2372d2130",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    },
+    {
+      "branch": "research/mbvar-causal-isolation-20261029",
+      "audit_head": "3af005b8491b5668c0989b82bc3cbc990cfcf8b7",
+      "publish_remote_head": "3af005b8491b5668c0989b82bc3cbc990cfcf8b7",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    },
+    {
+      "branch": "research/mbvar-e2-e5-revalidation-20261029",
+      "audit_head": "af8e0a1b5299ae5e279f9b602afd2f1bb710c4e3",
+      "publish_remote_head": "af8e0a1b5299ae5e279f9b602afd2f1bb710c4e3",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    },
+    {
+      "branch": "research/mbvar-time-gm-differencing-math-20261029",
+      "audit_head": "cf4b19ab02ea93c254b606a27128960f24880598",
+      "publish_remote_head": "cf4b19ab02ea93c254b606a27128960f24880598",
+      "previous_full_audit_report": "not fully available in this side conversation"
+    }
+  ],
+  "runs": [
+    {
+      "label": "PB (상위 실행)",
+      "id": "40652679303",
+      "sha": "8c8adfeb09a1648d2113e63d3350ff5fc26b181b",
+      "kind": "계산; forensics 신규 실행 증거 아님"
+    },
+    {
+      "label": "control",
+      "id": "40820579727",
+      "sha": "3e291da9fdf5a8f6d1fe21f4c9350bc5edac9f18",
+      "kind": "계산"
+    },
+    {
+      "label": "causal",
+      "id": "40825807998",
+      "sha": "4e14448a8af81c3e99cd257f23cb07615ebd8a15",
+      "kind": "계산"
+    },
+    {
+      "label": "revalidation",
+      "id": "40830330560",
+      "sha": "aa1027b7ab44078a797bf26556879a99cb8de3d8",
+      "kind": "계산"
+    },
+    {
+      "label": "revalidation recovery",
+      "id": "40831583667",
+      "sha": "419c18303aa29bacdeef724e1c67f07e7e5322a3",
+      "kind": "복구 집계; 계산 실행과 구분"
+    },
+    {
+      "label": "initial-state cross",
+      "id": "40830802359",
+      "sha": "fe5d3edf4969c53862308ab8dace4d58601d111d",
+      "kind": "초기상태 교차"
+    },
+    {
+      "label": "time-GM",
+      "id": "40828341230",
+      "sha": "7fab61cb1b26240b8031b77e277bc6ab92651245",
+      "kind": "계산"
+    },
+    {
+      "label": "mean upstream",
+      "id": "39574195919",
+      "sha": "902ddcaf0f8e59734bb8026d3bcdc36eab506a27",
+      "kind": "평균 보정 상위 출처"
+    }
+  ],
+  "gaps": [
+    {
+      "id": "G1",
+      "status": "UNRESOLVED",
+      "evidence": "4ad의 run_four_priorities.py 존재를 확인. 조사한 tree·workflow·실행 기록에서는 연결된 receipt/D3·D4/output manifest를 확보하지 못함.",
+      "limits": "미발견은 미실행 또는 부존재 판정이 아님. PB는 상위 실행으로만 유지."
+    },
+    {
+      "id": "G2",
+      "status": "PARTIAL",
+      "evidence": "MANIFEST와 저장소 diag 두 파일 해시 일치. Cloud 시간·기반 SHA와 import 두 줄 차이라는 설명 확인. 제한된 R5-A B0 점수 일치 기록.",
+      "limits": "scratch 원본·실행본 해시·실행 로그·runtime import 해석은 미확보. 제한된 수치 일치를 전체 동일성으로 확대하지 않음."
+    },
+    {
+      "id": "G3",
+      "status": "PARTIAL",
+      "evidence": "lock 문자열 비교(C), 동결 저장소 trace 재해시(B) 14/14. 대형 input artifact 목록·크기·보존 상태 조사.",
+      "limits": "과거 실행 input artifact bytes(A) 0개. FFD bank 실제 재해시(B) 0/2. 전체 RF 미검사."
+    },
+    {
+      "id": "G4",
+      "status": "PARTIAL",
+      "evidence": "workflow checkout·REFLECT_ROOT·frozen fetch·준비 로그·sys.path·일부 코드 snapshot 동일성 확인.",
+      "limits": "실행 당시 module 경로·전 의존성 해시 snapshot이 없음. workflow 구조의 뒷받침과 직접 module 증명을 구분."
+    },
+    {
+      "id": "G5",
+      "status": "UNRESOLVED",
+      "evidence": "control HEAD에서 JSON·계획 추가 확인. 생성기·명령·실행 receipt·입출력 해시 연결 미확보.",
+      "limits": "미검증 premise로 분리. 6개 결과 자동 무효화 또는 pose 인과 해석 승인에 사용하지 않음."
+    },
+    {
+      "id": "G6",
+      "status": "CLOSED",
+      "evidence": "causal/time-GM API digest·로그·ZIP bytes 재해시·내부 manifest·CSV 해시·entrypoint source 해시 대조.",
+      "limits": "결과 artifact 범위만 닫힘. causal 입력 lock 없음; time-GM lock은 해시 문자열이고 원문은 ZIP에 없음."
+    }
+  ],
+  "result_artifacts": [
+    {
+      "zip_sha256": "3d57c9f60c952142befcd739637d6fb55994ce32da201b0c904ce58aa26b14cd",
+      "entries": [
+        {
+          "name": "causal_results/MANIFEST.json",
+          "sha256": "39fa835ffa505bfcb521833baa44535f7f0e72f4612ad728818a1c2e864c9cd0",
+          "bytes": 1488,
+          "manifest": {
+            "stage": "MBVAR_CAUSAL_ISOLATION",
+            "utc": "2026-10-29T05:54:19Z",
+            "run_id": "40825807998",
+            "git_sha": "4e14448a8af81c3e99cd257f23cb07615ebd8a15",
+            "config": {
+              "cases": [
+                "R5_aA_m0",
+                "R4_aB_m0",
+                "R5_aB_m0"
+              ],
+              "B0_only": true,
+              "fixed_BASE_gate": true,
+              "m": [
+                1,
+                2,
+                4,
+                8,
+                16
+              ],
+              "shuffle_seeds": {
+                "R5_aA_m0": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7
+                ],
+                "R4_aB_m0": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "R5_aB_m0": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ]
+              },
+              "shuffle_conditioning": "true distance 5 bins x relative bearing 4 bins; same accepted paired residual multiset",
+              "test_status": "mechanism counterfactual, not out-of-route generalization"
+            },
+            "code_sha256": {
+              "causal_isolation.py": "aaed1c53d561d0b2ef4667363fa490e147b563db0f2443d5d87f413963ce3bc1"
+            },
+            "outputs_sha256": {
+              "SHUFFLE_VALIDATION.csv": "457538b447e5fe79c43942178eabb5890d680e07be43599d02ee3ed3f5d9b5ab",
+              "MATCHED_PRIOR.csv": "746a332d28278ddcf805ee7e85f318fca1e4b572efaaf84d1798ed02f55a9930",
+              "SURROGATE_SUMMARY.csv": "a5b1a7fb4e358b0d929a70f1b4a1b3da4ab3a703d4faf2b293c455046e8950c8",
+              "FILTER_REPLAYS.csv": "ef04817b485b94448588480c03fdeace4e5a6e228d3e4e50e0b35f5d62931e81"
+            },
+            "commands": [
+              "python causal_isolation.py --out <output>"
+            ]
+          }
+        },
+        {
+          "name": "causal_results/MATCHED_PRIOR.csv",
+          "sha256": "746a332d28278ddcf805ee7e85f318fca1e4b572efaaf84d1798ed02f55a9930",
+          "bytes": 1067
+        },
+        {
+          "name": "causal_results/FILTER_REPLAYS.csv",
+          "sha256": "ef04817b485b94448588480c03fdeace4e5a6e228d3e4e50e0b35f5d62931e81",
+          "bytes": 9500
+        },
+        {
+          "name": "causal_results/SHUFFLE_VALIDATION.csv",
+          "sha256": "457538b447e5fe79c43942178eabb5890d680e07be43599d02ee3ed3f5d9b5ab",
+          "bytes": 2226
+        },
+        {
+          "name": "causal_results/SURROGATE_SUMMARY.csv",
+          "sha256": "a5b1a7fb4e358b0d929a70f1b4a1b3da4ab3a703d4faf2b293c455046e8950c8",
+          "bytes": 2146
+        },
+        {
+          "name": "causal_replay.log",
+          "sha256": "8faa1ba82faaca8b28e6b28c57012e98f7640cbe9feb327841a874e08b9ee104",
+          "bytes": 2240
+        }
+      ]
+    },
+    {
+      "zip_sha256": "304ac6178a681f16f9958ab43a3237e9b8837ac35670f29853567def8d5ac7db",
+      "entries": [
+        {
+          "name": "time_gm_results/DIFFERENCING_MATH_TEST.csv",
+          "sha256": "a4912351cfc0574f229d187b091ff4a6392416bb1d67c393a1d280d6a3ce3d31",
+          "bytes": 135
+        },
+        {
+          "name": "time_gm_results/HELD_ACF_DIAGNOSTIC.csv",
+          "sha256": "50b351dd67f0e270d48b697556556cefe23e9723b20dfd3270286f507454edb9",
+          "bytes": 622
+        },
+        {
+          "name": "time_gm_results/FILTER_SCORES.csv",
+          "sha256": "f5daae0bf663c2c6255e8142b36ab0d354b815d7df8e02a75f57e0ccb2578003",
+          "bytes": 12003
+        },
+        {
+          "name": "time_gm_results/LORO_TIME_FITS.csv",
+          "sha256": "b8872e9f65c5611c87092382c6674a878208d9ba54dc96319d704f5300401eb1",
+          "bytes": 880
+        },
+        {
+          "name": "time_gm_results/MANIFEST.json",
+          "sha256": "a15028fc813325ffdc099fd2646ec7574f0997fb3436ce0b45db702135f87d3a",
+          "bytes": 1934,
+          "manifest": {
+            "stage": "MBVAR_TIME_GM_LORO",
+            "utc": "2026-10-29T06:24:01Z",
+            "github_run": "40828341230",
+            "head_sha": "7fab61cb1b26240b8031b77e277bc6ab92651245",
+            "method2": "analytic error-noise-correlation validation ONLY; no measurement differencing EKF run",
+            "config": {
+              "cases": [
+                "R2_aA_m0",
+                "R2_aB_m0",
+                "R4_aA_m0",
+                "R4_aB_m0",
+                "R5_aA_m0",
+                "R5_aB_m0"
+              ],
+              "bias": [
+                "B0",
+                "L2"
+              ],
+              "fixed_GATE": true,
+              "t_score_ge_s": 30,
+              "time_fit": "LORO route gamma(l) normalized l=1..8 phi grid with colored fraction",
+              "variance_modes": [
+                "KEEP existing Rbase plus colored state",
+                "SPLIT subtract stationary b variance with 5% Rbase floor"
+              ],
+              "held_route_truth_in_parameter_training": false
+            },
+            "input_lock_sha256": "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee",
+            "source_sha256": {
+              "time_gm_study.py": "193b1580d7790b333105d0b4c77621f31d246870f60a927b95f2f1773f5d2bd1"
+            },
+            "outputs_sha256": {
+              "LORO_TIME_FITS.csv": "b8872e9f65c5611c87092382c6674a878208d9ba54dc96319d704f5300401eb1",
+              "FILTER_SCORES.csv": "f5daae0bf663c2c6255e8142b36ab0d354b815d7df8e02a75f57e0ccb2578003",
+              "TRAIN_ACF.csv": "96c8aaa4e6934601808f069443a5ca6f3cec7d1c6572b877981d56eb9279de5c",
+              "HELD_ACF_DIAGNOSTIC.csv": "50b351dd67f0e270d48b697556556cefe23e9723b20dfd3270286f507454edb9",
+              "DIFFERENCING_MATH_TEST.csv": "a4912351cfc0574f229d187b091ff4a6392416bb1d67c393a1d280d6a3ce3d31",
+              "SUMMARY.csv": "818f2254f3fb842ca3d73f1ca381c3c09d8f9a58d26008f982ef436975692ff7",
+              "PARITY.csv": "93a6a699371202758e23be56142f5427e9d00817857c9c620db88d525729a0f4"
+            },
+            "limitations": [
+              "one corridor",
+              "route A/B correlated",
+              "training truth used on other routes only",
+              "no final independent test",
+              "base R and b state separation uncertain",
+              "AR1 model fit is approximate; residuals may be nonstationary"
+            ]
+          }
+        },
+        {
+          "name": "time_gm_results/PARITY.csv",
+          "sha256": "93a6a699371202758e23be56142f5427e9d00817857c9c620db88d525729a0f4",
+          "bytes": 276
+        },
+        {
+          "name": "time_gm_results/SUMMARY.csv",
+          "sha256": "818f2254f3fb842ca3d73f1ca381c3c09d8f9a58d26008f982ef436975692ff7",
+          "bytes": 1313
+        },
+        {
+          "name": "time_gm_results/TRAIN_ACF.csv",
+          "sha256": "96c8aaa4e6934601808f069443a5ca6f3cec7d1c6572b877981d56eb9279de5c",
+          "bytes": 1771
+        },
+        {
+          "name": "time_gm_run.log",
+          "sha256": "967db49d224aef24d38500fb671fea953a00a59f2cc4b75ec83f2eb277509822",
+          "bytes": 3115
+        }
+      ]
+    }
+  ],
+  "input_verification": {
+    "A_historical_input_artifact_bytes_checked": 0,
+    "B_frozen_trace_bytes_checked": 14,
+    "B_total_trace_files": 14,
+    "B_frozen_bank_bytes_checked": 0,
+    "B_total_banks": 2,
+    "C_recorded_locks_compared": true,
+    "does_B_or_C_prove_historical_consumption": false
+  },
+  "timeline_representative_checks": {
+    "checked_B0_cases": 3,
+    "total_B0_cases": 7,
+    "paths_prefix": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/",
+    "sha256": {
+      "timeline_R2_Tnone_csv": "45bd5b1fa8d204ef013ba987ecd9c98404a16a8c7462cc9bead0cbda06f50f88",
+      "timeline_R4_Tnone_csv": "1fabcd0aa53ef54e57bef18c739d20df9b4788ba84992a99eafc266e226fbb7b",
+      "timeline_R5_Tnone_csv": "d86ad9616fdcd9b9f32cefee06de9044ca383b5cb532f494afa2e100e476152f"
+    },
+    "max_time_diff_s": 2.84e-14,
+    "max_xy_diff_m": 3.55e-15,
+    "max_yaw_diff_rad": 8.88e-16
+  },
+  "claim_boundaries": {
+    "independent_audit": false,
+    "filter_rerun": false,
+    "simulation_or_RF_generation": false,
+    "source_code_modified": false,
+    "overall_system_PASS": false,
+    "causal_approval": false,
+    "adoption_approval": false,
+    "next_stage_started": false
+  },
+  "temporary_downloads": {
+    "directory_basename": "MBVAR_AUDIT_S1_GAPS_20261029",
+    "zip_files": [
+      {
+        "basename": "causal-12876686764.zip",
+        "sha256": "3d57c9f60c952142befcd739637d6fb55994ce32da201b0c904ce58aa26b14cd"
+      },
+      {
+        "basename": "time-gm-12877941768.zip",
+        "sha256": "304ac6178a681f16f9958ab43a3237e9b8837ac35670f29853567def8d5ac7db"
+      }
+    ],
+    "note": "Original local evidence retained; absolute user paths and signed URLs omitted from publication."
+  }
+}
