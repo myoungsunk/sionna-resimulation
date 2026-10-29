@@ -42,7 +42,7 @@ v0.2를 계승하는 신규 DRAFT. 변경 근거: label-free P0 및 `reviews/PRO
 | H5 (P2c) | E4 ≤ 0 | > 0 | H4 PASS 조건부 양 |
 | H6 | ε_ρ가 주파수 평탄 diag 이득에 불변 아님 | 상대 변화 ≤ 1e-12 | 불변(수학). **주파수 의존 포트 응답에는 불변 아님** |
 
-- **경쟁 설명:** SCIENCE_SPEC_v0.2 §6. 추가: 주파수 의존 안테나 포트 응답에 의한 LoS floor(= 포트 간 등가 시간 오프셋 Δ_ant), 거리 교란(range_m).
+- **경쟁 설명:** SCIENCE_SPEC_v0.3 §6. 추가: 주파수 의존 안테나 포트 응답에 의한 LoS floor(= 포트 간 등가 시간 오프셋 Δ_ant), 거리 교란(range_m).
 - **고정:** H(14 파일), observer(Hann, 4N IFFT, 30% stronger-port, 공통 tap), Δt = 1/(1028·Δf) 런타임 계산, tx = +45, W·L·분위수, 모델 형태.
 - **변경:** 지표 arm, P3 합성 교란.
 - **통제 불가:** 단일 corridor scene, anchor 천장 근접(ceiling 경로 상존), 재료, route 기하.
@@ -59,7 +59,7 @@ v0.2를 계승하는 신규 DRAFT. 변경 근거: label-free P0 및 `reviews/PRO
 ## Mathematics
 
 - 필터 상태: 사용 안 함.
-- 지표 정의: SCIENCE_SPEC_v0.2 §3. 주지표 **q_W = 4·det J / (tr J)²**.
+- 지표 정의: SCIENCE_SPEC_v0.3 §3. 주지표 **q_W = 4·det J / (tr J)²**.
 - LoS floor 규칙 (사전 고정, S0 시점 판정): q_ref = S0 기준 조건(δ = 1.0 ns, |b|/|a| = −10 dB, 정규화 wedge 0.3, ψ 16점 평균, 근접 상쇄 제외)의 q_W. LoS q95 ≤ 0.1·q_ref → `NEGLIGIBLE`; 0.1–1 → `NUISANCE`(진행, LoS floor 필수 보고); > 1 → M1/M2 `REDESIGN_REQUIRED`. 사후 완화 금지.
 - 모델: primary logistic(standardized, C = 1.0 고정). sensitivity: RandomForest(160, depth 6, min-leaf 40, seed 20261015 — 기존 연구 설정 그대로).
 - 통계: route별 ΔAUC, block bootstrap 95% CI. go rule: CI 하한 > 0이 ≥ 2/3 route이고 부호 3/3.
@@ -70,7 +70,7 @@ v0.2를 계승하는 신규 DRAFT. 변경 근거: label-free P0 및 `reviews/PRO
   - `CORE_FAIL` → 전 단계 STOP: 입력 hash, s_fp parity(R-02), log_fp_power parity(R-12), G5 feature 재현(R-13), 공통 tap·창(R-04), pose join(R-05), 수학 불변성 fixture
   - `T4_ONLY_BLOCKED`: trace 재정렬·재합성 실패(R-01) → T4만 제외
   - `MEASURED`: LoS floor(R-03), route·phase별 block 수 → 판정 없음
-- Tolerances: `PLAN_PARAMETERS_v0.2.json.tolerances_fixed_before_run`.
+- Tolerances: `PLAN_PARAMETERS_v0.3.json.tolerances_fixed_before_run`.
 - P0 산출물: `P0_CHECKS.json`, `TRACE_REALIGN.csv`, `LOS_FLOOR.csv`(case, pose_id, stratum, yaw, q_W, eps_rho, jones_diversity), `POSE_ALIGNMENT.csv`(case, pose_id, stratum, phase, travelled_m, block_id), `G5_PARITY.csv`, `MANIFEST.json`, `IMPLEMENTER_REPORT.md`.
 - P0 금지: 어떤 지표와 label(e_s, e_r, η)의 관계 계산·출력.
 - Acceptance vs verdict: 스크립트 PASS = `TECHNICAL_QA_ONLY`. 과학 판정은 auditor만 내린다.
@@ -81,24 +81,24 @@ v0.2를 계승하는 신규 DRAFT. 변경 근거: label-free P0 및 `reviews/PRO
 | ID | 항목 | 상태 | 분류 |
 |---|---|---|---|
 | R-01 | trace 재정렬·재합성 | OPEN | T4_ONLY |
-| R-02 | s_fp parity ≤ 1e-9 | OPEN | CORE |
-| R-03 | LoS q floor | 재정의: MEASURED, 판정은 S0 시점 규칙 | MEASURED |
-| R-04 | 공통 tap·창·경계 플래그 | OPEN | CORE |
-| R-05 | pose 구조 | RESOLVED_BY_DESIGN (join 검산만) | CORE |
+| R-02 | s_fp parity ≤ 1e-9 | **P0 TECH PASS 9519/9519, auditor pending** | CORE |
+| R-03 | LoS q floor | **MEASURED** (q_ref S0 후 판정, 기존 기준 불변) | MEASURED |
+| R-04 | 공통 tap·창·경계 플래그 | **PARTIAL** (구현자 p0 direct tap/branch 및 flag semantics 보강 필요) | CORE |
+| R-05 | pose 구조 | **P0 TECH PASS** | CORE |
 | R-06 | tx index | RESOLVED | — |
 | R-07 | DW1000 jitter | OPEN_EXTERNAL | — |
 | R-08 | VNA 파일 | OPEN_EXTERNAL | — |
 | R-09 | router append | **ACCEPTED_INSTALLED**, governance SHA d5f84d9d... | 완료 |
 | R-10 | 독립 auditor | **REQUIRED, NOT SIGNED** | FROZEN 차단 |
 | R-11 | 신규 scene 예산 | DEFERRED | — |
-| R-12 | log_fp_power 밑·정의 parity | OPEN | CORE |
+| R-12 | log_fp_power 밑·정의 parity | **P0 TECH PASS 9519/9519** | CORE |
 | R-13 | G5 feature 재현 parity | **P0 TECHNICAL PASS, auditor pending** | CORE |
 | R-14 | epsilon_rho weak-port | **PARTIAL ACCEPT**: q primary, epsilon secondary; weak flag without blanket exclusion | next implementation |
 | R-15 | direct tap/branch/valid parity | **OPEN_IMPLEMENTER**: P0 source-vs-observer equality, negative fixtures | freeze gate |
 
 ## Pre-contract disclosure
 
-`PRE_CONTRACT_DISCLOSURE.md` #1–#11. #8–#11은 기존 retrospective 결과(PHYSICS_RS_STAGED Spearman·LoS/Full 중앙값) 열람 기록. M1–M4 계산 결과는 미관찰.
+`PRE_CONTRACT_DISCLOSURE_v0.3.md` #1–#14. #12–#14는 P0 이후 LoS-only q/epsilon 관찰과 원본 코드 대조다. Full M1–M4와 label 성능의 연결은 미관찰.
 
 ## R-09/R-10/R-14 decisions (pre-freeze; binding as DRAFT implementation scope)
 
