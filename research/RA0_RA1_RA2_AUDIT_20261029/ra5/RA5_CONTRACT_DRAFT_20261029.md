@@ -59,3 +59,12 @@ Before P3 formal science, independent auditor separately recomputes at least R5-
 
 ## G. Mandatory outputs
 RA5_SOURCE_LOCK.json; RA5_DATA_PROVENANCE.csv; RA5_ONLINE_FEATURE_AVAILABILITY.csv; RA5_TWO_TAP_COV.csv; RA5_CROSSTIME_COV.csv; RA5_NEGATIVE_FIXTURES.json; RA5_J_SIGMA_FACTORIAL.csv; RA5_CONDITIONAL_INFORMATION.csv; RA5_OBSERVABILITY.csv; RA5_R0_R5_SCORES.csv; RA5_GATE_POLICY.csv; RA5_HELD_SCENE_RESULTS.csv; RA5_QA.json; RA5_FINAL_REPORT.md. Every run has config hash, input/output hashes and exact command. No original artifacts overwritten.
+
+
+## H. RA5 P0 감사 보완 (미실행 필수 게이트)
+- **두 baseline을 구분:** EKF 관측 정보량 baseline은 [r,s_fp] 원본 측정이다. 편파 오염 감지/feature discriminability baseline은 기존 POL-XCORR-001 v0.2의 G5 전체 + |ds1| + log first-path power 등 이미 쓰인 feature다. 새 cross-correlation/Delta s가 이 풍부한 baseline 대비 추가 성능을 보이지 못하면 신규 feature 정보량을 주장하지 않는다. 두 평가의 목적 및 scoring protocol을 혼용하지 않는다.
+- **원시 CIR 레벨 Monte Carlo:** port별 복소 열잡음, frequency response, 30% first-tap 검출, tap switching, port switching 및 0.4988526ns zero-pad interpolation vs 물리적 native sample spacing을 분리한다. s에 단독 Gaussian 잡음을 추가하는 시험만으로 joint covariance 유효성을 승인하지 않는다. 분모가 작은 s, tap 전환 구간을 별도 층으로 보고한다.
+- **선택 편향:** R_rs/R_sd/R_dd 및 time ACF 추정은 평가 대상 arm에서 수용한 packet만으로 적합하지 않는다. train fold의 전체 유효 raw packet으로 추정하거나 gate censoring 모형을 적용한다. gate로 걸러진 sample의 경험분산이 작다고 sensor R이 정확하다는 결론 금지.
+- **단위 일관 observability:** [x,y,psi,b_g,b_s]의 이종 단위를 prior 또는 사전 지정 scale로 정규화한 Gramian spectrum을 사용한다. raw condition number만으로 identifiable 판정하지 않는다.
+- **A4 선행 조건:** 선택 세 B0 case의 60-packet identity checks/first-flip 2x2 QA는 완료됐으나 28개 조건 전체의 long-trace sigma=0, muM=muB, multi-seed initial XY, initial heading, gyro-bias, wheel/gyro noise factorial은 NOT_RUN. RA5 causal interpretation 전에 별도 technical gate로 분리한다.
+- **이력 경계:** same-source H row parity/RA4 historical results remain conditional-on-source evidence. 독립 반사점/solver 물리 검증과 새 scene 외부 확인은 별개 claim이다. 새로운 확인 결과 없으면 STUDY_DESIGN_ONLY 또는 SUPPORTED_RETROSPECTIVE로 보고한다.
