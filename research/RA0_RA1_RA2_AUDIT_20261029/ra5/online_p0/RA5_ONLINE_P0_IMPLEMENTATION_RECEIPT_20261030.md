@@ -47,3 +47,19 @@ Unit workflow now uses a concurrency group to cancel newer-revision superseded c
 Check action runs above. Once source unit, original BB full state/P/mask canaries and categorical holdout each return actual logs, verify detailed output hashes, initial and first-flip x/P, joint R, Jacobian/switching strata, 30s scoring and valid-denominator counts. At the first failure preserve it and repair on a new commit/run, never overwrite an earlier result. Only after all actual technical QA is PASS should a separate independent auditor undertake science-level examination; P0 DRAFT never authorizes new RT or blind TEST.
 
 STATUS: CODE_AND_WORKFLOWS_COMMITTED / CI_EXECUTION_QUEUED / SCIENCE_RELEASE_BLOCKED.
+
+
+## 6. 2026-10-30 13:00 KST 이후 Actions 실제 종료 및 수정 원장
+
+앞선 "QUEUED"는 당시 상태 기록이다. 그 뒤 다음 일이 확인되었다.
+
+- P0 unit fixture [40994216940](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40994216940) SUCCESS, SHA f94df162816b0ce602ebfacb3aa997ce108f436e. Source 3 pose, fractional J/FD, deliberate singular covariance reject, information-basis equivalence PASS (max 1.136868e-13). Science auditor remains pending.
+- 최초 P1 noise-switch [40993838476](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40993838476) FAILED because stray ')' in tap_switch_conditional_mc.py line 102, **not a physics or statistical rejection**. Corrected by b4e16ae333cb95a3296af67c25ace7d8616db04b.
+- Corrected P1 [41000128768](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41000128768) SUCCESS 2/2: R2-A m45 and R5-A each train=3072 noise realizations, eval=3072. Heldout weighted conditional Brier vs unconditional: R2 0.132394 vs 0.150975, R5 0.133611 vs 0.141851. Conditional logloss R2 0.410807 vs 0.455249, R5 0.401197 vs 0.429299. The labels are noisy vs clean Full-H tap, never Full minus LoS; experimental SNR/jitter themselves are not an authenticated online hardware feature.
+- Initial and final earlier recursive P3 [40993524816](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40993524816), [40994444606](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40994444606) FAILED on numpy.int64 JSON serialization of first new-arm score (run_prior_joint_canary.py). Both got past source and BB_ORIG full-state/P/mask parity to printing. Corrected by 003f0096958db14a14ef98d33442ad9a1c15fc9b.
+- Code audit identified further fail-close: an observed Full first-path tap differing from predicted SourceFFD LoS tap cannot be pushed through a single Gaussian crossing Jacobian unless a mixture is calibrated. Added explicit OBSERVED_SOURCE_TAP_MISMATCH_BLOCKED receipt (9bd0ef613694835b80720c56c05f0393e70c8754). This may cause legitimate starvation; retain every rejected packet and do not claim new heading improvement by altering eligibility.
+- Rerun [41000168328](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41000168328) is the **current P3 execution reference**; last check: QUEUED, not PASS. Historical failure logs and artifacts were retained.
+- Split P2 source-calibrated covariance from P3 recursion in a dedicated LORO technical preflight [41000484410](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41000484410); last check: QUEUED. It validates train-only source R3 rank/Schur and heldout Mahalanobis/coverage separately, not hardware receiver calibration.
+- A separate active MBVAR-INFO S1V3 source workflow with many parallel shards (IDs 40992589158/40992623257) occupies available Actions capacity; no source run was cancelled, no queue priority bypassed. This queue status is external execution scheduling, not a source-model QA result.
+
+**Current engineering status:** P0_SUCCESS / P1_SYNTHETIC_SUCCESS / P2_QUEUED / P3_QUEUED / INDEPENDENT_AUDITOR_PENDING. This section supersedes the earlier queued status for P0/P1, but the original dated records above are retained.
