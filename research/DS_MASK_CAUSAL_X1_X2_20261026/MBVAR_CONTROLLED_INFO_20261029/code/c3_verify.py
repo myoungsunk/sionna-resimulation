@@ -32,16 +32,14 @@ import s1v3 as T  # noqa: E402
 import world as Wd  # noqa: E402
 
 GROUPS = {"LH": ("LOW", "HIGH"), "RV": ("REV60", "FWD60")}
-D_REF = np.array([0.02, 0.02, math.radians(0.25), math.radians(0.01)])   # fixed external scale (2 cm, 2 cm, 0.25 deg, 0.01 deg/s)
+D_REF = T.D_REF                                                         # fixed external scale (2 cm, 2 cm, 0.25 deg, 0.01 deg/s)
 TOL = dict(z=1e-9, ctl=1e-12, fp_rel=1e-12, state_dref=1e-6, cost=1e-6, P_rel=1e-3, basin=1.0, stab1=1.0, stab2=2.0, stab_frac=0.99,
            itercap_dref=0.1, linear_rel=1e-3, probe_power_frac=0.99)
 N = V.N; P0M = M.P0
 SPLIT = "DEV2"
 
 
-def dref_diff(Xa_end, Xb_end):
-    d = np.asarray(Xa_end, float) - np.asarray(Xb_end, float); d[2] = FL.wrap(d[2])
-    return float(np.max(np.abs(d) / D_REF))
+dref_diff = T.dref_diff
 
 
 def s1v3_dir():
@@ -92,11 +90,12 @@ def cmd_run(field, group, out):
                 z, x0, dsm, gym = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"]; mu = np.zeros((N, 2))
                 Tr = IC.rotation_rt(w["Xtrue"][-1], Wd.ANCHORS["A"])
                 for arm, Sm in models.items():
-                    r, XE, IE = T.eval_batch(w, arm, Sm, inp, (field, w["role"], cn, sn, arm))
+                    skey = (field, w["role"], cn, sn, arm)
+                    r, XE, IE, thp = T.eval_batch(w, arm, Sm, inp, skey)          # XE = X' (polished E); r["cost"] = cost(E')
                     starts = {f"psi{k:+d}": (np.r_[x0[:2], FL.wrap(x0[2] + k * sd0[2]), x0[3]], np.zeros((N, 2))) for k in FL.MS_K}
                     starts["x+1"] = (x0 + np.r_[sd0[0], 0, 0, 0], np.zeros((N, 2))); starts["y+1"] = (x0 + np.r_[0, sd0[1], 0, 0], np.zeros((N, 2)))
                     starts["truth"] = (w["Xtrue"][0].copy(), -inp["vn"])
-                    sol = {"E": (IE["cost"], XE)}
+                    sol = {"E": (r["cost"], XE)}
                     for nm, th in starts.items():
                         Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, theta0=th)
                         sol[nm] = (Is["cost"], Xs)
@@ -104,17 +103,18 @@ def cmd_run(field, group, out):
                     pc10 = np.array([r[f"P_{AJ.PRIMARY}_{a}"] for a in T.STATES])
                     de = XE[-1] - sol[best][1][-1]; de[2] = FL.wrap(de[2])
                     rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm, **idf,
-                                **{k: r[k] for k in ("conv", "class_v3", "cost", "ms_best_k", "rescued", "ms_triggered", "kink_poses_at_E",
-                                                     "probe_min_dcost", "dec_A_fixed", "rel_spread", "KINK_P_UNCERTAIN")},
-                                **{f"xend_{i}": r[f"xend_{i}"] for i in range(4)},
+                                **{k: r[k] for k in ("conv", "class_v3", "cost", "cost_E", "ms_best_k", "rescued", "ms_triggered", "kink_poses_at_E",
+                                                     "probe_min_dcost", "dec_A_fixed", "rel_spread", "KINK_P_UNCERTAIN", "polish_steps",
+                                                     "polish_cost_decrease", "polish_E_vs_Ep_dref", "polish_within_scope")},
+                                **{f"xend_{i}": r[f"xend_{i}"] for i in range(4)}, **{f"xendE_{i}": r[f"xendE_{i}"] for i in range(4)},
                                 **{f"P_{m}_{a}": r[f"P_{m}_{a}"] for m in ("A", AJ.PRIMARY) for a in T.STATES},
-                                C_star=cstar, best_start=best, gap_E=IE["cost"] - cstar, E_vs_best_dref=dref_diff(XE[-1], sol[best][1][-1]),
+                                C_star=cstar, best_start=best, gap_E=r["cost"] - cstar, E_vs_best_dref=dref_diff(XE[-1], sol[best][1][-1]),
                                 E_vs_best_sdC10=float(np.max(np.abs(Tr @ de) / np.sqrt(pc10))),
                                 truth_gap=sol["truth"][0] - cstar, n_starts_gross_worse=int(sum(v[0] > cstar + 1.0 for v in sol.values())),
-                                **T.probe_power(ht, z, Sm, dsm, gym, w["dts"], x0, IE["theta"], T.key_seed("PP", field, w["role"], cn, sn, arm) % (2 ** 62)))
+                                **T.probe_power(ht, z, Sm, dsm, gym, w["dts"], x0, thp, T.key_seed("PP", field, w["role"], cn, sn, arm) % (2 ** 62)))
                     if IE["status"] != "CONVERGED":
-                        X3, _, I3 = FL.batch_map_v2_ms(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, max_iter=300)
-                        rec_.update(E300_status=I3["status"], E300_vs_E_dref=dref_diff(X3[-1], XE[-1]), E300_cost_minus_E=I3["cost"] - IE["cost"])
+                        _, I3, _, X3p, c3p, _ = T.estimate(w, Sm, inp, skey, max_iter=300)
+                        rec_.update(E300_status=I3["status"], E300_vs_E_dref=dref_diff(X3p[-1], XE[-1]), E300_cost_minus_E=c3p - r["cost"])
                     else:
                         rec_.update(E300_status="NOT_RUN_CONVERGED", E300_vs_E_dref=0.0, E300_cost_minus_E=0.0)
                     rows.append(rec_)
@@ -160,6 +160,7 @@ def cmd_aggregate(shards, out):
         s = D.loc[k]
         cmp.append(dict(found=True, d_state_dref=dref_diff([r[f"xend_{i}"] for i in range(4)], [s[f"xend_{i}"] for i in range(4)]),
                         d_cost=abs(r.cost - s.cost), same_best_k=int(r.ms_best_k) == int(s.ms_best_k),
+                        d_stateE_dref=dref_diff([r[f"xendE_{i}"] for i in range(4)], [s[f"xendE_{i}"] for i in range(4)]), d_costE=abs(r.cost_E - s.cost_E),
                         d_P_C10_rel=max(abs(r[f"P_{AJ.PRIMARY}_{a}"] - s[f"P_{AJ.PRIMARY}_{a}"]) / s[f"P_{AJ.PRIMARY}_{a}"] for a in T.STATES),
                         d_P_A_rel=max(abs(r[f"P_A_{a}"] - s[f"P_A_{a}"]) / s[f"P_A_{a}"] for a in T.STATES),
                         same_class_v3=r.class_v3 == s.class_v3, same_old_class=r.conv == s.conv))
@@ -179,7 +180,8 @@ def cmd_aggregate(shards, out):
                          max_z=float(C.d_z.max()), max_ctl=float(C[["d_ds", "d_gy", "d_x0"]].max().max()),
                          max_sig_fp_rel=float(C[["d_sig_true_rel", "d_sig_model_rel"]].max().max())),
         STATE_COST_REPRO=dict(pass_=bool(allrows and (C.d_state_dref <= TOL["state_dref"]).all() and (C.d_cost <= TOL["cost"]).all() and C.same_best_k.all()),
-                              max_state_dref=float(C.d_state_dref.max()), max_cost=float(C.d_cost.max()), n_best_k_diff=int((~C.same_best_k.astype(bool)).sum())),
+                              max_state_dref=float(C.d_state_dref.max()), max_cost=float(C.d_cost.max()), n_best_k_diff=int((~C.same_best_k.astype(bool)).sum()),
+                              raw_E_max_state_dref_REPORTED=float(C.d_stateE_dref.max()), raw_E_max_cost_REPORTED=float(C.d_costE.max())),
         P_REPRO=dict(pass_=bool(allrows and (C.d_P_C10_rel <= TOL["P_rel"]).all()), max_C10_rel=float(C.d_P_C10_rel.max()),
                      analytic_A_max_rel_REPORTED=float(C.d_P_A_rel.max()), analytic_A_n_gt_tol_REPORTED=int((C.d_P_A_rel > TOL["P_rel"]).sum())),
         STATUS_REPRO=dict(pass_=bool(allrows and C.same_class_v3.all()), n_class_v3_diff=int((~C.same_class_v3.astype(bool)).sum()),

@@ -93,7 +93,7 @@ def post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, theta, T):
         out.update({f"P_{m}_{a}": float(dg[m][i]) for i, a in enumerate(STATES)})
         out[f"pd_{m}"] = ok; out[f"cond_{m}"] = float(ev[-1] / ev[0]) if ev[0] > 0 else float("inf")
         if m == "A":
-            g = A.T @ b; out["dec_A_fixed"] = float(g @ np.linalg.solve(Nm, g)); out["cost_fixed"] = c
+            g = A.T @ b; out["dec_A_fixed"] = float(g @ np.linalg.solve(Nm, g)); out["cost_fixed"] = c; out["_PA_end"] = Pe; out["_X"] = X
     ref = dg[AJ.PRIMARY]
     out["rel_spread"] = float(max(np.max(np.abs(dg[m] - ref) / ref) for m in AJ.METHODS))
     out["KINK_P_UNCERTAIN"] = bool(out["rel_spread"] > SPREAD_MAX or not pd_ok)
@@ -108,7 +108,7 @@ def probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed, gn_steps, rho=R
     """A8-4 objective probe at theta (no P involved):
       (i) line probes theta + alpha * s_m for every Jacobian convention m (s_m its Gauss-Newton step), alpha in GN_ALPHAS;
       (ii) 2*n_dir random +- directions of radius rho in prior-scaled coordinates (x0 / sqrt diag P0, v_k / sqrt q_k).
-    Returns (min cost change, label of the minimising probe)."""
+    Returns (min cost change, label of the minimising probe, its theta displacement)."""
     Lm, L0, qv = _mats(Sm, ds_m, dts); mu = np.zeros_like(z); th0, thv = theta; n = len(z)
     scale = np.r_[np.sqrt(np.diag(P0M)), np.sqrt(qv[1:].reshape(-1))]
     c0, _ = FL._v2_parts(hb, z, mu, Lm, L0, x0, qv, ds_m, gy_m, dts, th0, thv, jac=False)
@@ -116,15 +116,39 @@ def probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed, gn_steps, rho=R
     def dc(d):
         x1 = th0 + d[:4]; x1[2] = FL.wrap(x1[2]); v1 = thv.copy(); v1[1:] = thv[1:] + d[4:].reshape(n - 1, 2)
         return FL._v2_parts(hb, z, mu, Lm, L0, x0, qv, ds_m, gy_m, dts, x1, v1, jac=False)[0] - c0
-    best = (np.inf, "")
+    best = (np.inf, "", None)
     for m, s in gn_steps.items():
         for a in GN_ALPHAS:
-            best = min(best, (dc(a * s), f"gn_{m}_{a:g}"))
+            v = dc(a * s)
+            if v < best[0]:
+                best = (v, f"gn_{m}_{a:g}", a * s)
     r = np.random.default_rng(seed)
     for i in range(n_dir):
         u = r.standard_normal(len(scale)); d = rho * scale * u / np.linalg.norm(u)
-        best = min(best, (dc(d), f"rand{i}+"), (dc(-d), f"rand{i}-"))
-    return float(best[0]), best[1]
+        for sg, lab in ((1.0, "+"), (-1.0, "-")):
+            v = dc(sg * d)
+            if v < best[0]:
+                best = (v, f"rand{i}{lab}", sg * d)
+    return float(best[0]), best[1], best[2]
+
+
+POLISH_TOL, POLISH_MAX = 1e-3, 30                  # AMENDMENT-008 E' polish: accept probe descents > 1e-3 chi^2, <= 30 steps
+
+
+def polish(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed):
+    """E' (AMENDMENT-008 decision 2026-10-30): from theta, repeatedly take the best descending probe (GN steps of all six
+    Jacobian conventions + random prior-scaled directions) while it lowers the cost by more than POLISH_TOL.
+    Deterministic given the seed. Returns (theta', n_steps, total cost decrease, hit_cap)."""
+    th0, thv = theta[0].copy(), theta[1].copy(); n = len(z); total = 0.0
+    for k in range(POLISH_MAX):
+        pf = post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, (th0, thv), np.eye(4))
+        if pf["dec_A_fixed"] <= FL.V2_DEC_TOL:
+            return (th0, thv), k, total, False
+        dmin, _, d = probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, (th0, thv), seed + k, pf["_gn_steps"])
+        if not dmin < -POLISH_TOL:
+            return (th0, thv), k, total, False
+        th0 = th0 + d[:4]; th0[2] = FL.wrap(th0[2]); thv = thv.copy(); thv[1:] = thv[1:] + d[4:].reshape(n - 1, 2); total -= dmin
+    return (th0, thv), POLISH_MAX, total, True
 
 
 def probe_power(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed, target=1.0):
@@ -148,7 +172,7 @@ def probe_power(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed, target=1.0):
         mid = 0.5 * (lo + hi); (lo, hi) = (mid, hi) if f(mid) < target else (lo, mid)
     thd = disp(hi); rise = f(hi)
     pf = post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, thd, np.eye(4)); gn = pf.pop("_gn_steps")
-    dmin, which = probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, thd, seed + 1, gn)
+    dmin, which, _ = probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, thd, seed + 1, gn)
     return dict(pp_rise=float(rise), pp_dmin=dmin, pp_argmin=which, pp_class=class_v3(pf["dec_A_fixed"], dmin))
 
 
@@ -167,23 +191,49 @@ def kink_count(X, taps):
     return int((np.abs(Hf - H).max(axis=(1, 2)) / np.abs(H).max() > 1e-4).sum())
 
 
-def eval_batch(w, arm, Sm, inp, seed_key):
-    """E + A8-3 + A8-4 for one batch arm. Returns (row dict, X_hat, info)."""
+def dref_diff(Xa_end, Xb_end):
+    d = np.asarray(Xa_end, float) - np.asarray(Xb_end, float); d[2] = FL.wrap(d[2])
+    return float(np.max(np.abs(d) / D_REF))
+
+
+D_REF = np.array([0.02, 0.02, math.radians(0.25), math.radians(0.01)])   # fixed external scale (2 cm, 2 cm, 0.25 deg, 0.01 deg/s)
+POLISH_MAX_DREF, POLISH_MAX_DCOST = 2.0, 1.0                             # A8-2 scope bound on E -> E' (= C3 STATE_STABILITY max, NO_WRONG_BASIN tol)
+
+
+def estimate(w, Sm, inp, seed_key, max_iter=FL.V2_MAX_ITER):
+    """E' = batch_map_v2_ms (E, unchanged) followed by the polish. Returns (X_E, info_E, theta', X', polish record)."""
     hb = lambda X, t=w["taps"]: Wd.h_H_tap(X, "A", t)  # noqa: E731
     z, x0, ds_m, gy_m, dts = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"], w["dts"]
-    X, Pst, info = FL.batch_map_v2_ms(hb, z, np.zeros((N, 2)), Sm, ds_m, gy_m, dts, x0, P0M)
+    X, _, info = FL.batch_map_v2_ms(hb, z, np.zeros((N, 2)), Sm, ds_m, gy_m, dts, x0, P0M, max_iter=max_iter)
+    if info["newton_decrement"] <= FL.V2_DEC_TOL:                       # smooth convergence: nothing to polish
+        thp, nst, cap = info["theta"], 0, False
+    else:
+        thp, nst, _, cap = polish(hb, z, Sm, ds_m, gy_m, dts, x0, info["theta"], key_seed("POLISH", *seed_key))
+    Lm, L0, qv = _mats(Sm, ds_m, dts)
+    cp, Xp = FL._v2_parts(hb, z, np.zeros((N, 2)), Lm, L0, x0, qv, ds_m, gy_m, dts, thp[0], thp[1], jac=False)
+    rec = dict(polish_steps=nst, polish_cost_decrease=float(info["cost"] - cp), polish_hit_cap=bool(cap),
+               polish_E_vs_Ep_dref=dref_diff(X[-1], Xp[-1]))
+    rec["polish_within_scope"] = bool(rec["polish_E_vs_Ep_dref"] <= POLISH_MAX_DREF and rec["polish_cost_decrease"] <= POLISH_MAX_DCOST)
+    return X, info, thp, Xp, float(cp), rec
+
+
+def eval_batch(w, arm, Sm, inp, seed_key):
+    """E' + A8-3 + A8-4 for one batch arm. Returns (row dict, X', info_E, theta')."""
+    hb = lambda X, t=w["taps"]: Wd.h_H_tap(X, "A", t)  # noqa: E731
+    z, x0, ds_m, gy_m, dts = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"], w["dts"]
+    XE, info, thp, Xp, cp, prec = estimate(w, Sm, inp, seed_key)
     T = IC.rotation_rt(w["Xtrue"][-1], Wd.ANCHORS["A"])
-    pf = post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, info["theta"], T); gn = pf.pop("_gn_steps")
-    dmin, which = probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, info["theta"], key_seed(*seed_key), gn)
+    pf = post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, thp, T); gn = pf.pop("_gn_steps"); PA = pf.pop("_PA_end"); pf.pop("_X")
+    dmin, which, _ = probe_min_dcost(hb, z, Sm, ds_m, gy_m, dts, x0, thp, key_seed("CLASS", *seed_key), gn)
     row = dict(arm=arm, status="OK", conv=info["status"], class_v3=class_v3(pf["dec_A_fixed"], dmin), probe_min_dcost=dmin, probe_argmin=which,
                stop_reason=info["stop_reason"], iters=info["iters"], n_accept=info["n_accept"], n_reject=info["n_reject"], n_used=N,
-               cost=info["cost"], cost_start0=info["ms_cost_start0"], cost_descent=info["ms_cost_start0"] - info["cost"],
+               cost_E=info["cost"], cost=cp, cost_start0=info["ms_cost_start0"], cost_descent=info["ms_cost_start0"] - cp,
                newton_decrement=info["newton_decrement"], gn_shift_end_sd=info["gn_shift_end_sd"], ms_triggered=info["ms_triggered"],
                ms_best_k=info["ms_best_k"], ms_n_distinct_minima=info["ms_n_distinct_minima"], ms_final_misfit=info["ms_final_misfit"],
-               rescued=info["rescued"], kink_poses_at_E=kink_count(X, w["taps"]), **pf)
-    row.update(V._row_from(w, X, Pst[-1], "A"))          # e_*, P_* (analytic = old convention), nees4, window errors
-    row.update({f"xend_{i}": float(X[-1, i]) for i in range(4)})
-    return row, X, info
+               rescued=info["rescued"], kink_poses_at_E=kink_count(Xp, w["taps"]), **prec, **pf)
+    row.update(V._row_from(w, Xp, PA, "A"))             # e_*, P_* (analytic convention at theta'), nees4, window errors
+    row.update({f"xend_{i}": float(Xp[-1, i]) for i in range(4)}); row.update({f"xendE_{i}": float(XE[-1, i]) for i in range(4)})
+    return row, Xp, info, thp
 
 
 def ekf_rows(S, w, cn, z, sensor_rng):
@@ -249,7 +299,7 @@ def cmd_run(fields, split, out):
                     for arm, Sm in models.items():
                         rec[f"{kb}|{arm}|Sig_model_fp"] = sig_fp(Sm)
                         try:
-                            r, _, _ = eval_batch(w, arm, Sm, inp, (f, w["role"], cn, sn, arm))
+                            r = eval_batch(w, arm, Sm, inp, (f, w["role"], cn, sn, arm))[0]
                         except Exception as ex:  # noqa: BLE001
                             r = dict(arm=arm, status=f"FAILED:{type(ex).__name__}:{ex}")
                         rows.append(dict(base, **r))
@@ -342,10 +392,16 @@ def cmd_aggregate(shards, split, out):
                KINK_P_UNCERTAIN_frac=float(b.KINK_P_UNCERTAIN.mean()) if len(b) else None,
                KINK_P_UNCERTAIN_by_arm=b.groupby("arm").KINK_P_UNCERTAIN.mean().to_dict() if len(b) else {},
                rel_spread_q50_q90_q99_max=[float(x) for x in b.rel_spread.quantile([0.5, 0.9, 0.99, 1.0])] if len(b) else [],
-               cost_fixed_vs_E_max=float((b.cost_fixed - b.cost).abs().max()) if len(b) else None)
+               cost_fixed_vs_E_max=float((b.cost_fixed - b.cost).abs().max()) if len(b) else None,
+               A82_polish_rows=int((b.polish_steps > 0).sum()) if len(b) else None,
+               A82_polish_all_within_scope=bool(((b.polish_E_vs_Ep_dref <= POLISH_MAX_DREF) & (b.polish_cost_decrease <= POLISH_MAX_DCOST)).all()) if len(b) else False,
+               A82_polish_max_cost_decrease=float(b.polish_cost_decrease.max()) if len(b) else None,
+               A82_polish_max_E_vs_Ep_dref=float(b.polish_E_vs_Ep_dref.max()) if len(b) else None,
+               A82_polish_hit_cap_n=int(_bool(b.polish_hit_cap).sum()) if len(b) else None,
+               A82_old_class_by_polish={f"{k[0]}->{k[1]}": int(v) for k, v in b.groupby(["conv", "class_v3"]).size().items()} if len(b) else {})
     qaj["pass"] = bool(got == expected and rule_ok and len(mm) and all(abs(v - 1) <= mtol for v in mm.values) and qaj["revisit_pose_identical_max"] == 0.0
                        and (qaj["revisit_time_differs_min"] or 0) > 0 and qaj["stops"] == 0 and qaj["failures"] == 0 and qaj["n_rows"] == n_exp
-                       and not fail_new and qaj["primary_P_pd_all"])
+                       and not fail_new and qaj["primary_P_pd_all"] and qaj["A82_polish_all_within_scope"])
     (out / "S1V3_QA.json").write_text(json.dumps(qaj, indent=1, default=float))
     s0d = Path(os.environ["S0V2_RESULTS_DIR"]); s0m = json.loads((s0d / "MANIFEST.json").read_text())
     s0_ok = s0m.get("execution_status") == "PASS" and s0m.get("contract_sha256") == MF.sha256_file(MF.CONTRACT)
