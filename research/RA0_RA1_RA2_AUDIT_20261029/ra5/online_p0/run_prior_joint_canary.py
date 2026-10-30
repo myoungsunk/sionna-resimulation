@@ -149,6 +149,12 @@ def run_online(*,t,z,quality,source_model,spec,case,cal,ds,gy,dt,x0,P0,base_mask
                 v=zrow-h
                 if not dg["smooth_active_branch"]:
                     reason="SOURCE_TAP_SWITCH_NEAR_PRIOR"
+                elif int(quality["tap"][k])!=int(dg["tap"]):
+                    # The LoS prediction and Full-H observation selected different
+                    # discrete arrivals. The Gaussian model was calibrated only
+                    # within a matching active tap; record as a mismatch stratum.
+                    # Mixture likelihood is NOT calibrated in this P0 canary.
+                    reason="OBSERVED_SOURCE_TAP_MISMATCH_BLOCKED"
                 else:
                     value,K=local_update(x,P,v,H,R)
                     Kgain=K.copy()
@@ -215,6 +221,8 @@ def scores(D,z,dim,gate,mode,level):
        n_accepted=int(z["mask"].sum()),n_packets=len(z["mask"]),
        n_source_invalid=sum("SOURCE" in l["reason"] for l in z["logs"]),
        n_native_invalid=sum(l["reason"]=="INVALID_NATIVE_FRACTIONAL" for l in z["logs"]),
+       n_tap_mismatch_blocked=sum(l["reason"]=="OBSERVED_SOURCE_TAP_MISMATCH_BLOCKED" for l in z["logs"]),
+       n_source_switch_blocked=sum(l["reason"]=="SOURCE_TAP_SWITCH_NEAR_PRIOR" for l in z["logs"]),
        n_nis_finite=sum(np.isfinite(l["NIS"]) for l in z["logs"]))
 def validate_negative_controls(cal,source_model,case,spec):
     # Off-diagonal R cannot be represented as a product of independent scalars.
