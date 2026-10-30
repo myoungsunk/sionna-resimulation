@@ -138,7 +138,7 @@ jobs:
             rt_regenerated=False,science_release=False,
             work=["synthetic source-free negative fixture","600-field REV/FWD time split",
                   "source-fixed FFD tap-conditioned Jacobian", "2 original Full-H cases complex receiver-noise sweeps"])
-          (root/"RUN_MANIFEST.json").write_text(json.dumps(data,indent=2)+"\\n")
+          (root/"RUN_MANIFEST.json").write_text(json.dumps(data,indent=2))
           PY
           (cd "$RUNNER_TEMP/integrated"; find . -type f ! -name 'OUTPUT_SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/integrated/OUTPUT_SHA256SUMS.txt"
           (cd "$RUNNER_TEMP/integrated"; sha256sum -c OUTPUT_SHA256SUMS.txt)
