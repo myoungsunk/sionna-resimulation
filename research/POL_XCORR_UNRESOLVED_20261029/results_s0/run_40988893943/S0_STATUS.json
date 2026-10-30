@@ -1,0 +1,42 @@
+{
+  "role": "IMPLEMENTER",
+  "contract_id": "POL-XCORR-001",
+  "phase": "S0_SYNTHETIC_ONLY",
+  "status": "S0_TECHNICAL_FAIL",
+  "checks": {
+    "FROZEN_CONTRACT_SHA": {
+      "status": "PASS",
+      "details": {
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v1.0.md": "c36c1c56d4db59d39ea85e1d87c1efe622325730a6b4fbc595fc95e583cde219",
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v0.3.md": "39c396c72688d88efa84d0fcb7779ad2b5b693891ab87aaae803bd26793cb76e",
+        "SCIENCE_SPEC_v0.3.md": "5db75dcc0a332833de50d87ba2081bea5ca0cd74e7e093ae00ce987728368450",
+        "config/PLAN_PARAMETERS_v1.0.json": "a16e8226f2766f4188c144228f99276c0102532667eb1e46816c0b4e0ff42658",
+        "config/INPUT_LOCK_v2.json": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184"
+      }
+    },
+    "FREQUENCY_AND_P0_LOS_LOCK": {
+      "status": "PASS",
+      "details": {
+        "freq_sha": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+        "p0_los_sha": "d2c08dbac53975d13b880cc93f3293c9eaaf8f4ae75c4fe07a7eee1cdaf24dd6",
+        "timeline_n": 7251
+      }
+    },
+    "UNHANDLED": {
+      "status": "FAIL",
+      "details": ""
+    }
+  },
+  "errors": [
+    {
+      "error": "",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py\", line 453, in run\n    fixtures=fixture_tests(freq,p0,params)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py\", line 365, in fixture_tests\n    assert err<=params[\"tolerances_fixed_before_run\"][\"gain_invariance_rel\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ],
+  "label": "TECHNICAL_QA_ONLY / SELF_REVIEW_ONLY_FREEZE",
+  "auditor": "SELF_REVIEW_ONLY; R-10 independent audit outstanding",
+  "P1_P2": "HOLD",
+  "P3": "NOT_RUN",
+  "P4_RT": "BLOCKED",
+  "scientific_release": "NOT_AUTHORIZED"
+}

@@ -1,0 +1,70 @@
+{
+  "schema": "POL_XCORR_S0_V1_MANIFEST",
+  "phase": "S0_SYNTHETIC_ONLY",
+  "role": "IMPLEMENTER",
+  "contract_id": "POL-XCORR-001",
+  "timestamp_utc": "2026-10-30T01:58:07.663814+00:00",
+  "base_git_sha": "250d617ad89a4105fa1af546cc83ceed9de98f42",
+  "governance_git_sha": "d5f84d9d04d28d465f3357e9299352eb184e6bfc",
+  "freeze_reference_sha": "50703065b8ba716fe50e13bae0ae6fd38eacc3c3",
+  "execution_git_sha": "3b145cd0894eae229c0d260a8a7df688b2776971",
+  "frozen_document_sha256": {
+    "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v1.0.md": "c36c1c56d4db59d39ea85e1d87c1efe622325730a6b4fbc595fc95e583cde219",
+    "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v0.3.md": "39c396c72688d88efa84d0fcb7779ad2b5b693891ab87aaae803bd26793cb76e",
+    "SCIENCE_SPEC_v0.3.md": "5db75dcc0a332833de50d87ba2081bea5ca0cd74e7e093ae00ce987728368450",
+    "config/PLAN_PARAMETERS_v1.0.json": "a16e8226f2766f4188c144228f99276c0102532667eb1e46816c0b4e0ff42658",
+    "config/INPUT_LOCK_v2.json": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184"
+  },
+  "input_lock_sha256": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184",
+  "output_file_sha256": {
+    "S0_STATUS.json": "0c29b0bc5f6dcebf9242df4578e7439242d3f49913a233c1c629ae35f399cb9e"
+  },
+  "inputs": {
+    "p0_observer_sha256": "c46192c495239c76258159be879db3a73643fc4471bb4ac10d3fefcd9084726c",
+    "p0_los_sha256": "d2c08dbac53975d13b880cc93f3293c9eaaf8f4ae75c4fe07a7eee1cdaf24dd6",
+    "freq_sha256": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+    "freq_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy",
+    "p0_los_path": "research/POL_XCORR_UNRESOLVED_20261029/results_p0/run_40867521966/LOS_FLOOR.csv",
+    "timeline_n": 7251,
+    "q95_timeline": 0.0062089980405863505,
+    "q95_by_case": {
+      "R2_aA_m0": 0.006627023363953019,
+      "R2_aA_m45": 0.0047456668671903195,
+      "R2_aB_m0": 0.00585018032517151,
+      "R4_aA_m0": 0.003984149673114559,
+      "R4_aB_m0": 0.00198922032983184,
+      "R5_aA_m0": 0.006568145241747429,
+      "R5_aB_m0": 0.005920436799730379
+    },
+    "q95_max_case_descriptive_only": 0.006627023363953019,
+    "delta_f_hz": 1950000.0,
+    "dt_ns": 0.49885263893045995
+  },
+  "code_sha256": "11d44f14249dcf3ce4d871dbce9f369d40a39fef68d5420128d2474ecfe8b205",
+  "environment": {
+    "python": "3.11.17",
+    "numpy": "2.3.3",
+    "pandas": "2.3.2",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39"
+  },
+  "command": [
+    "research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py",
+    "--repo-root",
+    ".",
+    "--out",
+    "research/POL_XCORR_UNRESOLVED_20261029/results_s0/run_40988893943"
+  ],
+  "seed_ledger": "S0_NOISE_SEEDS.csv.gz (PCG64 seed 0..199) if produced",
+  "train_test_manifest": "NOT_APPLICABLE; no labels, no training",
+  "solver_config": "NOT_APPLICABLE (synthetic spectral channel)",
+  "source_invariants": "No Full H, labels or historical label-containing feature references loaded",
+  "status": "S0_TECHNICAL_FAIL",
+  "failure_receipts": [
+    {
+      "error": "",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py\", line 453, in run\n    fixtures=fixture_tests(freq,p0,params)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py\", line 365, in fixture_tests\n    assert err<=params[\"tolerances_fixed_before_run\"][\"gain_invariance_rel\"]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ],
+  "auditor": "SELF_REVIEW_ONLY_FREEZE; independent R-10 OPEN",
+  "scientific_verdict": "NOT_ISSUED"
+}
