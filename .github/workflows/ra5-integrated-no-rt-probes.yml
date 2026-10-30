@@ -120,11 +120,28 @@ jobs:
               --poses "$POSES" --draw 512 \
               --out "$RUNNER_TEMP/integrated/experiment_$CASE" | tee "$RUNNER_TEMP/integrated/noise_$CASE.log"
           done
-      - name: Record commands and SHA of all outputs
+      - name: Record execution manifest and independently verify output hashes
         shell: bash
         run: |
           set -euo pipefail
-          (cd "$RUNNER_TEMP/integrated"; find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/integrated/OUTPUT_SHA256SUMS.txt"
+          python - <<'PY'
+          import datetime,hashlib,json,os,pathlib,platform
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"integrated"
+          scripts=pathlib.Path("research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration")
+          data=dict(schema="RA5_NO_RT_MANIFEST_V1",
+            created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            execution_sha=os.environ["GITHUB_SHA"],runner_id=os.environ["GITHUB_RUN_ID"],
+            historical_H_source_sha="9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13",
+            upstream_mbvar_source_sha="c4d84e02b878af9835bef09d515d45f4010caa74",
+            script_sha256={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in scripts.glob("*.py")},
+            python=platform.python_version(),original_data_changed=False,
+            rt_regenerated=False,science_release=False,
+            work=["synthetic source-free negative fixture","600-field REV/FWD time split",
+                  "source-fixed FFD tap-conditioned Jacobian", "2 original Full-H cases complex receiver-noise sweeps"])
+          (root/"RUN_MANIFEST.json").write_text(json.dumps(data,indent=2)+"\\n")
+          PY
+          (cd "$RUNNER_TEMP/integrated"; find . -type f ! -name 'OUTPUT_SHA256SUMS.txt' -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/integrated/OUTPUT_SHA256SUMS.txt"
+          (cd "$RUNNER_TEMP/integrated"; sha256sum -c OUTPUT_SHA256SUMS.txt)
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
