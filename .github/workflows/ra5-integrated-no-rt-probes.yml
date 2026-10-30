@@ -1,0 +1,134 @@
+name: RA5 physical tap joint covariance and independent field/time synthetic QA (NO RT)
+on:
+  push:
+    branches: ['audit/ra5-physical-tap-field-reuse-20261030']
+    paths:
+      - '.github/workflows/ra5-integrated-no-rt-probes.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  BASE: research/DS_MASK_CAUSAL_X1_X2_20261026
+  EXP: research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration
+  SRC: 9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13
+  MBVAR_SRC: c4d84e02b878af9835bef09d515d45f4010caa74
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  source_locked_no_rt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          fetch-depth: 3
+          sparse-checkout: |
+            research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          ref: c4d84e02b878af9835bef09d515d45f4010caa74
+          path: upstream_mbvar
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/config
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.3.3 scipy==1.16.2 pandas==2.3.2
+      - name: Source byte provenance (pinned Git blob plus original research baseline)
+        shell: bash
+        run: |
+          set -euo pipefail
+          P="upstream_mbvar/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code"
+          test "$(git hash-object "$P/info_core.py")" = "151861fe9020e070f1632b6e32749c2e5c2ac3cd"
+          test "$(git hash-object "$P/world.py")" = "2129aefa65e8dba7abd39dd4a66a89c066eac593"
+          test "$(git -C upstream_mbvar rev-parse HEAD)" = "$MBVAR_SRC"
+          mkdir -p "$RUNNER_TEMP/integrated"
+          echo "$MBVAR_SRC" > "$RUNNER_TEMP/integrated/MBVAR_SOURCE_SHA.txt"
+      - name: RA5-I1 pure complex observer and covariance negative fixture
+        shell: bash
+        run: |
+          set -o pipefail
+          python -u "$EXP/raw_tap_covariance.py" --mode fixture --out "$RUNNER_TEMP/integrated/fixture" | tee "$RUNNER_TEMP/integrated/fixture.log"
+      - name: RA5-I2 known-generative pose vs time field and independent revisits
+        shell: bash
+        run: |
+          set -o pipefail
+          python -u "$EXP/field_time_identifiability.py" \
+            --info-core "upstream_mbvar/$BASE/MBVAR_CONTROLLED_INFO_20261029/code/info_core.py" \
+            --fields 600 --out "$RUNNER_TEMP/integrated/field" | tee "$RUNNER_TEMP/integrated/field.log"
+      - name: Download original source-locked FFD banks and frozen sensor traces
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ra5input"
+          FETCH_RF=0 bash "$BASE/reflect_model/fetch_inputs.sh"
+          test -s "$REFLECT_ROOT/out/INPUT_LOCK.sha256"
+      - name: RA5-I1 actual pinned SourceFFD tap-conditioned physical Jacobian
+        shell: bash
+        run: |
+          set -o pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/ra5input"
+          python -u "$EXP/tap_jacobian_adapter.py" \
+            --mbvar-code "upstream_mbvar/$BASE/MBVAR_CONTROLLED_INFO_20261029/code" \
+            --out "$RUNNER_TEMP/integrated/jacobian" | tee "$RUNNER_TEMP/integrated/jacobian.log"
+      - name: Fetch locked original Full-H (no RT) and source frequency grid
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ra5input"
+          BLK="results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C"
+          mkdir -p "$ROOT/h_source"
+          for CASE in R5_aA_m0 R2_aA_m45; do
+            git -C "$ROOT/.src.git" cat-file -p "$SRC:$BLK/FULL_RF/H_$CASE.npy" > "$ROOT/h_source/H_$CASE.npy"
+          done
+          git -C "$ROOT/.src.git" cat-file -p "$SRC:$BLK/freqs_hz.npy" > "$ROOT/h_source/freqs_hz.npy"
+          python - "$ROOT/h_source" "$RUNNER_TEMP/integrated" <<'PY'
+          import hashlib,json,pathlib,sys
+          p=pathlib.Path(sys.argv[1]);out=pathlib.Path(sys.argv[2])
+          manifest=json.loads(pathlib.Path('research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json').read_text())
+          aset={pathlib.Path(a["path"]).name:a for a in manifest["assets"] if a.get("sha256")}
+          freq=aset['freqs_hz.npy']
+          for case in ('R5_aA_m0','R2_aA_m45'):
+              h=aset['H_'+case+'.npy']
+              obj=dict(H_sha256=h['sha256'],freq_sha256=freq['sha256'],source_commit=manifest['base_commit'],case=case)
+              for file,expected in [(p/('H_'+case+'.npy'),h['sha256']),(p/'freqs_hz.npy',freq['sha256'])]:
+                  actual=hashlib.sha256(file.read_bytes()).hexdigest()
+                  assert actual==expected,(file,actual,expected)
+              (out/('LOCK_'+case+'.json')).write_text(json.dumps(obj,indent=2))
+          PY
+      - name: RA5-I1 actual archived Full-H plus assumed receiver-noise sensitivity
+        shell: bash
+        run: |
+          set -o pipefail
+          for CASE in R5_aA_m0 R2_aA_m45; do
+            if [ "$CASE" = R5_aA_m0 ]; then POSES=100,900; else POSES=200,500; fi
+            python -u "$EXP/raw_tap_covariance.py" --mode source \
+              --case "$CASE" --rf-root "$RUNNER_TEMP/ra5input/h_source" \
+              --hash-lock "$RUNNER_TEMP/integrated/LOCK_$CASE.json" \
+              --poses "$POSES" --draw 512 \
+              --out "$RUNNER_TEMP/integrated/experiment_$CASE" | tee "$RUNNER_TEMP/integrated/noise_$CASE.log"
+          done
+      - name: Record commands and SHA of all outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd "$RUNNER_TEMP/integrated"; find . -type f -print0 | sort -z | xargs -0 sha256sum) > "$RUNNER_TEMP/integrated/OUTPUT_SHA256SUMS.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ra5-no-rt-integration-${{ github.run_id }}
+          path: ${{ runner.temp }}/integrated/
+          retention-days: 30
+          if-no-files-found: warn
