@@ -94,3 +94,14 @@ F. **Final blind unseen scene:** totally new physical room/reflector/material/an
 ## 7. Final status
 
 Original sources untouched. A/B/C mathematics/computation PASS. Sub-tap promising as a candidate observable, but cross-pose calibration and coverage FAIL for a naive single-source bias/variance transfer. Full 3x3 measurement likelihood, 4-state/5-state online filters, physical temporal drift, original-FFD canary and independent-scene generalization NOT YET VALIDATED. Large RT was not executed. All failures remain available.
+
+
+## H. 추가 7-case LORO 거리 모델의 오차구간 검증 (A–G 이후 기록)
+
+- 기존 원장 보존: 첫 7-case LORO [40989668488](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40989668488). 두 학습 source route의 inner OOF 잔차 분산을 추가한 재실행 [40990582994](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40990582994) PASS.
+- Coverage 재집계: [40990730180](https://github.com/myoungsunk/sionna-resimulation/actions/runs/40990730180) PASS_ROUTE_COVERAGE_ACCOUNTING_NOT_CALIBRATION_APPROVAL. 7,251 time-row, 평가 route R2/R4/R5, INT/SUB와 CONSTANT/RANGE/GEOMETRY의 18개 비교행.
+- SUB+GEOMETRY의 nominal 95% Gaussian error interval coverage: R2 0.983657 (2937 row), R4 0.980458 (1484 row), R5 0.940283 (2830 row). 학습 내 source route inner OOF 산출 σ는 각각 0.110775m/0.105356m/0.086500m.
+- 앞선 고정 pose 사이 수신기 잡음 전용 분산의 0% coverage와 모순되지 않는다. 새 구간은 훨씬 큰 RF 거리 *모델 잔차*를 포함하므로 넓고, 이 수치만으로 실제 확률적 센서 R, 환경 이전, 온라인 95% coverage 또는 균일한 calibration이 확증되지 않는다.
+- 기하형 보정은 평가 GT pose를 OFFLINE 분석 feature로 사용했다. 실제 필터 own prior로 치환하고 기존 BASE_FIXED/self NIS를 분리해 재귀 평가하지 않았다. 따라서 OOF σ를 바로 EKF Rrr로 입력하는 것은 금지.
+- 3개 route는 동일 Corridor 장면에서 상관된 반복이며 독립한 3개 물리 환경이 아니다. R2/R4 과보수 또는 R5 과신 가능성을 포함해 결과를 그대로 보존하고 평가 후 threshold tuning을 하지 않는다.
+- 실제 새로운 FFD-정합 C00 8-config / 바닥 C01 / 금속판 C10 최대76-config RT는 아직 별도 미서명 PRE-P3 및 숫자 예산·독립 감사에 묶여 있다. 이번 신규 실제 Sionna 솔버 시험은 빈 장면 이상적인 V 편파의 2-pose 엔진 smoke에 한정된다.
