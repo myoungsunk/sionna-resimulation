@@ -40,13 +40,13 @@ def main(out):
     # No GT input to the implementation function.
     must("gt" not in inspect.signature(F.run_online).parameters,
         "ERR_FILTER_TRUTH_ARGUMENT")
-    q=np.array(["AMBIG"]*50+["STABLE"]*50)
-    E=np.random.default_rng(32).standard_normal((100,3))@np.array([[.13,.03,-.02],[0,.07,.025],[0,0,.04]])
+    q=np.array(["AMBIG"]*300+["STABLE"]*300)
+    E=np.random.default_rng(32).standard_normal((600,3))@np.array([[.13,.03,-.02],[0,.07,.025],[0,0,.04]])
     r=O.fit_covariance(E,q)
     must(all(np.linalg.eigvalsh(r[k]["R3"]).min()>0 for k in r),"ERR_PSD")
-    cat=O.fit_categorical(np.arange(100)%7-3,q)
+    cat=O.fit_categorical(np.arange(600)%7-3,q)
     must(all(abs(sum(cat[k]["p"].values())-1)<1e-12 for k in cat),"ERR_CLASS_NORM")
-    s=np.random.default_rng(2).standard_normal((100,1))
+    s=np.random.default_rng(2).standard_normal((600,1))
     bad=np.repeat(s,3,axis=1)
     rejected=False
     try:O.fit_covariance(bad,q)
