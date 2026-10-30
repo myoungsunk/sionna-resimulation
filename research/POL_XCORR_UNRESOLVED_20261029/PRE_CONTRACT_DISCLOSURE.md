@@ -32,3 +32,12 @@ M1–M4(q_W, ε_ρ, τ*, A_k, M3, M4)의 계산 결과와 label 관계는 여전
 | 12 | P0 Actions run 40867063352, 40867521966의 LoS 채널 측정값 열람 (label 미사용) | LoS q_W 중앙값 ≈ 0.0011–0.0014, q95 ≈ 0.0056–0.0062, 최대 0.014; turn > drive. ε_ρ는 LoS에서 q95 0.035–0.185, 최대 0.92 | R-14(ε_ρ 약포트 guard/강등) 제안. R-03 판정은 S0까지 보류(q_ref 미계산) |
 
 Full 채널 M1–M4 값과 label 관계는 여전히 계산·관찰하지 않았다.
+
+## 추가 (v1.0 freeze 직전, 2026-10-30 KST)
+
+| # | 실행 | 관찰 | 계약에 준 영향 |
+|---|---|---|---|
+| 13 | F-11 합성 power sim (Actions 40983557008, 40984998584; 실제 drive block 구조 + 합성 label·feature) 및 UM_POSE_TABLE의 key+G5 열만 사용한 공간 상관길이 추정 | v0.3 route별 규칙: type-I 0, ℓ = 1 m·Δ = 0.05에서 power 0.07–0.25. pooled 규칙: type-I ≤ 0.013, 같은 조건 power 0.42–0.74. G5 상관길이 중앙값 0.96 m(feature별 0.24–2.2 m) | D1(pooled 주 판정), D2(해석 규칙), D3(turn은 기술 통계만) |
+| 14 | AUDIT-01 감사 재계산(LoS만) | log q_W 분산 중 4u(1−u) 기여 −2.1%; 창 균형과 1−s_fp² Spearman 0.994 | D4는 선택적 secondary(필수 요건 철회) |
+
+실제 label(e_s, e_r, η)과 Full 채널 M1–M4 값은 여전히 계산·관찰하지 않았다.

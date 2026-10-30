@@ -1,4 +1,11 @@
-# POL-XCORR-001 — Unresolved reflection 편파 오염 지표 (proposer 패키지, DRAFT v0.2)
+# POL-XCORR-001 — Unresolved reflection 편파 오염 지표
+
+## 현행: v1.0 FROZEN (2026-10-30, 감사 SELF_REVIEW_ONLY, 독립 감사 R-10 OPEN)
+
+시작점: `FREEZE_RECORD_v1.0.md` → `contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v1.0.md` → `TASK_HANDOFF_v1.0.md` → `reviews/TRANSMITTAL_TO_IMPLEMENTER_v1.0.md`.
+권한: S0 GO, P1·P2 HOLD(사용자 지시 또는 독립 감사 서명), 결과 라벨 TECHNICAL_QA_ONLY.
+
+## 이력: proposer 패키지 DRAFT v0.2
 
 Status: **DRAFT v0.2**. 실행 결과 없음. 허용 범위는 `P0_PREFLIGHT`뿐.
 
