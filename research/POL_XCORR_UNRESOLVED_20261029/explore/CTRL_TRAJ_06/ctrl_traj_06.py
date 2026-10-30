@@ -164,6 +164,7 @@ def run_batch(cfg, seeds, scen_of_run, pol_of_run, thr, collect=False):
     obs_stack = np.stack([cfg['obsW'][sc] for sc in SCEN]); sidx = np.array([SCEN.index(sc) for sc in scen_of_run])
     useeds = sorted(set(seeds)); spos = np.array([useeds.index(s) for s in seeds])
     noise_stack = np.stack([cfg['tapnoise'][s] for s in useeds]); is_refl = sidx != 0
+    add_stack = np.stack([cfg['addnoise'][s] for s in useeds])
     buf_d = np.zeros((R_, WIN, 3)); buf_s = np.zeros((R_, WIN)); buf_sg = np.zeros((R_, WIN)); cnt = np.zeros(R_, int); last_leg = -1
     E = np.zeros((n, R_, 3)); PS = np.zeros((n, R_)); NX = np.zeros((n, R_)); FL = np.zeros((n, R_), bool); SU = np.zeros((n, R_), bool)
     ACC = np.zeros((n, R_), bool); OOR = np.zeros((n, R_), bool); CAL = []
@@ -177,11 +178,17 @@ def run_batch(cfg, seeds, scen_of_run, pol_of_run, thr, collect=False):
         flag = np.zeros(R_, bool); use_s = np.zeros(R_, bool); infl = np.ones(R_)
         if leg[k] != 2:
             lut = cfg['luts'][leg[k]]; F, oor = lut(X[:, 0], X[:, 1], X[:, 2]); OOR[k] = oor
+            if cfg.get('exact'):
+                Se, se = feats(taps(C2.channel(cfg['ant'], ANCHOR, np.column_stack([X[:, :2], np.full(R_, ZR)]), np.degrees(X[:, 2]) + cfg['mount'], [])))
+                F = F.copy(); F[:, 0] = se; F[:, 1:4] = Se
             hs = F[:, 0]; Sp = F[:, 1:4] / np.linalg.norm(F[:, 1:4], axis=1, keepdims=True); tv = F[:, 13:16]
             tv = tv / np.maximum(np.linalg.norm(tv, axis=1, keepdims=True), 1e-12)
             Hs = np.c_[F[:, 4], F[:, 8], F[:, 12], np.zeros(R_)]
-            Wn = obs_stack[sidx, k] + cfg['sigma_n'] * noise_stack[spos, k]
-            So, so = feats(Wn)
+            if cfg.get('noise_mode', 'taps') == 'taps':
+                So, so = feats(obs_stack[sidx, k] + cfg['sigma_n'] * noise_stack[spos, k])
+            else:
+                Sc, sc_ = feats(obs_stack[sidx, k]); an = add_stack[spos, k]
+                so = sc_ + cfg['R_s'] ** 0.5 * an[:, 0]; So = Sc + cfg['sigS'] * an[:, 1:4]; So = So / np.linalg.norm(So, axis=1, keepdims=True)
             d = So - Sp; dp = d - np.sum(d * tv, 1, keepdims=True) * tv
             buf_d = np.roll(buf_d, -1, 1); buf_s = np.roll(buf_s, -1, 1); buf_sg = np.roll(buf_sg, -1, 1)
             buf_d[:, -1] = dp; buf_s[:, -1] = so - hs; buf_sg[:, -1] = np.degrees(np.sqrt(P[:, 2, 2])); cnt += 1
@@ -221,7 +228,11 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--bank-dir', required=True); ap.add_argument('--out', required=True)
     ap.add_argument('--n-eval', type=int, default=100); ap.add_argument('--n-cal', type=int, default=50)
     ap.add_argument('--mounts', default='0,45'); ap.add_argument('--sigmas', default='0.09,0.03'); ap.add_argument('--biases', default='B0,L2')
+    ap.add_argument('--hs-exact', action='store_true', help='exact LoS-model value/Stokes at the estimate (LUT only for Jacobians)')
+    ap.add_argument('--noise-mode', choices=['taps', 'additive'], default='taps')
+    ap.add_argument('--scens', default=','.join(SCEN)); ap.add_argument('--policies', default=','.join(POL))
     ap.add_argument('--quick', action='store_true'); a = ap.parse_args()
+    scens_run = a.scens.split(','); pols_run = a.policies.split(',')
     out = Path(a.out); out.mkdir(parents=True, exist_ok=False)
     ant = C2.Antennas(REPO, a.bank_dir); t, Ptru, leg = route(); n = len(t); QA = {}
     xyz = np.column_stack([Ptru[:, :2], np.full(n, ZR)])
@@ -258,23 +269,29 @@ def main():
             Z = np.swapaxes(np.einsum('ij,...pj->...pi', L, w0), -1, -2)                      # (400, nfr, 7, 2)
             def sd_of(sn):
                 return float(np.median(np.std(feats(obsW['NULL'][fr][None] + sn * Z)[1], axis=0)))
-            lo, hi = 1e-6, 1e3
+            lo, hi = 1e-10, 1e3
             for _ in range(60):
                 mid = math.sqrt(lo * hi); lo, hi = (mid, hi) if sd_of(mid) < sig else (lo, mid)
-            sigma_n = math.sqrt(lo * hi); QA[f'noise_m{mount}_s{sig}'] = {'sigma_n': sigma_n, 'achieved_std_s_far': sd_of(sigma_n)}
+            sigma_n = math.sqrt(lo * hi)
+            Sn, sn = feats(obsW['NULL'][fr][None] + sigma_n * Z); s0 = feats(obsW['NULL'][fr])[1]
+            sigS = float(np.median(np.std(Sn, axis=0)))
+            QA[f'noise_m{mount}_s{sig}'] = {'sigma_n': sigma_n, 'achieved_std_s_far': sd_of(sigma_n), 'stokes_comp_std_far': sigS,
+                                            'noise_bias_s_far_median': float(np.median(sn.mean(0) - s0)), 'noise_bias_s_far_absmax': float(np.max(abs(sn.mean(0) - s0))),
+                                            'noise_bias_over_dsdpsi_deg_median': None}
             # per-seed measurement noise (same across scenarios / policies)
-            rnoise, tapnoise = {}, {}
+            rnoise, tapnoise, addnoise = {}, {}, {}
             for s in allseeds:
                 g = np.random.default_rng([s, 77, int(sig * 1000)])
                 rnoise[s] = g.normal(0, math.sqrt(RR), n)
                 w = (g.standard_normal((n, 2, 7)) + 1j * g.standard_normal((n, 2, 7))) / np.sqrt(2)
                 tapnoise[s] = np.einsum('ij,npj->npi', L, w).transpose(0, 2, 1)
+                addnoise[s] = np.random.default_rng([s, 78, int(sig * 1000)]).standard_normal((n, 4))
             for bias in biases:
                 ctrl, x0 = {}, {}
                 for s in allseeds:
                     c, x = RB.build_positive_bias_controls(t, Ptru, bias, seed=s); ctrl[s] = c; x0[s] = x
                 cfg = dict(t=t, P=Ptru, leg=leg, luts=luts, obsW=obsW, sigma_n=sigma_n, ctrl=ctrl, x0=x0, rnoise=rnoise, tapnoise=tapnoise,
-                           R_s=sig ** 2)
+                           addnoise=addnoise, sigS=sigS, R_s=sig ** 2, exact=a.hs_exact, noise_mode=a.noise_mode, ant=ant, mount=mount)
                 # calibration (NULL, BASE)
                 cr = run_batch(cfg, seeds_cal, ['NULL'] * len(seeds_cal), np.array(['BASE'] * len(seeds_cal)), None, collect=True)['cal']
                 thr = {'sigma': {}, 'Dperp': {}, 'Dperp_ng': {}, 'D0': {}}
@@ -285,7 +302,7 @@ def main():
                         thr[key][l] = q.fillna(q.max()).to_numpy()
                 thr_dump[f'm{mount}_s{sig}_{bias}'] = {k: {str(l): (v.tolist() if hasattr(v, 'tolist') else v) for l, v in d.items()} for k, d in thr.items()}
                 # evaluation
-                runs = [(sc, p, s) for sc in SCEN for p in POL for s in seeds_eval]
+                runs = [(sc, p, s) for sc in scens_run for p in pols_run for s in seeds_eval]
                 res = run_batch(cfg, [r[2] for r in runs], [r[0] for r in runs], np.array([r[1] for r in runs]), thr)
                 T30 = t >= 30; FAR = res['far'] & T30
                 for i, (sc, p, s) in enumerate(runs):
@@ -300,8 +317,8 @@ def main():
                     row['flag_far'] = float(res['FL'][FAR, i].mean()); row['s_used_far'] = float(res['SU'][FAR, i].mean())
                     row['accept_t30'] = float(res['ACC'][T30, i].mean()); row['lut_oor'] = float(res['OOR'][T30, i].mean())
                     rows.append(row)
-                for sc in SCEN:
-                    for p in POL:
+                for sc in scens_run:
+                    for p in pols_run:
                         idx = [i for i, r in enumerate(runs) if r[0] == sc and r[1] == p]
                         e = res['E'][:, idx, 2]
                         ts_rows.append(pd.DataFrame({'sigma_s': sig, 'bias': bias, 'mount': mount, 'scen': sc, 'policy': p, 'k': np.arange(n), 't': t,
@@ -333,7 +350,7 @@ def main():
             agg.append(r)
     A = pd.DataFrame(agg); A.to_csv(out / 'CTRL_TRAJ_06_SUMMARY.csv', index=False)
     (out / 'CTRL_TRAJ_06_THRESHOLDS.json').write_text(json.dumps(thr_dump, indent=1)); (out / 'CTRL_TRAJ_06_QA.json').write_text(json.dumps(QA, indent=1))
-    meta = {'status': 'EXPLORATORY', 'mounts': mounts, 'sigmas': sig_list, 'biases': biases, 'n_eval': a.n_eval, 'n_cal': a.n_cal, 'banks': ant.receipts, 'RR': RR, 'RS': RS,
+    meta = {'status': 'EXPLORATORY', 'hs_exact': a.hs_exact, 'noise_mode': a.noise_mode, 'scens': scens_run, 'policies': pols_run, 'mounts': mounts, 'sigmas': sig_list, 'biases': biases, 'n_eval': a.n_eval, 'n_cal': a.n_cal, 'banks': ant.receipts, 'RR': RR, 'RS': RS,
             'script_sha256': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     meta['outputs'] = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in out.iterdir()}
     (out / 'CTRL_TRAJ_06_MANIFEST.json').write_text(json.dumps(meta, indent=1))
