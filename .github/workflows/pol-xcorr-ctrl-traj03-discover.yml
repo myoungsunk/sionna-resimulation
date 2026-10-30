@@ -26,6 +26,7 @@ jobs:
           gh run download 39376076166 --repo myoungsunk/sionna-resimulation --name POWERJOINT_SEPARATE_RS_FINAL_VALIDATION_39376076166 --dir /tmp/art
           python - <<'PY'
           import numpy as np, glob, json, os
+          os.makedirs('research/POL_XCORR_UNRESOLVED_20261029/explore/CTRL_TRAJ_03', exist_ok=True)
           out = {'files': sorted(os.path.relpath(p, '/tmp/art') for p in glob.glob('/tmp/art/**/*', recursive=True) if os.path.isfile(p))}
           tr = sorted(glob.glob('/tmp/art/**/*_TRACE.npz', recursive=True))
           out['traces'] = {}
