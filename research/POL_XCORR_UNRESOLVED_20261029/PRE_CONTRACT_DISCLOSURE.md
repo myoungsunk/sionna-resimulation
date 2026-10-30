@@ -41,3 +41,11 @@ Full 채널 M1–M4 값과 label 관계는 여전히 계산·관찰하지 않았
 | 14 | AUDIT-01 감사 재계산(LoS만) | log q_W 분산 중 4u(1−u) 기여 −2.1%; 창 균형과 1−s_fp² Spearman 0.994 | D4는 선택적 secondary(필수 요건 철회) |
 
 실제 label(e_s, e_r, η)과 Full 채널 M1–M4 값은 여전히 계산·관찰하지 않았다.
+
+## 추가 (S0 이후, 2026-10-30 KST — AMENDMENT-POLX-001 작성 전)
+
+| # | 실행 | 관찰 | 영향 |
+|---|---|---|---|
+| 15 | S0 run 40989019866 결과 열람, 감사 진단 `audit/s0_review_diag.py`(합성 + LoS만) | H1_FAIL 원인 C1–C3, 수정 LAW 기울기 1.997, q_ref 구성 불변, floor 등가 반사 −3.7 dB / −13 dB, 정적 등화 −6.8% | AMENDMENT A1–A5 (모두 EXPLORATORY_POST_RESULT 또는 v1.0 규칙의 이행) |
+
+label과 Full 채널 M1–M4 값은 여전히 계산·관찰하지 않았다.

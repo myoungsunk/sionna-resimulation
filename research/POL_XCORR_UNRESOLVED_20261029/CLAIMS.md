@@ -22,3 +22,4 @@
 |---|---|---|---|---|---|
 | PX-009 | FP 국소 창 coherency(q_W)가 대역 전체 jones_diversity·G5 대비 판별 정보를 더하는가 | NOT_RUN | 같은 함수족에서 창만 다른 지표 비교를 계획 | 기존 편파 feature 대비 우월 | P1 E1, E1b |
 - 2026-10-30 v1.0 FROZEN (SELF_REVIEW_ONLY audit): PX 상태 변경 없음. 추가 금지 표현: "검정력 충분", D2 외의 "효과 없음", "독립 감사 완료". ΔAUC ≈ 0.02 효과는 이 corpus로 검출 불가하다고 사전 명시(F-11).
+- 2026-10-30 AMENDMENT-POLX-001 (post-S0, SELF_REVIEW_ONLY): PX-002 → `H1_FAIL (SPEC_DEFECT)` 기록, 수정 사양에서 `EXPLORATORY_SUPPORTED`(δ 0.002–0.01 ns 기울기 중앙값 1.997). PX-003·PX-004·PX-009 → `STOPPED_BY_R03`(LoS q95/q_ref = 5.66, label 미개방). PX-007 → `WITHDRAWN`(M1/M2 철회). 금지 표현 추가: "q_W/교차상관은 효과 없음"(실행하지 않았음), "F2 법칙 확증".
