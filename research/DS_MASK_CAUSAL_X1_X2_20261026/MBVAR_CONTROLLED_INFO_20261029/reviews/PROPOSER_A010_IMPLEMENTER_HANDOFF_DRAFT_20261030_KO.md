@@ -60,6 +60,10 @@
 - G6 HOLDOUT2 remains closed pending new independent audit and explicit user decision.
 - G7 P3 RT no-go; Option B `TAP_SENSITIVE` (1-tap error 10% raises Oracle heading RMSE ~1.70×), Option C historical RT BIAS/SCALE/NON_GAUSSIAN/FP_SWITCH/CORR_MISMATCH must be reflected in RT detector, real-complex-channel parity and common-plate design. New RT run requires independent signed pre-P3 lock and user-approved numeric budget.
 
+### 추가 G7 교정: Full/LoS tap 불일치와 시간적 tap 변화 분리
+
+`c_rfres.py`의 기존 `fp_switch=(idxF!=idxL)`는 **동일 pose의 Full vs LoS-only 검출 인덱스 불일치**를 뜻한다. 29–54 %는 시간 연속 프레임 사이의 tap 변동률이 아니다. A010 별도 사후 기록에서 `FULL_LOS_TAP_DISAGREE`, `TEMPORAL_TAP_CHANGE_FULL`, `TEMPORAL_TAP_CHANGE_LOS`, `TIME_CHANGE_OF_DISAGREEMENT` 네 지표를 서로 혼동하지 말고 정의/계산한다. 기존 A009 출력·임계값·성능 결과는 덮어쓰지 않는다. 사용자와 감사자에게 기존 `FP_SWITCH` 해석 수정을 명시하고, 실제 P3 tap 전환 검증에서는 시간 연속 프레임 차이와 단일 pose에서 Full–LoS 차이를 모두 판정한다.
+
 ## Output contract / signoff
 
 All new reports append-only under `results/P2_A010_*` and `reviews/A010_*`. Emit code diff vs frozen A009 SHA, input, output and source SHA256, commands, system info, an explicit reason for every STOP and every primary/subgroup classification; no deleted rows. The proposer approves science changes, the implementer self-tests, the independent auditor signs only after a **distinct** execution and source check. **No auto-HOLDOUT, no auto-RT**.
