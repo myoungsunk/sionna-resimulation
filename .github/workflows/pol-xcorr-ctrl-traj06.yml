@@ -20,6 +20,7 @@ jobs:
       matrix:
         mount: ['0', '45']
         sigma: ['0.09', '0.03']
+        noise: ['taps_debiased', 'additive']
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with: {persist-credentials: true, lfs: false}
@@ -34,12 +35,12 @@ jobs:
       - name: Run
         run: |
           set -euo pipefail
-          OUT="research/POL_XCORR_UNRESOLVED_20261029/explore/CTRL_TRAJ_06/results_run_${GITHUB_RUN_ID}/m${{ matrix.mount }}_s${{ matrix.sigma }}"
+          OUT="research/POL_XCORR_UNRESOLVED_20261029/explore/CTRL_TRAJ_06/results_run_${GITHUB_RUN_ID}/m${{ matrix.mount }}_s${{ matrix.sigma }}_${{ matrix.noise }}"
           echo "OUT=$OUT" >> "$GITHUB_ENV"
           mkdir -p "$(dirname "$OUT")"
           python -u research/POL_XCORR_UNRESOLVED_20261029/explore/CTRL_TRAJ_06/ctrl_traj_06.py \
             --bank-dir /tmp/banks --out "$OUT" --mounts ${{ matrix.mount }} --sigmas ${{ matrix.sigma }} --biases B0,L2 \
-            --n-eval 100 --n-cal 50 | tee /tmp/log.txt
+            --n-eval 200 --n-cal 60 --noise-mode ${{ matrix.noise }} | tee /tmp/log.txt
           cp /tmp/log.txt "$OUT/LOG.txt"
       - name: Commit outputs
         if: always()
@@ -49,5 +50,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f "$OUT"
-          git commit -m "CTRL-TRAJ-06 outputs m${{ matrix.mount }} s${{ matrix.sigma }} run $GITHUB_RUN_ID (exploratory)" || echo no-changes
-          for i in 1 2 3 4 5; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin HEAD:"$GITHUB_REF_NAME" && break; sleep $((RANDOM % 20 + 5)); done
+          git commit -m "CTRL-TRAJ-06 outputs m${{ matrix.mount }} s${{ matrix.sigma }} ${{ matrix.noise }} run $GITHUB_RUN_ID (exploratory)" || echo no-changes
+          for i in 1 2 3 4 5 6 7 8; do git pull --rebase origin "$GITHUB_REF_NAME" && git push origin HEAD:"$GITHUB_REF_NAME" && break; sleep $((RANDOM % 30 + 5)); done

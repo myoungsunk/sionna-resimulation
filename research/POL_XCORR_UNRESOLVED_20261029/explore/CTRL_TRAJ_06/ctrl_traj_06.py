@@ -70,12 +70,13 @@ def taps(H):
     return np.moveaxis(W, 0, 1)
 
 
-def feats(W):
-    """W (..., 7, 2) -> unit Stokes (..., 3), s_fp (...)."""
+def feats(W, ntap=0.0):
+    """W (..., 7, 2) -> unit Stokes (..., 3), s_fp (...).  ntap > 0: subtract the known per-tap noise power (noise-floor
+    debiasing; affects only the s_fp denominator, the Stokes direction is unchanged because J11-J22 and J12 are unbiased)."""
     j11 = np.sum(abs(W[..., 0]) ** 2, -1); j22 = np.sum(abs(W[..., 1]) ** 2, -1); j12 = np.sum(W[..., 0] * np.conj(W[..., 1]), -1)
     S = np.stack([j11 - j22, 2 * j12.real, -2 * j12.imag], -1); S = S / np.linalg.norm(S, axis=-1, keepdims=True)
-    p = abs(W[..., 2, :]) ** 2
-    return S, (p[..., 0] - p[..., 1]) / p.sum(-1)
+    p = abs(W[..., 2, :]) ** 2; den = np.maximum(p.sum(-1) - 2 * ntap, 1e-3 * p.sum(-1))
+    return S, np.clip((p[..., 0] - p[..., 1]) / den, -1, 1)
 
 
 def noise_chol():
@@ -184,8 +185,8 @@ def run_batch(cfg, seeds, scen_of_run, pol_of_run, thr, collect=False):
             hs = F[:, 0]; Sp = F[:, 1:4] / np.linalg.norm(F[:, 1:4], axis=1, keepdims=True); tv = F[:, 13:16]
             tv = tv / np.maximum(np.linalg.norm(tv, axis=1, keepdims=True), 1e-12)
             Hs = np.c_[F[:, 4], F[:, 8], F[:, 12], np.zeros(R_)]
-            if cfg.get('noise_mode', 'taps') == 'taps':
-                So, so = feats(obs_stack[sidx, k] + cfg['sigma_n'] * noise_stack[spos, k])
+            if cfg.get('noise_mode', 'taps') in ('taps', 'taps_debiased'):
+                So, so = feats(obs_stack[sidx, k] + cfg['sigma_n'] * noise_stack[spos, k], cfg['ntap'])
             else:
                 Sc, sc_ = feats(obs_stack[sidx, k]); an = add_stack[spos, k]
                 so = sc_ + cfg['R_s'] ** 0.5 * an[:, 0]; So = Sc + cfg['sigS'] * an[:, 1:4]; So = So / np.linalg.norm(So, axis=1, keepdims=True)
@@ -229,7 +230,7 @@ def main():
     ap.add_argument('--n-eval', type=int, default=100); ap.add_argument('--n-cal', type=int, default=50)
     ap.add_argument('--mounts', default='0,45'); ap.add_argument('--sigmas', default='0.09,0.03'); ap.add_argument('--biases', default='B0,L2')
     ap.add_argument('--hs-exact', action='store_true', help='exact LoS-model value/Stokes at the estimate (LUT only for Jacobians)')
-    ap.add_argument('--noise-mode', choices=['taps', 'additive'], default='taps')
+    ap.add_argument('--noise-mode', choices=['taps', 'taps_debiased', 'additive'], default='taps_debiased')
     ap.add_argument('--scens', default=','.join(SCEN)); ap.add_argument('--policies', default=','.join(POL))
     ap.add_argument('--quick', action='store_true'); a = ap.parse_args()
     scens_run = a.scens.split(','); pols_run = a.policies.split(',')
@@ -246,7 +247,7 @@ def main():
     for i in range(20):
         y, p = RB.predict_one(Xr[i], Pr[i], dsr[i], gr[i], dtr[i]); md = max(md, float(abs(wrap(y - Yv[i])).max()), float(abs(p - Pv[i]).max()))
     QA['predict_parity_max'] = md; assert md < 1e-12, md
-    L = noise_chol(); mounts = tuple(int(v) for v in a.mounts.split(',')); biases = tuple(a.biases.split(',')); sig_list = tuple(float(v) for v in a.sigmas.split(','))
+    L = noise_chol(); SIG00 = float(np.real((L @ L.conj().T)[0, 0])); deb = a.noise_mode == 'taps_debiased'; mounts = tuple(int(v) for v in a.mounts.split(',')); biases = tuple(a.biases.split(',')); sig_list = tuple(float(v) for v in a.sigmas.split(','))
     if a.quick: mounts, biases, sig_list = mounts[:1], biases[:1], sig_list[:1]
     seeds_eval = list(range(a.n_eval)); seeds_cal = list(range(10000, 10000 + a.n_cal)); allseeds = seeds_eval + seeds_cal
     rows, ts_rows, thr_dump = [], [], {}
@@ -268,12 +269,13 @@ def main():
             w0 = (rr.standard_normal((400, len(fr), 2, 7)) + 1j * rr.standard_normal((400, len(fr), 2, 7))) / np.sqrt(2)
             Z = np.swapaxes(np.einsum('ij,...pj->...pi', L, w0), -1, -2)                      # (400, nfr, 7, 2)
             def sd_of(sn):
-                return float(np.median(np.std(feats(obsW['NULL'][fr][None] + sn * Z)[1], axis=0)))
+                return float(np.median(np.std(feats(obsW['NULL'][fr][None] + sn * Z, sn ** 2 * SIG00 if deb else 0.)[1], axis=0)))
             lo, hi = 1e-10, 1e3
             for _ in range(60):
                 mid = math.sqrt(lo * hi); lo, hi = (mid, hi) if sd_of(mid) < sig else (lo, mid)
             sigma_n = math.sqrt(lo * hi)
-            Sn, sn = feats(obsW['NULL'][fr][None] + sigma_n * Z); s0 = feats(obsW['NULL'][fr])[1]
+            ntap = sigma_n ** 2 * SIG00 if deb else 0.
+            Sn, sn = feats(obsW['NULL'][fr][None] + sigma_n * Z, ntap); s0 = feats(obsW['NULL'][fr])[1]
             sigS = float(np.median(np.std(Sn, axis=0)))
             QA[f'noise_m{mount}_s{sig}'] = {'sigma_n': sigma_n, 'achieved_std_s_far': sd_of(sigma_n), 'stokes_comp_std_far': sigS,
                                             'noise_bias_s_far_median': float(np.median(sn.mean(0) - s0)), 'noise_bias_s_far_absmax': float(np.max(abs(sn.mean(0) - s0))),
@@ -291,7 +293,7 @@ def main():
                 for s in allseeds:
                     c, x = RB.build_positive_bias_controls(t, Ptru, bias, seed=s); ctrl[s] = c; x0[s] = x
                 cfg = dict(t=t, P=Ptru, leg=leg, luts=luts, obsW=obsW, sigma_n=sigma_n, ctrl=ctrl, x0=x0, rnoise=rnoise, tapnoise=tapnoise,
-                           addnoise=addnoise, sigS=sigS, R_s=sig ** 2, exact=a.hs_exact, noise_mode=a.noise_mode, ant=ant, mount=mount)
+                           addnoise=addnoise, sigS=sigS, ntap=ntap, R_s=sig ** 2, exact=a.hs_exact, noise_mode=a.noise_mode, ant=ant, mount=mount)
                 # calibration (NULL, BASE)
                 cr = run_batch(cfg, seeds_cal, ['NULL'] * len(seeds_cal), np.array(['BASE'] * len(seeds_cal)), None, collect=True)['cal']
                 thr = {'sigma': {}, 'Dperp': {}, 'Dperp_ng': {}, 'D0': {}}
