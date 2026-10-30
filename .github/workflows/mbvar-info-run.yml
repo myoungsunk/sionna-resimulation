@@ -90,7 +90,8 @@ jobs:
         run: |
           set -euo pipefail
           export REFLECT_ROOT="$RUNNER_TEMP/mi"
-          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          FR=0; [ "${{ needs.plan.outputs.phase }}" = "P2_RFRES" ] && FR=1    # AMENDMENT-009 option C needs the RT channels
+          FETCH_RF=$FR bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
           rm -rf "$REFLECT_ROOT/.src.git"
           if [ "${{ needs.plan.outputs.phase }}" = "P0_PREFLIGHT" ]; then
             C=9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13; BLK=results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C
