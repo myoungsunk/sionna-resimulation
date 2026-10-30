@@ -1,0 +1,191 @@
+{
+ "rows_ok": true,
+ "n_rows": 1200,
+ "n_rows_expected": 1200,
+ "rule": "pre-registered: ROBUST if every H1/H2/H3/CAL verdict under TAP_ERR_1 equals TAP_ORACLE, else TAP_SENSITIVE; TAP_ERR_4 / TAP_STATE reported (expected to degrade)",
+ "TAP_ERR_1": "TAP_SENSITIVE",
+ "TAP_ERR_4_same_as_oracle": false,
+ "TAP_STATE_same_as_oracle": false,
+ "per_condition": {
+  "TAP_ORACLE": {
+   "H1": [
+    "UNDETERMINED",
+    "PASS",
+    "FAIL",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED"
+   ],
+   "H2": [
+    "PASS",
+    "FAIL"
+   ],
+   "H3": [
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "PASS",
+    "PASS"
+   ],
+   "CAL": [
+    "UNDETERMINED",
+    "PASS",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED"
+   ],
+   "not_certified": 0,
+   "failed": 0,
+   "head_rmse_deg": {
+    "IID_BATCH": 0.8207221441771158,
+    "ORACLE_CORR_BATCH": 0.6345296596968147
+   },
+   "xy_rmse_cm": {
+    "IID_BATCH": 10.593910902574802,
+    "ORACLE_CORR_BATCH": 7.317655861272066
+   }
+  },
+  "TAP_ERR_1": {
+   "H1": [
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED"
+   ],
+   "H2": [
+    "PASS",
+    "FAIL"
+   ],
+   "H3": [
+    "FAIL",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "FAIL"
+   ],
+   "CAL": [
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "FAIL",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "FAIL",
+    "FAIL"
+   ],
+   "not_certified": 0,
+   "failed": 0,
+   "head_rmse_deg": {
+    "IID_BATCH": 0.8366205792497278,
+    "ORACLE_CORR_BATCH": 1.1133878858667337
+   },
+   "xy_rmse_cm": {
+    "IID_BATCH": 10.5519754018388,
+    "ORACLE_CORR_BATCH": 10.981397464101272
+   }
+  },
+  "TAP_ERR_4": {
+   "H1": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL"
+   ],
+   "H2": [
+    "PASS",
+    "PASS"
+   ],
+   "H3": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL"
+   ],
+   "CAL": [
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "FAIL"
+   ],
+   "not_certified": 0,
+   "failed": 0,
+   "head_rmse_deg": {
+    "IID_BATCH": 2.7065906597294562,
+    "ORACLE_CORR_BATCH": 6.8567010046602
+   },
+   "xy_rmse_cm": {
+    "IID_BATCH": 40.67637361770863,
+    "ORACLE_CORR_BATCH": 60.70608079029714
+   }
+  },
+  "TAP_STATE": {
+   "H1": [
+    "FAIL",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "FAIL",
+    "UNDETERMINED",
+    "FAIL",
+    "UNDETERMINED"
+   ],
+   "H2": [
+    "UNDETERMINED",
+    "FAIL"
+   ],
+   "H3": [
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED",
+    "UNDETERMINED"
+   ],
+   "CAL": [
+    "FAIL",
+    "UNDETERMINED",
+    "FAIL",
+    "FAIL",
+    "FAIL",
+    "UNDETERMINED",
+    "FAIL",
+    "FAIL"
+   ],
+   "not_certified": 18,
+   "failed": 0,
+   "head_rmse_deg": {
+    "IID_BATCH": 0.7383653388337046,
+    "ORACLE_CORR_BATCH": 0.72057098363884
+   },
+   "xy_rmse_cm": {
+    "IID_BATCH": 10.26815274654051,
+    "ORACLE_CORR_BATCH": 11.808843620495193
+   }
+  }
+ },
+ "ekf_tap_alignment": {
+  "EKF_STATE_TAP": {
+   "head_rmse_deg": 2.0015019197409143,
+   "xy_rmse_cm": 11.572763025303079
+  },
+  "EKF_ORACLE_TAP": {
+   "head_rmse_deg": 1.8522551041153017,
+   "xy_rmse_cm": 11.554855894813802
+  }
+ },
+ "interpretation_note": "IID_BATCH (TAP_ORACLE) vs EKF_ORACLE_TAP compares estimators with the same tap knowledge; EKF_STATE_TAP vs EKF_ORACLE_TAP isolates the value of knowing the tap.",
+ "scope": "DEV2 sensitivity (fields already used by S1V3/S1V4); synthetic; not confirmatory"
+}
