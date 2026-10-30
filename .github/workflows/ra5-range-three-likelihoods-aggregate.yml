@@ -1,0 +1,52 @@
+name: RA5 range likelihood controlled three-way result audit
+on:
+  push:
+    branches: [audit/ra5-range-likelihood-selection-20261030]
+    paths:
+      - '.github/workflows/ra5-range-three-likelihoods-aggregate.yml'
+      - 'research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration/range_likelihood_aggregate.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+jobs:
+  aggregate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.3.3
+      - name: Verify immutable executed job and collect both source archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPO=myoungsunk/sionna-resimulation
+          test "$(gh api "repos/$REPO/actions/runs/40988773341" --jq '.conclusion')" = success
+          mkdir -p "$RUNNER_TEMP/sources"
+          gh run download 40988773341 --repo "$REPO" --pattern 'ra5-range-three-*' --dir "$RUNNER_TEMP/sources"
+          test "$(find "$RUNNER_TEMP/sources" -name RA5_RANGE_THREE_WAY_QA.json | wc -l)" = 2
+      - name: Source-locked paired trial aggregation and calibration coverage check
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/result"
+          python -u research/RA0_RA1_RA2_AUDIT_20261029/ra5/integration/range_likelihood_aggregate.py \
+            --source "$RUNNER_TEMP/sources" --out "$RUNNER_TEMP/result" 2>&1 | tee "$RUNNER_TEMP/result/RUN_LOG.txt"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: ra5-range-three-summary-${{ github.run_id }}
+          path: ${{ runner.temp }}/result/
+          retention-days: 30
+          if-no-files-found: warn
