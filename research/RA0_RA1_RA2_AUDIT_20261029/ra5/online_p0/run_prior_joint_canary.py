@@ -129,12 +129,14 @@ def run_online(*,t,z,quality,source_model,spec,case,cal,ds,gy,dt,x0,P0,base_mask
         R=cal["cov"][qbin]["R2" if dim==2 else "R3"]
         reason="OK";accepted=False;value=float("nan");k_norm=float("nan")
         h=np.full(dim,np.nan);v=np.full(dim,np.nan)
+        Kgain=np.full((4,dim),np.nan);expected_tap=None;expected_port=None
         is_source_valid=False
         doobs=(bool(base_mask[k]) if gate=="BASE_FIXED" else True)
         valid=bool(quality["valid_sub"][k]) and np.isfinite(zrow).all()
         if doobs and valid:
             try:
                 hs,J,dg=O.source_jacobian(source_model,x,spec)
+                expected_tap=int(dg["tap"]);expected_port=int(dg["port"])
                 b,jb=O.predict_bias_jac(cal["bias"],case,x,spec)
                 h=hs[:dim].copy();H=J[:dim].copy()
                 h[0]+=b;H[0]+=jb
@@ -145,6 +147,7 @@ def run_online(*,t,z,quality,source_model,spec,case,cal,ds,gy,dt,x0,P0,base_mask
                     reason="SOURCE_TAP_SWITCH_NEAR_PRIOR"
                 else:
                     value,K=local_update(x,P,v,H,R)
+                    Kgain=K.copy()
                     if gate=="BASE_FIXED" or value<=thresholds[dim]:
                         y=x+K@v;y[2]=O.wrap(y[2])
                         AA=np.eye(4)-K@H
@@ -172,6 +175,11 @@ def run_online(*,t,z,quality,source_model,spec,case,cal,ds,gy,dt,x0,P0,base_mask
             qbin=qbin,tap_observed=int(quality["tap"][k]),
             port_observed=int(quality["port"][k]),tap_margin=float(quality["margin"][k]),
             NIS=value,threshold=thresholds[dim],K_fro=k_norm,
+            K_matrix=Kgain.tolist(),R_matrix=np.asarray(R).tolist(),
+            rho_prior_m=float(math.hypot(xpre[0]-spec["anchor"][0],xpre[1]-spec["anchor"][1])),
+            sigma_b_used=None,source_predicted_tap=expected_tap,
+            source_predicted_strong_port=expected_port,
+            observed_vs_source_predicted_tap_delta=(int(quality["tap"][k])-expected_tap if expected_tap is not None else None),
             R_rr=float(R[0,0]),R_rs=float(R[0,1]),
             R_rds=float(R[0,2]) if dim==3 else None,
             R_sds=float(R[1,2]) if dim==3 else None,
