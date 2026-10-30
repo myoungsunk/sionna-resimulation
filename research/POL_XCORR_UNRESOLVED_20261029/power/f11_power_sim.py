@@ -12,7 +12,9 @@ Model (assumption, declared before freeze):
   AUC(oracle M0+q) - AUC(M0) = delta.
 Procedure = contract: leave-one-route-out, logistic (C fixed, here unpenalised IRLS on 1-2 standardised
 features), held-out ΔAUC, 1 m block bootstrap 95% percentile CI (B as contract), go rule
-  CI_lo > 0 in >= 2/3 routes AND ΔAUC > 0 in 3/3 routes.
+  CI_lo > 0 in >= 2/3 routes AND ΔAUC > 0 in 3/3 routes  (v0.3 rule, column go_rate).
+Candidate pooled rule (column go_rate_pooled): n-weighted mean of per-route ΔAUC, CI from the same
+  per-route block bootstraps combined replicate-wise; go = pooled CI_lo > 0 AND ΔAUC > 0 in >= 2/3 routes.
 Conservative: one case per route (aA_m0); pooling aA/aB/m45 with joint blocks is not credited.
 """
 from __future__ import annotations
@@ -127,13 +129,13 @@ def main():
                           'auc0_pop': a0p, 'delta_pop': dp})
             for ell in a.ell:
                 rng = np.random.default_rng(master.integers(2**63))
-                go = 0; deltas = []; halfw = []; lo_pos = []
+                go = 0; go_pool = 0; deltas = []; halfw = []; lo_pos = []; pool_hw = []
                 for rep in range(a.reps):
                     sim = {}
                     for r, R in routes.items():
                         Z = ou3(R, ell, rng); z0, z1, e = Z[:, 0], Z[:, 1], Z[:, 2]
                         sim[r] = (z0, z1, z0 + beta * z1 + kappa * e)
-                    d_r, lo_r = [], []
+                    d_r, lo_r, db_r, n_r = [], [], [], []
                     for held in routes:
                         tr = [r for r in routes if r != held]
                         ys_tr = np.concatenate([sim[r][2] for r in tr]); thr = np.quantile(ys_tr, 0.8)
@@ -144,7 +146,7 @@ def main():
                         b1 = logistic_fit(np.column_stack([(X0 - mu[0]) / sd[0], (X1 - mu[1]) / sd[1]]), ytr)
                         z0h, z1h, ysh = sim[held]; yh = (ysh >= thr).astype(int)
                         if yh.sum() in (0, len(yh)):
-                            d_r.append(np.nan); lo_r.append(np.nan); continue
+                            d_r.append(np.nan); lo_r.append(np.nan); db_r.append(np.full(a.boot, np.nan)); n_r.append(0); continue
                         s0 = logistic_score(b0, ((z0h - mu[0]) / sd[0])[:, None])
                         s1 = logistic_score(b1, np.column_stack([(z0h - mu[0]) / sd[0], (z1h - mu[1]) / sd[1]]))
                         dhat = auc(s1, yh) - auc(s0, yh)
@@ -155,12 +157,17 @@ def main():
                         Wt = cnt[:, blk]
                         db = auc_weighted(s1, yh, Wt) - auc_weighted(s0, yh, Wt)
                         lo, hi = np.nanpercentile(db, [2.5, 97.5])
-                        d_r.append(dhat); lo_r.append(lo); halfw.append((hi - lo) / 2)
+                        d_r.append(dhat); lo_r.append(lo); halfw.append((hi - lo) / 2); db_r.append(db); n_r.append(len(yh))
                     d_r = np.array(d_r); lo_r = np.array(lo_r)
                     ok = np.nansum(lo_r > 0) >= 2 and np.all(d_r > 0)
                     go += int(ok); deltas.append(np.nanmean(d_r)); lo_pos.append(np.nanmean(lo_r > 0))
+                    w = np.array(n_r, float); w = w / w.sum()
+                    pooled_b = np.nansum(np.array(db_r) * w[:, None], axis=0); pooled = float(np.nansum(np.array(d_r) * w))
+                    plo, phi = np.nanpercentile(pooled_b, [2.5, 97.5]); pool_hw.append((phi - plo) / 2)
+                    go_pool += int(plo > 0 and np.nansum(d_r > 0) >= 2)
                 rows.append({'auc0_target': auc0, 'delta_target': delta, 'ell_m': ell, 'reps': a.reps, 'boot': a.boot,
-                             'go_rate': go / a.reps, 'mean_heldout_delta': float(np.mean(deltas)),
+                             'go_rate': go / a.reps, 'go_rate_pooled': go_pool / a.reps,
+                             'median_pooled_ci_halfwidth': float(np.median(pool_hw)), 'mean_heldout_delta': float(np.mean(deltas)),
                              'median_ci_halfwidth': float(np.median(halfw)), 'mean_frac_routes_ci_lo_pos': float(np.mean(lo_pos))})
                 print(json.dumps(rows[-1]), flush=True)
     T = pd.DataFrame(rows); T.to_csv(out / 'F11_POWER.csv', index=False)
