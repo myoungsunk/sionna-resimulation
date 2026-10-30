@@ -19,8 +19,9 @@ def filehash(path):
         for data in iter(lambda:f.read(1<<20),b""):h.update(data)
     return h.hexdigest()
 def csvwrite(path,rows):
+    keys=sorted(set().union(*(r.keys() for r in rows)))
     with open(path,"w",newline="") as f:
-        w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+        w=csv.DictWriter(f,fieldnames=keys);w.writeheader();w.writerows(rows)
 
 def main(args):
     out=pathlib.Path(args.out);out.mkdir(parents=True,exist_ok=True)
