@@ -1,0 +1,8 @@
+rows 1080 repro-bad (state>1e-6 d_ref | cost>1e-6 | P_C10>1e-3 | class differs) 81
+d_z == 0             rows  468  bad   0  max state 5.73e-13 d_ref  max cost 2.84e-14  max P_C10 9.27e-13
+0 < d_z <= 1e-12     rows  372  bad   1  max state 0.0764 d_ref  max cost 0.00067  max P_C10 0.00249
+1e-12 < d_z < 1e-9   rows 0
+d_z >= 1e-9          rows  240  bad  80  max state 1.65e-06 d_ref  max cost 6.27e-06  max P_C10 3.26e-08
+cells with d_z >= 1e-9: {('FWD60', 'POSE_HIGH'): 36, ('HIGH', 'POSE_HIGH'): 42, ('HIGH', 'POSE_HIGH_C03'): 42, ('LOW', 'POSE_HIGH'): 42, ('LOW', 'POSE_HIGH_C03'): 42, ('REV60', 'POSE_HIGH'): 36}
+largest deviation row: {'field': np.int64(10), 'role': 'LOW', 'cell': 'TIME_1', 'sensor_seed': np.int64(2), 'arm': 'ORACLE_CORR_BATCH', 'd_z': np.float64(4.440892098500625e-15), 'd_state_dref': np.float64(0.0763945330828804), 'd_cost': np.float64(0.0006698158935165), 'd_P_C10_rel': np.float64(0.0024856323773973), 'conv': 'CONVERGED_NONSMOOTH', 'class_v3': 'LOCAL_MIN_CERTIFIED', 'kink_poses_at_E': np.int64(1)}
+STATE_STABILITY max row: {'field': 11, 'role': 'REV60', 'cell': 'TIME_HIGH_5', 'sensor_seed': 0, 'arm': 'ORACLE_CORR_BATCH', 'E_vs_best_dref': 2.210679944883576, 'gap_E': 0.0510995722232506, 'best_start': 'psi+2'}
