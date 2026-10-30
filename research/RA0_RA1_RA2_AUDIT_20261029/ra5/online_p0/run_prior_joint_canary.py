@@ -27,6 +27,10 @@ ORIGINAL_SHA="9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13"
 
 def must(b,msg):
     if not b:raise RuntimeError(msg)
+def native_json(obj):
+    if isinstance(obj,np.generic):return obj.item()
+    if isinstance(obj,np.ndarray):return obj.tolist()
+    raise TypeError('UNSUPPORTED_JSON_TYPE '+type(obj).__name__)
 def sha(p):
     h=hashlib.sha256()
     with pathlib.Path(p).open("rb") as f:
@@ -274,7 +278,7 @@ def main(args):
                 x0=D["x0"],P0=D["P0"],base_mask=D["acc"],dim=dim,gate=gate)
             runs[(dim,gate)]=zrun
             result.append(scores(D,zrun,dim,gate,args.case,args.level))
-            print("RA5_NEW_ARM "+json.dumps(result[-1]),flush=True)
+            print("RA5_NEW_ARM "+json.dumps(result[-1],default=native_json),flush=True)
         first.append(first_difference(D,runs[(dim,"BASE_FIXED")],runs[(dim,"SELF_NIS")],dim))
     refrow=dict(case=args.case,gyro_level=args.level,dim=2,gate="BASE_FIXED",arm="BB_ORIG_NATIVE",head_rmse_deg=ref_score["head_rmse"],
        xy_rmse_cm=ref_score["xy_rmse_cm"],head_z_rms=ref_score["head_z_rms"],xy_nees=ref_score["nees_xy"],
@@ -299,7 +303,7 @@ def main(args):
     for key,run in runs.items():
         write_csv(out/("RA5_ONLINE_P0_TRACE_"+str(key[0])+"_"+key[1]+".csv"),run["logs"])
     detail=train_details(fitted)
-    (out/"RA5_TRAIN_MODEL.json").write_text(json.dumps(detail,indent=2)+"\n")
+    (out/"RA5_TRAIN_MODEL.json").write_text(json.dumps(detail,indent=2,default=native_json)+"\n")
     qa=dict(status="PASS_RA5_P0_IMPLEMENTER_TECHNICAL_REPLAY",
        contract_status="DRAFT_NOT_FROZEN",role="IMPLEMENTER",
        case=args.case,level=args.level,source_commit=ORIGINAL_SHA,
@@ -322,8 +326,8 @@ def main(args):
        no_new_RT=True,independent_Rf_scenes=1,
        no_scientific_calibration_claim=True,independent_auditor=False,
        created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
-    (out/"RA5_ONLINE_P0_QA.json").write_text(json.dumps(qa,indent=2)+"\n")
-    print("RA5_ONLINE_P0_FINAL "+json.dumps(qa),flush=True)
+    (out/"RA5_ONLINE_P0_QA.json").write_text(json.dumps(qa,indent=2,default=native_json)+"\n")
+    print("RA5_ONLINE_P0_FINAL "+json.dumps(qa,default=native_json),flush=True)
 if __name__=="__main__":
     ap=argparse.ArgumentParser();ap.add_argument("--rf-root",required=True)
     ap.add_argument("--input-manifest",required=True)
