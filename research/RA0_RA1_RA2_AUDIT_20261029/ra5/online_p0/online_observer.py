@@ -89,8 +89,8 @@ def source_jacobian(model,x,spec):
         pw=np.abs(z)**2;dp=2*np.real(np.conj(z)[:,None]*dz)
         ss=float((pw[0]-pw[1])/pw.sum())
         row=(dp[0]-dp[1]-ss*dp.sum(axis=0))/pw.sum()
-        if ix==0:j[1]=row
-        else:j[2]=row-j[1]
+        if ix==0:j[1,:3]=row
+        else:j[2,:3]=row-j[1,:3]
     steps=(1e-4,1e-4,1e-5)
     points=[]
     for k,step in enumerate(steps):
