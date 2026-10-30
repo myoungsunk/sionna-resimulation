@@ -5,7 +5,7 @@
 | Contract | MBVAR-INFO-001 FROZEN (`68d73bd2…`) + AMENDMENT-003…008. Nothing earlier is edited. |
 | Trigger | Independent S1V3 design audit `audit/mbvar-info-s1v3-design-20261030`, commit `353381b3`, on execution SHA `c4d84e02`. Verdict: `DESIGN_CONDITIONALLY_ACCEPTABLE / EXPERIMENTAL_EVIDENCE_PENDING / RT_NO-GO`. |
 | Author role | IMPLEMENTER, also PROPOSER for §3 at the user's request (2026-10-30). **SELF_REVIEW_ONLY.** |
-| Timing | Written while S1V3 DEV2 run `40981032471` (AMENDMENT-008) was executing. No S1V3 DEV2 result had been read. The rules below are fixed before any S1V4, BTAP or RFRES result. |
+| Timing | Rules and code were written and committed as draft `bf17158` while S1V3 DEV2 run `40981032471` (AMENDMENT-008) was executing, **before any S1V3 DEV2 result was read**. The lock is frozen after that run finished and was read; §8 lists every change between `bf17158` and the freeze, so it can be checked that no rule changed after reading. All rules are fixed before any S1V4, BTAP or RFRES result. |
 | Frozen code untouched | `s1v3.py` and `c3_verify.py` (AMENDMENT-008) are **not modified**. All A009 code lives in new files (`s1v4.py`, `c3v4.py`, `b_tap.py`, `c_rfres.py`). So C3 on the S1V3 run still reproduces the AMENDMENT-008 code exactly. |
 | Splits | DEV2 = 10–19 is reused for S1V4 and BTAP as **development** data (second and third DEV2 passes, not independent). HOLDOUT2 5000–5059 and reserve 5060–5119 stay **unopened**. |
 | Preserved | Every earlier FAIL: C2 `40871327417`, C1 `40857100181`, S1V2 DEV `40864089916` / `40867939262`. The S1V3 DEV2 result is kept as recorded under AMENDMENT-008, whatever it is. |
@@ -105,5 +105,21 @@ No further synthetic expansion is proposed. After A (with B and C as context), t
 2. In parallel: C3 on S1V3 (AMENDMENT-008 code); S1V4 on DEV2; BTAP; RFRES.
 3. C3V4 on the S1V4 run.
 4. Gate report G1–G7. **Stop for the independent re-audit.** Do not open HOLDOUT2. No RT.
+
+## 8. State at freeze (reported; no rule below was changed after reading)
+
+**S1V3 DEV2 run `40981032471` (AMENDMENT-008), read after draft `bf17158`:**
+- **QA:** PASS, 1980/1980 rows. There are no A008 NOT_CERTIFIED cells, and one old-A007 NONCONVERGED (reported).
+- **A8-5:** no CALIBRATION_FAIL; 6 of 8 strata PASS, and RV non-kink tan/psi are UNDETERMINED.
+- **A8-6:** consistent across conventions. No `KINK_P_UNCERTAIN` rows.
+- **Pilot outcome (not a decision):** `NOT_SUPPORTED`, because of H1 LOW POSE_HIGH tan FAIL and H2 tan FAIL. Power: n_confirm = 60, underpowered at max.
+- **G2 post-hoc (W1):** 4 rows, all `XMODEL_BATCH`, have an analytic decrement ≤ 1e-10 together with a probe descent of 0.012–0.049 χ² (GN step of C30/C10; no kink at E). Under class v3.1, these would make 3 (arm, window, cell) cells fail the per-cell rule. The AMENDMENT-008 record is unchanged. This is the evidence that W1 was not hypothetical.
+
+**Changes between `bf17158` and the freeze:**
+- this §8;
+- the Timing row above;
+- the lock block.
+
+No code changes.
 
 ## AMENDMENT_LOCK
