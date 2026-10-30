@@ -39,7 +39,7 @@ def main(args):
         # No source labels, no trained correction and no output-based pose selection.
         source_s=world.h_H(states,anchor)[0][:,1]
         for pi in range(len(POSES)):
-            base,_,_,bvalid=extract(make_cir(H[pi]),df)
+            base,base_tap,_,bvalid=extract(make_cir(H[pi]),df)
             req(bool(bvalid[0]),"ERR_INVALID_BASE_NOVEL_POSE")
             req(abs(base[0,1]-source_s[pi])<1e-10,"ERR_FFD_SOURCE_S_PARITY")
             for delay in DELAYS_NS:
@@ -52,7 +52,7 @@ def main(args):
                   yaw_rad=float(POSES[pi,2]),echo_delay_ns=delay,
                   echo_amp_plus=float(abs(GAIN[0])) if delay else 0.,
                   echo_amp_minus=float(abs(GAIN[1])) if delay else 0.,
-                  first_tap=int(tap[0]),tap_changed_from_direct=bool(tap[0]!=int(base[0,0]*len(freq)*4*df/299792458.)),
+                  first_tap=int(tap[0]),tap_changed_from_direct=bool(tap[0]!=base_tap[0]),
                   dr_native_vs_direct_m=float(z[0,0]-base[0,0]),
                   ds0_vs_direct=float(z[0,1]-base[0,1]),
                   ds1_vs_direct=float(z[0,2]-base[0,2]),
