@@ -1,0 +1,149 @@
+{
+ "status": "FAIL",
+ "gating": [
+  "INPUT_REPRO",
+  "STATE_COST_REPRO",
+  "P_REPRO",
+  "STATUS_REPRO",
+  "NO_WRONG_BASIN",
+  "STATE_STABILITY_FIXED",
+  "ITER_CAP",
+  "PROBE_POWER",
+  "LINEAR_EXACT",
+  "KINK_FIXTURES",
+  "rows"
+ ],
+ "criteria": {
+  "INPUT_REPRO": {
+   "pass_": false,
+   "max_z": 1.002852201281712e-08,
+   "max_ctl": 4.440892098500625e-16,
+   "max_sig_fp_rel": 1.8845221487948893e-14
+  },
+  "STATE_COST_REPRO": {
+   "pass_": false,
+   "max_state_dref": 0.07639453308288041,
+   "max_cost": 0.0006698158935165566,
+   "n_best_k_diff": 0,
+   "raw_E_max_state_dref_REPORTED": 0.07639453308288041,
+   "raw_E_max_cost_REPORTED": 0.0006698158935165566
+  },
+  "P_REPRO": {
+   "pass_": false,
+   "max_C10_rel": 0.002485632377397314,
+   "analytic_A_max_rel_REPORTED": 0.030719350938640033,
+   "analytic_A_n_gt_tol_REPORTED": 32
+  },
+  "STATUS_REPRO": {
+   "pass_": true,
+   "n_class_v3_diff": 0,
+   "old_class_changes_REPORTED": 1
+  },
+  "NO_WRONG_BASIN": {
+   "pass_": true,
+   "max_gap": 0.1151780913479996,
+   "n_gt_1": 0,
+   "note": "C* = best of E and 10 fixed starts (bounded search, not a global-optimum proof)"
+  },
+  "STATE_STABILITY_FIXED": {
+   "pass_": false,
+   "per_arm": {
+    "IID_BATCH": {
+     "n": 480,
+     "frac_le_1dref": 1.0,
+     "max_dref": 0.6013385398887066,
+     "max_sdC10_REPORTED": 0.1371232417125258
+    },
+    "ORACLE_CORR_BATCH": {
+     "n": 480,
+     "frac_le_1dref": 0.9958333333333333,
+     "max_dref": 2.210679944883576,
+     "max_sdC10_REPORTED": 0.5130857147009988
+    },
+    "XMODEL_BATCH": {
+     "n": 120,
+     "frac_le_1dref": 0.9916666666666667,
+     "max_dref": 1.4304054138876454,
+     "max_sdC10_REPORTED": 0.3082878349556156
+    }
+   },
+   "d_ref": [
+    0.02,
+    0.02,
+    0.004363323129985824,
+    0.00017453292519943296
+   ]
+  },
+  "ITER_CAP": {
+   "pass_": true,
+   "max_dref": 0.0012523936060588,
+   "n_not_converged": 368
+  },
+  "PROBE_POWER": {
+   "pass_": true,
+   "frac_not_certified": 1.0,
+   "rise_min_max": [
+    1.0001812063401303,
+    1.9983998501307951
+   ],
+   "note": "negative control: displaced point (cost +~1 chi^2) must be NOT_CERTIFIED"
+  },
+  "LINEAR_EXACT": {
+   "pass_": true,
+   "max_rel": 1.1306235094394224e-08
+  },
+  "KINK_FIXTURES": {
+   "pass_": true,
+   "left": 2.0,
+   "right": 5.0,
+   "central": 3.5000000000000004,
+   "smooth_control_max_abs": 4.9993542805548685e-08
+  },
+  "F7_XMODEL_truth_start_REPORTED": {
+   "rows": 120,
+   "truth_start_worse_than_E_frac": 0.5083333333333333,
+   "all_arms_frac": 0.16111111111111112
+  },
+  "KINK_HYPOTHESIS_REPORTED": {
+   "frac_kink_KINK_P_UNCERTAIN": null,
+   "class_v3_counts": {
+    "CONVERGED_SMOOTH": 712,
+    "LOCAL_MIN_CERTIFIED": 368
+   },
+   "old_class_counts": {
+    "CONVERGED": 712,
+    "CONVERGED_NONSMOOTH": 366,
+    "NONCONVERGED": 2
+   }
+  },
+  "rows": {
+   "pass_": true,
+   "n": 1080,
+   "n_expected": 1080
+  }
+ },
+ "s1v3_run": "P2_S1V3_run_40981032471",
+ "tolerances": {
+  "z": 1e-09,
+  "ctl": 1e-12,
+  "fp_rel": 1e-12,
+  "state_dref": 1e-06,
+  "cost": 1e-06,
+  "P_rel": 0.001,
+  "basin": 1.0,
+  "stab1": 1.0,
+  "stab2": 2.0,
+  "stab_frac": 0.99,
+  "itercap_dref": 0.1,
+  "linear_rel": 0.001,
+  "probe_power_frac": 0.99
+ },
+ "preserved": [
+  "C2 run 40871327417 FAIL",
+  "C1 original-rule FAIL",
+  "S1V2 DEV runs 40864089916 / 40867939262 FAIL"
+ ],
+ "holdout2_allowed": false,
+ "holdout2_note": "requires independent re-audit of S1V3 + C3 (AMENDMENT-008 \u00a76)",
+ "p3": "NO-GO"
+}
