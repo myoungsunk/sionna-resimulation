@@ -82,7 +82,7 @@ def main(args):
       n_information_blocked=len(rows)-count,source_world_sha256=sha(src/"world.py"),
       conditional_information_status="LOCAL_LINEAR_GAUSSIAN_WITH_KNOWN_GENERATOR",
       true_multipath_noise_calibration="NOT_ESTABLISHED",
-      4state_vs_5state_full_filter="NOT_RUN",scene_generalization="NOT_TESTED",
+      four_state_vs_five_state_full_filter="NOT_RUN",scene_generalization="NOT_TESTED",
       r_quantized_range_in_full_R="SINGULAR_POSSIBLE",
       completed_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
       independent_auditor=False,science_release=False)
