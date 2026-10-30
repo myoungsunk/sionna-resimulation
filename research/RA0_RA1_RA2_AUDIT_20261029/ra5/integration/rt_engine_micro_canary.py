@@ -35,7 +35,7 @@ def main(out):
           refraction=False,diffraction=False,edge_diffraction=False,
           synthetic_array=True,seed=20261030)
         num_calls+=1
-        delays=np.asarray(dr.to_numpy(paths.tau),float).ravel()
+        delays=np.asarray(paths.tau.numpy(),float).ravel()
         delays=delays[np.isfinite(delays)&(delays>0)]
         if not len(delays):raise RuntimeError("ERR_NO_LOS_PATH")
         analytical=float(np.linalg.norm(tx-rx)/299792458.)
