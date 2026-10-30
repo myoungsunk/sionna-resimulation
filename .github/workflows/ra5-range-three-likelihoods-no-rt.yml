@@ -50,7 +50,6 @@ jobs:
           git -C "$RUNNER_TEMP/source-repo.git" remote add origin https://github.com/myoungsunk/sionna-resimulation.git
           git -C "$RUNNER_TEMP/source-repo.git" -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$SRC"
           BLK="results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C"
-          git -C "$RUNNER_TEMP/source-repo.git" cat-file -p "$SRC:$BLK/FULL_RF/H_$CASE\_m0.npy" > "$ROOT/temporary" || true
           if [ "$CASE" = "R2_aA_m45" ]; then
             git -C "$RUNNER_TEMP/source-repo.git" cat-file -p "$SRC:$BLK/FULL_RF/H_R2_aA_m45.npy" > "$ROOT/H_$CASE.npy"
           else
