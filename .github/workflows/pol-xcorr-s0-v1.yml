@@ -1,0 +1,103 @@
+name: POL-XCORR-001 S0 v1 frozen synthetic (label-free, self-review-only)
+on:
+  push:
+    branches:
+      - research/pol-xcorr-s0-implementer-20261030
+    paths:
+      - .github/workflows/pol-xcorr-s0-v1.yml
+      - research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  s0:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Sparse checkout locked S0-only inputs
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: true
+          lfs: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            AGENTS.md
+            docs/research-governance/COMMON_CONTRACT.md
+            research/POL_XCORR_UNRESOLVED_20261029
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+      - name: Setup pinned Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install numerical dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 pandas==2.3.2
+      - name: Verify S0 scope: no scientific labels or P1 trigger
+        run: |
+          set -euo pipefail
+          test -f research/POL_XCORR_UNRESOLVED_20261029/FREEZE_RECORD_v1.0.md
+          test -f research/POL_XCORR_UNRESOLVED_20261029/config/PLAN_PARAMETERS_v1.0.json
+          test ! -e research/POL_XCORR_UNRESOLVED_20261029/results_p1
+          python -m py_compile research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py
+      - name: Run S0 exact synthetic model and R03 rule
+        id: s0
+        run: |
+          set +e
+          OUT="research/POL_XCORR_UNRESOLVED_20261029/results_s0/run_$GITHUB_RUN_ID"
+          echo "OUT=$OUT" >> "$GITHUB_ENV"
+          python -u research/POL_XCORR_UNRESOLVED_20261029/scripts/s0_synthetic_v1.py \
+            --repo-root . --out "$OUT"
+          rc=$?
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+          echo "S0 script exit=$rc"
+          if [ -f "$OUT/S0_STATUS.json" ]; then
+            python - "$OUT" <<'PY'
+          import json,sys,pathlib
+          p=pathlib.Path(sys.argv[1])
+          s=json.load(open(p/"S0_STATUS.json"))
+          print("STATUS",s["status"])
+          if (p/"S0_QREF.json").is_file():
+            q=json.load(open(p/"S0_QREF.json"))
+            print("R03",q["decision"],"q_ref",q["q_ref"],"q95",q["q95_timeline"])
+          if (p/"S0_DECISIONS.json").is_file():
+            d=json.load(open(p/"S0_DECISIONS.json"))
+            print("H1",d["mechanical_h1_gate"],"M1/M2",d["M1_M2_followup"])
+          PY
+          fi
+          exit 0
+      - name: Upload append-only S0 evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: POL_XCORR_S0_${{ github.run_id }}
+          path: research/POL_XCORR_UNRESOLVED_20261029/results_s0/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Commit new S0 result folder only
+        if: always()
+        run: |
+          set -euo pipefail
+          if [ -z "$OUT" ] || [ ! -d "$OUT" ]; then
+            echo "No S0 results folder produced"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f "$OUT"
+          git commit -m "POL-XCORR-001 frozen v1 S0 run $GITHUB_RUN_ID: technical evidence (self-review only)" || echo "No changes"
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin HEAD:"$GITHUB_REF_NAME"
+      - name: Enforce technical run result
+        if: always()
+        run: |
+          rc="${{ steps.s0.outputs.exit_code }}"
+          if [ -z "$rc" ]; then
+            echo "S0 execution did not start"
+            exit 2
+          fi
+          exit "$rc"
