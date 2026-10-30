@@ -160,6 +160,10 @@ def fit_covariance(X,quality,shrink=.15):
     X=np.asarray(X,float);q=np.asarray(quality)
     require(X.ndim==2 and X.shape[1]==3 and len(X)>400,"ERR_TRAIN_COV_SHAPE")
     result={}
+    # Exact duplicate raw feature columns cannot gain rank through shrinkage.
+    centered=X-X.mean(axis=0)
+    require(np.linalg.matrix_rank(centered,tol=1e-10)==3,
+            "ERR_R_NOT_PD_STRUCTURAL_DUPLICATE")
     base=np.cov(X,rowvar=False)
     for b in ("AMBIG","STABLE"):
         sub=X[q==b]
