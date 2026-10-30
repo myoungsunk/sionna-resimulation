@@ -151,6 +151,7 @@ C3는 11개 게이트 중 4개에서 실패했습니다.
 | G4 (감사 지적 2) | 실제 발생: `EXCLUSION_CHANGES_RESULT`인데도 power n = 60이 출력됨. kink 제외 시 1080 → 723행, 최소 독립 field 5 | `reviews/posthoc_a009/POSTHOC_A009_GATES.json` |
 | S1V4 receipt 게시 누락 | publish 패턴이 `S1V3_INPUTS_*.zip`만 포함. workflow 수정(`f934a8f`). C3V4 실행 시 artifact에서 MANIFEST sha256로 검증해 복구 | `.github/scripts/mbvar_recover_receipts.py` |
 | C3V4 무효 실행 `41005072382` | 구현자 순서 실수로 receipt 복구 단계 없이 시작됨. GitHub에서 취소됨(cancelled). 유효 실행은 `41005158792` | 커밋 `b2088b4` 메시지 |
+| 옵션 B BTAP `40992660047` | **`TAP_SENSITIVE`** (사전 등록 규칙). heading RMSE의 Oracle 대비 배율: ±1 index 오류 10 %에서 IID ×1.01 [0.96, 1.07], **ORACLE_CORR ×1.70 [1.49, 1.97]**; ±4 index에서 IID ×3.39, ORACLE_CORR ×10.2. H3 (상관 공분산 이득) PASS가 tap 오류 조건에서 FAIL로 바뀜. TAP_STATE에서 NOT_CERTIFIED 18행. EKF의 상태 유도 tap 대비 참값 tap heading 배율 ×1.10 [0.96, 1.27] | `results/P2_BTAP_run_40992660047/`, `reviews/posthoc_a009_btap/` |
 | 옵션 C RFRES `40992695655` | 7개 case 모두 BIAS / SCALE (e_mp s sd = σ_s의 4.5–11배) / NON_GAUSSIAN / FP_SWITCH (29–54 %) / CORR_MISMATCH. 탐색적, 게이트 아님 | `results/P2_RFRES_run_40992695655/` |
 
 ---
