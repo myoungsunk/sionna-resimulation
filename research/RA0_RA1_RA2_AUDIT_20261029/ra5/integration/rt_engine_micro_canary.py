@@ -29,7 +29,7 @@ def main(out):
                                    horizontal_spacing=.5,pattern="iso",polarization="V")
         scene.add(Transmitter(name="tx",position=tx.tolist()))
         scene.add(Receiver(name="rx",position=rx.tolist()))
-        solver=PathSolver(deterministic=True)
+        solver=PathSolver()  # sionna-rt 2.0.1 has no deterministic constructor argument
         paths=solver(scene,max_depth=0,max_num_paths_per_src=16,samples_per_src=1,
           los=True,specular_reflection=False,diffuse_reflection=False,
           refraction=False,diffraction=False,edge_diffraction=False,
