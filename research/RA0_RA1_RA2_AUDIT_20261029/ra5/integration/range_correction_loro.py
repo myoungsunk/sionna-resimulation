@@ -98,6 +98,23 @@ def main(args):
             Xt=np.concatenate(tr_f);yt=np.concatenate(tr_err)
             for model_name,selected in models.items():
                 fitted=ridge_train(Xt,yt,selected,alpha=1.)
+                naive_res=yt-ridge_predict(Xt,selected,fitted)
+                sigma_train_in_sample=float(np.sqrt(np.mean(naive_res**2)))
+                # Inner train-only leave-one-source-route-out: no heldout test route labels
+                # or outcome-selected variance floor. Two source routes are the field units.
+                oof=[]
+                for inner in sorted(set(c["route"] for c in train)):
+                    a_train=[cc for cc in train if cc["route"]!=inner]
+                    a_valid=[cc for cc in train if cc["route"]==inner]
+                    X_inner=np.concatenate([cc["features"][np.isfinite(cc["r_int"] if modality=="INT" else cc["r_sub"])] for cc in a_train])
+                    Y_inner=np.concatenate([(cc["r_int"] if modality=="INT" else cc["r_sub"])[np.isfinite(cc["r_int"] if modality=="INT" else cc["r_sub"])]-cc["d"][np.isfinite(cc["r_int"] if modality=="INT" else cc["r_sub"])] for cc in a_train])
+                    inner_model=ridge_train(X_inner,Y_inner,selected,alpha=1.)
+                    for cc in a_valid:
+                        obs=cc["r_int"] if modality=="INT" else cc["r_sub"]
+                        v=np.isfinite(obs)
+                        oof.extend((obs[v]-cc["d"][v]-ridge_predict(cc["features"][v],selected,inner_model)).tolist())
+                sigma_two_route_oof=float(np.sqrt(np.mean(np.asarray(oof,float)**2)))
+                require(sigma_train_in_sample>0 and sigma_two_route_oof>0,"ERR_MODEL_SIGMA")
                 for c in test:
                     obs=c["r_int"] if modality=="INT" else c["r_sub"]
                     valid=np.isfinite(obs);d=c["d"]
@@ -110,6 +127,10 @@ def main(args):
                        rmse_after_m=float(np.sqrt(np.mean(err**2))),
                        mean_error_after_m=float(np.mean(err)),median_abs_error_after_m=float(np.median(abs(err))),
                        ninety_fifth_abs_error_m=float(np.quantile(abs(err),.95)),
+                       sigma_train_in_sample_m=sigma_train_in_sample,
+                       sigma_train_inner_two_route_oof_m=sigma_two_route_oof,
+                       coverage95_train_in_sample=float(np.mean(abs(err)<=1.96*sigma_train_in_sample)),
+                       coverage95_inner_two_route_oof=float(np.mean(abs(err)<=1.96*sigma_two_route_oof)),
                        train_pose_truth_only=True,test_pose_truth_only=True,
                        independent_scene=False,
                        source_data="ORIGINAL_SAVED_FULL_H_NO_RECEIVER_NOISE"))
@@ -126,7 +147,7 @@ def main(args):
         n_model_scores=len(tests),n_source_cases=7,
         original_H_unchanged=True,train_label_leakage=False,
         truth_pose_as_online_input="YES_OFFLINE_ONLY_NOT_DEPLOYABLE",
-        receiver_noise_mc="NOT_IN_THIS_FOLD",probabilistic_R_calibration="NOT_DONE",
+        receiver_noise_mc="NOT_IN_THIS_FOLD",probabilistic_R_calibration="TWO_ROUTE_INNER_OOF_EMPIRICAL_MEAN_RESIDUAL_VARIANCE_ONLY_NOT_STOCHASTIC_RECEIVER_R",
         physical_generalization="NOT_TESTED",independent_scene_count=1,rt_calls=0,
         independent_auditor=False,science_release=False,
         utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
