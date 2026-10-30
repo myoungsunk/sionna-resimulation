@@ -318,11 +318,15 @@ def main():
     lq = np.log(v.q_W.astype(float)); lb = np.log(v.balance.astype(float)); le = np.log(v.eps_rho.astype(float))
     var = float(np.var(lq)); cov_b = float(np.cov(lq, lb)[0, 1]); cov_e = float(np.cov(lq, le)[0, 1])
     fp_abs = v.s_fp.abs().astype(float); sW = v.s_W.astype(float)
+
+    def spearman(x, y):  # rank-based Pearson; no scipy dependency
+        rx = pd.Series(np.asarray(x, float)).rank().to_numpy(); ry = pd.Series(np.asarray(y, float)).rank().to_numpy()
+        return float(np.corrcoef(rx, ry)[0, 1])
     rec('G_QW_BALANCE_DECOMPOSITION_LOS', 'MEASURED', {
         'identity': 'log q_W = log 4u(1-u) + log eps_rho (exact)',
         'share_of_var_log_q_from_balance': cov_b / var, 'share_from_eps_rho': cov_e / var,
-        'spearman_balance_vs_one_minus_sfp2': float(pd.Series(v.balance.astype(float)).corr(1 - fp_abs ** 2, method='spearman')),
-        'spearman_sW_vs_sfp': float(pd.Series(sW).corr(v.s_fp.astype(float), method='spearman')),
+        'spearman_balance_vs_one_minus_sfp2': spearman(v.balance, 1 - fp_abs ** 2),
+        'spearman_sW_vs_sfp': spearman(sW, v.s_fp),
         'note': 'LoS channel only; no label, no Full-channel M1 values computed'})
 
     # H. output manifest integrity of implementer runs and earlier P0 runs (append-only)
