@@ -1,0 +1,75 @@
+{
+  "schema": "DLP_EKF_GAPS_P0_METADATA_EVIDENCE_V1",
+  "role": "IMPLEMENTER",
+  "contract_id": "DLP-EKF-GAPS-001",
+  "phase": "P0_PREFLIGHT_METADATA_ONLY",
+  "contract_state": "DRAFT_NOT_FROZEN",
+  "base_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "proposer_head_sha": "5f0a4ac5259210dca8aa866ed887b7117c080aad",
+  "draft_contract_sha256": "c7d18db29a2c6ea5a509f93b1f64559428e173c09beb293c0084b07bae480a6d",
+  "governance_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "read_ref": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "tree_entries": 11535,
+  "canonical_assets_total": 39,
+  "canonical_tree_metadata_matched": 39,
+  "historical_h_stores": 12,
+  "canonical_to_historical_same_sha256": 7,
+  "canonical_to_historical_expected": 7,
+  "historical_mount45_count": 4,
+  "gaps": [
+    {
+      "id": "G1",
+      "status": "PARTIAL_SOURCE_PROVENANCE",
+      "evidence": "39/39 C0 assets Git blob SHA+size matched snapshot tree; legacy LUT vs SourceFFD differ; full FFD P0P3 256 traces are not deposited as full runner/trace in Git",
+      "next": "verify actual binary SHA and identical pose/time/observer/extractor/h_r policy prior to P1"
+    },
+    {
+      "id": "G2",
+      "status": "3STATE_AND_6STATE_EXIST_4STATE_SCALAR_RECURSION_UNCONFIRMED",
+      "evidence": "EKF3 3state B range-only one-step; Sensor-v2 6state full recursive range-only (2026-10-11); EKF4 r2_bias_replay METHODS DR3/DR4/S3/S4/J3/J4/SR3/SR4 no range-only 4state arm",
+      "next": "archived full recursion 4state search; if absent proposal P2 only after freeze"
+    },
+    {
+      "id": "G3",
+      "status": "TWO_ANCHORS_C0_THIRD_NOT_IN_SCOPED_TREE",
+      "evidence": "canonical frozen 7 cases A and B; Snowball historical 12 H manifests A/B only; localization.py known-z WLS >=3 and EKF 2state",
+      "next": "broader archive and workflow-artifact review; if no data proposer defines approved non-collinear anchor and budget before RT"
+    },
+    {
+      "id": "G4",
+      "status": "HISTORICAL_GENERATION_EVIDENCED_RAW_RECOVERY_UNVERIFIED",
+      "evidence": "Snowball 12 H-store hashes; 7/7 C0 FULL H sha256 identical to historical entries. Four R4/R5 mount45 sha256 entries and S6 results files; old report says raw H/NPZ omitted from archive",
+      "next": "locate actual archived H R4/R5 m45, rehash, compare matched pose/timeline/LoS and observer before use"
+    },
+    {
+      "id": "G5",
+      "status": "RESERVED_NOT_IMPLEMENTED",
+      "evidence": "POWER/MBVAR candidate results; 3D and M2 reserved in draft",
+      "next": "proposer decision in separate science contract"
+    },
+    {
+      "id": "G6",
+      "status": "EXCLUDED_PRIMARY",
+      "evidence": "Office independent physical scene versus C0 corridor",
+      "next": "secondary generalization work separately"
+    }
+  ],
+  "issues": [],
+  "unverified": [
+    "Actual binary sha256 and file decoding",
+    "Data H tensor shape and contents parity",
+    "pose_id and t_s and FULL/LOS sample masks",
+    "Exactly equivalent RF observer across old LUT and SourceFFD output",
+    "time alignment and simultaneous anchor resource policy",
+    "real 4state range-only full recursive output identity",
+    "third-anchor source if exists on uninspected branches/artifacts",
+    "raw historical R4R5 mount45 H availability"
+  ],
+  "run_status": {
+    "new_rf": "NOT_RUN",
+    "ekf_replay": "NOT_RUN",
+    "new_code": "NOT_RUN",
+    "independent_audit": "NOT_RUN",
+    "scientific_release": "NOT_APPROVED"
+  }
+}
