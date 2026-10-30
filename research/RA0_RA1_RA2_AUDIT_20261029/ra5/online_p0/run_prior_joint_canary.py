@@ -323,8 +323,9 @@ def main(args):
        full_baseline_state_max=xdiff,full_baseline_cov_max=pdiff,
        full_baseline_mask_parity=True,
        n_comparison_arms=len(result),n_gate_pairs=len(first),
-       failed_source_model_updates=sum(r["n_source_invalid"] for r in result),
-       native_invalid_updates=sum(r["n_native_invalid"] for r in result),
+       # BB_ORIG native baseline has no new-observer rejection counters.
+       failed_source_model_updates=sum(r.get("n_source_invalid",0) for r in result),
+       native_invalid_updates=sum(r.get("n_native_invalid",0) for r in result),
        first_flip_status=[r["status"] for r in first],
        negative_controls=negative,
        covariance_kind="TRAIN_ONLY_DETERMINISTIC_FULL_MINUS_LOS_MODEL_ERROR",
