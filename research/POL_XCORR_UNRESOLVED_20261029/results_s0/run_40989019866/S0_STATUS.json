@@ -1,0 +1,107 @@
+{
+  "role": "IMPLEMENTER",
+  "contract_id": "POL-XCORR-001",
+  "phase": "S0_SYNTHETIC_ONLY",
+  "status": "TECHNICAL_QA_ONLY_S0_COMPLETE",
+  "checks": {
+    "FROZEN_CONTRACT_SHA": {
+      "status": "PASS",
+      "details": {
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v1.0.md": "c36c1c56d4db59d39ea85e1d87c1efe622325730a6b4fbc595fc95e583cde219",
+        "contracts/EXPERIMENT_CONTRACT_POL-XCORR-001_v0.3.md": "39c396c72688d88efa84d0fcb7779ad2b5b693891ab87aaae803bd26793cb76e",
+        "SCIENCE_SPEC_v0.3.md": "5db75dcc0a332833de50d87ba2081bea5ca0cd74e7e093ae00ce987728368450",
+        "config/PLAN_PARAMETERS_v1.0.json": "a16e8226f2766f4188c144228f99276c0102532667eb1e46816c0b4e0ff42658",
+        "config/INPUT_LOCK_v2.json": "bddab15801f8d8c653eeb7f825ff71352d48bda7bf7b650f59a2feb300458184"
+      }
+    },
+    "FREQUENCY_AND_P0_LOS_LOCK": {
+      "status": "PASS",
+      "details": {
+        "freq_sha": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+        "p0_los_sha": "d2c08dbac53975d13b880cc93f3293c9eaaf8f4ae75c4fe07a7eee1cdaf24dd6",
+        "timeline_n": 7251
+      }
+    },
+    "S0_PHYSICS_FIXTURES": {
+      "status": "PASS",
+      "details": {
+        "parallel_cases": 5,
+        "eps_rho_gain_relative_error": 2.3988612308001484e-14
+      }
+    },
+    "S0_LAW_COMPUTED": {
+      "status": "PASS",
+      "details": {
+        "law_rows": 25920,
+        "physical_rows": 1620,
+        "parallel_jones_rows_checked": 5184,
+        "law_invalid_rows": 0,
+        "slope_n_pass": 30,
+        "slope_n_fail": 139,
+        "slope_n_not_evaluable": 9274,
+        "slope_n_predefined_negative_control": 2621,
+        "slope_n_near_cancel": 49,
+        "assessment": "H1_FAIL",
+        "window_switches_all_law": 11793,
+        "slope_bounds": [
+          1.9,
+          2.1
+        ],
+        "fit_delta_bounds_ns": [
+          0.05,
+          1
+        ],
+        "physics_model_warning": "psi fixed in path coefficient; exp(-i2pi*f*delta) on absolute RF frequencies still rotates carrier phase."
+      }
+    },
+    "R03_FIXED_DECISION": {
+      "status": "COMPUTED",
+      "details": {
+        "decision": "REDESIGN_REQUIRED",
+        "q_ref": 0.0010961014111595176,
+        "q95_timeline": 0.0062089980405863505
+      }
+    },
+    "S0_NOISE_GRID": {
+      "status": "PASS",
+      "details": {
+        "noise_model": "frequency-bin complex circular AWGN, no filter process noise",
+        "fp_snr_definition": "noise-free common-n0 two-port FP signal power / expected combined two-port noise FP power",
+        "signal_fp_power": 97.16899254375272,
+        "complex_frequency_noise_variance_base": "sigma_H2 = signal_fp_power/(2*noise_time_factor*10**(snr_db/10))",
+        "noise_time_factor": 6.0,
+        "seed_range": "0..199, numpy PCG64; common random numbers across arms",
+        "offset_application": "H_minus(f)*exp(-i2pi*f*Delta), before noise",
+        "offset_ps": [
+          0,
+          25,
+          50,
+          100,
+          250
+        ],
+        "snr_db": [
+          30,
+          20,
+          15,
+          10
+        ],
+        "total_seed_rows": 4000
+      }
+    },
+    "S0_GRID_AND_SEED_COVERAGE": {
+      "status": "PASS",
+      "details": {
+        "law_and_physical_rows": 27540,
+        "seed_rows": 4000,
+        "noise_groups": 20
+      }
+    }
+  },
+  "errors": [],
+  "label": "TECHNICAL_QA_ONLY / SELF_REVIEW_ONLY_FREEZE",
+  "auditor": "SELF_REVIEW_ONLY; R-10 independent audit outstanding",
+  "P1_P2": "HOLD",
+  "P3": "NOT_RUN",
+  "P4_RT": "BLOCKED",
+  "scientific_release": "NOT_AUTHORIZED"
+}
