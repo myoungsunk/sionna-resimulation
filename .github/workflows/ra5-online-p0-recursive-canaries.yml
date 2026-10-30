@@ -4,6 +4,8 @@ on:
     branches: [audit/ra5-prior-joint-recursive-p0-20261030]
     paths:
       - '.github/workflows/ra5-online-p0-recursive-canaries.yml'
+      - 'research/RA0_RA1_RA2_AUDIT_20261029/ra5/online_p0/online_observer.py'
+      - 'research/RA0_RA1_RA2_AUDIT_20261029/ra5/online_p0/run_prior_joint_canary.py'
   workflow_dispatch:
 permissions:
   contents: read
@@ -97,7 +99,12 @@ jobs:
             execution_sha=os.environ.get("GITHUB_SHA"),run_id=os.environ.get("GITHUB_RUN_ID"),
             original_source_git_sha="9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13",
             timestamp_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            python=platform.python_version(),source_lock_path=str(pathlib.Path(os.environ["SRC_ROOT"])/"out/INPUT_LOCK.sha256"),
+            python=platform.python_version(),
+            source_lock_path=str(pathlib.Path(os.environ["SRC_ROOT"])/"out/INPUT_LOCK.sha256"),
+            source_lock_sha256=hashlib.sha256((pathlib.Path(os.environ["SRC_ROOT"])/"out/INPUT_LOCK.sha256").read_bytes()).hexdigest(),
+            controls=[{"path":x.name,"sha256":hashlib.sha256(x.read_bytes()).hexdigest()} for x in sorted((pathlib.Path(os.environ["SRC_ROOT"])/"traces").glob("*_B0_CONTROL.npz"))],
+            banks=[{"path":x.name,"sha256":hashlib.sha256(x.read_bytes()).hexdigest()} for x in sorted((pathlib.Path(os.environ["SRC_ROOT"])/"banks").glob("LP_*.npz"))],
+            source_pose_tables=[{"path":x.name,"sha256":hashlib.sha256(x.read_bytes()).hexdigest()} for x in sorted(pathlib.Path(os.environ["SRC_ROOT"]).glob("SAMPLES_*.json"))],
             sources=[{"path":x.name,"sha256":hashlib.sha256(x.read_bytes()).hexdigest()} for x in sorted(pathlib.Path(os.environ["SRC_ROOT"]).glob("H_*.npy"))],
             scripts={x.name:hashlib.sha256(x.read_bytes()).hexdigest() for x in p.glob("*.py")},
             command="python run_prior_joint_canary.py --case matrix.case --level B0 --input-manifest P0_INPUT_MANIFEST.json",
