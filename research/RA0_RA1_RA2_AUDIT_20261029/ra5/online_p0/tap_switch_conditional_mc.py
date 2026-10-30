@@ -99,7 +99,7 @@ def main(args):
                brier_unconditional=mean([(y-u)**2 for y in yp]),
                logloss_conditional=mean([logloss(y,p) for y in yp]),
                logloss_unconditional=mean([logloss(y,u) for y in yp]),
-               independent_rf_scenes=1,calibration_mode="TRAIN_POSE_ONLY")))
+               independent_rf_scenes=1,calibration_mode="TRAIN_POSE_ONLY"))
     req(len(raw)==len(test) and output,"ERR_MISSING_TEST")
     outcsv(out/"RA5_TAP_NOISE_CLASS_BY_STRATUM.csv",output)
     outcsv(out/"RA5_TAP_NOISE_TEST_SAMPLES.csv",raw)
