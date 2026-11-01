@@ -8,6 +8,7 @@ on:
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/a10_canonical.py'
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1v5.py'
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/c3v5.py'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/run_phase.py'
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_canonical.py'
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a10_canonical_smoke.py'
   workflow_dispatch:
@@ -35,6 +36,7 @@ jobs:
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/a10_canonical.py' \
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1v5.py' \
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/c3v5.py' \
+            '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/run_phase.py' \
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_canonical.py' \
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a10_canonical_smoke.py' \
             '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P2_A010P0_GEN_run_41269011836/**' > .git/info/sparse-checkout
@@ -50,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           ROOT=research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
-          python -m py_compile "$ROOT/code/a10_canonical.py" "$ROOT/code/s1v5.py" "$ROOT/code/c3v5.py"
+          python -m py_compile "$ROOT/code/a10_canonical.py" "$ROOT/code/s1v5.py" "$ROOT/code/c3v5.py" "$ROOT/code/run_phase.py"
       - name: Execute negative-fixture tests without RF or new fields
         shell: bash
         run: |
