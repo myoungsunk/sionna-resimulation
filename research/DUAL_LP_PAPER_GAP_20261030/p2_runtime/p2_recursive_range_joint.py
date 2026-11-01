@@ -345,7 +345,7 @@ if __name__=="__main__":
     print("P2_ROUTE_FINAL",q["qa_status"],"route",args.route,
           "cases",len(q["cases"]),"errors",q["n_failed_events"],flush=True)
     sys.exit(0)
-  except BaseException as e:
+  except Exception as e:
     print("P2_ROUTE_FATAL",repr(e),traceback.format_exc(),flush=True)
     out.mkdir(parents=True,exist_ok=True)
     (out/"P2_FATAL.json").write_text(json.dumps(dict(
