@@ -10,7 +10,9 @@
 - Forensic GEN `41269011836`, ABL `41269246996` (구현자 SELF_REVIEW_ONLY).
 - 별도 숫자 검산: `audit/mbvar-info-a010p0-indep-20261101` GitHub Actions `41277884578`: canonical 48/48, covariance kernel, 88행 NEES4/C10/modes check PASS_NUMERICAL_RECALC_ONLY. **하나의 AI 세션에서 제안/감사를 겸한 기록**이므로 독립 감사 서명과 구별.
 - 신규 canonical loader technical CI `41278153584`: 7 tests PASS.
-- 신규 S1V5/C3V5 draft compile/AST/negative fixtures CI `41278588582`: **9 tests PASS**.\n- 최신 fail-closed phase routing 포함 CI [#41278769173](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41278769173): **11/11 tests PASS**, `DEV3=NOT_RUN` (code SHA `e2ed82620a0237d486d2873c753658f67a97474c`).\n- 본 기술 시험은 DEV3/HOLDOUT2/RT의 입력을 읽거나 실행하지 않는다.
+- 신규 S1V5/C3V5 draft compile/AST/negative fixtures CI `41278588582`: **9 tests PASS**.
+- 최신 fail-closed phase routing 포함 CI [#41278769173](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41278769173): **11/11 tests PASS**, `DEV3=NOT_RUN` (code SHA `e2ed82620a0237d486d2873c753658f67a97474c`).
+- 본 기술 시험은 DEV3/HOLDOUT2/RT의 입력을 읽거나 실행하지 않는다.
 
 ## 2. 생성/수정 파일
 
@@ -18,10 +20,11 @@
 |---|---|---|
 | `code/a10_canonical.py` | 신규 | `Lhalf.npy` / 4-key canonical zip SHA 검사, estimator-only 입력(oracle/truth 제외), dtype/shape/array SHA, fail-closed |
 | `code/s1v5.py` | 신규 DRAFT | S1V4 MAP 및 objective 그대로, canonical fixed 180-pose field, full covariance `MAT|role|cell` receipt, G2/G4/QA 수정 |
-| `code/c3v5.py` | 신규 DRAFT | S1V5 원본 input receipts로 재생, generator-only difference 별도 진단, full 4x4 C10 10개 원소 및 NEES 검증, truth-free best start |\n| `code/run_phase.py` | 범위 제한 수정 | S1V5·C3V5 예약 단계 추가. A010 본문 FROZEN 및 DEV3 20–29 확인 전에 planning·run 중단 |
+| `code/c3v5.py` | 신규 DRAFT | S1V5 원본 input receipts로 재생, generator-only difference 별도 진단, full 4x4 C10 10개 원소 및 NEES 검증, truth-free best start |
+| `code/run_phase.py` | 범위 제한 수정 | S1V5·C3V5 예약 단계 추가. A010 본문 FROZEN 및 DEV3 20–29 확인 전에 planning·run 중단 |
 | `tests/test_a10_canonical.py` | 신규 | 데이터 무결성·negative fixture·draft code compilation/AST/contract markers |
 | `audit/a10_canonical_smoke.py` | 신규 | 기술 전용 기계 판정 JSON (science/DEV3/HOLDOUT2/RT=NOT_RUN) |
-| `.github/workflows/mbvar-a010-canonical-smoke-20261101.yml` | 신규 | git SHA detached sparse checkout, py_compile, 9 tests, artifact upload |
+| `.github/workflows/mbvar-a010-canonical-smoke-20261101.yml` | 신규 | git SHA detached sparse checkout, py_compile, 11 tests, artifact upload |
 
 역사적 원본 전체 보존. S1V5/C3V5의 source blobs는 새 SHA로 제안자가 승인한 최종 code-hash lock에 반영해야 한다. **동결 전까지 어떤 DEV3 science run도 허용하지 않는다.**
 
@@ -48,6 +51,8 @@
 
 ## 5. 수치적·과학적 판정
 
-`TECHNICAL_CODE_SMOKE=PASS (9/9)`; `A010_FORENSIC_NUMERICAL_RECALC=PASS`; `S1V5/C3V5_SCIENCE_NOT_RUN`; `FROZEN_A010=NO`; `DEV3=NO-GO until independent audit/freeze`; `HOLDOUT2=NO-GO`; `P3_RT=NO-GO`.
+`TECHNICAL_CODE_SMOKE=PASS (11/11, CI 41278769173)`; `A010_FORENSIC_NUMERICAL_RECALC=PASS`; `S1V5/C3V5_SCIENCE_NOT_RUN`; `FROZEN_A010=NO`; `DEV3=NO-GO until independent audit/freeze`; `HOLDOUT2=NO-GO`; `P3_RT=NO-GO`.
 
 S0V2 정보 이론 결과는 유지. S1V3/V4 DEV2 H1 LOW POSE_HIGH tan과 H2 tan 부호 역전은 여전히 **관측된 NOT_SUPPORTED 연구 결과**이며, canonical input 구현으로 그 결과를 자동 PASS로 바꿀 수 없다.
+
+> 2026-11-01 정정(구현자, `research/mbvar-info-a010-s1v5-fix-20261101`): 이스케이프된 `\n` 문자를 줄바꿈으로 바꾸고 §2·§5의 테스트 수를 11로 고쳤다. 내용은 바꾸지 않았다. 이 11개 테스트는 D1·D2를 잡지 못했다. 후속 수정과 실행 수준 회귀 테스트는 `reviews/A010_S1V5_C3V5_FIX_HANDOFF_20261101_KO.md`에 있다.

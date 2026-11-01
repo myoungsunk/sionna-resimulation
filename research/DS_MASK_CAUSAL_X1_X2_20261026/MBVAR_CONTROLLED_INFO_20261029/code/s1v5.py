@@ -10,7 +10,13 @@ Changes vs s1v3 (s1v3.py itself is frozen under AMENDMENT-008 and unchanged):
   F3  explicit one-sided axis probes: +- rho_a * sqrt(P0_jj) on each x0 coordinate, rho_a in {1e-2, 1e-3} (left/right
       directional cost change at a kink), added to the GN-line and random probes.
   F4  the full window-end C10 covariance (4x4) is stored and NEES is recomputed with it (nees4_C10); nees4 (analytic) kept.
-Primary estimator, E/post-fit-P conventions, and A8-5/A8-6 machinery remain inherited from S1V4.\nAMENDMENT-010 must be FROZEN before any DEV3 execution; no HOLDOUT2 or RT use here.
+Primary estimator, E/post-fit-P conventions, and A8-5/A8-6 machinery remain inherited from S1V4.
+AMENDMENT-010 must be FROZEN before any DEV3 execution; no HOLDOUT2 or RT use here.
+
+Input receipt (one zip per shard, C3V5 replays these bytes):
+  {f}|{role}|{cell}|{sensor}|{z,ds_m,gy_m,x0,taps,Sig_true_fp,pose_keys_sha,<arm>|Sig_model_fp}
+  MAT|{f}|{role}|{cell}|Sig_true and MAT|{f}|{role}|{cell}|{arm}|Sig_model  (full stacked matrices, field-qualified:
+  each field keeps the exact bytes its own estimator used, so multi-shard / multi-runner receipts never collide; D2 fix)
 """
 from __future__ import annotations
 
@@ -53,6 +59,18 @@ def lock_v5():
     if "AMENDMENT-010" not in lk.get("applied_amendment_locks", []):
         raise SystemExit("ERR_CONTRACT_DRAFT: AMENDMENT-010 science lock not FROZEN/applied")
     return lk
+
+
+def mat_key(field, role, cell, arm=None):
+    """Field-qualified key of a full stacked covariance in the S1V5 input receipt (Sig_true if arm is None)."""
+    return f"MAT|{int(field)}|{role}|{cell}|Sig_true" if arm is None else f"MAT|{int(field)}|{role}|{cell}|{arm}|Sig_model"
+
+
+def mat_receipt(field, role, cell, Sig, models):
+    """The exact float64 matrices the estimator of this field used: Sig_true and every arm's Sig_model."""
+    out = {mat_key(field, role, cell): np.asarray(Sig, np.float64)}
+    out.update({mat_key(field, role, cell, arm): np.asarray(Sm, np.float64) for arm, Sm in models.items()})
+    return out
 
 
 def canonical_setup(lk):
@@ -203,13 +221,15 @@ def probe_power(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed, target=1.0):
 
 
 def cmd_run(fields, split, out):
-    lk = lock_v4(); M.check_code_lock(lk)
+    lk = lock_v5(); M.check_code_lock(lk)
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
     allowed = set(lk["splits"]["S_field"][split]); bad = [f for f in fields if f not in allowed]
     if bad:
         raise SystemExit(f"ERR_SPLIT_LEAK fields {bad} not in frozen {split}")
     root = M.seed_root(); S = canonical_setup(lk); rows = []; qa = []; seeds = []; rec = {}; pairs = B3.revisit_pairs(S)
     for f in fields:
+        # D6 diagnostic only (CPU-dependent exp() ULPs): never part of the QA pass rule.
+        qa.append(dict(field=f, cell="", role="", sensor_seed=-1, check="A010_KP_BYTE_MATCH", value=float(bool(S.get("A010_KP_BYTE_MATCH")))))
         for cn, cell in S["cells"].items():
             if not any(cn in w["cells"] for w in S["wins"].values()):
                 continue
@@ -220,11 +240,9 @@ def cmd_run(fields, split, out):
                 for sn in M.SENSOR_SEEDS:
                     inp = B3.make_inputs(S, root, f, cn, w, sn, pf); z = inp["z"]
                     Sig, models = B3.arm_models(S, w, cn); ev = inp["eps"].reshape(-1)
-                    # Canonical full stacked matrices, once per role/cell in the per-field receipt.
+                    # Canonical full stacked matrices, once per field/role/cell (field-qualified key, D2 fix).
                     # C3V5 reuses these exact bytes; do not reconstruct on a different CPU.
-                    rec[f"MAT|{w['role']}|{cn}|Sig_true"] = np.asarray(Sig, np.float64)
-                    for covarm, Sm_frozen in models.items():
-                        rec[f"MAT|{w['role']}|{cn}|{covarm}|Sig_model"] = np.asarray(Sm_frozen, np.float64)
+                    rec.update(mat_receipt(f, w["role"], cn, Sig, models))
                     qa.append(dict(field=f, cell=cn, role=w["role"], sensor_seed=sn, check="mahalanobis_per_dim", value=float(ev @ np.linalg.solve(Sig, ev)) / (2 * N)))
                     if w["role"] == "REV60" and pairs:
                         if cell["alphas"][0]:
@@ -298,7 +316,7 @@ def requested_fields():
 
 
 def cmd_aggregate(shards, split, out):
-    lk = lock_v4(); M.check_code_lock(lk); out = Path(out); out.mkdir(parents=True, exist_ok=True)
+    lk = lock_v5(); M.check_code_lock(lk); out = Path(out); out.mkdir(parents=True, exist_ok=True)
     plan = lk["run_plan"]["S1V5"]; eff = lk["resolved"]["EFFECT_SIZE_RULES"]
 
     def cat(pat):
@@ -340,6 +358,11 @@ def cmd_aggregate(shards, split, out):
                A82_polish_max_cost_decrease=float(b.polish_cost_decrease.max()) if len(b) else None,
                A82_polish_max_E_vs_Ep_dref=float(b.polish_E_vs_Ep_dref.max()) if len(b) else None,
                A82_polish_hit_cap_n=int(B3._bool(b.polish_hit_cap).sum()) if len(b) else None)
+    kp = qa[qa.check == "A010_KP_BYTE_MATCH"]
+    qaj["A010_KP_BYTE_MATCH"] = dict(n_fields=int(len(kp)), n_match=int((kp.value.astype(float) == 1.0).sum()),
+                                     all_match=bool(len(kp) and (kp.value.astype(float) == 1.0).all()),
+                                     per_field={str(int(r.field)): bool(float(r.value) == 1.0) for r in kp.itertuples()},
+                                     note="DIAGNOSTIC ONLY (exp() ULP may differ across CPUs); not part of the QA pass rule")
     qaj["pass"] = bool(got == expected and rule_ok and len(mm) and all(abs(v - 1) <= mtol for v in mm.values) and qaj["revisit_pose_identical_max"] == 0.0
                        and (qaj["revisit_time_differs_min"] or 0) > 0 and qaj["stops"] == 0 and qaj["failures"] == 0 and qaj["n_rows"] == n_exp
                        and not fail_nc and qaj["primary_P_pd_all"] and qaj["A82_polish_all_within_scope"]
@@ -411,5 +434,5 @@ if __name__ == "__main__":
     raise SystemExit(main())
 
 
-# helpers re-exported for c3v4 (identical objects from the frozen s1v3)
+# helpers re-exported for c3v5 (identical objects from the frozen s1v3)
 make_inputs = B3.make_inputs; arm_models = B3.arm_models; sig_fp = B3.sig_fp; pose_keys_sha = B3.pose_keys_sha; post_fit_P = B3.post_fit_P

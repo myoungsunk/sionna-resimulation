@@ -1,11 +1,15 @@
-"""P2_C3V5 DRAFT (AMENDMENT-010): replay exact S1V5 DEV3 receipts, not the independently generated inputs.
+"""P2_C3V5 DRAFT (AMENDMENT-010): replay the exact S1V5 DEV3 input receipts, not independently regenerated inputs.
 
-  c3v5.py run --field F --group LH|RV --out D      regenerate one field's inputs, compare with the S1V3 receipts,
-                                                        re-run E + post-fit P + class v3 + the C2 start grid
+  c3v5.py run --field F --group LH|RV --out D      load the hash-verified S1V5 receipts of all shards, replay one field's
+                                                    z/x0/ds_m/gy_m/taps and full Sig_true/Sig_model bytes (MAT|{f}|...),
+                                                    re-run E' + post-fit P + class v3.1 + the truth-free start grid;
+                                                    regenerated inputs are a REPORTED generator diagnostic only
   c3v5.py aggregate --shards D --out D            (env S1V5_RUN = committed S1V5 DEV3 run dir name)
 
-Gates: exact-input reproduction, STATE_COST_REPRO, full C10 P/NEES, STATUS_REPRO, NO_WRONG_BASIN, ITER_CAP, LINEAR_EXACT,
-KINK_FIXTURES. Reported: analytic-P reproducibility, old-class changes, P-normalised stability, XMODEL-only truth-start (F7).
+Gating (keys without "REPORTED"): INPUT_REPRO (replayed inputs vs the receipt they were read from; definition open, D3),
+STATE_COST_REPRO, P_REPRO (C10 diagonal, full C10, NEES4_C10), STATUS_REPRO, NO_WRONG_BASIN, ITER_CAP, PROBE_POWER,
+LINEAR_EXACT, KINK_FIXTURES, rows. Reported only: STATE_STABILITY_FIXED (status open, D4), analytic-P, old-class changes,
+F7 XMODEL truth start, KINK hypothesis, MODE_AMBIGUITY (R4, any truth-free alternative; D5), MAT cross-field consistency.
 """
 from __future__ import annotations
 
@@ -64,29 +68,100 @@ def s1v5_dir():
     return Wd.EXP / "results" / os.environ["S1V5_RUN"]
 
 
-def load_receipts(d):
-    """Load only S1V5 original receipt ZIP bytes verified against its manifest."""
+def _same_bytes(a, b):
+    return a.dtype == b.dtype and a.shape == b.shape and a.tobytes() == b.tobytes()
+
+
+def load_receipts_with_stats(d):
+    """Load only S1V5 original receipt ZIP bytes verified against its manifest (fail-closed).
+
+    D2 (option a): full matrices are field-qualified, MAT|{f}|{role}|{cell}|..., so every key is unique across shards.
+      - any key present in two zips          -> ERR_C3V5_DUPLICATE_INPUT_KEY (MAT copies with different bytes: ERR_C3V5_MAT_CONFLICT)
+      - legacy field-less MAT|{role}|{cell}|  -> ERR_C3V5_LEGACY_MAT_KEY
+      - MAT field not among the zip's fields  -> ERR_C3V5_MAT_FIELD_MISMATCH
+    Returns (receipts, stats); stats records the MAT key / duplicate / conflict counts (the last two are 0 on success).
+    """
     manpath = d / "MANIFEST.json"
     if not manpath.exists():
         raise SystemExit("ERR_C3V5_MISSING_MANIFEST")
     manifest = json.loads(manpath.read_text())
     hashes = {Path(k).name: v for k, v in manifest.get("output_sha256", {}).items()}
-    rec = {}
+    rec, origin = {}, {}
     zips = sorted(d.glob(f"S1V5_INPUTS_{SPLIT}_*.zip"))
     if not zips:
         raise SystemExit("ERR_C3V5_MISSING_RECEIPTS")
+    st = dict(n_receipt_files=len(zips), receipt_files=[f.name for f in zips], mat_keys=0, mat_duplicate_keys=0, mat_conflicts=0,
+              mat_key_schema="MAT|{field}|{role}|{cell}|Sig_true, MAT|{field}|{role}|{cell}|{arm}|Sig_model")
     for f in zips:
         if f.name not in hashes or CAN.sha_file(f) != hashes[f.name]:
             raise SystemExit("ERR_C3V5_RECEIPT_HASH")
         with np.load(f, allow_pickle=False) as z:
-            for k in z.files:
-                if k in rec: raise SystemExit("ERR_C3V5_DUPLICATE_INPUT_KEY")
-                rec[k] = z[k]
-    return rec
+            files = list(z.files)
+            fields = {k.split("|", 1)[0] for k in files if not k.startswith("MAT|")}
+            for k in files:
+                a = z[k]
+                if k.startswith("MAT|"):
+                    p = k.split("|")
+                    shape_ok = (len(p) == 5 and p[4] == "Sig_true") or (len(p) == 6 and p[5] == "Sig_model")
+                    if not (shape_ok and p[1].isdigit()):
+                        raise SystemExit(f"ERR_C3V5_LEGACY_MAT_KEY {k} in {f.name}: MAT keys must be field-qualified")
+                    if p[1] not in fields:
+                        raise SystemExit(f"ERR_C3V5_MAT_FIELD_MISMATCH {k} in {f.name} (fields {sorted(fields)})")
+                    st["mat_keys"] += 1
+                if k in rec:
+                    if k.startswith("MAT|") and not _same_bytes(rec[k], a):
+                        raise SystemExit(f"ERR_C3V5_MAT_CONFLICT {k}: {origin[k]} vs {f.name}")
+                    raise SystemExit(f"ERR_C3V5_DUPLICATE_INPUT_KEY {k}: {origin[k]} and {f.name}")
+                rec[k] = a; origin[k] = f.name
+    st["n_keys"] = len(rec)
+    return rec, st
+
+
+def load_receipts(d):
+    return load_receipts_with_stats(d)[0]
+
+
+def mat_cross_field_report(rec):
+    """REPORTED only: are the field-qualified copies of one (role, cell, arm) matrix byte-identical across fields?
+
+    Under the former field-less schema these were the colliding keys; a difference here (e.g. exp() ULPs on different
+    runners) is kept per field, never merged, and does not gate.
+    """
+    groups = {}
+    for k, a in rec.items():
+        if k.startswith("MAT|"):
+            p = k.split("|"); groups.setdefault("|".join(p[2:]), {})[int(p[1])] = a
+    multi = {g: v for g, v in groups.items() if len(v) > 1}; ident = differ = 0; mx = 0.0
+    for v in multi.values():
+        arrs = [v[f] for f in sorted(v)]; ref = arrs[0]
+        if all(_same_bytes(ref, a) for a in arrs[1:]):
+            ident += 1; continue
+        differ += 1
+        for a in arrs[1:]:
+            mx = max(mx, float(np.max(np.abs(a - ref)) / max(float(np.max(np.abs(ref))), 1e-300)) if a.shape == ref.shape else math.inf)
+    return dict(n_groups=len(groups), n_groups_multi_field=len(multi), n_byte_identical=ident, n_differ=differ, max_rel_diff=mx,
+                note="REPORTED only; each field is replayed with its own matrices")
+
+
+def mode_ambiguity(sol, ref="E", oracle=("truth",), cost_tol=None, dref_tol=None):
+    """R4 / D5: count every truth-free solution s != E' with |cost_s - cost_E'| <= 1 chi^2 and dref(E', s) > 2 d_ref.
+
+    sol = {start: (cost, X)}; sol[ref] is E'. Oracle starts are excluded. REPORTED only (never gating).
+    """
+    cost_tol = TOL["basin"] if cost_tol is None else cost_tol; dref_tol = TOL["stab2"] if dref_tol is None else dref_tol
+    c0, X0 = sol[ref]; within = []; amb = []
+    for k, (c, X) in sol.items():
+        if k == ref or k in oracle:
+            continue
+        if abs(float(c) - float(c0)) <= cost_tol:
+            d = dref_diff(X0[-1], X[-1]); within.append(d)
+            if d > dref_tol:
+                amb.append(k)
+    return dict(n_alt_ambiguous=len(amb), max_alt_dref_within_1chi2=float(max(within, default=0.0)), alt_ambiguous_starts=";".join(sorted(amb)))
 
 
 def input_diffs(rec, kb, inp, w, Sig, models):
-    """A8-1: per-component comparison of regenerated inputs with the S1V3 receipt."""
+    """A8-1: per-component comparison of inputs with the S1V5 receipt (regenerated -> generator diagnostic; replayed -> INPUT_EXACT)."""
     if f"{kb}|z" not in rec:
         return dict(receipt_found=False)
     rel = lambda a, b: float(np.max(np.abs(a - b) / np.maximum(np.abs(b), 1e-300)))  # noqa: E731
@@ -120,8 +195,8 @@ def cmd_run(field, group, out):
                 kb = f"{field}|{w['role']}|{cn}|{sn}"
                 generated_diffs = input_diffs(rec, kb, generated, w, Sig_generated, models_generated)
                 required = [f"{kb}|{name}" for name in ("z", "x0", "ds_m", "gy_m", "taps")]
-                required += [f"MAT|{w['role']}|{cn}|Sig_true"]
-                required += [f"MAT|{w['role']}|{cn}|{arm}|Sig_model" for arm in models_generated]
+                required += [T.mat_key(field, w["role"], cn)]
+                required += [T.mat_key(field, w["role"], cn, arm) for arm in models_generated]
                 if any(key not in rec for key in required):
                     raise SystemExit(f"ERR_C3V5_MISSING_CANON_ARRAY {kb}")
                 if not np.array_equal(w["taps"], rec[f"{kb}|taps"]):
@@ -130,8 +205,8 @@ def cmd_run(field, group, out):
                 for name in ("z", "x0", "ds_m", "gy_m"):
                     inp[name] = np.array(rec[f"{kb}|{name}"], copy=True)
                 inp["vn"] = np.c_[inp["ds_m"] - w["ds"], inp["gy_m"] - w["dth"]]
-                Sig = np.array(rec[f"MAT|{w['role']}|{cn}|Sig_true"], copy=True)
-                models = {arm: np.array(rec[f"MAT|{w['role']}|{cn}|{arm}|Sig_model"], copy=True)
+                Sig = np.array(rec[T.mat_key(field, w["role"], cn)], copy=True)
+                models = {arm: np.array(rec[T.mat_key(field, w["role"], cn, arm)], copy=True)
                           for arm in models_generated}
                 idf = input_diffs(rec, kb, inp, w, Sig, models)
                 idf["INPUT_EXACT"] = bool(idf.get("receipt_found") and all(idf[k] == 0 for k in ("d_z","d_ds","d_gy","d_x0")))
@@ -164,6 +239,7 @@ def cmd_run(field, group, out):
                                 C_star=cstar, best_start=best, gap_E=r["cost"] - cstar, E_vs_best_dref=dref_diff(XE[-1], sol[best][1][-1]),
                                 E_vs_best_sdC10=float(np.max(np.abs(Tr @ de) / np.sqrt(pc10))),
                                 truth_gap=sol["truth"][0] - cstar, n_starts_gross_worse=int(sum(v[0] > cstar + 1.0 for v in nonoracle.values())),
+                                **mode_ambiguity(sol),
                                 **T.probe_power(ht, z, Sm, dsm, gym, w["dts"], x0, thp, T.key_seed("PP", field, w["role"], cn, sn, arm) % (2 ** 62)))
                     if IE["status"] != "CONVERGED":
                         _, I3, _, X3p, c3p, _ = T.estimate(w, Sm, inp, skey, max_iter=300)
@@ -202,6 +278,7 @@ def cmd_aggregate(shards, out):
     fs = sorted(glob.glob(str(Path(shards) / "**" / "C3V5_ROWS_*.csv"), recursive=True))
     C = pd.concat([pd.read_csv(f) for f in fs], ignore_index=True) if fs else pd.DataFrame()
     src = s1v5_dir(); D = pd.read_csv(src / f"S1V5_RESULTS_{SPLIT}.csv")
+    REC, receipt_load = load_receipts_with_stats(src); mat_xf = mat_cross_field_report(REC); del REC
     D = D[D.arm.astype(str).str.endswith("_BATCH") & (D.status == "OK")].set_index(["field", "role", "cell", "sensor_seed", "arm"])
     fields = lk["run_plan"]["C3V5"]["fields"]
     n_exp = len(fields) * len(M.SENSOR_SEEDS) * (2 * len(V.LH_CELLS) * 2 + 2 * (len(S0V2.REV_CELLS) * 2 + len(S0V2.XMODEL)))
@@ -246,7 +323,8 @@ def cmd_aggregate(shards, out):
         STATUS_REPRO=dict(pass_=bool(allrows and C.same_class_v31.all()), n_class_v31_diff=int((~C.same_class_v31.astype(bool)).sum()),
                           old_class_changes_REPORTED=int((~C.same_old_class.astype(bool)).sum())),
         NO_WRONG_BASIN=dict(pass_=bool(allrows and (C.gap_E <= TOL["basin"]).all()), max_gap=float(C.gap_E.max()), n_gt_1=int((C.gap_E > TOL["basin"]).sum()),
-                            note="C* = best of E and 10 fixed starts (bounded search, not a global-optimum proof)"),
+                            note="C* = min cost over E' and the 9 truth-free fixed starts (psi -3..+3 SD x7, x+1 SD, y+1 SD); "
+                                 "the truth start is an ORACLE_ONLY diagnostic (truth_gap) and never enters C* (bounded search, not a global-optimum proof)"),
         STATE_STABILITY_FIXED_REPORTED=dict(pass_=bool(allrows and all(v["frac_le_1dref"] >= TOL["stab_frac"] for v in per_arm.values()) and (C.E_vs_best_dref <= TOL["stab2"]).all()),
                                    per_arm=per_arm, d_ref=D_REF.tolist()),
         ITER_CAP=dict(pass_=bool(allrows and (nc.E300_vs_E_dref <= TOL["itercap_dref"]).all()), max_dref=float(C.E300_vs_E_dref.max()),
@@ -261,15 +339,23 @@ def cmd_aggregate(shards, out):
         KINK_HYPOTHESIS_REPORTED=dict(frac_kink_KINK_P_UNCERTAIN=float((C[C.KINK_P_UNCERTAIN.astype(str).str.lower() == "true"].kink_poses_at_E > 0).mean())
                                       if (C.KINK_P_UNCERTAIN.astype(str).str.lower() == "true").any() else None,
                                       class_v31_counts=C.class_v31.value_counts().to_dict(), old_class_counts=C.conv.value_counts().to_dict()),
-        MODE_AMBIGUITY_REPORTED=dict(n_ambiguous=int(((C.gap_E <= TOL["basin"]) &
-                                               (C.E_vs_best_dref > TOL["stab2"])).sum()),
-                                      claim_unique_map_allowed=False),
+        MODE_AMBIGUITY_REPORTED=dict(rule="R4: a row is AMBIGUOUS if ANY truth-free solution s != E' has |cost_s - cost_E'| <= 1 chi^2 "
+                                          "and dref(E', s) > 2 (truth start excluded)",
+                                     n_ambiguous=int((C.n_alt_ambiguous > 0).sum()), n_alt_solutions=int(C.n_alt_ambiguous.sum()),
+                                     max_alt_dref_within_1chi2=float(C.max_alt_dref_within_1chi2.max()),
+                                     n_ambiguous_best_start_only_legacy=int(((C.gap_E <= TOL["basin"]) & (C.E_vs_best_dref > TOL["stab2"])).sum()),
+                                     claim_unique_map_allowed=False),
         rows=dict(pass_=allrows, n=int(len(C)), n_expected=n_exp))
     gating = [k for k in crit if "REPORTED" not in k]
     status = "PASS" if all(crit[k]["pass_"] for k in gating) else "FAIL"
     res = dict(status=status, G5_science="MODE_AMBIGUITY_REQUIRES_REVIEW", science_release_allowed=False, gating=gating, criteria=crit, s1v5_run=src.name, tolerances=TOL,
-               preserved=["C2 run 40871327417 FAIL", "C1 original-rule FAIL", "S1V2 DEV runs 40864089916 / 40867939262 FAIL"],
-               holdout2_allowed=False, holdout2_note="requires independent re-audit of S1V3+C3 and S1V5+C3V5 (AMENDMENT-009)", p3="NO-GO")
+               receipt_load=receipt_load, MAT_CROSS_FIELD_REPORTED=mat_xf,
+               preserved=["C2 run 40871327417 FAIL", "C1 original-rule FAIL", "S1V2 DEV runs 40864089916 / 40867939262 FAIL",
+                          "C3 run 40992589158 FAIL", "C3V4 run 41005158792 FAIL", "G5 FAIL",
+                          "S1V3/S1V4 DEV2 H1 LOW POSE_HIGH tan FAIL and H2 tan sign reversal"],
+               holdout2_allowed=False,
+               holdout2_note="HOLDOUT2 stays closed: requires AMENDMENT-010 FROZEN, an independent audit of S1V5+C3V5 and a separate confirmatory approval",
+               p3="NO-GO")
     (out / "C3V5_STATUS.json").write_text(json.dumps(res, indent=1, default=float))
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
                       config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 10)] + [Wd.EXP / "contracts/AMENDMENT-010.md"],
@@ -277,7 +363,8 @@ def cmd_aggregate(shards, out):
                       seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
                       limitations=["technical reproducibility/convergence verification on DEV3 only", "SELF_REVIEW_ONLY"],
                       extra=dict(sub_phase="P2_C3V5", amendment="AMENDMENT-010"))
-    print("C3V5", status, {k: crit[k]["pass_"] for k in gating})
+    print("C3V5", status, {k: crit[k]["pass_"] for k in gating}, "| receipts", receipt_load["n_receipt_files"], "MAT keys", receipt_load["mat_keys"],
+          "dup", receipt_load["mat_duplicate_keys"], "conflict", receipt_load["mat_conflicts"])
     return 0 if status == "PASS" else 1
 
 
