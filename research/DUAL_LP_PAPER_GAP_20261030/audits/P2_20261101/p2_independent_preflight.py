@@ -220,6 +220,7 @@ def run():
   assert max(Kerrors)<1e-10 and max(Perrors)<1e-10,"JOSEPH_UPDATE_MISMATCH"
   # SourceFD physical pilot: real bank and actual estimated-state geometry.
   # Read-only model under test; independent FD on stable first-path/cell.
+  sys.path.insert(0,str(ROOT/'research/FFD_P0P3_20261016'))
   import p0_initial
   from source_model import SourceFFD
   temp=ROOT.parent
