@@ -1,0 +1,120 @@
+{
+ "file": "A010_LHALF_WORLDPOSE_V2.npy",
+ "sha256": "b09450fad48dc9f7c4eea6b59f5fe40995d7544c851ee2ea7daad7a28fc78fca",
+ "shape": [
+  180,
+  180
+ ],
+ "dtype": "<f8",
+ "byteorder": "little",
+ "construction": "info_core.psd_sqrt(k_pose(world union poses, ell 0.5 m, 20 deg)) = V sqrt(clip(w,0)) from numpy.linalg.eigh",
+ "pose_ledger_sha256": "1ebc4362152b147ba754df05ceccfb2cbabbbe21ed1911bb4a938b74fb19bbe6",
+ "n_poses": 180,
+ "Kp_sha256": "90a8d2800da4a3c0d36edb13503941ecb94cca87544b22c13d9963e5eb968db9",
+ "plan_parameters_sha256": "bba7fbc5e165359da2583f94b16c78ed8e475e216c6935080361a38442b28bbc",
+ "input_lock": [
+  "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9  banks/LP_minus45_bank.npz",
+  "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b  banks/LP_plus45_bank.npz",
+  "df8ac0c18d1829fb57e6c71c86888e634a20f47ae0705df21624e1783590b37e  traces/R2_aA_m0_B0_CONTROL.npz",
+  "55fe34ee7016e64119aadbde006f839cef2bc90f4cefe92510bc1a77c75ff55a  traces/R2_aA_m0_L2_CONTROL.npz",
+  "08443ed214057b5ec0d9a233f3877b261441e797a6446a173bd08eac6ac5d147  traces/R2_aA_m45_B0_CONTROL.npz",
+  "25e6928e6369bf5bf60c085c2d5515e1241a1b356c07601a88bb9d35e4e97b00  traces/R2_aA_m45_L2_CONTROL.npz",
+  "e1013f6949f9c7b01643d6daf13c447e76c020d5f19a222ce12a08251699c3ac  traces/R2_aB_m0_B0_CONTROL.npz",
+  "b2214668ae6aa1530b4e4b4e6a28249bc2c8f49d76f78d8f038013a6da239922  traces/R2_aB_m0_L2_CONTROL.npz",
+  "b999d12690c4ec03473d7ee37072c91a9349e1d3488ff1f5fba5f06ec3b8b1d2  traces/R4_aA_m0_B0_CONTROL.npz",
+  "d6f950ee8e6da80ebcd820d909ebd391fb61e33578ba0420be801683c96a1b81  traces/R4_aA_m0_L2_CONTROL.npz",
+  "f1a2e6c98b0485b464db26a9697a4212dbdfe90deef3132fe312693f29e1180e  traces/R4_aB_m0_B0_CONTROL.npz",
+  "c4b75927534934969755f4f63000cf151e84b8c4392ef54919d6c45874dcb34e  traces/R4_aB_m0_L2_CONTROL.npz",
+  "5fea1a984fd70cee35ef0bc75b46d3713f32eab1c7ec9c63cd4e5a2bea1f39fa  traces/R5_aA_m0_B0_CONTROL.npz",
+  "5cb09f346ddba41b7389b3a791090d00413c61b1c95a69455f0bac98c619cc43  traces/R5_aA_m0_L2_CONTROL.npz",
+  "596a76e42ba54629a8c97a2837906259238a240ec1d20d94fd5221c9781250e3  traces/R5_aB_m0_B0_CONTROL.npz",
+  "b88c517d6388a159b684c619c18ab0fda5ccb30a849b1540c2315c5fe1a62bd5  traces/R5_aB_m0_L2_CONTROL.npz"
+ ],
+ "canonical_inputs": {
+  "file": "A010_CANONICAL_INPUTS.zip",
+  "sha256": "316efcc04946197cbb5c10417e3b6bfca3e4e8f5e4d3433535dfbba09b7bb9f3",
+  "cases": {
+   "K1": [
+    10,
+    "LOW",
+    "TIME_1",
+    2,
+    "ORACLE_CORR_BATCH"
+   ],
+   "K2": [
+    11,
+    "REV60",
+    "TIME_HIGH_5",
+    0,
+    "ORACLE_CORR_BATCH"
+   ],
+   "K3": [
+    10,
+    "LOW",
+    "LOWCORR",
+    1,
+    "IID_BATCH"
+   ],
+   "K4": [
+    15,
+    "REV60",
+    "POSE_HIGH",
+    1,
+    "ORACLE_CORR_BATCH"
+   ]
+  },
+  "source_runs": [
+   "P2_S1V4_run_40992623257",
+   "P2_S1V3_run_40981032471"
+  ]
+ },
+ "checks": {
+  "max_abs_LLt_minus_Kpsd_rel": 3.3306690738754696e-16,
+  "max_abs_LLt_minus_K_rel": 5.440092820663267e-15,
+  "max_abs_diag_LLt_minus_1": 5.440092820663267e-15,
+  "min_eig": -2.2319869513053336e-15,
+  "max_eig": 31.197469551362513,
+  "n_eig_below_1e_minus_10_of_max": 114,
+  "tol_rel": 1e-10,
+  "pass": true
+ },
+ "generator_runner": {
+  "cpu": "AMD EPYC 9V45 96-Core Processor",
+  "machine": "x86_64",
+  "python": "3.11.17",
+  "numpy": "2.3.3",
+  "scipy": "1.16.2",
+  "blas": {
+   "name": "scipy-openblas",
+   "version": "0.3.30",
+   "openblas configuration": "OpenBLAS 0.3.30  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64"
+  },
+  "numpy_cpu_features_avx512": [
+   "AVX512BITALG",
+   "AVX512BW",
+   "AVX512CD",
+   "AVX512DQ",
+   "AVX512F",
+   "AVX512IFMA",
+   "AVX512VBMI",
+   "AVX512VBMI2",
+   "AVX512VL",
+   "AVX512VNNI",
+   "AVX512VPOPCNTDQ",
+   "AVX512_CLX",
+   "AVX512_CNL",
+   "AVX512_ICL",
+   "AVX512_SKX"
+  ],
+  "numpy_cpu_features_n": 27,
+  "threads": {
+   "OPENBLAS_NUM_THREADS": "1",
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "OPENBLAS_CORETYPE": null
+  },
+  "runner": "GitHub Actions 1000001898",
+  "github_run_id": "41269011836",
+  "github_job": "run"
+ }
+}
