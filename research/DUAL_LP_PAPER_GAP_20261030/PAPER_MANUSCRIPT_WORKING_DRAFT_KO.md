@@ -67,7 +67,7 @@ R_k^M=R_k^B+\operatorname{diag}\{0,\sigma_b^2(\hat\rho_k^{\mathrm{lookup}})\}.
 | R5-B | L1 | 0.943 → 0.602 | 36.1% | 7.84 → 4.45 | 43.2% |
 | R5-B | L2 | 0.716 → 0.615 | 14.0% | 6.09 → 4.65 | 23.7% |
 
-**現在 사용할 수 있는 결과 문장:**
+**현재 사용할 수 있는 결과 문장:**
 
 > 동일 Corridor의 Anchor B·Mount 0°에서, Range 평균 보정과 편파 추가분산을 함께 적용한 모델은 R2 및 R5의 네 gyro-bias 수준 모두에서 기존 보정 기준선보다 낮은 Heading 및 XY 오차를 보였다. 조건별 감소율은 Heading 10.0–40.0%, XY 21.9–48.7%였다. 비교에는 고정된 외부 수용집합이 아닌 각 필터의 자체 NIS gate를 사용하였다.
 
@@ -135,7 +135,7 @@ R2-A45 및 회수된 R4/R5 m45 원본은 장착각 확장 후보로 보존한다
 
 아래 full SHA는 근거를 읽은 스냅샷이다. 실제 실험 실행 commit/run/input hash는 해당 source·report의 원장을 따른다.
 
-- **[S1] 성공 수치·ablation의 단일 CSV:** [D2_GATE_SCORES.csv](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_premodel_diag_20261029/results/D2_GATE_SCORES.csv). 키: case∈{R2_aB_m0,R5_aB_m0}, bias∈{B0,L0,L1,L2}, gate=self. 비교 arm=BB_ORIG/MB_ORIG/BB_VAR/MB_VAR. 列이 아닌 열 이름 `head_rmse`, `xy_rmse_cm`를 따른다. Blob: `efe55ff9b13b6c6c70f2820e26bacc88ca460d26`.
+- **[S1] 성공 수치·ablation의 단일 CSV:** [D2_GATE_SCORES.csv](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_premodel_diag_20261029/results/D2_GATE_SCORES.csv). 키: case∈{R2_aB_m0,R5_aB_m0}, bias∈{B0,L0,L1,L2}, gate=self. 비교 arm=BB_ORIG/MB_ORIG/BB_VAR/MB_VAR. 열 이름은 `head_rmse`, `xy_rmse_cm`이다. Blob: `efe55ff9b13b6c6c70f2820e26bacc88ca460d26`.
 - **[S2] 모델 계약·시드·σ_b 설정 출처:** [PROTOCOL_PB.md](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model/PROTOCOL_PB.md), [exp_pb.py](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model/exp_pb.py). 이 원실험은 BASE mask 기반이며 self 결과는 S3에서 확인한다.
 - **[S3] 실제 self-gate 및 σ_b 조회 시점:** [diag_mbvar.py](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_premodel_diag_20261029/code/diag_mbvar.py). 저장된 기존 μ/R를 재사용한 연구 replay이며 새로운 장면에 대한 end-to-end 배포 검증과 구분한다.
 - **[S4] Δs 보정이 실제로 바꾸는 항:** [X1 RESULTS_KO.md §2](https://github.com/myoungsunk/sionna-resimulation/blob/6c7200091028fd3f0e55aa83b777d0f10b7cf063/research/DS_MASK_CAUSAL_X1_X2_20261026/x1/RESULTS_KO.md). MU_R_EXDS는 CIR+Δs에 의한 전체 Range 평균 교체이며 편파 평균은 유지한다.
