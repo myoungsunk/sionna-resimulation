@@ -1,0 +1,78 @@
+name: DLP physics reconstruction input recovery
+on:
+  push:
+    branches: [research/dual-lp-physics-rebuild-20261101]
+    paths: [.github/workflows/dlp-physics-rebuild-inputs-20261101.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Recover exact historical source and selected inputs (no science run)
+        shell: bash
+        run: |
+          python - <<'PY'
+          import concurrent.futures as cf, hashlib, json, pathlib, time, urllib.request
+          REPO='myoungsunk/sionna-resimulation'
+          OLD='9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13'
+          EVID='6c7200091028fd3f0e55aa83b777d0f10b7cf063'
+          ROOT=pathlib.Path('recovered_inputs'); ROOT.mkdir()
+          def get(url):
+              for n in range(4):
+                  try:
+                      with urllib.request.urlopen(urllib.request.Request(url,headers={'User-Agent':'DLP-input-reconstruction'}),timeout=90) as f: return f.read()
+                  except Exception:
+                      if n==3: raise
+                      time.sleep(2*(n+1))
+          tree=json.loads(get(f'https://api.github.com/repos/{REPO}/git/trees/{OLD}?recursive=1'))
+          assert not tree['truncated']
+          (ROOT/'OLD_GIT_TREE.json').write_text(json.dumps(tree,indent=1))
+          jobs=[]
+          def add(ref,path,dest,media=False,expected=None): jobs.append((ref,path,dest,media,expected))
+          pref='results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/'
+          dirs=('research/FFD_P0P3_20261016/','research/EKF4_RANGE_S_STAGED_20261014/')
+          for x in tree['tree']:
+              p=x['path']
+              if x['type']=='blob' and p.endswith('.py') and (p.startswith(pref) or p.startswith(dirs)):
+                  add(OLD,p,'inputs/repo/'+p)
+          for name,digest in {'LP_plus45_bank.npz':'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b','LP_minus45_bank.npz':'39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9'}.items():
+              add(OLD,name,'inputs/banks/'+name,True,digest)
+          blk='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C'
+          for c in ('R2_aB_m0','R4_aB_m0','R5_aB_m0'):
+              for p,d in [(f'{blk}/FULL_RF/H_{c}.npy',f'H_{c}.npy'),(f'{blk}/H_LoS_{c}.npy',f'H_LoS_{c}.npy'),(f'{blk}/{c}/SAMPLES.json',f'SAMPLES_{c}.json')]: add(OLD,p,'inputs/rf/'+d)
+              for b in ('B0','L2'): add(OLD,f'research/DS_MASK_CAUSAL_X1_X2_20261026/why_ds_worse/CONTROL/{c}_{b}.npz',f'inputs/traces/{c}_{b}_CONTROL.npz',True)
+          base='research/DS_MASK_CAUSAL_X1_X2_20261026/'
+          for p in ('reflect_model/common.py','reflect_model/fetch_inputs.sh','pol_bias_model/exp_pb.py','mbvar_premodel_diag_20261029/code/diag_mbvar.py','mbvar_premodel_diag_20261029/results/D2_GATE_SCORES.csv','mbvar_premodel_diag_20261029/results/D3_DECOMPOSITION.csv','mbvar_premodel_diag_20261029/results/D3_EPS_BY_DISTANCE.csv'):
+              add(EVID,base+p,'legacy/'+base+p)
+          for p in ('AGENTS.md','docs/research-governance/COMMON_CONTRACT.md','docs/research-governance/ROLE_IMPLEMENTER.md'):
+              add('43818124f39ad5ae20eb372d682dd2a63d8786bc',p,'governance/'+p)
+          old_entries={x['path']:x for x in tree['tree'] if x['type']=='blob'}
+          def download(job):
+              ref,p,d,media,expected=job
+              raw=f'https://raw.githubusercontent.com/{REPO}/{ref}/{p}'
+              url=f'https://media.githubusercontent.com/media/{REPO}/{ref}/{p}' if media else raw
+              buf=get(url)
+              if buf.startswith(b'version https://git-lfs.github.com/spec/v1'):
+                  url=f'https://media.githubusercontent.com/media/{REPO}/{ref}/{p}';buf=get(url)
+              digest=hashlib.sha256(buf).hexdigest()
+              if expected: assert digest==expected,(p,digest)
+              obj=hashlib.sha1(b'blob '+str(len(buf)).encode()+b'\0'+buf).hexdigest()
+              if ref==OLD and not media:
+                  assert obj==old_entries[p]['sha'],('git_blob_mismatch',p)
+              q=ROOT/d;q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes(buf)
+              print(d,len(buf),digest,flush=True)
+              return dict(path=d,source_path=p,source_commit=ref,url=url,bytes=len(buf),sha256=digest,git_blob_sha=obj,expected_sha256=expected)
+          with cf.ThreadPoolExecutor(max_workers=6) as pool: rows=list(pool.map(download,jobs))
+          (ROOT/'RECOVERY_MANIFEST.json').write_text(json.dumps({'purpose':'input recovery only; no scientific execution or independent audit claimed','source_old':OLD,'source_evidence':EVID,'files':rows},indent=2))
+          print('RECOVERED_FILE_COUNT',len(rows))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dlp-physics-locked-inputs-${{ github.run_id }}
+          path: recovered_inputs/
+          retention-days: 30
+          compression-level: 6
+          if-no-files-found: error
