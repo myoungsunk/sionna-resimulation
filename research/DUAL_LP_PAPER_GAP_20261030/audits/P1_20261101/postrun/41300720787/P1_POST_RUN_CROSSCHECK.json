@@ -1,0 +1,311 @@
+{
+  "schema": "DLP_P1_POST_RUN_SECOND_FORMULA_VALIDATION_V1",
+  "status": "PASS_SELF_REVIEW_ONLY",
+  "role": "SEPARATE_GITHUB_NUMERICAL_RUNNER_NOT_SEPARATE_ACTOR",
+  "scientific_independence": "SELF_REVIEW_ONLY; SAME CHATGPT SESSION WROTE P1 IMPLEMENTATION AND THIS CHECK",
+  "original_science_run_id": "41300302082",
+  "frozen_result_commit": "9c5ad7ceb592678789ed06751b71de951ce22c61",
+  "original_proposer_contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+  "postcheck_script_sha": "37fffc5e49ca0845d80bacfaf5f1a7e570d0d6499d6df6b980d013bc0e7c897f",
+  "github_actions_run": "41300720787",
+  "checks": {
+    "A0_PINNED_ID": {
+      "status": "PASS",
+      "note": "original frozen science identity unchanged"
+    },
+    "A1_OUTPUT_SHA": {
+      "status": "PASS",
+      "note": "8 committed science output files SHA256 match original frozen manifest",
+      "measured": [
+        {
+          "name": "P1_INPUT_HASH_RECEIPT.json",
+          "match": true
+        },
+        {
+          "name": "P1_INVALID_AND_BOUNDARY_LEDGER.csv",
+          "match": true
+        },
+        {
+          "name": "P1_LOG.txt",
+          "match": true
+        },
+        {
+          "name": "P1_MATCHED_SIGNED_ERRORS.csv",
+          "match": true
+        },
+        {
+          "name": "P1_RAW_OBSERVER_PARITY.csv",
+          "match": true
+        },
+        {
+          "name": "P1_SCIENCE_QA.json",
+          "match": true
+        },
+        {
+          "name": "P1_SOURCE_OBSERVER_CANARY.csv",
+          "match": true
+        },
+        {
+          "name": "P1_STRATIFIED_MOMENTS.csv",
+          "match": true
+        }
+      ]
+    },
+    "A2_ALL_PAIRED": {
+      "status": "PASS",
+      "note": "strict 7-case × (Full,LoS) pairing, 9519 pose pairs, no duplicate case-channel-pose IDs",
+      "measured": {
+        "rows": 19038,
+        "case_channel_counts": {
+          "R2_aA_m0_FULL": 1303,
+          "R2_aA_m0_LOS": 1303,
+          "R2_aB_m0_FULL": 1303,
+          "R2_aB_m0_LOS": 1303,
+          "R2_aA_m45_FULL": 1303,
+          "R2_aA_m45_LOS": 1303,
+          "R4_aA_m0_FULL": 922,
+          "R4_aA_m0_LOS": 922,
+          "R4_aB_m0_FULL": 922,
+          "R4_aB_m0_LOS": 922,
+          "R5_aA_m0_FULL": 1883,
+          "R5_aA_m0_LOS": 1883,
+          "R5_aB_m0_FULL": 1883,
+          "R5_aB_m0_LOS": 1883
+        }
+      }
+    },
+    "A3_ARCHIVED_PARITY": {
+      "status": "PASS",
+      "note": "14502 stored historic RF trace records, per-row signed s/r parity within locked 1e-9",
+      "measured": {
+        "n": 14502,
+        "bad": 0
+      }
+    },
+    "A4_INDEPENDENT_SIGNED_IDENTITIES": {
+      "status": "PASS",
+      "note": "all 19038 row-wise exact signed residual identities, units, finite values and unaltered raw range",
+      "measured": {
+        "bad": 0,
+        "nonfinite": 0,
+        "invalid": 0
+      }
+    },
+    "A5_MATCHED_FULL_LOS_DECOMPOSITION": {
+      "status": "PASS",
+      "note": "Full source error = matched Full-LoS signed-s contrast + LoS source error, exact same pose",
+      "measured": {
+        "max_identity_difference": 2.220446049250313e-16,
+        "native_los_max_abs_source_residual": 1.0821135931871062e-05
+      }
+    },
+    "A6_152_STRATUM_RECOMPUTATION": {
+      "status": "PASS",
+      "note": "all 152 raw-row stratum moments recalculated independently with math.fsum and explicit 2x2 covariance",
+      "measured": {
+        "max_mean_rmse_error": 2.0816681711721685e-16,
+        "max_covariance_error": 8.326672684688674e-17,
+        "mismatches": [],
+        "computed_strata": 152
+      }
+    },
+    "A7_BOUNDARY_LEDGER": {
+      "status": "PASS",
+      "note": "37 ledger records all recorded as first-path/cell boundary not as silent invalid packets",
+      "measured": {
+        "by_type": {
+          "FFD_CELL_SWITCH": 37
+        },
+        "n": 37
+      }
+    },
+    "A8_CANARY_COUNT": {
+      "status": "PASS",
+      "note": "56 real canary rows, both channels"
+    },
+    "A9_PRESERVE_ALL_CASE_CONTRAST": {
+      "status": "PASS",
+      "note": "source Full s RMSE improves on 2/7 cases and worsens on 5/7, no case selection",
+      "measured": {
+        "improved": 2,
+        "worsened": 5
+      }
+    },
+    "A10_ORIGINAL_QA_ALL_GATES": {
+      "status": "PASS",
+      "note": "all 16 T00-T15 passed in original frozen science receipt; second-pass independently checks its output numerical rows"
+    }
+  },
+  "failures": [],
+  "metrics": {
+    "top_model_shift_outlier": {
+      "case": "R5_aB_m0",
+      "pose_id": 706,
+      "x": 10.010199,
+      "y": 0.037008,
+      "yaw_rad": -3.08939627847429,
+      "distance_m": 2.2003348862536813,
+      "s_old": -0.06920457380744316,
+      "s_source": -0.9468202768294328,
+      "abs_shift": 0.8776157030219897,
+      "source_near_boundary": "False"
+    },
+    "top_10_model_shift": [
+      {
+        "case": "R5_aB_m0",
+        "pose_id": 706,
+        "abs_shift": 0.8776157030219897,
+        "d_m": 2.2003348862536813
+      },
+      {
+        "case": "R5_aB_m0",
+        "pose_id": 707,
+        "abs_shift": 0.4904902756442164,
+        "d_m": 2.2004781982007913
+      },
+      {
+        "case": "R5_aA_m0",
+        "pose_id": 856,
+        "abs_shift": 0.10852053692160091,
+        "d_m": 2.201191970180702
+      },
+      {
+        "case": "R5_aB_m0",
+        "pose_id": 705,
+        "abs_shift": 0.1080326975080621,
+        "d_m": 2.200921670790217
+      },
+      {
+        "case": "R2_aB_m0",
+        "pose_id": 504,
+        "abs_shift": 0.04665083980642237,
+        "d_m": 9.01134243614263
+      },
+      {
+        "case": "R2_aB_m0",
+        "pose_id": 501,
+        "abs_shift": 0.04647324467480518,
+        "d_m": 9.01578693023349
+      },
+      {
+        "case": "R2_aB_m0",
+        "pose_id": 503,
+        "abs_shift": 0.04646484990142985,
+        "d_m": 9.01236945033885
+      },
+      {
+        "case": "R2_aB_m0",
+        "pose_id": 502,
+        "abs_shift": 0.046342404624532985,
+        "d_m": 9.01385298554453
+      },
+      {
+        "case": "R2_aA_m45",
+        "pose_id": 1191,
+        "abs_shift": 0.0458766922855684,
+        "d_m": 10.378249127703574
+      },
+      {
+        "case": "R2_aB_m0",
+        "pose_id": 500,
+        "abs_shift": 0.045291103427543056,
+        "d_m": 9.018160302579679
+      }
+    ],
+    "channel_all": [
+      {
+        "channel": "FULL",
+        "arm": "old",
+        "n": 9519,
+        "s_rmse": 0.16967824497648495,
+        "s_mean": 0.02080597814207027,
+        "C_rs_m": 0.005107445618628623
+      },
+      {
+        "channel": "FULL",
+        "arm": "source",
+        "n": 9519,
+        "s_rmse": 0.1701128495849688,
+        "s_mean": 0.023627337575714974,
+        "C_rs_m": 0.0050833674177487576
+      },
+      {
+        "channel": "LOS",
+        "arm": "old",
+        "n": 9519,
+        "s_rmse": 0.014184009107702953,
+        "s_mean": -0.0028214321956186437,
+        "C_rs_m": -0.00011097349360195409
+      },
+      {
+        "channel": "LOS",
+        "arm": "source",
+        "n": 9519,
+        "s_rmse": 6.592045074186871e-07,
+        "s_mean": -7.276197393306874e-08,
+        "C_rs_m": -1.8220126586825778e-09
+      }
+    ],
+    "full_case_rmse_shift": [
+      {
+        "case": "R2_aA_m0",
+        "old": 0.20421872227871504,
+        "source": 0.20623681692438053,
+        "delta": 0.0020180946456654913
+      },
+      {
+        "case": "R2_aA_m45",
+        "old": 0.2288794960157146,
+        "source": 0.22933648635509354,
+        "delta": 0.0004569903393789321
+      },
+      {
+        "case": "R2_aB_m0",
+        "old": 0.10723382830676903,
+        "source": 0.10767484525870231,
+        "delta": 0.0004410169519332846
+      },
+      {
+        "case": "R4_aA_m0",
+        "old": 0.2016311772007936,
+        "source": 0.20182284322652197,
+        "delta": 0.00019166602572837088
+      },
+      {
+        "case": "R4_aB_m0",
+        "old": 0.1263399740158296,
+        "source": 0.1262934474634423,
+        "delta": -4.652655238732151e-05
+      },
+      {
+        "case": "R5_aA_m0",
+        "old": 0.186696912218734,
+        "source": 0.18747975518579196,
+        "delta": 0.0007828429670579673
+      },
+      {
+        "case": "R5_aB_m0",
+        "old": 0.09949567066638218,
+        "source": 0.09765863506328865,
+        "delta": -0.0018370356030935342
+      }
+    ],
+    "total_full_los": 19038,
+    "parity_n": 14502,
+    "manifest": {
+      "run_id": "41300302082",
+      "source_head": "6eaf9adbf1065e3f5bd4d3da5b8290966f3d5800",
+      "science_code_sha": "76c24e282f9f8ad1156aafd6cbf70e041ce74b69c5a698228d9510f212e377fc"
+    },
+    "one_scene_only": true
+  },
+  "runtime": {
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "utc": "2026-11-01T11:10:47.422473+00:00"
+  },
+  "claims": [
+    "Retrospective C0 descriptive verification only, not new holdout, prediction improvement or scientific independence",
+    "R0 remains conventional, cannot conclude noise independence, calibration, generalizability or M2 advantage"
+  ]
+}

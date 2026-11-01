@@ -1,0 +1,12 @@
+POSTCHECK A0_PINNED_ID PASS original frozen science identity unchanged
+POSTCHECK A1_OUTPUT_SHA PASS 8 committed science output files SHA256 match original frozen manifest
+POSTCHECK A2_ALL_PAIRED PASS strict 7-case × (Full,LoS) pairing, 9519 pose pairs, no duplicate case-channel-pose IDs
+POSTCHECK A3_ARCHIVED_PARITY PASS 14502 stored historic RF trace records, per-row signed s/r parity within locked 1e-9
+POSTCHECK A4_INDEPENDENT_SIGNED_IDENTITIES PASS all 19038 row-wise exact signed residual identities, units, finite values and unaltered raw range
+POSTCHECK A5_MATCHED_FULL_LOS_DECOMPOSITION PASS Full source error = matched Full-LoS signed-s contrast + LoS source error, exact same pose
+POSTCHECK A6_152_STRATUM_RECOMPUTATION PASS all 152 raw-row stratum moments recalculated independently with math.fsum and explicit 2x2 covariance
+POSTCHECK A7_BOUNDARY_LEDGER PASS 37 ledger records all recorded as first-path/cell boundary not as silent invalid packets
+POSTCHECK A8_CANARY_COUNT PASS 56 real canary rows, both channels
+POSTCHECK A9_PRESERVE_ALL_CASE_CONTRAST PASS source Full s RMSE improves on 2/7 cases and worsens on 5/7, no case selection
+POSTCHECK A10_ORIGINAL_QA_ALL_GATES PASS all 16 T00-T15 passed in original frozen science receipt; second-pass independently checks its output numerical rows
+POST_RUN_RESULT PASS_SELF_REVIEW_ONLY CHECKS 11 FAILS 0 OUTLIER {'case': 'R5_aB_m0', 'pose_id': 706, 'x': 10.010199, 'y': 0.037008, 'yaw_rad': -3.08939627847429, 'distance_m': 2.2003348862536813, 's_old': -0.06920457380744316, 's_source': -0.9468202768294328, 'abs_shift': 0.8776157030219897, 'source_near_boundary': 'False'}
