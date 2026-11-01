@@ -1,0 +1,39 @@
+name: DLP split recovered inputs
+on:
+  push:
+    branches: [research/dual-lp-physics-rebuild-20261101]
+    paths: [.github/workflows/dlp-physics-recovery-split-20261101.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download unchanged recovery artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download 41314309081 -R "$GITHUB_REPOSITORY" -n dlp-physics-locked-inputs-41314309081 -D recovered_inputs
+          du -h recovered_inputs/inputs/banks/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dlp-recovery-code-rf-control
+          path: |
+            recovered_inputs/
+            !recovered_inputs/inputs/banks/
+          retention-days: 30
+          compression-level: 6
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dlp-recovery-ffd-plus45
+          path: recovered_inputs/inputs/banks/LP_plus45_bank.npz
+          retention-days: 30
+          compression-level: 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dlp-recovery-ffd-minus45
+          path: recovered_inputs/inputs/banks/LP_minus45_bank.npz
+          retention-days: 30
+          compression-level: 0
