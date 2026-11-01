@@ -1,11 +1,10 @@
-"""P2_C3V5 DRAFT (AMENDMENT-010): C3 applied to the committed S1V5 DEV2 run (generated from c3_verify.py by fixed substitutions:
-S1V3->S1V5, class_v3->class_v31, lock_v3->lock_v5, C3->C3V5 names; c3_verify.py itself is frozen under AMENDMENT-008).
+"""P2_C3V5 DRAFT (AMENDMENT-010): replay exact S1V5 DEV3 receipts, not the independently generated inputs.
 
   c3v5.py run --field F --group LH|RV --out D      regenerate one field's inputs, compare with the S1V3 receipts,
                                                         re-run E + post-fit P + class v3 + the C2 start grid
-  c3v5.py aggregate --shards D --out D            (env S1V5_RUN = committed S1V5 DEV2 run dir name)
+  c3v5.py aggregate --shards D --out D            (env S1V5_RUN = committed S1V5 DEV3 run dir name)
 
-Gates: INPUT_REPRO, STATE_COST_REPRO, P_REPRO, STATUS_REPRO, NO_WRONG_BASIN, STATE_STABILITY_FIXED, ITER_CAP, LINEAR_EXACT,
+Gates: exact-input reproduction, STATE_COST_REPRO, full C10 P/NEES, STATUS_REPRO, NO_WRONG_BASIN, ITER_CAP, LINEAR_EXACT,
 KINK_FIXTURES. Reported: analytic-P reproducibility, old-class changes, P-normalised stability, XMODEL-only truth-start (F7).
 """
 from __future__ import annotations
@@ -42,6 +41,23 @@ SPLIT = "DEV3"
 
 
 dref_diff = T.dref_diff
+
+def full_c10_scaled_diff(row_a, row_b):
+    """Ten unique entries, normalized by state covariance natural scales.
+    This avoids meaningless relative blow-up for nearly zero cross terms.
+    """
+    worst = 0.0
+    for i in range(4):
+        for j in range(i, 4):
+            k = f"C10rot_{i}{j}"
+            ai = max(float(row_a[f"C10rot_{i}{i}"]), 0.0)
+            aj = max(float(row_a[f"C10rot_{j}{j}"]), 0.0)
+            bi = max(float(row_b[f"C10rot_{i}{i}"]), 0.0)
+            bj = max(float(row_b[f"C10rot_{j}{j}"]), 0.0)
+            scale = max(math.sqrt(ai * aj), math.sqrt(bi * bj), 1e-300)
+            worst = max(worst, abs(float(row_a[k])-float(row_b[k]))/scale)
+    return worst
+
 
 
 def s1v5_dir():
@@ -88,7 +104,7 @@ def input_diffs(rec, kb, inp, w, Sig, models):
 def cmd_run(field, group, out):
     lk = T.lock_v5(); M.check_code_lock(lk)
     if field not in lk["run_plan"]["C3V5"]["fields"]:
-        raise SystemExit("ERR_SPLIT_LEAK C3V5 runs on the S1V5 DEV2 fields only")
+        raise SystemExit("ERR_SPLIT_LEAK C3V5 runs on the frozen S1V5 DEV3 fields only")
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
     S = T.canonical_setup(lk); root = M.seed_root(); rows = []; rec = load_receipts(s1v5_dir())
     sd0 = np.sqrt(np.diag(P0M))
@@ -133,7 +149,9 @@ def cmd_run(field, group, out):
                     for nm, th in starts.items():
                         Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, theta0=th)
                         sol[nm] = (Is["cost"], Xs)
-                    cstar = min(v[0] for v in sol.values()); best = min(sol, key=lambda k: sol[k][0])
+                    # Truth-start is a diagnostic, NEVER part of the operational/reference best-start choice.
+                    nonoracle = {k:v for k,v in sol.items() if k != "truth"}
+                    cstar = min(v[0] for v in nonoracle.values()); best = min(nonoracle, key=lambda k: nonoracle[k][0])
                     pc10 = np.array([r[f"P_{AJ.PRIMARY}_{a}"] for a in T.STATES])
                     de = XE[-1] - sol[best][1][-1]; de[2] = FL.wrap(de[2])
                     rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm, **idf,
@@ -145,7 +163,7 @@ def cmd_run(field, group, out):
                                 **{f"C10rot_{i}{j}": r[f"C10rot_{i}{j}"] for i in range(4) for j in range(i,4)},
                                 C_star=cstar, best_start=best, gap_E=r["cost"] - cstar, E_vs_best_dref=dref_diff(XE[-1], sol[best][1][-1]),
                                 E_vs_best_sdC10=float(np.max(np.abs(Tr @ de) / np.sqrt(pc10))),
-                                truth_gap=sol["truth"][0] - cstar, n_starts_gross_worse=int(sum(v[0] > cstar + 1.0 for v in sol.values())),
+                                truth_gap=sol["truth"][0] - cstar, n_starts_gross_worse=int(sum(v[0] > cstar + 1.0 for v in nonoracle.values())),
                                 **T.probe_power(ht, z, Sm, dsm, gym, w["dts"], x0, thp, T.key_seed("PP", field, w["role"], cn, sn, arm) % (2 ** 62)))
                     if IE["status"] != "CONVERGED":
                         _, I3, _, X3p, c3p, _ = T.estimate(w, Sm, inp, skey, max_iter=300)
@@ -198,9 +216,7 @@ def cmd_aggregate(shards, out):
                         d_stateE_dref=dref_diff([r[f"xendE_{i}"] for i in range(4)], [s[f"xendE_{i}"] for i in range(4)]), d_costE=abs(r.cost_E - s.cost_E),
                         d_P_C10_rel=max(abs(r[f"P_{AJ.PRIMARY}_{a}"] - s[f"P_{AJ.PRIMARY}_{a}"]) / s[f"P_{AJ.PRIMARY}_{a}"] for a in T.STATES),
                         d_P_A_rel=max(abs(r[f"P_A_{a}"] - s[f"P_A_{a}"]) / s[f"P_A_{a}"] for a in T.STATES),
-                        d_P_full_C10_rel=max(abs(r[f"C10rot_{i}{j}"]-s[f"C10rot_{i}{j}"]) /
-                                        max(abs(r[f"C10rot_{i}{j}"]),abs(s[f"C10rot_{i}{j}"]),1e-300)
-                                        for i in range(4) for j in range(i,4)),
+                        d_P_full_C10_rel=full_c10_scaled_diff(r,s),
                         d_NEES4_C10_rel=abs(r.nees4_C10-s.nees4_C10)/max(abs(s.nees4_C10),1e-300),
                         same_class_v31=r.class_v31 == s.class_v31, same_old_class=r.conv == s.conv))
     C = pd.concat([C, pd.DataFrame(cmp, index=C.index)], axis=1) if len(C) else C
@@ -251,7 +267,7 @@ def cmd_aggregate(shards, out):
         rows=dict(pass_=allrows, n=int(len(C)), n_expected=n_exp))
     gating = [k for k in crit if "REPORTED" not in k]
     status = "PASS" if all(crit[k]["pass_"] for k in gating) else "FAIL"
-    res = dict(status=status, G5_science="MODE_AMBIGUITY_REQUIRES_REVIEW", gating=gating, criteria=crit, s1v5_run=src.name, tolerances=TOL,
+    res = dict(status=status, G5_science="MODE_AMBIGUITY_REQUIRES_REVIEW", science_release_allowed=False, gating=gating, criteria=crit, s1v5_run=src.name, tolerances=TOL,
                preserved=["C2 run 40871327417 FAIL", "C1 original-rule FAIL", "S1V2 DEV runs 40864089916 / 40867939262 FAIL"],
                holdout2_allowed=False, holdout2_note="requires independent re-audit of S1V3+C3 and S1V5+C3V5 (AMENDMENT-009)", p3="NO-GO")
     (out / "C3V5_STATUS.json").write_text(json.dumps(res, indent=1, default=float))
