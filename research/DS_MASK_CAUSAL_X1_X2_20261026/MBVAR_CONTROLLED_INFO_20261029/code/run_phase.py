@@ -22,7 +22,8 @@ PHASES = {"P0_PREFLIGHT": dict(mode="draft", gate="G1"), "P1_S0": dict(mode="fro
           "P2_S1V2_REEVAL": dict(mode="frozen", gate="G3"), "P2_C2": dict(mode="frozen", gate="G3"),
           "P2_S1V3": dict(mode="frozen", gate="G3"), "P2_C3": dict(mode="frozen", gate="G3"),
           "P2_S1V4": dict(mode="frozen", gate="G3"), "P2_C3V4": dict(mode="frozen", gate="G3"),
-          "P2_BTAP": dict(mode="frozen", gate="G3"), "P2_RFRES": dict(mode="frozen", gate="G3")}
+          "P2_BTAP": dict(mode="frozen", gate="G3"), "P2_RFRES": dict(mode="frozen", gate="G3"),
+          "P2_A010P0_GEN": dict(mode="frozen", gate="G3"), "P2_A010P0_ABL": dict(mode="frozen", gate="G3")}
 
 
 def request():
@@ -45,6 +46,8 @@ def plan():
         shards = [f"{f}:{g}" for f in r["c3_fields"] for g in ("LH", "RV")]
     if ph == "P2_BTAP":
         shards = [str(f) for f in r["field_ids"]]
+    if ph == "P2_A010P0_ABL":
+        shards = [f"{k}:{rep}" for k in r["a010p0_cases"] for rep in r["a010p0_reps"]]
     if ph in ("P2_S1", "P2_S1V2", "P2_S1V3", "P2_S1V4"):
         ids = r["field_ids"]; k = int(r.get("n_shards", 8))
         shards = [",".join(map(str, ids[i::k])) for i in range(k) if ids[i::k]]
@@ -88,6 +91,12 @@ def run(shard, out):
         cmd = [sys.executable, str(HERE / "b_tap.py"), "run", "--fields", shard, "--out", str(out)]
     elif ph == "P2_RFRES":
         cmd = [sys.executable, str(HERE / "c_rfres.py"), "run", "--out", str(out)]
+    elif ph == "P2_A010P0_GEN":
+        cmd = [sys.executable, str(HERE / "a10_p0.py"), "gen", "--out", str(out)]
+    elif ph == "P2_A010P0_ABL":
+        k, rep = shard.split(":")
+        cmd = [sys.executable, str(HERE / "a10_p0.py"), "abl", "--case", k, "--rep", rep, "--out", str(out)]
+        env["A010_GEN_RUN"] = r["a010_gen_run"]
     elif ph == "P1_S0V2":
         cmd = [sys.executable, str(HERE / "s0v2.py"), "--out", str(out)]
     elif ph == "P2_S1V2":
@@ -124,6 +133,15 @@ def aggregate(shards, out):
         return subprocess.call([sys.executable, str(HERE / "b_tap.py"), "aggregate", "--shards", shards, "--out", out], env=env)
     if ph == "P2_RFRES":
         return subprocess.call([sys.executable, str(HERE / "c_rfres.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_A010P0_GEN":                    # single shard: copy its outputs, then write the phase manifest
+        import glob as _g, shutil as _sh
+        Path(out).mkdir(parents=True, exist_ok=True)
+        for f in _g.glob(str(Path(shards) / "**" / "A010_*"), recursive=True):
+            _sh.copyfile(f, Path(out) / Path(f).name)
+        return subprocess.call([sys.executable, "-c", "import sys; sys.path.insert(0, %r); import a10_p0 as A; raise SystemExit(A.cmd_gen_manifest(%r))" % (str(HERE), str(out))], env=env)
+    if ph == "P2_A010P0_ABL":
+        env["A010_GEN_RUN"] = r["a010_gen_run"]
+        return subprocess.call([sys.executable, str(HERE / "a10_p0.py"), "aggregate", "--shards", shards, "--out", out], env=env)
     if ph == "P2_S1V3":
         env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])
         return subprocess.call([sys.executable, str(HERE / "s1v3.py"), "aggregate", "--shards", shards, "--split", r["split"], "--out", out], env=env)
