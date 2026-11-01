@@ -1,0 +1,115 @@
+{
+  "schema": "DLP_P1_FIXED_NUMERIC_TOLERANCES_PROPOSER_V1",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "governance": "retrospective reproduction tolerances chosen with prior historical performance visible; NOT new confirmatory hypothesis limits",
+  "rule": "Do not change after P1 results to obtain PASS. Numerical, physics and evaluation tolerance types separate.",
+  "tests": [
+    {
+      "id": "T00_INPUT_SHA",
+      "measure": "SHA256 entire file vs locked sha256 for 39 canonical assets; FFD bank binaries vs bank receipt",
+      "threshold": "exact 64-hex equality",
+      "action": "BLOCKED_INPUT"
+    },
+    {
+      "id": "T01_SHAPE",
+      "measure": "H shape/dtype and 257-bin frequency grid",
+      "threshold": "shape exactly (1303/922/1883,257,2,2) per case, dtype complex128; f count257 start6250400000 step1950000 exact",
+      "action": "STOP"
+    },
+    {
+      "id": "T02_POSE_KEYS",
+      "measure": "full/los case,pose_id and sample keys",
+      "threshold": "integer keys exact one-to-one; missing=0; duplicate=0",
+      "action": "STOP"
+    },
+    {
+      "id": "T03_TIME",
+      "measure": "timeline chronological and sampled pose keys",
+      "threshold": "monotonic increasing, per timestamp equality max abs delta<=1e-9 s; no missing pose",
+      "action": "STOP"
+    },
+    {
+      "id": "T04_COORD",
+      "measure": "sample xyz and yaw vs referenced timeline",
+      "threshold": "max |Delta x|,|Delta y| <=1e-6m; max wrapped |Delta yaw|<=1e-6 degree (CSV rounding allowance)",
+      "action": "STOP"
+    },
+    {
+      "id": "T05_OBSERVER",
+      "measure": "old z=[r,s] H->FFT->tap->r/s regenerated vs archived trace using SAME locked extractor",
+      "threshold": "first-path index identical; |delta r|<=1e-9 m and |delta s|<=1e-9 for every valid matched packet, no silent omission",
+      "action": "STOP"
+    },
+    {
+      "id": "T06_SOURCE_DIRECT_INTERNAL",
+      "measure": "same source/direct complex channel computed by independent algebra (within same source bank)",
+      "threshold": "relative complex max <=1e-10, excluding explicitly zero-power denominators which must STOP",
+      "action": "STOP"
+    },
+    {
+      "id": "T07_SOURCE_NATIVE_COMPLEX",
+      "measure": "SourceFFD direct complex H vs Native RT LoS Tx0 complex H, per-case and overall",
+      "threshold": "relative max<=5e-4; RMS<=1e-4; check common-phase correction not allowed",
+      "action": "REVIEW_PHYSICS_MISMATCH"
+    },
+    {
+      "id": "T08_SOURCE_NATIVE_S",
+      "measure": "source predicted s vs NativeLoS observer s across all 9519 matching C0 points",
+      "threshold": "RMSE<=2e-6; max_abs<=2e-5; first-path tap mismatch=0; recorded prior benchmark already observed so only reproducibility test",
+      "action": "REVIEW_PHYSICS_MISMATCH"
+    },
+    {
+      "id": "T09_SOURCE_JAC",
+      "measure": "central FD vs analytic J_s on stable source interpolation cell + tap + cap state",
+      "threshold": "abs<=2e-5 per m or rad OR rel<=1e-4 when |J|>1e-6; both report. At crossings do NOT FD-pass; tag boundary and count",
+      "action": "STOP_ON_STABLE_INTERIOR_FAIL"
+    },
+    {
+      "id": "T10_OLD_LUT",
+      "measure": "old LUT observation/J same source reference",
+      "threshold": "abs<=1e-12 for identical numeric source and double math, on interior active cell; boundaries separately tagged",
+      "action": "STOP"
+    },
+    {
+      "id": "T11_MODEL_SHIFT",
+      "measure": "signed residual identity e_s_source-e_s_old == h_old-h_source and e_r_source==e_r_old",
+      "threshold": "max_abs s identity<=1e-10; r unchanged<=1e-12 m",
+      "action": "STOP"
+    },
+    {
+      "id": "T12_COV",
+      "measure": "within-group 2x2 sample covariance physical units",
+      "threshold": "min eigenvalue>=-1e-12 in prescribed [r(m),s(1)] numeric scale; exact symmetry max<1e-12; rows n<2 or singular=>report INSUFFICIENT never invert",
+      "action": "STOP"
+    },
+    {
+      "id": "T13_S_DOMAIN",
+      "measure": "s signed power ratio",
+      "threshold": "finite and -1-1e-12<=s<=1+1e-12; total power>0; no silent clipping",
+      "action": "STOP_AND_RECORD_ALL"
+    },
+    {
+      "id": "T14_COUNTS",
+      "measure": "full C0 case/pose and matched temporal populations",
+      "threshold": "Full9519 + LoS9519; 7251 timeline keys per channel; eval t>=30 gives6201 per channel; any exception logged no silent drop",
+      "action": "STOP_OR_BLOCKED_POPULATION"
+    },
+    {
+      "id": "T15_P1_METRICS",
+      "measure": "raw numeric moment two independently coded formulas from same data",
+      "threshold": "sample mean abs difference<=1e-10 in each column native unit; covariance abs difference<=1e-9 in its numeric unit; same n and rejected row count",
+      "action": "STOP"
+    }
+  ],
+  "rationale": {
+    "historically_observed_source_native_max_s": 0.00001082114,
+    "historically_observed_source_native_RMSE_s": 6.592045e-7,
+    "historically_observed_complex_rel_max": 0.0003254,
+    "historically_observed_complex_RMS": 0.00007311,
+    "historical_source_direct_rel_max": 3.912e-13,
+    "not_independent_confirmation": true,
+    "FD_limit": "source piecewise changes at cell/tap boundaries; validity only on stable active cells"
+  },
+  "status_if_any_fails": "FAIL and preserve evidence, no tolerance edit",
+  "scientific_claim_boundary": "Deterministic/source reproducibility PASS alone is not publishable accuracy or independence evidence"
+}
