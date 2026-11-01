@@ -106,7 +106,7 @@ jobs:
           cp "$DLP_AUDIT_OUT/AUDIT_LOG.txt" "$D/" || true
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f "$D"
+          git add --sparse -f "$D"
           git commit -m "audit(p1): preserve independent run ${GITHUB_RUN_ID}, no science or freeze"
           git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
             push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
