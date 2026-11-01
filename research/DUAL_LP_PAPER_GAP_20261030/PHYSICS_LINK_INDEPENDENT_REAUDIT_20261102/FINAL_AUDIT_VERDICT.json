@@ -1,0 +1,76 @@
+{
+  "audit_id": "DLP-PHYS-LINK-001-INDEPENDENT-REAUDIT-20261102",
+  "contract_id": "DLP-PHYS-LINK-001",
+  "audit_sha": "ca8cb43777100a0f5fae53978c0e4096d49701ff",
+  "governance_reference_sha": "250d617ad89a4105fa1af546cc83ceed9de98f42",
+  "actor": "ChatGPT AI separate scratch runner; no human signature",
+  "verdict": "REVISION_REQUIRED",
+  "data_status": "DATA_ACCEPT_WITH_BOUNDARIES_RETROSPECTIVE_SELECTED_12",
+  "independent_numeric_checks": {
+    "total": 2091,
+    "failed": 0,
+    "heading_rmse_max_abs_error_deg": 5.329070518200751e-15,
+    "r3_n_packets": 25088,
+    "r3_max_NIS_error": 5.684341886080802e-14,
+    "r5_raw_first_fields": 144,
+    "r5_same_prior_ledgers": 48,
+    "physics_packets": 3136,
+    "shadow_candidates": 50176
+  },
+  "input_integrity": {
+    "repair_inventory": 42,
+    "rerun_input_sha256": 108,
+    "ffd_external_banks": 2,
+    "original_132_trace_unchanged": true,
+    "original_12_shadow_unchanged": true,
+    "original_score_unchanged": true,
+    "gzip_content_equal_five": true,
+    "original_execution_commit_15503350": "MISSING"
+  },
+  "repair_ids_closed": [
+    "R1_RETROSPECTIVE_PROVENANCE_WITH_ORIGINAL_MISSING",
+    "R2_ADMISSION",
+    "R3_MEAN_NULL_NUMERIC",
+    "R5_FIRST_DIVERGENCE_NUMERIC"
+  ],
+  "repair_ids_open": [
+    "R4-OPEN-01_STALE_GOT",
+    "R4-OPEN-02_STRICT_TIMESTAMP",
+    "R4-OPEN-03_SCORE_DENOMINATOR"
+  ],
+  "negative_tests": {
+    "current_pose_time_detector_disabled_still_PASS": true,
+    "previous_dt_detector_disabled_pose_time_turn_FAIL": true,
+    "equal_timestamp_undetected": true,
+    "score_denominator_829_to_834_undetected": true
+  },
+  "required_remediation": [
+    "Separate implementer R4 patch",
+    "Actual current trace_metrics return; nonfinite guard",
+    "Strict time/t-dt check",
+    "Independent immutable score window denominator",
+    "Positive, negative, disabled-detector, permuted, standalone and -O tests",
+    "New independent rerun at exact new SHA"
+  ],
+  "allowed_claims": [
+    "Selected 12 retrospective heading improvements 12/12",
+    "Selected XY improvements 8/12 and R4 XY degradation",
+    "R2/R5 lookup beats chosen constant; R4 constant beats lookup",
+    "Local same-prior and recursive ranking can differ"
+  ],
+  "prohibited_claims": [
+    "R1-R5 fully independently closed",
+    "67/67 negative harness semantically validated",
+    "Original missing execution restored",
+    "Fresh ML inference or independent physical scene generalization",
+    "Hardware covariance calibrated",
+    "Full cumulative causal effects established"
+  ],
+  "not_reexecuted": [
+    "132 full EKF filter runs",
+    "SourceFFD complex-to-CIR generator",
+    "new RT",
+    "fresh ML inference"
+  ],
+  "independent_human_signoff": false
+}
