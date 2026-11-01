@@ -1,0 +1,35 @@
+name: DLP archived mean lineage recovery
+on:
+  push:
+    branches: [research/dual-lp-physics-rebuild-20261101]
+    paths: [.github/workflows/dlp-physics-mean-lineage-20261101.yml]
+permissions:
+  contents: read
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recover unchanged archived predictions and loader
+        run: |
+          python - <<'PY'
+          import pathlib,urllib.request,hashlib,json
+          root=pathlib.Path('lineage');root.mkdir()
+          ref='9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13'
+          src={'research/DS_MASK_CAUSAL_X1_X2_20261026/x1/run_stage.py':'79411df8de0612f06133ffd0a46775b7e126b065','research/PJ_DS_GATED_20261021/results_hgate/HG_SERIES.csv.gz':'56a5f5ae9a2064e7cea5b5fb8909cf7cd50a791a','research/PJ_DS_GATED_20261021/results_murec/MR_SERIES.csv.gz':'a0b6d0ae08022eeaf7b0d9449c8e941016dc5d72'}
+          rows=[]
+          for path,expected in src.items():
+              url=f'https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/{ref}/{path}'
+              data=urllib.request.urlopen(url,timeout=90).read()
+              blob=hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()
+              assert blob==expected,(path,blob,expected)
+              dest=root/pathlib.Path(path).name;dest.write_bytes(data)
+              rows.append(dict(path=dest.name,source_path=path,source_commit=ref,git_blob=blob,sha256=hashlib.sha256(data).hexdigest(),bytes=len(data)))
+          (root/'LINEAGE_INPUT_LOCK.json').write_text(json.dumps(rows,indent=2))
+          print(json.dumps(rows,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dlp-archived-mean-lineage
+          path: lineage/
+          retention-days: 30
