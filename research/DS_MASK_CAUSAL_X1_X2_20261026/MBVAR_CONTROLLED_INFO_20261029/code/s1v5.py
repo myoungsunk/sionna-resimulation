@@ -388,7 +388,7 @@ def cmd_aggregate(shards, split, out):
     (out / f"{PREFIX}_DECISION_{split}.json").write_text(json.dumps(res, indent=1, default=M._json))
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 11)],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 10)] + [Wd.EXP / "contracts/AMENDMENT-010.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob(f"{PREFIX}_*")),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict="NOT_EVALUATED", unit="field_realization",
                       limitations=["DEV3 technical qualification only, not a confirmatory experiment", "post-fit P convention C10 is numerical; statistical validity only via A8-5",
