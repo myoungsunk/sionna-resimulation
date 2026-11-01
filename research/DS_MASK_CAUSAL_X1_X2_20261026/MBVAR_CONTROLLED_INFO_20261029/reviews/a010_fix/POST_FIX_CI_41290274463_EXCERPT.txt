@@ -1,0 +1,107 @@
+# POST-FIX CI run 41290274463 (commit f9eb608; code = d8a8bd3). Extract; full log: gh run view 41290274463 --log
+[36;1mnproc; lscpu | grep -E 'Model name|^CPU\(s\)' || true[0m
+CPU(s):                                  4
+Model name:                              AMD EPYC 7763 64-Core Processor
+tests/test_a10_canonical.py::test_frozen_data_and_ledger PASSED [  3%]
+tests/test_a10_canonical.py::test_exact_k1_estimator_payload_and_no_truth PASSED [  7%]
+tests/test_a10_canonical.py::test_corrupted_factor_hash_fails PASSED [ 11%]
+tests/test_a10_canonical.py::test_corrupted_canonical_zip_fails PASSED [ 15%]
+tests/test_a10_canonical.py::test_absent_input_and_unregistered_case_fail PASSED [ 19%]
+tests/test_a10_canonical.py::test_factor_kernel_mismatch_fails PASSED [ 23%]
+tests/test_a10_canonical.py::test_exact_array_ledger_covers_every_case PASSED [ 26%]
+tests/test_a10_canonical.py::test_s1v5_and_c3v5_are_draft_only_and_source_checks PASSED [ 30%]
+tests/test_a10_canonical.py::test_full_c10_scaled_diff_uses_psd_state_units PASSED [ 34%]
+tests/test_a10_canonical.py::test_dispatcher_draft_blocks_DEV3_even_with_valid_ids PASSED [ 38%]
+tests/test_a10_canonical.py::test_dispatcher_source_compiles_and_has_no_holdout_or_rt_phase PASSED [ 42%]
+tests/test_a10_s1v5_c3v5_exec.py::test_s1v5_cmd_run_calls_lock_v5 PASSED [ 46%]
+tests/test_a10_s1v5_c3v5_exec.py::test_s1v5_cmd_aggregate_calls_lock_v5 PASSED [ 50%]
+tests/test_a10_s1v5_c3v5_exec.py::test_c3v5_entry_points_call_lock_v5 PASSED [ 53%]
+tests/test_a10_s1v5_c3v5_exec.py::test_no_undefined_globals_or_stale_v4_names[s1v5] PASSED [ 57%]
+tests/test_a10_s1v5_c3v5_exec.py::test_no_undefined_globals_or_stale_v4_names[c3v5] PASSED [ 61%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_two_shards_same_matrices_pass PASSED [ 65%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_cross_field_difference_is_reported_not_merged PASSED [ 69%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_duplicate_mat_key_identical_bytes_fails PASSED [ 73%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_duplicate_mat_key_different_bytes_conflict PASSED [ 76%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_non_mat_duplicate_fails PASSED [ 80%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_legacy_fieldless_mat_key_fails PASSED [ 84%]
+tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_mat_field_outside_its_shard_fails PASSED [ 88%]
+tests/test_a10_s1v5_c3v5_exec.py::test_mode_ambiguity_counts_any_truth_free_alternative PASSED [ 92%]
+tests/test_a10_s1v5_c3v5_exec.py::test_mode_ambiguity_no_alternative PASSED [ 96%]
+tests/test_a10_s1v5_c3v5_exec.py::test_smoke_reduced_end_to_end PASSED [100%]
+======================= 26 passed in 1332.83s (0:22:12) ========================
+
+## E2E_SUMMARY.json
+{
+ "timing": {
+  "s1run_s": 582,
+  "c3run_s": 743
+ },
+ "s1v5_rows": 44,
+ "s1v5_rows_expected_subset": 44,
+ "c3v5_rows": 10,
+ "c3v5_status": "FAIL",
+ "c3v5_subset_checks": {
+  "INPUT_REPRO": true,
+  "STATE_COST_REPRO": true,
+  "P_REPRO": true,
+  "STATUS_REPRO": true,
+  "NO_WRONG_BASIN": true,
+  "ITER_CAP": true,
+  "PROBE_POWER": true,
+  "LINEAR_EXACT": true,
+  "KINK_FIXTURES": true
+ },
+ "receipt_load": {
+  "n_receipt_files": 2,
+  "receipt_files": [
+   "S1V5_INPUTS_SMOKE_900.zip",
+   "S1V5_INPUTS_SMOKE_901.zip"
+  ],
+  "mat_keys": 44,
+  "mat_duplicate_keys": 0,
+  "mat_conflicts": 0,
+  "mat_key_schema": "MAT|{field}|{role}|{cell}|Sig_true, MAT|{field}|{role}|{cell}|{arm}|Sig_model",
+  "n_keys": 160
+ },
+ "mat_cross_field": {
+  "n_groups": 22,
+  "n_groups_multi_field": 22,
+  "n_byte_identical": 22,
+  "n_differ": 0,
+  "max_rel_diff": 0.0,
+  "note": "REPORTED only; each field is replayed with its own matrices"
+ },
+ "mode_ambiguity": {
+  "rule": "R4: a row is AMBIGUOUS if ANY truth-free solution s != E' has |cost_s - cost_E'| <= 1 chi^2 and dref(E', s) > 2 (truth start excluded)",
+  "n_ambiguous": 0,
+  "n_alt_solutions": 0,
+  "max_alt_dref_within_1chi2": 0.8116354053973636,
+  "n_ambiguous_best_start_only_legacy": 0,
+  "claim_unique_map_allowed": false
+ },
+ "kp_byte_match": {
+  "n_fields": 2,
+  "n_match": 0,
+  "all_match": false,
+  "per_field": {
+   "900": false,
+   "901": false
+  },
+  "note": "DIAGNOSTIC ONLY (exp() ULP may differ across CPUs); not part of the QA pass rule"
+ }
+}
+S1V5_QA {"pass": false, "n_rows": 44, "n_rows_expected": 132, "failures": 0, "stops": 0, "n_input_receipt_files": 2, "revisit_pose_identical_max": 0.0, "revisit_time_differs_min": 0.2346559895054882, "primary_P_pd_all": true, "A82_polish_all_within_scope": true, "NOT_CERTIFIED_v31_cells_failing": {}, "class_v31_counts": {"CONVERGED_SMOOTH": 18, "LOCAL_MIN_CERTIFIED": 14}, "A010_KP_BYTE_MATCH": {"n_fields": 2, "n_match": 0, "all_match": false, "per_field": {"900": false, "901": false}, "note": "DIAGNOSTIC ONLY (exp() ULP may differ across CPUs); not part of the QA pass rule"}}
+C3V5_STATUS FAIL | receipt_load {"n_receipt_files": 2, "receipt_files": ["S1V5_INPUTS_SMOKE_900.zip", "S1V5_INPUTS_SMOKE_901.zip"], "mat_keys": 44, "mat_duplicate_keys": 0, "mat_conflicts": 0, "mat_key_schema": "MAT|{field}|{role}|{cell}|Sig_true, MAT|{field}|{role}|{cell}|{arm}|Sig_model", "n_keys": 160} | MAT_CROSS_FIELD {"n_groups": 22, "n_groups_multi_field": 22, "n_byte_identical": 22, "n_differ": 0, "max_rel_diff": 0.0, "note": "REPORTED only; each field is replayed with its own matrices"}
+   INPUT_REPRO {"pass_": false, "max_z": 0.0, "max_ctl": 0.0, "max_sig_fp_rel": 0.0}
+   STATE_COST_REPRO {"pass_": false, "max_state_dref": 5.727483234979223e-13, "max_cost": 0.0, "n_best_k_diff": 0, "raw_E_max_state_dref_REPORTED": 5.727483234979223e-13, "raw_E_max_cost_REPORTED": 0.0}
+   P_REPRO {"pass_": false, "max_full_C10_rel": 6.864436535783143e-13, "max_nees4_C10_rel": 1.9016490280355035e-16, "max_C10_rel": 6.864436535787855e-13, "analytic_A_max_rel_REPORTED": 8.586273082063525e-13, "analytic_A_n_gt_tol_REPORTED": 0}
+   STATUS_REPRO {"pass_": false, "n_class_v31_diff": 0, "old_class_changes_REPORTED": 0}
+   NO_WRONG_BASIN {"pass_": false, "max_gap": 0.0006918460859139, "n_gt_1": 0, "note": "C* = min cost over E' and the 9 truth-free fixed starts (psi -3..+3 SD x7, x+1 SD, y+1 SD); the truth start is an ORACLE_ONLY diagnostic (truth_gap) and never enters C* (bounded search, not a global-optimum proof)"}
+   STATE_STABILITY_FIXED_REPORTED {"pass_": false, "per_arm": {"IID_BATCH": {"n": 4, "frac_le_1dref": 1.0, "max_dref": 2.1490955230167815e-05, "max_sdC10_REPORTED": 4.871169899955012e-06}, "ORACLE_CORR_BATCH": {"n": 4, "frac_le_1dref": 1.0, "max_dref": 0.0480103802253495, "max_sdC10_REPORTED": 0.0114298985037334}, "XMODEL_BATCH": {"n": 2, "frac_le_1dref": 1.0, "max_dref": 0.0748319885822246, "max_sdC10_REPORTED": 0.018074708793080
+   ITER_CAP {"pass_": false, "max_dref": 0.0, "n_not_converged": 3}
+   PROBE_POWER {"pass_": false, "frac_not_certified": 1.0, "rise_min_max": [1.1255174797675809, 1.9626205366167253], "note": "negative control: displaced point (cost +~1 chi^2) must be NOT_CERTIFIED"}
+   LINEAR_EXACT {"pass_": true, "max_rel": 1.1306235094394224e-08}
+   KINK_FIXTURES {"pass_": true, "left": 2.0, "right": 5.0, "central": 3.5000000000000004, "smooth_control_max_abs": 4.9993542805548685e-08}
+   F7_XMODEL_truth_start_REPORTED {"rows": 2, "truth_start_worse_than_E_frac": 0.0, "all_arms_frac": 0.1}
+   KINK_HYPOTHESIS_REPORTED {"frac_kink_KINK_P_UNCERTAIN": null, "class_v31_counts": {"CONVERGED_SMOOTH": 7, "LOCAL_MIN_CERTIFIED": 3}, "old_class_counts": {"CONVERGED": 7, "CONVERGED_NONSMOOTH": 3}}
+   MODE_AMBIGUITY_REPORTED {"rule": "R4: a row is AMBIGUOUS if ANY truth-free solution s != E' has |cost_s - cost_E'| <= 1 chi^2 and dref(E', s) > 2 (truth start excluded)", "n_ambiguous": 0, "n_alt_solutions": 0, "max_alt_dref_within_1chi2": 0.8116354053973636, "n_ambiguous_best_start_only_legacy": 0, "claim_unique_map_allowed": false}

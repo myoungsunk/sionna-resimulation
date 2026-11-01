@@ -1,0 +1,21 @@
+# Intermediate local e2e: commit 30becc1 + D1 fix only (lock_v4 -> lock_v5), D2 NOT fixed. TECHNICAL ONLY, local, not evidence.
+# Purpose: show that regression (iii) catches D2 independently of D1. Machine: 2-core Intel Xeon 2.10 GHz, Python 3.13 venv (numpy 2.3.3 scipy 1.16.2 pandas 2.3.2), BLAS 1 thread.
+# Driver: tests/a10_e2e_smoke.py, SMOKE 900/901, cells POSE_HIGH+TIME_HIGH_5, sensor seed 0; in-memory lock only.
+
+Sun Nov  1 17:23:13 KST 2026
+Sun Nov  1 17:34:15 KST 2026
+s1agg rc=1
+c3run rc=1
+Sun Nov  1 17:34:22 KST 2026
+--- s1_900.log
+S1V5 field 900 rows 22
+--- s1_901.log
+S1V5 field 901 rows 22
+--- s1agg.log
+S1V5 aggregate SMOKE FAIL | A8-5 fail True | A8-6 NOT_EVALUATED NOT_EVALUATED
+--- c3_900LH.log
+ERR_C3V5_DUPLICATE_INPUT_KEY
+
+--- shared keys between the two S1V5 receipt zips
+shared 22 | all MAT| True | byte-identical 22
+example ['MAT|FWD60|POSE_HIGH|IID_BATCH|Sig_model', 'MAT|FWD60|POSE_HIGH|ORACLE_CORR_BATCH|Sig_model']

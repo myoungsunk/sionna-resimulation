@@ -1,0 +1,64 @@
+# PRE-FIX CI run 41288591968 (commit 30becc1 = tests only, unfixed s1v5/c3v5). Extract of the pytest step; full log: gh run view 41288591968 --log
+[36;1mnproc; lscpu | grep -E 'Model name|^CPU\(s\)' || true[0m
+CPU(s):                                  4
+Model name:                              AMD EPYC 9V74 80-Core Processor
+
+## e2e (iii) first stage S1V5 run, subprocess log tail
+>       lk = lock_v4(); M.check_code_lock(lk)
+>       lk = lock_v4(); M.check_code_lock(lk); out = Path(out); out.mkdir(parents=True, exist_ok=True)
+E           File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1v5.py", line 206, in cmd_run
+E             lk = lock_v4(); M.check_code_lock(lk)
+
+=========================== short test summary info ============================
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_s1v5_cmd_run_calls_lock_v5 - NameError: name 'lock_v4' is not defined
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_s1v5_cmd_aggregate_calls_lock_v5 - NameError: name 'lock_v4' is not defined
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_no_undefined_globals_or_stale_v4_names[s1v5] - AssertionError: s1v5: undefined globals ['lock_v4']
+assert not {'lock_v4'}
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_two_shards_same_matrices_pass - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_cross_field_difference_is_reported_not_merged - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_duplicate_mat_key_identical_bytes_fails - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_duplicate_mat_key_different_bytes_conflict - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_non_mat_duplicate_fails - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_legacy_fieldless_mat_key_fails - Failed: DID NOT RAISE <class 'SystemExit'>
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_load_receipts_mat_field_outside_its_shard_fails - AttributeError: module 's1v5' has no attribute 'mat_receipt'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_mode_ambiguity_counts_any_truth_free_alternative - AttributeError: module 'c3v5' has no attribute 'mode_ambiguity'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_mode_ambiguity_no_alternative - AttributeError: module 'c3v5' has no attribute 'mode_ambiguity'
+FAILED research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py::test_smoke_reduced_end_to_end - AssertionError: ['Traceback (most recent call last):
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/a10_e2e_smoke.py", line 111, in <module>
+      raise SystemExit(main())
+                       ^^^^^^
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/a10_e2e_smoke.py", line 102, in main
+      return T.cmd_run([a.field], SPLIT, work / "s1sh" / str(a.field))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1v5.py", line 206, in cmd_run
+      lk = lock_v4(); M.check_code_lock(lk)
+           ^^^^^^^
+  NameError: name \'lock_v4\' is not defined. Did you mean: \'lock_v5\'?
+  ', 'Traceback (most recent call last):
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/a10_e2e_smoke.py", line 111, in <module>
+      raise SystemExit(main())
+                       ^^^^^^
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/a10_e2e_smoke.py", line 102, in main
+      return T.cmd_run([a.field], SPLIT, work / "s1sh" / str(a.field))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "/home/runner/work/sionna-resimulation/sionna-resimulation/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/s1v5.py", line 206, in cmd_run
+      lk = lock_v4(); M.check_code_lock(lk)
+           ^^^^^^^
+  NameError: name \'lock_v4\' is not defined. Did you mean: \'lock_v5\'?
+  ']
+assert [1, 1] == [0, 0]
+  
+  At index 0 diff: 1 != 0
+  
+  Full diff:
+    [
+  -     0,
+  ?     ^
+  +     1,
+  ?     ^
+  -     0,
+  ?     ^
+  +     1,
+  ?     ^
+    ]
+======================== 13 failed, 13 passed in 1.21s =========================
