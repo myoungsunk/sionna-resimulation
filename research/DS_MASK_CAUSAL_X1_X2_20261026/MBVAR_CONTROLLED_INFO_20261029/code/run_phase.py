@@ -23,7 +23,8 @@ PHASES = {"P0_PREFLIGHT": dict(mode="draft", gate="G1"), "P1_S0": dict(mode="fro
           "P2_S1V3": dict(mode="frozen", gate="G3"), "P2_C3": dict(mode="frozen", gate="G3"),
           "P2_S1V4": dict(mode="frozen", gate="G3"), "P2_C3V4": dict(mode="frozen", gate="G3"),
           "P2_BTAP": dict(mode="frozen", gate="G3"), "P2_RFRES": dict(mode="frozen", gate="G3"),
-          "P2_A010P0_GEN": dict(mode="frozen", gate="G3"), "P2_A010P0_ABL": dict(mode="frozen", gate="G3")}
+          "P2_A010P0_GEN": dict(mode="frozen", gate="G3"), "P2_A010P0_ABL": dict(mode="frozen", gate="G3"),
+          "P2_S1V5": dict(mode="frozen", gate="G3"), "P2_C3V5": dict(mode="frozen", gate="G5")}
 
 
 def request():
@@ -32,6 +33,17 @@ def request():
         raise SystemExit(f"ERR_ROLE_ROUTING: phase {r.get('phase')} not runnable in this workflow (RT phases need a signed pre-P3 amendment)")
     if r.get("role") != "IMPLEMENTER" or r.get("contract_id") != "MBVAR-INFO-001":
         raise SystemExit("ERR_ROLE_ROUTING: role/contract")
+    if r["phase"] in ("P2_S1V5", "P2_C3V5"):
+        # Early fail closed, before any DEV3 shard is scheduled. The science
+        # amendment and source hash lock still need independent signoff.
+        science = (EXP / "contracts/AMENDMENT-010.md").read_text()
+        if '"status": "FROZEN"' not in science or "AMENDMENT_LOCK" not in science:
+            raise SystemExit("ERR_A010_UNFROZEN_NO_DEV3")
+        if r.get("split") != "DEV3":
+            raise SystemExit("ERR_A010_SPLIT_DEV3_REQUIRED")
+        fs = r.get("field_ids") if r["phase"] == "P2_S1V5" else r.get("c3_fields")
+        if sorted(fs or []) != list(range(20, 30)):
+            raise SystemExit("ERR_A010_DEV3_FIELD_SET")
     return r
 
 
@@ -42,13 +54,13 @@ def plan():
         shards = ["geo"] + [f"c1:{f}" for f in r["c1_fields"]]
     if ph == "P2_C2":
         shards = [f"{f}:{g}" for f in r["c2_fields"] for g in ("LH", "RV")]
-    if ph in ("P2_C3", "P2_C3V4"):
+    if ph in ("P2_C3", "P2_C3V4", "P2_C3V5"):
         shards = [f"{f}:{g}" for f in r["c3_fields"] for g in ("LH", "RV")]
     if ph == "P2_BTAP":
         shards = [str(f) for f in r["field_ids"]]
     if ph == "P2_A010P0_ABL":
         shards = [f"{k}:{rep}" for k in r["a010p0_cases"] for rep in r["a010p0_reps"]]
-    if ph in ("P2_S1", "P2_S1V2", "P2_S1V3", "P2_S1V4"):
+    if ph in ("P2_S1", "P2_S1V2", "P2_S1V3", "P2_S1V4", "P2_S1V5"):
         ids = r["field_ids"]; k = int(r.get("n_shards", 8))
         shards = [",".join(map(str, ids[i::k])) for i in range(k) if ids[i::k]]
     print(json.dumps(dict(phase=ph, governance=r["governance_git_sha"], contract_mode=PHASES[ph]["mode"],
@@ -83,6 +95,12 @@ def run(shard, out):
         cmd = [sys.executable, str(HERE / "s1v3.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
     elif ph == "P2_S1V4":
         cmd = [sys.executable, str(HERE / "s1v4.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
+    elif ph == "P2_S1V5":
+        cmd = [sys.executable, str(HERE / "s1v5.py"), "run", "--fields", shard, "--split", r["split"], "--out", str(out)]
+    elif ph == "P2_C3V5":
+        f, g = shard.split(":")
+        cmd = [sys.executable, str(HERE / "c3v5.py"), "run", "--field", f, "--group", g, "--out", str(out)]
+        env["S1V5_RUN"] = r["s1v5_run"]
     elif ph == "P2_C3V4":
         f, g = shard.split(":")
         cmd = [sys.executable, str(HERE / "c3v4.py"), "run", "--field", f, "--group", g, "--out", str(out)]
@@ -122,6 +140,12 @@ def aggregate(shards, out):
     if ph == "P2_C3":
         env["S1V3_RUN"] = r["s1v3_run"]
         return subprocess.call([sys.executable, str(HERE / "c3_verify.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_C3V5":
+        env["S1V5_RUN"] = r["s1v5_run"]
+        return subprocess.call([sys.executable, str(HERE / "c3v5.py"), "aggregate", "--shards", shards, "--out", out], env=env)
+    if ph == "P2_S1V5":
+        env["S0V2_RESULTS_DIR"] = str(EXP / r["s0v2_results"])
+        return subprocess.call([sys.executable, str(HERE / "s1v5.py"), "aggregate", "--shards", shards, "--split", r["split"], "--out", out], env=env)
     if ph == "P2_C3V4":
         env["S1V4_RUN"] = r["s1v4_run"]
         return subprocess.call([sys.executable, str(HERE / "c3v4.py"), "aggregate", "--shards", shards, "--out", out], env=env)
