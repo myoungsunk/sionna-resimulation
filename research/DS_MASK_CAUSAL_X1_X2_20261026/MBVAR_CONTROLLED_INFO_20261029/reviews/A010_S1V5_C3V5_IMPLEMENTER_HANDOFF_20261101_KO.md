@@ -10,7 +10,7 @@
 - Forensic GEN `41269011836`, ABL `41269246996` (구현자 SELF_REVIEW_ONLY).
 - 별도 숫자 검산: `audit/mbvar-info-a010p0-indep-20261101` GitHub Actions `41277884578`: canonical 48/48, covariance kernel, 88행 NEES4/C10/modes check PASS_NUMERICAL_RECALC_ONLY. **하나의 AI 세션에서 제안/감사를 겸한 기록**이므로 독립 감사 서명과 구별.
 - 신규 canonical loader technical CI `41278153584`: 7 tests PASS.
-- 신규 S1V5/C3V5 draft compile/AST/negative fixtures CI `41278588582`: **9 tests PASS**. All of these **do not open any DEV3 fields**.
+- 신규 S1V5/C3V5 draft compile/AST/negative fixtures CI `41278588582`: **9 tests PASS**.\n- 최신 fail-closed phase routing 포함 CI [#41278769173](https://github.com/myoungsunk/sionna-resimulation/actions/runs/41278769173): **11/11 tests PASS**, `DEV3=NOT_RUN` (code SHA `e2ed82620a0237d486d2873c753658f67a97474c`).\n- 본 기술 시험은 DEV3/HOLDOUT2/RT의 입력을 읽거나 실행하지 않는다.
 
 ## 2. 생성/수정 파일
 
@@ -18,7 +18,7 @@
 |---|---|---|
 | `code/a10_canonical.py` | 신규 | `Lhalf.npy` / 4-key canonical zip SHA 검사, estimator-only 입력(oracle/truth 제외), dtype/shape/array SHA, fail-closed |
 | `code/s1v5.py` | 신규 DRAFT | S1V4 MAP 및 objective 그대로, canonical fixed 180-pose field, full covariance `MAT|role|cell` receipt, G2/G4/QA 수정 |
-| `code/c3v5.py` | 신규 DRAFT | S1V5 full original input receipts로 재귀/배치 재생성, generator-only difference 별도 진단, full 4x4 C10 10개 원소 및 NEES 검증, truth-free best start |
+| `code/c3v5.py` | 신규 DRAFT | S1V5 원본 input receipts로 재생, generator-only difference 별도 진단, full 4x4 C10 10개 원소 및 NEES 검증, truth-free best start |\n| `code/run_phase.py` | 범위 제한 수정 | S1V5·C3V5 예약 단계 추가. A010 본문 FROZEN 및 DEV3 20–29 확인 전에 planning·run 중단 |
 | `tests/test_a10_canonical.py` | 신규 | 데이터 무결성·negative fixture·draft code compilation/AST/contract markers |
 | `audit/a10_canonical_smoke.py` | 신규 | 기술 전용 기계 판정 JSON (science/DEV3/HOLDOUT2/RT=NOT_RUN) |
 | `.github/workflows/mbvar-a010-canonical-smoke-20261101.yml` | 신규 | git SHA detached sparse checkout, py_compile, 9 tests, artifact upload |
@@ -39,7 +39,7 @@
 
 **아직 검증되지 않은 것:** S1V5와 C3V5 전면적 FFD end-to-end 실행, DEV3 20–29의 10 independent field 통계, C3V5 1080개 실측/solver/covariance 재현성, 새로운 estimator mode 빈도, 분산 일관성 및 HIT/PASS, HOLDOUT2·RT.
 
-**FROZEN 이전 필수:**
+**FROZEN 이전 필수:** (현재 신규 source code 및 run-phase의 실제 10-field end-to-end 실행은 미검증. compile/unit-test PASS만으로 과학적 수용 불가)
 1. 독립 감사자가 **구현 diff**를 검토: CSV/NPZ original receipt의 모든 key·dtype·full Sigma의 SHA, source/contract SHA, no-truth-start, G2/G4/G5 fail-closed, pose order와 `Lhalf` identical law.
 2. `AMENDMENT-010` full contract와 `PLAN_PARAMETERS.json`의 `run_plan["S1V5"]`, `["C3V5"]`, DEV3 field IDs, source code-hash, permissible outcome/ambiguous-label interpretation, latency budget을 명시해 동결. Deep/fixed-grid candidate primary promotion 금지.
 3. Freeze 직전 새 수학/음성-fixture 검증을 수행한 후 별도 감사자 서명. Release gate는 NEW branch SHA를 기록.
