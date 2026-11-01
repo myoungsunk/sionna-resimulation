@@ -74,6 +74,25 @@ jobs:
           mkdir -p "$RUNNER_TEMP/e2e"
           python -m pytest -v -p no:cacheprovider --junitxml="$RUNNER_TEMP/e2e/junit.xml" \
             "$EXP/tests/test_a10_canonical.py" "$EXP/tests/test_a10_s1v5_c3v5_exec.py" 2>&1 | tee "$RUNNER_TEMP/e2e/pytest.log"
+      - name: Print technical e2e summary (machine-readable copies are in the artifact)
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          W="$RUNNER_TEMP/e2e"
+          cat "$W/E2E_SUMMARY.json" 2>/dev/null || echo "no E2E_SUMMARY.json"
+          python - "$W" <<'PY' || true
+          import json, sys, pathlib
+          w = pathlib.Path(sys.argv[1])
+          q = json.loads((w / "s1agg/S1V5_QA.json").read_text())
+          print("S1V5_QA", json.dumps({k: q[k] for k in ("pass", "n_rows", "n_rows_expected", "failures", "stops", "n_input_receipt_files",
+                "revisit_pose_identical_max", "revisit_time_differs_min", "primary_P_pd_all", "A82_polish_all_within_scope",
+                "NOT_CERTIFIED_v31_cells_failing", "class_v31_counts", "A010_KP_BYTE_MATCH")}, default=float))
+          s = json.loads((w / "c3agg/C3V5_STATUS.json").read_text())
+          print("C3V5_STATUS", s["status"], "| receipt_load", json.dumps(s["receipt_load"]), "| MAT_CROSS_FIELD", json.dumps(s["MAT_CROSS_FIELD_REPORTED"]))
+          for k, v in s["criteria"].items():
+              print("  ", k, json.dumps(v, default=float)[:400])
+          PY
       - name: Guard — nothing written into the repository
         if: always()
         shell: bash
