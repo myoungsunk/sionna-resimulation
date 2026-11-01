@@ -1,0 +1,73 @@
+{
+  "schema": "DLP_EKF_GAPS_001_P1_APPEND_ONLY_FROZEN_RATIFICATION_V1",
+  "date_kst": "2026-11-01",
+  "contract_id": "DLP-EKF-GAPS-001/P1-V1",
+  "ratification_status": "FROZEN",
+  "science_authorization": "P1_ONLY",
+  "governance_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "immutable_proposer_head": "340877f3537b4cc65cdaa9d687423cba92e0b28b",
+  "immutable_artifacts": {
+    "contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+    "input_lock_sha256": "65d16d2941a57e636a6b0c6269039631d82d7a6dd1334ad665b168264ad113e0",
+    "config_lock_sha256": "82c715f4ab7d0517f42d902e50124cb00f04a2b01a25282ca5aba923c95a8014",
+    "numerical_tolerances_sha256": "8739e721a10a95c6113c7198972c7c00983c97da6475e86606d7a1fac60d904f",
+    "sample_split_sha256": "9d92e4a926d2877d1969e718210ea0ed8aeeb6cac6a6dae46c867bf3d742277f",
+    "source_science_spec_sha256": "76d6158e6e2c9cc29bb220d049d0593457be2e50a78599e738bd694aa58d9bb8",
+    "source_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+    "old_lut_blob": "cb676aea8e6710ff2c0e175e1e422271b696cebe",
+    "original_P0_manifest_sha256": "462c0bc89e1b55653d289d8a529c1c7022c17a8d954c5ea5740a99092d367455"
+  },
+  "linked_signatures": {
+    "proposer": {
+      "role": "PROPOSER",
+      "provenance": "2026-11-01 original proposer science lock and user's immediate explicit 2026-11-01 instruction: '작성 한다. 그리고 바로 다음에 p1 실험 진행'",
+      "approval": "EXPLICIT_USER_AUTHORIZATION_FOR_APPEND_ONLY_RATIFICATION_AND_P1_SCIENCE",
+      "provenance_limit": "Chat instruction and authored role signature, NOT personal cryptographic signature"
+    },
+    "auditor": {
+      "role": "INDEPENDENT_COMPUTATIONAL_PRE_RUN_AUDITOR",
+      "signed_verdict": "ACCEPT_WITH_BOUNDARIES",
+      "actor": "GPT-6 separate proposer-origin session, independently authored scratch mathematics, Github Actions physically separate runner",
+      "audit_result_sha256": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c",
+      "audit_code_sha256": "a689af0e3fdeb4ceb51bbf0bf29ea22a6280fed6f076f4adebdd19f418c962d2",
+      "auditor_verdict_ref": "research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/P1_INDEPENDENT_AUDITOR_VERDICT_20261101.json",
+      "auditor_verdict_pinned_git_ref": "189b38c0fda16ff3b47862f1e251982ccedd0572",
+      "immutable_raw_run_id": "41289874166",
+      "immutable_raw_report_path": "research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/runs/41289874166/AUDIT_RESULT.json",
+      "independent_human_github_identity": false,
+      "github_account_same_as_proposer": true,
+      "signoff_binding": "This is a countersignature BY HASH REFERENCE to pre-existing signed computational audit; no claim of a second human signature."
+    }
+  },
+  "strict_scope": {
+    "dataset": "Corridor C0 exactly 7 existing R2/R4/R5 Full + NativeLoS pairs, exactly 9519 per mode",
+    "sampling": "7251 timeline case-steps per channel; t>=30 6201 per channel",
+    "model": "SourceFFD from exact blob; compare old LUT on same raw H; [r,s] TX0+45 RX+45/-45",
+    "science": "H->Hann N-1->IFFT 4N*257->strongest branch 30% common first-path->r/s; offline signed residuals, fixed range d+B_OLD, ddof1 descriptive C0 stats; no learned fit",
+    "limits": "Old historical performance visible. T00-T15 engineering regression, not independent confirmatory limits; 1 independent scene.",
+    "disallowed": [
+      "new RF or new scene",
+      "any EKF/filter replay",
+      "refit empirical models",
+      "P2 P3 P4 experiments",
+      "new covariance calibration/fitting",
+      "M2 selection",
+      "3D information",
+      "posthoc threshold adjustment",
+      "Office mixing",
+      "R4/R5 M45 Full-only in primary paired set",
+      "unseen holdout or generalization claim"
+    ]
+  },
+  "required_actions_before_science": [
+    "Checkout immutable original proposer science bytes and verify every lock SHA256",
+    "Verify actual auditor receipt SHA256 against exact pinned commit and explicit ACCEPT_WITH_BOUNDARIES",
+    "Fresh full raw SHA for 39 C0 assets and both actual NPZ banks before reading",
+    "Fail closed on missing original RF or old LUT; P1 reader must never substitute Git LFS pointer bytes",
+    "Use append-only output root and preserve FAIL outputs"
+  ],
+  "output_root": "research/DUAL_LP_PAPER_GAP_20261030/runs/P1_SOURCE_HARMONIZATION_<GITHUB_RUN_ID>/",
+  "contract_files_edited": false,
+  "original_proposer_receipt_historical_state": "PROPOSER_LOCKED_AUDIT_PENDING; preserved without rewriting",
+  "status_rule": "This append-only ratification supersedes only phase authorization (P1 frozen), NOT scientific evidence content or prior proposer lock receipt."
+}
