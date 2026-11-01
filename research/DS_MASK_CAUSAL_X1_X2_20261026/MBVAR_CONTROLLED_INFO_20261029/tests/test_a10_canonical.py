@@ -122,3 +122,42 @@ def test_full_c10_scaled_diff_uses_psd_state_units():
     changed=dict(row)
     changed["C10rot_01"]=1e-7
     assert ns["full_c10_scaled_diff"](row,changed)>0.0
+
+
+def test_dispatcher_draft_blocks_DEV3_even_with_valid_ids(tmp_path, monkeypatch):
+    import importlib.util
+    import json
+    source = ROOT / "code/run_phase.py"
+    modspec = importlib.util.spec_from_file_location("a10_test_dispatcher", source)
+    assert modspec and modspec.loader
+    module = importlib.util.module_from_spec(modspec)
+    modspec.loader.exec_module(module)
+    ex = tmp_path / "experiment"
+    ex.mkdir()
+    contracts = ex / "contracts"
+    contracts.mkdir()
+    (contracts / "AMENDMENT-010.md").write_text("# AMENDMENT-010 DRAFT — not FROZEN")
+    req = dict(phase="P2_S1V5", role="IMPLEMENTER", contract_id="MBVAR-INFO-001",
+               field_ids=list(range(20,30)), split="DEV3", governance_git_sha="f"*40)
+    (ex / "RUN_REQUEST.json").write_text(json.dumps(req))
+    monkeypatch.setattr(module, "EXP", ex)
+    monkeypatch.setattr(module, "REQ", ex / "RUN_REQUEST.json")
+    with pytest.raises(SystemExit, match="ERR_A010_UNFROZEN_NO_DEV3"):
+        module.request()
+    # Synthetic contract for UNIT TEST only: prove valid FROZEN still cannot
+    # select anything beyond DEV3 field ids 20–29.
+    (contracts / "AMENDMENT-010.md").write_text('AMENDMENT_LOCK\\n{"status": "FROZEN"}')
+    assert module.request()["phase"] == "P2_S1V5"
+    req["field_ids"] = list(range(21,30))
+    (ex / "RUN_REQUEST.json").write_text(json.dumps(req))
+    with pytest.raises(SystemExit, match="ERR_A010_DEV3_FIELD_SET"):
+        module.request()
+
+
+def test_dispatcher_source_compiles_and_has_no_holdout_or_rt_phase():
+    import ast
+    s=(ROOT/"code/run_phase.py").read_text()
+    ast.parse(s)
+    assert '"P2_S1V5": dict(mode="frozen"' in s
+    assert '"P2_C3V5": dict(mode="frozen"' in s
+    assert "ERR_A010_UNFROZEN_NO_DEV3" in s
