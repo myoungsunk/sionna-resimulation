@@ -92,6 +92,10 @@ def test_s1v5_and_c3v5_are_draft_only_and_source_checks():
     assert "len(zips) == len(expected)" in s1
     assert 'b.dec_A_fixed <= FL.V2_DEC_TOL' in s1
     assert "and not multi_conv and not multi_excl" in s1
+    assert '[Wd.EXP / "contracts/AMENDMENT-010.md"]' in s1
+    assert '[Wd.EXP / "contracts/AMENDMENT-010.md"]' in c3
+    assert "AMENDMENT-0010.md" not in s1
+    assert "AMENDMENT-0010.md" not in c3
     assert "CAN.install_factor" in s1
     assert 'SPLIT = "DEV3"' in c3
     assert "CAN.sha_file(f) != hashes[f.name]" in c3
