@@ -272,7 +272,7 @@ def cmd_aggregate(shards, out):
                holdout2_allowed=False, holdout2_note="requires independent re-audit of S1V3+C3 and S1V5+C3V5 (AMENDMENT-009)", p3="NO-GO")
     (out / "C3V5_STATUS.json").write_text(json.dumps(res, indent=1, default=float))
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
-                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 11)],
+                      config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 10)] + [Wd.EXP / "contracts/AMENDMENT-010.md"],
                       input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("C3V5_*")),
                       seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
                       limitations=["technical reproducibility/convergence verification on DEV3 only", "SELF_REVIEW_ONLY"],
