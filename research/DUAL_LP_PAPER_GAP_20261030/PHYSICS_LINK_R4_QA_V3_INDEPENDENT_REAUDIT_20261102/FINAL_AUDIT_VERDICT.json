@@ -1,0 +1,66 @@
+{
+  "audit_id": "DLP-PHYS-LINK-001-R4-QA-V3-INDEPENDENT-REAUDIT-20261102",
+  "contract_id": "DLP-PHYS-LINK-001",
+  "role": "AUDITOR",
+  "auditor_actor": "ChatGPT GPT-6; separate scratch runner; not a human reviewer",
+  "independent_human_signoff": false,
+  "audit_sha": "8c11b017783705b9c4884c11d67a68b5710578ae",
+  "governance_commit_sha": "250d617ad89a4105fa1af546cc83ceed9de98f42",
+  "run_id": "DualLP_Physics_Link_Validation_RERUN_20261101 + DLP_PHYS_LINK_R4_QA_V3_20261102",
+  "verdict": "ACCEPT_WITH_BOUNDARIES",
+  "previous_verdict": "REVISION_REQUIRED for R4 QA at ca8cb43777100a0f5fae53978c0e4096d49701ff",
+  "repair_ids_closed": {
+    "R4-OPEN-01": "PASS_CURRENT_CALL_METRIC_NO_STALE_GOT",
+    "R4-OPEN-02": "PASS_STRICT_TIME_PLUS_ARCHIVED_CONTROL",
+    "R4-OPEN-03": "PASS_INDEPENDENT_SCORE_DENOMINATOR_AND_MASK"
+  },
+  "repair_ids_open_in_R4_QA_V3": [],
+  "input_hashes_verified": {
+    "input_lock": 108,
+    "archived_trace_hashes": 132,
+    "manifest_package_files": 21
+  },
+  "math_checks": {
+    "independent_scratch_integrity_and_numerics": 122,
+    "raw_cross_case_actual_adversarial_probes": 96,
+    "logical_guard_rows": 720
+  },
+  "check_counts": {
+    "required": 5729,
+    "required_passed": 5729,
+    "optional": 2,
+    "optional_passed": 2,
+    "mutations": 76,
+    "mutations_passed": 76,
+    "pytest": 8,
+    "pytest_passed": 8,
+    "old_V2_identical_rows": 5290,
+    "new_rows": 441
+  },
+  "execution": {
+    "regular_full_qa": "PASS",
+    "optimized_full_qa": "PASS",
+    "full_qa_output_parity": "BYTE_IDENTICAL_TO_PUBLISHED_CHECKS_CSV_JSON",
+    "source_code_reused_as_numeric_oracle": false,
+    "shared_archive_bootstrap_loader": true
+  },
+  "statistical_independence": "Single RF scene; 3 paths x 4 bias conditions not independent scene draws",
+  "data_leakage": "Retrospective and already observed; no new preregistered holdout",
+  "unreported_exclusions": "No new omissions found in locked 108 input and 132 trace inventories",
+  "matched_design_checks": "Existing EKF/FFD/means/variance/gating/seed/144-score preserved",
+  "claim_overreach": "No fresh source model, new RT, V4 full causal time decomposition or external generalization",
+  "required_remediation": [],
+  "allowed_claims": [
+    "R4 QA defect fixes independently verified",
+    "Previous selected 12 retrospective performance comparisons remain conditionally usable"
+  ],
+  "prohibited_claims": [
+    "Original 15503350 execution restored",
+    "Separate human reviewer signed",
+    "All new scenes generalize",
+    "Physical covariance and cumulative causal decomposition proven"
+  ],
+  "science": "MIXED",
+  "original_missing_commit": "1550335002367c656939bab4876675c612f0915c",
+  "full_report_bundle_sha256": "450f80a5994442e0964618fdade386eb1044e5bcf48a07672f6884704ad0da65"
+}
