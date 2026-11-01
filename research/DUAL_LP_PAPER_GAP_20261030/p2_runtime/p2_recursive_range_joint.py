@@ -298,7 +298,7 @@ def execute_route(route,out):
              dtheta_gyro=controls["dtheta_gyro"],dt_s=controls["dt_s"],
              original_trace_sha256=np.array(trace["trace_sha"]),
              initial_x0=np.r_[x0,0.],initial_P0=np.diag([.01,.01,math.radians(5)**2,math.radians(.1)**2]))
-        for row in fail:ledger.append({**row,channel,"bias_level":label})
+        for row in fail:ledger.append({**row,"channel":channel,"bias_level":label})
         count={method:dict(Counter(data["status"][:,j])) for j,method in enumerate(METHODS)}
         expected=len(trace["t"])
         record=dict(case=cid,channel=channel,bias_level=label,route=route,
