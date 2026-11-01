@@ -1,0 +1,33 @@
+P1_GATE FREEZE_GATE PASS Proposer + prior independent computational auditor SHA signed; unchanged contract/config/tolerances
+P1_GATE T00_INPUT_SHA PASS all original C0 SHA256 and byte lengths verified; errors=[]
+P1 PINNED_SOURCE_CODE_SHA all exact
+BANKS [{'name': 'LP_plus45_bank.npz', 'bytes': 247727983, 'sha256': 'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b', 'pole_cartesian_relative_dispersion': {'0': 5.97633263808294e-08, '-1': 5.580091672124902e-08}, 'seam_max_abs': 0.0}, {'name': 'LP_minus45_bank.npz', 'bytes': 247743979, 'sha256': '39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9', 'pole_cartesian_relative_dispersion': {'0': 5.753842378656297e-08, '-1': 5.493231082743983e-08}, 'seam_max_abs': 0.0}]
+P1_CASE R2_aA_m0 npose 1303 jac_n 3907 arcpair 979 elapsed 9.73
+P1_CASE R2_aB_m0 npose 1303 jac_n 7816 arcpair 979 elapsed 13.9
+P1_CASE R2_aA_m45 npose 1303 jac_n 11723 arcpair 979 elapsed 18.09
+P1_CASE R4_aA_m0 npose 922 jac_n 14485 arcpair 742 elapsed 21.07
+P1_CASE R4_aB_m0 npose 922 jac_n 17229 arcpair 742 elapsed 24.02
+P1_CASE R5_aA_m0 npose 1883 jac_n 22873 arcpair 1415 elapsed 30.05
+P1_CASE R5_aB_m0 npose 1883 jac_n 28520 arcpair 1415 elapsed 36.05
+P1_GATE T01_SHAPE PASS 7 cases * 2 channels exact H complex128, 257 bins
+P1_GATE T02_POSE_KEYS PASS all seven Full and NativeLoS pose pairs with exact immutable integer keys
+P1_GATE T03_TIME PASS original archive and route timeline timestamps exact within 1e-9 seconds
+P1_GATE T04_COORD PASS rounded SAMPLES vs precise timeline xyz/yaw within locked CSV rounding allowance
+P1_GATE T05_OBSERVER PASS archived frozen RF trace 14502 packets vs independent raw 4N observer plus pinned original extractor
+P1_GATE T06_SOURCE_DIRECT_INTERNAL PASS Reused signed independent original-bank SOURCE/direct oracle from frozen pre-run audit, SHA-linked not a new runtime fit
+P1_GATE T07_SOURCE_NATIVE_COMPLEX PASS Native complex H matched, no common-phase scalar adjustment
+P1_GATE T08_SOURCE_NATIVE_S PASS NativeLoS source signed s and common first tap
+P1_GATE T09_SOURCE_JAC PASS all poses stable interior finite diff with per-axis crossings ledger; no FD PASS on boundaries
+P1_GATE T10_OLD_LUT PASS independent eight-corner numeric LUT s and analytic J on all 9519 C0 poses
+P1_GATE T11_MODEL_SHIFT PASS signed e_s_source - e_s_old == h_old-h_src; exact frozen continuous range model
+P1_GATE T12_COV PASS within-stratum sample covariance with ddof=1 and native units; never inverted; PSD verified
+P1_GATE T13_S_DOMAIN PASS all signed ratios finite [-1,1], no clipping; original invalid logged
+P1_GATE T14_COUNTS PASS one Corridor; 19038 RF rows, 14502 archive-matched temporal rows, t>=30 12402
+P1_GATE T15_P1_METRICS PASS two independent moment formulas, same n, no rejected row deletion
+P1_OUTPUT P1_SOURCE_OBSERVER_CANARY.csv 56
+P1_OUTPUT P1_RAW_OBSERVER_PARITY.csv 14502
+P1_OUTPUT P1_MATCHED_SIGNED_ERRORS.csv 19038
+P1_OUTPUT P1_STRATIFIED_MOMENTS.csv 152
+P1_OUTPUT P1_INVALID_AND_BOUNDARY_LEDGER.csv 37
+P1_MODEL_COMPARISON [{"stratum_level": "CHANNEL_ALL", "stratum_id": "ALL", "channel": "FULL", "distance_bin": "ALL", "arm": "old", "n": 9519, "mean_e_r_m": 0.04775716380572153, "mean_e_s": 0.02080597814207027, "rmse_e_r_m": 0.13358428833641575, "rmse_e_s": 0.16967824497648495, "std_e_r_m": 0.12476237659919881, "std_e_s": 0.1684066432186636, "C_rr_m2": 0.015565650614680305, "C_rs_m": 0.005107445618628623, "C_ss": 0.028360797480178262, "min_cov_eigen": 0.013776958319109427, "status": "VALID", "statistical_independent_scenes": 1}, {"stratum_level": "CHANNEL_ALL", "stratum_id": "ALL", "channel": "FULL", "distance_bin": "ALL", "arm": "source", "n": 9519, "mean_e_r_m": 0.04775716380572153, "mean_e_s": 0.023627337575714974, "rmse_e_r_m": 0.13358428833641575, "rmse_e_s": 0.1701128495849688, "std_e_r_m": 0.12476237659919881, "std_e_s": 0.16847288281964598, "C_rr_m2": 0.015565650614680305, "C_rs_m": 0.0050833674177487576, "C_ss": 0.028383112245562163, "min_cov_eigen": 0.013794378070182325, "status": "VALID", "statistical_independent_scenes": 1}, {"stratum_level": "CHANNEL_ALL", "stratum_id": "ALL", "channel": "LOS", "distance_bin": "ALL", "arm": "old", "n": 9519, "mean_e_r_m": -0.002219276498712215, "mean_e_s": -0.0028214321956186437, "rmse_e_r_m": 0.0459452005569728, "rmse_e_s": 0.014184009107702953, "std_e_r_m": 0.045893981466251205, "std_e_s": 0.01390129259487152, "C_rr_m2": 0.0021062575348246085, "C_rs_m": -0.00011097349360195409, "C_ss": 0.00019324593580822983, "min_cov_eigen": 0.00018682990008002604, "status": "VALID", "statistical_independent_scenes": 1}, {"stratum_level": "CHANNEL_ALL", "stratum_id": "ALL", "channel": "LOS", "distance_bin": "ALL", "arm": "source", "n": 9519, "mean_e_r_m": -0.002219276498712215, "mean_e_s": -7.276197393306874e-08, "rmse_e_r_m": 0.0459452005569728, "rmse_e_s": 6.592045074186871e-07, "std_e_r_m": 0.045893981466251205, "std_e_s": 6.552109409726666e-07, "C_rr_m2": 0.0021062575348246085, "C_rs_m": -1.8220126586825778e-09, "C_ss": 4.293013771702874e-13, "min_cov_eigen": 4.277252498097032e-13, "status": "VALID", "statistical_independent_scenes": 1}]
+P1_FINAL_STATUS PASS GATES 17 FAILURES 0

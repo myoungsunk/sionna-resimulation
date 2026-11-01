@@ -1,0 +1,393 @@
+{
+  "schema": "DLP_EKF_GAPS_001_P1_FROZEN_EXECUTION_QA_V1",
+  "status": "PASS",
+  "science_verdict": "RETROSPECTIVE_DESCRIPTIVE_ONLY",
+  "contract_id": "DLP-EKF-GAPS-001/P1-V1",
+  "contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+  "immutable_original_git_head": "340877f3537b4cc65cdaa9d687423cba92e0b28b",
+  "auditor_receipt_sha256": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c",
+  "freeze_file": "research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_FROZEN_RATIFICATION_20261101.json",
+  "runner_script_sha256": "76c24e282f9f8ad1156aafd6cbf70e041ce74b69c5a698228d9510f212e377fc",
+  "run_id": "41300302082",
+  "github_sha": "6eaf9adbf1065e3f5bd4d3da5b8290966f3d5800",
+  "hardware": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "python": "3.11.17 (main, Oct  1 2026, 14:32:31) [GCC 13.3.0]",
+  "numpy": "2.3.3",
+  "cmdline": [
+    "research/DUAL_LP_PAPER_GAP_20261030/p1_runtime/p1_source_harmonization.py"
+  ],
+  "duration_seconds": 36.643,
+  "gates": {
+    "FREEZE_GATE": {
+      "status": "PASS",
+      "note": "Proposer + prior independent computational auditor SHA signed; unchanged contract/config/tolerances",
+      "measured": {
+        "auditor_sha": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c",
+        "contract_sha": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+        "original_head": "340877f3537b4cc65cdaa9d687423cba92e0b28b"
+      }
+    },
+    "T00_INPUT_SHA": {
+      "status": "PASS",
+      "note": "all original C0 SHA256 and byte lengths verified; errors=[]",
+      "measured": {
+        "n": 39,
+        "fails": []
+      }
+    },
+    "T01_SHAPE": {
+      "status": "PASS",
+      "note": "7 cases * 2 channels exact H complex128, 257 bins",
+      "measured": {
+        "errors": []
+      }
+    },
+    "T02_POSE_KEYS": {
+      "status": "PASS",
+      "note": "all seven Full and NativeLoS pose pairs with exact immutable integer keys"
+    },
+    "T03_TIME": {
+      "status": "PASS",
+      "note": "original archive and route timeline timestamps exact within 1e-9 seconds",
+      "measured": {
+        "max_abs_s": 0
+      }
+    },
+    "T04_COORD": {
+      "status": "PASS",
+      "note": "rounded SAMPLES vs precise timeline xyz/yaw within locked CSV rounding allowance",
+      "measured": {
+        "xy_m": 4.99949216026252e-07,
+        "yaw_deg": 4.822847472496505e-07
+      }
+    },
+    "T05_OBSERVER": {
+      "status": "PASS",
+      "note": "archived frozen RF trace 14502 packets vs independent raw 4N observer plus pinned original extractor",
+      "measured": {
+        "n": 14502,
+        "bad": 0,
+        "max_s": 7.962380754733545e-16,
+        "max_r_m": 1.7763568394002505e-15,
+        "original_tap_mismatch": 0
+      }
+    },
+    "T06_SOURCE_DIRECT_INTERNAL": {
+      "status": "PASS",
+      "note": "Reused signed independent original-bank SOURCE/direct oracle from frozen pre-run audit, SHA-linked not a new runtime fit",
+      "measured": {
+        "n": 42,
+        "max_rel": 3.601930849598414e-13
+      }
+    },
+    "T07_SOURCE_NATIVE_COMPLEX": {
+      "status": "PASS",
+      "note": "Native complex H matched, no common-phase scalar adjustment",
+      "measured": {
+        "n": 9519,
+        "max_rel": 0.00032540537417009976,
+        "rms_rel": 7.311433797375287e-05
+      }
+    },
+    "T08_SOURCE_NATIVE_S": {
+      "status": "PASS",
+      "note": "NativeLoS source signed s and common first tap",
+      "measured": {
+        "n": 9519,
+        "rmse": 6.592045074186871e-07,
+        "max_abs": 1.0821135931871062e-05,
+        "tap_mismatch": 0
+      }
+    },
+    "T09_SOURCE_JAC": {
+      "status": "PASS",
+      "note": "all poses stable interior finite diff with per-axis crossings ledger; no FD PASS on boundaries",
+      "measured": {
+        "stable_fd_axes": 28520,
+        "fd_max_abs": 2.549795569128932e-08,
+        "fail": 0,
+        "source_Hr_max_error": 3.3306690738754696e-16,
+        "bias_direct_column_max": 0,
+        "crossings": {
+          "R2_aA_m0/FFD_CELL_SWITCH": 2,
+          "R2_aA_m45/FFD_CELL_SWITCH": 2,
+          "R4_aA_m0/FFD_CELL_SWITCH": 4,
+          "R4_aB_m0/FFD_CELL_SWITCH": 22,
+          "R5_aA_m0/FFD_CELL_SWITCH": 5,
+          "R5_aB_m0/FFD_CELL_SWITCH": 2
+        }
+      }
+    },
+    "T10_OLD_LUT": {
+      "status": "PASS",
+      "note": "independent eight-corner numeric LUT s and analytic J on all 9519 C0 poses",
+      "measured": {
+        "n": 9519,
+        "s_max": 4.440892098500626e-16,
+        "J_max": 4.973799150320701e-14
+      }
+    },
+    "T11_MODEL_SHIFT": {
+      "status": "PASS",
+      "note": "signed e_s_source - e_s_old == h_old-h_src; exact frozen continuous range model",
+      "measured": {
+        "s_err": 2.220446049250313e-16,
+        "r_err_m": 1.7763568394002505e-15
+      }
+    },
+    "T12_COV": {
+      "status": "PASS",
+      "note": "within-stratum sample covariance with ddof=1 and native units; never inverted; PSD verified",
+      "measured": {
+        "groups": 152,
+        "bad_psd": []
+      }
+    },
+    "T13_S_DOMAIN": {
+      "status": "PASS",
+      "note": "all signed ratios finite [-1,1], no clipping; original invalid logged",
+      "measured": {
+        "original_invalid": 0
+      }
+    },
+    "T14_COUNTS": {
+      "status": "PASS",
+      "note": "one Corridor; 19038 RF rows, 14502 archive-matched temporal rows, t>=30 12402",
+      "measured": {
+        "H": {
+          "FULL": 9519,
+          "LOS": 9519
+        },
+        "timeline": {
+          "FULL": 7251,
+          "LOS": 7251
+        },
+        "eval": {
+          "FULL": 6201,
+          "LOS": 6201
+        }
+      }
+    },
+    "T15_P1_METRICS": {
+      "status": "PASS",
+      "note": "two independent moment formulas, same n, no rejected row deletion",
+      "measured": {
+        "mean_max": 2.0816681711721685e-16,
+        "cov_max": 2.7755575615628914e-17,
+        "groups": 152
+      }
+    }
+  },
+  "failed_tests": [],
+  "metrics": {
+    "bank_provenance": [
+      {
+        "name": "LP_plus45_bank.npz",
+        "sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+        "bytes": 247727983
+      },
+      {
+        "name": "LP_minus45_bank.npz",
+        "sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+        "bytes": 247743979
+      }
+    ],
+    "archived_reference": {
+      "source_run": 38331588521,
+      "summary_sha256": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634",
+      "trace_sha256s": {
+        "('R2_aA_m0', 'LOS')": "48b91c2cb92ce0569a42898d02f8da4599bb0e8cb7d3e7e010f2a65b223dabb4",
+        "('R2_aA_m0', 'FULL')": "06adc578266cb4bb1ec4f90e8dc37c32cd4caea43d1607cbfa3ac24f4caad94e",
+        "('R2_aB_m0', 'LOS')": "89ab01413dded5de7682e5fd778a6f30ad262a43cd5b1c526a17c3309457d4de",
+        "('R2_aB_m0', 'FULL')": "b19c6c12deec9c30da14ce4254d9ec405c78ea3e7284cb62d14c1f218dcf1e24",
+        "('R2_aA_m45', 'LOS')": "ab630f01c456242d80a720bc8584b34faee180150cd1f16ee120bc1a28e922e7",
+        "('R2_aA_m45', 'FULL')": "e8d5c6dc785d74ea5d430e9e207a6a3344daaa7172821c924ede54e736aaeb29",
+        "('R4_aA_m0', 'LOS')": "3cebca71cca2094b076bbb5d284272e16dc15d1fc334c57d771c6114e161700a",
+        "('R4_aA_m0', 'FULL')": "575d3b4e0544b7ba2ece13469fd7e3a567b01f8efd99defd6f3ea7bd8fcbeda4",
+        "('R4_aB_m0', 'LOS')": "ab1bdec5b2aafd0359dfa66b4cd8ca5a27ccc4cf030934af880997157e0da9f7",
+        "('R4_aB_m0', 'FULL')": "a092c1fb2767590f35abac79a7e32abdd67cfb9cc4da1b0278e449c6f229034e",
+        "('R5_aA_m0', 'LOS')": "72f014c483db0138612be6574c8a80f4d90582175da308f433d6c3b1842917a0",
+        "('R5_aA_m0', 'FULL')": "307e2a791a1fac1ea11b7ae8b9538b614c68a8a4e2b6b39b96a0bc18e1c8054a",
+        "('R5_aB_m0', 'LOS')": "10efa03ddc6903fd61104c5dbdfe0e374fca03a386a89e73ee203a26ed2d063c",
+        "('R5_aB_m0', 'FULL')": "9f3091bafb6ff839caa3e44c05991b8a7adc5cd24fd67cdade2dc29263401bfa"
+      }
+    },
+    "full_n": 9519,
+    "los_n": 9519,
+    "timeline_n": {
+      "FULL": 7251,
+      "LOS": 7251
+    },
+    "eval_n": {
+      "FULL": 6201,
+      "LOS": 6201
+    },
+    "archive_compared": 14502,
+    "archive_bad": 0,
+    "max_archived_s_error": 7.962380754733545e-16,
+    "max_archived_r_error_m": 1.7763568394002505e-15,
+    "max_archive_t_error_s": 0,
+    "max_coord_xy_m": 4.99949216026252e-07,
+    "max_wrapped_yaw_deg": 4.822847472496505e-07,
+    "raw_observer_max_s_diff": 7.962380754733545e-16,
+    "raw_observer_max_r_diff_m": 1.7763568394002505e-15,
+    "raw_observer_tap_mismatch": 0,
+    "raw_invalid_packets": 0,
+    "source_native_n": 9519,
+    "source_native_h_rel_max": 0.00032540537417009976,
+    "source_native_h_rel_rms": 7.311433797375287e-05,
+    "source_native_s_rmse": 6.592045074186871e-07,
+    "source_native_s_max_abs": 1.0821135931871062e-05,
+    "source_native_tap_mismatch": 0,
+    "model_shift_identity_max_abs": 2.220446049250313e-16,
+    "range_model_max_abs_unchanged": 1.7763568394002505e-15,
+    "source_Hr_max_abs_error": 3.3306690738754696e-16,
+    "model_bias_jac_max_abs": 0,
+    "old_LUT_max_abs_s_diff": 4.440892098500626e-16,
+    "old_LUT_max_abs_J_diff": 4.973799150320701e-14,
+    "source_FD_max_stable_abs": 2.549795569128932e-08,
+    "source_FD_stable_total": 28520,
+    "source_FD_interior_fails": 0,
+    "source_boundary_unique_keys": 32,
+    "crossings": {
+      "R2_aA_m0/FFD_CELL_SWITCH": 2,
+      "R2_aA_m45/FFD_CELL_SWITCH": 2,
+      "R4_aA_m0/FFD_CELL_SWITCH": 4,
+      "R4_aB_m0/FFD_CELL_SWITCH": 22,
+      "R5_aA_m0/FFD_CELL_SWITCH": 5,
+      "R5_aB_m0/FFD_CELL_SWITCH": 2
+    },
+    "moment_validation": {
+      "max_mean_crosscheck_difference": 2.0816681711721685e-16,
+      "max_covariance_crosscheck_difference": 2.7755575615628914e-17,
+      "bad_psd_groups": [],
+      "n_insufficient_groups": 0,
+      "strata": 152,
+      "computed_cells": 190380
+    },
+    "quantiles_abs_model_shift": {
+      "0.5": 0.0030206635888521405,
+      "0.9": 0.01676895720746442,
+      "0.95": 0.022541699652785803,
+      "0.99": 0.034058752872314094,
+      "1.0": 0.8776157030219897
+    },
+    "full_los_mp_s": {
+      "n": 9519,
+      "rmse": 0.1701128156320359,
+      "mean": 0.023627410337688923
+    },
+    "distance_strata": [
+      "0-5m",
+      "5-10m",
+      "10m-inf"
+    ],
+    "statistical_independent_scenes": 1,
+    "num_invalid_ledger_records": 37,
+    "channel_all": [
+      {
+        "stratum_level": "CHANNEL_ALL",
+        "stratum_id": "ALL",
+        "channel": "FULL",
+        "distance_bin": "ALL",
+        "arm": "old",
+        "n": 9519,
+        "mean_e_r_m": 0.04775716380572153,
+        "mean_e_s": 0.02080597814207027,
+        "rmse_e_r_m": 0.13358428833641575,
+        "rmse_e_s": 0.16967824497648495,
+        "std_e_r_m": 0.12476237659919881,
+        "std_e_s": 0.1684066432186636,
+        "C_rr_m2": 0.015565650614680305,
+        "C_rs_m": 0.005107445618628623,
+        "C_ss": 0.028360797480178262,
+        "min_cov_eigen": 0.013776958319109427,
+        "status": "VALID",
+        "statistical_independent_scenes": 1
+      },
+      {
+        "stratum_level": "CHANNEL_ALL",
+        "stratum_id": "ALL",
+        "channel": "FULL",
+        "distance_bin": "ALL",
+        "arm": "source",
+        "n": 9519,
+        "mean_e_r_m": 0.04775716380572153,
+        "mean_e_s": 0.023627337575714974,
+        "rmse_e_r_m": 0.13358428833641575,
+        "rmse_e_s": 0.1701128495849688,
+        "std_e_r_m": 0.12476237659919881,
+        "std_e_s": 0.16847288281964598,
+        "C_rr_m2": 0.015565650614680305,
+        "C_rs_m": 0.0050833674177487576,
+        "C_ss": 0.028383112245562163,
+        "min_cov_eigen": 0.013794378070182325,
+        "status": "VALID",
+        "statistical_independent_scenes": 1
+      },
+      {
+        "stratum_level": "CHANNEL_ALL",
+        "stratum_id": "ALL",
+        "channel": "LOS",
+        "distance_bin": "ALL",
+        "arm": "old",
+        "n": 9519,
+        "mean_e_r_m": -0.002219276498712215,
+        "mean_e_s": -0.0028214321956186437,
+        "rmse_e_r_m": 0.0459452005569728,
+        "rmse_e_s": 0.014184009107702953,
+        "std_e_r_m": 0.045893981466251205,
+        "std_e_s": 0.01390129259487152,
+        "C_rr_m2": 0.0021062575348246085,
+        "C_rs_m": -0.00011097349360195409,
+        "C_ss": 0.00019324593580822983,
+        "min_cov_eigen": 0.00018682990008002604,
+        "status": "VALID",
+        "statistical_independent_scenes": 1
+      },
+      {
+        "stratum_level": "CHANNEL_ALL",
+        "stratum_id": "ALL",
+        "channel": "LOS",
+        "distance_bin": "ALL",
+        "arm": "source",
+        "n": 9519,
+        "mean_e_r_m": -0.002219276498712215,
+        "mean_e_s": -7.276197393306874e-08,
+        "rmse_e_r_m": 0.0459452005569728,
+        "rmse_e_s": 6.592045074186871e-07,
+        "std_e_r_m": 0.045893981466251205,
+        "std_e_s": 6.552109409726666e-07,
+        "C_rr_m2": 0.0021062575348246085,
+        "C_rs_m": -1.8220126586825778e-09,
+        "C_ss": 4.293013771702874e-13,
+        "min_cov_eigen": 4.277252498097032e-13,
+        "status": "VALID",
+        "statistical_independent_scenes": 1
+      }
+    ]
+  },
+  "result_rows": {
+    "full_plus_los": 19038,
+    "original_trace_parity": 14502,
+    "canary": 56,
+    "invalid_boundary_ledger": 37
+  },
+  "assumptions": [
+    "Existing single C0 scene. Repeated paths/anchors are not independent scenes.",
+    "All source/old comparisons use same original H and range bridge.",
+    "True pose is used ONLY for offline residual labels and physical source QA.",
+    "Full/Native LoS contrast is deterministic matched contrast, not iid stochastic noise.",
+    "Historical regression tolerances and previous known data prohibit new confirmatory accuracy claims.",
+    "No P2, P3, P4, EKF, new RF, fitted conditional mean/covariance or hidden tuning is performed."
+  ],
+  "sourcefd_complex_correction": "NONE",
+  "sourcefd_prior_2026_10_16": "HISTORICAL_REFERENCE_ONLY",
+  "independent_scenes": 1,
+  "not_approved": [
+    "new scene generalization",
+    "EKF improvement",
+    "posterior calibration",
+    "causal multipath effect"
+  ]
+}
