@@ -1,0 +1,157 @@
+{
+  "schema": "DLP-R4-QA-V3-PARITY",
+  "utc": "2026-11-01T16:38:25.079223+00:00",
+  "source_zip_sha256": "d2c9ab428ae676579a79907451a7523615876d3075f24f6abe7ee279ba75f7b2",
+  "reference_scores_sha256": "f3bb20b1225463ae76a5ac25cd1e4e6603865b1c2f0d7da9b3c1ecaf7e976905",
+  "baseline_r4_v2_checks_sha256": "620589a8dfe6b8c2c0a4154da7548f652bbacbb8fb36f449c06360c04c1a5661",
+  "v3_required_checks_sha256": "95b2d8d04654f1485b3574748f33559345cd531356efcb1653c04d2161641859",
+  "old_check_ids_preserved": 5290,
+  "old_check_rows_with_any_changed_values": 0,
+  "new_check_ids_added": 441,
+  "total_checked_rows": 5731,
+  "required_checked_rows": 5729,
+  "optional_checked_rows": 2,
+  "all_declared_required_checks_passed": true,
+  "previous_144_score_csv_byte_unchanged": true,
+  "old_132_trajectory_replay": "NOT_RUN_NOT_NEEDED",
+  "negative_test_count": 76,
+  "negative_test_detected_expected": 76,
+  "score_denominator_example": {
+    "case": "R2_aB_m0",
+    "clean_n_t_ge_30": 829,
+    "shift_t_plus_1s_n": 834,
+    "delta_n": 5
+  },
+  "R4_new_mutation_rows": [
+    {
+      "id": "R4_MUTATE_pose_id",
+      "observed": "FAIL",
+      "status": "PASS",
+      "offending_metrics": [
+        "key_count"
+      ],
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_MUTATE_DETECTOR_DISABLED_pose_id",
+      "observed": "UNDETECTED",
+      "status": "PASS",
+      "offending_metrics": [],
+      "observed_negative_test_status": "FAIL"
+    },
+    {
+      "id": "R4_MUTATE_t",
+      "observed": "FAIL",
+      "status": "PASS",
+      "offending_metrics": [
+        "time_order",
+        "timeline_reference",
+        "timeline_dt"
+      ],
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_MUTATE_DETECTOR_DISABLED_t",
+      "observed": "UNDETECTED",
+      "status": "PASS",
+      "offending_metrics": [],
+      "observed_negative_test_status": "FAIL"
+    },
+    {
+      "id": "R4_MUTATE_t_equal",
+      "observed": "FAIL",
+      "status": "PASS",
+      "offending_metrics": [
+        "time_order",
+        "timeline_reference",
+        "timeline_dt"
+      ],
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_MUTATE_DETECTOR_DISABLED_t_equal",
+      "observed": "UNDETECTED",
+      "status": "PASS",
+      "offending_metrics": [],
+      "observed_negative_test_status": "FAIL"
+    },
+    {
+      "id": "R4_MUTATE_score_window_shift",
+      "observed": "FAIL",
+      "status": "PASS",
+      "offending_metrics": [
+        "timeline_reference",
+        "score_count",
+        "score_mask"
+      ],
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_MUTATE_DETECTOR_DISABLED_score_window_shift",
+      "observed": "UNDETECTED",
+      "status": "PASS",
+      "offending_metrics": [],
+      "observed_negative_test_status": "FAIL"
+    },
+    {
+      "id": "R4_NORMAL_INPUT_NO_FALSE_POSITIVE",
+      "observed": "NOT_DETECTED",
+      "status": "PASS",
+      "offending_metrics": [],
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_PROBE_ORDER_INVARIANCE",
+      "observed": "IDENTICAL",
+      "status": "PASS",
+      "offending_metrics": null,
+      "observed_negative_test_status": null
+    },
+    {
+      "id": "R4_PROBE_STANDALONE_INVARIANCE",
+      "observed": "IDENTICAL",
+      "status": "PASS",
+      "offending_metrics": null,
+      "observed_negative_test_status": null
+    }
+  ],
+  "numeric_comparison_fields": {
+    "n_compared": {
+      "n_mismatches": 0,
+      "max_abs_difference": 0.0
+    },
+    "measured_error": {
+      "n_mismatches": 0,
+      "max_abs_difference": 0.0
+    },
+    "tolerance": {
+      "n_mismatches": 0,
+      "max_abs_difference": 0.0
+    },
+    "status": {
+      "n_mismatches": 0,
+      "max_abs_difference": null
+    },
+    "scope": {
+      "n_mismatches": 0,
+      "max_abs_difference": null
+    },
+    "comparison": {
+      "n_mismatches": 0,
+      "max_abs_difference": null
+    },
+    "required": {
+      "n_mismatches": 0,
+      "max_abs_difference": null
+    },
+    "context": {
+      "n_mismatches": 0,
+      "max_abs_difference": null
+    }
+  },
+  "python": "3.13.5",
+  "numpy": "2.3.5",
+  "pandas": "2.2.3",
+  "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+  "scope_note": "Retrospective QA repair only; no new EKF/RT, no independent audit."
+}
