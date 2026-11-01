@@ -79,3 +79,42 @@ def test_exact_array_ledger_covers_every_case():
     d["K3|gy_m"][7] = np.nextafter(d["K3|gy_m"][7], float("inf"))
     v = A.audit_array_ledger(d, LEDGER)
     assert not v["pass"] and v["mismatches"] == ["K3|gy_m"]
+
+
+def test_s1v5_and_c3v5_are_draft_only_and_source_checks():
+    import ast
+    s1=(ROOT/"code/s1v5.py").read_text()
+    c3=(ROOT/"code/c3v5.py").read_text()
+    ast.parse(s1)
+    ast.parse(c3)
+    assert "AMENDMENT-010 science lock not FROZEN/applied" in s1
+    assert 'PREFIX = "S1V5"' in s1
+    assert "len(zips) == len(expected)" in s1
+    assert 'b.dec_A_fixed <= FL.V2_DEC_TOL' in s1
+    assert "and not multi_conv and not multi_excl" in s1
+    assert "CAN.install_factor" in s1
+    assert 'SPLIT = "DEV3"' in c3
+    assert "CAN.sha_file(f) != hashes[f.name]" in c3
+    assert 'nonoracle = {k:v for k,v in sol.items() if k != "truth"}' in c3
+    assert 'd_P_full_C10_rel=full_c10_scaled_diff(r,s)' in c3
+    assert 'science_release_allowed=False' in c3
+
+
+def test_full_c10_scaled_diff_uses_psd_state_units():
+    import ast
+    import math
+    src=(ROOT/"code/c3v5.py").read_text()
+    tree=ast.parse(src)
+    f=[node for node in tree.body if isinstance(node,ast.FunctionDef)
+       and node.name=="full_c10_scaled_diff"]
+    assert len(f)==1
+    ns={"math":math}
+    exec(compile(ast.Module(body=f,type_ignores=[]),"<pure-function>","exec"),ns)
+    row={}
+    for i in range(4):
+        for j in range(i,4):
+            row[f"C10rot_{i}{j}"] = 0.0001*(i+1) if i==j else 0.
+    assert ns["full_c10_scaled_diff"](row,dict(row))==0.0
+    changed=dict(row)
+    changed["C10rot_01"]=1e-7
+    assert ns["full_c10_scaled_diff"](row,changed)>0.0
