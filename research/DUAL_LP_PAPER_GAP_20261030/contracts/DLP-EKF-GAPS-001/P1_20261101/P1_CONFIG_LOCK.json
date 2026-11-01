@@ -1,0 +1,163 @@
+{
+  "schema": "DLP_P1_SCIENCE_CONFIG_LOCK_PROPOSER_V1",
+  "status": "PROPOSER_SCIENCE_LOCKED_AUDIT_PENDING",
+  "role": "PROPOSER",
+  "contract_id": "DLP-EKF-GAPS-001",
+  "scope": "P1_C0_OBSERVER_HARMONIZATION_AND_RETROSPECTIVE_DESCRIPTIVE_STATISTICS",
+  "primary_c0_only": true,
+  "added_mount45_full_only_excluded": true,
+  "observer": {
+    "z_order": [
+      "r_raw_m",
+      "s_dimensionless"
+    ],
+    "frequency_n": 257,
+    "h_frequency_shape": [
+      "pose",
+      257,
+      2,
+      2
+    ],
+    "tx_index": 0,
+    "tx_polarization_deg": 45,
+    "rx_polarization_degrees": [
+      45,
+      -45
+    ],
+    "window": "periodic-endpoint 0.5-0.5*cos(2pi*k/(N-1)) as source",
+    "ifft_zero_padded_length": 1028,
+    "ifft_post_scale": 257,
+    "select_strongest_rx_by_peak": true,
+    "first_path_threshold_fraction": 0.3,
+    "first_path_policy": "first index of strongest Rx with magnitude >= 0.3*largest peak, SAME n0 for both Rx ports",
+    "range_detector": "first_path_index/(4*N*df)*c",
+    "polarization_ratio": "(abs(h_rx0[n0])^2-abs(h_rx1[n0])^2)/(sum two port powers)",
+    "noise_var_for_static_rf": null,
+    "threshold_for_noise_free": 0,
+    "no_hidden_clipping": true,
+    "frequency_start_hz": 6250400000,
+    "frequency_step_hz": 1950000,
+    "frequency_end_hz": 6749600000
+  },
+  "model": {
+    "name": "SourceFFD",
+    "source_git_blob_sha1": "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+    "rx_rotation": "yaw_body_rad + mount_deg_rad; TX0 +45 already in bank, do NOT double subtract",
+    "field_orientation": "RX^T TX co-vector contraction (no unintended Hermitian conjugation)",
+    "complex_channel": "frequency-dependent complex E-fields, actual estimated range for s prediction, direct-only",
+    "north_pole_cap": "source-only Taylor cap 1 and 3 degree rings; reserved 2-degree validation; 0.1 to 0.5 degree smooth blend",
+    "h_r_m": "sqrt((x-a_x)^2+(y-a_y)^2+(z_tag-a_z)^2)+B_OLD",
+    "B_OLD_m": -0.5315983906250129,
+    "h_s": "source complex first-path signed dual port power ratio",
+    "no_truth_in_runtime": true,
+    "partial_r_wrt_xy": "[(x-a_x)/d,(y-a_y)/d]",
+    "partial_r_wrt_heading": 0,
+    "partial_r_wrt_gyro_bias": 0,
+    "partial_s_wrt_bias": 0,
+    "model_H_shape": [
+      2,
+      4
+    ],
+    "J_s": "analytic within fixed FFD interpolation cell and first-path tap; report crossings"
+  },
+  "baseline": {
+    "legacy_LUT_git_blob": "cb676aea8e6710ff2c0e175e1e422271b696cebe",
+    "legacy_LUT_hash_sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "baseline_compare": "old LUT vs SourceFFD on identical raw H, exact pose, same r,z,extraction; only h_s/J_s change",
+    "R0": "diag(Rr_m2,Rs_dimensionless2)",
+    "Rr_m2": 0.0068578637,
+    "Rs_dimensionless2": 0.0081,
+    "Rrs_m": 0,
+    "warning": "Rrs=0 is a conventional unverified assumption; not physical independence",
+    "chi2_gate_scalar_99": 6.6348966010212145,
+    "chi2_gate_joint_99": 9.210340371976184,
+    "gate_used_in_p1_offline_statistics": false
+  },
+  "offline_truth_only_estimands": {
+    "e_r_m": "z_r - (d_GT+B_OLD)",
+    "e_s_source": "z_s-h_s_SourceFFD(x_GT)",
+    "e_s_legacy": "z_s-h_s_OldLut(x_GT)",
+    "delta_e_s": "e_s_source - e_s_legacy = h_s_OldLut(x_GT)-h_s_SourceFFD(x_GT)",
+    "multipath_s_contrast": "z_s_FULL-z_s_NATIVE_LOS matched same case,pose and observer; NOT independent stochastic noise",
+    "sample_covariance": "unbiased ddof=1 over (e_r_m,e_s) after per-stratum mean subtraction; units [m^2,m,1]",
+    "metrics": [
+      "n",
+      "mean_e_r_m",
+      "mean_e_s",
+      "rmse_e_r_m",
+      "rmse_e_s",
+      "std_e_r_m",
+      "std_e_s",
+      "C_rs_m",
+      "covariance_eigen_min",
+      "abs_source_old_s_difference_quantiles",
+      "first_path_switch_count",
+      "invalid_packet_count",
+      "native_LoS_model_parity",
+      "source_jacobian_FD"
+    ]
+  },
+  "populations": {
+    "characteristics": "7 C0 cases × paired H Full+NativeLoS, 9519 pose-case keys each (19038 measurements)",
+    "temporal_slice": "7 C0 cases 7251 common time-case-steps each channel (14502 entries)",
+    "eval_slice": "t>=30 s gives 6201 common steps per channel; used for comparability but no filter score in P1",
+    "strata": [
+      "case_id",
+      "route_id",
+      "anchor_id",
+      "mount_deg",
+      "channel_FULL_or_LOS",
+      "distance_bin_m"
+    ],
+    "distance_bins_m": [
+      0,
+      5,
+      10,
+      "inf"
+    ],
+    "statistical_independent_scene_count": 1,
+    "source_roles": "retrospective only; all C0 dev histories; no external holdout claim"
+  },
+  "train_eval": {
+    "new_model_fitting": false,
+    "retrospective_statistics_only": true,
+    "learned_signed_mean_and_covariance_regression": "NOT_AUTHORIZED_IN_P1; requires separate predeclared calibration/fold contract or future amendment",
+    "previous_2026_10_16_sourceffd_report": "HISTORICAL_EXPLORATORY_REFERENCE_ONLY",
+    "train_split": "NOT_APPLICABLE_NO_LEARNED_MODEL",
+    "test_split": "NONE, all previously observed C0",
+    "no_gt_estimator_input": true
+  },
+  "math_ref": {
+    "state": [
+      "x_m",
+      "y_m",
+      "psi_rad",
+      "b_g_rad_per_s"
+    ],
+    "filter": "EXCLUDED_FROM_P1; 4state motion and Q are unchanged frozen source references for future phases",
+    "F_psi_bg": "-dt (future P2+ only)",
+    "Q_model": "not scored P1",
+    "x0_P0": "not scored P1"
+  },
+  "p1_expected_outputs": [
+    "P1_SOURCE_OBSERVER_CANARY.csv",
+    "P1_RAW_OBSERVER_PARITY.csv",
+    "P1_MATCHED_SIGNED_ERRORS.csv",
+    "P1_STRATIFIED_MOMENTS.csv",
+    "P1_INVALID_AND_BOUNDARY_LEDGER.csv",
+    "P1_SCIENCE_QA.json",
+    "P1_INPUT_HASH_RECEIPT.json",
+    "P1_MANIFEST.json",
+    "P1_LOG.txt"
+  ],
+  "forbidden": [
+    "run EKF",
+    "generate new RF",
+    "refit empirical POWER models",
+    "select M2",
+    "run spatiotemporal 3-D",
+    "mix office or recovered mount45 Full only into primary",
+    "claim preregistration of historical studies",
+    "report one Corridor as independent multi-scene generalization"
+  ]
+}

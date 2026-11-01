@@ -1,0 +1,57 @@
+{
+  "schema": "DLP_P1_PROPOSER_MATH_QA_SELF_REVIEW_ONLY_V1",
+  "date_kst": "2026-11-01",
+  "role": "PROPOSER_SELF_REVIEW_ONLY",
+  "source": "standalone arithmetic from frozen formulas; NOT independent auditor and NOT input binary validation",
+  "checks": {
+    "range_analytic_vs_FD": {
+      "test_state_xy": [
+        6,
+        0.3
+      ],
+      "anchor": [
+        4,
+        0,
+        2.65
+      ],
+      "epsilon_m": 0.000001,
+      "H_analytic": [
+        0.6692744814102548,
+        0.1003911722115382
+      ],
+      "H_numeric": [
+        0.6692744816128027,
+        0.10039117226412486
+      ],
+      "maximum_abs_deviation": 2.0254786736728647e-10,
+      "within_1e_minus_8": true
+    },
+    "R0_PSD": {
+      "Rrr_m2": 0.0068578637,
+      "Rss": 0.0081,
+      "min_eigenvalue_numeric": 0.0068578637,
+      "strictly_positive": true
+    },
+    "signed_s_port_swap": {
+      "original": 0.5,
+      "after_swap": -0.5,
+      "sign_flips_exact": true
+    },
+    "residual_shift_identity": {
+      "value": 0,
+      "abs_within_1e_minus_12": true
+    },
+    "counts": {
+      "sum_rf_pose_cases": 9519,
+      "full_los_count": 19038,
+      "sum_timeline_case": 7251,
+      "eval_t_ge_30": 6201
+    }
+  },
+  "limits": [
+    "No original RF binary/sensor input read for these independent math checks",
+    "No SourceFFD executable audit or finite-difference of SourceFFD function",
+    "No auditor distinct session/person, no verdict"
+  ],
+  "independent_audit": "NOT_RUN"
+}
