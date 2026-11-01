@@ -1,0 +1,59 @@
+name: MBVAR-INFO A010-P0 independent artifact audit
+on:
+  push:
+    branches:
+      - 'audit/mbvar-info-a010p0-indep-20261101'
+    paths:
+      - '.github/workflows/mbvar-a010p0-independent-audit-20261101.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a10_p0_independent_verify.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-numeric-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - name: Immutable sparse checkout of source evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '%s\n' \
+            '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a10_p0_independent_verify.py' \
+            '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P2_A010P0_GEN_run_41269011836/**' \
+            '/research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P2_A010P0_ABL_run_41269246996/**' > .git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install dedicated audit-only dependencies
+        run: python -m pip install numpy==2.1.3 pandas==2.2.3
+      - name: Independently recalculate hashes, GP block, all C10 NEES and K2 mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT=research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+          python "$ROOT/audit/a10_p0_independent_verify.py" \
+            --gen "$ROOT/results/P2_A010P0_GEN_run_41269011836" \
+            --abl "$ROOT/results/P2_A010P0_ABL_run_41269246996" \
+            --out "$RUNNER_TEMP/a010_independent_audit.json" | tee "$RUNNER_TEMP/a010_independent_audit.log"
+      - name: Retain evidence regardless of verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: a010p0-independent-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/a010_independent_audit.json
+            ${{ runner.temp }}/a010_independent_audit.log
+          retention-days: 30
+          if-no-files-found: warn
