@@ -98,6 +98,7 @@ def score(trace,ground_truth,t,label):
   return ret
 
 def audit_prior_math(trace):
+  sys.path.insert(0,str(CORE_PATH))
   import core
   xprev=trace["xpost"];Pprev=trace["Ppost"]
   xprior=trace["xprior"];Pprior=trace["Pprior"]
