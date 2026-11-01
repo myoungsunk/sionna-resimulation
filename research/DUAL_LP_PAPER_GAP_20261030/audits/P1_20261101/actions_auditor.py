@@ -150,7 +150,7 @@ def generate_report():
        "actor":"GPT-6-authored independent scratch audit running on a separate GitHub Actions Linux runner",
        "independence_boundary":"Different compute code/runner from proposer. GitHub identity is repository owner; not a separate human reviewer.",
        "runner_identity":dict(run_id=os.environ.get("GITHUB_RUN_ID"),run_attempt=os.environ.get("GITHUB_RUN_ATTEMPT"),workflow=os.environ.get("GITHUB_WORKFLOW"),git_sha=GIT_HEAD,hostname=platform.node()),
-       "contract_id":"DLP-EKF-GAPS-001/P1-V1","proposer_head_sha":PINN,
+       "contract_id":"DLP-EKF-GAPS-001/P1-V1","proposer_head_sha":PINNED,
        "contract_sha256":"373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
        "audit_code_sha256":sha256(__file__),"python":sys.version,"numpy":np.__version__,"platform":platform.platform(),
        "checks":checks,"failures":failures,"details":details,"verdict":status,
@@ -180,7 +180,7 @@ def main():
     if sha256(p)!=item["sha256"] or p.stat().st_size!=item["bytes"]:
        sha_errors.append(["mismatch",str(p),sha256(p)])
   add("A00_LOCK_HASH",not sha_errors,sha_errors or "All 7 locked files plus original P0 manifest raw SHA256 match")
-  add("A00_HEAD_PIN",os.environ.get("DLP_PINNED_HEAD")==PINN,"fixed proposer head")
+  add("A00_HEAD_PIN",os.environ.get("DLP_PINNED_HEAD")==PINNED,"fixed proposer head")
   assert len(tol["tests"])==16
   # A01: full input hashes, no LFS pointer accepted as real binary.
   asset_err=[];kindcounts={};asset_ledger=[]
