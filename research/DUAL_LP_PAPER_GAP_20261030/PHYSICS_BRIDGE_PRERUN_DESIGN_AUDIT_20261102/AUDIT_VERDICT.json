@@ -1,0 +1,101 @@
+{
+ "schema": "DLP_PHYS_BRIDGE_PRERUN_DESIGN_AUDIT_V1",
+ "contract_id": "DLP-PHYS-BRIDGE-012-001",
+ "contract_version_reviewed": "v0.1_DRAFT",
+ "verdict": "REVISION_REQUIRED",
+ "audit_kind": "PRE_RUN_DESIGN_REVIEW_OF_DRAFT_NOT_FROZEN_CANDIDATE_ACCEPTANCE",
+ "independence": "DISTINCT_SESSION_DESIGN_REVIEW",
+ "auditor_actor": "Claude claude-opus-5-5",
+ "auditor_session": "session_01X1n7vKETgA3nteaHg8zEZc",
+ "proposer_head_reviewed": "cc0557410daa56f9cd5df35d687a21fc4a2ef972",
+ "base_git_sha": "1aac4d38a6fa335116bcecbebc91ba53c876ecfd",
+ "governance_git_sha": "1aac4d38a6fa335116bcecbebc91ba53c876ecfd",
+ "evidence_snapshot_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+ "reviewed_file_sha256": {
+  "SOURCE_REFERENCE_LOCK.json": "9447bc7483ab7d194f8f52b771eb3a8335b63f5e96293c2ddb4607728acbaa02",
+  "README_KO.md": "de6f9f86d9844fe835314b15072147e1cc2cfd002e0f79acaecdccc120599689",
+  "PACKAGE_MANIFEST.json": "36e6e3ae335f51211c2cf5019aca422611b6a1596f4e3649572a203945ce7aee",
+  "01_PROPOSER_CONTRACT_KO.md": "5ed92e7310e834367f1006819f026c50200f26c101980c3e2f1dc3d189bf2e94",
+  "CONFIG_PROPOSED.json": "c9fc9e96c1494ac448083444bf5fb4980b51d285506e1e734cff660d9ef188e7",
+  "04_RESULT_USE_AND_CLAIM_RULES_KO.md": "98338bba0dbbd15f5942df320c64b4788c40c0d5bb127e2415fcb4794fc0d5fa",
+  "06_PREIMPLEMENTATION_REVIEW_AND_FREEZE_KO.md": "d5c5daa215039e999f607d7905d709c01c237076929d8419594e5e30dbd73abd",
+  "02_SCIENCE_SPEC_AND_VERIFICATION_KO.md": "3eb6ab474f45a1f9c581fab54172c362124801820c274c9b5c3942a10ccd107f",
+  "05_MANUSCRIPT_REVISION_PLAN_KO.md": "3ee8b1bd461879ae9e27f20e1965b1654428559eedae98c4eb91b2fbefa219da",
+  "03_IMPLEMENTER_HANDOFF_KO.md": "04cae089f79608ecd37aaeb5a3acda0899c5b4553a765f690ae57dcfb03d085a"
+ },
+ "shared_helpers": "NONE",
+ "new_RT": 0,
+ "new_filter_replays": 0,
+ "new_training": 0,
+ "input_hashes_verified": {
+  "supplied_zip_sha256": "0d261f54a586cb0c11f24f32586ae693b83092bb24168dce0d2209b924156980",
+  "byte_identical_members_in_branch": 8,
+  "RA4_336_ARMS_sha256": "bb19a4f49260a45d94a98832f64110c66056487f6555b44e482064ef3221b7c0",
+  "D2_GATE_SCORES_blob": "efe55ff9b13b6c6c70f2820e26bacc88ca460d26",
+  "diag_mbvar_blob": "21a3ef82db0c34bb73c4fb82c04a3a3f2cf5ea34",
+  "source_model_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+  "manuscript_v4_sha256_unchanged": "72bb343e806a45565b7601508bd00c7c613c67217679db1f3ccc92e5a5f79362"
+ },
+ "math_checks": {
+  "gain_column_shrink_identity_max_scaled_err": 2.6453916252659474e-15,
+  "range_column_max_relative_change_(nonzero_expected)": 0.5876508282166123,
+  "mean_shift_identity_max_err_(mu_s_equal)": 7.16093850883226e-15,
+  "gP_formula_vs_FD_max_err": 3.158134864733597e-10,
+  "common_scalar_invariance_err": 5.551115123125783e-17,
+  "native_range_step_m": 0.14955225880474907,
+  "uniform_quantization_rms_cm": 4.317201843941923
+ },
+ "historical_recalc": {
+  "mean_only_H_XY": [
+   4,
+   6
+  ],
+  "var_only_H_XY": [
+   12,
+   8
+  ],
+  "combined_H_XY": [
+   12,
+   8
+  ],
+  "combined_beats_both_singles": 8,
+  "var_only_beats_combined_both": [
+   "R4_aB_m0/B0",
+   "R4_aB_m0/L0",
+   "R4_aB_m0/L1",
+   "R4_aB_m0/L2"
+  ],
+  "max_abs_diff_vs_supplied_table": 1.8e-15,
+  "D2_transcription_exact": "48/48",
+  "historical_script_byte_identical_rerun": true
+ },
+ "data_leakage": "NONE_FOUND",
+ "unreported_exclusions": "NONE_FOUND",
+ "claim_overreach": [
+  "C-DIST lacks in-sample HAND/D1 boundary (A2)"
+ ],
+ "required_remediation": {
+  "A1": "Add CONST_LEVEL_SELF variance control (held-route own BB_ORIG/self B0 lookup mean sigma^2); +48 trajectories, total 192",
+  "A2": "Bind PB3/C-DIST to in-sample HAND table and existing D1 refit evidence (0-6 m floor 0.005; HAND 19/24 vs LORO 8/24)",
+  "A3": "Add range tap-quantization physics: verify z_r lattice (14.955 cm), decompose e_model,r by fractional tap offset, FD on continuous h_r only, claim rule for sub-tap interpretation",
+  "A4": "PB1: declare descriptive-only with fixed summary table, or give numeric sign-agreement criterion",
+  "A5": "PB3: define numeric LOOKUP_SUPPORTED/MIXED/NOT_SUPPORTED rule (default proposed)",
+  "A6": "PB1: add e_prop,s vs g_P^T dP linearization validity check, stratified by |dP|/P"
+ },
+ "minor": [
+  "B1 lookup-state wording + historical docstring discrepancy; cite RA4 PRIOR-LEGACY <=0.0094 deg",
+  "B2 add BB_VAR/self and MB_ORIG/self shadow references",
+  "B3 assert mu_M[:,s]==mu_B[:,s]",
+  "B4 exclude zero-lag pairs; align 02/CONFIG lag notation",
+  "B5 BASE mask is bias-specific",
+  "B6 declare GT-based initialization",
+  "B7 RA4 artifact expires 2026-11-28T10:58:19Z; preserved copy in this audit",
+  "B8 run recompute_review.py only on a copy",
+  "B9 R4-B Heading gain 0.74-2.54% across biases, XY -10.5 to -11.8%"
+ ],
+ "allowed_now": "PB0 PREFLIGHT_ONLY in parallel with v0.2 revision",
+ "not_allowed_until_rereview": "PB1-PB5 scientific computation",
+ "allowed_claims": "historical selected-12 facts only (single corridor, seed 0, in-sample sigma table)",
+ "claim_register_promotions": [],
+ "next_gate": "Proposer submits v0.2_FREEZE_CANDIDATE as new files; independent re-review on that SHA"
+}
