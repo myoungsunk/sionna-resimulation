@@ -1,0 +1,195 @@
+{
+  "schema": "DLP_P2_INDEPENDENT_GITHUB_RUNNER_PRE_RUN_V1",
+  "verdict": "BLOCKED_EVIDENCE",
+  "contract_id": "DLP-EKF-GAPS-001/P2-V1",
+  "input_contract_sha256": "568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b",
+  "config_sha256": "99c4f6303ece8d19b2a30f1217f62c852df3074583dff6c388245a54c555cc43",
+  "tolerance_sha256": "ab385d88538b0f2485fdcf1cceef31262a08a7a5c214751c4dfc6949e6101ae3",
+  "actor": "GPT-6-authored independent mathematical preflight on separate GitHub Actions Linux runner",
+  "identity_boundaries": "Same ChatGPT conversation authored proposer and preflight; computational runner/code separately executed, NOT separately authenticated human GitHub reviewer.",
+  "git_sha": "435fe2eef2504d833117466944aec455ca2211fa",
+  "run_id": "41314325387",
+  "code_sha256": "aae2e1b4f718edaafa031fa49f97b630e5f581edfb3ad1d4a785611c018e37ee",
+  "runtime": {
+    "python": "3.11.17 (main, Oct  1 2026, 14:32:31) [GCC 13.3.0]",
+    "numpy": "2.3.3",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39"
+  },
+  "checks": {
+    "A00_PROPOSER_LOCK": {
+      "status": "PASS",
+      "note": "Original P2 lock exact hashes, no post-hoc changes",
+      "measured": {
+        "sha_mismatch": []
+      }
+    },
+    "A01_PINNED_SOURCE": {
+      "status": "PASS",
+      "note": "6 exact upstream source blob hashes",
+      "measured": {
+        "n": 6,
+        "errors": []
+      }
+    },
+    "A02_ORIGINAL_39": {
+      "status": "PASS",
+      "note": "39 exact original raw C0 files byte SHA",
+      "measured": {
+        "missing_or_wrong": [],
+        "verified": 39
+      }
+    },
+    "A03_REAL_BANKS": {
+      "status": "PASS",
+      "note": "Both physical FFD .npz original bytes verified, not LFS pointers",
+      "measured": {
+        "names": [
+          "LP_plus45_bank.npz",
+          "LP_minus45_bank.npz"
+        ]
+      }
+    },
+    "A04_ARCHIVE_ZIP": {
+      "status": "PASS",
+      "note": "Full original archived 14 trace ZIP exact byte SHA",
+      "measured": {
+        "actual": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+        "expected": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+        "bytes": 7907090
+      }
+    },
+    "A05_ALL_14_ARCHIVED_TRACES": {
+      "status": "PASS",
+      "note": "original 14 exact archive trace hashes",
+      "measured": {
+        "n": 14,
+        "missing": [],
+        "summary_sha": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634"
+      }
+    },
+    "A06_MATCHED_C0_KEYS": {
+      "status": "PASS",
+      "note": "7 paired cases, Full vs LoS true time/pose identical, correct independent scene count",
+      "measured": {
+        "errors": [],
+        "timeline_per_channel": 7251,
+        "eval_ge30_per_channel": 6201
+      }
+    },
+    "A07_SENSOR_PAIRED_GENERATOR": {
+      "status": "PASS",
+      "note": "Frozen sensor-v2 seed0 identical route streams; B0/L2 differ by exact gyro-bias only",
+      "measured": {
+        "samples": [
+          {
+            "route": "R2",
+            "n": 979,
+            "init_x": [
+              1.2399425226170881,
+              -0.36306100518888385,
+              1.6450965084054392
+            ],
+            "B0_L2_wheel_max": 0.0,
+            "B0_L2_gyro_bias_residual_max": 3.7947076036992655e-18
+          },
+          {
+            "route": "R4",
+            "n": 742,
+            "init_x": [
+              1.2399425226170881,
+              -0.36306100518888385,
+              0.6973827245725182
+            ],
+            "B0_L2_wheel_max": 0.0,
+            "B0_L2_gyro_bias_residual_max": 5.854691731421724e-18
+          },
+          {
+            "route": "R5",
+            "n": 1415,
+            "init_x": [
+              1.2399425226170881,
+              0.5369389948111162,
+              0.07430018161054264
+            ],
+            "B0_L2_wheel_max": 0.0,
+            "B0_L2_gyro_bias_residual_max": 5.854691731421724e-18
+          }
+        ],
+        "errors": []
+      }
+    },
+    "A08_4STATE_F_FD": {
+      "status": "PASS",
+      "note": "Four-state analytic F including F_psi_bg=-dt versus independent central FD",
+      "measured": {
+        "max_f": 7.484004527213983e-10,
+        "max_covariance": 2.117582368135751e-22
+      }
+    },
+    "A09_MANUAL_JOSEPH_NIS": {
+      "status": "PASS",
+      "note": "independent manual Joseph EKF for scalar range and joint s/r, NIS exact",
+      "measured": {
+        "max_state": 0.0,
+        "max_P": 6.938893903907228e-18,
+        "max_NIS": 0.0
+      }
+    },
+    "A10_SOURCE_OBSERVATION_CANARY": {
+      "status": "PASS",
+      "note": "Pinned SourceFFD 2x4 H and expected d+B_OLD, finite diff on stable original-bank cells",
+      "measured": {
+        "tested_axes": 21,
+        "crossings": 0,
+        "errors": []
+      }
+    },
+    "A11_SCOPE_NO_SCIENCE_YET": {
+      "status": "PASS",
+      "note": "Preflight only, no recursive filter scoring/metrics/learning invoked",
+      "measured": {
+        "arms": [
+          "DR4",
+          "R4",
+          "J4_SRC"
+        ],
+        "bias": [
+          "B0",
+          "L2"
+        ],
+        "scene_n": 1
+      }
+    }
+  },
+  "failures": [
+    {
+      "gate": "AUDITOR_UNHANDLED_EXCEPTION",
+      "reason": "AttributeError(\"'numpy.ndarray' object has no attribute 'close'\")",
+      "traceback": "Traceback (most recent call last):\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/DUAL_LP_PAPER_GAP_20261030/audits/P2_20261101/p2_independent_preflight.py\", line 272, in <module>\n    try:run()\n        ^^^^^\n  File \"/home/runner/work/sionna-resimulation/sionna-resimulation/research/DUAL_LP_PAPER_GAP_20261030/audits/P2_20261101/p2_independent_preflight.py\", line 269, in run\n    z.close()\n    ^^^^^^^\nAttributeError: 'numpy.ndarray' object has no attribute 'close'\n"
+    }
+  ],
+  "detail": {
+    "sources": [
+      "0a0851e6867c14fec5eefe02df471100cb9e9e1d",
+      "b1de0de13e82cd414306cba3182af18ac97607bf",
+      "cb676aea8e6710ff2c0e175e1e422271b696cebe",
+      "87ce04aa3c43130f3499008840fa395174f1124e",
+      "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+      "919c964bf5bca94a623f16879dbc85aa3b7f4d1c"
+    ],
+    "archived_zip_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+    "source_jac_test_axes": 21,
+    "original_39_pass": true,
+    "bank_sha_pass": true,
+    "same_control_routes": [
+      "R2",
+      "R4",
+      "R5"
+    ]
+  },
+  "P2_science_status": "NOT_RUN",
+  "p2_frozen": false,
+  "allowed_next": "Append-only P2 FROZEN proposer and computational-auditor SHA ratification if ACCEPT_WITH_BOUNDARIES",
+  "scope": "C0 7 cases; B0 and L2; 3 4-state arms, no original data or P1 output mutation",
+  "duration_s": 3.6836536440000103
+}
