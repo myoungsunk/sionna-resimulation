@@ -1,0 +1,88 @@
+{
+  "schema": "DLP_P1_INDEPENDENT_PRE_RUN_AUDITOR_VERDICT_V1",
+  "date_kst": "2026-11-01",
+  "role": "AUDITOR",
+  "status": "SIGNED_COMPUTATIONAL_PRE_RUN_AUDIT",
+  "contract_id": "DLP-EKF-GAPS-001/P1-V1",
+  "contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+  "proposer_git_head": "340877f3537b4cc65cdaa9d687423cba92e0b28b",
+  "governance_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "auditor_actor": "GPT-6 in a different ChatGPT conversation from proposer, with newly written independent numerical QA",
+  "independent_session_or_runner": "GitHub Actions run 41289874166, job runner runnervm48cm3, workflow commit 1a579ff92c8ad0bebe17d4198e8316415c45e41c",
+  "independence_constraints": {
+    "different_proposer_session": true,
+    "independent_runner": true,
+    "independent_physics_math_implementation": "Separate Python observer H->CIR, physical vector contraction and 8-corner LUT; pinned SourceFFD object is under test, central finite differences separate.",
+    "github_account": "myoungsunk (same repository owner connection)",
+    "is_independent_human_gitHub_review": false,
+    "github_approve_is_not_equivalent_to_scientific_signoff": true
+  },
+  "audit_sha": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c",
+  "audit_receipt_path": "research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/runs/41289874166/AUDIT_RESULT.json",
+  "audit_result_git_blob": "f0ec93fe017483555aa82de92bfac4a2bd0ff3e2",
+  "audit_code_sha256": "a689af0e3fdeb4ceb51bbf0bf29ea22a6280fed6f076f4adebdd19f418c962d2",
+  "audit_run_url": "https://github.com/myoungsunk/sionna-resimulation/actions/runs/41289874166",
+  "input_hashes_verified": {
+    "c0_binary_and_text": "39/39 exact raw bytes and sha256 match P1_INPUT_LOCK",
+    "ffd_bank": "2/2 physical NPZ bytes and sha256 match FFD source bank receipt",
+    "old_lut_and_frequency_included": true,
+    "different_from_git_lfs_pointer_only": true
+  },
+  "math_checks": {
+    "observation": "independent 257 symmetric Hann, 1028 IFFT, strongest RX first-edge common tap checked on actual original Full/LoS canaries",
+    "port_swap": "0 signed-s antisymmetry error; tap index unchanged",
+    "source_direct_complex_oracle_n": 42,
+    "source_direct_complex_max_rel": 3.601930849598414e-13,
+    "source_jacobian": {
+      "n": 45,
+      "stable": 44,
+      "boundaries": 1,
+      "fail": [],
+      "max_abs_on_stable": 2.920184052901398e-9
+    },
+    "pole_seam_yaw": {
+      "pole_test_n": 6,
+      "pole_stable_fd_columns": 13,
+      "seam_complex_relative_diff": 7.381307469979182e-10,
+      "fail": []
+    },
+    "signed_shift_identity": "checked algebraically, zero error",
+    "ddof_1_covariance": "synthetic independent formula and PSD only; actual C0 moments not run"
+  },
+  "matched_design_checks": {
+    "c0_cases": 7,
+    "full_count": 9519,
+    "native_los_count": 9519,
+    "timeline_per_mode": 7251,
+    "t_ge_30_per_mode": 6201,
+    "native_complex_relative_max": 0.00032540537417009976,
+    "native_complex_relative_rms": 0.00007311433797375271,
+    "native_s_rmse": 6.592045074188947e-7,
+    "native_s_max_abs": 0.00001082113593176004,
+    "native_first_path_switch": 0,
+    "missing_pose_ids": 0,
+    "duplicate_pose_ids": 0
+  },
+  "data_leakage": "No GT to filter runtime; true poses used only for offline source QA. Historical C0 reused, NOT unseen holdout; no model fitting or EKF run.",
+  "unreported_exclusions": "None introduced in C0 primary. R4/R5 Mount45 Full-only files correctly excluded because Native LoS counterpart not available; 1 corridor scene.",
+  "statistical_independence": "n_scene=1 Corridor C0, multiple anchors/routes/poses not independent RF environments; population descriptions only.",
+  "claim_overreach": "No new-scene accuracy, generalization, calibration, posterior Bayesian likelihood, or final EKF/M2 advantage authorized.",
+  "required_remediation": [
+    "Before running P1 science, create a separate append-only proposer+auditor FROZEN ratification with unchanged exact SHA256 hashes, without rewriting proposer-locked files.",
+    "Keep T00-T15 locked, preserve failure ledgers in full P1 execution, and independently audit all full-population matched r/s moments after P1.",
+    "Retain prior old-LUT interpolation gate historical failure as a caveat; present the source-only polar cap as source interpolation, not EM solver truth.",
+    "Separate reviewer GitHub account/human signature is not claimed and can be added if required by governance."
+  ],
+  "allowed_claims": [
+    "Original 39 C0 inputs and two physical FFD banks reproduce exact locked SHA256.",
+    "SourceFFD physical oracle and NativeLoS signed-s/complex H match retrospective engineering tolerances on C0, with fixed first-path tap.",
+    "Analytic source Jacobian agrees with central difference on examined stable cells and targeted near-pole tests.",
+    "Only P1 pre-run reproducibility gate is accepted with boundaries; not P1 statistical results, P2/P3/P4, or external holdout generalization."
+  ],
+  "verdict": "ACCEPT_WITH_BOUNDARIES",
+  "audit_execution_status": "PASS",
+  "contract_frozen": false,
+  "P1_science_status": "NOT_RUN",
+  "signoff": "GPT-6 AUDITOR (independent numerical runner evidence verified; separate authenticated GitHub human identity not claimed)",
+  "subject_sha_audited": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c"
+}
