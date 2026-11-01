@@ -414,6 +414,52 @@ def main():
         and np.linalg.eigvalsh(cov).min()>=-1e-12)
   add("A06_RESIDUAL_COV_MATH",good,"Synthetic signed residual identity, ddof=1, covariance eigen PSD, physical units",
       measured=dict(s_identity_error=identity,covariance=cov.tolist(),min_eigenvalue=float(np.linalg.eigvalsh(cov).min())))
+
+  # Targeted physical-axis seam and source-only near-pole cap checks.
+  # Evaluate fixed SourceFFD predictions but derive derivatives with separate FD.
+  # Cap interpolation is source-only; this does not claim an independent EM solver truth.
+  pc=input_lock["primary_cases"][0]
+  xx,yy,zz=map(float,pc["anchor"]);dz=zz-float(pc["robot_z_m"])
+  pole_tests=[];pole_fail=[];pole_stable=0
+  for polar_deg in (0.,0.05,0.2,0.4,0.55,2.0):
+    rho=dz*np.tan(np.deg2rad(polar_deg))
+    st=np.array([xx+rho,yy,.37,0.],float)
+    v,J,diag=src.batch(st[None],pc,gradient=True,return_diagnostics=True)
+    vc,_,dc=src.batch((st+np.array([0,0,2*np.pi,0]))[None],pc,
+                       gradient=False,return_diagnostics=True)
+    yawerr=abs(float(v[0,1]-vc[0,1]))
+    yawtap=bool(np.array_equal(diag["tap"],dc["tap"]))
+    finite=bool(np.isfinite(v).all() and np.isfinite(J).all())
+    row=dict(theta_deg=polar_deg,yaw_period_error=yawerr,tap_2pi_equal=yawtap,
+             finite=finite,columns=[])
+    if not finite or yawerr>1e-10 or not yawtap or J.shape!=(1,2,4):
+      pole_fail.append([polar_deg,"finite/yaw/shape",yawerr,yawtap,finite])
+    for column in (0,1,2):
+      eps=1e-6
+      step=np.zeros(4);step[column]=eps
+      up,_,dup=src.batch((st+step)[None],pc,gradient=False,return_diagnostics=True)
+      dn,_,ddn=src.batch((st-step)[None],pc,gradient=False,return_diagnostics=True)
+      same=(np.array_equal(diag["cells"],dup["cells"]) and np.array_equal(diag["cells"],ddn["cells"])
+            and np.array_equal(diag["tap"],dup["tap"]) and np.array_equal(diag["tap"],ddn["tap"]))
+      fd=float((up[0,1]-dn[0,1])/(2*eps))
+      analytic=float(J[0,1,column]);er=abs(analytic-fd)
+      row["columns"].append(dict(column=column,stable=bool(same),fd=fd,analytic=analytic,abs_error=er))
+      if same:
+        pole_stable+=1
+        if not(er<=2e-5 or (abs(analytic)>1e-6 and er/abs(analytic)<=1e-4)):
+          pole_fail.append([polar_deg,column,"source_cap_jacobian",er])
+    pole_tests.append(row)
+  nearleft=np.array([xx+3.,-1e-9,.1,0.],float)
+  nearright=np.array([xx+3.,+1e-9,.1,0.],float)
+  hl=src.physical_h_col(nearleft[None],pc)[0]
+  hr=src.physical_h_col(nearright[None],pc)[0]
+  seam_complex_rel=float(np.linalg.norm(hl-hr)/max(np.linalg.norm(hr),1e-300))
+  add("A04_POLE_CAP_SEAM_2PI",not pole_fail and pole_stable>0 and seam_complex_rel<=1e-4,
+      "Source-only polar cap, 0/2pi yaw invariance, seam continuity, stable-cell FD",
+      measured=dict(pole_test_n=len(pole_tests),pole_stable_fd_columns=pole_stable,
+                    seam_complex_relative_diff=seam_complex_rel,fail=pole_fail[:8]))
+  details["pole_seam_targeted"]=dict(tests=pole_tests,seam_complex_relative_diff=seam_complex_rel,
+                                     fail=pole_fail)
   add("A07_NO_P1_SCIENCE_RUN",True,"No actual C0 residual moments, P1 output, training, RF or EKF run; QA matched physics only")
   add("A08_RETROSPECTIVE_BOUNDARY",bool(cfg["train_eval"]["retrospective_statistics_only"] and
        cfg["populations"]["statistical_independent_scene_count"]==1 and
