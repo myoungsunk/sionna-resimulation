@@ -220,6 +220,11 @@ def cmd_run(fields, split, out):
                 for sn in M.SENSOR_SEEDS:
                     inp = B3.make_inputs(S, root, f, cn, w, sn, pf); z = inp["z"]
                     Sig, models = B3.arm_models(S, w, cn); ev = inp["eps"].reshape(-1)
+                    # Canonical full stacked matrices, once per role/cell in the per-field receipt.
+                    # C3V5 reuses these exact bytes; do not reconstruct on a different CPU.
+                    rec[f"MAT|{w['role']}|{cn}|Sig_true"] = np.asarray(Sig, np.float64)
+                    for covarm, Sm_frozen in models.items():
+                        rec[f"MAT|{w['role']}|{cn}|{covarm}|Sig_model"] = np.asarray(Sm_frozen, np.float64)
                     qa.append(dict(field=f, cell=cn, role=w["role"], sensor_seed=sn, check="mahalanobis_per_dim", value=float(ev @ np.linalg.solve(Sig, ev)) / (2 * N)))
                     if w["role"] == "REV60" and pairs:
                         if cell["alphas"][0]:
