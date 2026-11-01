@@ -1,0 +1,194 @@
+{
+  "schema": "DLP_P2_PROPOSER_SCIENCE_LOCK_V1",
+  "phase": "P2_FOUR_STATE_RANGE_ONLY_MATCHED_RECURSIVE",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "governance_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "base_p1_head": "21aa49ea809255a2dc863a4fbdb1e2c98dcaa16a",
+  "immutable_p1_contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+  "p1_success_run_id": 41300302082,
+  "p1_qa_sha256": "0e94c32edcbf4aaf10938c48fa548b813508a50f46bfcd4e01b09d46f779ad1d",
+  "p1_signed_audit_receipt_sha256": "d9530bccdd5eb753aecba0475c52ed092bf3aaf221b3cba389ed2aa492a9548c",
+  "original_archived_rf_artifact": {
+    "run_id": 38331588521,
+    "artifact_id": 11782748118,
+    "archive_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+    "archive_summary_sha256": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634"
+  },
+  "ffd_bank_artifact_run": 38875080492,
+  "ffd_plus45_sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+  "ffd_minus45_sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+  "pinned_sources": [
+    {
+      "path": "research/EKF4_RANGE_S_STAGED_20261014/core.py",
+      "git_blob": "0a0851e6867c14fec5eefe02df471100cb9e9e1d"
+    },
+    {
+      "path": "research/EKF4_RANGE_S_STAGED_20261014/r2_bias_replay.py",
+      "git_blob": "b1de0de13e82cd414306cba3182af18ac97607bf"
+    },
+    {
+      "path": "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py",
+      "git_blob": "cb676aea8e6710ff2c0e175e1e422271b696cebe"
+    },
+    {
+      "path": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/sensor_v2.py",
+      "git_blob": "87ce04aa3c43130f3499008840fa395174f1124e"
+    },
+    {
+      "path": "research/FFD_P0P3_20261016/source_model.py",
+      "git_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631"
+    },
+    {
+      "path": "research/FFD_P0P3_20261016/p0_initial.py",
+      "git_blob": "919c964bf5bca94a623f16879dbc85aa3b7f4d1c"
+    }
+  ],
+  "state": [
+    "x_m",
+    "y_m",
+    "psi_rad",
+    "b_g_rad_per_s"
+  ],
+  "state_dimension": 4,
+  "motion": {
+    "source": "frozen EKF4 core.transition/predict",
+    "f": "SE2 ds*sinc(dpsi/2), heading_increment=gyro_angle-b_g*dt",
+    "F_psi_b": "-dt",
+    "dt": "exact original route time steps nominal 0.2s",
+    "Q_input": "diag(2e-5*abs(ds_odom),rad(0.015)^2*dt,0)",
+    "bias_process_noise": 0,
+    "noise_independent_drifts": "same seed0 Sensor-v2 gyro/wheel noise every arm"
+  },
+  "initialization": {
+    "x0": "truth[0,:3] + sensor_v2.rng(0,'initial').standard_normal(3)*[.1,.1,5deg], initial_bias_rad_per_s:0",
+    "P0": "diag(.1^2,.1^2,rad(5)^2,rad(.1)^2)",
+    "shared_between_arm": true
+  },
+  "sensor_controls": {
+    "generator": "pinned sensor_v2.motion_increments(t,truth,'legacy-euler'), SensorV2.generate",
+    "truth_use": "in generator only, never estimator",
+    "seed": 0,
+    "conditions": [
+      {
+        "label": "B0",
+        "true_bias_deg_s": 0,
+        "generator_level": 1,
+        "condition": "noise_pair",
+        "common_scale": 0,
+        "bias_rw": 0
+      },
+      {
+        "label": "L2",
+        "true_bias_deg_s": 0.2,
+        "generator_level": 2,
+        "condition": "all",
+        "slip_mode": "off",
+        "parameters": {
+          "gyro_bias": "rad(0.20)",
+          "gyro_sf": 0,
+          "wheel_asymmetry": 0,
+          "wheelbase": 0,
+          "common_scale": 0
+        },
+        "bias_rw": 0
+      }
+    ],
+    "not_claimed": "L2 here is gyro-bias-only positive perturbation + wheel/gyro white noise; not general full all-drift stress"
+  },
+  "cases": [
+    "R2_aA_m0",
+    "R2_aB_m0",
+    "R2_aA_m45",
+    "R4_aA_m0",
+    "R4_aB_m0",
+    "R5_aA_m0",
+    "R5_aB_m0"
+  ],
+  "channels": [
+    "FULL",
+    "LOS"
+  ],
+  "arms": {
+    "DR4": {
+      "description": "4D dead-reckoning prediction only; no RF updates",
+      "observable_dimensions": 0,
+      "gate": null
+    },
+    "R4": {
+      "description": "4D single-anchor scalar raw first-edge range, predictor d+B_OLD and H_r",
+      "observable_dimensions": 1,
+      "Rr_m2": 0.0068578637,
+      "gate_chi2_99": 6.6348966010212145
+    },
+    "J4_SRC": {
+      "description": "4D joint [r,s] R0 predictor with immutable pinned SourceFFD and existing scalar range bridge",
+      "observable_dimensions": 2,
+      "R0": {
+        "Rr_m2": 0.0068578637,
+        "Rs": 0.0081,
+        "Rrs": 0
+      },
+      "gate_chi2_99": 9.210340371976184
+    }
+  },
+  "measurement_policy": {
+    "range_model": "distance3D(x,y; anchor xyz,tag_z=.45m)-0.5315983906250129m",
+    "same_packet_each_time": true,
+    "self_gating_per_arm": true,
+    "no_shared_oracle_mask": true,
+    "same_raw_r_in_R4_and_J4": true,
+    "joint_source_from_estimated_state": true,
+    "initial_truth_only_seed_generator": true,
+    "filter_direct_truth_use": false,
+    "updater": "frozen EKF4 core.gaussian_update Joseph covariance; do not silently clip or retry"
+  },
+  "population": {
+    "scene_independent": 1,
+    "rf_case_mode": 9519,
+    "timeline_case_channel": 7251,
+    "eval_case_channel_t_ge30": 6201,
+    "per_bias_all_channel_timeline": 14502,
+    "per_bias_eval_both_channels": 12402,
+    "two_bias_total_eval_per_arm": 24804,
+    "original_rf_single_scene": true
+  },
+  "metrics": [
+    "heading_rmse_deg",
+    "xy_rmse_m",
+    "bias_rmse_deg_s",
+    "bias_final_estimate",
+    "pose_NEES",
+    "heading_NEES",
+    "coverage95_pose",
+    "coverage95_heading",
+    "range_only_NIS",
+    "joint_NIS",
+    "accepted_updates",
+    "rejected_updates",
+    "missing_updates",
+    "per_step_xP_gate",
+    "resource_packet_count_and_scalar_components"
+  ],
+  "acceptance": {
+    "numeric_stable_math": "analytic 4-state F vs central FD <=1e-5 at safe interior; Joseph covariance reference <=1e-10; x/P symmetric PSD; same initial/controls; predeclared exact R and chi2 gates",
+    "input": "39 C0 original raw full byte SHA plus 2 bank binaries + archived ZIP SHA + 14 archived trace SHA",
+    "sample": "14 exact case/channel trace files; all t monotone, no silently discarded packet; 7 route case pairing",
+    "failure_policy": "STOP on any math/asset/parity drift and preserve all FAIL/BLOCKED; do not adjust threshold after outcomes",
+    "scientific": "No guaranteed range-only gain; every case, including failure, stays; no new test holdout or independent-scene confidence claim"
+  },
+  "primary_results": "B0 and positive L2, all 7 cases Full/LoS, recursive from t0, scoring t>=30; no one-step shortcut replacing recursion",
+  "historical_comparator": "Old-LUT J4 previous replay exploratory only; main J4_SRC uses SourceFFD for matching P1",
+  "frozen_not_allowed": [
+    "new RT or scene",
+    "L0/L1 conditional execution without append-only amendment",
+    "recalibrate range offset",
+    "fit mu or R",
+    "replace SourceFFD with 2degree LUT in J4_SRC",
+    "M2",
+    "P3/P4",
+    "3D spatiotemporal covariance",
+    "equal resource claim",
+    "learn from known C0 outputs",
+    "claim 7 independent scenes"
+  ]
+}
