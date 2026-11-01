@@ -1,7 +1,7 @@
-"""P2_S1V5 (AMENDMENT-009): S1V3 with the S1V3 design-audit fixes (audit/mbvar-info-s1v3-design-20261030, 353381b3).
+"""P2_S1V5 DRAFT (AMENDMENT-010): same primary MAP as S1V4, with canonical factor.
 
-  s1v5.py run --fields 10,11 --split DEV2 --out D
-  s1v5.py aggregate --shards D --split DEV2 --out D        (env S0V2_RESULTS_DIR)
+  s1v5.py run --fields 20,21 --split DEV3 --out D  [ONLY AFTER A010 FULL LOCK]
+  s1v5.py aggregate --shards D --split DEV3 --out D        (env S0V2_RESULTS_DIR)
 
 Changes vs s1v3 (s1v3.py itself is frozen under AMENDMENT-008 and unchanged):
   F1  class v3.1: a probe descent > tau makes a row NOT_CERTIFIED even when the analytic Newton decrement is ~0;
@@ -10,7 +10,7 @@ Changes vs s1v3 (s1v3.py itself is frozen under AMENDMENT-008 and unchanged):
   F3  explicit one-sided axis probes: +- rho_a * sqrt(P0_jj) on each x0 coordinate, rho_a in {1e-2, 1e-3} (left/right
       directional cost change at a kink), added to the GN-line and random probes.
   F4  the full window-end C10 covariance (4x4) is stored and NEES is recomputed with it (nees4_C10); nees4 (analytic) kept.
-Inputs, E, post-fit P conventions and the A8-5/A8-6 machinery are those of s1v3 (imported, not copied).
+Primary estimator, E/post-fit-P conventions, and A8-5/A8-6 machinery remain inherited from S1V4.\nAMENDMENT-010 must be FROZEN before any DEV3 execution; no HOLDOUT2 or RT use here.
 """
 from __future__ import annotations
 
@@ -80,8 +80,10 @@ def canonical_setup(lk):
     s1 = Wd.PARAMS["synthetic_s1"]
     K = IC.k_pose(coords[:, :2], coords[:, 2],
                   s1["pose_corr_length_m"], math.radians(s1["pose_corr_yaw_deg"]))
-    if CAN.sha_array(K) != lock["Kp_sha256"]:
-        raise SystemExit("ERR_A010_WORLD_KERNEL_MISMATCH")
+    # The Kp byte hash is informative only: SIMD exp() can vary at the ULP
+    # level across CPUs. The stored factor is checked by exact byte SHA;
+    # the ledger is checked by exact SHA; physical Kp law by 1e-10 tolerance.
+    S["A010_KP_BYTE_MATCH"] = (CAN.sha_array(K) == lock["Kp_sha256"])
     return CAN.install_factor(S, factor, expected_sha=lock["sha256"], Kp=K)
 
 
