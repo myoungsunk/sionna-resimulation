@@ -1,0 +1,33 @@
+{
+  "case": "R2_aB_m0",
+  "bias": "B0",
+  "arm": "MB_VAR",
+  "gate": "self",
+  "source_sha256": "8c13c780c1e63003d634fd548ae426977868557cf8485dc6265ed1996e42ff8b",
+  "observed": {
+    "normal": {
+      "R4_MUTATE_CONTROL_dt": "PASS",
+      "R4_MUTATE_pose_id": "PASS",
+      "R4_MUTATE_t": "PASS"
+    },
+    "corruption_detector_forced_zero": {
+      "R4_MUTATE_CONTROL_dt": "PASS",
+      "R4_MUTATE_pose_id": "PASS",
+      "R4_MUTATE_t": "PASS"
+    },
+    "preceding_dt_detector_forced_zero": {
+      "R4_MUTATE_CONTROL_dt": "FAIL",
+      "R4_MUTATE_pose_id": "FAIL",
+      "R4_MUTATE_t": "FAIL"
+    },
+    "duplicate_pose_key_count": 1,
+    "backward_time_guard": 1,
+    "equal_timestamp_guard": 0,
+    "equal_timestamp_strict_violations": 1,
+    "score_count_before": 0,
+    "score_count_after_shift_1s": 0,
+    "actual_score_population_before": 829,
+    "actual_score_population_after_shift_1s": 834
+  },
+  "interpretation": "Harness mistakenly depends on previous dt result and fails to guard equal timestamps and denominator shifts; original data not shown corrupt."
+}
