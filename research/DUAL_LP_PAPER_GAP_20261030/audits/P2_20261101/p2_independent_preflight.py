@@ -266,7 +266,7 @@ def run():
   info.update(dict(sources=[x["git_blob"] for x in config["pinned_sources"]],
         archived_zip_sha256=zsha,source_jac_test_axes=tested,
         original_39_pass=True,bank_sha_pass=True,same_control_routes=list(comp_keys)))
-  z.close()
+  # ZipFile was validated and read before the numeric oracle reused variable z.
 
 if __name__=="__main__":
   try:run()
