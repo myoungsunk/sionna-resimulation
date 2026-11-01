@@ -1,0 +1,69 @@
+{
+  "schema": "DLP_P1_SAMPLING_AND_SPLIT_LOCK_V1",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "phase": "P1_REPRO_AND_DESCRIPTIVE_ONLY",
+  "physical_scene_family": "single_C0_Corridor",
+  "independent_scene_count": 1,
+  "route_groups": [
+    {
+      "route": "R2",
+      "cases": [
+        "R2_aA_m0",
+        "R2_aB_m0",
+        "R2_aA_m45"
+      ],
+      "case_count": 3,
+      "rf_pose_each": 1303,
+      "route_timeline_steps": 979,
+      "evaluation_t_ge_30_steps": 829
+    },
+    {
+      "route": "R4",
+      "cases": [
+        "R4_aA_m0",
+        "R4_aB_m0"
+      ],
+      "case_count": 2,
+      "rf_pose_each": 922,
+      "route_timeline_steps": 742,
+      "evaluation_t_ge_30_steps": 592
+    },
+    {
+      "route": "R5",
+      "cases": [
+        "R5_aA_m0",
+        "R5_aB_m0"
+      ],
+      "case_count": 2,
+      "rf_pose_each": 1883,
+      "route_timeline_steps": 1415,
+      "evaluation_t_ge_30_steps": 1265
+    }
+  ],
+  "per_channel": {
+    "total_rf_pose_case": 9519,
+    "total_timeline_case": 7251,
+    "t_ge_30_case": 6201
+  },
+  "two_channel_factor": 2,
+  "source_population_id": "C0_EXISTING_FROZEN_7_CASES",
+  "extension_isolation": "R4_R5_M45_FULL_ONLY_RECOVERED_SEPARATE_NO_COMPARABLE_NATIVE_LOS",
+  "packet_key": [
+    "scene_family",
+    "route",
+    "anchor",
+    "mount_deg",
+    "channel",
+    "pose_id"
+  ],
+  "timeline_join_keys": [
+    "route",
+    "pose_id"
+  ],
+  "duplicate_policy": "error",
+  "missing_policy": "FAIL_CLOSED and output invalid ledger",
+  "truth_policy": "truth_only_for_offline_residual_derived_labels",
+  "new_train_folds": "NONE - descriptive only",
+  "previous_crossfit": "existing SourceFFD P0P3 2026-10-16 reference only; no prior fit relabeled as newly audited",
+  "confidence_intervals": "NOT_SCENE_LEVEL_ESTIMABLE n_scene=1; descriptive rows not iid replicates"
+}
