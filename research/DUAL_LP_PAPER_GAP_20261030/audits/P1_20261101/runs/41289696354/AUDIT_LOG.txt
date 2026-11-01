@@ -1,0 +1,23 @@
+AUDIT A00_LOCK_HASH PASS All 7 locked files plus original P0 manifest raw SHA256 match
+AUDIT A00_HEAD_PIN PASS fixed proposer head
+AUDIT A01_39_RAW_ASSETS PASS verified=39/39 errors=[]
+AUDIT A01_TWO_REAL_BANKS PASS Both original .npz physical SHA256 and byte sizes verified, not LFS pointers
+AUDIT A01_FREQUENCY PASS [(257,), 'float64', 6250400000.0, 6749600000.0]
+AUDIT A02_KEYS_SHAPES PASS case errors:[]
+AUDIT A02_TIME_COORD PASS route errors:[]
+AUDIT A02_COUNTS PASS {'rf': 9519, 'timeline': 7251, 'eval': 6201}
+AUDIT A09_PINNED_CODE PASS All locked Git source blobs rehashed
+BANKS [{'name': 'LP_plus45_bank.npz', 'bytes': 247727983, 'sha256': 'b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b', 'pole_cartesian_relative_dispersion': {'0': 5.97633263808294e-08, '-1': 5.580091672124902e-08}, 'seam_max_abs': 0.0}, {'name': 'LP_minus45_bank.npz', 'bytes': 247743979, 'sha256': '39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9', 'pole_cartesian_relative_dispersion': {'0': 5.753842378656297e-08, '-1': 5.493231082743983e-08}, 'seam_max_abs': 0.0}]
+AUDIT A09_BANK_STAGING PASS Staged correct original bank bytes outside repo and SourceFFD initialized without original source mutation
+AUDIT A03_REAL_RF_OBSERVER PASS Real RF random/adversarial Full/LoS 2-port paired detector; errors=[]
+AUDIT A03_PORT_SWAP PASS []
+AUDIT A04_SOURCE_DIRECT_ORACLE PASS Independent spherical vector bilinear physical H vs SourceFFD: samples=42
+AUDIT A04_SOURCE_NATIVE_COMPLEX PASS predeclared historical engineering regression limits; not fresh holdout
+AUDIT A04_SOURCE_NATIVE_SIGNED_S PASS must satisfy 9519 observed poses, no tap switch
+AUDIT MATH_SOURCE_JAC PASS Real-bank SourceFFD analytic vs independently coded central FD at stable FFD/tap cells; check boundary separately
+AUDIT A05_OLD_LUT PASS Independent 8-corner LUT s interpolation vs pinned FrozenLut
+AUDIT A06_RESIDUAL_COV_MATH PASS Synthetic signed residual identity, ddof=1, covariance eigen PSD, physical units
+AUDIT A07_NO_P1_SCIENCE_RUN PASS No actual C0 residual moments, P1 output, training, RF or EKF run; QA matched physics only
+AUDIT A08_RETROSPECTIVE_BOUNDARY PASS One previously seen Corridor scene; pre-fixed historical regression tolerances, not confirmatory proof
+FINAL_AUDIT_JSON /tmp/dlp_p1_audit/AUDIT_RESULT.json
+FINAL_VERDICT ACCEPT_WITH_BOUNDARIES CHECKS 20 FAILURES 0
