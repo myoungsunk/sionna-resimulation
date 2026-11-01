@@ -1,0 +1,60 @@
+{
+  "schema": "DLP_P1_PROPOSED_CONFIG_LOCK_V0",
+  "status": "PROPOSED_UNFROZEN_DO_NOT_EXECUTE",
+  "contract_id": "DLP-EKF-GAPS-001",
+  "role": "IMPLEMENTER",
+  "base_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "recovery_git_sha": "2b41f562063739d8d8f2011bc7248b561359580d",
+  "source_observer": "archived observation.py TX+45 RX+-45 Hann 4N IFFT stronger port 30 percent shared tap",
+  "source_observer_sha256": "P0_RESOLVE_IN_EXACT_SOURCE_LOCK",
+  "legacy_h_source": {
+    "file": "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py",
+    "git_blob": "cb676aea8e6710ff2c0e175e1e422271b696cebe"
+  },
+  "sourceffd_h_source": {
+    "file": "research/FFD_P0P3_20261016/source_model.py",
+    "git_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631"
+  },
+  "motion_source": {
+    "file": "research/EKF4_RANGE_S_STAGED_20261014/core.py",
+    "git_blob": "0a0851e6867c14fec5eefe02df471100cb9e9e1d"
+  },
+  "historical_baseline_candidate": {
+    "range_offset_m": -0.5315983906250129,
+    "Rr_m2": 0.0068578637,
+    "Rs_dimensionless2": 0.0081,
+    "Rsr_assumed": 0,
+    "gate_joint_chi2_99": 9.210340371976184,
+    "gate_scalar_chi2_99": 6.6348966010212145,
+    "initial_pose_std_m_m_deg": [
+      0.1,
+      0.1,
+      5
+    ],
+    "gyro_bias_prior_std_deg_per_s": 0.1,
+    "bias_levels_deg_per_s": {
+      "B0": 0,
+      "L0": 0.01,
+      "L1": 0.05,
+      "L2": 0.2
+    },
+    "evaluation_start_s": 30
+  },
+  "source_family": {
+    "primary": "C0 frozen 7 cases 7 Full H+7 Native LoS H",
+    "extension": "Recovered R4/R5 mount45 Full H only. no Native LoS added"
+  },
+  "required_proposer_decisions": [
+    "Scope whether P1 is source-h-only matched analysis or includes train-only fitted mean/R",
+    "Select original observer source revision exact byte sha and frequency+Ifft timing conventions",
+    "Lock source FFD plus/minus bank SHA and source_model version with independent reproducible runner",
+    "Lock h_r: historical continuous d+B_OLD or detector-aware model; label alternate separately",
+    "Specify data universe 7 canonical vs 4 recovered Full-only extension secondary",
+    "Specify exact calibration folds and seed/missing packet/gate policy",
+    "Specify parity tolerances for H->r,s, source h/J, old method and new model independent of observed outcomes",
+    "Specify methods to report if 3-D and M2 reserved; avoid recursive phase until separate freeze",
+    "Independent pre-run auditor assignment and signed approval"
+  ],
+  "output_policy": "append-only; old figures never overwritten; per-output manifests; no use of truth in runtime filter",
+  "execution": "BLOCKED_CONTRACT_NOT_FROZEN"
+}
