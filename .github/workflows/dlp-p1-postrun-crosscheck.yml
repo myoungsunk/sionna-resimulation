@@ -1,0 +1,68 @@
+name: DLP P1 post-run separate-formula crosscheck (SELF_REVIEW_ONLY)
+on:
+  push:
+    branches:
+      - audit/dlp-p1-postrun-crosscheck-20261101
+    paths:
+      - '.github/workflows/dlp-p1-postrun-crosscheck.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/postrun_crosscheck.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+env:
+  GH_TOKEN: ${{ github.token }}
+  DLP_POST_INPUT: /tmp/p1_postrun_original
+  DLP_POST_OUT: /tmp/p1_postrun_result
+jobs:
+  crosscheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Sparse Git fetch only independent audit code and immutable P1 result SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/postrun_crosscheck.py\n' >.git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin 9c5ad7ceb592678789ed06751b71de951ce22c61
+          mkdir -p "$DLP_POST_INPUT" "$DLP_POST_OUT"
+          D='research/DUAL_LP_PAPER_GAP_20261030/runs/P1_SOURCE_HARMONIZATION_41300302082'
+          for name in P1_MATCHED_SIGNED_ERRORS.csv P1_RAW_OBSERVER_PARITY.csv P1_STRATIFIED_MOMENTS.csv P1_INVALID_AND_BOUNDARY_LEDGER.csv P1_SOURCE_OBSERVER_CANARY.csv P1_SCIENCE_QA.json P1_MANIFEST.json P1_INPUT_HASH_RECEIPT.json P1_LOG.txt; do
+            git show "9c5ad7ceb592678789ed06751b71de951ce22c61:$D/$name" >"$DLP_POST_INPUT/$name"
+            test -s "$DLP_POST_INPUT/$name"
+          done
+      - name: Execute independently formulated post-run row/moment arithmetic
+        shell: bash
+        run: |
+          set -uo pipefail
+          python3 -u research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/postrun_crosscheck.py \
+            2>&1 | tee "$DLP_POST_OUT/POSTRUN_LOG.txt"
+          exit "${PIPESTATUS[0]}"
+      - name: Preserve all post-run crosscheck outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p1-postrun-crosscheck-${{ github.run_id }}
+          path: /tmp/p1_postrun_result/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Append-only preserve post-run numerical validation
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$DLP_POST_OUT/P1_POST_RUN_CROSSCHECK.json" || { echo "No receipt"; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/audits/P1_20261101/postrun/${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          cp -a "$DLP_POST_OUT/." "$D/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "audit(p1): preserve postrun independent arithmetic crosscheck ${GITHUB_RUN_ID}, SELF_REVIEW_ONLY"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
