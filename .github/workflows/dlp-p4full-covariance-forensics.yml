@@ -1,0 +1,123 @@
+name: P4 Full original-C0+ anchor covariance inconsistency and accepted-update forensics
+on:
+  push:
+    branches:
+      - research/p4full-covariance-mechanism-diagnostics-20261102
+    paths:
+      - '.github/workflows/dlp-p4full-covariance-forensics.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_COV_FORENSICS_20261102/p4_covariance_mechanism.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  P4_FORENSIC_OUT: /tmp/p4_covariance_forensics
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+jobs:
+  exact-source-readonly-analysis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Sparse fetch immutable 12 frozen NPZ EKF traces and source metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --no-tags --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_COV_FORENSICS_20261102/**
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P4_FULL_C0PLUS_NATIVE_41435839892/P4_FULL_12_COMPLETE_4STATE_EKF_TRACES.zip
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P4_FULL_C0PLUS_NATIVE_41435839892/P4_FULL_POSTRUN_QA.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P4_FULL_C0PLUS_NATIVE_41435839892/P4_FULL_28_POOLED_METRICS.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          src=json.loads(p.read_text())
+          pat=pathlib.Path('.git/info/sparse-checkout').read_text().splitlines()
+          pat.extend('/'+x['path'] for x in src['base_assets'] if x['kind']=='TIMELINE_TNONE')
+          pathlib.Path('/tmp/p4_forensics_sparse').write_text('\n'.join(sorted(set(pat)))+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p4_forensics_sparse
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Pinned numerical dependency and compile before original source inspect
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.3
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_COV_FORENSICS_20261102/p4_covariance_mechanism.py
+          printf '%s  %s\n' '5ecf2a326ec17c8ce4ccc7a42fe76227ecf6ad7ec027df9cdfcd2304dcb0acfe' \
+           research/DUAL_LP_PAPER_GAP_20261030/runs/P4_FULL_C0PLUS_NATIVE_41435839892/P4_FULL_12_COMPLETE_4STATE_EKF_TRACES.zip | sha256sum --check
+      - name: Recompute sensor GT residual, covariance, stored EKF P, true errors, counterfactual
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$P4_FORENSIC_OUT"
+          python -u research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_COV_FORENSICS_20261102/p4_covariance_mechanism.py \
+             2>&1 | tee "$P4_FORENSIC_OUT/P4_COV_FORENSICS_LOG.txt"
+          exit "${PIPESTATUS[0]}"
+      - name: Verify output manifest and exact original source proof
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$P4_FORENSIC_OUT"
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,datetime
+          root=pathlib.Path(os.environ['P4_FORENSIC_OUT'])
+          outs=[]
+          for f in sorted(root.iterdir()):
+            if not f.is_file() or f.name=='P4_COV_FORENSICS_MANIFEST.json':continue
+            h=hashlib.sha256()
+            with f.open('rb') as stream:
+              for b in iter(lambda:stream.read(1048576),b''):h.update(b)
+            outs.append({'file':f.name,'bytes':f.stat().st_size,'sha256':h.hexdigest()})
+          receipt=root/'P4_COVARIANCE_MECHANISM_QA.json'
+          status=json.loads(receipt.read_text())['status'] if receipt.exists() else 'BLOCKED_OR_FATAL'
+          result={'schema':'DLP_P4_FULL_COV_FORENSIC_OUTPUT_MANIFEST_V1',
+            'status':status,'n_outputs':len(outs),'files':outs,
+            'original_P4_FULL_run_id':41435839892,
+            'source_trace_zip_sha256':'5ecf2a326ec17c8ce4ccc7a42fe76227ecf6ad7ec027df9cdfcd2304dcb0acfe',
+            'single_simulation_scene_n':1,'not_an_independent_human_scientific_audit':True,
+            'run_id':os.environ.get('GITHUB_RUN_ID'),
+            'source_head':os.environ.get('GITHUB_SHA'),
+            'UTC':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+          (root/'P4_COV_FORENSICS_MANIFEST.json').write_text(json.dumps(result,indent=2)+'\n')
+          print('P4_COV_FORENSICS_MANIFEST',status,'files',len(outs),flush=True)
+          PY
+      - name: Preserve every successful or failed diagnostic artifact independently
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p4full-covariance-diagnostics-${{ github.run_id }}
+          path: /tmp/p4_covariance_forensics/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Commit append-only verified forensics without changing source filter or RF
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$P4_FORENSIC_OUT/P4_COV_FORENSICS_MANIFEST.json" ||
+            { echo 'No structured manifest to preserve'; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_COV_FORENSICS_20261102/runs/${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          cp -a "$P4_FORENSIC_OUT/." "$D/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "audit(p4full): original-source posterior covariance mechanism diagnostics ${GITHUB_RUN_ID}" || exit 0
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+           push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
