@@ -147,7 +147,8 @@ def test_dispatcher_draft_blocks_DEV3_even_with_valid_ids(tmp_path, monkeypatch)
     # Synthetic contract for UNIT TEST only: prove valid FROZEN still cannot
     # select anything beyond DEV3 field ids 20–29.
     (contracts / "AMENDMENT-010.md").write_text('AMENDMENT_LOCK\\n{"status": "FROZEN"}')
-    assert module.request()["phase"] == "P2_S1V5"
+    with pytest.raises(SystemExit, match="ERR_A010_AMENDMENT_NOT_LISTED"):
+        module.request()
     req["field_ids"] = list(range(21,30))
     (ex / "RUN_REQUEST.json").write_text(json.dumps(req))
     with pytest.raises(SystemExit, match="ERR_A010_DEV3_FIELD_SET"):
