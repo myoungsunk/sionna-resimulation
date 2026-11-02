@@ -21,7 +21,7 @@ GENERATOR_TOL = 1e-10
 C10_COND_LOG_TOL = 1e-3
 G5_NUMERIC_GATE_IDS = (
     "RECEIPT_INTEGRITY", "GENERATOR_LAW", "CROSS_FIELD_COV_EQUIVALENCE",
-    "STATE_COST_REPRO", "FULL_C10_REPRO", "STATUS_REPRO", "NO_WRONG_BASIN",
+    "SOLVER_REPRO", "STATE_COST_REPRO", "FULL_C10_REPRO", "STATUS_REPRO", "NO_WRONG_BASIN",
     "ITER_CAP", "PROBE_POWER", "LINEAR_EXACT", "KINK_FIXTURES", "rows",
 )
 HISTORICAL_FAILURES = (
@@ -351,3 +351,60 @@ def mode_identifiability(rows, tol1=1., tol2=2., fraction=.99):
                     for k, v in sorted(groups.items())},
                 all_rows_retained_in_science=True, unique_map_claim_allowed=False,
                 scientific_release=False, sensitivity="REVIEW_REQUIRED_IF_ANY_AMBIGUOUS")
+
+
+def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
+                                        cov_tol=1e-3, cond_log_tol=1e-3):
+    """Strict contract for independently produced SAME-CANONICAL-INPUT solver evidence.
+
+    Each receipt must contain source_git_sha, manifest_sha256, input_sha256,
+    runner_id, environment, rows. This does not create or approve the receipts.
+    A pair alone never overrides the original G5 scientific status.
+    """
+    required = ("source_git_sha", "manifest_sha256", "input_sha256", "runner_id", "environment", "rows")
+    if any(k not in x for x in (a, b) for k in required):
+        return dict(pass_=False, reason="ERR_SOLVER_REPRO_MISSING_METADATA")
+    if not a["runner_id"] or not b["runner_id"] or a["runner_id"] == b["runner_id"]:
+        return dict(pass_=False, reason="ERR_SOLVER_REPRO_NOT_TWO_RUNNERS")
+    for k in ("source_git_sha", "manifest_sha256", "input_sha256"):
+        if not a[k] or a[k] != b[k]:
+            return dict(pass_=False, reason=f"ERR_SOLVER_REPRO_MISMATCH_{k}")
+    if not a["rows"] or not b["rows"]:
+        return dict(pass_=False, reason="ERR_SOLVER_REPRO_EMPTY_ROWS")
+    def rowmap(rows):
+        keys = [(r["field"], r["role"], r["cell"], r["sensor_seed"], r["arm"]) for r in rows]
+        if len(keys) != len(set(keys)):
+            raise ValueError("ERR_SOLVER_REPRO_DUPLICATE_ROW")
+        return dict(zip(keys, rows))
+    x, y = rowmap(a["rows"]), rowmap(b["rows"])
+    if set(x) != set(y):
+        return dict(pass_=False, reason="ERR_SOLVER_REPRO_ROW_SET", missing=len(set(x)-set(y)), extra=len(set(y)-set(x)))
+    failures = []
+    for key in sorted(x):
+        one, two = x[key], y[key]
+        if (one.get("class_v31") != two.get("class_v31") or
+                one.get("n_alt_ambiguous") != two.get("n_alt_ambiguous")):
+            failures.append(dict(key=key, reason="CLASS_OR_MODE")); continue
+        if abs(float(one["cost"])-float(two["cost"]))>cost_tol:
+            failures.append(dict(key=key, reason="COST"));continue
+        d = max(abs(float(one[f"xend_{i}"])-float(two[f"xend_{i}"])) for i in range(4))
+        if d>state_tol:
+            failures.append(dict(key=key, reason="STATE"));continue
+        cv = covariance_replay_check(one, two, scaled_difference=lambda u,v:
+            _scaled_c10_diff(u,v), nees_tolerance=cov_tol)
+        if not cv["pass_"] or cv.get("condition_log10_delta", np.inf)>cond_log_tol:
+            failures.append(dict(key=key, reason="FULL_C10"));continue
+    return dict(pass_=not failures, n_rows=len(x), n_fail=len(failures),
+                failure_details=failures, runner_ids=[a["runner_id"],b["runner_id"]],
+                same_input_sha=a["input_sha256"], same_source_sha=a["source_git_sha"])
+
+
+def _scaled_c10_diff(a, b):
+    P,Q=c10_matrix(a),c10_matrix(b)
+    denom=np.maximum(np.sqrt(np.maximum(np.diag(P),0))[:,None] *
+                     np.sqrt(np.maximum(np.diag(P),0))[None,:],
+                     np.sqrt(np.maximum(np.diag(Q),0))[:,None] *
+                     np.sqrt(np.maximum(np.diag(Q),0))[None,:])
+    for j in range(4):
+        denom[j,j]=max(denom[j,j],1e-300)
+    return float(np.max(np.abs(P-Q)/np.maximum(denom,1e-300)))
