@@ -328,16 +328,30 @@ def execute(route,out):
   p2z=zipfile.ZipFile(archive_path)
   trace_dir=out/"traces";trace_dir.mkdir()
   for level in ("B0","L2"):
-    controls,x0=old_replay.build_positive_bias_controls(t,truth,level,seed=0)
+    # Read the EXACT archived P2 sensor controls and common initialization.
+    # Reconstructing from rounded timeline CSV would introduce small changes
+    # and violate the fixed-control P4 comparison.
+    reference=f"traces/{route}_aA_m0_full_{level}_seed0_P2_4STATE.npz"
+    with np.load(io.BytesIO(p2z.read(reference)),allow_pickle=False) as baseline:
+      need(len(baseline["t_s"])==len(t) and np.max(abs(baseline["t_s"]-t))<=1e-9,
+           "P4_P2_TIMELINE_NOT_IDENTICAL")
+      controls={name:baseline[name].copy() for name in ("ds_odom","dtheta_gyro","dt_s")}
+      controls["t_s"]=baseline["t_s"].copy()
+      x0=baseline["initial_x0"][:3].copy()
+      original_P0=baseline["initial_P0"].copy()
+      need(np.max(abs(original_P0-np.diag([.01,.01,math.radians(5)**2,math.radians(.1)**2])))<=1e-12,
+           "P4_P2_INITIAL_P0_CHANGED")
     for channel_index,channel in enumerate(("los","full")):
       for anchor_index,anchor in enumerate(("A","B")):
         fname=f"{route}_a{anchor}_m0_{channel}_{level}_seed0_P2_4STATE.npz"
         raw=p2z.read("traces/"+fname)
         with np.load(io.BytesIO(raw),allow_pickle=False) as prior:
-          need(np.array_equal(prior["t_s"],t) and
+          need(len(prior["t_s"])==len(t) and
+               np.max(abs(prior["t_s"]-t))<=1e-9 and
                np.array_equal(prior["ds_odom"],controls["ds_odom"]) and
                np.array_equal(prior["dtheta_gyro"],controls["dtheta_gyro"]) and
-               np.array_equal(prior["dt_s"],controls["dt_s"]),
+               np.array_equal(prior["dt_s"],controls["dt_s"]) and
+               np.array_equal(prior["initial_x0"][:3],x0),
                "P4_SENSOR_INPUT_NOT_IDENTICAL_TO_P2:"+fname)
           for k in np.where(avail)[0]:
             need(np.max(abs(prior["z_r_s"][k]-z[k,channel_index,anchor_index]))<=1e-9,
