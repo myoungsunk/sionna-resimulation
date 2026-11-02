@@ -1,0 +1,240 @@
+name: DLP P4 Full Native C0+ verified source recovery and corrected all-epoch 4state EKF
+on:
+  push:
+    branches: ['research/dual-lp-p4-full-native-c0plus-20261102']
+    paths:
+      - '.github/workflows/dlp-p4-full-ekf-resume.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  source-ready:
+    name: Wait for original 3097 actual Native C Full+LoS RT receipts (no rerun)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      - name: Verify completed original physics run and all R2/R4/R5 Native source artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'P4_FULL_NATIVE_SOURCE_RUN=41408877765'
+          for attempt in $(seq 1 340); do
+            gh api 'repos/myoungsunk/sionna-resimulation/actions/runs/41408877765/artifacts?per_page=100' >/tmp/p4_original_artifacts.json
+            count=$(python3 - <<'PY'
+          import json
+          x=json.load(open('/tmp/p4_original_artifacts.json'))
+          goal={f'p4-full-route-{r}-41408877765' for r in ('R2','R4','R5')}
+          found={a['name'] for a in x.get('artifacts',[]) if not a['expired'] and a['size_in_bytes']>0}
+          print(len(goal & found))
+          PY
+          )
+            status=$(gh api repos/myoungsunk/sionna-resimulation/actions/runs/41408877765 --jq '.status')
+            echo "SOURCE_WAIT attempt=$attempt status=$status verified_native_route_artifacts=$count/3"
+            if [ "$status" = completed ] && [ "$count" = 3 ]; then
+              echo "NATIVE_3136_PHYSICAL_ARTIFACTS_PUBLISHED_FOR_RECOVERY"
+              exit 0
+            fi
+            if [ "$status" = completed ] && [ "$count" != 3 ]; then
+              echo 'BLOCKED: original native RT did not complete all three source routes'
+              exit 1
+            fi
+            sleep 60
+          done
+          echo 'STOP bounded source-ready watch; no invented Native RF'
+          exit 1
+  ekf-route:
+    needs: source-ready
+    if: needs.source-ready.result == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [R2,R4,R5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    name: Seven 4state Full C0+ Native EKF filters on ${{ matrix.route }}
+    steps:
+      - name: Pinned source and original RF sparse checkout, no source mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --no-tags --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_ekf.py
+          /research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_20261102/canary_41407549938/P4_FULL_CANARY_QA.json
+          /research/EKF4_RANGE_S_STAGED_20261014/core.py
+          /research/FFD_P0P3_20261016/**
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_41315429738/P2_ALL_28_TRACES_IMMUTABLE.zip
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import pathlib,json
+          lock=json.loads(pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json').read_text())
+          rows=pathlib.Path('.git/info/sparse-checkout').read_text().splitlines()
+          for c in lock['primary_cases']:
+            if c['case_id'] in [r+'_a'+x+'_m0' for r in ('R2','R4','R5') for x in ('A','B')]:
+              rows.extend('/'+c[z] for z in ('full_path','los_path'))
+          rows.extend('/'+a['path'] for a in lock['base_assets'] if a['kind']=='TIMELINE_TNONE')
+          pathlib.Path('/tmp/full_ekf_sparse').write_text('\n'.join(sorted(set(rows)))+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/full_ekf_sparse
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned original P2 4state math
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Retrieve exact verified native C route complete Full/LoS and physical FFD banks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p4full_ekf_native /tmp/p4full_ekf_banks /tmp/p4full_ekf_result
+          gh run download 41408877765 --repo myoungsunk/sionna-resimulation \
+            --name 'p4-full-route-${{ matrix.route }}-'41408877765 \
+            --dir /tmp/p4full_ekf_native
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir /tmp/p4full_ekf_banks
+      - name: Genuine complete 3136-key R2 R4 R5 EKF full-frame B0 L2 Full/LoS
+        shell: bash
+        env:
+          DLP_P4_FULL_NATIVE_BUNDLE: /tmp/p4full_ekf_native
+          DLP_FULL_BANK_DIR: /tmp/p4full_ekf_banks
+          DLP_P4_FULL_FILTER_OUT: /tmp/p4full_ekf_result
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_ekf.py \
+            --route '${{ matrix.route }}' 2>&1 | tee /tmp/p4full_ekf_result/P4_FULL_EKF_LOG.txt
+          exit "${PIPESTATUS[0]}"
+      - name: Preserve all full-fidelity own-posterior original 4state traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p4-full-ekf-${{ matrix.route }}-${{ github.run_id }}
+          path: /tmp/p4full_ekf_result/
+          retention-days: 30
+          if-no-files-found: warn
+  score-publish:
+    needs: [source-ready,ekf-route]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    name: Independently rederive all 84 complete full RF EKF metrics and publish SHA
+    steps:
+      - name: Checkout source/core/locked original timeline for independent scorer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --no-tags --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_postrun.py
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json
+          /research/EKF4_RANGE_S_STAGED_20261014/core.py
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          inp=json.loads(pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json').read_text())
+          rows=pathlib.Path('.git/info/sparse-checkout').read_text().splitlines()
+          rows.extend('/'+a['path'] for a in inp['base_assets'] if a['kind']=='TIMELINE_TNONE')
+          pathlib.Path('/tmp/full_score_sparse').write_text('\n'.join(sorted(set(rows)))+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/full_score_sparse
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Independent score calculations using pinned arrays
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Download three verified source route ZIPs and 12 completed EKF traces
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/full_score_routes /tmp/full_score_native /tmp/full_score_result
+          for route in R2 R4 R5; do
+            mkdir -p "/tmp/full_score_routes/$route" "/tmp/full_score_native/$route"
+            gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+              --name "p4-full-ekf-${route}-${GITHUB_RUN_ID}" \
+              --dir "/tmp/full_score_routes/$route" || echo "Unverified $route EKF unavailable"
+            gh run download 41408877765 --repo myoungsunk/sionna-resimulation \
+              --name "p4-full-route-${route}-41408877765" \
+              --dir "/tmp/full_score_native/$route" || echo "Unverified $route Native H unavailable"
+          done
+      - name: Check all full P4 recursions, ground-truth-only scoring and resource packet parity
+        shell: bash
+        env:
+          DLP_FULL_EKF_ROUTE_INPUTS: /tmp/full_score_routes
+          DLP_FULL_EKF_OUT: /tmp/full_score_result
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_postrun.py \
+            2>&1 | tee /tmp/full_score_result/P4_FULL_POSTRUN_LOG.txt
+          RC=${PIPESTATUS[0]}
+          python - <<'PY'
+          import pathlib,hashlib,json,os,datetime
+          p=pathlib.Path('/tmp/full_score_result')
+          listing=[]
+          for f in sorted(p.iterdir()):
+            if not f.is_file() or f.name=='P4_FULL_MANIFEST.json':continue
+            h=hashlib.sha256()
+            with f.open('rb') as io:
+              for block in iter(lambda:io.read(1<<20),b''):h.update(block)
+            listing.append(dict(file=f.name,bytes=f.stat().st_size,sha256=h.hexdigest()))
+          result=p/'P4_FULL_POSTRUN_QA.json'
+          status=json.loads(result.read_text())['status'] if result.exists() else 'BLOCKED'
+          m=dict(schema='DLP_P4_FULL_C0PLUS_3136_NATIVE_EKF_SHA_MANIFEST_V1',
+            status=status,github_run=os.getenv('GITHUB_RUN_ID'),github_commit=os.getenv('GITHUB_SHA'),
+            original_R2_R4_R5_native_C_epoch_n=3136,
+            old_P3_native_C_epoch_n=39,new_real_PathSolver_native_C_epoch_n=3097,
+            original_scene_n=1,real_hardware_sync_proven=False,
+            source_direct_LoS_certified_run=41407549938,
+            allowed_claim='same simulation Corridor C0+ retrospective, not guaranteed model performance improvement',
+            files=listing,utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+          (p/'P4_FULL_MANIFEST.json').write_text(json.dumps(m,indent=2)+'\n')
+          print('P4_FULL_SCORE_MANIFEST',status,len(listing),flush=True)
+          PY
+          exit "$RC"
+      - name: Preserve even unsuccessful full result evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p4-full-ekf-verified-final-${{ github.run_id }}
+          path: /tmp/full_score_result/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Append-only publish original actual Native C H plus full EKF validated outputs
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s /tmp/full_score_result/P4_FULL_POSTRUN_QA.json || { echo 'No complete QA receipt; skip Git commit'; exit 0; }
+          DEST="research/DUAL_LP_PAPER_GAP_20261030/runs/P4_FULL_C0PLUS_NATIVE_${GITHUB_RUN_ID}"
+          mkdir -p "$DEST"
+          cp /tmp/full_score_result/* "$DEST/"
+          for route in R2 R4 R5; do
+            SRC="/tmp/full_score_native/$route"
+            for file in "P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip" \
+                        "P4_FULL_C_${route}_ROUTE_RECEIPT.json" \
+                        "P4_FULL_C_${route}_ALL_POSE_SHA_INDEX.csv"; do
+              test ! -s "$SRC/$file" || cp "$SRC/$file" "$DEST/"
+            done
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$DEST"
+          git commit -m "science(p4full): actual C 3136 Native RF & verified 84 full EKF scores run ${GITHUB_RUN_ID}" || exit 0
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
