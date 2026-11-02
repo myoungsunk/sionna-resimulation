@@ -66,7 +66,11 @@ def read_npz_bytes(raw,key,route,source_row):
  need(full.shape==(N,2,2) and los.shape==(N,2,2) and
       np.isfinite(full).all() and np.isfinite(los).all(),"ORIGINAL_C_NATIVE_H_SHAPE_NONFINITE")
  need(np.array_equal(freq,6250400000.+DF*np.arange(N)),"ORIGINAL_NATIVE_FREQ_NOT_257")
- need(np.array_equal(anchor,[16,.8,2.65]),"C_ANCHOR_CHANGED")
+ # The ORIGINAL CorridorSetup computes anchor z=height-standoff, i.e.
+ # float64(2.7)-float64(0.05)=2.6500000000000004 (not the literal
+ # float64(2.65)). Require EXACT original geometry, without tolerance edits.
+ original_anchor=np.asarray([16.,.8,2.7-0.05],dtype=np.float64)
+ need(np.array_equal(anchor,original_anchor),"C_ANCHOR_CHANGED")
  need(cf.shape==(N,) and cl.shape==(N,) and
       int(cf.min())>=1 and int(cl.min())>=1,"C_NATIVE_PATH_COUNTS_INVALID")
  need(np.array_equal(np.diff(of),cf) and np.array_equal(np.diff(ol),cl) and
