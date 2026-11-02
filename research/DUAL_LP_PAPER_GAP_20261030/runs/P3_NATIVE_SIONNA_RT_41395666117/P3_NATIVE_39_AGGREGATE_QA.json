@@ -1,0 +1,151 @@
+{
+  "schema": "DLP_P3_NATIVE_39_RT_AGGREGATED_V1",
+  "status": "PASS_39_NATIVE_C_SIONNA_RT_CANARY",
+  "original_contract_id": "DLP-EKF-GAPS-001/P3-V1",
+  "amended_contract": "P3_NATIVE_RT_APPEND_ONLY_AMENDMENT_V1.json",
+  "original_workflow_run": "41395666117",
+  "pose_n": 39,
+  "extra_smoke_n": 3,
+  "distinct_route_n": 3,
+  "total_native_path_solver_calls": 21588,
+  "original_single_scene_n": 1,
+  "new_C_native_full_H": "COMPUTED",
+  "full_P4_EKF": "NOT_RUN",
+  "measured_RF_hardware": false,
+  "retrospective_source_comparison": true,
+  "no_39_pose_case_selection_posthoc": true,
+  "gates": {
+    "A00_LOCKED_PILOT_PLAN": {
+      "status": "PASS",
+      "values": {
+        "n": 39,
+        "sha": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61"
+      }
+    },
+    "A01_3POSE_SMOKE_SUCCESS": {
+      "status": "PASS",
+      "values": {
+        "status": "PASS",
+        "n": 3,
+        "failed": []
+      }
+    },
+    "A02_ROUTE_R2": {
+      "status": "PASS",
+      "values": {
+        "route": "R2",
+        "status": "PASS",
+        "n": 13,
+        "failures": []
+      }
+    },
+    "A02_ROUTE_R4": {
+      "status": "PASS",
+      "values": {
+        "route": "R4",
+        "status": "PASS",
+        "n": 13,
+        "failures": []
+      }
+    },
+    "A02_ROUTE_R5": {
+      "status": "PASS",
+      "values": {
+        "route": "R5",
+        "status": "PASS",
+        "n": 13,
+        "failures": []
+      }
+    },
+    "A03_PREDECLARED_39_KEYS": {
+      "status": "PASS",
+      "values": {
+        "seen": 39,
+        "expected": 39,
+        "missing": []
+      }
+    },
+    "A04_NATIVE_SIONNA_H_TAU_OBSERVER": {
+      "status": "PASS",
+      "values": {
+        "n": 39,
+        "first_path_s_recalc_max": 0.0,
+        "first_path_r_recalc_max_m": 0.0,
+        "errors": []
+      }
+    },
+    "A05_ORIGINAL_3_SMOKE_REPLAYED": {
+      "status": "PASS",
+      "values": {
+        "smoke": 3,
+        "full": 39
+      }
+    },
+    "A06_NO_MISSING_NATIVE_FULL_OR_LOS": {
+      "status": "PASS",
+      "values": {
+        "full_path_count_total_bins": 10023,
+        "full_path_min": 61,
+        "full_path_max": 63
+      }
+    },
+    "A07_NO_NEW_SCENE_EKF": {
+      "status": "PASS",
+      "values": {
+        "RT_stage": "one known C0 scene new C native physical raytracing",
+        "P4": "NOT_RUN",
+        "measurement": "simulation only",
+        "synchronization": "trajectory labels only"
+      }
+    },
+    "A08_NATIVE_ARCHIVE_AND_FULL_INDEX": {
+      "status": "PASS",
+      "values": {
+        "archive_bytes": 1034988,
+        "archive_sha256": "f16c91872993f19341a9cb791c4872c9d13567b715596e9ac4dd085d2fe2c5de",
+        "n_zip_entries": 40
+      }
+    }
+  },
+  "failures": [],
+  "route_stats": [
+    {
+      "route": "R2",
+      "n": 13,
+      "max_source_los_H_rel": 0.00016265950313042567,
+      "max_source_los_s_abs": 2.314662825519953e-06,
+      "mean_full_minus_los_s": 0.017338239084179752,
+      "rmse_full_minus_los_s": 0.3287323303472002,
+      "n_with_multipath": 13
+    },
+    {
+      "route": "R4",
+      "n": 13,
+      "max_source_los_H_rel": 0.00014825075215547608,
+      "max_source_los_s_abs": 1.828371397588624e-06,
+      "mean_full_minus_los_s": 0.21897016191766336,
+      "rmse_full_minus_los_s": 0.44118401864800416,
+      "n_with_multipath": 13
+    },
+    {
+      "route": "R5",
+      "n": 13,
+      "max_source_los_H_rel": 0.00014399695608170428,
+      "max_source_los_s_abs": 1.726157748183077e-06,
+      "mean_full_minus_los_s": 0.08571966708686939,
+      "rmse_full_minus_los_s": 0.14285575769208733,
+      "n_with_multipath": 13
+    }
+  ],
+  "original_preselected_plan_sha256": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61",
+  "computation_code_sha256": "57c1c74a47930f25b17cb63838cefe7ac68e830f70d13f9218be012e3c707cff",
+  "raw_zip_sha256": "f16c91872993f19341a9cb791c4872c9d13567b715596e9ac4dd085d2fe2c5de",
+  "code_and_runner_identity": "same ChatGPT implementation author; separate Actions aggregation runner, not independent human auditor",
+  "elapsed_s": 0.0980866940000027,
+  "caveats": [
+    "Sionna computed physical ray tracing in same simulation corridor, not real-world measurements",
+    "39 sparse pilot poses only, not all 3136 route timeline samples",
+    "No cross-anchor packet timing/noise independence calibration",
+    "No P4 multi-anchor EKF or generalized conclusion"
+  ]
+}
