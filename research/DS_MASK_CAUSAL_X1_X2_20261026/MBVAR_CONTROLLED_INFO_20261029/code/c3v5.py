@@ -352,7 +352,7 @@ def cmd_aggregate(shards, out):
     del REC
     law_paths = sorted(Path(shards).glob("**/C3V5_GENERATOR_LAW_*.json"))
     laws = [json.loads(p.read_text()) for p in law_paths]
-    gen_law_pass = bool(laws and len(laws) == 2 * len(lk["run_plan"]["C3V5"]["fields"])
+    gen_law_pass = bool(laws and len(laws) == len(fs)
                         and all(l.get("pass_") for l in laws))
     D = D[D.arm.astype(str).str.endswith("_BATCH") & (D.status == "OK")].set_index(["field", "role", "cell", "sensor_seed", "arm"])
     fields = lk["run_plan"]["C3V5"]["fields"]
