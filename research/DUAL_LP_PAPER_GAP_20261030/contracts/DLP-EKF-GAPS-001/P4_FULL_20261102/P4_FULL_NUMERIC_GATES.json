@@ -1,0 +1,60 @@
+{
+  "schema": "DLP_P4_FULL_V1_NUMERIC_INTEGRITY_GATES",
+  "status": "PROPOSER_LOCKED_NOT_FROZEN",
+  "checks": [
+    {
+      "id": "W00_LOCK",
+      "limit": "Exact immutable P1/P3/P4 Pilot source hashes and new P4FULL config+contract+gates SHA; fail closed."
+    },
+    {
+      "id": "W01_RT_ENV",
+      "limit": "Original physical FFD bank SHA, native Sionna2.0.1 Mitsuba3.8 DrJit1.3.1, C0 surfaces/materials and exact C=(16,.8,2.65)."
+    },
+    {
+      "id": "W02_RT_CANARY",
+      "limit": "6 pose x 9 bins: unique Full direct path |tau-distance/c|<=1e-12 s, Full direct LoS/standalone native LoS relative H<=5e-4, original P3 Full/LoS parity <=5e-4, per bin valid and finite."
+    },
+    {
+      "id": "W03_RT_FALLBACK",
+      "limit": "Full-direct shortcut only if W02 pass; otherwise use separate Full and NativeLoS per bin with locked 3-bin fixed spotcheck and no threshold change."
+    },
+    {
+      "id": "W04_RAW_COMPLETENESS",
+      "limit": "Exactly 3097 missing originals +39 previously frozen Native C =3136 original route keys, no duplicates/substitutions/silent rows."
+    },
+    {
+      "id": "W05_H_TAU",
+      "limit": "For all 257 bins and each Full/LoS: 2x2 complex H finite, counts>=1, delays finite, flattened offsets consistent, direct tau within 1e-12s of geometry."
+    },
+    {
+      "id": "W06_PACKET",
+      "limit": "Independent Hann 257/N-1 and 1028 IFFT first 30pct Rx strongest tap and signed dual RX ratio; range and s match saved within 1e-10; port-swap sign check."
+    },
+    {
+      "id": "W07_SHARD",
+      "limit": "Every deterministic shard within 100 min runner, original input/mesh SHA checked; failures recorded and block dependent full run."
+    },
+    {
+      "id": "W08_AB",
+      "limit": "All original A/B H original SHA and exact time/pose/channel/mount, no synthesized C, no change to original raw signals."
+    },
+    {
+      "id": "W09_EKF",
+      "limit": "All original EKF4 exact four-state f/F/Q, same P2 archived inputs/initial, 1/2/3df chi2 pre-gate, Joseph symmetry/PSD and no online GT."
+    },
+    {
+      "id": "W10_RESOURCE",
+      "limit": "A=1, ABC=3 packet per full route timestep; secondary A and ABC exactly ntrim=3floor(n/3) packet but different epoch cadence."
+    },
+    {
+      "id": "W11_RESULT",
+      "limit": "84 complete 4-state traces, 28 pooled scores, 2686 t>=30s samples for each mode/bias/arm, no case omission."
+    },
+    {
+      "id": "W12_CLAIMS",
+      "limit": "One prior-known Corridor sim, no hardware cross-anchor clock validation or independent noise calibration, no M2/P5/generalization claims."
+    }
+  ],
+  "measurement_units": "metres, seconds, signed s dimensionless, raw H complex128",
+  "zero_tolerance_retrospective_change": true
+}

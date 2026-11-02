@@ -1,0 +1,121 @@
+name: DLP P4 FULL C Native Sionna PathSolver 6-pose direct-LoS extraction canary
+on:
+  push:
+    branches: ['research/dual-lp-p4-full-native-c0plus-20261102']
+    paths:
+      - '.github/workflows/dlp-p4-full-canary.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_native_c_rt.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+  GH_TOKEN: ${{ github.token }}
+  DLP_FULL_BANK_DIR: /tmp/dlp_full_physical_banks
+  DLP_FULL_OUT: /tmp/dlp_full_canary_result
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+jobs:
+  canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - name: Checkout only pinned original P1/P3 RT Native source and immutable 39 H
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/**
+          /scripts/corridor_sionna_run.py
+          /scripts/g2_completion/sionna_native_runtime.py
+          /src/qclean_uwb/scenarios/corridor.py
+          /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+          /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_CASE_RESULTS.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          x=json.loads(p.read_text())
+          old=pathlib.Path('.git/info/sparse-checkout').read_text()
+          timeline=['/'+a['path'] for a in x['base_assets'] if a['kind']=='TIMELINE_TNONE']
+          pathlib.Path('/tmp/p4full_canary_sparse').write_text(old+'\n'.join(timeline)+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p4full_canary_sparse
+          test -s research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_native_c_rt.py
+          test -s research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Original CPU Sionna2/Mitsuba/DrJit, fixed LLVM and compile validation
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+          if ! ldconfig -p | grep -q 'libLLVM.so'; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_native_c_rt.py
+      - name: Download actual original FFD bank bytes and verify sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_FULL_BANK_DIR" "$DLP_FULL_OUT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$DLP_FULL_BANK_DIR"
+          python - <<'PY'
+          import json,pathlib,hashlib
+          root=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          x=json.loads(root.read_text())
+          p=pathlib.Path('/tmp/dlp_full_physical_banks')
+          for v in x['ffd_bank_source']['banks']:
+            got=list(p.rglob(v['filename']))
+            assert len(got)==1
+            h=hashlib.sha256(got[0].read_bytes()).hexdigest()
+            assert h==v['sha256'] and got[0].stat().st_size==v['bytes'],v
+            print('P4_FULL_BANK_SHA_PASS',v['filename'],h)
+          PY
+      - name: Real Native Sionna Full+independent LoS vs original 39 saved RF and direct extraction
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_native_c_rt.py \
+             --stage canary 2>&1 | tee "$DLP_FULL_OUT/P4_FULL_CANARY_RUN_LOG.txt"
+          exit "${PIPESTATUS[0]}"
+      - name: Preserve positive and negative canary evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p4full-native-canary-${{ github.run_id }}
+          path: /tmp/dlp_full_canary_result/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Commit append-only exact canary with source SHA or failure
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/dlp_full_canary_result
+          test -s "$SRC/P4_FULL_CANARY_QA.json" || { echo 'No completed canary receipt'; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_20261102/canary_${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          cp -a "$SRC/." "$D/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "audit(p4full): Native C Full direct LoS extraction physics canary ${GITHUB_RUN_ID}" || exit 0
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+             push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"

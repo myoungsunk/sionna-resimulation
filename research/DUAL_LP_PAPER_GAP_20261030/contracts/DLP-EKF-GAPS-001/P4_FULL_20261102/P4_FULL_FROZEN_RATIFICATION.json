@@ -1,0 +1,56 @@
+{
+  "schema": "DLP_P4_FULL_NATIVE_C0PLUS_RATIFICATION_V1",
+  "status": "FROZEN_NATIVE_C_FULL_LOS_3097_EXTENSION",
+  "contract_id": "DLP-EKF-GAPS-001/P4-FULL-V1",
+  "date_kst": "2026-11-02",
+  "proposer_authorization": "User explicitly instructs acquisition of 3097 missing native C RF and full recursive EKF",
+  "original_p4_pilot_head": "cd2e396269976c9fd4b0f2411bdfc283c3dfa8eb",
+  "locked_files": [
+    {
+      "name": "P4_FULL_CONFIG_LOCK.json",
+      "sha256": "b74b5180fd60f38847f1a133a15c3234d8333d9192b031ae98f48830269d0d0c",
+      "git_blob": "7f42334bfa7e15ff7e48fcdeec6fcfe9032828a9"
+    },
+    {
+      "name": "P4_FULL_NUMERIC_GATES.json",
+      "sha256": "ef651a543692a6bf0a1cfa153d79067e00506cec24de52fb58c13fdfa97078db",
+      "git_blob": "1c4f3e3882b4b5db55082fe020910592cc0249ee"
+    },
+    {
+      "name": "P4_FULL_PROPOSER_CONTRACT.md",
+      "sha256": "cd1c845e8e450cc5fb87fb31203e66e1f904f04888186603b44769801b5e343b",
+      "git_blob": "243c5177641466426485ede17b31727cbec5c16a"
+    }
+  ],
+  "pre_run_canary": {
+    "run": 41407549938,
+    "source_head_sha": "1577ecbc5b304423359ad751341d3b12f947f477",
+    "receipt_path": "research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_20261102/canary_41407549938/P4_FULL_CANARY_QA.json",
+    "receipt_sha256": "0f8412aac0b1c027367136f11821224d198115ab456f4c4c386b0a01f5f9e4d7",
+    "code_sha256": "447aed2a64b4f6bc97386b131f9149a3627063f6a483a9221cd0a390d0663da2",
+    "decision": "FULL_DIRECT_CERTIFIED",
+    "n_poses": 6,
+    "n_frequencies": 54,
+    "max_full_vs_original": 0.00017044474976361449,
+    "max_native_direct_vs_native_los": 0,
+    "max_direct_delay_s": 2.8591490858403807e-15,
+    "independent_human_reviewer": false,
+    "scientific_identity": "separate GitHub Actions numerical/physical runner; same ChatGPT implementation author"
+  },
+  "execution_limits": {
+    "new_C_native_pose_n": 3097,
+    "original_native_pose_n": 39,
+    "original_C0_timeline_n": 3136,
+    "source_solver": "One ACTUAL Full PathSolver per physical frequency, select UNIQUE direct path using exact geometric delay, independently spotcheck separate LoS solver",
+    "on_spotcheck_failure": "FAIL the shard and preserve actual data; no invented packet",
+    "max_shard_pose_n": 40,
+    "max_job_minutes": 100,
+    "workload_call_cap": 1593358,
+    "may_generate_more_RF_if_overcap": false,
+    "full_EKF_condition": "Only after zero-error 3136-key raw H/tau and original A/B full SHA checks",
+    "all_source_original_immutable": true,
+    "one_simulated_scene": true,
+    "hardware_clock_synced": false,
+    "crossanchor_R_assumed_not_calibrated": true
+  }
+}

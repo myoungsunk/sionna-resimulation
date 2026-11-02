@@ -1,0 +1,245 @@
+{
+  "schema": "DLP_P4_FULL_NATIVE_RT_OPTIMIZATION_CANARY_V1",
+  "status": "PASS_WITH_MODE_DECISION",
+  "algorithm_mode": "FULL_DIRECT_CERTIFIED",
+  "direct_from_full_permitted": true,
+  "n_poses": 6,
+  "n_frequency_cases": 54,
+  "original_39_sha256": "f16c91872993f19341a9cb791c4872c9d13567b715596e9ac4dd085d2fe2c5de",
+  "source_git_sha": "1577ecbc5b304423359ad751341d3b12f947f477",
+  "runner_sha256": "447aed2a64b4f6bc97386b131f9149a3627063f6a483a9221cd0a390d0663da2",
+  "exact_physical_solver_config": {
+    "full": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": true,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    },
+    "los": {
+      "max_depth": 0,
+      "los": true,
+      "specular_reflection": false,
+      "refraction": false
+    },
+    "frequency_start_hz": 6250400000,
+    "step_hz": 1950000,
+    "bins": 257,
+    "first_path": "257-symmetric-Hann; IFFT 1028*257; strongest RX 30% earliest; same tap \u00b145",
+    "H_order": "freq,rx+,rx-,tx+,tx-"
+  },
+  "mesh_sha256": {
+    "floor": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+    "ceiling": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+    "wall_y_neg": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+    "wall_y_pos": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+    "end_x_min": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+    "end_x_max": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+  },
+  "runtime_package_versions": {
+    "sionna-rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1"
+  },
+  "metrics": {
+    "max_full_vs_original": 0.00017044474976361449,
+    "max_direct_vs_native": 0.0,
+    "max_direct_vs_original": 0.00012199303464865327,
+    "max_fresh_los_vs_original": 0.00012199303464865327,
+    "max_delay_s": 2.8591490858403807e-15,
+    "max_path_count_difference": 0
+  },
+  "source_old_C_native_pose_ids": [
+    [
+      "R2",
+      411
+    ],
+    [
+      "R4",
+      371
+    ],
+    [
+      "R5",
+      706
+    ],
+    [
+      "R2",
+      0
+    ],
+    [
+      "R4",
+      0
+    ],
+    [
+      "R5",
+      0
+    ]
+  ],
+  "frequency_bin_indices": [
+    0,
+    1,
+    32,
+    64,
+    96,
+    128,
+    160,
+    192,
+    256
+  ],
+  "one_original_C0_scene": true,
+  "no_new_R4_EKF_run": true,
+  "failure_policy": "Predeclared fallback to separate full+LoS if optimized direct path parity fails",
+  "example_rows": [
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 0,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 3.109618401848203e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 2.896635379452712e-05,
+      "fresh_native_los_vs_original": 2.896635379452712e-05,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 1,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 2.0733560635351653e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 2.0991308398793e-05,
+      "fresh_native_los_vs_original": 2.0991308398793e-05,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 32,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 1.6789132849356412e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 1.7677361864049735e-05,
+      "fresh_native_los_vs_original": 1.7677361864049735e-05,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 64,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 2.3176084020550587e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 2.4145071916328788e-05,
+      "fresh_native_los_vs_original": 2.4145071916328788e-05,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 96,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 5.363920989656192e-06,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 4.8715515353163585e-06,
+      "fresh_native_los_vs_original": 4.8715515353163585e-06,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 128,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 1.764613953636392e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 1.620416279410095e-05,
+      "fresh_native_los_vs_original": 1.620416279410095e-05,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 160,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 2.193111093969932e-06,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 3.0616934271456463e-06,
+      "fresh_native_los_vs_original": 3.0616934271456463e-06,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 192,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 1.352366161794923e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 8.278186820909845e-06,
+      "fresh_native_los_vs_original": 8.278186820909845e-06,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R2",
+      "pose_id": 411,
+      "fi": 256,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 9.017244186454072e-06,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 3.248335742754837e-07,
+      "fresh_native_los_vs_original": 3.248335742754837e-07,
+      "direct_delay_abs_s": 7.55454094190105e-16
+    },
+    {
+      "route": "R4",
+      "pose_id": 371,
+      "fi": 0,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 5.381801609060615e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 1.452201071940402e-05,
+      "fresh_native_los_vs_original": 1.452201071940402e-05,
+      "direct_delay_abs_s": 6.533471807656329e-16
+    },
+    {
+      "route": "R4",
+      "pose_id": 371,
+      "fi": 1,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 4.99205453162204e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 1.0007313668013984e-05,
+      "fresh_native_los_vs_original": 1.0007313668013984e-05,
+      "direct_delay_abs_s": 6.533471807656329e-16
+    },
+    {
+      "route": "R4",
+      "pose_id": 371,
+      "fi": 32,
+      "path_count_full": 63,
+      "previous_p3_full_count": 63,
+      "full_vs_frozen_p3": 4.254098616262838e-05,
+      "direct_from_full_vs_fresh_native_los": 0.0,
+      "direct_from_full_vs_original_native_los": 2.3135585152382272e-05,
+      "fresh_native_los_vs_original": 2.3135585152382272e-05,
+      "direct_delay_abs_s": 6.533471807656329e-16
+    }
+  ],
+  "n_new_C_H_computed": 0
+}

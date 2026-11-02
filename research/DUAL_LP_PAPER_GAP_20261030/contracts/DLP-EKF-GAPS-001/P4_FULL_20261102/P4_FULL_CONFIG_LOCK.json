@@ -1,0 +1,163 @@
+{
+  "schema": "DLP_P4_FULL_C0PLUS_CONFIG_V1",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "authorized_by": "2026-11-02 explicit user directive to compute 3097 missing Native C and full P4 EKF",
+  "parent_P4_pilot_sha": "cd2e396269976c9fd4b0f2411bdfc283c3dfa8eb",
+  "original_scene_n": 1,
+  "inputs": {
+    "old_39_zip": "research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip",
+    "old_zip_sha256": "f16c91872993f19341a9cb791c4872c9d13567b715596e9ac4dd085d2fe2c5de",
+    "old_39_csv": "research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_CASE_RESULTS.csv",
+    "p1_input_lock": "research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json",
+    "p4_pilot_config_sha256": "ed9e479fc71a2c2cf4e76cb32c16e374875b54a5f97a57f63d3d9ba38c77be0a"
+  },
+  "geometry": {
+    "anchor_C_xyz_m": [
+      16,
+      0.8,
+      2.65
+    ],
+    "robot_z_m": 0.45,
+    "routes_n": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    },
+    "existing_native_C": 39,
+    "missing_native_C": 3097,
+    "full_native_C_required": 3136,
+    "mount_deg": 0
+  },
+  "runtime": {
+    "python": "3.11",
+    "sionna_rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1",
+    "numpy": "1.26.4",
+    "scipy": "1.14.1",
+    "variant": "llvm_ad_mono_polarized"
+  },
+  "solver": {
+    "full": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": true,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    },
+    "los": {
+      "max_depth": 0,
+      "los": true,
+      "specular_reflection": false,
+      "refraction": false
+    },
+    "frequency_start_hz": 6250400000,
+    "step_hz": 1950000,
+    "bins": 257,
+    "first_path": "257-symmetric-Hann; IFFT 1028*257; strongest RX 30% earliest; same tap ±45",
+    "H_order": "freq,rx+,rx-,tx+,tx-"
+  },
+  "direct_path_option": {
+    "strategy": "Full PathSolver single direct geometric path coefficient (tau=distance/c) when parity certified; NOT SourceFFD or frequency interpolation",
+    "smoke_pose_keys": [
+      [
+        "R2",
+        411
+      ],
+      [
+        "R4",
+        371
+      ],
+      [
+        "R5",
+        706
+      ],
+      [
+        "R2",
+        0
+      ],
+      [
+        "R4",
+        0
+      ],
+      [
+        "R5",
+        0
+      ]
+    ],
+    "smoke_bin_indices": [
+      0,
+      1,
+      32,
+      64,
+      96,
+      128,
+      160,
+      192,
+      256
+    ],
+    "max_relative_complex_error": 0.0005,
+    "max_delay_s": 1e-12,
+    "direct_path_count": 1,
+    "fail_policy": "FALLBACK_SEPARATE_LOS_SOLVER_PER_BIN_PREDECLARED_IF_DIRECT_PARITY_FAIL",
+    "worker_independent_spotcheck_bins": [
+      0,
+      128,
+      256
+    ]
+  },
+  "work": {
+    "max_missing_poses_per_shard": 40,
+    "approx_shards": 80,
+    "runner_max_minutes": 100,
+    "group_by": "route, sorted missing original pose id; no outcome selection",
+    "max_pathsolver_call_budget": 1593358,
+    "public_github_actions_standard_runner": true,
+    "sha256_manifest": true,
+    "failed_rows_retained": true
+  },
+  "EKF": {
+    "state": [
+      "x",
+      "y",
+      "psi",
+      "b_g"
+    ],
+    "original_motion": "P2 frozen f/F/Q seed0 B0/L2",
+    "arms": [
+      "DR4",
+      "R4_A_FULL",
+      "J4_A_FULL",
+      "R4_AB_FULL",
+      "R4_ABC_FULL",
+      "R4_A_EQPKT",
+      "R4_ABC_EQPKT"
+    ],
+    "R_range_m2": 0.0068578637,
+    "R_s": 0.0081,
+    "range_offset_m": -0.5315983906250129,
+    "gates_chi2_99": [
+      6.6348966010212145,
+      9.210340371976184,
+      11.344866730144373
+    ],
+    "equal_packet_schedule": "n_trim=3*floor(n/3). A updates first n_trim epochs; ABC updates at k mod3=0 within first n_trim. Both exact n_trim scalar packets, unequal update cadence",
+    "score_start_s": 30,
+    "expected_trajectories": 84,
+    "expected_pooled_rows": 28
+  },
+  "scientific_limits": [
+    "one old Corridor C0 scene",
+    "new C0+ simulated RF, not hardware",
+    "simulated common epoch, not hardware synchronization",
+    "interanchor R diagonal is assumption",
+    "all cases incl failures",
+    "no M2 or P5 or 3D"
+  ]
+}
