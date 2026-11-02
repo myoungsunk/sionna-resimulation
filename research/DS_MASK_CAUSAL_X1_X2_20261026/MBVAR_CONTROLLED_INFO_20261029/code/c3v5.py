@@ -17,6 +17,7 @@ import argparse
 import glob
 import json
 import math
+import zipfile
 import os
 import sys
 from pathlib import Path
@@ -26,6 +27,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import a10_canonical as CAN  # noqa: E402
+import a10_validation as AV  # noqa: E402
 import a8_jac as AJ  # noqa: E402
 import filters as FL  # noqa: E402
 import info_core as IC  # noqa: E402
@@ -72,7 +74,7 @@ def _same_bytes(a, b):
     return a.dtype == b.dtype and a.shape == b.shape and a.tobytes() == b.tobytes()
 
 
-def load_receipts_with_stats(d):
+def load_receipts_with_stats(d, strict=False):
     """Load only S1V5 original receipt ZIP bytes verified against its manifest (fail-closed).
 
     D2 (option a): full matrices are field-qualified, MAT|{f}|{role}|{cell}|..., so every key is unique across shards.
@@ -87,17 +89,31 @@ def load_receipts_with_stats(d):
     manifest = json.loads(manpath.read_text())
     hashes = {Path(k).name: v for k, v in manifest.get("output_sha256", {}).items()}
     rec, origin = {}, {}
+    if strict:
+        if (manifest.get("contract_sha256") != MF.sha256_file(MF.CONTRACT)
+                or manifest.get("source_code_sha256") != MF.code_hashes()
+                or len(manifest.get("source_git_sha", "")) != 40):
+            raise SystemExit("ERR_A010_S1V5_SOURCE_CONTRACT_HASH")
     zips = sorted(d.glob(f"S1V5_INPUTS_{SPLIT}_*.zip"))
     if not zips:
         raise SystemExit("ERR_C3V5_MISSING_RECEIPTS")
     st = dict(n_receipt_files=len(zips), receipt_files=[f.name for f in zips], mat_keys=0, mat_duplicate_keys=0, mat_conflicts=0,
               mat_key_schema="MAT|{field}|{role}|{cell}|Sig_true, MAT|{field}|{role}|{cell}|{arm}|Sig_model")
+    st["strict_index_verified"] = bool(strict)
+    st["array_hashes_verified"] = 0
     for f in zips:
         if f.name not in hashes or CAN.sha_file(f) != hashes[f.name]:
             raise SystemExit("ERR_C3V5_RECEIPT_HASH")
+        if strict:
+            idx = f.with_name(f.name.replace("INPUTS_", "INPUT_HASHES_").replace(".zip", ".json"))
+            try:
+                _, proof = AV.verify_receipt_index(f, idx, hashes)
+            except (ValueError, KeyError, OSError, zipfile.BadZipFile) as e:
+                raise SystemExit(f"ERR_C3V5_RECEIPT_INTEGRITY {e}") from e
+            st["array_hashes_verified"] += proof["n_arrays"]
         with np.load(f, allow_pickle=False) as z:
             files = list(z.files)
-            fields = {k.split("|", 1)[0] for k in files if not k.startswith("MAT|")}
+            fields = {k.split("|", 1)[0] for k in files if not (k.startswith("MAT|") or k.startswith("TRUTH|"))}
             for k in files:
                 a = z[k]
                 if k.startswith("MAT|"):
@@ -181,7 +197,21 @@ def cmd_run(field, group, out):
     if field not in lk["run_plan"]["C3V5"]["fields"]:
         raise SystemExit("ERR_SPLIT_LEAK C3V5 runs on the frozen S1V5 DEV3 fields only")
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
-    S = T.canonical_setup(lk); root = M.seed_root(); rows = []; rec = load_receipts(s1v5_dir())
+    S = T.canonical_setup(lk); root = M.seed_root(); rows = []
+    rec, receipt_stats = load_receipts_with_stats(s1v5_dir(), strict=True)
+    if not receipt_stats["strict_index_verified"]:
+        raise SystemExit("ERR_A010_INDEX_NOT_VERIFIED")
+    all_poses, seen = [], set()
+    for ww in S["wins"].values():
+        for pp in ww["poses"]:
+            key = Wd.pose_key("FFD_ONLY_P0", "A", *pp)
+            if key not in seen:
+                seen.add(key); all_poses.append(pp)
+    factor_check = AV.factor_law(S["Lhalf"], np.asarray(all_poses), S["s1"])
+    if not factor_check["pass_"] or len(all_poses) != 180:
+        raise SystemExit("ERR_A010_GENERATOR_FACTOR_LAW")
+    law_checks = []
+    truth_checks = []
     sd0 = np.sqrt(np.diag(P0M))
     for cn, cell in S["cells"].items():
         wins = [S["wins"][r] for r in GROUPS[group] if cn in S["wins"][r]["cells"]]
@@ -208,6 +238,21 @@ def cmd_run(field, group, out):
                 Sig = np.array(rec[T.mat_key(field, w["role"], cn)], copy=True)
                 models = {arm: np.array(rec[T.mat_key(field, w["role"], cn, arm)], copy=True)
                           for arm in models_generated}
+                tk = f"TRUTH|{field}|{w['role']}|{cn}"
+                truth_expected = {"Xtrue": w["Xtrue"], "poses": w["poses"], "dts": w["dts"],
+                                  "ds_true": w["ds"], "dth_true": w["dth"],
+                                  "prior_P0": P0M, "mu": np.zeros((N, 2)),
+                                  "pose_keys_sha": np.array(T.pose_keys_sha(w))}
+                truth_ok = all(f"{tk}|{name}" in rec and
+                               AV.array_sha(rec[f"{tk}|{name}"]) == AV.array_sha(v)
+                               for name, v in truth_expected.items())
+                truth_checks.append(bool(truth_ok))
+                if not truth_ok:
+                    raise SystemExit(f"ERR_A010_TRUTH_ONLY_REPLAY {tk}")
+                law = AV.generator_law(w, S, cn, Sig)
+                law_checks.append(law)
+                if not law["pass_"]:
+                    raise SystemExit(f"ERR_A010_GENERATOR_LAW {tk}")
                 idf = input_diffs(rec, kb, inp, w, Sig, models)
                 idf["INPUT_EXACT"] = bool(idf.get("receipt_found") and all(idf[k] == 0 for k in ("d_z","d_ds","d_gy","d_x0")))
                 idf["generator_regen_d_z_REPORTED"] = generated_diffs.get("d_z", float("nan"))
@@ -229,7 +274,13 @@ def cmd_run(field, group, out):
                     cstar = min(v[0] for v in nonoracle.values()); best = min(nonoracle, key=lambda k: nonoracle[k][0])
                     pc10 = np.array([r[f"P_{AJ.PRIMARY}_{a}"] for a in T.STATES])
                     de = XE[-1] - sol[best][1][-1]; de[2] = FL.wrap(de[2])
-                    rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm, **idf,
+                    integrity = AV.verify_estimator_inputs(rec, kb, inp, Sm, w["taps"], arm)
+                    if not integrity["pass_"]:
+                        raise SystemExit(f"ERR_A010_ESTIMATOR_INPUT_BYTES {kb}|{arm} {integrity['mismatches']}")
+                    rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm,
+                                RECEIPT_ARRAY_EXACT=integrity["pass_"],
+                                RECEIPT_ARRAYS_CHECKED=integrity["n_checked"],
+                                TRUTH_ONLY_VERIFIED=truth_ok, GENERATOR_LAW_PASS=law["pass_"], **idf,
                                 **{k: r[k] for k in ("conv", "class_v31", "cost", "cost_E", "ms_best_k", "rescued", "ms_triggered", "kink_poses_at_E",
                                                      "probe_min_dcost", "dec_A_fixed", "rel_spread", "KINK_P_UNCERTAIN", "polish_steps",
                                                      "polish_cost_decrease", "polish_E_vs_Ep_dref", "nees4_C10")},
@@ -249,6 +300,13 @@ def cmd_run(field, group, out):
                     rows.append(rec_)
         print("C3V5", field, group, cn, len(rows), flush=True)
     pd.DataFrame(rows).to_csv(out / f"C3V5_ROWS_{field}_{group}.csv", index=False, float_format="%.17g")
+    law_receipt = dict(pass_=bool(factor_check["pass_"] and all(x["pass_"] for x in law_checks)
+                                  and truth_checks and all(truth_checks)),
+                       factor=factor_check, n_covariance_law_checked=len(law_checks),
+                       max_cov_relative_error=max((x["max_relative_error"] for x in law_checks), default=None),
+                       min_cov_eigenvalue=min((x["min_eig"] for x in law_checks), default=None),
+                       n_truth_replayed=len(truth_checks), field=field, group=group)
+    (out / f"C3V5_GENERATOR_LAW_{field}_{group}.json").write_text(json.dumps(law_receipt, indent=1))
     return 0
 
 
