@@ -1,0 +1,200 @@
+{
+  "schema": "DLP_P3_PRE_RUN_MATH_INPUT_GEOMETRY_AUDIT_V1",
+  "status": "ACCEPT_SOURCE_CANARY_WITH_BOUNDARIES",
+  "contract_id": "DLP-EKF-GAPS-001/P3-V1",
+  "locked_config_sha256": "49658dc5532e990a9f8bc0968f96b46ce236167244762cbc817092ff34ce3fc8",
+  "locked_contract_sha256": "24a5e0581c86a8b99659ebbea30b456fb79b6f4e88ee31860db04df85fafb588",
+  "locked_tolerances_sha256": "11a4adcdf15e7e884b4290e55b8e997b069ce9c8897902b0c41ca47983899b72",
+  "actual_GitHub_runner": "41389798998",
+  "git_sha": "a4b8205e2281d58b9e0b4a5a4daa9a620d80b06f",
+  "code_sha256": "7cbfaccb7faf9f01419e353efff975edc6eb521ec0bd45b7151aa7fe2effa2a6",
+  "checks": {
+    "A00_LOCK": {
+      "status": "PASS",
+      "note": "P3 proposer V2 SHA and 13 thresholds fixed before source pilot",
+      "measured": {
+        "mismatch": []
+      }
+    },
+    "A01_PARENT_P2": {
+      "status": "PASS",
+      "note": "P2 recovered SHA-pinned original 28 NPZ and 84 stats, one scene",
+      "measured": {
+        "zip_sha": "063d5c25892365f8d307fc424470b5066db36fa5f825fbf17b5bcb2bcc5531c3"
+      }
+    },
+    "A02_C0_INPUTS": {
+      "status": "PASS",
+      "note": "39 original C0 asset actual bytes SHA match, no substitution",
+      "measured": {
+        "failed": [],
+        "asset_count": 39
+      }
+    },
+    "A03_THIRD_GEOMETRY": {
+      "status": "PASS",
+      "note": "C new noncollinear anchor, physically in 20x2.4x2.7 corridor",
+      "measured": {
+        "C": [
+          16.0,
+          0.8,
+          2.65
+        ],
+        "triangle_area_m2": 2.4000000000000004,
+        "min_y_wall_margin_m": 0.3999999999999999,
+        "locked_original_anchors": [
+          [
+            4.0,
+            0.0,
+            2.65
+          ],
+          [
+            10.0,
+            0.0,
+            2.65
+          ]
+        ],
+        "n_candidates": 1
+      }
+    },
+    "A04_FFD_BANKS": {
+      "status": "PASS",
+      "note": "2 original FFD NPZ real bytes and source model exact Git blob",
+      "measured": {
+        "banks": [
+          {
+            "name": "LP_plus45_bank.npz",
+            "sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b"
+          },
+          {
+            "name": "LP_minus45_bank.npz",
+            "sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+          }
+        ],
+        "source_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631"
+      }
+    },
+    "A05_3136_TIMELINE": {
+      "status": "PASS",
+      "note": "R2 R4 R5 original 3136 unique-route timeline samples, exact C0 IDs/poses"
+    },
+    "A06_GEO_RANK_FD": {
+      "status": "PASS",
+      "note": "3anchor range XY H rank2 across all 3136 original distinct route steps; FD consistent",
+      "measured": {
+        "min_singular": 0.03352509468628021,
+        "max_fd_abs": 1.784054348696884e-09,
+        "old_AB_rank_deficient_count": 0,
+        "rank_fail": []
+      }
+    },
+    "A07_PILOT_AND_PRISM": {
+      "status": "PASS",
+      "note": "original deterministic pilot pose keys, all direct line rays within empty rectangular prism",
+      "measured": {
+        "pilot_n": 39,
+        "per_route": {
+          "R2": 13,
+          "R4": 13,
+          "R5": 13
+        },
+        "blocked_empty_prism_rays": []
+      }
+    },
+    "A08_NO_RT_OR_FABRICATED_SYNC": {
+      "status": "PASS",
+      "note": "Original locked C0 has no C H or physical multi-anchor synchronized packet; P3 is source-only canary",
+      "measured": {
+        "real_rt_path_count": null,
+        "source_only_direct_geometric_path_count_assumed": 1,
+        "measured_C_packets": 0,
+        "independent_scene_count": 1
+      }
+    }
+  },
+  "errors": [],
+  "statistics": {
+    "R2": {
+      "timeline_n": 979,
+      "pilot_n": 13,
+      "min_singular_xy_range_H_ABC": 0.03352509468628021,
+      "pct_abc_singular_min_below_0p05": 0.010214504596527068,
+      "original_AB_rank_deficient_samples": 0,
+      "pilot_pose_ids": [
+        0,
+        1,
+        112,
+        122,
+        244,
+        260,
+        411,
+        489,
+        734,
+        856,
+        973,
+        977,
+        978
+      ]
+    },
+    "R4": {
+      "timeline_n": 742,
+      "pilot_n": 13,
+      "min_singular_xy_range_H_ABC": 0.03491263870671138,
+      "pct_abc_singular_min_below_0p05": 0.03504043126684636,
+      "original_AB_rank_deficient_samples": 0,
+      "pilot_pose_ids": [
+        0,
+        1,
+        92,
+        119,
+        185,
+        255,
+        355,
+        371,
+        556,
+        606,
+        649,
+        740,
+        741
+      ]
+    },
+    "R5": {
+      "timeline_n": 1415,
+      "pilot_n": 13,
+      "min_singular_xy_range_H_ABC": 0.033656336483771775,
+      "pct_abc_singular_min_below_0p05": 0.026148409893992933,
+      "original_AB_rank_deficient_samples": 0,
+      "pilot_pose_ids": [
+        0,
+        1,
+        19,
+        176,
+        353,
+        371,
+        706,
+        707,
+        856,
+        1061,
+        1238,
+        1413,
+        1414
+      ]
+    },
+    "overall": {
+      "pilot_n": 39,
+      "time_steps_n": 3136,
+      "min_xy_range_jacobian_singular_value": 0.03352509468628021,
+      "max_FD_distance_error": 1.784054348696884e-09,
+      "triangle_area_m2": 2.4000000000000004,
+      "AB_rank_deficient_n": 0,
+      "new_C_real_raytraced_packet_n": 0,
+      "RT_native_path_count": "NOT_RUN"
+    }
+  },
+  "actor": "GPT-6 wrote proposer and audit, separate Linux runner for computation only",
+  "independent_human_or_agent_peer_review": false,
+  "scope": "geometry and provenance preaudit only; SourceFFD C new pilot H NOT_RUN, no native RT",
+  "elapsed_sec": 1.0394633180000028,
+  "numpy": "2.3.3",
+  "utc": "2026-11-02T04:41:12.791903+00:00"
+}
