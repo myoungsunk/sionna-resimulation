@@ -1,0 +1,125 @@
+{
+  "schema": "DLP_P4_PILOT_PRE_RUN_AUDIT_V1",
+  "decision": "ACCEPT_SPARSE_WITH_BOUNDARIES",
+  "status": "NOT_P4_FULL",
+  "root_sha": "de1cd935aabe7aa444acc1e9cb5817a0b4f6381f",
+  "run_id": "41404548292",
+  "code_sha256": "973da9cd34e8b2a8e6b5f3c4e11f8f921c60092ed00e9a63898e386258a7f350",
+  "checks": {
+    "V00_IDENTITY": {
+      "status": "PASS",
+      "values": {
+        "proposer_sha_bad": [],
+        "checks": 14
+      }
+    },
+    "V01_C_NATIVE_SHA": {
+      "status": "PASS",
+      "values": {
+        "n_native_channels": 78,
+        "native_bad": [],
+        "max_time_delta": 0.0
+      }
+    },
+    "V03_RX_DETECTOR": {
+      "status": "PASS",
+      "values": {
+        "rx_swap_sign_antisymmetry_max_abs": 0.0
+      }
+    },
+    "V10_FULL_BLOCK": {
+      "status": "PASS",
+      "values": {
+        "full_timeline_n": 3136,
+        "real_C_native_n": 39,
+        "missing_native_C": 3097,
+        "full_status": "BLOCKED_MISSING_C_NATIVE_RF"
+      }
+    },
+    "V02_AB_SHA": {
+      "status": "PASS",
+      "values": {
+        "original_AB_mode_packet_count": 156,
+        "sha_or_shape_errors": []
+      }
+    },
+    "V04_POSE_TIME": {
+      "status": "PASS",
+      "values": {
+        "geometry_errors": [],
+        "n_matched": 39
+      }
+    },
+    "V08_NO_TRUTH": {
+      "status": "PASS",
+      "values": {
+        "full_real_bank_sha_errors": [],
+        "truth_filter_policy": "allowed only offline to generate controls and final scoring, NEVER filter input"
+      }
+    },
+    "V05_CORE_F_Q": {
+      "status": "PASS",
+      "values": {
+        "max_f_FD": 7.484004527213983e-10
+      }
+    },
+    "V06_BATCH_H_FD": {
+      "status": "PASS",
+      "values": {
+        "max_h_FD": 1.4171336326640471e-09,
+        "yaw_bias_direct_zero": true
+      }
+    },
+    "V07_CHI2_DOF": {
+      "status": "PASS",
+      "values": {
+        "max_state": 0.0,
+        "max_P": 4.336808689942018e-19,
+        "max_NIS": 4.440892098500626e-16
+      }
+    },
+    "V09_RESOURCE": {
+      "status": "PASS",
+      "values": {
+        "arms": [
+          "DR4",
+          "R4_A13",
+          "J4_A13",
+          "R4_AB13",
+          "R4_ABC13",
+          "R4_A_EQ12",
+          "R4_ABC_EQ4"
+        ],
+        "primary": {
+          "A": 13,
+          "ABC": 39
+        },
+        "equal": {
+          "A": 12,
+          "ABC": 12
+        },
+        "different_cadence": true
+      }
+    }
+  },
+  "failures": [],
+  "proof": {
+    "c_native": 39,
+    "a_b_packet_n": 156,
+    "n_c_original_real_full": 39,
+    "full_native_missing": 3097,
+    "original_scenes": 1,
+    "negative_port_swap_antisymmetry_max": 0.0,
+    "route_counts": {
+      "R2": 13,
+      "R4": 13,
+      "R5": 13
+    }
+  },
+  "actor": "same ChatGPT proposer author; separate numerical GitHub Actions runner; NOT independent human reviewer",
+  "full_P4": "BLOCKED_MISSING_3097_C_NATIVE_EPOCHS",
+  "P4_pilot_science": "NOT_RUN",
+  "elapsed_sec": 0.7004412570000014,
+  "environment": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "numpy": "2.3.3"
+}
