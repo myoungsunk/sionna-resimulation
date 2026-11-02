@@ -1,0 +1,73 @@
+name: DLP P4 Full raw original vs new anchor XYZ exact diagnostic (read only)
+on:
+  push:
+    branches: ['research/dual-lp-p4-full-native-c0plus-20261102']
+    paths:
+      - '.github/workflows/dlp-p4-full-anchor-diagnostic.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  compare-raw-xyz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Fetch immutable original 39 saved Native C data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_CASE_RESULTS.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Fetch original successful shard zero from each route without redoing RT
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in R2 R4 R5; do
+            mkdir -p "/tmp/orig_$route"
+            gh run download 41408877765 --repo myoungsunk/sionna-resimulation \
+              --name "p4-full-native-$route-0-41408877765" --dir "/tmp/orig_$route"
+          done
+      - name: Report bit-precise original and new C anchor values for each route
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import io,csv,zipfile,json,pathlib,numpy as np
+          root=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117')
+          with (root/'P3_NATIVE_C_39_CASE_RESULTS.csv').open(newline='') as f:
+            old=list(csv.DictReader(f))
+          expected=np.asarray([16.0,0.8,2.65],dtype=float)
+          with zipfile.ZipFile(root/'P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip') as z:
+            for route in ('R2','R4','R5'):
+              row=next(v for v in old if v['route']==route)
+              key=int(row['pose_id'])
+              with np.load(io.BytesIO(z.read(f'traces/P3_NATIVE_C_{route}_pose{key}_full.npz')),allow_pickle=False) as p:
+                anchor=p['anchor_xyz']
+                print('P4_ANCHOR_DIAGNOSTIC',route,'kind=OLD_P3', 'pose',key,
+                      'xyz',repr(anchor.tolist()),'dtype',anchor.dtype,
+                      'diff',(anchor-expected).tolist(),
+                      'exact_equal',np.array_equal(anchor,expected),flush=True)
+              receipt=json.loads((pathlib.Path('/tmp')/f'orig_{route}'/'P4_FULL_NATIVE_SHARD_RECEIPT.json').read_text())
+              f=pathlib.Path('/tmp')/f'orig_{route}'/receipt['records'][0]['native_H_file']
+              with np.load(f,allow_pickle=False) as p:
+                anchor=p['anchor_xyz']
+                print('P4_ANCHOR_DIAGNOSTIC',route,'kind=NEW_NATIVE', 'pose',int(p['pose_id']),
+                      'xyz',repr(anchor.tolist()),'dtype',anchor.dtype,
+                      'diff',(anchor-expected).tolist(),
+                      'exact_equal',np.array_equal(anchor,expected),flush=True)
+          PY
