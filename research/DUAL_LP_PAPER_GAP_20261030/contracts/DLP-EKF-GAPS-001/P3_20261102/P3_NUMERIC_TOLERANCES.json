@@ -1,0 +1,74 @@
+{
+  "schema": "DLP_P3_FIXED_PREDECLARED_CANARY_THRESHOLDS_V1",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "contract_id": "DLP-EKF-GAPS-001/P3-V1",
+  "tests": [
+    {
+      "id": "P00_LOCK",
+      "target": "Exact original P2 P1 code/contract SHA, P2 recovered receipt and original 39 C0 asset bytes, no C RF in original manifest",
+      "threshold": "hash exact, 7 original A/B cases only"
+    },
+    {
+      "id": "P01_TIME_POSE",
+      "target": "R2 979, R4 742, R5 1415 original route times, pose IDs unique monotone and A/B Native LoS same row",
+      "threshold": "no duplicates/missing; exact timestamp to 1e-9 s and pose xy<=1e-6m yaw<=1e-6deg"
+    },
+    {
+      "id": "P02_GEOMETRY",
+      "target": "A B C inside prism, C ceiling margin .05m, horizontal noncollinear",
+      "threshold": "triangle area >=1.0 m²; x >=.3m from ends, abs(y)<=.9m; ceiling standoff exactly .05m"
+    },
+    {
+      "id": "P03_LOS_PRISM",
+      "target": "Direct line segment from each TX ceiling point to robot antenna stays in closed C0 prism, no boundary crossings except endpoints",
+      "threshold": "endpoints and 9 interior interpolation points within 1e-10m box; 0 blocked by empty prism surfaces"
+    },
+    {
+      "id": "P04_RANGE_GEOMETRY",
+      "target": "3x2 XY ranging Jacobian across all 3 unique original route timelines, different from 2x2 AB",
+      "threshold": "full rank sigma_min >1e-9 for all route poses; analytic vs central FD abs <=1e-8 away from singularities; F yaw, bias columns zero"
+    },
+    {
+      "id": "P05_REAL_BANK",
+      "target": "Real FFD bank +45/-45 arrays, 257 bins, frequencies",
+      "threshold": "2/2 exact physical SHA256; all finite, seam source as-is; 6.2504GHz+1.95MHz*index"
+    },
+    {
+      "id": "P06_OLD_AB_NATIVE",
+      "target": "For A and B original Native LoS pilot physical H vs SourceFFD independent source",
+      "threshold": "relative complex H max <=5e-4, signed s max_abs <=2e-5, exact first-path index mismatch0"
+    },
+    {
+      "id": "P07_C_DIRECT_ORACLE",
+      "target": "C SourceFFD physical H vs independent p0_initial.direct, excluding <0.8deg source cap",
+      "threshold": "max relative complex H <=1e-9 on noncap, finite all, >=8 noncap pilot rows"
+    },
+    {
+      "id": "P08_R_S_CHAIN",
+      "target": "Independent Hann N-1, nfft=1028 IFFT, strongest RX 30% earliest first tap common ports",
+      "threshold": "max native raw s/r abs <=1e-9 and tap exact for all A/B/C computed source spectra; 0 zero-power packet"
+    },
+    {
+      "id": "P09_CAP_AND_PERIOD",
+      "target": "Source-only near-pole cap recognized, phi seam, +/-2pi yaw shift",
+      "threshold": "finite for all; 2pi signed s error <=1e-10 on chosen canaries, no claim original RF parity in cap"
+    },
+    {
+      "id": "P10_ALL_ROWS",
+      "target": "fixed deterministic sample IDs, all rows and boundary errors in ledger, no result-conditioned dropping",
+      "threshold": "all selected poses represented for each A/B/C and route; uniqueness, zero unreported exclusions"
+    },
+    {
+      "id": "P11_RESOURCE",
+      "target": "C missing original H and physical sync/RT path count; 3 TX resources vs 1 per pose declared",
+      "threshold": "do not mark native third packet available; no filter or gain claims"
+    },
+    {
+      "id": "P12_OUTPUT",
+      "target": "append-only named results manifest SHA and claim boundary",
+      "threshold": "all test statuses and blocked physical RT marked separately"
+    }
+  ],
+  "fixed_pre_outcome": true,
+  "stop_policy": "Any condition failing is FAIL, do not edit thresholds or move anchor; RT path counts and full C0+ multi-anchor RF remain NOT_RUN (not false PASS)."
+}
