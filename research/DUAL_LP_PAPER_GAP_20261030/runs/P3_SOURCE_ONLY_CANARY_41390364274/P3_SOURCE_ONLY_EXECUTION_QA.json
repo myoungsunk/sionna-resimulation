@@ -1,0 +1,171 @@
+{
+  "schema": "DLP_P3_C0PLUS_SOURCE_ONLY_PHYSICAL_CANARY_V1",
+  "contract_id": "DLP-EKF-GAPS-001/P3-V1",
+  "science_scope": "SOURCE_FFD_DIRECT_ONLY_NO_NATIVE_RAYTRACING",
+  "status": "PASS_SOURCE_ONLY_CANARY",
+  "native_physical_rt_status": "NOT_RUN_BUDGET_NOT_APPROVED",
+  "full_P3_native_rt_claim": "NOT_SUPPORTED",
+  "P4_3anchor_replay": "BLOCKED",
+  "contract_sha256": "24a5e0581c86a8b99659ebbea30b456fb79b6f4e88ee31860db04df85fafb588",
+  "config_sha256": "49658dc5532e990a9f8bc0968f96b46ce236167244762cbc817092ff34ce3fc8",
+  "tol_sha256": "11a4adcdf15e7e884b4290e55b8e997b069ce9c8897902b0c41ca47983899b72",
+  "exact_audit_sha256": "c658b6e30ff6d5b5011a70333e14b1ddfe93d22406a8adc881b435e57537b202",
+  "exact_pilot_plan_sha256": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61",
+  "science_code_sha256": "beb3bac859f9e0a1eb24bd9ffa2baded24f4fa1feae326a10eb8675d40c8452a",
+  "checks": {
+    "P00_LOCK": {
+      "status": "PASS",
+      "note": "Exact P1 C0 physical bytes and frozen proposer plus separate-runner audit source lock",
+      "measured": {
+        "C0_asset_count": 39,
+        "failed_inputs": []
+      }
+    },
+    "P05_REAL_BANK": {
+      "status": "PASS",
+      "note": "Verified actual FFD bank, exact 257 bins, no new EM export"
+    },
+    "P02_GEOMETRY": {
+      "status": "PASS",
+      "note": "Fixed candidate C noncollinear, triangle 2.4m^2, no posthoc search"
+    },
+    "P01_TIME_POSE": {
+      "status": "PASS",
+      "note": "All 39 original timeline pilot IDs map exactly, 3 anchors each",
+      "measured": {
+        "bad": []
+      }
+    },
+    "P03_LOS_PRISM": {
+      "status": "PASS",
+      "note": "Every selected ray stays inside the empty C0 corridor prism; no other occluder modeled",
+      "measured": {
+        "invalid_ray_intersections": 0
+      }
+    },
+    "P04_RANGE_GEOMETRY": {
+      "status": "PASS",
+      "note": "Original 3136 timeline 3-anchor XY range geometry full rank and independent FD",
+      "measured": {
+        "min_singular_value": 0.03352509468628021,
+        "n_orig_timeline": 3136,
+        "max_range_jac_fd": 1.784054348696884e-09
+      }
+    },
+    "P06_OLD_AB_NATIVE": {
+      "status": "PASS",
+      "note": "Original 78 A/B pilot Native LoS actual RF H and SourceFFD stay within predeclared engineering parity",
+      "measured": {
+        "n": 78,
+        "max_H_rel": 0.00019227301262937657,
+        "max_s_abs": 4.295435223881754e-06,
+        "tap_mismatch": 0
+      }
+    },
+    "P07_C_DIRECT_ORACLE": {
+      "status": "PASS",
+      "note": "New C direct-only source FFD and independent vector field match away from the source cap",
+      "measured": {
+        "n_total_offpole_AB_C": 117,
+        "cap_flagged_all_anchors": 0,
+        "max_direct_H_rel": 5.24317464921202e-13,
+        "nonfinite": 0
+      }
+    },
+    "P08_R_S_CHAIN": {
+      "status": "PASS",
+      "note": "Independent Hann 257/N-1+1028 FFT strongestRX30% common tap vs pinned SourceFFD for every source-only H",
+      "measured": {
+        "n": 117,
+        "max_s_abs": 5.551115123125783e-16,
+        "max_r_abs_m": 1.7763568394002505e-15,
+        "tap_mismatch": 0,
+        "invalid_power": 0
+      }
+    },
+    "P09_CAP_AND_PERIOD": {
+      "status": "PASS",
+      "note": "Yaw +2π invariance with the fixed new anchor and existing A/B; source near-pole cap explicitly marked",
+      "measured": {
+        "yaw_period_max_abs_s": 2.220446049250313e-15,
+        "near_pole_markers": 0
+      }
+    },
+    "P10_ALL_ROWS": {
+      "status": "PASS",
+      "note": "39 fixed geometry pilot poses × 3 anchors; no omissions; C physical data source-only",
+      "measured": {
+        "all_rows": 117,
+        "new_C_H_257x2_rows": 39,
+        "ledger_rows": 0
+      }
+    },
+    "P11_RESOURCE": {
+      "status": "PASS",
+      "note": "No fabricated native C RT paths or synchronized third-anchor packets; P4 not unlocked",
+      "measured": {
+        "real_C_RT_packets": 0,
+        "C_direct_only_pilot_rows": 39,
+        "ratio_future_3tx_to_1tx_resources": 3
+      }
+    },
+    "P12_OUTPUT": {
+      "status": "PASS",
+      "note": "Outputs are reproducible append-only labels and explicit source-only C H"
+    }
+  },
+  "failures": [],
+  "summary": {
+    "original_scene": "C0_CORRIDOR_ONE_SCENE",
+    "original_rf_anchor_ids": [
+      "A",
+      "B"
+    ],
+    "new_anchor_geometry_C": [
+      16,
+      0.8,
+      2.65
+    ],
+    "new_C_H_type": "SOURCE_FFD_DIRECT_1_RAY_NO_NATIVE_SIONNA_RT",
+    "original_native_A_B_checked": 78,
+    "n_pilot_pose": 39,
+    "n_all_source_anchor_rows": 117,
+    "C_new_source_model_H_shape": [
+      39,
+      257,
+      2
+    ],
+    "C_original_native_H_count": 0,
+    "C_native_RT_path_count": null,
+    "C_synchronized_physical_packet_count": 0,
+    "canary_source_path_count_by_definition": 1,
+    "actual_RT_canary_status": "NOT_RUN_SEPARATE_BUDGET_NOT_APPROVED",
+    "p4_bulk": "BLOCKED_MISSING_NATIVE_C_H_AND_CLOCKS",
+    "A_B_complex_max_relative": 0.00019227301262937657,
+    "A_B_s_max_abs": 4.295435223881754e-06,
+    "A_B_first_path_mismatch": 0,
+    "source_direct_offpole_max_relative": 5.24317464921202e-13,
+    "independent_source_s_detector_max_abs": 5.551115123125783e-16,
+    "first_path_mismatches": 0,
+    "min_H_3anchor_XY_singular_value": 0.03352509468628021,
+    "source_near_pole_cap_markers": 0,
+    "unknown_sync": "Original C0 trajectory label alignment only, not measured multianchor clock sync",
+    "independent_scene_count": 1
+  },
+  "actor": "GPT-6 authored source-only canary, GitHub Actions separate runner",
+  "human_independent_review": false,
+  "one_original_corridor_scene": true,
+  "run_id": "41390364274",
+  "runner_sha": "a7778f6575ba8ed208c96125ff506ac424180522",
+  "runtime_sec": 3.7959445199999777,
+  "runtime": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+  "numpy_version": "2.3.3",
+  "allowed_paper_claim": "A new geometrically feasible third anchor can be evaluated using original FFD source-only direct LoS; requires independent Sionna full-H and calibrated synchronization before multianchor efficacy assessment.",
+  "forbidden_claims": [
+    "third anchor measured packets",
+    "native Sionna raytraced path count",
+    "Full multipath improvement",
+    "3 independent scene environments",
+    "P4 filter advantage"
+  ]
+}
