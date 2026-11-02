@@ -25,18 +25,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo 'P4_FULL_NATIVE_SOURCE_RUN=41408877765'
+          echo 'P4_FULL_NATIVE_SOURCE_RUN=41435428514'
           for attempt in $(seq 1 340); do
-            gh api 'repos/myoungsunk/sionna-resimulation/actions/runs/41408877765/artifacts?per_page=100' >/tmp/p4_original_artifacts.json
+            gh api 'repos/myoungsunk/sionna-resimulation/actions/runs/41435428514/artifacts?per_page=100' >/tmp/p4_original_artifacts.json
             count=$(python3 - <<'PY'
           import json
           x=json.load(open('/tmp/p4_original_artifacts.json'))
-          goal={f'p4-full-route-{r}-41408877765' for r in ('R2','R4','R5')}
+          goal={f'p4-full-route-{r}-41435428514' for r in ('R2','R4','R5')}
           found={a['name'] for a in x.get('artifacts',[]) if not a['expired'] and a['size_in_bytes']>0}
           print(len(goal & found))
           PY
           )
-            status=$(gh api repos/myoungsunk/sionna-resimulation/actions/runs/41408877765 --jq '.status')
+            status=$(gh api repos/myoungsunk/sionna-resimulation/actions/runs/41435428514 --jq '.status')
             echo "SOURCE_WAIT attempt=$attempt status=$status verified_native_route_artifacts=$count/3"
             if [ "$status" = completed ] && [ "$count" = 3 ]; then
               echo "NATIVE_3136_PHYSICAL_ARTIFACTS_PUBLISHED_FOR_RECOVERY"
@@ -74,8 +74,9 @@ jobs:
           /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
           /research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/p4_full_ekf.py
           /research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_20261102/canary_41407549938/P4_FULL_CANARY_QA.json
-          /research/EKF4_RANGE_S_STAGED_20261014/core.py
+          /research/EKF4_RANGE_S_STAGED_20261014/**
           /research/FFD_P0P3_20261016/**
+          /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**
           /research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_41315429738/P2_ALL_28_TRACES_IMMUTABLE.zip
           LIST
           git checkout --detach FETCH_HEAD
@@ -100,8 +101,8 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/p4full_ekf_native /tmp/p4full_ekf_banks /tmp/p4full_ekf_result
-          gh run download 41408877765 --repo myoungsunk/sionna-resimulation \
-            --name 'p4-full-route-${{ matrix.route }}-'41408877765 \
+          gh run download 41435428514 --repo myoungsunk/sionna-resimulation \
+            --name 'p4-full-route-${{ matrix.route }}-'41435428514 \
             --dir /tmp/p4full_ekf_native
           gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
             --name ffd-verified-original-38875080492 --dir /tmp/p4full_ekf_banks
@@ -169,8 +170,8 @@ jobs:
             gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
               --name "p4-full-ekf-${route}-${GITHUB_RUN_ID}" \
               --dir "/tmp/full_score_routes/$route" || echo "Unverified $route EKF unavailable"
-            gh run download 41408877765 --repo myoungsunk/sionna-resimulation \
-              --name "p4-full-route-${route}-41408877765" \
+            gh run download 41435428514 --repo myoungsunk/sionna-resimulation \
+              --name "p4-full-route-${route}-41435428514" \
               --dir "/tmp/full_score_native/$route" || echo "Unverified $route Native H unavailable"
           done
       - name: Check all full P4 recursions, ground-truth-only scoring and resource packet parity
@@ -226,11 +227,19 @@ jobs:
           cp /tmp/full_score_result/* "$DEST/"
           for route in R2 R4 R5; do
             SRC="/tmp/full_score_native/$route"
-            for file in "P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip" \
-                        "P4_FULL_C_${route}_ROUTE_RECEIPT.json" \
+            for file in "P4_FULL_C_${route}_ROUTE_RECEIPT.json" \
                         "P4_FULL_C_${route}_ALL_POSE_SHA_INDEX.csv"; do
               test ! -s "$SRC/$file" || cp "$SRC/$file" "$DEST/"
             done
+            # GitHub Git cannot accept files > 100MB. Keep each original
+            # exact ZIP preserved in Actions, plus append-only Git parts.
+            ZIP="$SRC/P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip"
+            if [ -s "$ZIP" ]; then
+              split -b 45000000 --numeric-suffixes=0 -a 3 "$ZIP" \
+                "$DEST/P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip.part."
+              (cd "$SRC" && sha256sum "P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip") \
+                >"$DEST/P4_FULL_C_${route}_NATIVE_H_TAU_ALL_POSES.zip.sha256"
+            fi
           done
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
