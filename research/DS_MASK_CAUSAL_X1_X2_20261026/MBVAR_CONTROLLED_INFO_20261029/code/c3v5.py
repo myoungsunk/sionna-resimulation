@@ -197,7 +197,7 @@ def cmd_run(field, group, out):
     if field not in lk["run_plan"]["C3V5"]["fields"]:
         raise SystemExit("ERR_SPLIT_LEAK C3V5 runs on the frozen S1V5 DEV3 fields only")
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
-    S = T.canonical_setup(lk); root = M.seed_root(); rows = []
+    S = T.canonical_setup(lk); root = M.seed_root(); rows = []; sensitivity_rows = []
     rec, receipt_stats = load_receipts_with_stats(s1v5_dir(), strict=True)
     if not receipt_stats["strict_index_verified"]:
         raise SystemExit("ERR_A010_INDEX_NOT_VERIFIED")
@@ -265,7 +265,7 @@ def cmd_run(field, group, out):
                     starts = {f"psi{k:+d}": (np.r_[x0[:2], FL.wrap(x0[2] + k * sd0[2]), x0[3]], np.zeros((N, 2))) for k in FL.MS_K}
                     starts["x+1"] = (x0 + np.r_[sd0[0], 0, 0, 0], np.zeros((N, 2))); starts["y+1"] = (x0 + np.r_[0, sd0[1], 0, 0], np.zeros((N, 2)))
                     starts["truth"] = (w["Xtrue"][0].copy(), -inp["vn"])
-                    sol = {"E": (r["cost"], XE)}
+                    sol = {"E": (r["cost"], XE)}; sol_theta = {"E": thp}
                     for nm, th in starts.items():
                         Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, theta0=th)
                         # D4: score each truth-free alternative after the same F2
@@ -277,7 +277,36 @@ def cmd_run(field, group, out):
                         Lm, L0, qv = T.B3._mats(Sm, dsm, w["dts"])
                         c_diag, X_diag = FL._v2_parts(ht, z, mu, Lm, L0, x0, qv, dsm, gym,
                                                        w["dts"], th_diag[0], th_diag[1], jac=False)
-                        sol[nm] = (float(c_diag), X_diag)
+                        sol[nm] = (float(c_diag), X_diag); sol_theta[nm] = th_diag
+                    # D4 prospectively saves individual near-cost alternatives, not only the best.
+                    # These are paired with E' on the same field, geometry and noise;
+                    # H1/H2/H3 science statistics continue to use all original rows.
+                    Amb = [(nm, cost, XX) for nm, (cost, XX) in sol.items()
+                           if nm not in ("E", "truth")
+                           and abs(cost - r["cost"]) <= TOL["basin"]
+                           and dref_diff(XE[-1], XX[-1]) > TOL["stab2"]]
+                    for nm, cost, XX in Amb:
+                        PP = T.c10_end(ht, z, Sm, dsm, gym, w["dts"], x0, sol_theta[nm])
+                        PP_r = Tr @ PP @ Tr.T
+                        errE = w["Xtrue"][-1] - XE[-1]
+                        errA = w["Xtrue"][-1] - XX[-1]
+                        errE[2] = FL.wrap(errE[2]); errA[2] = FL.wrap(errA[2])
+                        erE, erA = Tr @ errE, Tr @ errA
+                        neA = float(errA @ np.linalg.solve(PP, errA))
+                        Pe = AV.c10_matrix(r)
+                        eigP = float(np.linalg.eigvalsh(PP_r)[0])
+                        detE, detA = np.linalg.slogdet(Pe), np.linalg.slogdet(PP_r)
+                        sr = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn,
+                                  arm=arm, alt_start=nm, delta_chi2=float(cost-r["cost"]),
+                                  end_dref=dref_diff(XE[-1], XX[-1]),
+                                  covariance_alt_spd=bool(eigP > 0), nees4_E=float(r["nees4_C10"]),
+                                  nees4_alt=neA, delta_nees4=float(neA-r["nees4_C10"]),
+                                  delta_logdet_P=float(detA[1]-detE[1]) if detE[0]>0 and detA[0]>0 else float("nan"))
+                        for j, label in enumerate(T.STATES):
+                            sr[f"delta_sq_err_{label}"] = float(erA[j]**2-erE[j]**2)
+                            sr[f"delta_P_{label}"] = float(PP_r[j,j]-Pe[j,j])
+                            sr[f"alt_end_error_{label}"] = float(erA[j])
+                        sensitivity_rows.append(sr)
                     # Truth-start is a diagnostic, NEVER part of the operational/reference best-start choice.
                     nonoracle = {k:v for k,v in sol.items() if k != "truth"}
                     cstar = min(v[0] for v in nonoracle.values()); best = min(nonoracle, key=lambda k: nonoracle[k][0])
@@ -309,6 +338,9 @@ def cmd_run(field, group, out):
                     rows.append(rec_)
         print("C3V5", field, group, cn, len(rows), flush=True)
     pd.DataFrame(rows).to_csv(out / f"C3V5_ROWS_{field}_{group}.csv", index=False, float_format="%.17g")
+    if sensitivity_rows:
+        pd.DataFrame(sensitivity_rows).to_csv(out / f"C3V5_MODE_SENSITIVITY_{field}_{group}.csv",
+                                              index=False, float_format="%.17g")
     law_receipt = dict(pass_=bool(factor_check["pass_"] and all(x["pass_"] for x in law_checks)
                                   and truth_checks and all(truth_checks)),
                        factor=factor_check, n_covariance_law_checked=len(law_checks),
@@ -471,6 +503,31 @@ def cmd_aggregate(shards, out):
     # All historical 4D state-stability rows remain in the output; new modes are prospective.
     crit["STATE_STABILITY_FIXED_LEGACY"]["historical_status"] = "PRESERVED_NOT_RETROACTIVE_PASS"
     mode = AV.mode_identifiability(C.to_dict("records")) if len(C) else AV.mode_identifiability([])
+    sensitivity_files = sorted(Path(shards).glob("**/C3V5_MODE_SENSITIVITY_*.csv"))
+    SENS = pd.concat([pd.read_csv(p) for p in sensitivity_files], ignore_index=True) if sensitivity_files else pd.DataFrame()
+    if len(SENS):
+        if not SENS.covariance_alt_spd.astype(bool).all():
+            mode["sensitivity"] = "REVIEW_REQUIRED_NONSPD_ALTERNATIVE"
+        paired = SENS.groupby(["field", "arm"], as_index=False).agg(
+            n_alternatives=("alt_start", "size"),
+            min_delta_chi2=("delta_chi2", "min"),
+            max_end_dref=("end_dref", "max"),
+            max_abs_delta_nees4=("delta_nees4", lambda a: float(np.max(np.abs(a)))),
+            max_abs_delta_logdet_P=("delta_logdet_P", lambda a: float(np.max(np.abs(a)))))
+        paired.to_csv(out / "A010_FIELD_PAIRED_MODE_SENSITIVITY.csv", index=False)
+        SENS.to_csv(out / "A010_MODE_ALTERNATIVE_DETAILS.csv", index=False)
+        mode["n_alternatives_with_paired_effects"] = len(SENS)
+        mode["n_fields_with_alternative"] = int(SENS.field.nunique())
+        mode["n_paired_field_arm_groups"] = int(len(paired))
+        mode["max_abs_delta_nees4"] = float(np.max(np.abs(SENS.delta_nees4)))
+        mode["max_abs_delta_logdet_P"] = float(np.max(np.abs(SENS.delta_logdet_P)))
+    else:
+        mode["n_alternatives_with_paired_effects"] = 0
+        mode["n_fields_with_alternative"] = 0
+        mode["paired_sensitivity_status"] = "NO_RECORDED_AMBIGUOUS_MODE"
+    # Only registered near-cost competitor rows may appear in the sensitivity ledger.
+    if len(SENS) != int(C.n_alt_ambiguous.sum()) if len(C) else len(SENS) != 0:
+        raise SystemExit("ERR_A010_MODE_SENSITIVITY_COUNT")
     C[["field", "role", "cell", "sensor_seed", "arm", "n_alt_ambiguous",
        "E_vs_best_dref", "alt_ambiguous_starts"]].to_csv(out / "A010_MODE_IDENTIFIABILITY.csv", index=False) if len(C) else None
     numeric = AV.gate_verdict(crit)
