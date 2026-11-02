@@ -387,7 +387,9 @@ def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
             failures.append(dict(key=key, reason="CLASS_OR_MODE")); continue
         if abs(float(one["cost"])-float(two["cost"]))>cost_tol:
             failures.append(dict(key=key, reason="COST"));continue
-        d = max(abs(float(one[f"xend_{i}"])-float(two[f"xend_{i}"])) for i in range(4))
+        delta = np.array([float(one[f"xend_{i}"])-float(two[f"xend_{i}"]) for i in range(4)])
+        delta[2] = float(np.arctan2(np.sin(delta[2]),np.cos(delta[2])))
+        d = float(np.max(np.abs(delta) / np.array([.02,.02,np.deg2rad(.25),np.deg2rad(.01)])))
         if d>state_tol:
             failures.append(dict(key=key, reason="STATE"));continue
         cv = covariance_replay_check(one, two, scaled_difference=lambda u,v:
