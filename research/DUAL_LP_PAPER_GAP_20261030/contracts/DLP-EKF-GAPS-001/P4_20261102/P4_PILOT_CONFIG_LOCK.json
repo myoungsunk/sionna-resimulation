@@ -1,0 +1,196 @@
+{
+  "schema": "DLP_P4_PILOT_PREDECLARED_SCIENCE_V1",
+  "id": "DLP-EKF-GAPS-001/P4-PILOT-V1",
+  "status": "PROPOSER_LOCKED_PRE_AUDIT_PENDING",
+  "parent_git_sha": "d838121c86190a33ae3cdb188d978b666b75fcf1",
+  "sources": {
+    "c_zip": "research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip",
+    "c_zip_sha256": "f16c91872993f19341a9cb791c4872c9d13567b715596e9ac4dd085d2fe2c5de",
+    "c_csv": "research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_CASE_RESULTS.csv",
+    "c_csv_sha256": "9b1c97e872376ea933b2353ebd682fdd33ebe3db93a18ea1834fd2127543c4b7",
+    "c_qa": "research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_39_AGGREGATE_QA.json",
+    "c_qa_sha256": "8bd87f66254e23060bfd39e9566c5805529dd19ce63d8bf574b96cc110edd38a",
+    "ab_p1_lock": "research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json",
+    "ab_p1_lock_sha256": "65d16d2941a57e636a6b0c6269039631d82d7a6dd1334ad665b168264ad113e0",
+    "bank_plus_sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "bank_minus_sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+    "scene": "Corridor C0 and extension C0+, single RF simulation environment",
+    "anchors_m": {
+      "A": [
+        4,
+        0,
+        2.65
+      ],
+      "B": [
+        10,
+        0,
+        2.65
+      ],
+      "C": [
+        16,
+        0.8,
+        2.65
+      ]
+    },
+    "tag_height_m": 0.45,
+    "routes_n": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    },
+    "cases_mount_deg": 0,
+    "freq_n": 257,
+    "freq_start_hz": 6250400000,
+    "freq_spacing_hz": 1950000,
+    "observer": "TX column0 (+45), RX ±45, Hann symmetric N-1, 4N=1028 IFFT*N, strongest-RX earliest 30% common first tap, raw r and signed s",
+    "original_native_3d_C_ONLY_39": true,
+    "source_only_C_forbidden": true
+  },
+  "design": {
+    "epochs_per_route": 13,
+    "total_epoch_unique": 39,
+    "full_timeline_unique": 3136,
+    "unavailable_C_for_full": 3097,
+    "modes": [
+      "los",
+      "full"
+    ],
+    "bias_levels": [
+      "B0",
+      "L2"
+    ],
+    "seed": 0,
+    "state": [
+      "x_m",
+      "y_m",
+      "psi_rad",
+      "b_g_rad_s"
+    ],
+    "motion": "EKF4 original frozen core f/F/Q and P2 sensor-v2 seed0 generated offline",
+    "prior": "x0 truth[0]+normal([.1,.1,5deg]); b0=0, P0 diag([.1²,.1²,(5deg)²,(.1deg/s)²])",
+    "Q_input": "diag(2e-5 abs(ds),rad(.015)^2 dt,0)",
+    "range_h": "sqrt((x-ax)^2+(y-ay)^2+(.45-az)^2)-0.5315983906250129",
+    "Rr_m2": 0.0068578637,
+    "Rs": 0.0081,
+    "R_multi_assumption": "diagonal Rr; no measured inter-anchor cross covariance, not proven independent",
+    "gates": {
+      "one": 6.6348966010212145,
+      "two": 9.210340371976184,
+      "three": 11.344866730144373
+    },
+    "updates": "every 0.2s motion prediction, RF only at 13 preselected epochs, each arm self-gated; no fake packets",
+    "bias_perturbation": "B0=0; L2=+0.20deg/s gyro only, white-noise paired",
+    "synchronization": "same simulated truth/time label, NOT hardware time-sync",
+    "truth": "allowed only offline to generate controls and final scoring, NEVER filter input"
+  },
+  "arms": [
+    {
+      "name": "DR4",
+      "anchors": [],
+      "epochs": "none",
+      "components": 0
+    },
+    {
+      "name": "R4_A13",
+      "anchors": [
+        "A"
+      ],
+      "epochs": "all13",
+      "components": 1
+    },
+    {
+      "name": "J4_A13",
+      "anchors": [
+        "A"
+      ],
+      "epochs": "all13",
+      "components": 2,
+      "model": "SourceFFD at estimated state"
+    },
+    {
+      "name": "R4_AB13",
+      "anchors": [
+        "A",
+        "B"
+      ],
+      "epochs": "all13",
+      "components": 2
+    },
+    {
+      "name": "R4_ABC13",
+      "anchors": [
+        "A",
+        "B",
+        "C"
+      ],
+      "epochs": "all13",
+      "components": 3
+    },
+    {
+      "name": "R4_A_EQ12",
+      "anchors": [
+        "A"
+      ],
+      "epochs": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "components": 1
+    },
+    {
+      "name": "R4_ABC_EQ4",
+      "anchors": [
+        "A",
+        "B",
+        "C"
+      ],
+      "epochs": [
+        0,
+        4,
+        8,
+        12
+      ],
+      "components": 3
+    }
+  ],
+  "fairness": {
+    "primary": "one A range packet versus 3 ABC range packets at each 13 pose epoch; 1x vs3x",
+    "equal_count": "R4_A_EQ12 uses 12 single-anchor packets at 12 epochs; R4_ABC_EQ4 uses 12 anchor-packets at 4 epochs",
+    "warning": "equal packets NOT equal update cadence, channel/scheduling cost, energy or inference budget",
+    "joint": "J4_A13 two scalar components of one DualLP RF packet, not equal information"
+  },
+  "deliverables": {
+    "method_count": 7,
+    "expected_trajectories": 84,
+    "expected_pooled_rows": 28,
+    "score_t_s_min": 30,
+    "metrics": [
+      "heading_rmse_deg",
+      "xy_rmse_m",
+      "bias_rmse_deg_s",
+      "heading95",
+      "pose95",
+      "NEES",
+      "NIS",
+      "gate",
+      "RF packets",
+      "scalar components",
+      "no-packet propagation"
+    ],
+    "all_failed_cases_preserved": true,
+    "P4_full_data": "BLOCKED_MISSING_3097_NATIVE_C_TIME_EPOCHS",
+    "P4_full_no_interpolation": true,
+    "P4_full_rt_budget": "NOT_APPROVED_OR_RUN",
+    "scientific_claim_limit": "single already-seen Corridor simulation, no hardware sync, no generalization or guaranteed superiority"
+  }
+}
