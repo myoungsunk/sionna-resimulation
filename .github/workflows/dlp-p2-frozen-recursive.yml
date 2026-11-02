@@ -1,0 +1,215 @@
+name: DLP P2 FROZEN C0 four-state range-only versus SourceFFD joint
+on:
+  push:
+    branches: ['research/dual-lp-p2-frozen-run-20261101']
+    paths:
+      - '.github/workflows/dlp-p2-frozen-recursive.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/p2_recursive_range_joint.py'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/p2_score_aggregate.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  DLP_RF_ZIP: /tmp/dlp_p2_raw_rf.zip
+  DLP_BANK_DIR: /tmp/dlp_p2_bank
+jobs:
+  route:
+    name: P2 exact 4-state recursive test on ${{ matrix.route }}
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [R2, R4, R5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Read-only partial checkout of original pinned C0 and P2 frozen code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          PIN=$(git ls-remote origin refs/heads/research/dual-lp-p1-proposer-lock-20261101 | cut -f1)
+          test "$PIN" = "340877f3537b4cc65cdaa9d687423cba92e0b28b" || exit 1
+          export GIT_LFS_SKIP_SMUDGE=1
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/**
+          /research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          lock=json.loads(pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json').read_text())
+          p=['/research/DUAL_LP_PAPER_GAP_20261030/contracts/**',
+             '/research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/**',
+             '/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json',
+             '/research/EKF4_RANGE_S_STAGED_20261014/**',
+             '/research/FFD_P0P3_20261016/**',
+             '/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**',
+             '/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/**',
+             '/research/DUAL_LP_PAPER_GAP_20261030/runs/P1_SOURCE_HARMONIZATION_41300302082/P1_SCIENCE_QA.json']
+          p+=['/'+x['path'] for x in lock['base_assets']]
+          p+=['/'+x['path'] for x in lock['locked_source_code']]
+          pathlib.Path('/tmp/p2_checkout').write_text('\n'.join(sorted(set(p)))+'\n')
+          print('Exact P2 source plus 39 C0 original assets',len(set(p)))
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p2_checkout
+          test -s research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P2_20261101/P2_FROZEN_RATIFICATION_20261101.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned array math
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Stage exact 2 FFD banks and original 14 frozen RF trace ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_BANK_DIR"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+             --name ffd-verified-original-38875080492 --dir "$DLP_BANK_DIR"
+          curl -fLsS --retry 3 --max-time 120 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip" \
+            -o "$DLP_RF_ZIP"
+          printf '%s  %s\n' '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63' "$DLP_RF_ZIP" | sha256sum --check
+          test -s "$DLP_RF_ZIP"
+      - name: Execute frozen independent self-gated DR4 / R4 / J4_SRC recursive filters
+        shell: bash
+        run: |
+          set -uo pipefail
+          ROUTE='${{ matrix.route }}'
+          OUT="/tmp/p2_route/${ROUTE}"
+          mkdir -p /tmp/p2_route
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/p2_recursive_range_joint.py \
+            --route "$ROUTE" --out "$OUT" \
+            2>&1 | tee "/tmp/p2_route/${ROUTE}.log"
+          RC=${PIPESTATUS[0]}
+          mkdir -p "$OUT"
+          cp "/tmp/p2_route/${ROUTE}.log" "$OUT/P2_ROUTE_LOG.txt"
+          exit "$RC"
+      - name: Preserve complete route outputs including original failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p2-route-${{ matrix.route }}-${{ github.run_id }}
+          path: /tmp/p2_route/${{ matrix.route }}/
+          compression-level: 6
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    name: Recalculate and certify 28 full traces / 84 metric rows
+    needs: route
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Partial checkout of independent scorer and unchanged four-state core
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/p2_score_aggregate.py
+          /research/EKF4_RANGE_S_STAGED_20261014/core.py
+          LIST
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Pin scorer math
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Retrieve all route artifacts and verify original reference ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p2_route_bundle /tmp/p2_aggregate_final
+          for ROUTE in R2 R4 R5; do
+            mkdir -p "/tmp/p2_route_bundle/$ROUTE"
+            gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+               --name "dlp-p2-route-${ROUTE}-${GITHUB_RUN_ID}" \
+               --dir "/tmp/p2_route_bundle/$ROUTE" \
+               || echo "No available completed artifact for $ROUTE; scorer will fail closed."
+          done
+          curl -fLsS --retry 3 --max-time 120 \
+            -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/myoungsunk/sionna-resimulation/actions/artifacts/11782748118/zip" \
+            -o "$DLP_RF_ZIP"
+          printf '%s  %s\n' '88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63' "$DLP_RF_ZIP" | sha256sum --check
+      - name: Score truth OFFLINE, independently verify every recursive prior and Joseph update
+        shell: bash
+        env:
+          DLP_P2_ROUTES: /tmp/p2_route_bundle
+          DLP_P2_FINAL: /tmp/p2_aggregate_final
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p2_runtime/p2_score_aggregate.py \
+            2>&1 | tee /tmp/p2_aggregate_final/P2_SCORE_LOG.txt
+          RC=${PIPESTATUS[0]}
+          python - <<'PY'
+          import json,os,hashlib,pathlib,sys,datetime,platform
+          d=pathlib.Path('/tmp/p2_aggregate_final')
+          inputs=[]
+          for path in sorted(d.rglob('*')):
+            if not path.is_file() or path.name=='P2_MANIFEST.json':continue
+            hh=hashlib.sha256()
+            with path.open('rb') as f:
+              for block in iter(lambda:f.read(1<<20),b''):hh.update(block)
+            inputs.append(dict(path=str(path.relative_to(d)),bytes=path.stat().st_size,sha256=hh.hexdigest()))
+          q=d/'P2_POSTRUN_QA.json'
+          status=json.loads(q.read_text()).get('status') if q.exists() else 'BLOCKED_NO_QA'
+          manifest=dict(schema='DLP_P2_APPEND_ONLY_RUN_MANIFEST_V1',status=status,
+              contract_id='DLP-EKF-GAPS-001/P2-V1',
+              contract_sha256='568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b',
+              config_sha256='99c4f6303ece8d19b2a30f1217f62c852df3074583dff6c388245a54c555cc43',
+              tolerance_sha256='ab385d88538b0f2485fdcf1cceef31262a08a7a5c214751c4dfc6949e6101ae3',
+              immutable_p1_head='21aa49ea809255a2dc863a4fbdb1e2c98dcaa16a',
+              preflight_audit_run='41314437944',
+              original_reference_zip_sha256='88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63',
+              github_sha=os.environ.get('GITHUB_SHA'),run_id=os.environ.get('GITHUB_RUN_ID'),
+              date_utc=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              runtime=dict(python=sys.version,numpy='2.3.3',platform=platform.platform()),
+              outputs=inputs,all_original_files_immutable=True,scene_independent_n=1,
+              no_unseen_generalization=True,
+              command='p2_recursive_range_joint.py --route {R2,R4,R5}; p2_score_aggregate.py')
+          (d/'P2_MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          print('P2_FINAL_MANIFEST',status,'files',len(inputs),flush=True)
+          PY
+          exit "$RC"
+      - name: Upload all success/failure outputs, including complete NPZ traces
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p2-frozen-complete-${{ github.run_id }}
+          path: /tmp/p2_aggregate_final/
+          compression-level: 6
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Commit append-only full P2 result evidence (never overwrite P1)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/p2_aggregate_final
+          test -s "$SRC/P2_POSTRUN_QA.json" || { echo 'No QA receipt to commit'; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          cp -a "$SRC/." "$D/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "science(p2): append-only 7case range-only and SourceFFD joint recursive evidence ${GITHUB_RUN_ID}"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"

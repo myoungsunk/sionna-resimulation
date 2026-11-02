@@ -1,0 +1,113 @@
+{
+  "schema": "DLP_P2_POSTRUN_SEPARATE_SCORER_AND_MATH_QA_V1",
+  "status": "PASS",
+  "independent_numerical_code_not_human_review": true,
+  "actor_identity_boundary": "Same ChatGPT author; separate GitHub Actions runner, not an external human auditor.",
+  "contract_id": "DLP-EKF-GAPS-001/P2-V1",
+  "contract_sha256": "568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b",
+  "config_sha256": "99c4f6303ece8d19b2a30f1217f62c852df3074583dff6c388245a54c555cc43",
+  "tolerance_sha256": "ab385d88538b0f2485fdcf1cceef31262a08a7a5c214751c4dfc6949e6101ae3",
+  "prior_audit_receipt_sha256": "40dfe491422b61af81d09bb0bd3ded2dd9d8767be3549d25e892f0b64c0cbee7",
+  "original_rf_archive_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+  "route_n": 3,
+  "case_n": 7,
+  "mode_n": 2,
+  "bias_n": 2,
+  "arm_n": 3,
+  "score_rows": 84,
+  "contrast_rows": 84,
+  "pooled_rows": 12,
+  "gates": {
+    "U00_FROZEN_AND_OUTPUT_SHA": {
+      "status": "PASS",
+      "note": "3 full route receipts and all 28 exact original case/channel/bias NPZ SHA and bytes",
+      "measured": {
+        "n_routes": 3,
+        "npz_count": 28
+      }
+    },
+    "U11_FULL_RECURSION_AND_GATE": {
+      "status": "PASS",
+      "note": "Independent from stored outputs all recursive own-prior propagation and scalar/joint NIS/Joseph at every step",
+      "measured": {
+        "n_traces": 84,
+        "max_prior_x": 0.0,
+        "max_prior_P": 0.0,
+        "max_measurement_P": 4.440892098500626e-16,
+        "max_measurement_nis": 2.842170943040401e-14
+      }
+    },
+    "U06_CONTROLS_IDENTICAL_PER_ROUTE": {
+      "status": "PASS",
+      "note": "B0/L2 inputs exact identity across same-route anchors, mounts and modes"
+    },
+    "U02_ALL_POSE_AND_EVAL": {
+      "status": "PASS",
+      "note": "7case*2channels*2bias*3arms, each level/channel 6201 scored frames, no hidden omission",
+      "measured": {
+        "n_metrics": 84,
+        "counts": {
+          "('full', 'B0', 'DR4')": 6201,
+          "('full', 'B0', 'R4')": 6201,
+          "('full', 'B0', 'J4_SRC')": 6201,
+          "('full', 'L2', 'DR4')": 6201,
+          "('full', 'L2', 'R4')": 6201,
+          "('full', 'L2', 'J4_SRC')": 6201,
+          "('los', 'B0', 'DR4')": 6201,
+          "('los', 'B0', 'R4')": 6201,
+          "('los', 'B0', 'J4_SRC')": 6201,
+          "('los', 'L2', 'DR4')": 6201,
+          "('los', 'L2', 'R4')": 6201,
+          "('los', 'L2', 'J4_SRC')": 6201
+        }
+      }
+    },
+    "U12_SCORE_STANDALONE": {
+      "status": "PASS",
+      "note": "Ground truth scored only after inference output files, finite valid states and positive covariance"
+    },
+    "U10_RESOURCE_AND_GATE_DIMENSION": {
+      "status": "PASS",
+      "note": "same anchor/RF packet for R4 & J4_SRC, but one vs two scalar components and distinct chi2 gates, not equal information budget"
+    },
+    "U15_CONTRAST_COVERAGE": {
+      "status": "PASS",
+      "note": "All 28 case/mode/bias triples compared against three methods, all 12 pooled channels/levels/methods",
+      "measured": {
+        "contrasts": 84,
+        "summary_rows": 12
+      }
+    },
+    "U14_SCIENTIFIC_SCOPE": {
+      "status": "PASS",
+      "note": "Only historical C0 single scene; no inference on multiple independent scenes, M2 or newly generated RF"
+    }
+  },
+  "failures": [],
+  "scene_n": 1,
+  "sensor_seed": 0,
+  "scientific_verdict": "C0_RETROSPECTIVE_DESCRIPTIVE_ONLY_NOT_NEW_HOLDOUT",
+  "claimed_features": [
+    "real original frozen C0 exact RF 7 case-pairs",
+    "4state matched prior, process Q and sensor controls",
+    "DR4/R4/J4 SourceFFD full self-gated recursion, 0-second start",
+    "recorded 1 vs 2 measurement scalar components, not equivalent RF information",
+    "All failure cases retained, GT used only in separate scorer"
+  ],
+  "forbidden_claims": [
+    "7 independent RF scenes",
+    "filter advantage in unseen environments",
+    "hardware calibration",
+    "Gaussian likelihood proved",
+    "time/pose sample IID CI",
+    "spatiotemporal 3D covariance or selected M2"
+  ],
+  "code_sha256": "528e0add042c67dfbb36acb99ab535ba29e9c1e1b93f76fca3fa29c77ff2d15c",
+  "github_run": "41315429738",
+  "runtime": {
+    "python": "3.11.17 (main, Oct  1 2026, 14:32:31) [GCC 13.3.0]",
+    "numpy": "2.3.3",
+    "platform": "Linux-7.0.0-1017-azure-x86_64-with-glibc2.39",
+    "utc": "2026-11-01T14:19:11.393491+00:00"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema": "DLP_P2_PREDECLARED_ENGINEERING_STOPS_V1",
+  "status": "PROPOSER_LOCKED_AUDIT_PENDING",
+  "contract_id": "DLP-EKF-GAPS-001/P2-V1",
+  "historical_context": "P1 and original R2 EKF exploratory results already known; no predetermined improvement direction",
+  "tests": [
+    {
+      "id": "U00_LOCK",
+      "rule": "Exact contract/config/tolerance SHA and pinned source git blob, original P1 and P0 receipts",
+      "threshold": "exact SHA256 or BLOCKED"
+    },
+    {
+      "id": "U01_RAW_INPUTS",
+      "rule": "39 C0 physical original file bytes, two bank original bytes, archived 14-trace ZIP and per-trace SHA",
+      "threshold": "exact SHA256 and size or BLOCKED"
+    },
+    {
+      "id": "U02_POPULATION",
+      "rule": "7 case*Full/LoS timestamp/id and geometry",
+      "threshold": "7251 case-time/channel/level, missing/duplicates=0, x/y <=1e-6m, yaw <=1e-6deg, time <=1e-9s"
+    },
+    {
+      "id": "U03_MOTION_F",
+      "rule": "Independent FD f and 4D analytic F including F_psi,b=-dt",
+      "threshold": "abs<=1e-6 in stable yaw chart"
+    },
+    {
+      "id": "U04_PREDICT_Q",
+      "rule": "Independent F P F' + G Q G' vs pinned predict plus PSD",
+      "threshold": "max abs <=1e-10; eigen_min>=-1e-12"
+    },
+    {
+      "id": "U05_FILTER_MATH",
+      "rule": "Independent scalar and joint S/K/Joseph canaries vs pinned EKF4",
+      "threshold": "state and P max difference <=1e-10; PSD"
+    },
+    {
+      "id": "U06_SENSOR_CONTROLS",
+      "rule": "Pinned sensor-v2 seed0 B0 and positive L2, same controls within route",
+      "threshold": "exact bytes/array per-route; true_bias offline-only"
+    },
+    {
+      "id": "U07_INIT",
+      "rule": "Exact shared initial state/P from frozen R2 recipe",
+      "threshold": "x0/P0 equality <=1e-12"
+    },
+    {
+      "id": "U08_H_R",
+      "rule": "d+B_OLD, analytic 4D range H versus independent FD",
+      "threshold": "<=1e-8 derivative; source range<=1e-12"
+    },
+    {
+      "id": "U09_SOURCE_S",
+      "rule": "Pinned SourceFFD complex FFD plus stable J_s",
+      "threshold": "prior P1 signed independent preflight thresholds; H bias column=0"
+    },
+    {
+      "id": "U10_GATES",
+      "rule": "Range chi2_1 gate and Joint chi2_2 independent NIS with exact R0",
+      "threshold": "gate equality and NIS <=1e-9 on canary"
+    },
+    {
+      "id": "U11_RECURSION",
+      "rule": "t0 through t_final, each arm propagates own posterior; no reusing DR baseline",
+      "threshold": "every status and pre/post xP present, no silent missing"
+    },
+    {
+      "id": "U12_SCORE",
+      "rule": "Separate truth-only scorer, RMSE, bias, NEES, coverage and resource rates",
+      "threshold": "all denominators explicit, all failures visible, no IID timepoint CI"
+    },
+    {
+      "id": "U13_NO_LEAKAGE",
+      "rule": "No truth, true-bias or labels provided to runtime filter",
+      "threshold": "fail on truth input to inference or learned mu/R"
+    },
+    {
+      "id": "U14_CLAIMS",
+      "rule": "Strict one Corridor 7 pairs, no New RT or M2",
+      "threshold": "full exact population; no claim of 7 independent RF scenes"
+    },
+    {
+      "id": "U15_POST",
+      "rule": "Post-run independent formula audits of all matched outputs",
+      "threshold": "numeric metric agreement <=1e-9, no deleted cases, preserve FAIL inputs"
+    }
+  ],
+  "stop": "Any U00-U14 fail blocks run; U15 is mandatory post-run, not license to adjust thresholds",
+  "status_choices": [
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_RUN"
+  ],
+  "scientific_interpretation": "one historical C0 scene only, no external holdout"
+}
