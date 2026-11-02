@@ -1,0 +1,58 @@
+name: DLP P4 Full source syntax, frozen manifest and input smoke
+on:
+  push:
+    branches: ['research/dual-lp-p4-full-native-c0plus-20261102']
+    paths:
+      - '.github/workflows/dlp-p4-full-compile-preflight.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax-source-frozen:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Partial checkout original science source and frozen canary receipts
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P4_FULL_20261102/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/**
+          /research/DUAL_LP_PAPER_GAP_20261030/audits/P4_FULL_20261102/canary_41407549938/P4_FULL_CANARY_QA.json
+          LIST
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Fail before expensive RT if any compiled 4-stage runtime or frozen SHA is wrong
+        shell: bash
+        run: |
+          set -euo pipefail
+          for py in research/DUAL_LP_PAPER_GAP_20261030/p4_full_runtime/*.py; do
+            python -m py_compile "$py"
+            echo "COMPILED $py"
+          done
+          python - <<'PY'
+          import json,hashlib,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P4_FULL_20261102')
+          freeze=json.loads((p/'P4_FULL_FROZEN_RATIFICATION.json').read_text())
+          assert freeze['status']=='FROZEN_NATIVE_C_FULL_LOS_3097_EXTENSION'
+          for f in freeze['locked_files']:
+            sha=hashlib.sha256((p/f['name']).read_bytes()).hexdigest()
+            assert sha==f['sha256'],f
+          c=pathlib.Path(freeze['pre_run_canary']['receipt_path'])
+          assert hashlib.sha256(c.read_bytes()).hexdigest()==freeze['pre_run_canary']['receipt_sha256']
+          a=json.loads(c.read_text())
+          assert a['algorithm_mode']=='FULL_DIRECT_CERTIFIED' and a['n_frequency_cases']==54
+          config=json.loads((p/'P4_FULL_CONFIG_LOCK.json').read_text())
+          assert sum(config['geometry']['routes_n'].values())==3136
+          assert config['geometry']['missing_native_C']==3097
+          assert config['work']['max_missing_poses_per_shard']==40
+          print('P4_FULL_COMPILE_PREFLIGHT_PASS',a['algorithm_mode'],'frozen canary SHA',freeze['pre_run_canary']['receipt_sha256'])
+          PY
