@@ -83,9 +83,9 @@ def postrun_math(d):
    else:
     if stat not in ("DR_ONLY","SKIP_BUDGET"):
       dimcheck.append([j,k,"NON_NATIVE_RF_UPDATER_STATUS",stat])
-    if dim or int(d["packets"][k,j])!=0 or
+    if (dim or int(d["packets"][k,j])!=0 or
       np.max(abs(X[k,j]-xp[k,j]))>1e-10 or
-      np.max(abs(P[k,j]-pp[k,j]))>1e-10:
+      np.max(abs(P[k,j]-pp[k,j]))>1e-10):
       dimcheck.append([j,k,"UNDECLARED_UPDATE"])
    if not np.isfinite(P[k,j]).all() or np.linalg.eigvalsh(P[k,j]).min()<=0:
      dimcheck.append([j,k,"INVALID_POSTERIOR_COV"])
