@@ -118,9 +118,16 @@ def stage_banks(am):
     require(np.array_equal(freq,6250400000.+DF*np.arange(N)),"FREQUENCY_GRID_NOT_ORIGINAL_C0")
     return CR,banks,freq
 
-def geometry_checks(CR,am,setup,scene_dir):
+def geometry_checks(CR,am,setup,scene_dir,expected_anchor_xyz=None):
     import numpy as np
-    require(CR.np.allclose(setup.anchor_position,[16,.8,2.65]),"REAL_SCENE_C_NOT_FIXED")
+    # New C run is locked to C. The historical positive control MUST use A.
+    # Caller-provided expectation is allowed only for the original A control.
+    locked_C=np.asarray(am["scene"]["new_C_xyz_m"],float)
+    expected=locked_C if expected_anchor_xyz is None else np.asarray(expected_anchor_xyz,float)
+    require(np.array_equal(expected,locked_C) or np.array_equal(expected,[4.,0.,2.65]),
+            "UNAUTHORIZED_ANCHOR_EXPECTATION")
+    require(CR.np.allclose(setup.anchor_position,expected,atol=1e-12,rtol=0),
+            "SCENE_ANCHOR_NOT_AS_SPECIFIED")
     require(CR.np.allclose(CR.ANCHOR_ROTATION,np.diag([1.,-1.,-1.])), "TX_BORESIGHT_DRIFT")
     validation=setup.validate()
     require(all(q["passed"] for q in validation),"CORRIDOR_SETUP_INVALID:"+str(validation))
@@ -262,7 +269,7 @@ def smoke_control_A(CR,banks,freq,plan,am,solver,output):
         Hlos=np.load(ROOT/case["los_path"],allow_pickle=False,mmap_mode="r")
         Hfull=np.load(ROOT/case["full_path"],allow_pickle=False,mmap_mode="r")
         scene_dir=output/"_control_scene"/route
-        scene,_,_=geometry_checks(CR,am,setup,scene_dir)
+        scene,_,_=geometry_checks(CR,am,setup,scene_dir,expected_anchor_xyz=[4.,0.,2.65])
         scene.add(CR.rt.Transmitter("tx",position=setup.anchor_position.tolist(),orientation=CR.euler(CR.ANCHOR_ROTATION)))
         scene.add(CR.rt.Receiver("rx",position=setup.robot_position(item["x_m"],item["y_m"]).tolist(),
               orientation=CR.euler(setup.robot_rotation(item["yaw_body_deg"]))))
