@@ -156,9 +156,9 @@ def run():
             timeline={int(r["pose_id"]):r for r in csv.DictReader(f)}
         for q in ps:
             raw=timeline.get(int(q["pose_id"]))
-            if raw is None or abs(float(raw["t_s"])-q["t_s"])>1e-9 or
-              abs(float(raw["x"])-q["x_m"])>1e-10 or
-              abs(float(raw["y"])-q["y_m"])>1e-10:
+            if (raw is None or abs(float(raw["t_s"])-q["t_s"])>1e-9 or
+                abs(float(raw["x"])-q["x_m"])>1e-10 or
+                abs(float(raw["y"])-q["y_m"])>1e-10):
                 original_timeline_bad.append((route,q["pose_id"]))
         x=np.array([[q["x_m"],q["y_m"],np.deg2rad(q["yaw_body_deg"]),0.]
                     for q in ps],dtype=float)
