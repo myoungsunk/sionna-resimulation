@@ -34,6 +34,7 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import a10_canonical as CAN  # noqa: E402
+import a10_validation as AV  # noqa: E402
 import a8_jac as AJ  # noqa: E402
 import a9_class as A9  # noqa: E402
 import filters as FL  # noqa: E402
@@ -243,6 +244,17 @@ def cmd_run(fields, split, out):
                     # Canonical full stacked matrices, once per field/role/cell (field-qualified key, D2 fix).
                     # C3V5 reuses these exact bytes; do not reconstruct on a different CPU.
                     rec.update(mat_receipt(f, w["role"], cn, Sig, models))
+                    # D3: scoring/geometry source is stored separately from estimator inputs.
+                    # No truth / true Sigma is given to a non-oracle optimizer.
+                    tk = f"TRUTH|{f}|{w['role']}|{cn}"
+                    rec.update({f"{tk}|Xtrue": np.asarray(w["Xtrue"], dtype=np.float64),
+                                f"{tk}|poses": np.asarray(w["poses"], dtype=np.float64),
+                                f"{tk}|dts": np.asarray(w["dts"], dtype=np.float64),
+                                f"{tk}|ds_true": np.asarray(w["ds"], dtype=np.float64),
+                                f"{tk}|dth_true": np.asarray(w["dth"], dtype=np.float64),
+                                f"{tk}|prior_P0": np.asarray(P0M, dtype=np.float64),
+                                f"{tk}|mu": np.zeros((N, 2), dtype=np.float64),
+                                f"{tk}|pose_keys_sha": np.array(B3.pose_keys_sha(w))})
                     qa.append(dict(field=f, cell=cn, role=w["role"], sensor_seed=sn, check="mahalanobis_per_dim", value=float(ev @ np.linalg.solve(Sig, ev)) / (2 * N)))
                     if w["role"] == "REV60" and pairs:
                         if cell["alphas"][0]:
@@ -275,8 +287,12 @@ def cmd_run(fields, split, out):
     pd.DataFrame(rows).to_csv(out / f"{PREFIX}_ROWS_{split}_{tag}.csv", index=False, float_format="%.17g")
     pd.DataFrame(qa).to_csv(out / f"{PREFIX}_QA_{split}_{tag}.csv", index=False, float_format="%.17g")
     pd.DataFrame(seeds).to_csv(out / f"{PREFIX}_SEEDS_{split}_{tag}.csv", index=False)
-    with open(out / f"{PREFIX}_INPUTS_{split}_{tag}.zip", "wb") as fh:
+    zip_file = out / f"{PREFIX}_INPUTS_{split}_{tag}.zip"
+    with open(zip_file, "wb") as fh:
         np.savez_compressed(fh, **rec)
+    # The aggregate MANIFEST also hashes this per-array declaration.
+    index = AV.make_array_index(rec, fields, zip_file)
+    (out / f"{PREFIX}_INPUT_HASHES_{split}_{tag}.json").write_text(json.dumps(index, indent=1, sort_keys=True))
     return 0
 
 
@@ -326,6 +342,10 @@ def cmd_aggregate(shards, split, out):
     zips = sorted(glob.glob(str(Path(shards) / "**" / f"{PREFIX}_INPUTS_{split}_*.zip"), recursive=True))
     for f in zips:
         (out / Path(f).name).write_bytes(Path(f).read_bytes())
+        idx = Path(f).with_name(Path(f).name.replace("INPUTS_", "INPUT_HASHES_").replace(".zip", ".json"))
+        if not idx.is_file():
+            raise SystemExit(f"ERR_A010_MISSING_ARRAY_INDEX {Path(f).name}")
+        (out / idx.name).write_bytes(idx.read_bytes())
     expected = requested_fields()
     rule_ok = expected == sorted(plan["fields"]) and set(expected) <= set(lk["splits"]["S_field"][split])
     got = sorted(int(x) for x in rows.field.unique()) if len(rows) else []
