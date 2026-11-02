@@ -1,0 +1,296 @@
+name: DLP P3 Native Sionna RT C0+ (3-pose smoke then fixed 39-pose)
+on:
+  push:
+    branches: ['research/dual-lp-p3-native-rt-canary-20261102']
+    paths:
+      - '.github/workflows/dlp-p3-native-sionna-rt.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_sionna_rt.py'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_aggregate.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+  DLP_FFD_BANKS: /tmp/p3_native_bank
+  DLP_FIXED_PILOT: /tmp/p3_native_fixed_pilot
+jobs:
+  smoke:
+    name: Native Sionna CPU PathSolver three fixed C poses / Full and LoS
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - name: Checkout pinned source, original C0 references and P3 source-only H
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/**
+          /src/qclean_uwb/**
+          /scripts/corridor_sionna_run.py
+          /scripts/g2_completion/sionna_native_runtime.py
+          /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+          /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_H_39_POSES.npy
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_ARRAY_KEYS.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          items=json.loads(p.read_text())['primary_cases']
+          with pathlib.Path('/tmp/native_p3_sparse').open('w') as f:
+            f.write(pathlib.Path('.git/info/sparse-checkout').read_text())
+            for case in items:
+              if case['case_id'].endswith('aA_m0'):
+                for typ in ('full_path','los_path'):
+                  f.write('/'+case[typ]+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/native_p3_sparse
+          test -s scripts/corridor_sionna_run.py
+          test -s results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+          test -s research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_H_39_POSES.npy
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned CPU Native Sionna RT stack and LLVM runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'scipy==1.14.1' 'sionna-rt==2.0.1' 'mitsuba==3.8.0' 'drjit==1.3.1'
+          if ! ldconfig -p | grep -q 'libLLVM.so'; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_sionna_rt.py
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_aggregate.py
+          python - <<'PY'
+          import mitsuba as mi,drjit as dr,importlib.metadata
+          mi.set_variant('llvm_ad_mono_polarized')
+          import sionna.rt as rt
+          for k in ('sionna-rt','mitsuba','drjit'):
+            print('NATIVE_CPU_ENV',k,importlib.metadata.version(k))
+          print('NATIVE_CPU_VARIANT',mi.variant(),type(rt.PathSolver()).__name__)
+          PY
+      - name: Stage verified physical FFD and frozen preselected 39-pose plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_FFD_BANKS" "$DLP_FIXED_PILOT" /tmp/p3_native_smoke
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$DLP_FFD_BANKS"
+          gh run download 41389798998 --repo myoungsunk/sionna-resimulation \
+            --name dlp-p3-outcome-blind-preflight-41389798998 --dir "$DLP_FIXED_PILOT"
+          printf '%s  %s\n' 'efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61' \
+            "$DLP_FIXED_PILOT/P3_FROZEN_PILOT_SELECTION_PLAN.json" | sha256sum --check
+          printf '%s  %s\n' 'f30dcb0d6d16b112eda19a39f9a80618423d8b5e49c707cd3d236b037fc015f4' \
+            research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_H_39_POSES.npy | sha256sum --check
+      - name: ACTUAL native PathSolver LoS and Full on 3 fixed poses, A original control
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_sionna_rt.py \
+            --stage smoke --out /tmp/p3_native_smoke 2>&1 | tee /tmp/p3_native_smoke/RT_NATIVE_LOG.txt
+          exit "${PIPESTATUS[0]}"
+      - name: Retain all native three-pose results even on a failed canary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p3-native-smoke-${{ github.run_id }}
+          path: |
+            /tmp/p3_native_smoke/*.json
+            /tmp/p3_native_smoke/*.npz
+            /tmp/p3_native_smoke/*.txt
+          retention-days: 30
+          if-no-files-found: warn
+  full:
+    name: Native RT full pilot, ${{ matrix.route }} / 13 poses
+    if: needs.smoke.result == 'success'
+    needs: [smoke]
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [R2,R4,R5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 95
+    steps:
+      - name: Sparse checkout exact pinned source and prior source-only H
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/**
+          /src/qclean_uwb/**
+          /scripts/corridor_sionna_run.py
+          /scripts/g2_completion/sionna_native_runtime.py
+          /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+          /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_H_39_POSES.npy
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_41390364274/P3_C_SOURCE_ONLY_ARRAY_KEYS.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Same frozen CPU Sionna-RT environment as 3-pose smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'scipy==1.14.1' 'sionna-rt==2.0.1' 'mitsuba==3.8.0' 'drjit==1.3.1'
+          if ! ldconfig -p | grep -q 'libLLVM.so'; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_sionna_rt.py
+      - name: Restore physical FFD bank source and fixed original pilot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_FFD_BANKS" "$DLP_FIXED_PILOT" "/tmp/p3_native_${{ matrix.route }}"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$DLP_FFD_BANKS"
+          gh run download 41389798998 --repo myoungsunk/sionna-resimulation \
+            --name dlp-p3-outcome-blind-preflight-41389798998 --dir "$DLP_FIXED_PILOT"
+          printf '%s  %s\n' 'efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61' \
+            "$DLP_FIXED_PILOT/P3_FROZEN_PILOT_SELECTION_PLAN.json" | sha256sum --check
+      - name: Execute route native Full and Native LoS 257 bins per fixed pose
+        shell: bash
+        run: |
+          set -uo pipefail
+          ROUTE='${{ matrix.route }}'
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_sionna_rt.py \
+            --stage full --route "$ROUTE" --out "/tmp/p3_native_$ROUTE" \
+            2>&1 | tee "/tmp/p3_native_$ROUTE/RT_NATIVE_LOG.txt"
+          exit "${PIPESTATUS[0]}"
+      - name: Retain complete original native path delay and H for every route
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p3-native-route-${{ matrix.route }}-${{ github.run_id }}
+          path: |
+            /tmp/p3_native_${{ matrix.route }}/*.json
+            /tmp/p3_native_${{ matrix.route }}/*.npz
+            /tmp/p3_native_${{ matrix.route }}/*.txt
+          retention-days: 30
+          if-no-files-found: warn
+  aggregate:
+    name: Crosscheck native path H/tau and publish results or truthful FAIL record
+    needs: [smoke,full]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Sparse checkout aggregate source only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          printf '/research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_aggregate.py\n' >.git/info/sparse-checkout
+          git checkout --detach FETCH_HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install independent numerical crosscheck
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Download immutable native smoke and full artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p3_native_downloads/smoke /tmp/p3_native_aggregate "$DLP_FIXED_PILOT"
+          gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+             --name "p3-native-smoke-${GITHUB_RUN_ID}" \
+             --dir /tmp/p3_native_downloads/smoke || echo "Smoke artifact not accessible; explicit fail-closed aggregation"
+          for route in R2 R4 R5; do
+            mkdir -p "/tmp/p3_native_downloads/$route"
+            gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+              --name "p3-native-route-${route}-${GITHUB_RUN_ID}" \
+              --dir "/tmp/p3_native_downloads/$route" || echo "No $route native artifact; recorded as unavailable"
+          done
+          gh run download 41389798998 --repo myoungsunk/sionna-resimulation \
+            --name dlp-p3-outcome-blind-preflight-41389798998 --dir "$DLP_FIXED_PILOT"
+      - name: Recompute all actual native RT observations from preserved H and delays
+        shell: bash
+        env:
+          DLP_P3_ARTIFACTS: /tmp/p3_native_downloads
+          DLP_P3_AGG_OUT: /tmp/p3_native_aggregate
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_native_aggregate.py \
+            2>&1 | tee /tmp/p3_native_aggregate/P3_RT_AGGREGATE_LOG.txt
+          RC=${PIPESTATUS[0]}
+          python - <<'PY'
+          import hashlib,json,pathlib,datetime,os
+          p=pathlib.Path('/tmp/p3_native_aggregate')
+          files=[]
+          for f in sorted(p.iterdir()):
+            if not f.is_file() or f.name=='P3_NATIVE_RT_MANIFEST.json':continue
+            h=hashlib.sha256()
+            with f.open('rb') as reader:
+              for block in iter(lambda:reader.read(1048576),b''):h.update(block)
+            files.append(dict(name=f.name,size_bytes=f.stat().st_size,sha256=h.hexdigest()))
+          q=p/'P3_NATIVE_39_AGGREGATE_QA.json'
+          status=json.loads(q.read_text())['status'] if q.is_file() else 'BLOCKED_NO_QA'
+          m=dict(schema='DLP_P3_NATIVE_RT_APPEND_ONLY_OUTPUT_MANIFEST_V1',
+            status=status,original_run=os.getenv('GITHUB_RUN_ID'),pinned_preselected_plan_sha='efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61',
+            source_original_contract='DLP-EKF-GAPS-001/P3-V1',
+            original_proposer_commit='6652a12d92bec8cf54b1da9e029e1309f427ca2b',
+            native_rt_real_solver=True,hardware_measurement=False,independent_scene_n=1,
+            output_files=files,utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+          (p/'P3_NATIVE_RT_MANIFEST.json').write_text(json.dumps(m,indent=2)+'\n')
+          print('P3_NATIVE_AGG_MANIFEST',status,'n',len(files),flush=True)
+          PY
+          exit "$RC"
+      - name: Preserve all postrun verification and native archive even if blocked
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p3-native-final-${{ github.run_id }}
+          path: /tmp/p3_native_aggregate/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish exact original native H and path delay receipt in Git as non-LFS ZIP
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/p3_native_aggregate
+          test -s "$SRC/P3_NATIVE_39_AGGREGATE_QA.json" || { echo "No structured science receipt"; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          for f in P3_NATIVE_39_AGGREGATE_QA.json P3_NATIVE_RT_MANIFEST.json P3_RT_AGGREGATE_LOG.txt; do
+            test ! -s "$SRC/$f" || cp "$SRC/$f" "$D/"
+          done
+          for f in P3_NATIVE_C_39_CASE_RESULTS.csv P3_NATIVE_ROUTE_SUMMARY.json P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip; do
+            test ! -s "$SRC/$f" || cp "$SRC/$f" "$D/"
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "science(p3): preserve native Sionna C pilot outcome run ${GITHUB_RUN_ID}, conditional 39 pose"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+             push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"

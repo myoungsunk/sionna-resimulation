@@ -1,0 +1,164 @@
+{
+  "schema": "DLP_P3_RT_APPEND_ONLY_AMENDMENT_C0PLUS_V1",
+  "date_kst": "2026-11-02",
+  "status": "FROZEN_EXECUTION_PERMISSION_FOR_BOUNDED_NATIVE_RT_CANARY",
+  "original_p3_source_only_sha": "6652a12d92bec8cf54b1da9e029e1309f427ca2b",
+  "original_p3_contract_sha256": "24a5e0581c86a8b99659ebbea30b456fb79b6f4e88ee31860db04df85fafb588",
+  "original_p3_config_sha256": "49658dc5532e990a9f8bc0968f96b46ce236167244762cbc817092ff34ce3fc8",
+  "original_p3_source_only_run_id": 41390364274,
+  "preselected_pilot_run_id": 41389798998,
+  "preselected_plan_sha256": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61",
+  "actual_original_bank": {
+    "LP_plus45_bank_npz_sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "LP_minus45_bank_npz_sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "runner_env": {
+    "python": "3.11",
+    "numpy": "1.26.4",
+    "scipy": "1.14.1",
+    "sionna_rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1",
+    "mitsuba_variant": "llvm_ad_mono_polarized",
+    "runner": "ubuntu-24.04",
+    "threads": 1,
+    "gpu_required": false
+  },
+  "source_contract": {
+    "corridor_sionna_py_git_blob": "7029427a6a7bcfb9cc0f9a4837976d38143dbf6c",
+    "ffd_adapter_py_git_blob": "5c2ec96ba0e70ec5f9a657fca7bb172387b8922f",
+    "corridor_py_git_blob": "3571cb12face26d58fd8a273c191a128990cb27",
+    "solver_config_blob": "76befa2e8dc5c34f66dccad80c493b78e98a6620"
+  },
+  "scene": {
+    "interior_m": {
+      "length": 20,
+      "width": 2.4,
+      "height": 2.7
+    },
+    "robot_z_m": 0.45,
+    "new_C_xyz_m": [
+      16,
+      0.8,
+      2.65
+    ],
+    "orientation_world": "diag(1,-1,-1) for anchor; Rz(yaw) for robot",
+    "mesh_from": "Existing CorridorSetup.surfaces and corridor_sionna_run.build_scene; no change",
+    "materials": {
+      "floor": [
+        "concrete",
+        0.2
+      ],
+      "ceiling": [
+        "concrete",
+        0.2
+      ],
+      "wall_y_neg": [
+        "plasterboard",
+        0.0125
+      ],
+      "wall_y_pos": [
+        "plasterboard",
+        0.0125
+      ],
+      "end_x_min": [
+        "concrete",
+        0.2
+      ],
+      "end_x_max": [
+        "concrete",
+        0.2
+      ]
+    }
+  },
+  "rf": {
+    "frequency_hz_start": 6250400000,
+    "bin_step_hz": 1950000,
+    "n_bins": 257,
+    "H_layout": "[frequency,receiver(+45,-45),transmitter(+45,-45)]",
+    "selected_tx_index": 0,
+    "s_definition": "(P_plus - P_minus)/(P_plus + P_minus)",
+    "fp_detector": "Hann symmetric N-1; IFFT with 4*257=1028; common first 30%-leading-edge of strongest RX",
+    "source_model": "P3_SOURCE_ONLY_H_39_POSES.npy is comparison reference only, never a substitute for native PathSolver",
+    "solver_full": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": true,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    },
+    "solver_los": {
+      "max_depth": 0,
+      "los": true,
+      "specular_reflection": false,
+      "refraction": false
+    },
+    "native_path_definition": "Saved per-frequency paths.tau, path counts. No interpolation or omitted paths.",
+    "receiver_mount_deg": 0
+  },
+  "bounded_work": {
+    "smoke": [
+      {
+        "route": "R2",
+        "pose_id": 411
+      },
+      {
+        "route": "R4",
+        "pose_id": 371
+      },
+      {
+        "route": "R5",
+        "pose_id": 706
+      }
+    ],
+    "full_pilot_routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "pilot_poses_per_route": 13,
+    "per_pose_solver_calls": 514,
+    "smoke_solver_calls": 1542,
+    "full_solver_calls": 20046,
+    "workload_limit_total_calls": 21588,
+    "job_timeout_minutes": {
+      "smoke": 50,
+      "full_route": 95,
+      "aggregation": 25
+    },
+    "auto_expand_only_if_smoke": "PASS",
+    "on_failure": "STOP and publish failure ledger; never silently use Source-only as Native",
+    "no_new_pose": true,
+    "no_new_scene": true,
+    "no_p4_or_ekf": true,
+    "further_full_route_rf_not_authorized": true
+  },
+  "metrics_and_gates": {
+    "source_vs_native_los_complex_max_relative": 0.0005,
+    "native_los_path_counts_min": 1,
+    "full_path_counts_min": 1,
+    "los_propagation_delay_max_abs_s": 1e-12,
+    "max_source_vs_los_signed_s_abs": 0.00002,
+    "max_source_vs_los_first_tap_mismatch": 0,
+    "max_observer_recompute_s_abs": 1e-10,
+    "max_observer_recompute_r_m": 1e-10,
+    "min_power_strict_positive": true,
+    "all_39_sample_ids_exact": true,
+    "surface_mesh_SHA_compare_original": true,
+    "full_vs_los_s_error": "MEASURE_ONLY_NO_IMPROVEMENT_TARGET",
+    "failure_behavior": "Any mismatch produces FAIL ledger and stops next expansion; retains raw data and log."
+  },
+  "approvals": {
+    "user": "User explicitly requests execution of the previously specified four-step Native Sionna RT plan in this conversation",
+    "scope": "3-pose Native LoS/Full canary then 39 predetermined pose expansion gated by smoke",
+    "human_scientific_peer_auditor": "NOT_ASSIGNED",
+    "computational_audit": "Different GitHub Actions jobs perform executable checks, but same ChatGPT author identity.",
+    "claims": "One existing Corridor environment with modelled ray paths, not measurements, not new holdout; P4 still requires separate authorization."
+  }
+}

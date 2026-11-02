@@ -1,0 +1,18 @@
+{
+  "schema": "DLP_P3_NATIVE_RT_SOURCE_HASH_BINDING_ERRATA_V1",
+  "date_kst": "2026-11-02",
+  "source_amendment": "P3_NATIVE_RT_APPEND_ONLY_AMENDMENT_V1.json",
+  "corrected_field": "source_contract.corridor_py_git_blob",
+  "previous_placeholder_incorrect": "3571cb12face26d58fd8a273c191a128990cb27",
+  "actual_source_path": "src/qclean_uwb/scenarios/corridor.py",
+  "actual_git_blob": "eba1ab64d5e2117bfd519ceb5cac077b24caf3f8",
+  "reason": "Earlier value belonged to another historical observer module, not the repo's canonical source corridor geometry. Corrected before any native RT execution or generated RF observation; original amendment remains intact.",
+  "unchanged_values": [
+    "new C (16,0.8,2.65)",
+    "same native max_depth=3",
+    "source bank files and hashes",
+    "same 39 pilot poses and 3 smoke poses",
+    "all numerical thresholds"
+  ],
+  "authority": "Append-only manifest correction; run must verify canonical source Git blob of actual imported module against this errata."
+}
