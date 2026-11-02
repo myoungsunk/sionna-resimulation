@@ -1,0 +1,218 @@
+name: DLP P4 Frozen native C three-anchor sparse full-timeline 4state pilot
+on:
+  push:
+    branches: ['research/dual-lp-p4-3anchor-pilot-20261102']
+    paths:
+      - '.github/workflows/dlp-p4-sparse-native-experiment.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_sparse_ekf.py'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_postrun_verify.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  OPENBLAS_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+  P4_BANKS: /tmp/p4_physical_banks
+jobs:
+  route:
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [R2,R4,R5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    name: P4 7arm recursive filter with 13 actual C epochs on ${{ matrix.route }}
+    steps:
+      - name: Exact sparse source checkout; original P1 A/B RF + existing P3 C Native
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/**
+          /research/DUAL_LP_PAPER_GAP_20261030/audits/P4_20261102/pre_run_41404548292/P4_PRE_RUN_AUDIT.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_39_AGGREGATE_QA.json
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_CASE_RESULTS.csv
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P3_NATIVE_SIONNA_RT_41395666117/P3_NATIVE_C_39_RAW_H_TAU_PATHS.zip
+          /research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_41315429738/P2_ALL_28_TRACES_IMMUTABLE.zip
+          /research/EKF4_RANGE_S_STAGED_20261014/**
+          /research/FFD_P0P3_20261016/**
+          /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**
+          /research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+          LIST
+          git checkout --detach FETCH_HEAD
+          python - <<'PY'
+          import pathlib,json
+          lock=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          data=json.loads(lock.read_text())
+          paths=pathlib.Path('.git/info/sparse-checkout').read_text().splitlines()
+          for case in data['primary_cases']:
+            if case['case_id'] in [r+'_a'+a+'_m0' for r in ('R2','R4','R5') for a in ('A','B')]:
+              paths.extend('/'+case[f] for f in ('full_path','los_path','samples_path'))
+          paths.extend('/'+x['path'] for x in data['base_assets'] if x['kind']=='TIMELINE_TNONE')
+          pathlib.Path('/tmp/p4_sparse_paths').write_text('\n'.join(sorted(set(paths)))+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p4_sparse_paths
+          test -s research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P4_20261102/P4_PILOT_FROZEN_RATIFICATION.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Pin original P2 numpy numeric runtime and syntax check
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.3
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_sparse_ekf.py
+      - name: Retrieve physical verified real FFD banks for joint SourceFFD arm
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$P4_BANKS" /tmp/p4_route
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$P4_BANKS"
+      - name: Run exact original P2 controls for DR4 R4 J4 AB ABC and two packet budgets
+        shell: bash
+        run: |
+          set -uo pipefail
+          R='${{ matrix.route }}'
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_sparse_ekf.py \
+            --route "$R" --mode pilot --out "/tmp/p4_route/$R" \
+            2>&1 | tee "/tmp/p4_route/$R-run.log"
+          RC=${PIPESTATUS[0]}
+          mkdir -p "/tmp/p4_route/$R"
+          cp "/tmp/p4_route/$R-run.log" "/tmp/p4_route/$R/P4_ROUTE_LOG.txt"
+          exit "$RC"
+      - name: Preserve every generated trace even on numerical failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p4-native-route-${{ matrix.route }}-${{ github.run_id }}
+          path: /tmp/p4_route/${{ matrix.route }}/
+          retention-days: 30
+          compression-level: 6
+          if-no-files-found: warn
+  aggregate:
+    needs: route
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    name: P4 independent 84 trace/28 pooled metric and full posterior verifier
+    steps:
+      - name: Sparse checkout original independent EKF4 core and P4 verifier
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_postrun_verify.py
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json
+          /research/EKF4_RANGE_S_STAGED_20261014/core.py
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          a=json.loads(p.read_text())
+          with pathlib.Path('/tmp/p4_agg_sparse').open('w') as f:
+            f.write(pathlib.Path('.git/info/sparse-checkout').read_text())
+            for item in a['base_assets']:
+              if item['kind']=='TIMELINE_TNONE':f.write('/'+item['path']+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p4_agg_sparse
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Pin original arrays and verify scorer syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.3
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_postrun_verify.py
+      - name: Download each original route artifact and preserve on any missing route
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p4_route_inputs /tmp/p4_final
+          for route in R2 R4 R5; do
+            mkdir -p "/tmp/p4_route_inputs/$route"
+            gh run download "$GITHUB_RUN_ID" --repo myoungsunk/sionna-resimulation \
+               --name "p4-native-route-${route}-${GITHUB_RUN_ID}" \
+               --dir "/tmp/p4_route_inputs/$route" ||
+               echo "Route $route artifact missing; verifier must record BLOCKED"
+          done
+      - name: Recompute all 84 filter traces every time step and offline scores
+        shell: bash
+        env:
+          P4_ROUTES: /tmp/p4_route_inputs
+          P4_FINAL: /tmp/p4_final
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p4_runtime/p4_postrun_verify.py \
+            2>&1 | tee /tmp/p4_final/P4_POSTRUN_LOG.txt
+          RC=${PIPESTATUS[0]}
+          python - <<'PY'
+          import json,os,pathlib,hashlib,datetime
+          p=pathlib.Path('/tmp/p4_final')
+          outs=[]
+          for f in sorted(p.iterdir()):
+            if not f.is_file() or f.name=='P4_MANIFEST.json':continue
+            h=hashlib.sha256()
+            with f.open('rb') as g:
+              for b in iter(lambda:g.read(1<<20),b''):h.update(b)
+            outs.append(dict(name=f.name,size=f.stat().st_size,sha256=h.hexdigest()))
+          q=p/'P4_POSTRUN_QA.json'
+          state=json.loads(q.read_text())['status'] if q.is_file() else 'BLOCKED_MISSING_QA'
+          m=dict(schema='DLP_P4_SPARSE_NATIVE_PILOT_APPEND_ONLY_OUTPUT_MANIFEST_V1',
+            status=state,run_id=os.getenv('GITHUB_RUN_ID'),github_head=os.getenv('GITHUB_SHA'),
+            original_preapproved_input='DLP-EKF-GAPS-001/P4-PILOT-V1',
+            original_pre_run_audit=41404548292,
+            original_P3_native_rt=41395666117,original_simulated_corridor_scene_count=1,
+            no_hardware_packet_sync=True,no_39_to_3136_native_C_interpolation=True,
+            source_C_real_epoch_count=39,full_P4='BLOCKED_MISSING_3097_NATIVE_C_RF_EPOCHS',
+            outputs=outs,created_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+          (p/'P4_MANIFEST.json').write_text(json.dumps(m,indent=2)+'\n')
+          print('P4_MANIFEST',state,'outputs',len(outs),flush=True)
+          PY
+          exit "$RC"
+      - name: Upload all original evidence with no forced Git LFS conversion
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: p4-native-pilot-final-${{ github.run_id }}
+          path: /tmp/p4_final/
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Append-only commit P4 pilot result, never rewrite P1/P2/P3
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/p4_final
+          test -s "$SRC/P4_POSTRUN_QA.json" || { echo 'No result receipt'; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/runs/P4_NATIVE_SPARSE_PILOT_${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          for fname in P4_POSTRUN_QA.json P4_MANIFEST.json P4_POSTRUN_LOG.txt \
+                       P4_84_CASE_METRICS.csv P4_28_POOLED_METRICS.csv \
+                       P4_48_PAIRED_CONTRASTS.csv P4_ALL_12_FULL_TIMELINE_7ARM_NATIVE_SPARSE_TRACES.zip; do
+            test ! -s "$SRC/$fname" || cp "$SRC/$fname" "$D/"
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "science(p4): retain sparse 39-pose native 3anchor 4state simulation evidence ${GITHUB_RUN_ID}" || exit 0
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
