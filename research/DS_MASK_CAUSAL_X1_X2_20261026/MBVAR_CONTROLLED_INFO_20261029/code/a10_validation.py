@@ -59,6 +59,8 @@ def _sha_file(file):
 def _check_array_schema(key, a):
     """Fail closed against reshaping, little/big endian and nonfinite data."""
     a = np.asarray(a)
+    if a.ndim and any(n == 0 for n in a.shape):
+        raise ValueError("ERR_A010_ZERO_LENGTH_ARRAY " + key)
     if a.dtype.hasobject or a.dtype.kind not in "fiuU":
         raise ValueError("ERR_A010_ARRAY_DTYPE " + key)
     if a.dtype.kind in "fiu" and (not a.dtype.isnative or not np.isfinite(a).all()):
