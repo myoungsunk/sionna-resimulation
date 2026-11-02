@@ -336,7 +336,15 @@ def cmd_aggregate(shards, out):
     fs = sorted(glob.glob(str(Path(shards) / "**" / "C3V5_ROWS_*.csv"), recursive=True))
     C = pd.concat([pd.read_csv(f) for f in fs], ignore_index=True) if fs else pd.DataFrame()
     src = s1v5_dir(); D = pd.read_csv(src / f"S1V5_RESULTS_{SPLIT}.csv")
-    REC, receipt_load = load_receipts_with_stats(src); mat_xf = mat_cross_field_report(REC); del REC
+    REC, receipt_load = load_receipts_with_stats(src, strict=True)
+    mat_xf = mat_cross_field_report(REC)
+    field_equivalence = AV.covariance_equivalence(REC, expected_fields=lk["run_plan"]["S1V5"]["fields"])
+    pd.DataFrame(field_equivalence["details"]).to_csv(out / "A010_CROSS_FIELD_COV.csv", index=False)
+    del REC
+    law_paths = sorted(Path(shards).glob("**/C3V5_GENERATOR_LAW_*.json"))
+    laws = [json.loads(p.read_text()) for p in law_paths]
+    gen_law_pass = bool(laws and len(laws) == 2 * len(lk["run_plan"]["C3V5"]["fields"])
+                        and all(l.get("pass_") for l in laws))
     D = D[D.arm.astype(str).str.endswith("_BATCH") & (D.status == "OK")].set_index(["field", "role", "cell", "sensor_seed", "arm"])
     fields = lk["run_plan"]["C3V5"]["fields"]
     n_exp = len(fields) * len(M.SENSOR_SEEDS) * (2 * len(V.LH_CELLS) * 2 + 2 * (len(S0V2.REV_CELLS) * 2 + len(S0V2.XMODEL)))
@@ -355,7 +363,26 @@ def cmd_aggregate(shards, out):
                         d_NEES4_C10_rel=abs(r.nees4_C10-s.nees4_C10)/max(abs(s.nees4_C10),1e-300),
                         same_class_v31=r.class_v31 == s.class_v31, same_old_class=r.conv == s.conv))
     C = pd.concat([C, pd.DataFrame(cmp, index=C.index)], axis=1) if len(C) else C
+    # Reconstruct every 4x4 C10 in two independent receipts and check SPD/condition.
+    full_c10_checks = []
+    for _, rr in C.iterrows():
+        key = (rr.field, rr.role, rr.cell, rr.sensor_seed, rr.arm)
+        if not bool(rr.get("found", False)) or key not in D.index:
+            full_c10_checks.append(dict(pass_=False, full_C10_rel=np.inf,
+                                        condition_log10_delta=np.inf, nees4_rel=np.inf))
+            continue
+        full_c10_checks.append(AV.covariance_replay_check(rr, D.loc[key],
+                                  scaled_difference=full_c10_scaled_diff))
+    if len(C):
+        C["full_C10_spd_pass"] = [v["pass_"] for v in full_c10_checks]
+        C["c10_log10_cond_delta"] = [v.get("condition_log10_delta", np.inf) for v in full_c10_checks]
+        C["c10_source_eigmin"] = [v.get("source", {}).get("min_eigenvalue") for v in full_c10_checks]
+        C["c10_replay_eigmin"] = [v.get("replay", {}).get("min_eigenvalue") for v in full_c10_checks]
     C.to_csv(out / "C3V5_ROWS.csv", index=False, float_format="%.17g")
+    if len(C):
+        C[["field", "role", "cell", "sensor_seed", "arm", "d_P_full_C10_rel",
+           "d_NEES4_C10_rel", "full_C10_spd_pass", "c10_log10_cond_delta",
+           "c10_source_eigmin", "c10_replay_eigmin"]].to_csv(out / "A010_FULL_C10_REPRO.csv", index=False)
     allrows = bool(len(C) == n_exp and C.found.all()) if len(C) else False
     rf = C.INPUT_EXACT.astype(bool) if len(C) else pd.Series(dtype=bool)
     per_arm = C.groupby("arm").apply(lambda d: dict(n=len(d), frac_le_1dref=float((d.E_vs_best_dref <= TOL["stab1"]).mean()),
@@ -364,7 +391,7 @@ def cmd_aggregate(shards, out):
     xm = C[C.arm == "XMODEL_BATCH"] if len(C) else C
     nc = C[C.conv != "CONVERGED"] if len(C) else C
     crit = dict(
-        INPUT_REPRO=dict(pass_=bool(allrows and rf.all() and (C.d_z <= TOL["z"]).all() and (C[["d_ds", "d_gy", "d_x0"]].max(axis=1) <= TOL["ctl"]).all()
+        INPUT_REPRO_LEGACY_REPORTED=dict(pass_=bool(allrows and rf.all() and (C.d_z <= TOL["z"]).all() and (C[["d_ds", "d_gy", "d_x0"]].max(axis=1) <= TOL["ctl"]).all()
                                     and C.taps_equal.astype(bool).all() and C.pose_keys_equal.astype(bool).all()
                                     and (C[["d_sig_true_rel", "d_sig_model_rel"]].max(axis=1) <= TOL["fp_rel"]).all()),
                          max_z=float(C.d_z.max()), max_ctl=float(C[["d_ds", "d_gy", "d_x0"]].max().max()),
@@ -372,7 +399,7 @@ def cmd_aggregate(shards, out):
         STATE_COST_REPRO=dict(pass_=bool(allrows and (C.d_state_dref <= TOL["state_dref"]).all() and (C.d_cost <= TOL["cost"]).all() and C.same_best_k.all()),
                               max_state_dref=float(C.d_state_dref.max()), max_cost=float(C.d_cost.max()), n_best_k_diff=int((~C.same_best_k.astype(bool)).sum()),
                               raw_E_max_state_dref_REPORTED=float(C.d_stateE_dref.max()), raw_E_max_cost_REPORTED=float(C.d_costE.max())),
-        P_REPRO=dict(pass_=bool(allrows and (C.d_P_C10_rel <= TOL["P_rel"]).all()
+        P_REPRO_LEGACY_REPORTED=dict(pass_=bool(allrows and (C.d_P_C10_rel <= TOL["P_rel"]).all()
                                               and (C.d_P_full_C10_rel <= TOL["P_rel"]).all()
                                               and (C.d_NEES4_C10_rel <= TOL["P_rel"]).all()),
                       max_full_C10_rel=float(C.d_P_full_C10_rel.max()),
@@ -383,7 +410,7 @@ def cmd_aggregate(shards, out):
         NO_WRONG_BASIN=dict(pass_=bool(allrows and (C.gap_E <= TOL["basin"]).all()), max_gap=float(C.gap_E.max()), n_gt_1=int((C.gap_E > TOL["basin"]).sum()),
                             note="C* = min cost over E' and the 9 truth-free fixed starts (psi -3..+3 SD x7, x+1 SD, y+1 SD); "
                                  "the truth start is an ORACLE_ONLY diagnostic (truth_gap) and never enters C* (bounded search, not a global-optimum proof)"),
-        STATE_STABILITY_FIXED_REPORTED=dict(pass_=bool(allrows and all(v["frac_le_1dref"] >= TOL["stab_frac"] for v in per_arm.values()) and (C.E_vs_best_dref <= TOL["stab2"]).all()),
+        STATE_STABILITY_FIXED_LEGACY=dict(pass_=bool(allrows and all(v["frac_le_1dref"] >= TOL["stab_frac"] for v in per_arm.values()) and (C.E_vs_best_dref <= TOL["stab2"]).all()),
                                    per_arm=per_arm, d_ref=D_REF.tolist()),
         ITER_CAP=dict(pass_=bool(allrows and (nc.E300_vs_E_dref <= TOL["itercap_dref"]).all()), max_dref=float(C.E300_vs_E_dref.max()),
                       n_not_converged=int(len(nc))),
@@ -404,9 +431,50 @@ def cmd_aggregate(shards, out):
                                      n_ambiguous_best_start_only_legacy=int(((C.gap_E <= TOL["basin"]) & (C.E_vs_best_dref > TOL["stab2"])).sum()),
                                      claim_unique_map_allowed=False),
         rows=dict(pass_=allrows, n=int(len(C)), n_expected=n_exp))
-    gating = [k for k in crit if "REPORTED" not in k]
-    status = "PASS" if all(crit[k]["pass_"] for k in gating) else "FAIL"
-    res = dict(status=status, G5_science="MODE_AMBIGUITY_REQUIRES_REVIEW", science_release_allowed=False, gating=gating, criteria=crit, s1v5_run=src.name, tolerances=TOL,
+    # D3/D4: no suffix-based gate selection; all IDs explicitly registered.
+    criterion_input = crit["INPUT_REPRO_LEGACY_REPORTED"]
+    receipt_ok = bool(allrows and receipt_load["strict_index_verified"] and
+                      receipt_load["array_hashes_verified"] > 0 and len(C) and
+                      C.RECEIPT_ARRAY_EXACT.astype(bool).all() and
+                      C.TRUTH_ONLY_VERIFIED.astype(bool).all() and
+                      criterion_input["pass_"])
+    crit["RECEIPT_INTEGRITY"] = dict(pass_=receipt_ok, checked_input_arrays=receipt_load["array_hashes_verified"],
+                                        exact_estimator_rows=int(C.RECEIPT_ARRAY_EXACT.astype(bool).sum()) if len(C) else 0,
+                                        original_zip_and_index_sha_verified=True,
+                                        truth_only_replayed=bool(len(C) and C.TRUTH_ONLY_VERIFIED.astype(bool).all()),
+                                        note="Original S1V5 bytes used, not proof of the field's generating distribution")
+    crit["GENERATOR_LAW"] = dict(pass_=gen_law_pass, n_runner_law_receipts=len(laws),
+                                 source="independent closed-form full covariance and 180-pose Lhalf@Lhalf.T",
+                                 stochastic_field_distribution="REPORTED_ONLY, n=10 not a distribution proof")
+    crit["CROSS_FIELD_COV_EQUIVALENCE"] = dict(pass_=field_equivalence["pass_"],
+                                              n_groups=field_equivalence["n_groups"],
+                                              n_failed=field_equivalence["n_failed"],
+                                              delta_max=field_equivalence["delta_max"],
+                                              delta_F=field_equivalence["delta_F"],
+                                              tol=AV.COV_EQ_TOL)
+    c10_ok = bool(allrows and full_c10_checks and all(v["pass_"] for v in full_c10_checks)
+                  and crit["P_REPRO_LEGACY_REPORTED"]["pass_"])
+    crit["FULL_C10_REPRO"] = dict(pass_=c10_ok, n_checked=len(full_c10_checks),
+                                 worst_condition_log10_delta=max((v.get("condition_log10_delta", np.inf)
+                                                                  for v in full_c10_checks), default=None),
+                                 n_fail=sum(not v["pass_"] for v in full_c10_checks),
+                                 tol_log10_condition=AV.C10_COND_LOG_TOL)
+    # All historical 4D state-stability rows remain in the output; new modes are prospective.
+    crit["STATE_STABILITY_FIXED_LEGACY"]["historical_status"] = "PRESERVED_NOT_RETROACTIVE_PASS"
+    mode = AV.mode_identifiability(C.to_dict("records")) if len(C) else AV.mode_identifiability([])
+    C[["field", "role", "cell", "sensor_seed", "arm", "n_alt_ambiguous",
+       "E_vs_best_dref", "alt_ambiguous_starts"]].to_csv(out / "A010_MODE_IDENTIFIABILITY.csv", index=False) if len(C) else None
+    numeric = AV.gate_verdict(crit)
+    gating = numeric["gated"]
+    status = numeric["status"]
+    (out / "A010_RECEIPT_INTEGRITY.json").write_text(json.dumps(crit["RECEIPT_INTEGRITY"], indent=1))
+    (out / "A010_GENERATOR_LAW.json").write_text(json.dumps(dict(criteria=crit["GENERATOR_LAW"], detail=laws), indent=1))
+    (out / "A010_G5_MODE_IDENTIFIABILITY.json").write_text(json.dumps(mode, indent=1))
+    res = dict(status=status, G5_NUMERIC_REPLAY=numeric, G5_MODE_IDENTIFIABILITY=mode,
+               G5_science="MODE_IDENTIFIABILITY_SEPARATE_FROM_NUMERIC_REPLAY",
+               science_release_allowed=False, science_release="NO-GO_AUDIT_PENDING",
+               SOLVER_REPRO_CROSS_RUNNER="NOT_YET_VERIFIED",
+               gating=gating, criteria=crit, s1v5_run=src.name, tolerances=TOL,
                receipt_load=receipt_load, MAT_CROSS_FIELD_REPORTED=mat_xf,
                preserved=["C2 run 40871327417 FAIL", "C1 original-rule FAIL", "S1V2 DEV runs 40864089916 / 40867939262 FAIL",
                           "C3 run 40992589158 FAIL", "C3V4 run 41005158792 FAIL", "G5 FAIL",
@@ -417,7 +485,7 @@ def cmd_aggregate(shards, out):
     (out / "C3V5_STATUS.json").write_text(json.dumps(res, indent=1, default=float))
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
                       config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 10)] + [Wd.EXP / "contracts/AMENDMENT-010.md"],
-                      input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob("C3V5_*")),
+                      input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(list(out.glob("C3V5_*")) + list(out.glob("A010_*"))),
                       seed_ledger=None, verdict="NOT_EVALUATED", unit="mathematical_deterministic",
                       limitations=["technical reproducibility/convergence verification on DEV3 only", "SELF_REVIEW_ONLY"],
                       extra=dict(sub_phase="P2_C3V5", amendment="AMENDMENT-010"))
