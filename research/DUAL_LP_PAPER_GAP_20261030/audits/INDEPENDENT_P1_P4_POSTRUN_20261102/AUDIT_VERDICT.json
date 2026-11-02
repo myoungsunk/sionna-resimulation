@@ -1,0 +1,123 @@
+{
+  "schema": "DLP_EKF_P1_P4_INDEPENDENT_POSTRUN_AUDIT_VERDICT_V1",
+  "role": "AUDITOR",
+  "date_kst": "2026-11-02",
+  "contract_id": "DLP-EKF-GAPS-001",
+  "verdict": "ACCEPT_WITH_BOUNDARIES",
+  "audit_sha": "f583d1ce8af249f429702fcfe733269cf96f0bf9",
+  "governance_git_sha": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "subject_sha_audited": "e365b2f79eb86a3fd53d0d350f8e2d9364f285fe",
+  "actor": "GPT-6 separate audit conversation; newly authored independent numerical code run on original archived GitHub Actions artifacts; no proposer/implementer helper imports",
+  "independent_session_or_runner": "This distinct current audit session; original Actions artifacts downloaded into container, numerical Python independently executed",
+  "human_independent_signoff": false,
+  "independent_sionna_solver_rerun": false,
+  "run_id": {
+    "P1": 41300302082,
+    "P2": 41315429738,
+    "P2_recovery": 41388940715,
+    "P3_native": 41395666117,
+    "P4_pilot": 41405327966,
+    "P4_full_native_original": 41408877765,
+    "P4_native_reconstructed": 41435428514,
+    "P4_full_final": 41435839892
+  },
+  "artifacts": {
+    "P1": {
+      "artifact_id": 13080629296,
+      "rows": 19038,
+      "parity_rows": 14502,
+      "strata": 152,
+      "max_mean_rmse_cov_error": 2.220446049250313e-16,
+      "paired_keys": 9519,
+      "decision": "PASS"
+    },
+    "P2": {
+      "artifact_id": 13086748134,
+      "trace_npz": 28,
+      "recursion_slots": 87012,
+      "max_posterior_covariance_difference": 8.881784197001252e-16,
+      "max_NIS_difference": 2.842170943040401e-14,
+      "bad": 0,
+      "decision": "PASS"
+    },
+    "P3": {
+      "artifact_id": 13120533090,
+      "native_pose_n": 39,
+      "path_records": 640187,
+      "max_signed_H_to_z_diff": 3.885780586188048e-16,
+      "max_tau_d_over_c_error_s": 3.681698499432181e-15,
+      "decision": "PASS"
+    },
+    "P4_pilot": {
+      "artifact_id": 13123162095,
+      "native_C_pose_n": 39,
+      "case_rows": 84,
+      "sparse_only": true,
+      "decision": "PASS_WITH_PILOT_SCOPE"
+    },
+    "P4_full": {
+      "artifact_id": 13136462791,
+      "original_R2_source_artifact_id": 13136322401,
+      "original_R4_source_artifact_id": 13136411511,
+      "original_R5_source_artifact_id": 13134814511,
+      "original_native_pose_n": 3136,
+      "reused_old_P3_n": 39,
+      "generated_new_native_n": 3097,
+      "archive_sha256": {
+        "R2": "706811d5af4503fd310b598040419cc0ee63ec30ee8f1d26b764763575aa2e6f",
+        "R4": "93f9e9bd71ed045fdf8f8ad42886caeac0dc57add126efd986ec43b0a9fb0776",
+        "R5": "c65864473a685476708c77fea7031684577452acb50d0167e023dd0e229e2111",
+        "trace_12": "5ecf2a326ec17c8ce4ccc7a42fe76227ecf6ad7ec027df9cdfcd2304dcb0acfe"
+      },
+      "saved_path_tau_count": 51465535,
+      "full_unique_direct_bin_checks": 805952,
+      "max_tau_geom_s": 6.159437503265227e-15,
+      "max_signed_ratio_error": 8.881784197001252e-16,
+      "max_range_error_m": 0,
+      "max_stored_C_observation_to_EKF_input": 0,
+      "EKF_npz": 12,
+      "EKF_state_arm_timestep_slots": 87808,
+      "max_pred_error": 0,
+      "max_posterior_x_diff": 1.7763568394002505e-15,
+      "max_posterior_P_diff": 3.3306690738754696e-16,
+      "max_NIS_diff": 5.684341886080802e-14,
+      "negative_control_corruption_detected": true,
+      "case_rows": 84,
+      "pooled_rows": 28,
+      "contrast_rows": 48,
+      "max_pooled_RMSE_difference": 8.881784197001252e-16,
+      "max_paired_delta_difference": 0,
+      "decision": "PASS"
+    }
+  },
+  "math_checks": "P1 mean/cov ddof1, P2/P4 full x/P/innovation/gate/K/Joseph manually rederived, P3/P4 original H CFR→Hann-IFFT→first tap→range/s and τ d/c rederived, metrics+contrast recomputed",
+  "input_hashes_verified": "Original 3136 P4 C NPZ SHA, 39 original Native SHA, original P2 28 trace, P3 39, P4 source ZIP/trace ZIP; P1 source matched CSV; original A/B physical bank sha verification documented in frozen preaudit (not freshly rerun)",
+  "data_leakage": "No observed online ground-truth use by locked replay code; offline control generation and scoring use truth. One source scene and seed0 means no independent train/test scene inference.",
+  "unreported_exclusions": "No missing/invalid trace rows in audited p2/p3/p4 raw, P1 37 recorded FFD cell-switch boundary axis events retained; source_near_boundary flags 64 indicate different diagnostic.",
+  "matched_design_checks": "Three source routes R2/R4/R5 exact C0 keys, B0/L2 controls paired, all A/B/C simulated at matching epochs; packet count & cadence differences declared.",
+  "statistical_independence": "Exactly one Corridor, one seed0, time/pose correlation; not independent replicates, empirical nominal coverage not population CI",
+  "claim_overreach": "Full B0 DR4 0.4978355deg vs ABC 2.0886704deg (RF degrades); Full L2 ABC 2.3059343deg better than A range 13.8357451deg, uses triple range packet count; Full ABC nominal pose95 B0=0.0897245,L2=0.0822785 reveals severe overconfidence",
+  "required_remediation": [
+    "Authenticated human peer review if required",
+    "Independent RT solver reproduction across separate scene/seed if claiming physical generalization",
+    "Calibrate cross-anchor and time-correlated noise R before claiming posterior trustworthiness",
+    "Do not treat 2686 time steps as IID or equal packet energy"
+  ],
+  "allowed_claims": [
+    "P1 source/old LUT LoS parity and Full multipath residual characterization",
+    "P2 four-state scalar/joint full recursive comparison within C0",
+    "P3 39 Native C proof and P4 Full 3136 complete Native H→EKF",
+    "Full L2 ABC heading/XY improvement over A Range within this scene, together with Full B0 deterioration and severe overconfidence"
+  ],
+  "forbidden": [
+    "universal RF accuracy improvement",
+    "C0plus independent scene",
+    "real hardware clock synchronization",
+    "cross-anchor covariance calibrated",
+    "predictive 3D/M2 generalization"
+  ],
+  "postrun_science_status": "DESCRIPTIVE_SINGLE_SCENE_ONLY",
+  "source_data_modified": false,
+  "original_runs_modified": false,
+  "audit_scripts_provenance": "Separate local signed? NO: non-cryptographic SHA256 independent code/receipt package supplied in chat."
+}
