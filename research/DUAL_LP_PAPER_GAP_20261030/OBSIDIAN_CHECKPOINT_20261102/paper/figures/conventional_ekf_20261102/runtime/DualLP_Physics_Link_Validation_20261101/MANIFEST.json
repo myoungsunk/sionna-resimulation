@@ -1,0 +1,110 @@
+{
+  "package_name": "DualLP_Physics_Link_Validation_20261101",
+  "created_utc": "2026-11-01T14:32:11.783915+00:00",
+  "type": "NEW_RETROSPECTIVE_RECONSTRUCTION",
+  "user_request": "DualLP_Physics_Link_Validation_20261101.zip 다시 구현해서 만들어라 이전 결과랑 비교해",
+  "historical_original_archive_available": false,
+  "historical_original_commit_recovered": false,
+  "historical_claimed_commit": "1550335002367c656939bab4876675c612f0915c",
+  "source_repository": "myoungsunk/sionna-resimulation",
+  "source_old": "9bcd5da2fbadde626c9ff8cdc9ea940e6c980b13",
+  "source_evidence": "6c7200091028fd3f0e55aa83b777d0f10b7cf063",
+  "proposer_reference_commit": "43818124f39ad5ae20eb372d682dd2a63d8786bc",
+  "partial_preservation_parent": "20f4545ca5b462c1f8be4464607108f5fdc681fe",
+  "recovery_branch": "research/dual-lp-physics-rebuild-20261101",
+  "latest_recovery_commit": "632568ae79de36ad4d75d4e40e3e5628c1181e7d",
+  "recovery_actions_runs": [
+    41314309081,
+    41314489537,
+    41315483409
+  ],
+  "execution_location": "current conversation Linux container; GitHub Actions only recovered pinned inputs",
+  "source_filter_untouched": true,
+  "new_RT": 0,
+  "new_training": 0,
+  "new_seed_sweeps": 0,
+  "full_recursive_runs": 132,
+  "logical_comparisons": 144,
+  "cases": [
+    "R2_aB_m0",
+    "R4_aB_m0",
+    "R5_aB_m0"
+  ],
+  "biases": [
+    "B0",
+    "L0",
+    "L1",
+    "L2"
+  ],
+  "independent_physical_scenes": 1,
+  "audit": "SELF_REVIEW_ONLY",
+  "final_status_file": "QA.json",
+  "environment": {
+    "python": "3.13.5 (main, Jul 15 2026, 20:25:40) [GCC 14.2.0]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.41",
+    "packages": {
+      "numpy": "2.3.5",
+      "pandas": "2.2.3",
+      "scipy": "1.17.0",
+      "matplotlib": "3.10.8"
+    },
+    "blas_threads": 1,
+    "omp_threads": 1
+  },
+  "config_sha256": "a91f34dbcbd945d1377ab616026562b1381fe02cd5203842293a2949d8aabf98",
+  "input_lock_sha256": "4905898ea50a6a3ab09b53194d409824a0cb6f3167df0ac3d4686c9b1874a611",
+  "lineage_input_lock_sha256": "7b029e77fe0dcdcd74eb3e8c9e2fbbdc191525b52ba4711ca27ceb85618bb04e",
+  "implementation_sha256": {
+    "bootstrap.py": "47c4c85fe314c7789376e8587eb2ca1af1fabadcc9dbdf1ec9abd549572769b6",
+    "fetch_missing_inputs.py": "da3805419de69da1d2451e5d548557ba74d676416292b0c0b33b10eeee567aab",
+    "finalize_reports.py": "3fc2748552f0e237d6f9deb7ab6fb6100e594981ff2b04c98e950c5089b3d164",
+    "make_figures.py": "884150a566968175433c777b6e746f401e0dcfcc04845764764054f29d136de7",
+    "mean_lineage_validation.py": "cc9cbc29c0fee7858cd1d7effc49659fe9d60014e758a826f32ee2ff1e544db5",
+    "package_delivery.py": "edb9b9983b387a327e20adf3b6e2688cd080c2e220c15e1a3ea08bae0c9c2629",
+    "physics_validation.py": "9225e538cbfddd68180fb2b4eb398d8878cf8a37959bd6cc0894fd583ce72602",
+    "quality_and_comparison.py": "df4fb5f50daf0ae0993eec0f874d121cf4e5b08d82c0c07099fa9dce244bf252",
+    "replay_validation.py": "d073086861b7eeb5e514ac0f244be38b1fc128315270ab9f9675e9712e2bc960",
+    "reproduce.py": "c64248759d4afd4f87518be3e69106a93a362eebb80b4dad088a9ea36c8206e3",
+    "shadow_validation.py": "7eabe42cd38b66c0a8881c6175fbfb612a4106cc2c35ace33a7472529a1b90ec",
+    "trace_contract_checks.py": "66768d39ae819f8e7ed80a2aea500e60f0af1449c50c9e3eae49036eea254209",
+    "verify_package.py": "b4b09c37cfdc092fd3bf43e3d1547cd68800dbb687bd923d94a1ec21dcd8380e"
+  },
+  "exact_commands": [
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/replay_validation.py --workers 3",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/physics_validation.py",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/shadow_validation.py",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/quality_and_comparison.py",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/mean_lineage_validation.py",
+    "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 python code/trace_contract_checks.py",
+    "python code/make_figures.py",
+    "python code/finalize_reports.py"
+  ],
+  "packaging": {
+    "include": "all new results, code, RF, CONTROL, source dependency subset, lineage CSVs, proposer evidence",
+    "external": "two immutable FFD banks in companion ZIPs",
+    "ledger_format": "CSV.gz 17 significant digits and NPZ; no parquet engine installed",
+    "exclusions": [
+      "recovered/inputs/banks/LP_plus45_bank.npz",
+      "recovered/inputs/banks/LP_minus45_bank.npz",
+      "__pycache__",
+      "*.pyc",
+      "*_PID.txt"
+    ]
+  },
+  "reporting_tolerances": {
+    "historical_csv": "6 significant digits",
+    "previous_chat": "4 decimal places",
+    "CONTROL_XY_m": 1e-08,
+    "CONTROL_heading_rad": 1e-10,
+    "CONTROL_P_atol": 1e-10,
+    "CONTROL_P_rtol": 1e-09
+  },
+  "limitations": [
+    "Original full archive and old full traces unavailable",
+    "No independent pre/post auditor",
+    "V4 optional not run",
+    "V5 fresh inference missing model/scaler/folds",
+    "Single existing RF scene; not a new holdout test"
+  ],
+  "final_assembly_utc": "2026-11-01T14:33:16.832766+00:00"
+}

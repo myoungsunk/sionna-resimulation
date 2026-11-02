@@ -1,0 +1,61 @@
+from pathlib import Path
+import sys,json,hashlib,datetime,shutil,platform
+import numpy as np,pandas as pd,matplotlib
+out=Path(sys.argv[1]);root=Path(__file__).resolve().parent/'DualLP_Physics_Link_Validation_20261101';d=pd.read_csv(out/'THREE_STAGE_SCORES.csv')
+base=d[d.stage=='MULTIPATH_EKF'].set_index(['case','bias']);new=d[d.stage=='PROPOSED_MB_VAR'].set_index(['case','bias'])
+h=int((new.head_rmse<base.head_rmse).sum());x=int((new.xy_rmse_cm<base.xy_rmse_cm).sum());both=int(((new.head_rmse<base.head_rmse)&(new.xy_rmse_cm<base.xy_rmse_cm)).sum())
+lock=json.loads((root/'contracts/INPUT_LOCK.json').read_text());bad=[]
+for r in lock['files']:
+    p=root/'recovered'/r['path'];actual=hashlib.sha256(p.read_bytes()).hexdigest()
+    if actual!=r['sha256']:bad.append(r['path'])
+assert not bad
+gov=root/'recovered/governance/docs/research-governance'
+record=dict(input_lock_checked=len(lock['files']),mismatch=bad,heading_improved_conditions=h,xy_improved_conditions=x,both_improved_conditions=both,total_conditions=12,numpy=np.__version__,pandas=pd.__version__,matplotlib=matplotlib.__version__,archived_governance_scope='MBVAR-INFO experiments only, not this new retrospective replay; local COMMON_CONTRACT file hashes recorded in CONTRACT.json',archived_governance_sha='250d617ad89a4105fa1af546cc83ceed9de98f42',archived_governance_hashes={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in gov.glob('*.md')})
+(out/'RESULT_CHECKS.json').write_text(json.dumps(record,indent=2),encoding='utf-8')
+rows=['|경로|LoS 일반 EKF|다중경로 일반 EKF|다중경로 제안 모델|','|---|---:|---:|---:|']
+for r in ['R2','R4','R5']:
+    v=[d[(d.route==r)&(d.bias=='B0')&(d.stage==s)].iloc[0] for s in ['LOS_EKF','MULTIPATH_EKF','PROPOSED_MB_VAR']]
+    rows.append('|'+r+'|'+'|'.join(f'{a.head_rmse:.3f}° / {a.xy_rmse_cm:.2f} cm' for a in v)+'|')
+text='''# 무보정 일반 EKF 3단계 비교 — 2026-11-02
+
+질문 ID: `DLP-CONVENTIONAL-THREE-STAGE-20261102`. 기존 초안과 원본 그림은 보존했다. GitHub 확인 범위의 기존 BB_ORIG는 무보정 기준선이 아니며, 첨부 LOS 결과도 BB 공분산을 재사용했다. 이번에 무보정 LOS·Full을 24회 계산하고 기존 제안 모델 12조건과 비교했다.
+
+순서: **LoS 일반 EKF → 다중경로 일반 EKF → 다중경로 제안 모델(MB_VAR)**.
+
+## 설정과 검증
+
+- 일반 EKF: 평균 보정 벡터 0, 추가분산 0, 고정 `R0=diag(0.0068578637 m², 0.0081)`; SourceFFD 관측식, 4상태, 기존 Q·초기 상태·공분산·sensor seed 0 유지.
+- 모든 방법에 공통인 원시 거리 관측식의 고정 오프셋 `-0.5315983906250129 m`는 유지했다. 따라서 무보정은 BB/MB 다중경로 평균 보정과 적응·추가 공분산을 제거했다는 뜻이다. 거리 관측식의 공통 기준까지 제거한 실험은 아니다.
+- Anchor B `(10,0,2.65) m`, robot 높이 `0.45 m`, mount 0°, R2/R4/R5 × B0/L0/L1/L2(0/0.01/0.05/0.20 deg/s). RF 관측에는 추가 합성 잡음을 넣지 않았다.
+- self NIS gate `9.210340371976184`, 평가 구간 `t≥30 s`의 모든 시점. 거부된 관측 시점도 RMSE에 포함했다. 각 방법의 수용 여부는 달라질 수 있다.
+- 기존 BB_ORIG·MB_VAR B0 6개 궤적의 X/P/R 수치 일치와 수용 mask 완전 일치를 확인했다. 원본 입력 잠금 108개 파일의 SHA-256이 일치했다. 전체 36개 조건·방법 조합에 누락·중복·비유한 상태가 없다.
+- 이번 검사는 동일 에이전트의 자기 검사다. 독립 감사나 신규 환경 검증은 아니다. 원본의 packet별 frozen MB 평균과 분산표는 재학습하지 않고 그대로 사용했다.
+
+## 결과
+
+각 셀은 **방위각 RMSE / 위치 RMSE**, B0 조건이다.
+
+'''+ '\n'.join(rows)+f'''
+
+다중경로 일반 EKF 대비 제안 모델의 방위각 RMSE 감소는 {h}/12, 위치 RMSE 감소는 {x}/12, 두 지표 동시 감소는 {both}/12이다. R4에서는 제안 모델의 방위각 RMSE가 더 크다. 경로와 지표에 따른 차이를 숨기지 않는다.
+
+이 비교는 하나의 기존 시뮬레이션 환경을 재생한 결과다. 세 경로·네 자이로 조건은 독립 환경 12개가 아니다. LoS는 직접경로 반사실 참조이며 실제 현장에서 측정된 다중경로 제거 성능을 뜻하지 않는다. 기존 제안 모델의 frozen packet별 평균은 이 비교만으로 배포 가능한 온라인 추정이라고 주장할 수 없다.
+
+## 그림
+
+IEEE 2단 폭 7.16 inch, Times New Roman 8–9 pt, 글꼴 포함 벡터 PDF/SVG 및 600 dpi PNG. 색과 선형/마커 또는 해칭을 함께 사용했다. 그림 내부 제목을 제거하고 캡션을 본문 밖에 둔다.
+
+1. `F01_B0_THREE_STAGE_IEEE`: B0 방위각·위치 RMSE 비교. 캡션: 동일한 주행·센서·초기화 조건에서 직접경로 일반 EKF, 다중경로 일반 EKF, 다중경로 제안 모델의 방위각 및 위치 RMSE. 직접경로 및 일반 EKF에는 다중경로 평균 보정과 추가분산이 적용되지 않았다.
+2. `F02_ALL12_GYRO_SENSITIVITY_IEEE`: 세 경로의 자이로 바이어스별 RMSE, 전체 12조건.
+3. `F03_B0_TIME_10S_RMSE_IEEE`: B0, 10초 구간별 RMSE. 마지막 구간의 표본 수는 다를 수 있으며 CSV에 기록했다.
+4. `F04_B0_DISTANCE_RMSE_IEEE`: B0, 참값 수평 앵커 거리별 RMSE. 빈 구간은 연결·보간하지 않고 비워 두었다. 거리 구간별 표본 수는 CSV에 기록했다. 시간·방위각 등 동반 변수가 있으므로 거리만의 인과효과를 뜻하지 않는다.
+
+계약·입력 해시·실행 QA·재현 오차·전 시점 오차·조건별 성능과 그림 입력 표를 같은 폴더에 보존했다. 원본 ZIP/기존 IEEE 재작성 결과를 덮어쓰지 않았다.
+'''
+(out/'README_KO.md').write_text(text,encoding='utf-8')
+(out.parent.parent/'무보정 일반 EKF 3단계 비교 - 2026-11-02.md').write_text(text+'\n![[figures/conventional_ekf_20261102/F01_B0_THREE_STAGE_IEEE.png]]\n',encoding='utf-8')
+log=Path('C:/Users/Myoungsun Kim/.codex/managed-processes/runs/2e1a764f-26d4-4e7c-a0d4-dc1fb4c9eee2')
+for n in ['stdout.log','stderr.log']:shutil.copy2(log/n,out/('REPLAY_'+n))
+shutil.copy2(Path(__file__),out/'record_result.py')
+(out/'OUTPUT_HASHES.json').write_text(json.dumps({p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in out.iterdir() if p.is_file() and p.name!='OUTPUT_HASHES.json'},indent=2),encoding='utf-8')
+print(json.dumps(record));print('\n'.join(rows))

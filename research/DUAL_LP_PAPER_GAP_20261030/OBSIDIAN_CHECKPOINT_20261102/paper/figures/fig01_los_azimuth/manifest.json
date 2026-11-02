@@ -1,0 +1,92 @@
+{
+  "question_id": "FIG-LOS-AZIMUTH-001",
+  "role": "IMPLEMENTER",
+  "scope": "Manuscript figure; deterministic direct-only SourceFFD evaluation, no RT or EKF performance runs",
+  "source_repo": "myoungsunk/sionna-resimulation",
+  "source_branch": "writing/dual-lp-paper-physical-observation-model-results-20261102",
+  "source_commit": "61475a1f12071cb0fcdbd62a728d833f1d6732b5",
+  "governance_note": "Repository governance is scoped to MBVAR-INFO, outside this figure task. Local COMMON_CONTRACT + IMPLEMENTER used.",
+  "case": {
+    "anchor": [
+      10.0,
+      0.0,
+      2.65
+    ],
+    "robot_z_m": 0.45,
+    "mount_deg": 0.0
+  },
+  "robot_xy_m": [
+    10,
+    0
+  ],
+  "incidence_angle_deg": 0.0,
+  "revision": "on_axis_v2",
+  "previous_revision": "revisions/off_axis_v1",
+  "yaw_deg": [
+    0,
+    360,
+    2
+  ],
+  "frequencies_hz": [
+    6250400000.0,
+    6749600000.0,
+    1950000.0
+  ],
+  "noise": null,
+  "channel": "direct-only SourceFFD, not measured data or a new Sionna RT run",
+  "inputs": [
+    {
+      "path": "D:\\codex\\raytracing_modules\\rt_cp_uwb\\results\\RF_DELIVERY_RECOVERY_20261019_R01\\BANKS\\LP_plus45_bank.npz",
+      "sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "github_path": "LP_plus45_bank.npz"
+    },
+    {
+      "path": "D:\\codex\\raytracing_modules\\rt_cp_uwb\\results\\RF_DELIVERY_RECOVERY_20261019_R01\\BANKS\\LP_minus45_bank.npz",
+      "sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+      "github_path": "LP_minus45_bank.npz"
+    }
+  ],
+  "checks": {
+    "samples": 181,
+    "s_min": -0.9536179251281631,
+    "s_max": 0.999994943783358,
+    "periodic_s_error": 0.0,
+    "separate_field_implementation_max_abs_H": 6.198621156647095e-16,
+    "finite_and_domain": true,
+    "text_within_canvas": true,
+    "pdf_width_in": 3.5,
+    "pdf_fonts_embedded": true
+  },
+  "format": {
+    "width_in": 3.5,
+    "height_in": 3.65,
+    "font": "Times New Roman",
+    "text_pt": "9-10",
+    "png_dpi": 600,
+    "pdf": "vector; embedded TrueType fonts",
+    "caption": "outside graphic"
+  },
+  "timestamp": "2026-11-02T02:52:55.054135+00:00",
+  "command": "python build_figure.py",
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4",
+  "matplotlib": "3.11.1",
+  "review": "SELF_CHECK_ONLY; no independent audit or scientific adoption",
+  "governance_sha256": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "files": {
+    "build_figure.py": "b5de19f093db4d3ce69cf540a947b6b3c19cdc45fb363caf35a68d0b62908a26",
+    "fig01_los_azimuth.pdf": "4f91e3734a71d634333a75f47889b6559af297d38dc4b801e3f35b3320fdd62e",
+    "fig01_los_azimuth.png": "4f1dca133ff63c8f9b7b51ef614040fe97809c495488e8aa55ed039d2f380613",
+    "fig01_los_azimuth.svg": "ab8c81cf924e265dcdc96644db1dbe81bdef655f929ca5a91d0f9191174ea7c5",
+    "fig01_los_azimuth_data.csv": "774ae3a1686cfd9060ec7a539f5a18dfc6715097c2b07cced4a6d7013ef380ff",
+    "pdf_preview.png": "8a43e16835160b01db35ba817f53aa0437b39c0935a29ec3945632c60ae2b5be",
+    "source\\observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+    "source\\p0_initial_reference.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+    "source\\pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+    "source\\SOURCE_BANK_RECEIPT.json": "ab3af157b455a14178057911a249188b4859d9c0e2b3311919299d7716638788",
+    "source\\source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3"
+  }
+}

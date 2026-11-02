@@ -1,0 +1,48 @@
+{
+  "question_id": "DLP-LUT-SOURCEFFD-COMPARE-20261102",
+  "role": "AUDITOR; self-check, not independent audit",
+  "scope": "Same-state forward observation and analytic Jacobian evaluation only; no estimator replay, RT, tuning, manuscript edit or adoption",
+  "cases": [
+    "R2_aB_m0",
+    "R4_aB_m0",
+    "R5_aB_m0"
+  ],
+  "states": "all archived B0 truth poses; offline diagnostic only",
+  "checks": [
+    "bank SHA matches original runtime loader",
+    "runtime/recovered source copies match",
+    "SourceFFD prediction and Jacobian match archived packet ledger",
+    "same range row",
+    "frozen LUT knots vs original direct generator",
+    "finite differences at sampled poses; exclude no branches silently",
+    "input hashes unchanged"
+  ],
+  "diagnostic_decomposition": "LUT -> original direct 10m -> original direct actual distance -> SourceFFD actual distance; signed deltas telescope",
+  "allowed_claim": "Numerical equivalence or difference on tested states; no filter performance or broad model superiority conclusion",
+  "input_hashes": {
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\compare_lut_sourceffd_20261102.py": "86201298b7f2223ced76aac62c02b24595e8c97c82a502787b300de33f54dcea",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\anchor_b_8arm\\repo\\results\\DRIVE_SIM_HEADING_SENSOR_V2_20261010\\RUN_01a124ff\\LUT\\hs_lut_2deg.npy": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\anchor_b_8arm\\repo\\results\\DRIVE_SIM_HEADING_SENSOR_V2_20261010\\RUN_01a124ff\\LUT\\hs_lut_meta.json": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\repo\\research\\FFD_P0P3_20261016\\source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\repo\\research\\FFD_P0P3_20261016\\p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\anchor_b_8arm\\repo\\research\\EKF4_RANGE_S_STAGED_20261014\\p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\repo\\research\\EKF4_RANGE_S_STAGED_20261014\\p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\legacy\\research\\DS_MASK_CAUSAL_X1_X2_20261026\\reflect_model\\common.py": "7371c3f7effb3daad61114e35691fb8807cd7632c1472a73b9032400a912209d",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\repo\\results\\DRIVE_SIM_HEADING_SENSOR_V2_20261010\\RUN_01a124ff\\source\\src\\qclean_uwb\\drivesim\\hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\repo\\results\\DRIVE_SIM_HEADING_SENSOR_V2_20261010\\RUN_01a124ff\\source\\src\\qclean_uwb\\drivesim\\observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+    "C:\\Users\\Myoungsun Kim\\Obsidian Vault\\03_Research\\EKF\\2026-11-01 논문 초안\\figures\\three_stage_package_20261102\\DualLP_ThreeStage_Physics_20261102\\tables\\PHYSICAL_LOS_FULL_PACKET_3136.csv": "87de835665d854694361294c4daf19914c43193551a8014a46a8d1f683578f3e",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\banks\\LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "C:\\Users\\Myoungsun Kim\\dlp1102\\DualLP_Physics_Link_Validation_20261101\\recovered\\inputs\\banks\\LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9",
+    "C:\\Users\\Myoungsun Kim\\Obsidian Vault\\03_Research\\EKF\\2026-11-01 논문 초안\\figures\\three_stage_package_20261102\\DualLP_ThreeStage_Physics_20261102\\tables\\R2_aB_m0_B0_LOS_ZERO_MEAN.npz": "8845008b22e756296fffdf80005b37f8e5071e1a5c2195dde393ddbe452bdf68",
+    "C:\\Users\\Myoungsun Kim\\Obsidian Vault\\03_Research\\EKF\\2026-11-01 논문 초안\\figures\\three_stage_package_20261102\\DualLP_ThreeStage_Physics_20261102\\tables\\R4_aB_m0_B0_LOS_ZERO_MEAN.npz": "a5c337a4a0928770b4bc5d898a99c36e8c851631fb3bd306bfc7c7ca07e0c5db",
+    "C:\\Users\\Myoungsun Kim\\Obsidian Vault\\03_Research\\EKF\\2026-11-01 논문 초안\\figures\\three_stage_package_20261102\\DualLP_ThreeStage_Physics_20261102\\tables\\R5_aB_m0_B0_LOS_ZERO_MEAN.npz": "2a6fa499a666f750d324ee8beb73a4ca29db8056c3d2473558bf7996a1d02c4a",
+    "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_AUDITOR.md": "e1bdc2f231c71cdc27201c688e041b078576a6adf6c0290acc16ce4d8218291a"
+  },
+  "runtime_copy_parity": {
+    "research/FFD_P0P3_20261016/source_model.py": true,
+    "research/FFD_P0P3_20261016/p0_initial.py": true,
+    "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": true
+  },
+  "started_utc": "2026-11-02T08:16:03.104087+00:00"
+}
