@@ -1,0 +1,137 @@
+name: DLP P3 FROZEN source-only noncollinear third-anchor C canary
+on:
+  push:
+    branches: ['research/dual-lp-p3-frozen-source-canary-20261102']
+    paths:
+      - '.github/workflows/dlp-p3-source-canary.yml'
+      - 'research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_source_direct_canary.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  DLP_P3_BANK_DIR: /tmp/dlp_p3_banks
+  DLP_P3_PREFLIGHT: /tmp/dlp_p3_verified_preflight
+  DLP_P3_OUT: /tmp/dlp_p3_result
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+jobs:
+  source-canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Sparse checkout unchanged original C0 and pinned P3 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+          /research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/**
+          /research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 - <<'PY'
+          import json,pathlib
+          p=pathlib.Path('research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json')
+          d=json.loads(p.read_text())
+          pat=['/research/DUAL_LP_PAPER_GAP_20261030/contracts/**',
+               '/research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/**',
+               '/research/FFD_P0P3_20261016/**',
+               '/research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py',
+               '/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**',
+               '/research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json']
+          pat+=['/'+x['path'] for x in d['base_assets']]
+          pat+=['/'+x['path'] for x in d['locked_source_code']]
+          pathlib.Path('/tmp/p3_sparse').write_text('\n'.join(sorted(set(pat)))+'\n')
+          PY
+          git sparse-checkout set --no-cone --stdin </tmp/p3_sparse
+          test -s research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P3_20261102/P3_FROZEN_SOURCE_ONLY_RATIFICATION.json
+          test -s results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install pinned FFD array tools and compile check
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.3
+          python -m py_compile research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_source_direct_canary.py
+      - name: Stage original physical banks and prior fixed auditor pilot plan
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_P3_BANK_DIR" "$DLP_P3_PREFLIGHT" "$DLP_P3_OUT"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$DLP_P3_BANK_DIR"
+          gh run download 41389798998 --repo myoungsunk/sionna-resimulation \
+            --name dlp-p3-outcome-blind-preflight-41389798998 \
+            --dir "$DLP_P3_PREFLIGHT"
+          test -s "$DLP_P3_PREFLIGHT/P3_PRE_RUN_AUDIT.json"
+          test -s "$DLP_P3_PREFLIGHT/P3_FROZEN_PILOT_SELECTION_PLAN.json"
+          sha256sum "$DLP_P3_PREFLIGHT/P3_PRE_RUN_AUDIT.json" "$DLP_P3_PREFLIGHT/P3_FROZEN_PILOT_SELECTION_PLAN.json"
+      - name: Execute P3 ONLY source-direct FFD field and detector canary
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -u research/DUAL_LP_PAPER_GAP_20261030/p3_runtime/p3_source_direct_canary.py \
+            2>&1 | tee "$DLP_P3_OUT/P3_SOURCE_CANARY_LOG.txt"
+          RC=${PIPESTATUS[0]}
+          python - <<'PY'
+          import json,hashlib,os,pathlib,platform,datetime
+          p=pathlib.Path(os.environ['DLP_P3_OUT'])
+          entries=[]
+          for f in sorted(p.iterdir()):
+            if not f.is_file() or f.name=='P3_MANIFEST.json':continue
+            h=hashlib.sha256()
+            with f.open('rb') as fp:
+              for b in iter(lambda:fp.read(1<<20),b''):h.update(b)
+            entries.append(dict(name=f.name,size_bytes=f.stat().st_size,sha256=h.hexdigest()))
+          qa=p/'P3_SOURCE_ONLY_EXECUTION_QA.json'
+          status=json.loads(qa.read_text())['status'] if qa.exists() else 'BLOCKED_NO_CANARY_QA'
+          z=dict(schema='DLP_P3_SOURCE_ONLY_CANARY_MANIFEST_V1',status=status,
+            contract='DLP-EKF-GAPS-001/P3-V1',
+            run_id=os.environ.get('GITHUB_RUN_ID'),head_sha=os.environ.get('GITHUB_SHA'),
+            original_source_unchanged=True,
+            P3_mode='SOURCE_ONLY_DIRECT_LOS_NOT_SIONNA_RT',
+            third_C_native_RF='NOT_AVAILABLE',N_RT_simulated_paths=None,
+            original_39_C0_raw_files_immutable=True,
+            output_files=entries,
+            full_P3_RT='NOT_RUN_BUDGET_PENDING',P4='BLOCKED',
+            date_utc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+          (p/'P3_MANIFEST.json').write_text(json.dumps(z,indent=2)+'\n')
+          print('P3_CANARY_MANIFEST',status,'files',len(entries),flush=True)
+          PY
+          exit "$RC"
+      - name: Preserve all successful or failed source-only outputs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p3-source-ffd-canary-${{ github.run_id }}
+          path: /tmp/dlp_p3_result/
+          compression-level: 6
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Commit append-only compact source-only H and all pilot rows, never RF native substitute
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s "$DLP_P3_OUT/P3_SOURCE_ONLY_EXECUTION_QA.json" || { echo "No completed P3 receipt"; exit 0; }
+          D="research/DUAL_LP_PAPER_GAP_20261030/runs/P3_SOURCE_ONLY_CANARY_${GITHUB_RUN_ID}"
+          mkdir -p "$D"
+          cp -a "$DLP_P3_OUT/." "$D/"
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git commit -m "science(p3): append-only physical-bank direct-FFD C canary ${GITHUB_RUN_ID}; native RT NOT_RUN"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
