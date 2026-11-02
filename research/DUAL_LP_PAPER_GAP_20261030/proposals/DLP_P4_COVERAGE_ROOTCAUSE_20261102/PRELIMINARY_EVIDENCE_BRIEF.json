@@ -1,0 +1,88 @@
+{
+  "schema": "DLP_P4_COVERAGE_CAUSAL_REQUEST_EVIDENCE_BASE_V1",
+  "role": "PROPOSER",
+  "contract_id": "DLP-P4-COV-001",
+  "status": "RETROSPECTIVE_EXPLORATORY_NOT_FROZEN_NOT_AUDIT_APPROVED",
+  "source_branch": "research/dual-lp-p4-full-native-c0plus-20261102",
+  "base_git_sha": "e365b2f79eb86a3fd53d0d350f8e2d9364f285fe",
+  "p4_native_run": 41435839892,
+  "p4_12trace_sha256": "5ecf2a326ec17c8ce4ccc7a42fe76227ecf6ad7ec027df9cdfcd2304dcb0acfe",
+  "p4_case_metrics_blob": "e15c0a1e6ef8ccdb967a7d8a88f11fb2cbcd7ac1",
+  "p1_run": 41300302082,
+  "p1_trace_zip_original_sha256": "e4f52149b7a0c07313d0dec39303b321176292d8eec404af4ae0d9b0a4d6d06b",
+  "method": "Offline archived P1 GT joined to P4 full NPZ by original route/pose_id/t_s; chi2_2 .95 XY NEES and chi2_3 .95 pose NEES; no new EKF or RF run",
+  "scene_independent_n": 1,
+  "sensor_seed_n": 1,
+  "channels": [
+    "full",
+    "los"
+  ],
+  "bias": [
+    "B0",
+    "L2"
+  ],
+  "route_scored_n": {
+    "R2": 829,
+    "R4": 592,
+    "R5": 1265
+  },
+  "route_full_B0": [
+    {
+      "route": "R2",
+      "ab_xy_rmse_m": 0.1856126117754077,
+      "abc_xy_rmse_m": 0.12152502129588179,
+      "ab_xy95": 0.3052,
+      "abc_xy95": 0.1375,
+      "abc_pose3d95": 0.15078407720144751,
+      "abc_xy_nees_mean": 49.98,
+      "abc_rejected_epochs": 126,
+      "same_abc_prior_ab_2df_pass_abc_3df_reject": 89
+    },
+    {
+      "route": "R4",
+      "ab_xy_rmse_m": 0.38638354384914175,
+      "abc_xy_rmse_m": 0.17927249908236625,
+      "ab_xy95": 0.1132,
+      "abc_xy95": 0,
+      "abc_pose3d95": 0,
+      "abc_xy_nees_mean": 99.27,
+      "abc_rejected_epochs": 66,
+      "same_abc_prior_ab_2df_pass_abc_3df_reject": 44,
+      "c_distance_residual_mean_m": 0.081,
+      "c_distance_residual_std_m": 0.1899,
+      "c_distance_residual_rho1": 0.784,
+      "abc_xy_error_mean_y_m": -0.1312,
+      "p_xy_1sigma_median_minor_m": 0.0067,
+      "p_xy_1sigma_median_major_m": 0.0391
+    },
+    {
+      "route": "R5",
+      "ab_xy_rmse_m": 0.10640785377280793,
+      "abc_xy_rmse_m": 0.202982257351337,
+      "ab_xy95": 0.5036,
+      "abc_xy95": 0.0791,
+      "abc_pose3d95": 0.091699604743083,
+      "abc_xy_nees_mean": 77.17,
+      "abc_rejected_epochs": 179,
+      "same_abc_prior_ab_2df_pass_abc_3df_reject": 76,
+      "abc_xy_error_mean_y_m": -0.1195
+    }
+  ],
+  "same_R4_ABC_NativeLoS_B0_xy95": 0.625,
+  "same_R4_ABC_Full_B0_xy95": 0,
+  "notes": [
+    "XY95 numbers computed in 2026-11-02 exploratory analysis; not independent holdout",
+    "B0 and L2 same RF, one corridor scene; no iid binomial confidence claim",
+    "Prior gate counterfactual shares ABC prior, only removes C in AB gate calculation; not recursive arm",
+    "C residual uses frozen constant range bridge at true position offline; not deployable correction",
+    "Need preserve all routes/cases, frozen contract and independent pre-run audit before any new causal EKF replay"
+  ],
+  "execution_authorized": "D0_SOURCE_MATH_PREFLIGHT_ONLY",
+  "not_authorized": [
+    "D1_D2_NEW_SCIENTIFIC_COMPUTATION",
+    "D3_NEW_ONE_STEP_COUNTERFACTUAL_SCIENCE",
+    "D4_NEW_RECURSIVE_RUN",
+    "NEW_RF_SIMULATION",
+    "INDEPENDENT_AUDIT_VERDICT"
+  ]
+}
