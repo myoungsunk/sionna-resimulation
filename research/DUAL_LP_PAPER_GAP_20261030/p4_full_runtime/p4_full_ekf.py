@@ -155,7 +155,14 @@ def input_rf(route,cfg,p1):
       require(path.is_file() and sha(path)==row["sha256"] and path.stat().st_size==row["bytes"],
               "ORIGINAL_A_B_FULL_RF_SHA_CHANGED:"+str(path))
       H=np.load(path,mmap_mode="r",allow_pickle=False)
-      zz,tt=detector(H)
+      # Original bank has more sampled RF poses than the route timeline.
+      # Full EKF must index the EXACT frozen timeline pose IDs (no re-sampling).
+      require(H.ndim==4 and H.shape[1:]==(N,2,2) and
+           int(pids.min())>=0 and int(pids.max())<len(H),
+           "ORIGINAL_A_B_BANK_TO_TIMELINE_POSE_INDEX_INVALID")
+      H_timeline=np.asarray(H[pids])
+      zz,tt=detector(H_timeline)
+      require(len(zz)==n,"ORIGINAL_A_B_MATCHED_TIME_SAMPLE_COUNT_BAD")
       obs[:,modeindex,ai]=zz
       taps[:,modeindex,ai]=tt
   require(np.isfinite(obs).all(),"A_B_C_REAL_NATIVE_RAW_Z_MISSING")
