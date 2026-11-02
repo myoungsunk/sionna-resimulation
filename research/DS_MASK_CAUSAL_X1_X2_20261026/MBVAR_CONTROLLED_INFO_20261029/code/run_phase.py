@@ -44,6 +44,27 @@ def request():
         fs = r.get("field_ids") if r["phase"] == "P2_S1V5" else r.get("c3_fields")
         if sorted(fs or []) != list(range(20, 30)):
             raise SystemExit("ERR_A010_DEV3_FIELD_SET")
+        if not r.get("amendments") or r["amendments"][-1] != "AMENDMENT-010":
+            raise SystemExit("ERR_A010_AMENDMENT_NOT_LISTED")
+        # A DRAFT text containing the word FROZEN cannot authorize a run.
+        # Effective lock parsing authenticates the contract-base SHA and the
+        # applied FROZEN amendment; source SHA must match exactly.
+        import contract_lock as CL
+        import manifest as MF
+        import a10_validation as AV
+        lk = CL.effective_lock(r["amendments"])
+        if lk is None or "AMENDMENT-010" not in lk.get("applied_amendment_locks", []):
+            raise SystemExit("ERR_A010_LOCK_NOT_APPLIED")
+        prior = CL.effective_lock(r["amendments"][:-1])
+        if not AV.split_diff(prior["splits"]["S_field"], lk["splits"]["S_field"])["pass_"]:
+            raise SystemExit("ERR_A010_SPLIT_CHANGED_OR_HOLDOUT_REVIVED")
+        if (lk["splits"]["S_field"].get("DEV3") != list(range(20, 30)) or
+                any(lk["run_plan"].get(n, {}).get("fields") != list(range(20, 30))
+                    or lk["run_plan"][n].get("split") != "DEV3"
+                    for n in ("S1V5", "C3V5"))):
+            raise SystemExit("ERR_A010_RUN_PLAN_NOT_FROZEN")
+        if not lk.get("code_sha256") or lk["code_sha256"] != MF.code_hashes():
+            raise SystemExit("ERR_A010_CODE_SHA_NOT_LOCKED")
     return r
 
 

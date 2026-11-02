@@ -291,22 +291,50 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
     assert st["MAT_CROSS_FIELD_REPORTED"]["n_groups_multi_field"] > 0
     Cr = pd.read_csv(work / "c3agg" / "C3V5_ROWS.csv")
     assert len(Cr) == crit["rows"]["n"] and len(Cr) > 0 and Cr.found.astype(bool).all()
-    # every gating criterion except rows (subset), recomputed from the rows with the written tolerances
-    gating = [k for k in st["gating"] if k != "rows"]
-    assert set(gating) == {"INPUT_REPRO", "STATE_COST_REPRO", "P_REPRO", "STATUS_REPRO", "NO_WRONG_BASIN", "ITER_CAP",
-                           "PROBE_POWER", "LINEAR_EXACT", "KINK_FIXTURES"}
+    # Recompute the prospective G5 hard gates on the REDUCED subset, never
+    # misreport the full field-level gate as PASS (the original rows gate FAILs).
+    gating = [k for k in st["gating"] if k not in ("rows", "SOLVER_REPRO")]
+    assert crit["SOLVER_REPRO"]["pass_"] is False
+    assert set(gating) == {"RECEIPT_INTEGRITY", "GENERATOR_LAW", "CROSS_FIELD_COV_EQUIVALENCE",
+                           "STATE_COST_REPRO", "FULL_C10_REPRO", "STATUS_REPRO", "NO_WRONG_BASIN",
+                           "ITER_CAP", "PROBE_POWER", "LINEAR_EXACT", "KINK_FIXTURES"}
     nc = Cr[Cr.conv != "CONVERGED"]
+    old_input_math = bool(Cr.INPUT_EXACT.astype(bool).all() and
+                          (Cr.d_z <= tol["z"]).all() and
+                          (Cr[["d_ds", "d_gy", "d_x0"]].max(axis=1) <= tol["ctl"]).all() and
+                          Cr.taps_equal.astype(bool).all() and Cr.pose_keys_equal.astype(bool).all() and
+                          (Cr[["d_sig_true_rel", "d_sig_model_rel"]].max(axis=1) <= tol["fp_rel"]).all())
+    law_jsons = sorted((work / "c3sh").glob("**/C3V5_GENERATOR_LAW_*.json"))
+    law_verified = bool(len(law_jsons) == len(D.C3_PLAN) and
+                        all(json.loads(p.read_text())["pass_"] for p in law_jsons))
+    xf = pd.read_csv(work / "c3agg" / "A010_CROSS_FIELD_COV.csv")
     checks = dict(
-        INPUT_REPRO=bool(Cr.INPUT_EXACT.astype(bool).all() and (Cr.d_z <= tol["z"]).all() and (Cr[["d_ds", "d_gy", "d_x0"]].max(axis=1) <= tol["ctl"]).all()
-                         and Cr.taps_equal.astype(bool).all() and Cr.pose_keys_equal.astype(bool).all()
-                         and (Cr[["d_sig_true_rel", "d_sig_model_rel"]].max(axis=1) <= tol["fp_rel"]).all()),
-        STATE_COST_REPRO=bool((Cr.d_state_dref <= tol["state_dref"]).all() and (Cr.d_cost <= tol["cost"]).all() and Cr.same_best_k.astype(bool).all()),
-        P_REPRO=bool((Cr.d_P_C10_rel <= tol["P_rel"]).all() and (Cr.d_P_full_C10_rel <= tol["P_rel"]).all() and (Cr.d_NEES4_C10_rel <= tol["P_rel"]).all()),
+        RECEIPT_INTEGRITY=bool(old_input_math and rl["strict_index_verified"] and
+                               rl["array_hashes_verified"] > 0 and
+                               Cr.RECEIPT_ARRAY_EXACT.astype(bool).all() and
+                               Cr.TRUTH_ONLY_VERIFIED.astype(bool).all()),
+        GENERATOR_LAW=law_verified,
+        CROSS_FIELD_COV_EQUIVALENCE=bool(xf.pass_.astype(bool).all() and
+                                          (xf.delta_max <= 1e-10).all() and
+                                          (xf.delta_F <= 1e-10).all() and
+                                          (xf.min_eig > 0).all()),
+        STATE_COST_REPRO=bool((Cr.d_state_dref <= tol["state_dref"]).all() and
+                               (Cr.d_cost <= tol["cost"]).all() and Cr.same_best_k.astype(bool).all()),
+        FULL_C10_REPRO=bool(Cr.full_C10_spd_pass.astype(bool).all() and
+                             (Cr.d_P_C10_rel <= tol["P_rel"]).all() and
+                             (Cr.d_P_full_C10_rel <= tol["P_rel"]).all() and
+                             (Cr.d_NEES4_C10_rel <= tol["P_rel"]).all() and
+                             (Cr.c10_log10_cond_delta <= 1e-3).all()),
         STATUS_REPRO=bool(Cr.same_class_v31.astype(bool).all()),
         NO_WRONG_BASIN=bool((Cr.gap_E <= tol["basin"]).all()),
         ITER_CAP=bool((nc.E300_vs_E_dref <= tol["itercap_dref"]).all()),
         PROBE_POWER=bool((Cr.pp_class == "NOT_CERTIFIED").mean() >= tol["probe_power_frac"]),
-        LINEAR_EXACT=bool(crit["LINEAR_EXACT"]["pass_"]), KINK_FIXTURES=bool(crit["KINK_FIXTURES"]["pass_"]))
+        LINEAR_EXACT=bool(crit["LINEAR_EXACT"]["pass_"]),
+        KINK_FIXTURES=bool(crit["KINK_FIXTURES"]["pass_"]))
+    assert st["status"] == "FAIL", "reduced SMOKE must not be represented as full G5 success"
+    assert st["G5_NUMERIC_REPLAY"]["status"] == "FAIL"
+    assert st["SOLVER_REPRO_CROSS_RUNNER"] == "NOT_YET_VERIFIED"
+    assert st["G5_MODE_IDENTIFIABILITY"]["scientific_release"] is False
     summary = dict(timing=timing, s1v5_rows=qa["n_rows"], s1v5_rows_expected_subset=n_sub, c3v5_rows=len(Cr), c3v5_status=st["status"],
                    c3v5_subset_checks=checks, receipt_load=rl, mat_cross_field=st["MAT_CROSS_FIELD_REPORTED"],
                    mode_ambiguity=crit["MODE_AMBIGUITY_REPORTED"], kp_byte_match=qa["A010_KP_BYTE_MATCH"])
