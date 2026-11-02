@@ -479,6 +479,10 @@ def cmd_aggregate(shards, out):
                       C.RECEIPT_ARRAY_EXACT.astype(bool).all() and
                       C.TRUTH_ONLY_VERIFIED.astype(bool).all() and
                       criterion_input["pass_"])
+    # Independent second-runner evidence is a separate hard gate. No local
+    # self-review, same-process repeat or SMOKE subset may claim this PASS.
+    crit["SOLVER_REPRO"] = dict(pass_=False, status="TWO_INDEPENDENT_RUNNERS_NOT_YET_VERIFIED",
+                                  required="same source/manifest/input SHA, distinct runner IDs, identical key set, cost/state/C10/mode")
     crit["RECEIPT_INTEGRITY"] = dict(pass_=receipt_ok, checked_input_arrays=receipt_load["array_hashes_verified"],
                                         exact_estimator_rows=int(C.RECEIPT_ARRAY_EXACT.astype(bool).sum()) if len(C) else 0,
                                         original_zip_and_index_sha_verified=True,
