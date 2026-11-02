@@ -1,0 +1,58 @@
+{
+  "schema": "DLP_EKF_INDEPENDENT_COMPUTATION_SHA_LEDGER_V1",
+  "date_kst": "2026-11-02",
+  "auditor_role": "AUDITOR",
+  "purpose": "Exact SHA digests of fresh mathematical audit scripts and receipts delivered in conversation audit ZIP; every script was executed locally against original downloaded GitHub Actions archives",
+  "audit_package_filename": "DLP_EKF_P1_P4_INDEPENDENT_AUDIT_20261102.zip",
+  "audit_package_sha256": "188d8af3c4c8d544abc9f41852d887fd90cb9743bcda84dc6b169c49913e99bb",
+  "checks": [
+    {
+      "phase": "P1",
+      "script": "independent_p1_audit.py",
+      "script_sha256": "081b086d1271252e132df5f08ab7bfede16789c573b81b86731c8110bd437c14",
+      "receipt": "INDEPENDENT_P1_MOMENT_CHECK.json",
+      "receipt_sha256": "2b282f3d539a20a5a7e11964bf7405366b0bf601ab975f34c540f74d6616af05",
+      "result": "PASS"
+    },
+    {
+      "phase": "P2",
+      "script": "independent_p2_audit.py",
+      "script_sha256": "5521a7063354b0c787f1961295e8cea4fdf7879b6443e30514cc360acc99739f",
+      "receipt": "INDEPENDENT_P2_TRACE_CHECK.json",
+      "receipt_sha256": "89c57eb40ca0e228f72b4a5ad0589801bf3239e471ed9a819e91432fe16bf057",
+      "result": "PASS"
+    },
+    {
+      "phase": "P3",
+      "script": "independent_p3_audit.py",
+      "script_sha256": "89d9d4cc1b33b36165e3a7098efd3678c3b06e247f5c4ca552bf6cb11c6212f1",
+      "receipt": "INDEPENDENT_P3_H_TAU_AUDIT.json",
+      "receipt_sha256": "928ae56828b90f01915e910a5c95d0d10d3234dcb5effe4e5d6eaa449eff8fd7",
+      "result": "PASS"
+    },
+    {
+      "phase": "P4_FULL_RF",
+      "script": "independent_p4_full_native_audit.py",
+      "script_sha256": "53a3fbcffef36e2114ac5bdebf763161b1b1705e4ccf310e9df2e77828ef7caf",
+      "receipt": "INDEPENDENT_P4_FULL_NATIVE_H_AUDIT.json",
+      "receipt_sha256": "a688c260f12fc8114212c4d3231f842ac9c25e25c5427b2ed4ebcf5618f862a2",
+      "result": "PASS"
+    },
+    {
+      "phase": "P4_FULL_EKF",
+      "script": "independent_trace_audit.py",
+      "script_sha256": "685986edbe00dfeebd6195e4ac7349bb99cb3f735c31702811c011b72d90f69f",
+      "receipt": "INDEPENDENT_P4_TRACE_CHECK.json",
+      "receipt_sha256": "21e1807b7f7feffa1f51bfe0e90bd3c0793098e33ec8a632a4d223d7ddfb7027",
+      "result": "PASS"
+    }
+  ],
+  "reproduction_notes": [
+    "Inputs: GitHub Actions artifact IDs 13080629296, 13086748134, 13120533090, 13136462791, 13136322401, 13136411511, 13134814511; optional original sparse pilot 13123162095.",
+    "Scripts assume original downloaded zip artifacts extracted into /mnt/data/dlp_audit_work; adjust ROOT variable to local working dir for portability.",
+    "Requires Python 3 and numpy/pandas; no repo implementation modules imported by the five independent audit scripts.",
+    "Package contains code+receipts+report only, NOT 250+MB original RT archives. Reacquire raw archives using original GitHub Actions run/artifact IDs.",
+    "All five receipt JSON statuses are PASS. ZIP itself is not a detached cryptographic signature; SHA256 is integrity check only.",
+    "Distinct audit from ChatGPT prior implementation, but not independent human reviewer."
+  ]
+}
