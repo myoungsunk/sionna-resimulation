@@ -1,0 +1,128 @@
+name: DLP P2 repair evidence publication (source numeric PASS; no science rerun)
+on:
+  push:
+    branches: ['research/dual-lp-p2-frozen-run-20261101']
+    paths: ['.github/workflows/dlp-p2-recover-results.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  GIT_LFS_SKIP_SMUDGE: '1'
+  GIT_LFS_SKIP_PUSH: '1'
+jobs:
+  recover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout only recovery workflow and never change frozen science code
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /.github/workflows/dlp-p2-recover-results.yml
+          LIST
+          git checkout --detach FETCH_HEAD
+      - name: Download original P2 artifact from fixed executed run
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/p2_pass_original
+          gh run download 41315429738 --repo myoungsunk/sionna-resimulation \
+            --name dlp-p2-frozen-complete-41315429738 \
+            --dir /tmp/p2_pass_original
+          test -s /tmp/p2_pass_original/P2_POSTRUN_QA.json
+          test -s /tmp/p2_pass_original/P2_MANIFEST.json
+      - name: Independently verify all receipt SHA, row counts and full 28 traces, create durable archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json,hashlib,csv,pathlib,zipfile,datetime
+          p=pathlib.Path('/tmp/p2_pass_original')
+          q=json.loads((p/'P2_POSTRUN_QA.json').read_text())
+          m=json.loads((p/'P2_MANIFEST.json').read_text())
+          assert q['status']=='PASS' and q['score_rows']==84 and q['contrast_rows']==84 and q['pooled_rows']==12 and not q['failures'],q
+          assert m['status']=='PASS' and m['run_id']=='41315429738',m
+          assert q['original_rf_archive_sha256']=='88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63'
+          assert q['contract_sha256']=='568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b'
+          def sha(path):
+            h=hashlib.sha256()
+            with path.open('rb') as f:
+              for b in iter(lambda:f.read(1048576),b''):h.update(b)
+            return h.hexdigest()
+          assert len(m['outputs'])>=8
+          for item in m['outputs']:
+            f=p/item['path']
+            assert f.is_file() and f.stat().st_size==item['bytes'] and sha(f)==item['sha256'],item
+          with (p/'P2_TRACE_LEDGER.csv').open(newline='') as f:
+            traces=list(csv.DictReader(f))
+          assert len(traces)==28
+          for row in traces:
+            fn=p/'traces'/pathlib.Path(row['output_file']).name
+            assert fn.is_file() and sha(fn)==row['verified_sha256'],row
+          records={}
+          for name,n in [('P2_CASE_METRICS.csv',84),('P2_PAIRWISE_CONTRASTS.csv',84),('P2_POOLED_METRICS.csv',12)]:
+            with (p/name).open(newline='') as f:
+              rows=list(csv.DictReader(f));assert len(rows)==n,(name,len(rows))
+              records[name]=len(rows)
+          tar=p/'P2_ALL_28_TRACES_IMMUTABLE.zip'
+          with zipfile.ZipFile(tar,'w',compression=zipfile.ZIP_STORED,allowZip64=True) as z:
+            for row in sorted(traces,key=lambda x:x['output_file']):
+              f=p/'traces'/pathlib.Path(row['output_file']).name
+              z.write(f,arcname='traces/'+f.name)
+          assert zipfile.ZipFile(tar).testzip() is None
+          record={'schema':'DLP_P2_RECOVERED_EVIDENCE_BUNDLE_V1',
+                  'original_successful_science_run':41315429738,
+                  'original_head_sha':'9c869c62de884cbb18415e51631b49946f68a5a1',
+                  'original_scorer_status':'PASS',
+                  'science_run_host_conclusion':'failure_only_on_Git_LFS_push',
+                  'original_artifact_id':13086748134,
+                  'original_artifact_digest':'sha256:72f8ecef7b25e2d375d70128ab40b7ece749dab72a889b5c1b365cf375291df5',
+                  'contract_sha256':'568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b',
+                  'manifest_source_sha256':sha(p/'P2_MANIFEST.json'),
+                  'original_manifest_out_files_verified':len(m['outputs']),
+                  'trace_npz_count':len(traces),
+                  'archive_sha256':sha(tar),'archive_bytes':tar.stat().st_size,
+                  'archive_zip_stored':'Each NPZ retained as exact original bytes and individually verified against trace ledger',
+                  'scope':'P2 only; no new motion or RF filtering run; posthoc result transport only',
+                  'counts':records,'independent_scene_n':1,'external_review':False,
+                  'created_utc':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+          (p/'P2_RECOVERY_RECEIPT.json').write_text(json.dumps(record,indent=2)+'\n')
+          print('P2_EVIDENCE_VERIFIED',json.dumps(record),flush=True)
+          PY
+      - name: Commit text receipts plus a single non-LFS ZIP of exact original 28 NPZ files
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=/tmp/p2_pass_original
+          D=research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_41315429738
+          mkdir -p "$D"
+          for file in P2_CASE_METRICS.csv P2_PAIRWISE_CONTRASTS.csv P2_POOLED_METRICS.csv P2_POSTRUN_QA.json P2_MANIFEST.json P2_TRACE_LEDGER.csv P2_FAILURE_LEDGER.csv P2_SCORE_LOG.txt P2_RECOVERY_RECEIPT.json P2_ALL_28_TRACES_IMMUTABLE.zip; do
+            test -s "$SRC/$file"
+            cp "$SRC/$file" "$D/$file"
+          done
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add --sparse -f "$D"
+          git diff --cached --name-only
+          git commit -m "science(p2): recover 41315429738 numeric PASS and exact 28 NPZ in one Git archive (no new science)"
+          git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" \
+            -c lfs.concurrenttransfers=1 push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+      - name: Upload recovery receipt as fallback
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dlp-p2-recovery-receipts-${{ github.run_id }}
+          path: |
+            /tmp/p2_pass_original/P2_RECOVERY_RECEIPT.json
+            /tmp/p2_pass_original/P2_POSTRUN_QA.json
+            /tmp/p2_pass_original/P2_MANIFEST.json
+          retention-days: 30
+          if-no-files-found: warn
