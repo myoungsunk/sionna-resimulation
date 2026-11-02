@@ -2,6 +2,23 @@
 
 사용자가 요청한 현재 작업 상태의 Git 보존본이다. Obsidian 논문 폴더의 원고·그림·표·코드·입출력 해시·검증 기록을 원본 바이트 그대로 복사했다. 캐시와 Python bytecode만 제외했다. 원본 볼트나 기존 저장소 원고를 덮어쓰지 않았다.
 
+## 추가 체크포인트: 거리 LUT의 BB_ORIG/self 대 MB_VAR/self
+
+질문 ID `DLP-LUT-BB-MB-MATCHED-001`. 기존 커밋 `a9214294a0d1811c2a90a4137a0e4957393e01d8`의 거리 반영 LUT를 그대로 사용해 Anchor B의 R2/R4/R5 × B0/L0/L1/L2에서 BB_ORIG 12개와 MB_VAR 12개를 전체 재생했다. SourceFFD 참조 24개도 재현 검증했다. 기존 거리 LUT MB 12개는 X/P/R/used와 일치했다. BB는 원 BB donor와 원 관측공분산을 사용하며, zero-mean 고정 R0 일반 EKF와 다르다.
+
+별도 하위 에이전트의 독립 재집계·감사 판정은 **ACCEPT**, 과학 결과는 **MIXED**이다. MB_VAR는 BB_ORIG 대비 Heading 11/12조건, XY 8/12조건에서 개선했다. R4 지그재그의 B0 Heading은 1.415916→1.429696°로 악화했고, R4의 네 조건에서 XY가 모두 악화했다. 한 환경·한 RF realization·동일 seed의 synthetic LUT 비교이며 실측 전이·일반적 우위·NEES 일관성 통과를 주장하지 않는다. 원고나 모델 채택은 수행하지 않았다.
+
+- [12조건 paired 결과](paper/figures/lut_bb_mb_matched_20261102/PAIRED_BB_MB_12.csv)
+- [24개 전체 지표](paper/figures/lut_bb_mb_matched_20261102/FULL_SCORE_24.csv)
+- [한국어 결과 설명](paper/figures/lut_bb_mb_matched_20261102/RESULTS_TO_MANUSCRIPT_KO.md)
+- [동결 계약](paper/figures/lut_bb_mb_matched_20261102/CONTRACT_BB_MB_DISTANCE_LUT.json)
+- [실행 manifest](paper/figures/lut_bb_mb_matched_20261102/RUN_MANIFEST.json)
+- [독립 감사 판정](paper/figures/lut_bb_mb_matched_20261102/audit/INDEPENDENT_AUDIT.json)
+- [최종 실행·감사 상태](paper/figures/lut_bb_mb_matched_20261102/FINAL_DELIVERY_STATUS.json)
+- [추가 복사본의 SHA256 manifest](MATCHED_BB_MB_SNAPSHOT_MANIFEST.json)
+
+기존 역사 coverage 기준은 보존하고 계약의 정확한 χ² coverage는 별도 열에 기록했다. 차이는 [정의 보완 기록](paper/figures/lut_bb_mb_matched_20261102/CONTRACT_CLARIFICATION.json)을 따른다. 기존 `SNAPSHOT_MANIFEST.json`은 최초 체크포인트 범위를 그대로 보존하며 추가 70개 파일은 별도 manifest가 식별한다. 실행·감사 때의 원본 바이트와 입력 잠금 해시는 유지했고 Python bytecode만 복사에서 제외했다. 이 추가 체크포인트의 Git 커밋을 과거 실행의 소스 커밋으로 소급하지 않는다.
+
 ## 원고
 
 - [한글 초안](paper/01%20초안%20-%20한글.md)
