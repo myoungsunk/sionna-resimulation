@@ -123,8 +123,8 @@ def verify():
   if not rec_path.exists():
     FAIL.append(dict(test="MISSING_FULL_EKF_ROUTE",route=route));continue
   receipt=J(rec_path);allreceipt.append(receipt)
-  if receipt["status"]!="PASS" or receipt["n_native_C"]!=n or
-     receipt["n_arms"]!=7 or len(receipt["trace_files"])!=4:
+  if (receipt["status"]!="PASS" or receipt["n_native_C"]!=n or
+     receipt["n_arms"]!=7 or len(receipt["trace_files"])!=4):
     FAIL.append(dict(test="FULL_EKF_ROUTE_NOT_PASS",route=route,receipt=receipt.get("status")))
     continue
   T=next(x["path"] for x in p1["base_assets"] if x["kind"]=="TIMELINE_TNONE" and
@@ -141,9 +141,9 @@ def verify():
    key=(route,ch,bias)
    if key in expected:FAIL.append(dict(test="P4_FULL_DUPLICATE_TRACE_KEY",key=key));continue
    expected.add(key)
-   if arr["names"].tolist()!=list(ARMS) or
+   if (arr["names"].tolist()!=list(ARMS) or
      len(arr["t_s"])!=n or not np.isfinite(arr["raw_native_ABC_z"]).all() or
-     not np.array_equal(arr["pose_id"],[int(z["pose_id"]) for z in original]):
+     not np.array_equal(arr["pose_id"],[int(z["pose_id"]) for z in original])):
      FAIL.append(dict(test="P4_FULL_TRACE_STRUCTURAL_MISMATCH",key=key));continue
    mathcheck=postrun_math(arr)
    if mathcheck["failed"]>0:
