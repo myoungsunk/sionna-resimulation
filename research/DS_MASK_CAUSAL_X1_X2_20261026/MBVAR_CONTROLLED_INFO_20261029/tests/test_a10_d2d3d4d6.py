@@ -161,3 +161,26 @@ def test_full_split_overlay_draft_preserves_existing_tracks():
     broken["HOLDOUT"]=[-1]
     assert not A.split_diff(old,broken)["pass_"]
     assert CL.amendment_lock("AMENDMENT-010") is None
+
+
+def test_two_runner_strict_proof_positive_and_negative():
+    P=np.diag([.001,.001,.0001,.000001])
+    rr=dict(field=900,role="LOW",cell="POSE_HIGH",sensor_seed=0,arm="IID_BATCH",
+            cost=1.234,class_v31="CONVERGED_SMOOTH",n_alt_ambiguous=0,
+            **{f"xend_{i}":0.0 for i in range(4)},**row(P))
+    base=dict(source_git_sha="a"*40,manifest_sha256="b"*64,
+              input_sha256="c"*64,runner_id="runner-1",
+              environment=dict(cpu="x86_64"),rows=[rr])
+    other={**base,"runner_id":"runner-2"}
+    result=A.validate_two_runner_solver_receipts(base,other)
+    assert result["pass_"] and result["n_rows"]==1
+    assert not A.validate_two_runner_solver_receipts(base,{**other,"runner_id":"runner-1"})["pass_"]
+    assert not A.validate_two_runner_solver_receipts(base,{**other,"input_sha256":"d"*64})["pass_"]
+    damaged=dict(rr);damaged["cost"]+=0.01
+    assert not A.validate_two_runner_solver_receipts(base,{**other,"rows":[damaged]})["pass_"]
+    damaged=dict(rr);damaged["C10rot_00"]*=1.02
+    assert not A.validate_two_runner_solver_receipts(base,{**other,"rows":[damaged]})["pass_"]
+    damaged=dict(rr);damaged["n_alt_ambiguous"]=1
+    assert not A.validate_two_runner_solver_receipts(base,{**other,"rows":[damaged]})["pass_"]
+    with pytest.raises(ValueError,match="DUPLICATE"):
+        A.validate_two_runner_solver_receipts(base,{**other,"rows":[rr,rr]})
