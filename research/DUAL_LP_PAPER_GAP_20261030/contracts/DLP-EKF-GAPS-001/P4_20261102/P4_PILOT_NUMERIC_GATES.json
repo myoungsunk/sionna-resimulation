@@ -1,0 +1,65 @@
+{
+  "schema": "DLP_P4_PILOT_FIXED_V00_V13",
+  "status": "PROPOSER_LOCKED_PRE_AUDIT_PENDING",
+  "checks": [
+    {
+      "id": "V00_IDENTITY",
+      "threshold": "Original P1,P2,P3/P4 SHA match; no input rewrite"
+    },
+    {
+      "id": "V01_C_NATIVE_SHA",
+      "threshold": "39 native C H source ZIP/CSV and per NPZ SHA; 257x2x2, real path counts and delay"
+    },
+    {
+      "id": "V02_AB_SHA",
+      "threshold": "All original A/B mount0 H raw SHA, 3x route pose/time keys, no swap/duplication"
+    },
+    {
+      "id": "V03_RX_DETECTOR",
+      "threshold": "Independent Hann N-1 1028 IFFT same first-tap r,s absolute diff<=1e-9"
+    },
+    {
+      "id": "V04_POSE_TIME",
+      "threshold": "39 unique original R2/R4/R5 pilot matches x/y<=1e-6m yaw<=1e-6deg and time<=1e-9s"
+    },
+    {
+      "id": "V05_CORE_F_Q",
+      "threshold": "4-state f/F central FD max<=1e-6, predicted P consistency<=1e-10"
+    },
+    {
+      "id": "V06_BATCH_H_FD",
+      "threshold": "3x4 analytic range H vs central FD <=1e-8; yaw,b direct col zero"
+    },
+    {
+      "id": "V07_CHI2_DOF",
+      "threshold": "chi2 1/2/3 99pct, independent 1D/2D/3D NIS/K/Joseph numeric <=1e-10"
+    },
+    {
+      "id": "V08_NO_TRUTH",
+      "threshold": "Truth inputs only in offline sensor generator/scorer, every route time propagated"
+    },
+    {
+      "id": "V09_RESOURCE",
+      "threshold": "Primary budget 13 vs39 packets/route; equal count 12 vs12 with distinct epoch cadence"
+    },
+    {
+      "id": "V10_FULL_BLOCK",
+      "threshold": "Full mode blocks current 3097 unavailable new C native H epochs with no interpolation"
+    },
+    {
+      "id": "V11_FILTER_QA",
+      "threshold": "84 full-timeline trace scores, zero silent omitted invalid, Joseph covariance PD"
+    },
+    {
+      "id": "V12_SCORING",
+      "threshold": "Offline wrapped heading/XY/bias errors and 95pct coverage/NEES exact formula <=1e-9"
+    },
+    {
+      "id": "V13_CLAIMS",
+      "threshold": "Only one simulator scene and no hardware sync, no causal/generalization claim"
+    }
+  ],
+  "preaudit_scope": "V00-V10 must pass before FROZEN; V11-V13 after pilot execution",
+  "no_threshold_relaxation": true,
+  "strict_fail_closed": true
+}
