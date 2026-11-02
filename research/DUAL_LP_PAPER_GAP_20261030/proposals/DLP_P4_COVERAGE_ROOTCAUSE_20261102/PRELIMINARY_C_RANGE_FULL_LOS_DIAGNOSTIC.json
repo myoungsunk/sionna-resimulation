@@ -1,0 +1,60 @@
+{
+  "schema": "DLP_P4_C_GTRANGE_RESIDUAL_FULL_VS_NATIVELOS_EXPLORATORY_V1",
+  "status": "RETROSPECTIVE_PRE_DESIGN_ONLY_NOT_INDEPENDENT_HOLDOUT",
+  "source": "P1 GT offline plus P4 Full 12 NPZ original raw C first-path range; Rr fixed; t>=30",
+  "range_model": "h_C(x_gt)=norm([x_gt,y_gt,.45]-[16,.8,2.65])-.5315983906250129 m",
+  "input_p4_zip_sha256": "5ecf2a326ec17c8ce4ccc7a42fe76227ecf6ad7ec027df9cdfcd2304dcb0acfe",
+  "input_p1_actions_archive_sha256": "e4f52149b7a0c07313d0dec39303b321176292d8eec404af4ae0d9b0a4d6d06b",
+  "same_scene": 1,
+  "rows": [
+    {
+      "route": "R2",
+      "n": 829,
+      "los": {
+        "mean_m": 0.0055,
+        "std_m": 0.04593,
+        "rmse_m": 0.04623
+      },
+      "full": {
+        "mean_m": 0.06737,
+        "std_m": 0.14894,
+        "rmse_m": 0.16339
+      }
+    },
+    {
+      "route": "R4",
+      "n": 592,
+      "los": {
+        "mean_m": 0.00391,
+        "std_m": 0.04933,
+        "rmse_m": 0.04944
+      },
+      "full": {
+        "mean_m": 0.08096,
+        "std_m": 0.18991,
+        "rmse_m": 0.2063
+      }
+    },
+    {
+      "route": "R5",
+      "n": 1265,
+      "los": {
+        "mean_m": 0.00423,
+        "std_m": 0.04498,
+        "rmse_m": 0.04516
+      },
+      "full": {
+        "mean_m": 0.08864,
+        "std_m": 0.37151,
+        "rmse_m": 0.3818
+      }
+    }
+  ],
+  "constraints": [
+    "Not a statement that one physical factor alone caused the observations",
+    "No new RF nor EKF replay",
+    "No claim of independent scene variation",
+    "Observed residuals at GT for exploratory hypothesis design only",
+    "Models use native Full/LoS same pose without changing anchor geometry, but multipath changes waveform and detector tap"
+  ]
+}
