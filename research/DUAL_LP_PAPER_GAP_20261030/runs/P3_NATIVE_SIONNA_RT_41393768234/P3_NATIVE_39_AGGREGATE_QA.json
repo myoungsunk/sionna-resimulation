@@ -1,0 +1,52 @@
+{
+  "schema": "DLP_P3_NATIVE_39_RT_AGGREGATED_V1",
+  "status": "BLOCKED_OR_FAIL",
+  "original_contract_id": "DLP-EKF-GAPS-001/P3-V1",
+  "amended_contract": "P3_NATIVE_RT_APPEND_ONLY_AMENDMENT_V1.json",
+  "original_workflow_run": "41393768234",
+  "pose_n": 0,
+  "extra_smoke_n": 3,
+  "distinct_route_n": 3,
+  "total_native_path_solver_calls": null,
+  "original_single_scene_n": 1,
+  "new_C_native_full_H": "INCOMPLETE",
+  "full_P4_EKF": "NOT_RUN",
+  "measured_RF_hardware": false,
+  "retrospective_source_comparison": true,
+  "no_39_pose_case_selection_posthoc": true,
+  "gates": {
+    "A00_LOCKED_PILOT_PLAN": {
+      "status": "PASS",
+      "values": {
+        "n": 39,
+        "sha": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61"
+      }
+    },
+    "A01_3POSE_SMOKE_SUCCESS": {
+      "status": "FAIL",
+      "values": {
+        "reason": "missing smoke artifact"
+      }
+    }
+  },
+  "failures": [
+    {
+      "gate": "A01_3POSE_SMOKE_SUCCESS",
+      "details": {
+        "reason": "missing smoke artifact"
+      }
+    }
+  ],
+  "route_stats": [],
+  "original_preselected_plan_sha256": "efb9c7b1d91b865f143f8fa26fd3defb97eed02e385ee4137062ce336e9a0b61",
+  "computation_code_sha256": "57c1c74a47930f25b17cb63838cefe7ac68e830f70d13f9218be012e3c707cff",
+  "raw_zip_sha256": null,
+  "code_and_runner_identity": "same ChatGPT implementation author; separate Actions aggregation runner, not independent human auditor",
+  "elapsed_s": 0.00044376900000031583,
+  "caveats": [
+    "Sionna computed physical ray tracing in same simulation corridor, not real-world measurements",
+    "39 sparse pilot poses only, not all 3136 route timeline samples",
+    "No cross-anchor packet timing/noise independence calibration",
+    "No P4 multi-anchor EKF or generalized conclusion"
+  ]
+}
