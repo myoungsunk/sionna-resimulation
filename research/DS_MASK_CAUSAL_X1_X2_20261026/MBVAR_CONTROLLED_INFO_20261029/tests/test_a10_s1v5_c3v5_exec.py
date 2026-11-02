@@ -293,7 +293,8 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
     assert len(Cr) == crit["rows"]["n"] and len(Cr) > 0 and Cr.found.astype(bool).all()
     # Recompute the prospective G5 hard gates on the REDUCED subset, never
     # misreport the full field-level gate as PASS (the original rows gate FAILs).
-    gating = [k for k in st["gating"] if k != "rows"]
+    gating = [k for k in st["gating"] if k not in ("rows", "SOLVER_REPRO")]
+    assert crit["SOLVER_REPRO"]["pass_"] is False
     assert set(gating) == {"RECEIPT_INTEGRITY", "GENERATOR_LAW", "CROSS_FIELD_COV_EQUIVALENCE",
                            "STATE_COST_REPRO", "FULL_C10_REPRO", "STATUS_REPRO", "NO_WRONG_BASIN",
                            "ITER_CAP", "PROBE_POWER", "LINEAR_EXACT", "KINK_FIXTURES"}
