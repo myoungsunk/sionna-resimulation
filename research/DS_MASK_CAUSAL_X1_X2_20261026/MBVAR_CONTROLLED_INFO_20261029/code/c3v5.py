@@ -268,7 +268,16 @@ def cmd_run(field, group, out):
                     sol = {"E": (r["cost"], XE)}
                     for nm, th in starts.items():
                         Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, theta0=th)
-                        sol[nm] = (Is["cost"], Xs)
+                        # D4: score each truth-free alternative after the same F2
+                        # polish and the same exact objective as E'. Oracle-only
+                        # truth is still excluded from best-start and mode choice.
+                        th_diag, _, _ = T.polish(ht, z, Sm, dsm, gym, w["dts"], x0,
+                                                 Is["theta"],
+                                                 T.key_seed("DIAG_POLISH", field, w["role"], cn, sn, arm, nm))
+                        Lm, L0, qv = T.B3._mats(Sm, dsm, w["dts"])
+                        c_diag, X_diag = FL._v2_parts(ht, z, mu, Lm, L0, x0, qv, dsm, gym,
+                                                       w["dts"], th_diag[0], th_diag[1], jac=False)
+                        sol[nm] = (float(c_diag), X_diag)
                     # Truth-start is a diagnostic, NEVER part of the operational/reference best-start choice.
                     nonoracle = {k:v for k,v in sol.items() if k != "truth"}
                     cstar = min(v[0] for v in nonoracle.values()); best = min(nonoracle, key=lambda k: nonoracle[k][0])
