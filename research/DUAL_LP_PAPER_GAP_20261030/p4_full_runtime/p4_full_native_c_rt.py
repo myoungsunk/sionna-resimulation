@@ -207,8 +207,9 @@ def canary(cfg,p3,lock,args):
     print("P4_FULL_NATIVE_CANARY_POSE",route,pose,"9bins",len(frequencies),
       "max_direct_rel",fast_relmax,"elapsed",round(time.monotonic()-START,2),flush=True)
   max_tol=float(cfg["direct_path_option"]["max_relative_complex_error"])
-  enabled=fast_relmax<=max_tol and full_relmax<=max_tol and native_los_relmax<=max_tol and
-      max_tau<=float(cfg["direct_path_option"]["max_delay_s"]) and full_countdiff==0
+  enabled=(fast_relmax<=max_tol and full_relmax<=max_tol and
+      native_los_relmax<=max_tol and
+      max_tau<=float(cfg["direct_path_option"]["max_delay_s"]) and full_countdiff==0)
   # No threshold may be changed after results. Failing optimization is not
   # a solver failure: automatically use true separate NativeLoS per bin.
   decision="FULL_DIRECT_CERTIFIED" if enabled else "SEPARATE_FULL_AND_LOS"
