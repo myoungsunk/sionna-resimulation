@@ -1,0 +1,155 @@
+{
+  "schema": "DLP_EKF_P3_GEOMETRY_SOURCE_FFD_CANARY_PROPOSER_LOCK_V1",
+  "status": "PROPOSER_LOCKED_PRE_AUDIT_PENDING",
+  "phase": "P3_NONCOLLINEAR_THIRD_ANCHOR_GEOMETRY_AND_SOURCE_DIRECT_LOS_CANARY",
+  "parent_commit": "d65232d342272e55f5f63ec87401d54b5fbb0992",
+  "source_p2": {
+    "run": 41315429738,
+    "execution_status": "NUMERICAL_PASS_84_SCORE_ROWS",
+    "recovery_workflow_run": 41388940715,
+    "scorer_sha256": "528e0add042c67dfbb36acb99ab535ba29e9c1e1b93f76fca3fa29c77ff2d15c",
+    "contract_sha256": "568ef6b794457f682ae9fd96e30d8a6f072d0283fcfd17aed4dcc2adfb76a48b",
+    "raw_recovery_receipt_path": "research/DUAL_LP_PAPER_GAP_20261030/runs/P2_FROZEN_RANGE_ONLY_41315429738/P2_RECOVERY_RECEIPT.json",
+    "original_28_traces_archive_sha256": "063d5c25892365f8d307fc424470b5066db36fa5f825fbf17b5bcb2bcc5531c3"
+  },
+  "source_p1": {
+    "contract_sha256": "373781e0a2395032faa49ff0228d84ebf8d93bb9c880e0504105bc5e12e82594",
+    "original_39_input_manifest": "research/DUAL_LP_PAPER_GAP_20261030/contracts/DLP-EKF-GAPS-001/P1_20261101/P1_INPUT_LOCK.json",
+    "origin_14_los_full_dataset": "Corridor C0 exactly R2/R4/R5×7 cases",
+    "source_model_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+    "bank_plus45_sha256": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "bank_minus45_sha256": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "scene": {
+    "name": "C0_CORRIDOR",
+    "origin": "Existing C0 input geometry, not a new independently simulated environment",
+    "room_xyz_m": {
+      "x": [
+        0,
+        20
+      ],
+      "y": [
+        -1.2,
+        1.2
+      ],
+      "z": [
+        0,
+        2.7
+      ]
+    },
+    "anchor_standoff_m": 0.05,
+    "robot_antenna_z_m": 0.45,
+    "anchor_rotation_world": "diag(1,-1,-1) TX +z boresight down",
+    "robot_mount_deg_primary": 0,
+    "existing_anchors": {
+      "A": [
+        4,
+        0,
+        2.65
+      ],
+      "B": [
+        10,
+        0,
+        2.65
+      ]
+    },
+    "proposed_third": {
+      "id": "C",
+      "xyz_m": [
+        16,
+        0.8,
+        2.65
+      ],
+      "horizontal_wall_margin_y_m": 0.4,
+      "ceiling_margin_m": 0.05,
+      "far_end_x_margin_m": 4
+    },
+    "physical_geometry_fixed_before_outcome": true,
+    "candidate_count": 1,
+    "no_posthoc_candidate_selection": true,
+    "expected_triangle_area_m2": 2.4,
+    "expected_anchor_b_c_baseline_m": 6.053098380168622,
+    "independent_scene_count": 1
+  },
+  "channel": {
+    "frequency_bins": 257,
+    "frequency_first_hz": 6250400000,
+    "frequency_step_hz": 1950000,
+    "tx_port": "LP_plus45",
+    "rx_ports": [
+      "LP_plus45",
+      "LP_minus45"
+    ],
+    "frequency_window": "0.5-0.5cos(2pi k/(N-1))",
+    "ifft_n": 1028,
+    "ifft_multiplier": 257,
+    "detector": "strongest RX 30%-leading-edge, common tap",
+    "s_ratio": "(Pplus-Pminus)/(Pplus+Pminus)",
+    "r_detector": "tap*C/(Nfft*df)",
+    "range_prediction_bridge_m": -0.5315983906250129,
+    "pole_model": "P1 source-only Cartesian polynomial cap, not solver truth"
+  },
+  "pilot": {
+    "source": "Original Tnone timeline CSV route keys, no new sampled or inferred timestamp",
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "mounts": [
+      0
+    ],
+    "candidate_anchor_ids": [
+      "A",
+      "B",
+      "C"
+    ],
+    "selection_algorithm": "For each sorted route original timeline, take 0,1,floor(n/8),floor(n/4),floor(n/2),floor(3n/4),floor(7n/8),n-2,n-1 plus distinct nearest XY to each of original anchors A,B and proposed C plus maximum abs(y); sorted unique pose IDs",
+    "selection_is_prior_to_any_new_RF": true,
+    "max_expected_per_route": 13,
+    "reference_mode": "original A/B NativeLoS only: same XY/timeline/mount0; C absent and labeled SOURCE_ONLY_PILOT",
+    "sample_usage": "ground-truth pose used for offline physical source-only canary input; never as filter input",
+    "direct_los_path_count_assumption": 1,
+    "native_rt_measured_path_count": null,
+    "synchronized_measured_third_anchor_packets": false,
+    "anchor_c_observed_full_h_available": false,
+    "anchor_c_observed_native_los_h_available": false,
+    "anchor_c_direct_spectrum_is_source_model_not_simulator_raytracing": true
+  },
+  "controls": {
+    "verify_original_A_B_legacy_paired_pose_time": true,
+    "verify_real_A_B_native_los_H_on_pilot": true,
+    "A_B_original_los_from": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_<case>.npy",
+    "no_rewrite_existing_C0": true,
+    "no_borrowed_packet_for_new_anchor": true,
+    "direct_field_independent_oracle": "research/FFD_P0P3_20261016/p0_initial.py:direct with original bank, compare SourceFFD for off-pole only"
+  },
+  "resource_policy": {
+    "pilot_packets_source_only": "3 anchors per unique route pilot pose; 2 RX ports, 1 TX, 257 bins each",
+    "proposal_for_future_p4": "3 separate anchor TX acquisitions/observation sets per common epoch; 3x vs single-anchor per-time RF resource; not equal resource",
+    "new_raytrace_budget_approved": false,
+    "full_new_RF_permission": false,
+    "block_full_native_multiachor_science": true
+  },
+  "scientific_claims_allowed": [
+    "new C anchor has valid and noncollinear geometry within existing corridor",
+    "full-rank 2D range Jacobian on original route pilot/traces, no inference precision gain claimed",
+    "SourceFFD can evaluate C direct physical LoS predictor and reproduce independent direct model away from cap",
+    "P3 is canary only, not measured third-anchor RF or multipath"
+  ],
+  "not_allowed": [
+    "interpret SourceFFD direct one-ray output as Sionna native RT",
+    "claim measured or synchronized third anchor packets",
+    "make P4 multi-anchor replay without original C RF",
+    "claim 3 independent RF environments",
+    "new wide RT or RF budget",
+    "use synthetic A/B packet as C",
+    "estimate cross-anchor R from assumed independence",
+    "use P3 LoS canary to infer Full multipath gain",
+    "change existing C0 files",
+    "choose anchor based on after-outcome P2 RMSE"
+  ],
+  "science_status": "NOT_RUN",
+  "pre_run_audit": "PENDING",
+  "freeze": "FALSE"
+}
