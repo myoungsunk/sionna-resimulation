@@ -23,7 +23,7 @@
 
 **단, D2(a)는 공분산의 field 간 과학적 동일성을 면제하지 않는다.** 이 조건은 D3 `CROSS_FIELD_COV_EQUIVALENCE` 게이트로 별도 부여한다. 동일 (role,cell,arm)의 서로 다른 field 간 `Sigma`는 표본오차가 없는 설계 행렬이므로 다음을 전부 만족해야 한다.
 
-[
+\[
 \delta_{\max}=\frac{\max_{i,j}|\Sigma_f[i,j]-\Sigma_{f_0}[i,j]|}{\max_{i,j}|\Sigma_{f_0}[i,j]|},\quad
 \delta_F=\frac{\|\Sigma_f-\Sigma_{f_0}\|_F}{\|\Sigma_{f_0}\|_F}.
 ]
@@ -50,7 +50,7 @@
 ### D3-2 `GENERATOR_LAW`: 수학적 불변량 하드 게이트 + 표본 진단
 
 실제 `info_core.obs_covariance`의 정의를 독립 계산한다:
-[
+\[
 K=\alpha_p K_{pose}+\alpha_t K_{time}+\alpha_w I,quad
 \Sigma=\mathrm{diag}(\sigma)\,(K\otimes C_{rs})\,\mathrm{diag}(\sigma).
 ]
