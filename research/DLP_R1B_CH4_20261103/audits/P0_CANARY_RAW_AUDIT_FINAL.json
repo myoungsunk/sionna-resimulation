@@ -1,0 +1,1100 @@
+{
+  "schema": "DLP_R1B_CH4_INDEPENDENT_RAW_CANARY_AUDIT_V3",
+  "actor": "/root/r1_preflight_audit",
+  "status": "HOLD_INDEPENDENT_RAW_AUDIT",
+  "utc": "2026-11-03T06:37:00.189358+00:00",
+  "independence": {
+    "separate_agent": true,
+    "separate_process": true,
+    "same_host": true,
+    "native_rt_executed_by_auditor": false,
+    "acquisition_code_imported": false,
+    "scientific_signoff": false
+  },
+  "bindings": {
+    "contract_sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596",
+    "input_manifest_sha256": "5bd9943bdcad4d7d5e4e413101c9fcaa49821fdc43404a7e16998be0053f86b7",
+    "audit_script_sha256": "4d4bfcf1fcf6e10214e4c739cabcc94558fc687b14a493281d666ae47d3823ad",
+    "expected_execution_commit": "24d657af7773d1c0347e843ece6b49e9c2d55ac2"
+  },
+  "audit_only_erratum": {
+    "preserved_v1_script": "audits/audit_native_raw_v1.py",
+    "preserved_v1_receipt": "audits/P0_CANARY_RAW_AUDIT_V1.json",
+    "preserved_v2_script": "audits/audit_native_raw_v2.py",
+    "preserved_v2_receipt": "audits/P0_CANARY_RAW_AUDIT_V2.json",
+    "reason": "V1 used an over-strict exact anchor equality; V2 inherited the frozen runner absolute1e-12m geometry comparison (actual discrepancy4.44e-16m). V2 required acquisition summary PASS even when correct outcome was HOLD. V3 checks the summary against independently recomputed gates. All raw data, sample selection and scientific thresholds unchanged."
+  },
+  "not_authorized": [
+    "production before measured cost lock and required review",
+    "P2/P3 before complete917 acquisition",
+    "P4",
+    "scientific performance claims"
+  ],
+  "input_hash_audit": {
+    "comparisons": 201,
+    "unique_paths": 101,
+    "status": "PASS"
+  },
+  "commit_bound_files": 97,
+  "environment_audit": {
+    "status": "PASS",
+    "environment_sha256": "88b8545cba6e59490af758b60365a5df6dfcb91b87959972d0eac6fbd39e2375",
+    "object_id_to_surface": {
+      "1": "floor",
+      "2": "ceiling",
+      "3": "wall_y_neg",
+      "4": "wall_y_pos",
+      "5": "end_x_min",
+      "6": "end_x_max"
+    },
+    "mesh_count": 6
+  },
+  "completed_pose_ids": [
+    0,
+    150,
+    221,
+    440,
+    458,
+    476,
+    696,
+    916
+  ],
+  "records": [
+    {
+      "pose_id": 0,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0000.npz",
+      "raw_sha256": "f969ed5caf54b288d71303cc9cca035c4d112e6ece048a3fa8517f837b820600",
+      "metadata_sha256": "c365f64e03f3788b22400c10c1ee80ca99b1c73d5430042ba773aa63afffb223",
+      "recomputed_metrics": {
+        "source_direct_relative": 1.884318087940217e-13,
+        "los_delay_abs_s": 3.254771613079034e-16,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 1.334052751418199e-05,
+        "native_source_s_abs": 2.445085092173116e-07,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 8.545983886611587,
+        "source_model_s": -0.9613980923267668,
+        "source_detector_range_m": 8.524478751870697,
+        "source_tap": 57,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 1.884318087940217e-13,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 8.524478751870697,
+          "s": -0.961398092326767,
+          "tap": 57,
+          "strong_port": 1,
+          "power_plus": 1.2675463279391238e-07,
+          "power_minus": 6.440518356245699e-06
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.05175107903803024,
+            "fd": -0.05175107903321318,
+            "abs_error": 4.817056475925341e-12,
+            "relative_error": 9.308127609059974e-11,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.016640208330881312,
+            "fd": 0.016640208377882715,
+            "abs_error": 4.7001402769808465e-11,
+            "relative_error": 2.8245681685716694e-09,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.6284145868284591,
+            "fd": 0.6284145873558522,
+            "abs_error": 5.273931291682743e-10,
+            "relative_error": 8.392439326241149e-10,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.961398336835276,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 1.2675379192395064e-07,
+            "power_minus": 6.4405172286565274e-06
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 8.901340473295417e-17,
+          "direct_DFT_roundoff_bound": 5.42619534751605e-14,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 8.674031010675446,
+            "s": -0.861448931317598,
+            "tap": 58,
+            "strong_port": 1,
+            "power_plus": 1.1385824628263123e-06,
+            "power_minus": 1.5296981313823627e-05
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 2.1726353818624857e-19,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 1.408491186567198e-16,
+          "direct_DFT_roundoff_bound": 6.471935071539992e-14,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 246.0802341360013,
+      "max_rss_mib_as_recorded": 1206.7109375
+    },
+    {
+      "pose_id": 150,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0150.npz",
+      "raw_sha256": "f281da1643c8089c219697a438df3e23176b979fa2b9a9698524a33d763319b7",
+      "metadata_sha256": "8ce72ed126ed38bb20d72a351aa80aba305b2408b0a49b7b30cb061379b6bc52",
+      "recomputed_metrics": {
+        "source_direct_relative": 8.739846614573152e-14,
+        "los_delay_abs_s": 2.1014960709581464e-16,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 8.572001347148549e-06,
+        "native_source_s_abs": 3.8468944918435e-08,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 3.0541330483457862,
+        "source_model_s": -0.9755695078080006,
+        "source_detector_range_m": 2.991045176094982,
+        "source_tap": 20,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 8.739846614573152e-14,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 2.9910451760949814,
+          "s": -0.9755695078080006,
+          "tap": 20,
+          "strong_port": 1,
+          "power_plus": 3.883481635171566e-06,
+          "power_minus": 0.0003140373858325203
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.01785021652162117,
+            "fd": -0.017850216538217722,
+            "abs_error": 1.659655399222082e-11,
+            "relative_error": 9.297676569983426e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.04025238734745637,
+            "fd": 0.04025238737881409,
+            "abs_error": 3.135772197460085e-11,
+            "relative_error": 7.790276314277396e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.187522623806879,
+            "fd": 0.1875226237624261,
+            "abs_error": 4.4452913572357033e-11,
+            "relative_error": 2.370536027596172e-10,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 2.9910451760949814,
+            "s": -0.9755695462769455,
+            "tap": 20,
+            "strong_port": 1,
+            "power_plus": 3.8834749784041015e-06,
+            "power_minus": 0.00031403734814076207
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 9.111644139019719e-16,
+          "direct_DFT_roundoff_bound": 4.17933866192065e-13,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 2.9910451760949814,
+            "s": -0.9937527287329214,
+            "tap": 20,
+            "strong_port": 1,
+            "power_plus": 9.607785320383242e-07,
+            "power_minus": 0.000306622641801041
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 1.3013249206686844e-18,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 9.777426655257067e-16,
+          "direct_DFT_roundoff_bound": 4.1689358450429857e-13,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 36.42006644299909,
+      "max_rss_mib_as_recorded": 1208.8359375
+    },
+    {
+      "pose_id": 221,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0221.npz",
+      "raw_sha256": "6e8642df8c5f474562bb3e5c9b03db0167db5edba4c6703a658e9ec7fb833cf9",
+      "metadata_sha256": "799f677a2d9f71a5ccf4f1ed939fd27a81adfbcfada95be11da46a6326b008c9",
+      "recomputed_metrics": {
+        "source_direct_relative": 5.236724530770373e-14,
+        "los_delay_abs_s": 1.1500082779629768e-17,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 5.251982085738153e-07,
+        "native_source_s_abs": 9.919455146167877e-09,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 1.694858721037562,
+        "source_model_s": -0.9066822268872385,
+        "source_detector_range_m": 1.64507484685224,
+        "source_tap": 11,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 5.236724530770373e-14,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 1.6450748468522398,
+          "s": -0.9066822268872383,
+          "tap": 11,
+          "strong_port": 1,
+          "power_plus": 0.0004444625054313502,
+          "power_minus": 0.009081322146422252
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.01407323904343877,
+            "fd": 0.014073239029688265,
+            "abs_error": 1.3750504207488135e-11,
+            "relative_error": 9.770674799913173e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.15848324739808628,
+            "fd": 0.1584832473700004,
+            "abs_error": 2.8085866965454898e-11,
+            "relative_error": 1.7721662968520193e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.3819914175562595,
+            "fd": -0.38199141755290705,
+            "abs_error": 3.3524294451581227e-12,
+            "relative_error": 8.776190487746701e-12,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 1.6450748468522398,
+            "s": -0.9066822368066937,
+            "tap": 11,
+            "strong_port": 1,
+            "power_plus": 0.00044446219129857996,
+            "power_minus": 0.00908131674058354
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 3.5071450200177777e-15,
+          "direct_DFT_roundoff_bound": 2.074897370294226e-12,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 1.6450748468522398,
+            "s": -0.9122549225507205,
+            "tap": 11,
+            "strong_port": 1,
+            "power_plus": 0.00040746683513106163,
+            "power_minus": 0.008880047563989404
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 6.938893903907228e-18,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 3.7787766985862485e-15,
+          "direct_DFT_roundoff_bound": 2.052160592195027e-12,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 35.80200297900046,
+      "max_rss_mib_as_recorded": 1208.9609375
+    },
+    {
+      "pose_id": 440,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0440.npz",
+      "raw_sha256": "7deb58f8fc7cbbd0b7c0cc972dd1b34c1285bae6328ec4703e5f66f8a1fc5f98",
+      "metadata_sha256": "c214f2bc63c069135fb25343a9d367baf76c395e500e277f7fe4c9f3e3b47335",
+      "recomputed_metrics": {
+        "source_direct_relative": 1.2915122811374106e-13,
+        "los_delay_abs_s": 3.900169068688608e-15,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 0.00015950092587162026,
+        "native_source_s_abs": 3.4309600493998005e-08,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 8.526582246495872,
+        "source_model_s": -0.9934885940106202,
+        "source_detector_range_m": 8.524478751870697,
+        "source_tap": 57,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 1.2915122811374106e-13,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 8.524478751870697,
+          "s": -0.9934885940106202,
+          "tap": 57,
+          "strong_port": 1,
+          "power_plus": 2.094322301316467e-08,
+          "power_minus": 6.411837361494377e-06
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.022686934098281823,
+            "fd": 0.02268693409801514,
+            "abs_error": 2.666825094088665e-13,
+            "relative_error": 1.175489417184244e-11,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.0110173760795581,
+            "fd": 0.011017376078115147,
+            "abs_error": 1.442953395658364e-12,
+            "relative_error": 1.3097069440478245e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.18378609319732034,
+            "fd": 0.18378609308866697,
+            "abs_error": 1.0865336408372173e-10,
+            "relative_error": 5.911946991934095e-10,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.9934886283202207,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 2.0942932978479837e-08,
+            "power_minus": 6.41178246143182e-06
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 8.041383717146173e-17,
+          "direct_DFT_roundoff_bound": 4.9573904595621817e-14,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.9694461527862511,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 2.093052199218871e-07,
+            "power_minus": 1.3491438811271777e-05
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 2.2351400383409363e-19,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 1.683890130374441e-16,
+          "direct_DFT_roundoff_bound": 8.578532337559932e-14,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 36.42693746000077,
+      "max_rss_mib_as_recorded": 1208.9609375
+    },
+    {
+      "pose_id": 458,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0458.npz",
+      "raw_sha256": "19d1dbe2151f786a06c99c84cd00fad0dd3d8eba346459cda71a3e72a36a8e45",
+      "metadata_sha256": "6c8be44f31a185c9f3300541fb1598f258036bd600f7078993b7f0e420741325",
+      "recomputed_metrics": {
+        "source_direct_relative": 1.2943171023925784e-13,
+        "los_delay_abs_s": 3.900169068688608e-15,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 0.00015910662623930575,
+        "native_source_s_abs": 1.312463049352175e-08,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 8.526582246495872,
+        "source_model_s": 0.9770131512823553,
+        "source_detector_range_m": 8.524478751870697,
+        "source_tap": 57,
+        "source_strong_port": 0
+      },
+      "source_checks": {
+        "source_direct_relative": 1.2943171023925784e-13,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 8.524478751870697,
+          "s": 0.9770131512823552,
+          "tap": 57,
+          "strong_port": 0,
+          "power_plus": 1.213059888293883e-05,
+          "power_minus": 1.4104318992297943e-07
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.040881895112223864,
+            "fd": 0.040881895113642486,
+            "abs_error": 1.4186221641843133e-12,
+            "relative_error": 3.470049909110351e-11,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.018258584879803117,
+            "fd": 0.018258584943975364,
+            "abs_error": 6.417224737709226e-11,
+            "relative_error": 3.514634228202259e-09,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.012540199475807262,
+            "fd": -0.012540200045041415,
+            "abs_error": 5.692341528695799e-10,
+            "relative_error": 4.539275104576724e-08,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": 0.9770131381577248,
+            "tap": 57,
+            "strong_port": 0,
+            "power_plus": 1.2130505396511188e-05,
+            "power_minus": 1.4104218441684903e-07
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 9.687941558415504e-17,
+          "direct_DFT_roundoff_bound": 6.058857374997941e-14,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": 0.9806844670078174,
+            "tap": 57,
+            "strong_port": 0,
+            "power_plus": 2.3118081135395282e-05,
+            "power_minus": 2.2544633752859093e-07
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 2.2351400383409363e-19,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 1.804996171769425e-16,
+          "direct_DFT_roundoff_bound": 9.561241622001529e-14,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 40.241331175000596,
+      "max_rss_mib_as_recorded": 1208.9609375
+    },
+    {
+      "pose_id": 476,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0476.npz",
+      "raw_sha256": "a80ed71f86895c7c55f8a4a89ed3a973eac5f2ae875d99b000b51711f8f0a82a",
+      "metadata_sha256": "f0475802844157d03a148541b92a6060aaa4ac203006b79a110db2612ac0f645",
+      "recomputed_metrics": {
+        "source_direct_relative": 1.2940979768324826e-13,
+        "los_delay_abs_s": 3.900169068688608e-15,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 0.00015935551294853398,
+        "native_source_s_abs": 5.364072265257036e-07,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 8.526582246495872,
+        "source_model_s": -0.7171549956444814,
+        "source_detector_range_m": 8.524478751870697,
+        "source_tap": 57,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 1.2940979768324826e-13,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 8.524478751870697,
+          "s": -0.7171549956444816,
+          "tap": 57,
+          "strong_port": 1,
+          "power_plus": 1.932764372475107e-06,
+          "power_minus": 1.1733832828907618e-05
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.34454100860308146,
+            "fd": 0.3445410087565825,
+            "abs_error": 1.5350104520805985e-10,
+            "relative_error": 4.455232943980155e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.06853345465024405,
+            "fd": 0.06853345458912585,
+            "abs_error": 6.11181938392491e-11,
+            "relative_error": 8.918008606331281e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.9770613824751933,
+            "fd": -0.9770613822790429,
+            "abs_error": 1.9615031821018647e-10,
+            "relative_error": 2.007553688318723e-10,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.7171544592372548,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 1.932753365506155e-06,
+            "power_minus": 1.1733740087380736e-05
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 9.596055427463027e-17,
+          "direct_DFT_roundoff_bound": 5.983459596288334e-14,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.7634932351390303,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 2.9806890981095046e-06,
+            "power_minus": 2.222526304335842e-05
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 3.297472175031376e-19,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 1.7965809643672507e-16,
+          "direct_DFT_roundoff_bound": 9.596506701064939e-14,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 38.09757225000067,
+      "max_rss_mib_as_recorded": 1208.9609375
+    },
+    {
+      "pose_id": 696,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0696.npz",
+      "raw_sha256": "601f3562a4bcde862736b7f38661e1a1ed9aa311c89f81ff2ff3768911148a8a",
+      "metadata_sha256": "097e6f4cfee91303eb416ce77d0d37d0a10cedb7aa4b5ed08afa1a77b5b119c9",
+      "recomputed_metrics": {
+        "source_direct_relative": 2.9095666251266254e-14,
+        "los_delay_abs_s": 1.5175088415141995e-16,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 6.258733981161511e-06,
+        "native_source_s_abs": 1.0720725418522647e-09,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 1.7085682980853987,
+        "source_model_s": -0.9368597850597933,
+        "source_detector_range_m": 1.64507484685224,
+        "source_tap": 11,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 2.9095666251266254e-14,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 1.6450748468522398,
+          "s": -0.9368597850597933,
+          "tap": 11,
+          "strong_port": 1,
+          "power_plus": 0.00022916920873241564,
+          "power_minus": 0.007029887763101992
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.047096123691711865,
+            "fd": 0.04709612372311155,
+            "abs_error": 3.139968840493168e-11,
+            "relative_error": 6.66714921390813e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.02436686771705177,
+            "fd": 0.024366867701353098,
+            "abs_error": 1.569867152939608e-11,
+            "relative_error": 6.44263009578792e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.2582868344053123,
+            "fd": 0.2582868343870004,
+            "abs_error": 1.831190754586487e-11,
+            "relative_error": 7.089756467079237e-11,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 1.6450748468522398,
+            "s": -0.9368597839877207,
+            "tap": 11,
+            "strong_port": 1,
+            "power_plus": 0.00022916928556406362,
+            "power_minus": 0.007029889996700519
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 3.2604001091085172e-15,
+          "direct_DFT_roundoff_bound": 1.938152511615084e-12,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 1.6450748468522398,
+            "s": -0.9292830016659063,
+            "tap": 11,
+            "strong_port": 1,
+            "power_plus": 0.0002481831827237053,
+            "power_minus": 0.006770869904094101
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 5.275955480050202e-18,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 3.1862679303979712e-15,
+          "direct_DFT_roundoff_bound": 1.8841562721443324e-12,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 38.7619924720002,
+      "max_rss_mib_as_recorded": 1208.9609375
+    },
+    {
+      "pose_id": 916,
+      "status": "PASS",
+      "anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+      "raw_path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/pose_0916.npz",
+      "raw_sha256": "231fdd55b6a79a193d2fc1d13c12034fa1dbc775b822233b27d2b60d5fc3edaa",
+      "metadata_sha256": "dfd987149f740a6058127e82fc363768d8b2a4c9890568c29165b7a0fa80cba9",
+      "recomputed_metrics": {
+        "source_direct_relative": 1.1241805525666007e-13,
+        "los_delay_abs_s": 1.6126391151290524e-15,
+        "full_unique_direct_bins": 257,
+        "full_direct_vs_separate_los_relative_max": 0.0,
+        "native_source_complex_relative": 6.622556558198863e-05,
+        "native_source_s_abs": 2.463116266504528e-08,
+        "native_source_tap_mismatch": 0,
+        "native_source_port_mismatch": 0,
+        "source_model_range_m": 8.549176405724424,
+        "source_model_s": -0.6936304094718242,
+        "source_detector_range_m": 8.524478751870697,
+        "source_tap": 57,
+        "source_strong_port": 1
+      },
+      "source_checks": {
+        "source_direct_relative": 1.1241805525666007e-13,
+        "canonical_archive_relative": 0.0,
+        "independent_archive_relative": 0.0,
+        "source_detector": {
+          "r_m": 8.524478751870697,
+          "s": -0.6936304094718239,
+          "tap": 57,
+          "strong_port": 1,
+          "power_plus": 7.602497903943266e-07,
+          "power_minus": 4.202708766188709e-06
+        },
+        "fd": [
+          {
+            "axis": 0,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.233066999288464,
+            "fd": -0.2330669993444445,
+            "abs_error": 5.598049801491811e-11,
+            "relative_error": 2.4019058118833793e-10,
+            "status": "PASS"
+          },
+          {
+            "axis": 1,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": -0.04808848387520134,
+            "fd": -0.0480884838172102,
+            "abs_error": 5.799114660698379e-11,
+            "relative_error": 1.2059258669389894e-09,
+            "status": "PASS"
+          },
+          {
+            "axis": 2,
+            "step": 5e-06,
+            "stable": true,
+            "analytic": 0.2981046854579413,
+            "fd": 0.29810468503699283,
+            "abs_error": 4.2094844276974186e-10,
+            "relative_error": 1.4120826115936116e-09,
+            "status": "PASS"
+          }
+        ]
+      },
+      "native_modes": {
+        "los": {
+          "observation": {
+            "r_m": 8.524478751870697,
+            "s": -0.6936303848406615,
+            "tap": 57,
+            "strong_port": 1,
+            "power_plus": 7.602472992624493e-07,
+            "power_minus": 4.202694596049562e-06
+          },
+          "path_count_min": 1,
+          "path_count_max": 1,
+          "total_path_count": 257,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 0.0,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 7.519619220947423e-17,
+          "direct_DFT_roundoff_bound": 4.551048810396118e-14,
+          "active_surface_ids": [],
+          "interaction_values": [
+            0
+          ]
+        },
+        "full": {
+          "observation": {
+            "r_m": 8.674031010675446,
+            "s": -0.7958616124797154,
+            "tap": 58,
+            "strong_port": 1,
+            "power_plus": 3.2872854856250388e-06,
+            "power_minus": 2.8919155699263736e-05
+          },
+          "path_count_min": 62,
+          "path_count_max": 63,
+          "total_path_count": 16080,
+          "raw_H_exact": true,
+          "raw_H_compensated_max_abs": 2.42434975903054e-19,
+          "archived_CIR_exact": true,
+          "direct_DFT_CIR_max_abs": 1.876686055737719e-16,
+          "direct_DFT_roundoff_bound": 1.0506459506014552e-13,
+          "active_surface_ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "interaction_values": [
+            0,
+            1
+          ]
+        }
+      },
+      "acquisition_seconds_as_recorded": 37.348280497000815,
+      "max_rss_mib_as_recorded": 1208.9609375
+    }
+  ],
+  "independently_recomputed_metrics": {
+    "complex_max": 0.00015950092587162026,
+    "complex_rms": 0.00010051515145524099,
+    "s_max": 5.364072265257036e-07,
+    "s_rmse": 2.0947930303123633e-07,
+    "tap_mismatches": 0,
+    "port_mismatches": 0
+  },
+  "independently_recomputed_gates": {
+    "complete_8_preselected_poses": true,
+    "complex_max": true,
+    "complex_rms": false,
+    "s_max": true,
+    "s_rmse": true,
+    "tap_exact": true,
+    "port_exact": true,
+    "delay": true,
+    "full_direct_present": true,
+    "full_direct_los_parity": true,
+    "source_internal": true,
+    "stable_jacobian": true
+  },
+  "independently_recomputed_acquisition_status": "HOLD_RF_PARITY",
+  "recorded_cost_arithmetic": {
+    "median_pose_seconds": 37.72292637350074,
+    "max_pose_seconds": 246.0802341360013,
+    "projected_917_pose_cpu_hours_median": 9.608867634583383,
+    "projected_917_pose_cpu_hours_max": 62.682104084087,
+    "max_rss_mib": 1208.9609375
+  },
+  "qa_sha256": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0",
+  "canary_complete": true,
+  "qa_complete": true,
+  "checks_performed": 1219,
+  "failed_checks": [
+    {
+      "code": "EIGHT_POSE_COMPLEX_RMS",
+      "detail": null
+    }
+  ],
+  "raw_accounting_status": "PASS",
+  "scientific_thresholds_changed": false,
+  "production_permitted": false,
+  "audit_elapsed_seconds": 3.7606524889997672
+}

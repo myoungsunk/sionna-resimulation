@@ -1,0 +1,57 @@
+{
+  "schema": "DLP_R1B_FINAL_REPORT_EVIDENCE_REVIEW_V1",
+  "status": "PASS_REPORT_ACCURACY_ONLY",
+  "auditor_identity": "/root/ekf_contract_review",
+  "separate_agent": true,
+  "independence_boundary": "Separate delegated reviewer in the same workspace; this is a report-to-existing-evidence review, not external human approval or independent RF execution.",
+  "scientific_acceptance": false,
+  "production_permitted": false,
+  "current_scientific_status": "HOLD_RF_PARITY",
+  "blocking_report_issues": [],
+  "reviewed_files": {
+    "research/DLP_R1B_CH4_20261103/10_FINAL_RESULT_AND_MANUSCRIPT_USE_KO.md": {
+      "sha256": "c62355dfcf0b4d6465a93a31e6c7d61acfdb7e81df1b0e05c6a4f6600c749bc4",
+      "bytes": 18797
+    },
+    "research/DLP_R1B_CH4_20261103/08_QA_PARITY_AND_LIMITATIONS.json": {
+      "sha256": "80093f3c8558a974ea3de5d484ef76459e8c447738ced42c9045b2a9431fb8e4",
+      "bytes": 7387
+    },
+    "research/DLP_R1B_CH4_20261103/P0_COST_MEASUREMENT.json": {
+      "sha256": "623ca271bee88dd5a995056f7921a00725425f1bf1d22d9072693f961a56f7f0",
+      "bytes": 3103
+    },
+    "research/DLP_R1B_CH4_20261103/01_P0_PROVENANCE_AND_FEASIBILITY_FINAL_KO.md": {
+      "sha256": "759d1c190c226b671eec3cdf569890adf3fd09b8cd3192bc9dcaf41759b5ad77",
+      "bytes": 5920
+    }
+  },
+  "primary_evidence_bindings": {
+    "runs/P0_CANARY_V2/03_RF_CANARY_QA.json": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0",
+    "audits/P0_CANARY_RAW_AUDIT_FINAL.json": "ebc52f40dd45148cfb6b34483a729f3bc54d4e59d763503a3867b745de5151ef",
+    "audits/P0_DELAY_DIAGNOSTIC_INDEPENDENT.json": "f0c5c0c26e662fc29fba3956360239ee854be7d49097b2223ca9393d92209166",
+    "audits/P1_PRODUCTION_DRIVER_REVIEW_ADDENDUM.json": "b867a0555a2c9028f0c2c0b5988c6c3761d3fbe4c55b593b47b3db003751175a"
+  },
+  "review_findings": {
+    "final_status_bindings": "All 15 referenced file hashes and byte sizes in the final status JSON match current files, including the production-driver anchor addendum JSON and Markdown.",
+    "gate_and_stage_accounting": "The failed8-pose complex RMS,11/12 acquisition checks,8 paired poses,4112 solver calls and P1/P2/P3/P4 NOT_RUN scope match the preserved QA/audits. Actual R1 localization metrics remain null.",
+    "metric_interpretation": "Per-pose TX0 Frobenius relative norms and equal-weight8-pose RMS are stated correctly. The0.515151455% exceedance relative to the limit is explicitly distinguished from the0.010051515% relative channel error.",
+    "delay_algebra": "The displayed identity H_native-H_source=H_source*(exp(-i2pi*f*delta_tau)-1)+(A_native-A_source)*exp(-i2pi*f*tau_native) is correct. Diagnostic residuals are not substituted for the gate; float32-compatible delays are not presented as proof of the unique internal cause.",
+    "audit_scope": "Reported1219 checks,101 unique input paths,201 hash comparisons,97 commit-bound files,24 stable FD directions,source-internal maximum and direct-DFT maximum agree with the existing independent audit. Same-host computational independence is accurately qualified.",
+    "cost": "Measured loop/per-pose wall times and RSS agree with the immutable QA. All five stated sequential-hour projection formulas reproduce the recorded values. CPU time,total end-to-end time and parallel runtime remain unmeasured/null; extrapolation is not presented as a full-route measurement or upper bound.",
+    "geometry_and_lineage": "917/767 population,original lateral variation,nearest horizontal distance,off-boresight,bank recovery identifiers and bank hashes agree with saved geometry/input records. Prior6-state and other-route4-state results are not reused as R1 performance.",
+    "prepared_anchor_limitation": "The final report explicitly says the unexecuted collector's exact anchor comparison requires alignment to the inherited1e-12m geometry tolerance and review. It does not attribute the actual RMS HOLD to this unused assembly check or imply that correcting it resolves the HOLD.",
+    "scientific_claim_boundaries": "The report permits use of conditions,provenance,gate failure and diagnostic explanation while withholding full-route observation-error and localization-performance claims. No material contradiction or scientific overclaim was found within this review scope."
+  },
+  "work_scope": {
+    "existing_documents_and_receipts_read": true,
+    "hash_and_reporting_arithmetic_checked": true,
+    "new_tests_added_or_run": false,
+    "RF_recomputed": false,
+    "SourceFFD_or_EKF_executed": false,
+    "source_or_prior_evidence_modified": false,
+    "commit_or_push": false,
+    "README_checksums_and_delivery_package_reviewed": false
+  },
+  "validity": "This receipt applies only to the exact four report/status/cost/provenance file hashes above. It is report-accuracy acceptance only and cannot authorize scientific resumption,production,replay or remote publication."
+}

@@ -1,0 +1,44 @@
+{
+  "schema": "DLP_R1B_PREPARED_DRIVER_SOURCE_ADDENDUM_V1",
+  "status": "PREPARED_ONLY_UNEXECUTED_FIX_REQUIRED_BEFORE_FUTURE_ASSEMBLY",
+  "auditor_identity": "/root/ekf_contract_review",
+  "production_authorized": false,
+  "scientific_release": false,
+  "runner_path": "research/DLP_R1B_CH4_20261103/runtime/r1b_acquire.py",
+  "runner_sha256": "0377a0df44636469d8ce1d1c28fba6e232f33b4b5300240bd9284cf17780ff35",
+  "frozen_native_sha256": "68c3982e7513f8dc89a0775d866f27460c7a75bea76ce72b767f10779f376700",
+  "prior_review_json_sha256": "9b3f338e574af87c247081bc89cac057c27c436f5475baca00870b3007723fab",
+  "prior_review_markdown_sha256": "e9f0cfc5a1ecc8c9a7d31230a942e33a772685c46671c08bd20560c221ec1c8b",
+  "raw_audit_evidence": {
+    "path": "research/DLP_R1B_CH4_20261103/audits/P0_CANARY_RAW_AUDIT_FINAL.json",
+    "sha256": "ebc52f40dd45148cfb6b34483a729f3bc54d4e59d763503a3867b745de5151ef",
+    "recorded_anchor_literal_max_abs_difference_m": 4.440892098500626e-16,
+    "affected_canary_pose_ids": [0, 150, 221, 440, 458, 476, 696, 916],
+    "read_from_separate_audit_not_recomputed_here": true
+  },
+  "finding": {
+    "id": "PREPARED_DRIVER_ANCHOR_EXACT_EQUALITY",
+    "function": "validate_raw_pose",
+    "current_predicate": "np.array_equal(data['anchor_xyz_m'], np.array([10., 0., 2.65]))",
+    "current_failure": "RAW_ANCHOR_NOT_B",
+    "frozen_native_predicate": "np.allclose(setup.anchor_position, [10., 0., 2.65], atol=1e-12, rtol=0)",
+    "impact": "Current source would falsely reject the stored native anchor if those raw files reached assembly. No assembly has executed.",
+    "future_fix": "Validate shape and finiteness, align comparison to inherited absolute1e-12m and relative0 geometry criterion, then bind revised code hash and review before future execution.",
+    "fix_applied": false
+  },
+  "current_canary_hold": {
+    "status": "HOLD_RF_PARITY",
+    "complex_rms": 0.00010051515145524099,
+    "fixed_limit": 0.0001,
+    "unchanged_by_this_finding": true,
+    "prepared_driver_did_not_participate_in_canary_acquisition": true
+  },
+  "actions": {
+    "source_and_existing_audit_read_only": true,
+    "prior_receipts_preserved": true,
+    "driver_preserved": true,
+    "new_RF_or_replay": false,
+    "new_tests": false,
+    "commit_or_push": false
+  }
+}

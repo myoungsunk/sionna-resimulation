@@ -1,0 +1,197 @@
+{
+  "schema": "DLP_R1B_CH4_FINAL_HOLD_RECEIPT_V1",
+  "contract_id": "DLP-R1B-CH4-001",
+  "created_utc": "2026-11-03T06:52:22.180209+00:00",
+  "status": "HOLD_RF_PARITY",
+  "reason": "Eight-pose RMS of per-pose relative complex channel norms exceeds frozen1e-4 limit.",
+  "base_git_sha": "e365b2f79eb86a3fd53d0d350f8e2d9364f285fe",
+  "actual_native_execution_git_sha": "24d657af7773d1c0347e843ece6b49e9c2d55ac2",
+  "delivery_branch": "research/dlp-r1b-ch4-20261103",
+  "remote_push_status": "BLOCKED_BY_AUTOMATIC_APPROVAL_REVIEW_NOT_RETRIED",
+  "bindings": {
+    "00_REQUEST_CONTRACT_FROZEN_V2.json": {
+      "sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596",
+      "bytes": 36544
+    },
+    "02_INPUT_HASH_MANIFEST_V2.json": {
+      "sha256": "5bd9943bdcad4d7d5e4e413101c9fcaa49821fdc43404a7e16998be0053f86b7",
+      "bytes": 27766
+    },
+    "runs/P0_CANARY_V2/03_RF_CANARY_QA.json": {
+      "sha256": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0",
+      "bytes": 20865
+    },
+    "runs/P0_CANARY_V2/ENVIRONMENT.json": {
+      "sha256": "88b8545cba6e59490af758b60365a5df6dfcb91b87959972d0eac6fbd39e2375",
+      "bytes": 1748
+    },
+    "audits/P0_PRE_RUN_AUDIT.json": {
+      "sha256": "12e4dd7dc63af78768c6b6694c4cb7163ff21623894a72dd987f2a5e263ce29b",
+      "bytes": 7174
+    },
+    "audits/P3_PRE_RUN_AUDIT.json": {
+      "sha256": "78e4679628a32c221d7063f2395bd5d03be2df554cd9d43c7590562b108d7236",
+      "bytes": 5721
+    },
+    "audits/P0_CANARY_RAW_AUDIT_FINAL.json": {
+      "sha256": "ebc52f40dd45148cfb6b34483a729f3bc54d4e59d763503a3867b745de5151ef",
+      "bytes": 37060
+    },
+    "audits/P0_DELAY_DIAGNOSTIC_INDEPENDENT.json": {
+      "sha256": "f0c5c0c26e662fc29fba3956360239ee854be7d49097b2223ca9393d92209166",
+      "bytes": 7411
+    },
+    "audits/P1_PRODUCTION_DRIVER_PREPARED_REVIEW.json": {
+      "sha256": "9b3f338e574af87c247081bc89cac057c27c436f5475baca00870b3007723fab",
+      "bytes": 5467
+    },
+    "P0_COST_MEASUREMENT.json": {
+      "sha256": "623ca271bee88dd5a995056f7921a00725425f1bf1d22d9072693f961a56f7f0",
+      "bytes": 3103
+    },
+    "runtime/r1b_native.py": {
+      "sha256": "68c3982e7513f8dc89a0775d866f27460c7a75bea76ce72b767f10779f376700",
+      "bytes": 20619
+    },
+    "runtime/r1b_replay.py": {
+      "sha256": "e157573d863847a12da02a392edd6f0a9fdba0a5c4318b4e23b14503edfffd77",
+      "bytes": 38502
+    },
+    "runtime/r1b_acquire.py": {
+      "sha256": "0377a0df44636469d8ce1d1c28fba6e232f33b4b5300240bd9284cf17780ff35",
+      "bytes": 29982
+    },
+    "audits/P1_PRODUCTION_DRIVER_REVIEW_ADDENDUM.json": {
+      "sha256": "b867a0555a2c9028f0c2c0b5988c6c3761d3fbe4c55b593b47b3db003751175a",
+      "bytes": 2280
+    },
+    "audits/P1_PRODUCTION_DRIVER_REVIEW_ADDENDUM_KO.md": {
+      "sha256": "14d1ea6221bdcca78cbfdf6d1726ba8f97f8c9b062bca03f221b04d89d5d189c",
+      "bytes": 3961
+    }
+  },
+  "checks": {
+    "complete_8_preselected_poses": true,
+    "complex_max": true,
+    "complex_rms": false,
+    "s_max": true,
+    "s_rmse": true,
+    "tap_exact": true,
+    "port_exact": true,
+    "delay": true,
+    "full_direct_present": true,
+    "full_direct_los_parity": true,
+    "source_internal": true,
+    "stable_jacobian": true
+  },
+  "passed_acquisition_checks": 11,
+  "total_acquisition_checks": 12,
+  "independently_recomputed_metrics": {
+    "complex_max": 0.00015950092587162026,
+    "complex_rms": 0.00010051515145524099,
+    "s_max": 5.364072265257036e-07,
+    "s_rmse": 2.0947930303123633e-07,
+    "tap_mismatches": 0,
+    "port_mismatches": 0
+  },
+  "frozen_tolerances": {
+    "source": "unchanged P1 T06-T09,T13 plus P3 delay/observer; P2 numeric for filter",
+    "source_direct_relative_max": 1e-10,
+    "native_complex_relative_max": 0.0005,
+    "native_complex_relative_rms": 0.0001,
+    "native_s_abs_max": 2e-05,
+    "native_s_rmse": 2e-06,
+    "native_source_tap_mismatch": 0,
+    "native_source_branch_mismatch": 0,
+    "los_delay_abs_s": 1e-12,
+    "observer_abs": 1e-10,
+    "stable_jac_abs": 2e-05,
+    "stable_jac_rel": 0.0001,
+    "fd_step": 1e-05,
+    "no_phase_or_gain_fit": true,
+    "full_direct_relative_max": 0.0005,
+    "full_direct_relative_source": "P4_FULL_CONFIG_LOCK.json direct_path_option.max_relative_complex_error; separate LoS remains actual solver, no optimization"
+  },
+  "complex_rms_excess_as_percent_of_limit": 0.5151514552409919,
+  "complex_error_definition": "For each selected pose i: norm(H_los[:,:,0]-H_source)/norm(H_los[:,:,0]); aggregate RMS=sqrt(mean(epsilon_i**2)), equal weight across all eight preselected poses.",
+  "raw_accounting_status": "PASS",
+  "independent_computational_audit": {
+    "status": "HOLD_INDEPENDENT_RAW_AUDIT",
+    "checks_performed": 1219,
+    "failed_checks": [
+      {
+        "code": "EIGHT_POSE_COMPLEX_RMS",
+        "detail": null
+      }
+    ],
+    "independence": {
+      "separate_agent": true,
+      "separate_process": true,
+      "same_host": true,
+      "native_rt_executed_by_auditor": false,
+      "acquisition_code_imported": false,
+      "scientific_signoff": false
+    }
+  },
+  "stages": {
+    "P0": "EXECUTED_EIGHT_POSE_CANARY_AND_INDEPENDENT_AUDIT_HOLD",
+    "P1": "NOT_RUN_FULL_917_POSE_PRODUCTION",
+    "P2": "NOT_RUN_FULL_ROUTE_PRE_CORRECTION_ERROR_ANALYSIS",
+    "P3": "NOT_RUN_ACTUAL_R1_FOUR_STATE_REPLAY_B0_AND_L2",
+    "P4": "NOT_RUN_OPTIONAL_EXTENSION_NOT_AUTHORIZED"
+  },
+  "actual_rf_scope": {
+    "pose_ids": [
+      0,
+      150,
+      221,
+      440,
+      458,
+      476,
+      696,
+      916
+    ],
+    "paired_pose_count": 8,
+    "native_solver_invocations": 4112,
+    "frequency_bins_per_pose": 257,
+    "full_unique_direct_path_pairs_verified": 2056
+  },
+  "planned_population": {
+    "n_pose": 917,
+    "t_ge_30_n": 767,
+    "eval_rule": "every exact original timestamp t>=30, including rejected updates"
+  },
+  "scientific_supported": false,
+  "production_permitted": false,
+  "actual_r1_localization_metrics": {
+    "heading_rmse_deg": null,
+    "xy_rmse_m": null,
+    "los_full_performance_difference": null
+  },
+  "delay_diagnostic": {
+    "status": "OFFLINE_EXPLANATION_ONLY_HOLD_UNCHANGED",
+    "native_rt_calls": 0,
+    "fitted_parameters": 0,
+    "turn_delta_tau_s": 3.900169068688608e-15,
+    "turn_predicted_phase_rms_rad": 0.0001593250994072354,
+    "max_coefficient_remainder_relative": 7.12948788473566e-07,
+    "exact_runtime_operation_identified": false
+  },
+  "integrity": {
+    "raw_modified": false,
+    "scientific_thresholds_modified": false,
+    "canary_samples_removed_or_reweighted": false,
+    "phase_or_gain_fit": false
+  },
+  "prepared_code_limitations": [
+    "Production collector and recursive replay are prepared only, not production-validated.",
+    "Prepared collector exact anchor equality must be reviewed against the frozen1e-12m geometry tolerance before future assembly.",
+    "Parallel global-stop supervision is not implemented by the collector itself.",
+    "Existing P2 ratification covers R2/R4/R5 and does not ratify R1."
+  ],
+  "immutable_receipt_interpretation": [
+    "Native acquisition QA independent_audit=PENDING records its original issuance time; final independent status is supplied separately here.",
+    "Pre-run geometry RF_NOT_RUN records a pre-acquisition snapshot; final actual scope is eight canary poses.",
+    "The original QA cpu_hours keys are wall-time extrapolations; see P0_COST_MEASUREMENT.json."
+  ]
+}

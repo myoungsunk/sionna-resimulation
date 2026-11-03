@@ -1,0 +1,141 @@
+{
+  "schema": "DLP_R1B_CH4_INDEPENDENT_DELAY_DIAGNOSTIC_V1",
+  "actor": "/root/r1_preflight_audit",
+  "utc": "2026-11-03T06:38:16.713810+00:00",
+  "bindings": {
+    "audit_script_sha256": "393114f8089491b5a72551b32391910f45285e39e716ee4cf71736e761f6e55e",
+    "final_raw_audit_sha256": "ebc52f40dd45148cfb6b34483a729f3bc54d4e59d763503a3867b745de5151ef",
+    "contract_sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596"
+  },
+  "native_rt_calls": 0,
+  "fitted_parameters": 0,
+  "raw_data_modified": false,
+  "thresholds_modified": false,
+  "acceptance_phase_alignment": false,
+  "formulas": {
+    "H_native": "A_native * exp(-i 2pi f tau_native)",
+    "H_source": "A_source * exp(-i 2pi f tau_geometry)",
+    "E_tau": "H_source * (exp(-i 2pi f (tau_native-tau_geometry)) - 1)",
+    "E_coefficient": "(A_native-A_source) * exp(-i 2pi f tau_native)",
+    "identity": "H_native-H_source = E_tau + E_coefficient"
+  },
+  "findings": {
+    "all_stored_native_los_delays_float32_round_trip_exact": true,
+    "max_coefficient_remainder_relative": 7.12948788473566e-07,
+    "max_decomposition_residual_relative": 9.547378255873085e-14,
+    "interpretation": "Known Native delay minus exact input-geometry delay accounts for the dominant complex mismatch. The coefficient remainder includes amplitude and intrinsic coefficient phase differences. Float32-compatible delays support a numerical-precision explanation; this alone does not isolate the exact runtime operation responsible."
+  },
+  "acceptance": {
+    "status": "HOLD_RF_PARITY_UNCHANGED",
+    "complex_rms": 0.00010051515145524099,
+    "frozen_complex_rms_limit": 0.0001,
+    "diagnostic_remainders_are_not_replacement_gate_metrics": true,
+    "production_permitted": false
+  },
+  "records": [
+    {
+      "pose_id": 0,
+      "raw_sha256": "f969ed5caf54b288d71303cc9cca035c4d112e6ece048a3fa8517f837b820600",
+      "tau_error_mean_s": -3.254771613079034e-16,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 1.334052751418199e-05,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 1.3345014385416767e-05,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 6.093051100250357e-07,
+      "decomposition_reconstruction_relative": 9.394338886332403e-14,
+      "predicted_delay_phase_rms_rad": 1.329600849780668e-05,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": 1.3322141733442056e-05
+    },
+    {
+      "pose_id": 150,
+      "raw_sha256": "f281da1643c8089c219697a438df3e23176b979fa2b9a9698524a33d763319b7",
+      "tau_error_mean_s": -2.1014960709581464e-16,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 8.572001347148549e-06,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 8.611222189671726e-06,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 4.01639441647065e-07,
+      "decomposition_reconstruction_relative": 2.3828781598589144e-14,
+      "predicted_delay_phase_rms_rad": 8.584783493037173e-06,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": 8.560212078099717e-06
+    },
+    {
+      "pose_id": 221,
+      "raw_sha256": "6e8642df8c5f474562bb3e5c9b03db0167db5edba4c6703a658e9ec7fb833cf9",
+      "tau_error_mean_s": -1.1500082779629768e-17,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 5.251982085738153e-07,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 4.7081399393130706e-07,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 3.23860684673844e-07,
+      "decomposition_reconstruction_relative": 2.2876954909952675e-14,
+      "predicted_delay_phase_rms_rad": 4.6978779632033354e-07,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": 4.168453555283838e-07
+    },
+    {
+      "pose_id": 440,
+      "raw_sha256": "7deb58f8fc7cbbd0b7c0cc972dd1b34c1285bae6328ec4703e5f66f8a1fc5f98",
+      "tau_error_mean_s": 3.900169068688608e-15,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 0.00015950092587162026,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 0.0001598140023869036,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 7.12948788473566e-07,
+      "decomposition_reconstruction_relative": 9.531494882785991e-14,
+      "predicted_delay_phase_rms_rad": 0.0001593250994072354,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": -0.00015946061780011786
+    },
+    {
+      "pose_id": 458,
+      "raw_sha256": "19d1dbe2151f786a06c99c84cd00fad0dd3d8eba346459cda71a3e72a36a8e45",
+      "tau_error_mean_s": 3.900169068688608e-15,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 0.00015910662623930575,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 0.00015945077025446785,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 5.743086722486053e-07,
+      "decomposition_reconstruction_relative": 9.538868041360477e-14,
+      "predicted_delay_phase_rms_rad": 0.0001593250994072354,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": -0.00015906721720987843
+    },
+    {
+      "pose_id": 476,
+      "raw_sha256": "a80ed71f86895c7c55f8a4a89ed3a973eac5f2ae875d99b000b51711f8f0a82a",
+      "tau_error_mean_s": 3.900169068688608e-15,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 0.00015935551294853398,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 0.00015941786702301734,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 6.414532720371808e-07,
+      "decomposition_reconstruction_relative": 9.534709644828263e-14,
+      "predicted_delay_phase_rms_rad": 0.0001593250994072354,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": -0.00015931483038326015
+    },
+    {
+      "pose_id": 696,
+      "raw_sha256": "601f3562a4bcde862736b7f38661e1a1ed9aa311c89f81ff2ff3768911148a8a",
+      "tau_error_mean_s": -1.5175088415141995e-16,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 6.258733981161511e-06,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 6.2128633380241845e-06,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 1.5293610147370853e-07,
+      "decomposition_reconstruction_relative": 2.384421256871916e-14,
+      "predicted_delay_phase_rms_rad": 6.19914785147772e-06,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": 6.254899894028009e-06
+    },
+    {
+      "pose_id": 916,
+      "raw_sha256": "231fdd55b6a79a193d2fc1d13c12034fa1dbc775b822233b27d2b60d5fc3edaa",
+      "tau_error_mean_s": 1.6126391151290524e-15,
+      "tau_error_spread_s": 0.0,
+      "stored_tau_float32_round_trip_exact": true,
+      "native_source_relative_UNCHANGED_GATE_INPUT": 6.622556558198863e-05,
+      "known_delay_component_relative_DIAGNOSTIC_ONLY": 6.623596639612578e-05,
+      "coefficient_remainder_relative_DIAGNOSTIC_ONLY": 1.397712784917284e-07,
+      "decomposition_reconstruction_relative": 9.547378255873085e-14,
+      "predicted_delay_phase_rms_rad": 6.587762807224247e-05,
+      "observed_inner_product_phase_rad_DIAGNOSTIC_ONLY": -6.621038794430719e-05
+    }
+  ]
+}

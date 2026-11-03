@@ -1,0 +1,234 @@
+{
+  "schema": "DLP_R1B_IMMUTABLE_INPUT_GEOMETRY_FIGURE_V1",
+  "scope": "Presentation of original immutable inputs only; no RF, SourceFFD or EKF outputs consumed or executed.",
+  "generated_at_utc": "2026-11-03T06:35:08.507763+00:00",
+  "inputs": [
+    {
+      "path": "results/DRIVE_SIM_20261007/S1/timeline_y0.35_Tnone.csv",
+      "bytes": 94174,
+      "sha256": "53e76f41cb95b32b25f2cc58844bac09c09ffd0803aa287cc69e025bb97225c4"
+    },
+    {
+      "path": "research/DLP_R1B_CH4_20261103/00_REQUEST_CONTRACT_FROZEN_V2.json",
+      "bytes": 36544,
+      "sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596"
+    }
+  ],
+  "code": {
+    "path": "research/DLP_R1B_CH4_20261103/audits/plot_r1_geometry.py",
+    "bytes": 13574,
+    "sha256": "5a8b06b163e488c72036ce8e8e277964766291fcbf4453f6a63a8bb5f71561f2"
+  },
+  "command": [
+    "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin/python",
+    "research/DLP_R1B_CH4_20261103/audits/plot_r1_geometry.py",
+    "--replace-draft"
+  ],
+  "versions": {
+    "python": "3.12.14",
+    "numpy": "2.3.5",
+    "matplotlib": "3.10.8"
+  },
+  "geometry": {
+    "route": "R1",
+    "timeline": "y0.35/Tnone",
+    "anchor_xyz_m": [
+      10.0,
+      0.0,
+      2.65
+    ],
+    "tag_z_m": 0.45,
+    "mount_deg": 0.0,
+    "lever_arm_m": 0.0,
+    "scene": "original C0 corridor; original six mesh hashes and ITU material values"
+  },
+  "actual_csv_values": {
+    "n": 917,
+    "n_t_ge_30": 767,
+    "time_min_max_s": [
+      0.0,
+      183.20000000000002
+    ],
+    "dt_min_max_s": [
+      0.19999999999998863,
+      0.20000000000001705
+    ],
+    "x_min_max_m": [
+      1.2,
+      18.778472224036257
+    ],
+    "y_min_max_m": [
+      0.33308500249224077,
+      0.4390856173467851
+    ],
+    "yaw_min_max_deg": [
+      -3.999908322603877,
+      183.9999083226039
+    ],
+    "distance_min_max_m": [
+      2.226457111662575,
+      9.080774796349436
+    ],
+    "phases": {
+      "drive_out": {
+        "n": 441,
+        "pose_id_first_last": [
+          0,
+          440
+        ],
+        "time_first_last_s": [
+          0.0,
+          88.0
+        ],
+        "nearest_pose_id": 221,
+        "minimum_distance_m": 2.226457111662575
+      },
+      "turn": {
+        "n": 36,
+        "pose_id_first_last": [
+          441,
+          476
+        ],
+        "time_first_last_s": [
+          88.2,
+          95.2
+        ],
+        "nearest_pose_id": 441,
+        "minimum_distance_m": 9.058180637120884
+      },
+      "drive_back": {
+        "n": 440,
+        "pose_id_first_last": [
+          477,
+          916
+        ],
+        "time_first_last_s": [
+          95.4,
+          183.20000000000002
+        ],
+        "nearest_pose_id": 696,
+        "minimum_distance_m": 2.2401666887104117
+      }
+    }
+  },
+  "canaries": [
+    {
+      "pose_id": 0,
+      "t_s": 0.0,
+      "phase": "drive_out",
+      "xyz_m": [
+        1.2,
+        0.35,
+        0.45
+      ],
+      "yaw_body_deg": 3.795770213250541,
+      "geometric_distance_m": 9.0775822772366
+    },
+    {
+      "pose_id": 150,
+      "t_s": 30.0,
+      "phase": "drive_out",
+      "xyz_m": [
+        7.192691408626178,
+        0.36944339921337066,
+        0.45
+      ],
+      "yaw_body_deg": -3.795770213250536,
+      "geometric_distance_m": 3.5857314389707993
+    },
+    {
+      "pose_id": 221,
+      "t_s": 44.2,
+      "phase": "drive_out",
+      "xyz_m": [
+        10.028840734426495,
+        0.3409977743484508,
+        0.45
+      ],
+      "yaw_body_deg": -2.696586600710256,
+      "geometric_distance_m": 2.226457111662575
+    },
+    {
+      "pose_id": 440,
+      "t_s": 88.0,
+      "phase": "drive_out",
+      "xyz_m": [
+        18.778472224036257,
+        0.3860853099195122,
+        0.45
+      ],
+      "yaw_body_deg": -0.8051379418382868,
+      "geometric_distance_m": 9.058180637120884
+    },
+    {
+      "pose_id": 458,
+      "t_s": 91.60000000000001,
+      "phase": "turn",
+      "xyz_m": [
+        18.778472224036257,
+        0.3860853099195122,
+        0.45
+      ],
+      "yaw_body_deg": 89.19486205816172,
+      "geometric_distance_m": 9.058180637120884
+    },
+    {
+      "pose_id": 476,
+      "t_s": 95.2,
+      "phase": "turn",
+      "xyz_m": [
+        18.778472224036257,
+        0.3860853099195122,
+        0.45
+      ],
+      "yaw_body_deg": 179.1948620581617,
+      "geometric_distance_m": 9.058180637120884
+    },
+    {
+      "pose_id": 696,
+      "t_s": 139.20000000000002,
+      "phase": "drive_back",
+      "xyz_m": [
+        9.989102250117359,
+        0.4221706198390254,
+        0.45
+      ],
+      "yaw_body_deg": 183.79577021325053,
+      "geometric_distance_m": 2.2401666887104117
+    },
+    {
+      "pose_id": 916,
+      "t_s": 183.20000000000002,
+      "phase": "drive_back",
+      "xyz_m": [
+        1.200207038819502,
+        0.4290859382143834,
+        0.45
+      ],
+      "yaw_body_deg": 177.00936772858773,
+      "geometric_distance_m": 9.080774796349436
+    }
+  ],
+  "definitions": {
+    "distance_m": "Euclidean norm([x,y,tag_z] - anchor_xyz); no measurement offset and no RF observation.",
+    "phase": "Original CSV phase field; no inferred or relabeled phases.",
+    "yaw": "Original yaw_body_deg values, without wrapping or modifying them.",
+    "xy": "Original CSV x/y values; no lateral shifting, averaging, resampling or smoothing.",
+    "axis_scale": "Plan view intentionally uses unequal x/y axis scales, explicitly labeled.",
+    "coincident_canaries": "IDs 440,458,476 have identical XY; grouped in plan view and separately labeled in yaw/time.",
+    "selection": "geometry and phase only before RF outcomes; start, eval start, nearest outbound, preturn,90deg turn,endturn,nearest inbound,end"
+  },
+  "outputs": [
+    {
+      "path": "research/DLP_R1B_CH4_20261103/figures/R1_GEOMETRY.png",
+      "bytes": 471310,
+      "sha256": "e1077c7c96234b893f7e06414edcc0440ac129b551e8a6771346e4e00d278159"
+    },
+    {
+      "path": "research/DLP_R1B_CH4_20261103/figures/R1_GEOMETRY.pdf",
+      "bytes": 46577,
+      "sha256": "4dc4dd3063ad53569896e3413213c05e1ea2a242b3dc47100c816d16ec75bbe3"
+    }
+  ],
+  "scientific_release": false
+}

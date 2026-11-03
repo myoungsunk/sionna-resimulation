@@ -1,0 +1,83 @@
+{
+  "schema": "DLP_R1B_PRODUCTION_DRIVER_SOURCE_REVIEW_PREPARED_V1",
+  "status": "PREPARED_ONLY_UNEXECUTED",
+  "role": "INDEPENDENT_COMPUTATIONAL_AUDITOR",
+  "auditor_identity": "/root/ekf_contract_review",
+  "separate_agent": true,
+  "independence_boundary": "Separate delegated computational reviewer in the shared workspace; not external human approval or separate physical infrastructure.",
+  "production_authorized_by_this_receipt": false,
+  "scientific_release": false,
+  "runner": {
+    "path": "research/DLP_R1B_CH4_20261103/runtime/r1b_acquire.py",
+    "sha256": "0377a0df44636469d8ce1d1c28fba6e232f33b4b5300240bd9284cf17780ff35",
+    "bytes": 29982,
+    "source_lines_reviewed": 474
+  },
+  "frozen_contract": {
+    "path": "research/DLP_R1B_CH4_20261103/00_REQUEST_CONTRACT_FROZEN_V2.json",
+    "sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596"
+  },
+  "blocking_canary_dependency": {
+    "path": "research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2/03_RF_CANARY_QA.json",
+    "sha256": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0",
+    "reported_status": "HOLD_RF_PARITY",
+    "reported_complex_rms": 0.00010051515145524099,
+    "frozen_complex_rms_limit": 0.0001,
+    "note": "Values read from the preserved canary QA, not recomputed from raw RF by this source reviewer. The separate canary audit owns raw-RF verification.",
+    "production_guard": "load_locks rejects canary.status != PASS as PRODUCTION_BLOCKED_CANARY_NOT_PASS before reading the production plan or calling native.initialize/acquire_pose.",
+    "tolerance_changed": false
+  },
+  "source_findings": [
+    {
+      "topic": "Fixed population and reuse",
+      "finding": "Exactly eight ordered contract canaries are required; every planned new pose must form the unique 909-pose complement of 0..916. Canonical raw paths and canary NPZ hashes are checked. Assembly requires exactly 917 unique sorted pose IDs.",
+      "verification": "SOURCE_REVIEW_ONLY"
+    },
+    {
+      "topic": "Hash and audit binding",
+      "finding": "The canonical production-spec hash excludes only production_audit and production_spec_sha256. The audit binds that spec, runner, contract and canary hashes; the final plan hashes the audit bytes. This avoids an audit/spec hash cycle. A separate production PASS receipt and a FROZEN plan are required.",
+      "verification": "SOURCE_REVIEW_ONLY"
+    },
+    {
+      "topic": "Native computation inheritance",
+      "finding": "Shard mode calls the unchanged V2 native.initialize/acquire_pose for the frozen pose list. Original Native LoS and Full calls, frequency grid, banks, material and source-code guards remain inherited. This driver does not substitute SourceFFD for Native LoS.",
+      "verification": "SOURCE_REVIEW_ONLY"
+    },
+    {
+      "topic": "Raw reconstruction and observations",
+      "finding": "Assembly checks per-pose NPZ and metrics hashes, rebuilds every total H from preserved complex a and tau at each frequency, recalculates CIR/FP/selected-port observations, checks delay and unique Full direct-ray parity, validates source-column consistency and the continuous-range offset, then enforces all-917 RMS/max/tap/port gates.",
+      "verification": "SOURCE_REVIEW_ONLY"
+    },
+    {
+      "topic": "Evidence preservation",
+      "finding": "Shard and assembly outputs must use new nonoverlapping directories. Complete per-pose raw files remain in their acquisition directories. Handled acquisition errors preserve completed records and native partial arrays; handled assembly errors retain checked-source lineage. Aggregate failure saves metrics and a raw-file ledger before refusing a PASS channel manifest.",
+      "verification": "SOURCE_REVIEW_ONLY"
+    },
+    {
+      "topic": "Scope of the failure handling",
+      "finding": "The program handles ordinary Exception failures for one shard. It is not a multi-process supervisor, and signal termination/KeyboardInterrupt recovery was not reviewed or tested as a guaranteed ledger path. Any future parallel plan needs explicit process supervision and global-stop behavior.",
+      "verification": "LIMITATION_NOT_AN_EXECUTION_FAILURE"
+    },
+    {
+      "topic": "Jacobian and source audit boundary",
+      "finding": "Assembly consumes the hash-protected acquisition FD records and saved source arrays; it does not independently rerun the SourceFFD model or finite differences. This is raw consistency validation, not a replacement for a separate model/FD audit.",
+      "verification": "CLAIM_BOUNDARY"
+    }
+  ],
+  "checks_performed": {
+    "complete_driver_source_read": true,
+    "inherited_native_calls_source_read": true,
+    "python_ast_parse": "PASS",
+    "actual_source_sha256_measured": true,
+    "production_plan_approved": false,
+    "production_or_assembly_executed_by_reviewer": false,
+    "additional_numeric_tests_run": false,
+    "RF_or_filter_executed_by_reviewer": false
+  },
+  "remaining_requirements": [
+    "Resolve the P0 canary HOLD through the applicable separately reviewed protocol; preserve the failed run and locked tolerance.",
+    "Before any future production, freeze a complete measured-cost/partition plan and obtain a new independent audit bound to its exact spec and source bytes.",
+    "Verify actual production raw arrays and post-run provenance only if production is subsequently authorized and completes.",
+    "P2/P3 and scientific manuscript claims remain unavailable under the current HOLD."
+  ]
+}

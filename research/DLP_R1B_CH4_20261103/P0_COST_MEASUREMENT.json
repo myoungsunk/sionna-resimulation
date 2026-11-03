@@ -1,0 +1,92 @@
+{
+  "schema": "DLP_R1B_CH4_P0_COST_MEASUREMENT_V1",
+  "contract_id": "DLP-R1B-CH4-001",
+  "status": "MEASURED_CANARY_ONLY_NO_PRODUCTION_APPROVAL",
+  "source_qa": {
+    "path": "runs/P0_CANARY_V2/03_RF_CANARY_QA.json",
+    "sha256": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0"
+  },
+  "actual_scope": {
+    "pose_ids": [
+      0,
+      150,
+      221,
+      440,
+      458,
+      476,
+      696,
+      916
+    ],
+    "paired_pose_count": 8,
+    "frequency_bins_per_pose": 257,
+    "native_solver_invocations": 4112,
+    "worker_count": 1,
+    "drjit_threads": 1
+  },
+  "measured": {
+    "acquisition_loop_wall_seconds_after_initialization": 510.4004467909999,
+    "per_pose_wall_seconds": [
+      {
+        "pose_id": 0,
+        "seconds": 246.0802341360013
+      },
+      {
+        "pose_id": 150,
+        "seconds": 36.42006644299909
+      },
+      {
+        "pose_id": 221,
+        "seconds": 35.80200297900046
+      },
+      {
+        "pose_id": 440,
+        "seconds": 36.42693746000077
+      },
+      {
+        "pose_id": 458,
+        "seconds": 40.241331175000596
+      },
+      {
+        "pose_id": 476,
+        "seconds": 38.09757225000067
+      },
+      {
+        "pose_id": 696,
+        "seconds": 38.7619924720002
+      },
+      {
+        "pose_id": 916,
+        "seconds": 37.348280497000815
+      }
+    ],
+    "first_pose_including_cold_compilation_wall_seconds": 246.0802341360013,
+    "all_eight_median_wall_seconds": 37.72292637350074,
+    "later_seven_min_wall_seconds": 35.80200297900046,
+    "later_seven_max_wall_seconds": 40.241331175000596,
+    "later_seven_median_wall_seconds": 37.348280497000815,
+    "later_seven_mean_wall_seconds": 37.58545475371466,
+    "peak_process_rss_mib": 1208.9609375,
+    "process_cpu_time_seconds": null,
+    "total_end_to_end_wall_seconds_including_setup_and_all_audits": null
+  },
+  "projections_not_measurements": {
+    "unit": "sequential worker wall-clock hours; NOT measured CPU hours",
+    "917_times_all_eight_median_hours": 9.608867634583383,
+    "one_cold_pose_plus_916_later_median_hours": 9.571418102607986,
+    "one_cold_pose_plus_916_later_mean_hours": 9.631765774594063,
+    "remaining_909_times_later_median_hours_excluding_new_worker_setup": 9.430440825492704,
+    "legacy_max_times_917_hours": 62.682104084087,
+    "parallel_runtime": null,
+    "limitations": "Eight selected poses do not establish a confidence interval or full-route bound. The first pose includes cold compilation; multiplying its time by917 is not an expected run cost or a validated upper bound. Parallel scaling was not measured."
+  },
+  "label_erratum": {
+    "preserved_original_keys": [
+      "projected_917_pose_cpu_hours_median",
+      "projected_917_pose_cpu_hours_max"
+    ],
+    "correction": "Original immutable QA calculated these fields from wall-clock per-pose durations, not measured CPU time. Values are preserved; their interpretation is sequential wall-time extrapolation."
+  },
+  "production_cost_lock_created": false,
+  "production_permitted": false,
+  "reason": "HOLD_RF_PARITY: frozen complex RMS threshold failed."
+}
