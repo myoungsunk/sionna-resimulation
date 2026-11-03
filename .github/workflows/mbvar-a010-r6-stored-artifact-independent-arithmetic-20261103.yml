@@ -1,0 +1,131 @@
+name: MBVAR A010 R6 archived artifact standalone arithmetic (DEV3 unopened)
+# Technical SELF_REVIEW_ONLY. Proposer R5 decision + R6 direct arithmetic evidence.
+# No main A010 FROZEN, no DEV3/HOLDOUT2/reserve/RT access.
+on:
+  push:
+    branches:
+      - 'proposer/mbvar-a010-r5-decision-r6-arithmetic-20261103'
+    paths:
+      - '.github/workflows/mbvar-a010-r6-stored-artifact-independent-arithmetic-20261103.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a010_r6_standalone_artifact_audit.py'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts/AMENDMENT-010-R5-PROPOSER-DECISION-FINAL-PREFREEZE-20261103.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  SMOKE_DIGEST: e227582fb99e26e8d943404b409d33b37a72acaba8ee757443ccff141f9b239b
+  DEV2A_DIGEST: 3eaddbed37eddbe13572b74925ff67057fb0490e5dbd403d9370d666242b2fcc
+  DEV2B_DIGEST: 0ba7f8ed0b7d9a0ebd5ad14fd7c327337b2ad77f086a845cc77e1f85cecdc98c
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  r6-standalone-recalculation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/config
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P2_A010P0_GEN_run_41269011836
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Pinned numpy for independent mathematics (not source solver)
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3
+      - name: Check exact original science status and protected blobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '2e8c23e8212ab8717c7b513045c02247e2a77146  ' "$EXP/RUN_REQUEST.json" | sed 's/  /  /' >/dev/null
+          python - <<'PY'
+          import subprocess, pathlib
+          r=pathlib.Path("research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029")
+          refs={
+              "RUN_REQUEST.json":"2e8c23e8212ab8717c7b513045c02247e2a77146",
+              "contracts/AMENDMENT-010.md":"3ee2e9995f46bfbe8e6e563fb18605feb47ba56f",
+              "contracts/AMENDMENT-010-P0.md":"12e0ececfa7491a594b8e29a3bf127794b4d8b65",
+          }
+          for key,sha in refs.items():
+              got=subprocess.check_output(["git","hash-object",str(r/key)],text=True).strip()
+              if got!=sha: raise SystemExit("ERR_R6_PROTECTED_BLOB "+key)
+          text=(r/"contracts/AMENDMENT-010.md").read_text()
+          if "**DRAFT." not in text: raise SystemExit("ERR_R6_A010_NOT_DRAFT")
+          print("R6_UNOPENED_SCIENCE_GUARD_PASS")
+          PY
+      - name: Download exact archived CI artifact ZIPs (not DEV3)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/r6"
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/13198033314/zip" > "$RUNNER_TEMP/r6/smoke.zip"
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/13198077000/zip" > "$RUNNER_TEMP/r6/runner_a.zip"
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/13198131293/zip" > "$RUNNER_TEMP/r6/runner_b.zip"
+          echo "$SMOKE_DIGEST  $RUNNER_TEMP/r6/smoke.zip" | sha256sum -c -
+          echo "$DEV2A_DIGEST  $RUNNER_TEMP/r6/runner_a.zip" | sha256sum -c -
+          echo "$DEV2B_DIGEST  $RUNNER_TEMP/r6/runner_b.zip" | sha256sum -c -
+      - name: Independently rehash original 48 + 256 arrays and compute C10/NEES
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$EXP/audit/a010_r6_standalone_artifact_audit.py" \
+            --smoke-zip "$RUNNER_TEMP/r6/smoke.zip" \
+            --generator-root "$EXP/results/P2_A010P0_GEN_run_41269011836" \
+            --plan-parameters "$EXP/config/PLAN_PARAMETERS.json" \
+            --runner-a "$RUNNER_TEMP/r6/runner_a.zip" \
+            --runner-b "$RUNNER_TEMP/r6/runner_b.zip" \
+            --out "$RUNNER_TEMP/r6/A010_R6_STANDALONE_ARITHMETIC.json"
+          python - "$RUNNER_TEMP/r6/A010_R6_STANDALONE_ARITHMETIC.json" <<'PY'
+          import json,sys
+          q=json.load(open(sys.argv[1]))
+          assert q["status"]=="ARITHMETIC_EVIDENCE_VERIFIED"
+          assert q["GEN"]["n_arrays_rehashed"]==48
+          assert q["SMOKE"]["n_original_arrays_rehashed"]==256
+          assert q["SMOKE"]["n_optimizer_input_digests_rederived"]==10
+          assert q["SMOKE"]["missing_c3"]==62
+          assert q["SMOKE"]["max_nees4_abs_diff"]<=1e-7
+          assert q["DEV2"]["n_cases"]==2
+          assert q["dev3"]==q["holdout2"]==q["rt"]=="NO-GO"
+          assert not q["independent_auditor_signed"] and not q["science_frozen"]
+          print("R6_INDEPENDENT_ARITHMETIC_EVIDENCE_PASS",q["SMOKE"]["max_nees4_abs_diff"])
+          PY
+      - name: Fail-closed corrupt outer evidence fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$RUNNER_TEMP/r6/smoke.zip" "$RUNNER_TEMP/r6/corrupt.zip" <<'PY'
+          import sys
+          x=bytearray(open(sys.argv[1],"rb").read())
+          x[100]^=1
+          open(sys.argv[2],"wb").write(x)
+          PY
+          if python "$EXP/audit/a010_r6_standalone_artifact_audit.py" \
+             --smoke-zip "$RUNNER_TEMP/r6/corrupt.zip" \
+             --generator-root "$EXP/results/P2_A010P0_GEN_run_41269011836" \
+             --plan-parameters "$EXP/config/PLAN_PARAMETERS.json" \
+             --runner-a "$RUNNER_TEMP/r6/runner_a.zip" \
+             --runner-b "$RUNNER_TEMP/r6/runner_b.zip" \
+             --out "$RUNNER_TEMP/r6/unexpected.json"; then
+            echo "ERR_R6_CORRUPTION_WAS_ACCEPTED"; exit 1
+          fi
+          echo "R6_NEGATIVE_SHA_CORRUPTION_REJECTED"
+      - name: Verify worktree read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-r6-standalone-arithmetic-${{ github.run_id }}
+          path: ${{ runner.temp }}/r6/A010_R6_STANDALONE_ARITHMETIC.json
+          if-no-files-found: warn
+          retention-days: 90

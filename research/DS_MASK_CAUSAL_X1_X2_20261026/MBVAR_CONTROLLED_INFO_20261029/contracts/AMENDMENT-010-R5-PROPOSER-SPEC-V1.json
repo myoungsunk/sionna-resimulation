@@ -1,0 +1,87 @@
+{
+  "schema": "MBVAR_A010_R5_PROPOSER_POLICY_FINAL_V1",
+  "contract_id": "MBVAR-INFO-001",
+  "role": "PROPOSER",
+  "decision": "FINAL_PRE_FREEZE",
+  "decision_date": "2026-11-03",
+  "scientific_execution_authorized": false,
+  "source_sha_at_decision": "ecb6d58199e8fd47d50ba54696b5fbe4b054ee0d",
+  "operational_estimator": "S1V5_EPRIME_BATCH_MAP_V2_MS_PLUS_F2_UNCHANGED",
+  "diagnostic_starts": [
+    "psi-3",
+    "psi-2",
+    "psi-1",
+    "psi+0",
+    "psi+1",
+    "psi+2",
+    "psi+3",
+    "x+1",
+    "y+1"
+  ],
+  "solver_objective": "original full correlated r/s stacked MAP cost, no oracle truth",
+  "polish": {
+    "algorithm": "existing T.polish",
+    "cost_descent_tol_chi2": 0.001,
+    "max_steps": 30,
+    "branch_chosen_by_truth": false,
+    "final_precision_certificate": {
+      "same_row_probe_directions": true,
+      "seed_rule": "SHA256 key_seed(R5_CERT,field,role,cell,sensor_seed,arm)",
+      "gn_alphas": [
+        1,
+        0.5,
+        0.1,
+        0.01
+      ],
+      "random_direction_pairs": 8,
+      "rho": 0.01,
+      "pass_if": "all 10 solutions finite, no polish cap and common-probe minimum descent >= -0.001 chi2",
+      "failure_status": "UNRESOLVED_PRECISION; no unique-MAP claim and R5 science-scope release denied"
+    }
+  },
+  "ambiguous": {
+    "absolute_cost_gap_chi2_lte": 1,
+    "end_state_dref_gt": 2,
+    "dref": [
+      0.02,
+      0.02,
+      0.004363323129985824,
+      0.00017453292519943296
+    ],
+    "angular_wrap": true,
+    "oracle_excluded": true
+  },
+  "multimodality": {
+    "cluster_unique_modes": false,
+    "count_label": "n_ambiguous_starts",
+    "unique_global_map_claim_allowed": false
+  },
+  "strata": {
+    "armwise_fraction_within_1dref_at_least": 0.99,
+    "max_dref_lte": 2,
+    "all_valid_science_rows_retained": true,
+    "clean_subgroup_is_diagnostic_only": true
+  },
+  "field_sensitivity": {
+    "unit": "field",
+    "field_bootstrap_B": 4000,
+    "field_bootstrap_seed": 20261029,
+    "ci": 0.95,
+    "primary_rule": "registered H1/H2/H3/CAL/H4 estimates on all original EPRIME rows",
+    "alternate_rule": "per-key fixed finite admissible alternative envelope, never additional independent sample",
+    "material_verdict": "any sign, 95% field bootstrap CI zero-inclusion or prior H/CAL categorical verdict change",
+    "numeric_flags": {
+      "normalized_squared_error_delta_abs_gte": 1,
+      "nees4_delta_abs_gte": 0.4,
+      "logdet_cov_delta_abs_gte": 0.09531017980432493
+    },
+    "alternate_changes_conclusion": "REVIEW_REQUIRED_NO_SCIENCE_RELEASE"
+  },
+  "reanalysis_limit": "DEV2 K2 is retrospective forensic; not confirmatory, never used for threshold tuning",
+  "r5_code_implementation_certificate": "NOT_YET_INDEPENDENTLY_AUDITED",
+  "a010_science_frozen": false,
+  "independent_auditor_signed": false,
+  "dev3": "NO-GO",
+  "holdout2": "NO-GO",
+  "rt": "NO-GO"
+}
