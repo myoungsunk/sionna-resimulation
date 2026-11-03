@@ -20,6 +20,16 @@ STARTS=("psi-3","psi-2","psi-1","psi+0","psi+1","psi+2","psi+3","x+1","y+1")
 SOLS=("E",)+STARTS
 STATES=("rad","tan","psi","bg")
 ROWKEY=("field","role","cell","sensor_seed","arm")
+# Frozen SCIENCE_SPEC/A003 and A010 v2 role/cell/arm universe.
+# These are NOT inferred from observed rows, or an entire missing H4 arm would
+# silently suppress registered hypotheses instead of failing closed.
+LH_PRIMARY=("LOWCORR","POSE_HIGH")
+LH_CELLS=("LOWCORR","POSE_HIGH","TIME_1","TIME_5","POSE_HIGH_C03")
+RV_CELLS=("LOWCORR","POSE_HIGH","TIME_HIGH_5")
+XMODEL_CELLS=("POSE_HIGH","TIME_HIGH_5")
+REGISTERED_HYPOTHESIS_COUNTS={"H1":8,"H2":2,"H3":4,"CAL":8,"H4":8,"H4_REPRO":32}
+REGISTERED_HYPOTHESIS_COUNT=62
+
 
 
 def spec_with_sha(path=SPEC_FILE):
@@ -186,6 +196,37 @@ def _key(row):
                  for k in ROWKEY)
 
 
+def registered_batch_row_keys(fields, sensor_seeds):
+    """Immutable expected 5-key universe; source rows never determine scope."""
+    if fields is None or sensor_seeds is None:
+        raise ValueError("ERR_R5_REGISTERED_SCOPE_REQUIRED")
+    fs=list(fields); ss=list(sensor_seeds)
+    if (not fs or not ss or len(set(fs))!=len(fs) or len(set(ss))!=len(ss)
+        or any(type(x) not in (int,np.int64,np.int32) for x in fs+ss)):
+        raise ValueError("ERR_R5_REGISTERED_FIELD_OR_SEED_SCHEMA")
+    expected=set()
+    for f in fs:
+        for sn in ss:
+            for role in ("LOW","HIGH"):
+                for cell in LH_CELLS:
+                    for arm in ("IID_BATCH","ORACLE_CORR_BATCH"):
+                        expected.add((str(f),role,cell,str(sn),arm))
+            for role in ("REV60","FWD60"):
+                for cell in RV_CELLS:
+                    for arm in ("IID_BATCH","ORACLE_CORR_BATCH"):
+                        expected.add((str(f),role,cell,str(sn),arm))
+                    if cell in XMODEL_CELLS:
+                        expected.add((str(f),role,cell,str(sn),"XMODEL_BATCH"))
+    if len(expected)!=len(fs)*len(ss)*36:
+        raise ValueError("ERR_R5_REGISTERED_ROW_COUNT")
+    return expected
+
+
+def _incomplete(reason, **detail):
+    return dict(status="NOT_EVALUATED_INCOMPLETE",reason=reason,
+                science_release_allowed=False,**detail)
+
+
 def _hypotheses(pred,did_pred,rvpred,sep_pred,eff,lh_primary,rv_cells,xmodel_cells):
     """All original V.decide_v2 registered primary H1/H2/H3/CAL/H4/H4_REPRO
     contrasts. A term is (weight, role, cell, arm, state, 'infl'|'mse').
@@ -243,6 +284,12 @@ def _hypotheses(pred,did_pred,rvpred,sep_pred,eff,lh_primary,rv_cells,xmodel_cel
                     predv=float(rvpred.loc[(r,c,arm),f"infl_{st}"])
                     push("H4_REPRO",f"{r}|{c}|{arm}|{st}",[
                         term(1,r,c,arm,st,"infl")],-math.log(predv))
+    counts={family:sum(t["family"]==family for t in tests)
+            for family in REGISTERED_HYPOTHESIS_COUNTS}
+    if counts!=REGISTERED_HYPOTHESIS_COUNTS or len(tests)!=REGISTERED_HYPOTHESIS_COUNT:
+        raise ValueError("ERR_R5_REGISTERED_HYPOTHESIS_UNIVERSE")
+    if len({t["id"] for t in tests})!=len(tests):
+        raise ValueError("ERR_R5_HYPOTHESIS_DUPLICATE")
     return tests
 
 
@@ -278,7 +325,8 @@ def _summary_verdict(records):
 
 
 def field_paired_conclusion_gate(science_rows,alternatives,reference,config,
-                                 require_full_keys=True):
+                                 require_full_keys=True,registered_fields=None,
+                                 registered_sensor_seeds=None):
     """Vectorised paired field bootstrap B=4000, fixed seed and same sample
     indices for E and every admissible-start witness.
 
@@ -289,13 +337,34 @@ def field_paired_conclusion_gate(science_rows,alternatives,reference,config,
     import pandas as pd
     S=science_rows.copy()
     A=alternatives.copy()
-    if not len(S) or not set(ROWKEY).issubset(S.columns):
-        return dict(status="NOT_EVALUATED_INCOMPLETE",reason="EMPTY_SCIENCE_ROWS",
-                    science_release_allowed=False)
-    S=S[S.arm.astype(str).str.endswith("_BATCH") & (S.status=="OK")].copy()
-    if S.duplicated(list(ROWKEY)).any() or len(S)==0:
-        raise ValueError("ERR_R5_MAIN_KEYSET")
-    keys={_key(r) for r in S.to_dict("records")}
+    if require_full_keys is not True:
+        raise ValueError("ERR_R5_REGISTERED_SCOPE_BYPASS_FORBIDDEN")
+    if registered_fields is None or registered_sensor_seeds is None:
+        return _incomplete("MISSING_REGISTERED_CONTRACT_SCOPE")
+    expected=registered_batch_row_keys(registered_fields,registered_sensor_seeds)
+    if not len(S) or not set(ROWKEY).issubset(S.columns) or "status" not in S:
+        return _incomplete("EMPTY_OR_SCHEMA_MISSING_SCIENCE_ROWS",
+                           n_expected_keys=len(expected))
+    # Run contract coverage on *every batch result*, including FAILED,
+    # BEFORE filtering any status. Failed observations are not excluded.
+    batch=S[S.arm.astype(str).str.endswith("_BATCH")].copy()
+    raw_keys=[_key(x) for x in batch.to_dict("records")]
+    keys=set(raw_keys)
+    missing=sorted(expected-keys); extra=sorted(keys-expected)
+    if len(raw_keys)!=len(set(raw_keys)):
+        raise ValueError("ERR_R5_MAIN_DUPLICATE_REGISTERED_KEY")
+    if missing or extra or len(raw_keys)!=len(expected):
+        return _incomplete("MISSING_OR_EXTRA_REGISTERED_KEYS",
+                           n_actual_keys=len(raw_keys),n_expected_keys=len(expected),
+                           n_missing=len(missing),n_extra=len(extra),
+                           missing_keys=[list(k) for k in missing[:12]],
+                           extra_keys=[list(k) for k in extra[:12]])
+    invalid=batch[batch.status!="OK"]
+    if len(invalid):
+        return _incomplete("REGISTERED_ROW_NON_OK",
+                           n_failed_rows=len(invalid),n_expected_keys=len(expected),
+                           failed_keys=[list(_key(r)) for r in invalid.to_dict("records")[:12]])
+    S=batch  # All registered batch rows present and OK; nothing excluded.
     if len(A) and A.duplicated(list(ROWKEY)+["alt_start"]).any():
         raise ValueError("ERR_R5_ALT_DUPLICATE")
     if len(A) and not {_key(x) for x in A.to_dict("records")}.issubset(keys):
@@ -359,13 +428,7 @@ def field_paired_conclusion_gate(science_rows,alternatives,reference,config,
             groups[group]=stats
     pred,did_pred,rvpred,sep_pred,eff=reference
     hypothesis=_hypotheses(pred,did_pred,rvpred,sep_pred,eff,
-                           ("LOWCORR","POSE_HIGH"),
-                           tuple(reference.rv_cells) if hasattr(reference,"rv_cells") else
-                           tuple(sorted({r["cell"] for r in base.values()
-                             if r["role"]=="REV60"})),
-                           tuple(reference.xmodel_cells) if hasattr(reference,"xmodel_cells") else
-                           tuple(sorted({r["cell"] for r in base.values()
-                             if r["arm"]=="XMODEL_BATCH"})))
+                           LH_PRIMARY,RV_CELLS,XMODEL_CELLS)
     # Fully registered test is meaningful only if every required group exists.
     missing=sorted({term[1] for h in hypothesis for term in h["terms"]}-set(groups))
     if missing:
