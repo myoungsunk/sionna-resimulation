@@ -98,16 +98,23 @@ def test_r5_numeric_material_thresholds():
     assert not R5.numeric_flags(a,policy())["numeric_finite"]
 
 
+def gate(rows,alts,reference,cfg=None,fields=range(900,904),seeds=(0,)):
+    return R5.field_paired_conclusion_gate(
+        rows,alts,reference,cfg or policy(),require_full_keys=True,
+        registered_fields=fields,registered_sensor_seeds=seeds)
+
+
 def fixture_science(n_fields=4,changed=False):
     fields=list(range(900,900+n_fields))
     rows=[];alts=[]
-    roles={r:("LOWCORR","POSE_HIGH") for r in ("LOW","HIGH")}
-    roles.update({r:("POSE_HIGH",) for r in ("REV60","FWD60")})
+    roles={r:R5.LH_CELLS for r in ("LOW","HIGH")}
+    roles.update({r:R5.RV_CELLS for r in ("REV60","FWD60")})
     for f in fields:
         for role,cells in roles.items():
             for cell in cells:
                 arms=("IID_BATCH","ORACLE_CORR_BATCH")
-                if role.startswith(("REV","FWD")):arms+=("XMODEL_BATCH",)
+                if role in ("REV60","FWD60") and cell in R5.XMODEL_CELLS:
+                    arms+=("XMODEL_BATCH",)
                 for arm in arms:
                     row=dict(field=f,role=role,cell=cell,sensor_seed=0,arm=arm,
                              status="OK",**{f"e_{s}":1. for s in R5.STATES},
@@ -122,12 +129,15 @@ def fixture_science(n_fields=4,changed=False):
     pred=pd.DataFrame([dict(role=role,cell=cell,
                             infl_iid_psi=1.,infl_iid_tan=1.,
                             mse_ratio_oracle_iid_psi=.8,mse_ratio_oracle_iid_tan=.8)
-                       for role in ("LOW","HIGH") for cell in ("LOWCORR","POSE_HIGH")]).set_index(["role","cell"])
+                       for role in ("LOW","HIGH") for cell in R5.LH_CELLS]).set_index(["role","cell"])
     did=pd.DataFrame([dict(state=s,quantity="infl_iid",DID_log=1.) for s in ("psi","tan")])
-    rv=pd.DataFrame([dict(role=r,cell="POSE_HIGH",arm=a,infl_psi=1.,infl_tan=1.)
-                     for r in ("REV60","FWD60")
-                     for a in ("IID_BATCH","ORACLE_CORR_BATCH","XMODEL_BATCH")]).set_index(["role","cell","arm"])
-    sep=pd.DataFrame([dict(cell="POSE_HIGH",arm=a,state=s,SEP_log=1.,testable=True)
+    rv=pd.DataFrame([dict(role=r,cell=c,arm=a,infl_psi=1.,infl_tan=1.)
+                     for r in ("REV60","FWD60") for c in R5.RV_CELLS
+                     for a in (("IID_BATCH","ORACLE_CORR_BATCH","XMODEL_BATCH")
+                               if c in R5.XMODEL_CELLS else
+                               ("IID_BATCH","ORACLE_CORR_BATCH"))]).set_index(["role","cell","arm"])
+    sep=pd.DataFrame([dict(cell=c,arm=a,state=s,SEP_log=1.,testable=True)
+                     for c in R5.XMODEL_CELLS
                      for a in ("IID_BATCH","XMODEL_BATCH") for s in ("psi","tan")])
     eff=dict(equivalence_factor=1.5,did_min_predicted_factor=1.2,
              did_min_fraction_of_prediction=.5,oracle_gain_ratio_max=.9)
@@ -136,8 +146,10 @@ def fixture_science(n_fields=4,changed=False):
 
 def test_r5_field_bootstrap_all_registered_families_with_no_alternatives():
     rows,alts,ref=fixture_science()
-    r=R5.field_paired_conclusion_gate(rows,alts,ref,policy())
+    r=gate(rows,alts,ref,policy())
     assert r["status"]=="STABLE_ON_GRID_AND_CONSERVATIVE_BOUNDS"
+    assert r["n_hypotheses"]==62
+    assert {k:len(v) for k,v in r["hypotheses"].items()}==R5.REGISTERED_HYPOTHESIS_COUNTS
     assert r["n_fields"]==4 and r["bootstrap_replicates"]==4000
     assert r["bootstrap_seed"]==20261029
     assert not r["alternative_changes_conclusion"]
@@ -148,7 +160,7 @@ def test_r5_field_bootstrap_all_registered_families_with_no_alternatives():
 
 def test_r5_field_paired_conclusion_change_requires_review():
     rows,alts,ref=fixture_science(changed=True)
-    r=R5.field_paired_conclusion_gate(rows,alts,ref,policy())
+    r=gate(rows,alts,ref,policy())
     assert r["status"]=="ALTERNATIVE_CHANGES_CONCLUSION",r
     assert r["alternative_changes_conclusion"]
     assert r["n_alternative_rows"]==1
@@ -162,7 +174,7 @@ def test_r5_ambiguous_start_cannot_be_treated_as_extra_field():
     alt_more=alts.copy()
     alt_more["alt_start"]="psi+2"
     alt_more["alt_end_error_tan"]=11.
-    r=R5.field_paired_conclusion_gate(rows,pd.concat([alts,alt_more]),ref,policy())
+    r=gate(rows,pd.concat([alts,alt_more]),ref,policy())
     assert r["n_fields"]==4 and r["n_alternative_rows"]==2
     assert r["bootstrap_replicates"]==4000
 
@@ -170,7 +182,7 @@ def test_r5_ambiguous_start_cannot_be_treated_as_extra_field():
 def test_r5_missing_registered_group_fail_closed_not_science_success():
     rows,alts,ref=fixture_science()
     missing=rows[~((rows.role=="HIGH")&(rows.cell=="LOWCORR"))]
-    r=R5.field_paired_conclusion_gate(missing,alts,ref,policy())
+    r=gate(missing,alts,ref,policy())
     assert r["status"]=="NOT_EVALUATED_INCOMPLETE"
     assert not r["science_release_allowed"]
 
@@ -179,10 +191,10 @@ def test_r5_nonspd_or_uncertified_alternative_fails_closed():
     rows,alts,ref=fixture_science(changed=True)
     z=alts.copy();z.loc[0,"delta_P_tan"]=-3.
     with pytest.raises(ValueError,match="ERR_R5_ALT_NONSPD"):
-        R5.field_paired_conclusion_gate(rows,z,ref,policy())
+        gate(rows,z,ref,policy())
     z=alts.copy();z.loc[0,"R5_ALTERNATIVE_ADMISSIBLE"]=False
     with pytest.raises(ValueError,match="ERR_R5_ALT_NOT_CERTIFIED"):
-        R5.field_paired_conclusion_gate(rows,z,ref,policy())
+        gate(rows,z,ref,policy())
 
 
 def test_r5_arm_stratification_existing_legacy_hard_gate():
@@ -241,3 +253,38 @@ def test_r5_csv_corrupted_terminals_rejected(tmp_path,attack):
     out=R5.validate_terminals(records,policy())
     assert out["status"]=="UNRESOLVED_PRECISION"
     assert not out["pass_"] and out["n_failures"]>0
+
+
+@pytest.mark.parametrize("remove",["XMODEL_BATCH","RV_ALL","ONE_VALID_ROW","BAD_STATUS"])
+def test_a18_01_missing_registered_science_rows_cannot_pass(remove):
+    rows,alts,ref=fixture_science()
+    if remove=="XMODEL_BATCH":
+        rows=rows[rows.arm!="XMODEL_BATCH"].copy()
+    if remove=="RV_ALL":
+        rows=rows[~rows.role.isin(("REV60","FWD60"))].copy()
+    if remove=="ONE_VALID_ROW":
+        rows=rows.iloc[1:].copy()
+    if remove=="BAD_STATUS":
+        rows.loc[rows.index[0],"status"]="FAILED_INPUT"
+    result=gate(rows,alts,ref)
+    assert result["status"]=="NOT_EVALUATED_INCOMPLETE"
+    assert not result["science_release_allowed"]
+
+
+def test_a18_01_missing_proposer_declared_scope_rejected_not_inferred():
+    rows,alts,ref=fixture_science()
+    result=R5.field_paired_conclusion_gate(rows,alts,ref,policy())
+    assert result["status"]=="NOT_EVALUATED_INCOMPLETE"
+    assert result["reason"]=="MISSING_REGISTERED_CONTRACT_SCOPE"
+    with pytest.raises(ValueError,match="SCOPE_BYPASS_FORBIDDEN"):
+        R5.field_paired_conclusion_gate(rows,alts,ref,policy(),require_full_keys=False)
+
+
+def test_a18_01_fixed_registered_universe_exactly_62_and_36_batch_arms():
+    rows,alts,ref=fixture_science()
+    expected=R5.registered_batch_row_keys(range(900,904),(0,))
+    assert len(expected)==4*36
+    assert len(rows)==len(expected)
+    assert {R5._key(x) for x in rows.to_dict("records")}==expected
+    result=gate(rows,alts,ref)
+    assert result["n_hypotheses"]==62

@@ -1,0 +1,99 @@
+{
+  "schema": "MBVAR_A010_A18_STORED_EVIDENCE_REHASH_RECEIPT_V1",
+  "date": "2026-11-03",
+  "role": "FOLLOWUP_SAVED_ARTIFACT_VERIFIER_NOT_OFFICIAL_AUDITOR",
+  "pr": 20,
+  "pr_tested_sha": "360b496d089c54aaaa488ff1c2a571605547d96b",
+  "reported_auditor_technical_verdict": "ACCEPT_WITH_BOUNDARIES",
+  "github_approved_review": false,
+  "source": "three original GitHub Actions ZIPs downloaded through GitHub connector; separate local Python SHA256/Cholesky computation",
+  "original_artifacts": [
+    {
+      "run": 41607204271,
+      "id": 13218649296,
+      "sha256": "4adaf2f513af509045b20f2d3a6fab2e27afc4a70dfd3799af4054e483848fe1"
+    },
+    {
+      "run": 41607204028,
+      "id": 13216779126,
+      "sha256": "e32c13d0d753675474337642b398d258f128f7a031344ef199ea153ff328693d"
+    },
+    {
+      "run": 41606839019,
+      "id": 13217795952,
+      "sha256": "abfb1bdf1b0a539e6a3547ac9eabad252d52a84f32d96fb2241d3c639641307d"
+    }
+  ],
+  "inner_arrays": {
+    "rehashed": 256,
+    "verified": 256,
+    "per_field": 128,
+    "fields": [
+      900,
+      901
+    ]
+  },
+  "solver_boundary": {
+    "rows": 10,
+    "checked": 10,
+    "array_names": [
+      "z",
+      "x0",
+      "ds_m",
+      "gy_m",
+      "Sigma_model",
+      "dts",
+      "taps"
+    ],
+    "hash_schema": "SHA256(dtype.str + shape + complete C-order bytes)"
+  },
+  "terminal": {
+    "n_rows": 10,
+    "n_terminals": 100,
+    "verified": 100,
+    "capped": 0,
+    "missing": 0,
+    "corrupted_seed_rows": 0,
+    "policy_sha256": "59875cc7a3dbc4ee5d440b3bebe7842fb4b4a854a5d5f23c89c7bcb33e9c39ff",
+    "min_probe_delta_chi2": -0.0005481982243651
+  },
+  "c10": {
+    "n_matrices": 10,
+    "n_spd": 10,
+    "min_eigenvalue": 9.78722614679057e-9,
+    "nees4_max_absolute_difference": 5.03774799653911e-11,
+    "s1_c3_max_cost_abs_difference": 0,
+    "s1_c3_max_full_C10_abs_difference": 0
+  },
+  "dev2": [
+    {
+      "case": "K1",
+      "R5_PRECISION": "PASS",
+      "near_starts": 0
+    },
+    {
+      "case": "K2",
+      "R5_PRECISION": "PASS",
+      "near_starts": 5
+    }
+  ],
+  "saved_alt_c10_rows": 0,
+  "saved_alt_c10_full_covariance_recheck": "UNAVAILABLE_IN_REDUCED_SMOKE; synthetic-negative-tests-only",
+  "original_62_formulas_parity": "29/29 pytest in #41607204028",
+  "g5": "FAIL",
+  "science_status": "NOT_EVALUATED_INCOMPLETE",
+  "code_archive_sha256": "9d420ee86c406c3cc65beb916a72a165ad3a026195c30cb3e104dbe194f4db49",
+  "local_full_json_sha256": "f48c0b0c3bc6c7505b51da445419f566abe40997cbcde40ff250e703ce092c4b",
+  "independent_auditor_signed": false,
+  "a010_science_frozen": false,
+  "dev3": "NO-GO",
+  "holdout2": "NO-GO",
+  "reserve": "NO-GO",
+  "rt": "NO-GO",
+  "limitations": [
+    "not a separate human/actor GitHub review",
+    "does not independently rederive nonlinear solver Hessian",
+    "does not verify actual alternative C10 because no alternative stored in reduced smoke",
+    "not full 1080-row DEV3 evaluation"
+  ]
+}
