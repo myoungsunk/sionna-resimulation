@@ -1,0 +1,25 @@
+{
+  "stage": "S3",
+  "primary_history_s": 60,
+  "checkpoint_interval_s": 1,
+  "history_sensitivity_s": [
+    10,
+    30
+  ],
+  "historical_policy": "min(recomputed current prevention policy weight,0.25) from causal first risky sample through current recovery time inclusive, only current suspect episode",
+  "candidate_adoption": "all finite PSD complete candidate chains ending at current sample within0.5m XY,10deg heading,0.1deg/s bg are atomically adopted, P injection off",
+  "candidate_failure": "keep emitted current protected foreground unchanged, one attempt per episode, no clipping or independent-measurement fusion",
+  "cold_reference": "separate direct matrix update code checks every candidate packet from same checkpoint, does not import production update/weight/step",
+  "identity_control": "seed0 only C_CP,D_CP in eight frozen cells, historical cap off, require all emitted x/P parity vs corresponding prevention policy and candidate parity",
+  "length_ablation": "seed0 only C_CP,D_CP ?10/30s ?eight cells,32 replays; paired same-seed same-arm60s comparator",
+  "auxiliary_replay_cap": 80,
+  "planned_auxiliary_replays": 48,
+  "snapshots": "seed0 baseline A chain/history immediately before sorted30/60/90s and causal latch starts, first10/cell; identical starting full chain/history four arms, common A candidate schedule,20s future and explicit censoring",
+  "snapshot_cap": 80,
+  "real_timing": "development seed0 main eight cells?four arms only; actual perf_counter_ns scheduled5Hz arrivals and sleeps, FIFO backlog represented by lateness to original arrival; no dropped observations; p99/max scheduled arrival to output includes queue wait, shadow, checkpoint and dual cold verification; staged inputs and offline scoring excluded",
+  "timing_scope": "only measured seed0 fixed RF/conditions; other seeds throughput durations have no realtime claim",
+  "timing_memory": "Windows process peak working set at each packet plus sampled RSS, includes input staging, trace and independent validation overhead",
+  "primary_output": "immutable online emitted outputs; retrospective paths separate artifacts, no historical overwrite",
+  "endpoint_cohort": "common baseline A pre-treatment predicted prior for M; original foreground pre_replay_prior before historical intervention for events; aligned truth timestamp",
+  "endpoint_time_tolerance_s": 1e-09
+}
