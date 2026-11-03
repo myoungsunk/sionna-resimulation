@@ -7,7 +7,7 @@ on:
       - 'proposer/mbvar-a010-r5-decision-r6-arithmetic-20261103'
     paths:
       - '.github/workflows/mbvar-a010-r6-stored-artifact-independent-arithmetic-20261103.yml'
-      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a10_r6_standalone_artifact_audit.py'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit/a010_r6_standalone_artifact_audit.py'
       - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts/AMENDMENT-010-R5-PROPOSER-DECISION-FINAL-PREFREEZE-20261103.md'
   workflow_dispatch:
 permissions:
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python "$EXP/audit/a10_r6_standalone_artifact_audit.py" \
+          python "$EXP/audit/a010_r6_standalone_artifact_audit.py" \
             --smoke-zip "$RUNNER_TEMP/r6/smoke.zip" \
             --generator-root "$EXP/results/P2_A010P0_GEN_run_41269011836" \
             --plan-parameters "$EXP/config/PLAN_PARAMETERS.json" \
@@ -107,7 +107,7 @@ jobs:
           x[100]^=1
           open(sys.argv[2],"wb").write(x)
           PY
-          if python "$EXP/audit/a10_r6_standalone_artifact_audit.py" \
+          if python "$EXP/audit/a010_r6_standalone_artifact_audit.py" \
              --smoke-zip "$RUNNER_TEMP/r6/corrupt.zip" \
              --generator-root "$EXP/results/P2_A010P0_GEN_run_41269011836" \
              --plan-parameters "$EXP/config/PLAN_PARAMETERS.json" \
