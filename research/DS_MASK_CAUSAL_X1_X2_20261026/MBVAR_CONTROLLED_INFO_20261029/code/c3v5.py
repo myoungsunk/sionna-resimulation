@@ -677,8 +677,8 @@ def cmd_aggregate(shards, out):
         for _,r in C.iterrows():
             key=tuple(r[k] for k in AV.ROW_KEY_FIELDS)
             verdict=R5.validate_terminals(groups[key],r5_policy)
-            if verdict["status"]!=str(r["R5_PRECISION_STATUS"]) or
-               verdict["pass_"]!=bool(r["R5_PRECISION_PASS"]):
+            if (verdict["status"]!=str(r["R5_PRECISION_STATUS"]) or
+                verdict["pass_"]!=bool(r["R5_PRECISION_PASS"])):
                 raise SystemExit("ERR_R5_TERMINAL_ROW_VERDICT_MISMATCH")
             if not verdict["pass_"]:
                 unresolved.append(dict(key=list(key),errors=verdict["failure_reasons"]))
