@@ -30,3 +30,5 @@ B0에서 Full의 Heading RMSE는 LoS보다 4.642° 높았고 XY RMSE는 22.03 cm
 ![거리·구간별 보정 전 관측오차](figures/R1_RAW_ERROR_DISTANCE_PHASE.png)
 
 ![시간별 EKF 오차와 평가 구간 RMSE](figures/R1_HEADING_XY_TIME_AND_RMSE.png)
+
+[독립 사후 감사](INDEPENDENT_POSTRUN_AUDIT.json)에서 계산·기록 정합성이 ACCEPT로 판정됐다. 검토자는 전체 917개 쌍의 관측과 3,668개 EKF 업데이트를 재검산하고, 원시 경로 계수와 지연에서 채널을 복원하는 검사는 8개 pose 표본에 수행했다.
