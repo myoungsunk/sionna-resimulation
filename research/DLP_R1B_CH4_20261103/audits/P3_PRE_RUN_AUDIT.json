@@ -1,0 +1,94 @@
+{
+  "schema": "DLP_R1B_P3_INDEPENDENT_PRE_RUN_SOURCE_REVIEW_V2",
+  "contract_id": "DLP-R1B-CH4-001",
+  "reviewer": "/root/ekf_contract_review",
+  "reviewer_role": "DISTINCT_COMPUTATIONAL_REVIEWER_NOT_HUMAN_SIGNOFF",
+  "decision": "ACCEPT_PRE_RUN_SOURCE_WITH_BOUNDARIES",
+  "scope": "Additive P2 raw-accounting/P3 replay adapter source, inherited conventional filter contract, and artificial deterministic arithmetic tests only",
+  "contract_path": "research/DLP_R1B_CH4_20261103/00_REQUEST_CONTRACT_FROZEN_V2.json",
+  "contract_sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596",
+  "adapter_path": "research/DLP_R1B_CH4_20261103/runtime/r1b_replay.py",
+  "adapter_sha256": "e157573d863847a12da02a392edd6f0a9fdba0a5c4318b4e23b14503edfffd77",
+  "all_V2_code_file_hashes_verified": true,
+  "real_R1_RF_or_filter_executed_by_reviewer": false,
+  "scientific_release": false,
+  "reviewed_invariants": {
+    "state_dimension": 4,
+    "state_order": ["x_m", "y_m", "psi_rad", "bg_rad_s"],
+    "source_model": "Untouched pinned SourceFFD evaluated at each arm's own prior",
+    "source_model_git_blob": "ea1cac65d6291681a4b5abf9a2c83b77f5997631",
+    "motion_core_git_blob": "0a0851e6867c14fec5eefe02df471100cb9e9e1d",
+    "sensor_builder_git_blob": "b1de0de13e82cd414306cba3182af18ac97607bf",
+    "sensor_seed": 0,
+    "B0_required_L2_auxiliary": true,
+    "R0_diag": [0.0068578637, 0.0081],
+    "range_offset_m": -0.5315983906250129,
+    "joint_NIS_gate": 9.210340371976184,
+    "mean_correction": [0.0, 0.0],
+    "additional_variance": [0.0, 0.0],
+    "same_controls_initialization_and_P0_between_channels": true,
+    "independent_self_gated_recursion_from_t0": true,
+    "all_767_t_ge30_posteriors_scored_including_rejected": true,
+    "truth_only_sensor_generator_and_offline_diagnostics": true,
+    "potential_and_applied_updates_distinct": true,
+    "all_917_native_paired_finite_observations_required_before_replay": true,
+    "source_self_hash_required_in_frozen_code_list": true,
+    "strict_final_RF_manifest_PASS_and_port_schema": true
+  },
+  "findings": [
+    {
+      "id": "R1B-P3-R01",
+      "initial_issue": "Stored pre-gate S and K were reconstructed but not compared, leaving rejected-packet logs insufficiently checked",
+      "status": "RESOLVED_IN_V2",
+      "resolution": "Compare stored S/K with independent reconstruction on every finite pre-gate row, including rejects",
+      "negative_test": "Clean fabricated reject log passes; isolated corrupted S or K each raises the expected parity HOLD"
+    },
+    {
+      "id": "R1B-P3-R02",
+      "initial_issue": "RF manifest had only hash bindings without completeness/native/port metadata checks",
+      "status": "RESOLVED_IN_V2",
+      "resolution": "Require PASS, actual_native_solver, FULL/LOS pair, 917 matched poses, zero missing, exact port layout, actual 917x257x2x2 complex arrays and source self-hash"
+    },
+    {
+      "id": "R1B-P3-R03",
+      "initial_issue": "A reduced common finite mask could otherwise yield partial primary raw statistics",
+      "status": "RESOLVED_IN_V2",
+      "resolution": "Preserve raw error/CIR/observation evidence, then require all 917 detected finite paired observations with positive first-path total power before any filter recursion"
+    },
+    {
+      "id": "R1B-P3-R04",
+      "initial_issue": "Angle/sensitivity grouped tables and direct visibility annotations were absent",
+      "status": "RESOLVED_IN_V2_WITH_DISCLOSED_METADATA_BOUNDARY",
+      "resolution": "Prospectively fixed angle and abs(H_spsi) bins added; visibility flags preserved when supplied and explicitly MISSING otherwise. Sensitivity bins do not assert smooth-cell status. Native producer must supply visibility metadata before claiming ray-level evidence."
+    }
+  ],
+  "numerical_evidence": [
+    {
+      "path": "research/DLP_R1B_CH4_20261103/audits/P3_PRE_RUN_MATH_QA.json",
+      "status": "PASS_11_OF_11",
+      "adapter_checkpoint_sha256": "ff605b961ff3648603e1ac08537bef51113a9a83fcf65c088f32f80f6a2649e4",
+      "applicability": "Checks exercise unchanged core motion/measurement math and unchanged observer. Source diff to V2 was independently reviewed; no retest claim for real R1 data.",
+      "motion_F_FD_max_abs": 1.1677342426352766e-10,
+      "Joseph_max_abs": 2.168404344971009e-19,
+      "NIS_max_abs": 2.2737367544323206e-13,
+      "artificial_observer_range_s_max_abs": 8.881784197001252e-16,
+      "artificial_observer_tap_mismatch": 0
+    },
+    {
+      "path": "research/DLP_R1B_CH4_20261103/audits/P3_REJECTED_LOG_QA_e157573d8638.json",
+      "status": "PASS_3_OF_3",
+      "adapter_sha256": "e157573d863847a12da02a392edd6f0a9fdba0a5c4318b4e23b14503edfffd77",
+      "inputs": "Fabricated one-row affine rejected log, no project trajectory/SourceFFD/RF",
+      "checks": ["clean_log_pass", "corrupt_rejected_S_stops", "corrupt_rejected_K_stops"]
+    }
+  ],
+  "remaining_stage_conditions": [
+    "Independent P0 Native RF source review and G1 canary must pass before production",
+    "Actual canary cost/feasibility receipt must be frozen before full acquisition",
+    "Final RF archive must contain all 917 Native Full/LoS pairs and byte/hash provenance",
+    "P2 identities and actual P3 recursion/SourceFFD derivative checks must be computed after the RF gates",
+    "G4 independent post-run raw-packet and score recomputation remains required",
+    "This receipt grants no scientific result or manuscript approval"
+  ],
+  "independence_limit": "A separate delegated computational reviewer inspected the implementation and independently authored artificial arithmetic checks. Shared workspace and user-linked system; no external human reviewer or separate physical machine is claimed."
+}

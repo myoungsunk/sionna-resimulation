@@ -1,0 +1,152 @@
+{
+  "schema": "DLP_R1B_CH4_INDEPENDENT_COMPUTATIONAL_PRE_RUN_AUDIT_V1",
+  "contract_id": "DLP-R1B-CH4-001",
+  "actor": "/root/r1_preflight_audit",
+  "role": "INDEPENDENT_COMPUTATIONAL_PRE_RUN_AUDITOR",
+  "created_kst": "2026-11-03T15:26:17.948987+09:00",
+  "verdict": "ADMIT_BOUNDED_8_POSE_CANARY_WITH_BOUNDARIES",
+  "scope": "Pre-run source, mathematics and input identity review only; separately authored review and independent local calculations.",
+  "independence": {
+    "independent_human_peer_review": false,
+    "separate_agent": true,
+    "separate_python_processes": true,
+    "same_workspace_host": true,
+    "native_rt_executed_by_auditor": false,
+    "scientific_signoff": false
+  },
+  "bindings": {
+    "contract_path": "research/DLP_R1B_CH4_20261103/00_REQUEST_CONTRACT_FROZEN_V2.json",
+    "contract_sha256": "a31a537dd35823d10c1d74ee0cf488d439b7ba2c70114309e024b451a9468596",
+    "input_manifest_path": "research/DLP_R1B_CH4_20261103/02_INPUT_HASH_MANIFEST_V2.json",
+    "input_manifest_sha256": "5bd9943bdcad4d7d5e4e413101c9fcaa49821fdc43404a7e16998be0053f86b7",
+    "native_runner_path": "research/DLP_R1B_CH4_20261103/runtime/r1b_native.py",
+    "native_runner_sha256": "68c3982e7513f8dc89a0775d866f27460c7a75bea76ce72b767f10779f376700",
+    "user_request_sha256": "131c625b6836ff45715a53178ae98773f10f9059668c0ed01873b67b3823c14d",
+    "pose_csv_sha256": "53e76f41cb95b32b25f2cc58844bac09c09ffd0803aa287cc69e025bb97225c4",
+    "source_model_sha256": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+    "inherited_P1_tolerances_sha256": "8739e721a10a95c6113c7198972c7c00983c97da6475e86606d7a1fac60d904f"
+  },
+  "input_hash_audit": {
+    "status": "PASS",
+    "comparison_count": 201,
+    "unique_file_paths": 101,
+    "failed": [],
+    "method": "Recursively traversed path+sha256 records from V2 contract and V2 manifest, independently hashed actual bytes; checked recorded byte sizes. Includes both complete FFD binaries.",
+    "manifest_contract_binding_exact": true
+  },
+  "trajectory_audit": {
+    "status": "PASS",
+    "rows": 917,
+    "eval_t_ge_30_rows": 767,
+    "unique_pose_ids": 917,
+    "time_range_s": [
+      0,
+      183.20000000000002
+    ],
+    "phase_counts": {
+      "drive_out": 441,
+      "turn": 36,
+      "drive_back": 440
+    },
+    "anchor_B_min_horizontal_distance_m": 0.3422152393930706,
+    "nearest_pose_id": 221,
+    "minimum_theta_deg": 8.841636999081071,
+    "y_range_m": [
+      0.33308500249224077,
+      0.4390856173467851
+    ],
+    "literal_y_035_not_substituted": true
+  },
+  "code_review": {
+    "physical_phase_comparison": "PASS: Native Tx0 H compared to SourceFFD.physical_h_col; no fitted phase or gain.",
+    "source_internal": "PASS: independent p0_initial.direct algebra; identical verified banks and actual pose distance.",
+    "detector": "PASS: symmetric N-1 Hann, 4N IFFT times257, strongest RX 30 percent first leading edge, common tap for both RX; independent selection for Full and LoS.",
+    "range_model": "PASS: preserves d+B_OLD and separates source detector range from continuous model range.",
+    "tap_and_branch": "PASS: exact Native vs Source tap and strongest-branch gates.",
+    "jacobian": "PASS: stable cells/tap/branch required; crossing never counted as finite-difference PASS. All selected GT poses outside source pole cap.",
+    "native_acquisition": "PASS: both modes call original Sionna PathSolver separately at all257 frequencies; no interpolation or direct-component substitution.",
+    "raw_coefficient_reconstruction": "PASS_BY_CODE_REVIEW: H=sum_p a_p exp(-j2pi f tau_p); raw coefficients, delays, path offsets, interaction types and objects retained for independent post-run reconstitution.",
+    "solver_and_materials": "PASS_BY_CODE_REVIEW: exact original Full solver JSON and six mesh/material bindings required; all reference bytes checked before acquisition.",
+    "full_direct_component": "PASS_BY_CODE_REVIEW: unique zero-interaction geometric-delay path perbin; compared to separately generated LoS H at inherited relative threshold5e-4.",
+    "surface_attribution": "PASS_BY_CODE_REVIEW: ENVIRONMENT records native object_id to original surface names.",
+    "failure_retention": "PASS_BY_CODE_REVIEW: completed native bins and last returned coefficients retained in partial NPZ if a later call/check throws; complete pose physics failures preserve complete NPZ.",
+    "source_hash_guard": "PASS: request, pose, trajectory manifest, solver/material refs, all code files and inherited contracts checked.",
+    "runtime": "PASS_FOR_CANARY_ONLY: pinned NumPy1.26.4, SciPy1.14.1, SionnaRT2.0.1, Mitsuba3.8.0, DrJit1.3.1 verified. Python3.12.14 differs from historical3.11 and is disclosed; physical parity remains to be measured."
+  },
+  "independent_no_rt_checks": {
+    "observer_direct_inverse_dft": {
+      "status": "PASS",
+      "seed": 20261103,
+      "fixtures": [
+        "single_path",
+        "multipath",
+        "random_complex_257bin"
+      ],
+      "method": "Direct 1028x257 inverse-DFT matrix with sin(pi*k/256)^2 window, independently calculated branch/tap/power; no FFT used in oracle.",
+      "exact_branch_tap_range": true,
+      "max_s_absolute_difference": 4.579669976578771e-16,
+      "max_CIR_absolute_difference": 6.289393346585934e-13,
+      "port_swap_s_sign_absolute_difference": 0.0,
+      "port_swap_tap_exact": true
+    },
+    "source_on_actual_R1B_canaries": {
+      "status": "PASS",
+      "pose_ids": [
+        0,
+        150,
+        221,
+        440,
+        458,
+        476,
+        696,
+        916
+      ],
+      "max_source_independent_direct_complex_relative": 1.884318087940217e-13,
+      "inherited_relative_limit": 1e-10,
+      "max_source_independent_direct_s_absolute": 1.2212453270876722e-15,
+      "tap_exact_count": 8,
+      "detector_range_exact_count": 8,
+      "bias_J_column_zero_count": 8,
+      "central_FD_step": 5e-06,
+      "stable_dimensions": 24,
+      "failed_dimensions": 0,
+      "max_J_absolute_difference": 5.692341528695799e-10,
+      "max_J_relative_difference": 4.539275104576724e-08,
+      "note": "Source/direct mathematical checks only. These are not Native RT canary results."
+    }
+  },
+  "admitted_work": {
+    "pose_ids": [
+      0,
+      150,
+      221,
+      440,
+      458,
+      476,
+      696,
+      916
+    ],
+    "frequency_bins": 257,
+    "native_modes": [
+      "LOS_max_depth0",
+      "FULL_max_depth3"
+    ],
+    "maximum_nominal_solver_calls": 4112,
+    "threads": 1,
+    "stop_immediately_on_canary_failure": true,
+    "write_measured_cost_and_complete_raw_receipts": true
+  },
+  "not_admitted_by_this_receipt": [
+    "full917pose production before G1 PASS, separate post-canary audit and measured cost lock",
+    "P2/P3 scoring before its corresponding gates",
+    "P4 correction fitting or use of missing predictions",
+    "altering numeric tolerances after outcomes",
+    "scientific validation or manuscript performance claims"
+  ],
+  "remaining_required_evidence": [
+    "actual Native LoS/Full8pose canary",
+    "independent raw H/path/observer recomputation",
+    "measured timing and memory cost lock",
+    "committed execution SHA and run logs"
+  ]
+}

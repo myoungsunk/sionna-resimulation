@@ -1,0 +1,88 @@
+{
+  "schema": "DLP_R1B_P3_PRE_RUN_PURE_MATH_REVIEW_V1",
+  "reviewer": "/root/ekf_contract_review",
+  "role": "DISTINCT_COMPUTATIONAL_REVIEWER_NOT_HUMAN_SIGNOFF",
+  "status": "PASS_PURE_MATH_CHECKS",
+  "not_scientific_release": true,
+  "real_R1_RF_or_filter_executed": false,
+  "source_files": {
+    "research/DLP_R1B_CH4_20261103/runtime/r1b_replay.py": "ff605b961ff3648603e1ac08537bef51113a9a83fcf65c088f32f80f6a2649e4",
+    "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+    "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab"
+  },
+  "reviewer_code_sha256": "8253434034280a2589ffbf7efabfb068a766592aa44715fb567d607c5383a429",
+  "checks": [
+    {
+      "name": "U03_artificial_motion_F_centered_difference",
+      "measured": 1.1677342426352766e-10,
+      "maximum": 1e-06,
+      "passed": true
+    },
+    {
+      "name": "U05_artificial_accepted_state",
+      "measured": 0.0,
+      "maximum": 1e-10,
+      "passed": true
+    },
+    {
+      "name": "U05_artificial_accepted_Joseph",
+      "measured": 2.168404344971009e-19,
+      "maximum": 1e-10,
+      "passed": true
+    },
+    {
+      "name": "U10_artificial_accepted_NIS",
+      "measured": 2.0816681711721685e-17,
+      "maximum": 1e-09,
+      "passed": true
+    },
+    {
+      "name": "U10_artificial_accepted_gate",
+      "measured": true,
+      "expected": true,
+      "passed": true
+    },
+    {
+      "name": "U05_artificial_rejected_state",
+      "measured": 0.0,
+      "maximum": 1e-10,
+      "passed": true
+    },
+    {
+      "name": "U05_artificial_rejected_Joseph",
+      "measured": 0.0,
+      "maximum": 1e-10,
+      "passed": true
+    },
+    {
+      "name": "U10_artificial_rejected_NIS",
+      "measured": 2.2737367544323206e-13,
+      "maximum": 1e-09,
+      "passed": true
+    },
+    {
+      "name": "U10_artificial_rejected_gate",
+      "measured": false,
+      "expected": false,
+      "passed": true
+    },
+    {
+      "name": "T05_artificial_observer_range_s_parity",
+      "measured": 8.881784197001252e-16,
+      "maximum": 1e-09,
+      "passed": true
+    },
+    {
+      "name": "T05_artificial_observer_tap_parity",
+      "measured": 0.0,
+      "maximum": 0.0,
+      "passed": true
+    }
+  ],
+  "utc": "2026-11-03T06:23:23.378881+00:00",
+  "limits": [
+    "No real SourceFFD Native RF parity tested here",
+    "No R1 recursive result or score computed",
+    "Production remains gated on parent P0/G1 and frozen input contract"
+  ]
+}

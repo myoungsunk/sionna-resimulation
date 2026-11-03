@@ -39,6 +39,8 @@ R0 = np.diag([RR, RS])
 P0 = np.diag([.1**2, .1**2, math.radians(5.)**2, math.radians(.1)**2])
 CASE = dict(id="R1_aB_m0", anchor=[10., 0., 2.65], robot_z_m=.45, mount_deg=0.)
 DEFAULT_DISTANCE_EDGES = [0., .5, 1., 2., 4., 8., 20.]
+AZIMUTH_EDGES_DEG = np.arange(-180., 181., 30.)
+HSPSI_EDGES = np.array([0., .25, .5, 1., 2., 4., 8., np.inf])
 STATE_LABELS = ["x_m", "y_m", "psi_rad", "bg_rad_s"]
 MEAS_LABELS = ["r_m", "s"]
 CREATED_OUTPUT_THIS_INVOCATION = False
@@ -112,6 +114,13 @@ def locked_inputs(args):
     need(canary.get("status") == "PASS", "RF_CANARY_NOT_PASS")
     need(canary.get("contract_sha256") == contract_sha, "CANARY_NOT_BOUND_TO_THIS_CONTRACT")
     manifest = json_read(args.rf_manifest)
+    need(manifest.get("status") == "PASS", "RF_PRODUCTION_OR_ASSEMBLY_NOT_PASS")
+    need(manifest.get("n_pose") == 917 and manifest.get("paired_pose_count") == 917 and
+         manifest.get("missing_pose_count") == 0, "RF_PRODUCTION_POSE_COVERAGE_INCOMPLETE")
+    need(manifest.get("channels") == ["FULL", "LOS"], "RF_PRODUCTION_CHANNELS_NOT_PAIRED")
+    need(manifest.get("port_layout") == "[pose,frequency,rx(+45,-45),tx(+45,-45)]",
+         "RF_PRODUCTION_PORT_LAYOUT_UNVERIFIED")
+    need(manifest.get("actual_native_solver") is True, "RF_NOT_ACTUAL_NATIVE_SOLVER")
     need(manifest.get("contract_sha256") == contract_sha, "RF_NOT_BOUND_TO_THIS_CONTRACT")
     need(manifest.get("canary_qa_sha256") == sha(canary_path), "RF_NOT_BOUND_TO_PASS_CANARY")
     need(manifest.get("rf_sha256") == sha(args.rf), "RF_FILE_HASH_MISMATCH")
@@ -120,6 +129,9 @@ def locked_inputs(args):
     inherited = json_read(P2_DIR / "P2_CONFIG_LOCK.json")
     for item in inherited["pinned_sources"]:
         need(git_blob(ROOT / item["path"]) == item["git_blob"], "PINNED_SOURCE_DRIFT:" + item["path"])
+    self_path = Path(__file__).resolve()
+    need(any(resolve(item["path"]).resolve() == self_path for item in contract["code_files"]),
+         "REPLAY_SOURCE_NOT_INCLUDED_IN_FROZEN_CODE_LOCK")
     for item in contract["code_files"]:
         need(sha(resolve(item["path"])) == item["sha256"], "R1_CODE_HASH_DRIFT:" + item["path"])
     pose_item = contract["inputs"]["pose_csv"]
@@ -188,9 +200,13 @@ def load_rf_and_pose(rf_path, pose_path, freqs):
          "BAD_ORIGINAL_TIMELINE")
     for channel in ("full", "los"):
         channel_h = rf["H_" + channel]
-        need(channel_h.shape in ((917, 257, 2, 2), (917, 257, 2)), "RF_PORT_AXIS_UNSUPPORTED:" + channel)
+        need(channel_h.shape == (917, 257, 2, 2), "RF_PORT_AXIS_UNSUPPORTED:" + channel)
         need(np.iscomplexobj(channel_h) and np.isfinite(channel_h).all(), "RF_COMPLEX_CHANNEL_INVALID:" + channel)
     need(rf["H_full"].shape == rf["H_los"].shape, "FULL_LOS_PORT_AXES_DIFFER")
+    for key in ("direct_full_visible", "direct_los_visible"):
+        if key in rf:
+            need(rf[key].shape == (917,) and rf[key].dtype == np.dtype(bool),
+                 "DIRECT_VISIBILITY_FLAG_SHAPE_OR_DTYPE:" + key)
     return rf, original
 
 
@@ -275,19 +291,23 @@ def run_filter(controls, observed, valid, initial_pose, core, source):
     return data, failures
 
 
-def raw_error_accounting(pose, observations, h_gt, j_gt, out, edges):
+def raw_error_accounting(pose, observations, h_gt, j_gt, out, edges, rf):
     z_full, z_los = observations["full"]["z"], observations["los"]["z"]
     e0, delta_z, e_los = z_full - h_gt, z_full - z_los, z_los - h_gt
     common = observations["full"]["valid"] & observations["los"]["valid"]
     identity_error = max_abs((e0 - delta_z - e_los)[common])
     need(identity_error <= 1e-10, "RAW_ERROR_IDENTITY_FAILED")
     rho = np.hypot(pose["x_m"] - 10., pose["y_m"])
+    azimuth_deg = np.degrees(np.arctan2(pose["y_m"], pose["x_m"] - 10.))
+    # This wrap makes the final angular interval half-open like every other bin.
+    azimuth_deg = (azimuth_deg + 180.) % 360. - 180.
+    abs_hspsi = abs(j_gt[:, 1, 2])
     rows, rf_rows = [], []
     for k in range(len(rho)):
         metadata = dict(pose_id=int(pose["pose_id"][k]), t_s=float(pose["t_s"][k]), phase=str(pose["phase"][k]),
                         evaluation_t_ge30=bool(pose["t_s"][k] >= 30.), common_finite_pre_gate=bool(common[k]))
         row = dict(**metadata, x_gt_m=pose["x_m"][k], y_gt_m=pose["y_m"][k], psi_gt_rad=pose["psi_rad"][k],
-                   rho_gt_m=rho[k], anchor_azimuth_rad=np.arctan2(pose["y_m"][k], pose["x_m"][k] - 10.),
+                   rho_gt_m=rho[k], anchor_azimuth_rad=math.radians(azimuth_deg[k]),
                    H_gt_s_psi=j_gt[k, 1, 2], range_bridge_m=OFFSET)
         rf_row = dict(**metadata)
         for axis, label in enumerate(MEAS_LABELS):
@@ -301,6 +321,9 @@ def raw_error_accounting(pose, observations, h_gt, j_gt, out, edges):
                                 ("P_plus", obs["power"][k, 0]), ("P_minus", obs["power"][k, 1]),
                                 ("detected_finite", bool(obs["valid"][k]))]:
                 rf_row[channel + "_" + name] = value
+            flag_key = "direct_" + channel + "_visible"
+            visibility = bool(rf[flag_key][k]) if flag_key in rf else "MISSING"
+            rf_row[flag_key] = row[flag_key] = visibility
         mismatch = bool(observations["full"]["tap"][k] != observations["los"]["tap"][k])
         row["tap_mismatch"] = rf_row["tap_mismatch"] = mismatch
         rows.append(row)
@@ -310,7 +333,11 @@ def raw_error_accounting(pose, observations, h_gt, j_gt, out, edges):
     # Both evaluation and full-run pre-gate masks are explicit in each row.
     group_sets = {"summary": [("ALL", np.ones(len(rho), bool))],
                   "phase_bins": [(phase, pose["phase"] == phase) for phase in ("drive_out", "turn", "drive_back")],
-                  "distance_bins": [(f"[{a:g},{b:g})m", (rho >= a) & (rho < b)) for a, b in zip(edges[:-1], edges[1:])]}
+                  "distance_bins": [(f"[{a:g},{b:g})m", (rho >= a) & (rho < b)) for a, b in zip(edges[:-1], edges[1:])],
+                  "angle_bins": [(f"[{a:g},{b:g})deg", (azimuth_deg >= a) & (azimuth_deg < b))
+                                 for a, b in zip(AZIMUTH_EDGES_DEG[:-1], AZIMUTH_EDGES_DEG[1:])],
+                  "abs_Hspsi_bins": [(f"[{a:g},{b:g})per_rad", (abs_hspsi >= a) & (abs_hspsi < b))
+                                     for a, b in zip(HSPSI_EDGES[:-1], HSPSI_EDGES[1:])]}
     mismatch = observations["full"]["tap"] != observations["los"]["tap"]
     for filename, groups in group_sets.items():
         summary = []
@@ -328,7 +355,11 @@ def raw_error_accounting(pose, observations, h_gt, j_gt, out, edges):
                                             median=float(np.median(sample)) if len(sample) else math.nan,
                                             p05=float(np.quantile(sample, .05)) if len(sample) else math.nan,
                                             p95=float(np.quantile(sample, .95)) if len(sample) else math.nan,
-                                            tap_mismatch_rate=float(mismatch[mask].mean()) if mask.any() else math.nan))
+                                            tap_mismatch_rate=float(mismatch[mask].mean()) if mask.any() else math.nan,
+                                            direct_full_visibility_rate=(float(rf["direct_full_visible"][mask].mean())
+                                                                         if mask.any() and "direct_full_visible" in rf else math.nan),
+                                            direct_los_visibility_rate=(float(rf["direct_los_visible"][mask].mean())
+                                                                        if mask.any() and "direct_los_visible" in rf else math.nan)))
         write_csv(out / ("raw_error_" + filename + ".csv"), summary)
     return dict(e0=e0, delta_z=delta_z, e_los=e_los, common_finite=common,
                 identity_max_abs=identity_error, rho_gt_m=rho)
@@ -358,6 +389,7 @@ def offline_diagnostics(data, observed, valid, h_gt, source):
     need(max(nu_error, update_error, applied_error) <= 1e-10, "PACKET_IDENTITY_FAILED")
     n = len(observed)
     nis_error, state_error, covariance_error, prediction_error = 0., 0., 0., 0.
+    innovation_covariance_error, gain_error = 0., 0.
     for k in range(n):
         if not completed[k]:
             continue
@@ -370,6 +402,9 @@ def offline_diagnostics(data, observed, valid, h_gt, source):
         p, h, nu = data["Pprior"][k], data["H"][k], data["innovation"][k]
         s = h @ p @ h.T + R0
         k_gain = np.linalg.solve(s, h @ p).T
+        # Includes REJECT rows: their stored potential gain is still auditable.
+        innovation_covariance_error = max(innovation_covariance_error, max_abs(data["S"][k] - s))
+        gain_error = max(gain_error, max_abs(data["K"][k] - k_gain))
         nis_value = float(nu @ np.linalg.solve(s, nu))
         nis_error = max(nis_error, abs(nis_value - data["nis"][k]))
         need(bool(nis_value <= GATE) == bool(data["accepted"][k]), "JOINT_NIS_GATE_MISMATCH")
@@ -384,10 +419,12 @@ def offline_diagnostics(data, observed, valid, h_gt, source):
         difference[2] = wrap(difference[2])
         state_error = max(state_error, max_abs(difference))
         covariance_error = max(covariance_error, max_abs(target_cov - data["Ppost"][k]))
-    need(nis_error <= 1e-9 and max(state_error, covariance_error, prediction_error) <= 1e-10,
+    need(nis_error <= 1e-9 and max(state_error, covariance_error, prediction_error,
+                                 innovation_covariance_error, gain_error) <= 1e-10,
          "INDEPENDENT_JOSEPH_NIS_OR_PREDICTION_PARITY_FAILED")
     qa.update(nis_recompute_max_abs=nis_error, state_recompute_max_abs=state_error,
-              joseph_recompute_max_abs=covariance_error, prediction_covariance_max_abs=prediction_error)
+              joseph_recompute_max_abs=covariance_error, prediction_covariance_max_abs=prediction_error,
+              stored_S_recompute_max_abs=innovation_covariance_error, stored_K_recompute_max_abs=gain_error)
     # Same smooth-cell FD policy as P1 T09, evaluated on saved online priors.
     fd_rows, stable_count, fd_fail_count = [], 0, 0
     indices = np.flatnonzero(np.isfinite(data["xprior"]).all(axis=1))
@@ -492,11 +529,23 @@ def run(args):
     edges = contract["replay"].get("distance_bin_edges_m", DEFAULT_DISTANCE_EDGES)
     need(np.all(np.diff(edges) > 0) and edges[0] <= 0 and edges[-1] > np.hypot(pose["x_m"] - 10., pose["y_m"]).max(),
          "DISTANCE_BINS_NOT_ORDERED_OR_INCOMPLETE")
-    raw = raw_error_accounting(pose, observations, h_gt, j_gt, out, edges)
+    raw = raw_error_accounting(pose, observations, h_gt, j_gt, out, edges, rf)
     np.savez_compressed(out / "observation_arrays.npz", **pose, h_gt=h_gt, H_gt=j_gt,
                         z_full=observations["full"]["z"], z_los=observations["los"]["z"],
                         cir_full=observations["full"]["cir"], cir_los=observations["los"]["cir"],
                         **{key: value for key, value in raw.items() if key != "identity_max_abs"})
+    completeness = {channel: dict(n_finite_detected=int(observations[channel]["valid"].sum()),
+                                 n_nonpositive_total_fp_power=int(np.count_nonzero(
+                                     observations[channel]["power"].sum(axis=1) <= 0.)))
+                    for channel in ("full", "los")}
+    complete = all(item["n_finite_detected"] == 917 and item["n_nonpositive_total_fp_power"] == 0
+                   for item in completeness.values())
+    write_json(out / "P2_OBSERVATION_COMPLETENESS.json",
+               dict(status="PASS" if complete else "HOLD", expected_paired_pose_count=917,
+                    common_finite_pose_count=int(raw["common_finite"].sum()), channels=completeness,
+                    failed_observations_preserved=True))
+    need(complete and int(raw["common_finite"].sum()) == 917,
+         "P2_REQUIRES_ALL_917_PAIRED_FINITE_DETECTIONS_FAILURE_EVIDENCE_PRESERVED")
     all_scores, qa_rows = [], []
     csv_by_channel = {"los": [], "full": []}
     controls_reference = None
@@ -555,6 +604,11 @@ def run(args):
                    canary_qa_sha256=sha(args.canary_qa), source_sha256=sha(__file__),
                    raw_error_identity_max_abs=raw["identity_max_abs"],
                    distance_bin_edges_m=edges, centered_std_ddof=0, samples_independent_scenes=1,
+                   azimuth_bin_edges_deg=AZIMUTH_EDGES_DEG.tolist(),
+                   abs_Hspsi_bin_edges_per_rad=[0., .25, .5, 1., 2., 4., 8., "+inf"],
+                   conditional_bin_scope="GT-only offline descriptive pre-gate bins; Hspsi bins do not assert smooth-cell FD PASS",
+                   direct_visibility_flags={channel: ("PRESERVED" if "direct_"+channel+"_visible" in rf else "MISSING")
+                                            for channel in ("full", "los")},
                    range_model="distance3d + inherited continuous offset; not a learned first-tap likelihood",
                    gate_semantics="self gate per arm; potential correction kept even if rejected; applied correction zero",
                    prior_Gaussian_R0_independence="fixed assumption; not empirically validated by these runs",

@@ -14,6 +14,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[3]
 BASE = ROOT / 'research/DLP_R1B_CH4_20261103'
 C = 299792458.0
 N = 257
+PARTIAL_STATE = None
+LAST_NATIVE_RETURN = None
 
 def sha(p):
     with pathlib.Path(p).open('rb') as f:
@@ -38,8 +40,9 @@ def resolve(p):
 def load_contract(path):
     c = readj(path)
     require(c['contract_id'] == 'DLP-R1B-CH4-001' and c['status'] == 'FROZEN', 'CONTRACT_NOT_FROZEN')
-    for a in [c['inputs']['pose_csv'], c['inputs']['material_reference'],
-              c['inputs']['solver_reference'], *c['code_files'], *c['inherited_contract_files']]:
+    for a in [c['request_reference'], c['inputs']['pose_csv'], c['inputs']['material_reference'],
+              c['inputs']['solver_reference'], c['inputs']['trajectory_manifest'],
+              *c['code_files'], *c['inherited_contract_files']]:
         require(sha(resolve(a['path'])) == a['sha256'], 'SOURCE_HASH_MISMATCH:' + a['path'])
     with resolve(c['inputs']['pose_csv']['path']).open(newline='') as f:
         rows = list(csv.DictReader(f))
@@ -108,20 +111,27 @@ def initialize(c, banks_dir, out):
     solver = CR.rt.PathSolver()
     original_cfg = readj(resolve(c['inputs']['solver_reference']['path']))['solver']
     require(c['rf']['solver_full'] == original_cfg, 'FULL_SOLVER_DRIFT')
+    object_map = {str(int(np.asarray(obj.object_id).reshape(-1)[0])): name
+                  for name, obj in scene.objects.items()}
+    require(len(object_map) == len(bindings), 'NATIVE_OBJECT_ID_COLLISION')
     environment = {'packages': versions, 'python': sys.version, 'platform': platform.platform(),
                    'variant': mi.variant(), 'threads': 1, 'material_bindings': bindings,
+                   'native_object_id_to_surface_name': object_map,
                    'source_git_sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                    'utc': datetime.datetime.now(datetime.timezone.utc).isoformat()}
     writej(out / 'ENVIRONMENT.json', environment)
     return CR, mi, scene, setup, solver, dictionaries, tx, rx, freq, source, SI, environment
 
 def solve_one(CR, solver, scene, cfg, freq, fi, banks, tx, rx):
+    global LAST_NATIVE_RETURN
     CR.set_bin(scene, banks, tx, rx, fi, float(freq[fi]))
     raw = solver(scene, **cfg)
     tau = np.asarray(raw.tau, dtype=np.float64).reshape(-1)
     n = len(tau)
     require(n > 0, 'NATIVE_PATH_MISSING')
     a = (np.asarray(raw.a[0]) + 1j * np.asarray(raw.a[1])).astype(np.complex128).reshape(2, 2, n)
+    LAST_NATIVE_RETURN = {'fi': np.array(fi), 'max_depth': np.array(cfg['max_depth']),
+                          'tau_s': tau, 'a': a}
     require(np.isfinite(tau).all() and np.isfinite(a).all(), 'NONFINITE_NATIVE_PATH')
     inter = np.asarray(raw.interactions).reshape(-1, n).astype(np.int8)
     objects = np.asarray(raw.objects).reshape(-1, n).astype(np.int64)
@@ -149,6 +159,7 @@ def fd_check(source, state, case):
     return pred[0], jac[0], d0, records
 
 def acquire_pose(c, row, engine, out):
+    global PARTIAL_STATE, LAST_NATIVE_RETURN
     CR, mi, scene, setup, solver, banks, tx, rx, freq, source, SI, env = engine
     pose = int(row['pose_id'])
     state = np.array([float(row['x']), float(row['y']), np.radians(float(row['yaw_body_deg'])), 0.])
@@ -169,10 +180,13 @@ def acquire_pose(c, row, engine, out):
     started = time.monotonic()
     delay_error = 0.
     full_direct = []
+    full_direct_parity = []
     data = {}
     for mode in ['los', 'full']:
         data[mode] = {'H': np.empty((N, 2, 2), np.complex128), 'offsets': [0],
                       'tau': [], 'a': [], 'inter': [], 'objects': [], 'counts': []}
+    PARTIAL_STATE = {'pose_id': pose, 'payload': payload, 'data': data}
+    LAST_NATIVE_RETURN = None
     for fi in range(N):
         for mode in ['los', 'full']:
             h, tau, a, inter, objects = solve_one(CR, solver, scene, c['rf']['solver_' + mode], freq, fi, banks, tx, rx)
@@ -192,12 +206,18 @@ def acquire_pose(c, row, engine, out):
                 # A direct path has zero interactions and matches geometric delay.
                 direct = (np.count_nonzero(inter, axis=0) == 0) & (abs(tau - geometric_delay) <= c['tolerances']['los_delay_abs_s'])
                 full_direct.append(int(direct.sum()))
+                if direct.sum() == 1:
+                    j = int(np.flatnonzero(direct)[0])
+                    direct_h = a[:, :, j] * np.exp(-2j * np.pi * float(freq[fi]) * tau[j])
+                    full_direct_parity.append(float(np.linalg.norm(direct_h - data['los']['H'][fi]) /
+                                                    np.linalg.norm(data['los']['H'][fi])))
         if fi in [0, 64, 128, 192, 256]:
             print(json.dumps({'pose_id': pose, 'fi': fi, 'elapsed_s': round(time.monotonic() - started, 3),
                               'full_paths': data['full']['counts'][-1]}), flush=True)
     metrics = {'pose_id': pose, 't_s': float(row['t_s']), 'phase': row['phase'],
                'source_direct_relative': internal, 'los_delay_abs_s': delay_error,
                'full_unique_direct_bins': int(np.sum(np.asarray(full_direct) == 1)),
+               'full_direct_vs_separate_los_relative_max': max(full_direct_parity) if full_direct_parity else None,
                'source_model_range_m': float(pred[0]), 'source_model_s': float(pred[1]),
                'source_detector_range_m': float(diag['native_range'][0]),
                'source_tap': int(diag['tap'][0]), 'source_strong_port': int(diag['strong_port'][0]),
@@ -228,7 +248,33 @@ def acquire_pose(c, row, engine, out):
     metrics['raw_file'] = dest.name
     metrics['raw_sha256'] = sha(dest)
     writej(out / ('pose_%04d.json' % pose), metrics)
+    PARTIAL_STATE = None
+    LAST_NATIVE_RETURN = None
     return metrics
+
+def preserve_partial(out):
+    """Keep every completed native bin if a later check or solver call fails."""
+    if PARTIAL_STATE is None:
+        return None
+    state = PARTIAL_STATE
+    arrays = dict(state['payload'])
+    counts = {}
+    for mode, data in state['data'].items():
+        n = len(data['counts'])
+        counts[mode] = n
+        arrays['H_' + mode + '_completed_bins'] = data['H'][:n].copy()
+        arrays[mode + '_path_offsets'] = np.array(data['offsets'], dtype=np.int64)
+        if n:
+            arrays[mode + '_tau_s'] = np.concatenate(data['tau'])
+            for key in ['a', 'inter', 'objects']:
+                arrays[mode + '_' + key] = np.concatenate(data[key], axis=-1)
+    if LAST_NATIVE_RETURN is not None:
+        for key, value in LAST_NATIVE_RETURN.items():
+            arrays['last_native_return_' + key] = value
+    dest = pathlib.Path(out) / ('pose_%04d_FAILURE_PARTIAL.npz' % state['pose_id'])
+    np.savez_compressed(dest, **arrays)
+    return {'path': dest.name, 'sha256': sha(dest), 'completed_bins': counts,
+            'not_complete_rf': True, 'never_allowed_as_paired917_input': True}
 
 def run_canary(args):
     contract, rows = load_contract(args.contract)
@@ -247,7 +293,9 @@ def run_canary(args):
         failed = (r['native_source_complex_relative'] > t['native_complex_relative_max'] or
                   r['native_source_s_abs'] > t['native_s_abs_max'] or
                   r['native_source_tap_mismatch'] != 0 or r['native_source_port_mismatch'] != 0 or
-                  r['los_delay_abs_s'] > t['los_delay_abs_s'] or r['full_unique_direct_bins'] != N)
+                  r['los_delay_abs_s'] > t['los_delay_abs_s'] or r['full_unique_direct_bins'] != N or
+                  r['full_direct_vs_separate_los_relative_max'] is None or
+                  r['full_direct_vs_separate_los_relative_max'] > t['full_direct_relative_max'])
         if failed:
             break
     rel = np.array([r['native_source_complex_relative'] for r in records])
@@ -262,6 +310,8 @@ def run_canary(args):
               'port_exact': all(r['native_source_port_mismatch'] == 0 for r in records),
               'delay': all(r['los_delay_abs_s'] <= tol['los_delay_abs_s'] for r in records),
               'full_direct_present': all(r['full_unique_direct_bins'] == N for r in records),
+              'full_direct_los_parity': all(r['full_direct_vs_separate_los_relative_max'] is not None and
+                                          r['full_direct_vs_separate_los_relative_max'] <= tol['full_direct_relative_max'] for r in records),
               'source_internal': all(r['source_direct_relative'] <= tol['source_direct_relative_max'] for r in records),
               'stable_jacobian': all(q['status'] != 'FAIL' for r in records for q in r['fd'])}
     seconds = [r['acquisition_seconds'] for r in records]
@@ -293,7 +343,10 @@ def main():
         return run_canary(args)
     except Exception as exc:
         out = pathlib.Path(args.out)
+        out.mkdir(parents=True, exist_ok=True)
+        partial = preserve_partial(out)
         writej(out / 'FAILURE.json', {'status': 'HOLD_RF_PARITY', 'exception': repr(exc),
+               'retained_partial': partial,
                'traceback': traceback.format_exc(), 'contract_sha256': sha(args.contract),
                'source_git_sha': subprocess.check_output(['git','rev-parse','HEAD'], cwd=ROOT, text=True).strip()})
         traceback.print_exc()
