@@ -391,12 +391,50 @@ def field_paired_conclusion_gate(science_rows,alternatives,reference,config,
             if (variants[name]["sign"]!=original["sign"] or
                 variants[name]["ci_includes_zero"]!=original["ci_includes_zero"] or
                 variants[name]["verdict"]!=original["verdict"])]
-        possible=bool((original["sign"]>0 and bound["BOUND_MIN"]["est"]<=0) or
-                      (original["sign"]<0 and bound["BOUND_MAX"]["est"]>=0) or
-                      (not original["ci_includes_zero"] and
-                        bound["BOUND_MIN"]["lo"]<=0<=bound["BOUND_MAX"]["hi"]) or
-                      (original["verdict"]!=_verdict(h,bound["BOUND_MIN"]["lo"],
-                                                    bound["BOUND_MAX"]["hi"],eff)))
+        # A conservative bound can clear a hypothesis only if *every*
+        # admissible row-wise alternative is guaranteed to retain the sign,
+        # zero-inclusion of the 95% CI, AND the original categorical verdict.
+        # In particular, baseline CI containing zero -> alternative excluding
+        # zero must be treated as a possible change (not silently passed).
+        lower,upper=bound["BOUND_MIN"],bound["BOUND_MAX"]
+        if original["sign"]>0:
+            robust_sign=lower["est"]>0
+        elif original["sign"]<0:
+            robust_sign=upper["est"]<0
+        else:
+            robust_sign=(lower["est"]==0 and upper["est"]==0)
+        if original["ci_includes_zero"]:
+            robust_ci=(upper["lo"]<=0 and lower["hi"]>=0)
+        elif original["lo"]>0:
+            robust_ci=lower["lo"]>0
+        else:
+            robust_ci=upper["hi"]<0
+        v=original["verdict"]
+        if v in ("NOT_TESTABLE","NOT_APPLICABLE"):
+            robust_verdict=True
+        elif h["rule"]=="ratio":
+            robust_verdict=(upper["hi"]<0 if v=="PASS" else
+                            (lower["lo"]>0 if v=="FAIL" else
+                             upper["lo"]<=0 and lower["hi"]>=0))
+        elif h["rule"]=="sided":
+            sg=math.copysign(1,h["predval"])
+            min_or_lo=lower["lo"] if sg>0 else -upper["hi"]
+            max_or_lo=upper["lo"] if sg>0 else -lower["hi"]
+            min_or_hi=lower["hi"] if sg>0 else -upper["lo"]
+            max_or_hi=upper["hi"] if sg>0 else -lower["lo"]
+            threshold=abs(h["predval"])*eff["did_min_fraction_of_prediction"]
+            robust_verdict=(min_or_lo>0 if v=="PASS" else
+                            (max_or_hi<threshold if v=="FAIL" else
+                             max_or_lo<=0 and min_or_hi>=threshold))
+        else:
+            half=math.log(eff["equivalence_factor"])
+            robust_verdict=(lower["lo"]>=-half and upper["hi"]<=half if v=="PASS" else
+                            (lower["lo"]>half or upper["hi"]< -half if v=="FAIL" else
+                             upper["lo"]<=half and lower["hi"]>=-half and
+                             (upper["lo"]< -half or lower["hi"]>half)))
+        possible=not (robust_sign and robust_ci and robust_verdict)
+        if not len(A):
+            possible=False  # exactly E: no alternative selection can differ
         if differing:changed.append(h["id"])
         if possible:potential.append(h["id"])
         all_records[h["family"]].append(dict(
