@@ -191,6 +191,83 @@ def numeric_flags(alt,config):
                     abs(float(alt["delta_logdet_P"]))>=t["logdet_cov_delta_abs_gte"])))
 
 
+def _close(a,b,rtol=1e-7,atol=1e-10):
+    return bool(finite(a,b) and
+                abs(float(a)-float(b))<=atol+rtol*max(abs(float(a)),abs(float(b))))
+
+
+def _stored_full_c10(row,prefix):
+    """Reconstruct complete 4x4 rotated covariance from 10 saved values."""
+    P=np.empty((4,4),float)
+    for i in range(4):
+        for j in range(i,4):
+            value=float(row[f"{prefix}_{i}{j}"])
+            P[i,j]=P[j,i]=value
+    if not np.isfinite(P).all() or not np.all(np.diag(P)>0):
+        raise ValueError("ERR_R5_STORED_C10_NONFINITE_OR_NONPOSITIVE")
+    try:
+        L=np.linalg.cholesky(P)
+    except np.linalg.LinAlgError as exc:
+        raise ValueError("ERR_R5_STORED_C10_NONSPD") from exc
+    eig=float(np.linalg.eigvalsh(P)[0])
+    d=np.sqrt(np.diag(P))
+    condition=float(np.linalg.cond(P/d[:,None]/d[None,:]))
+    logdet=float(2*np.log(np.diag(L)).sum())
+    if not finite(eig,condition,logdet) or eig<=0:
+        raise ValueError("ERR_R5_STORED_C10_BAD_DIAGNOSTICS")
+    return P,L,eig,float(np.log10(condition)),logdet
+
+
+def verify_stored_alternative_full_c10(alt,source):
+    """A18-03: independent aggregator rechecks stored full C10 and all scores.
+
+    The source is the C3 result with the SAME registered 5-tuple; the
+    alternative receipt includes original and alternative radial-tangential
+    4x4 matrices and signed 4D errors. The original error is recorded
+    explicitly; squared differences cannot recover missing error signs.
+    """
+    P0,L0,eg0,cond0,ld0=_stored_full_c10(alt,"R5_C10E")
+    P1,L1,eg1,cond1,ld1=_stored_full_c10(alt,"R5_C10ALT")
+    er0=np.array([alt[f"R5_E_END_ERROR_{k}"] for k in STATES],float)
+    er1=np.array([alt[f"alt_end_error_{k}"] for k in STATES],float)
+    if not finite(er0,er1):
+        raise ValueError("ERR_R5_STORED_C10_BAD_STATE_ERRORS")
+    ne0=float(np.linalg.norm(np.linalg.solve(L0,er0))**2)
+    ne1=float(np.linalg.norm(np.linalg.solve(L1,er1))**2)
+    if not finite(ne0,ne1):
+        raise ValueError("ERR_R5_STORED_C10_BAD_NEES")
+    for i in range(4):
+        for j in range(i,4):
+            if not _close(P0[i,j],source[f"C10rot_{i}{j}"],rtol=1e-9,atol=1e-12):
+                raise ValueError("ERR_R5_BASE_C10_SOURCE_MISMATCH")
+    if (not _close(ne0,source["nees4_C10"]) or
+        not _close(ne0,alt["nees4_E"]) or
+        not _close(ne1,alt["nees4_alt"]) or
+        not _close(ne1-ne0,alt["delta_nees4"])):
+        raise ValueError("ERR_R5_STORED_C10_NEES_MISMATCH")
+    if (not _close(ld1-ld0,alt["delta_logdet_P"]) or
+        not _close(eg1,alt["R5_C10ALT_MIN_EIG"]) or
+        not _close(cond1,alt["R5_C10ALT_LOG10_COND"])):
+        raise ValueError("ERR_R5_STORED_C10_CONDITION_OR_LOGDET_MISMATCH")
+    for i,label in enumerate(STATES):
+        if (not _close(P1[i,i]-P0[i,i],alt[f"delta_P_{label}"]) or
+            not _close(er1[i]**2-er0[i]**2,alt[f"delta_sq_err_{label}"])):
+            raise ValueError("ERR_R5_STORED_C10_DELTA_MISMATCH")
+    flag=alt["covariance_alt_spd"]
+    if not ((isinstance(flag,(bool,np.bool_)) and bool(flag)) or flag in ("True","true",1)):
+        raise ValueError("ERR_R5_STORED_C10_SPD_FLAG_MISMATCH")
+    if not _close(ne0,source["nees4_C10"]):
+        raise ValueError("ERR_R5_STORED_C10_SOURCE_NEES")
+    return dict(full_c10_spd_verified=True,
+                full_c10_alt_min_eigenvalue=eg1,
+                full_c10_alt_log10_condition=cond1,
+                nees4_E_independent=ne0,nees4_alt_independent=ne1,
+                delta_nees4_independent=ne1-ne0,
+                delta_logdet_P_independent=ld1-ld0,
+                upper_triangle_entries_checked=20,
+                no_global_map_claim=True)
+
+
 def _key(row):
     return tuple(str(int(row[k])) if k in ("field","sensor_seed") else str(row[k])
                  for k in ROWKEY)
