@@ -12,7 +12,7 @@ sys.path.insert(0, str(root/'S2'))
 sys.path.insert(0, str(root/'S1'))
 from recovery import Geometry, RecoveryMachine, validate_covariance
 from online import GATE, joseph, predict, weight
-from history import History, validate_candidate
+from history import History, validate_candidate, source_registry
 
 @dataclass
 class Chain:
@@ -23,11 +23,13 @@ class Chain:
     geometry: object
     machine: object
     last_index: int = -1
+    source_pose_ids: tuple = ()
+    last_pose_id: object = None
 
 def initial(packet, controls):
     x = np.r_[controls['x0'],0.]
     P = packet['P0'].copy()
-    return Chain(x,P,x.copy(),P.copy(),Geometry(),RecoveryMachine())
+    return Chain(x,P,x.copy(),P.copy(),Geometry(),RecoveryMachine(),source_pose_ids=source_registry(packet['pose_id']))
 
 def frame(packet, controls, k):
     row = {key:packet[key][k] for key in ('t','z','muBASE','muMB','R','D','pose_id')}
@@ -37,6 +39,10 @@ def frame(packet, controls, k):
 def step(chain, row, k, prevention, historical, core, model, spec):
     if chain.last_index + 1 != k:
         raise ValueError('packet discontinuity')
+    if k<0 or k>=len(chain.source_pose_ids) or row['pose_id']!=chain.source_pose_ids[k]:
+        raise ValueError('source pose ID mismatch')
+    if k and chain.last_pose_id!=chain.source_pose_ids[k-1]:
+        raise ValueError('previous source pose ID mismatch')
     cov = row['R']
     if cov.dtype != np.float64 or np.any(cov[[0,1],[1,0]] != 0):
         raise ValueError('unexpected observation covariance')
@@ -73,6 +79,7 @@ def step(chain, row, k, prevention, historical, core, model, spec):
     chain.x,chain.P,K,S=joseph(xp,pp,H,v,re,gate,applied)
     validate_covariance(chain.P)
     chain.last_index=k
+    chain.last_pose_id=chain.source_pose_ids[k]
     rec=dict(x=chain.x,P=chain.P,prior=xp,Pprior=pp,h=h,H=H,mu=row['muMB'],Rvar=rv,Reff=re,K=K,
              nu=v,S=S,d0=d0,weight=applied,sigma_b=sigma,rho_before=rho,nis=v@np.linalg.solve(S,v),
              mask=gate,conditional_lambda=conditional,marginal_lambda=marginal,
@@ -81,7 +88,7 @@ def step(chain, row, k, prevention, historical, core, model, spec):
     return rec,candidate
 
 def state_record(chain):
-    return dict(x=chain.x.tolist(),P=chain.P.tolist(),shadow_x=chain.shadow_x.tolist(),shadow_P=chain.shadow_P.tolist(),last_index=chain.last_index,
+    return dict(x=chain.x.tolist(),P=chain.P.tolist(),shadow_x=chain.shadow_x.tolist(),shadow_P=chain.shadow_P.tolist(),last_index=chain.last_index,last_pose_id=chain.last_pose_id,
                 machine={k:list(v) if hasattr(v,'popleft') else (None if isinstance(v,float) and not math.isfinite(v) else v) for k,v in vars(chain.machine).items()},
                 geometry=[(t,H.tolist(),R.tolist(),F.tolist(),accepted) for t,H,R,F,accepted in chain.geometry.history])
 
@@ -93,9 +100,12 @@ def replay(packet,controls,arm,core,model,spec,config_hash,*,seconds=60,identity
     if arm not in ('A','B','C_CP','D_CP'): raise ValueError(arm)
     prevention=arm in ('B','D_CP');recovery=arm in ('C_CP','D_CP')
     if initial_state is None:
-        chain=initial(packet,controls);hist=History(seconds,config_hash)
+        chain=initial(packet,controls);hist=History(seconds,config_hash,packet['pose_id'])
         hist.save(-1,float(packet['t'][0])-1.,chain)
-    else: chain,hist=deepcopy(initial_state)
+    else:
+        chain,hist=deepcopy(initial_state)
+        if chain.source_pose_ids!=tuple(packet['pose_id']) or hist.pose_ids!=chain.source_pose_ids:
+            raise ValueError('snapshot source registry mismatch')
     emitted=[];events=[];retro=[];snapshots={};last_attempt=-math.inf
     stop=len(packet['t']) if end is None else end
     rows=[frame(packet,controls,k) for k in range(start,stop)]
@@ -135,20 +145,22 @@ def replay(packet,controls,arm,core,model,spec,config_hash,*,seconds=60,identity
                         path.append((i,new['x'].copy(),new['P'].copy()))
                         if t>=rebuilt.next_checkpoint and i!=k:
                             from history import Checkpoint
-                            rebuilt.checkpoints.append(Checkpoint(i,t,config_hash,deepcopy(proposed)))
+                            rebuilt.checkpoints.append(Checkpoint(i,t,config_hash,deepcopy(proposed),proposed.last_pose_id))
                             rebuilt.next_checkpoint=t+1.-1e-10
                     cold_error=max(float(np.max(np.abs(cx-proposed.x))),float(np.max(np.abs(cP-proposed.P))))
                     if ci!=proposed.last_index or not np.allclose(cx,proposed.x,atol=1e-10,rtol=1e-10) or not np.allclose(cP,proposed.P,atol=1e-10,rtol=1e-10):raise ValueError('independent cold mismatch')
                     for a,b in zip(path,cold_path):
                         if a[0]!=b[0] or not np.allclose(a[1],b[1],atol=1e-10,rtol=1e-10) or not np.allclose(a[2],b[2],atol=1e-10,rtol=1e-10):raise ValueError('cold path mismatch')
-                    disposition=validate_candidate(chain.x,proposed.x,proposed.P,proposed.last_index,k)
+                    disposition=validate_candidate(chain.x,proposed.x,proposed.P,proposed.last_index,k,end_pose_id=proposed.last_pose_id,current_pose_id=row['pose_id'])
                     if identity and (not np.allclose(chain.x,proposed.x,atol=1e-10,rtol=1e-10) or not np.allclose(chain.P,proposed.P,atol=1e-10,rtol=1e-10)):raise ValueError('identity mismatch')
                     if disposition=='ACCEPT':
                         proposed.machine.first=first;proposed.machine.commit(row['t']);chain,hist,rec=proposed,rebuilt,new
                         retro.append((k,path))
                 events.append(dict(index=k,first=first,checkpoint=selected[0].last_index if selected else None,
                                    checkpoint_state=cp_record,historical_indices=changed,disposition=disposition,
-                                   cold_max_abs=cold_error,end_index=k,identity=identity))
+                                   cold_max_abs=cold_error,end_index=k,end_pose_id=proposed.last_pose_id if selected else None,current_pose_id=row['pose_id'].item() if isinstance(row['pose_id'],np.generic) else row['pose_id'],
+                                   checkpoint_pose_id=selected[0].last_pose_id if selected else None,
+                                   historical_pose_ids=[chain.source_pose_ids[i] for i in changed],identity=identity))
             else:chain.machine.commit(row['t'])
         hist.save(k,row['t'],chain)
         finish=time.perf_counter_ns();memory=psutil.Process().memory_info();peak=max(peak,getattr(memory,'peak_wset',memory.rss))

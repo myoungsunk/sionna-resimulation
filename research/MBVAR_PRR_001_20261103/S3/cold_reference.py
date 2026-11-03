@@ -4,6 +4,8 @@ import numpy as np
 
 def cold_replay(checkpoint,suffix,prevention,episode_first,identity,core,model,spec):
  x=checkpoint.x.copy();P=checkpoint.P.copy();sx=checkpoint.shadow_x.copy();sp=checkpoint.shadow_P.copy();last=checkpoint.last_index
+ expected=None if last==-1 else checkpoint.source_pose_ids[last]
+ if checkpoint.last_pose_id!=expected:raise ValueError('cold checkpoint source ID mismatch')
  records=[]
  def predict(a,C,row,index):
   if index==0:return a,C
@@ -16,6 +18,7 @@ def cold_replay(checkpoint,suffix,prevention,episode_first,identity,core,model,s
   N=A@C@A.T+gain@R@gain.T;return y,(N+N.T)/2
  for index,t,row in suffix:
   if index!=last+1:raise ValueError('cold discontinuity')
+  if index<0 or index>=len(checkpoint.source_pose_ids) or row['pose_id']!=checkpoint.source_pose_ids[index]:raise ValueError('cold source pose ID mismatch')
   sx,sp=predict(sx,sp,row,index);sh,sH=model.batch(sx[None],spec);v0=row['z']-sh[0]-row['muBASE'];H0=sH[0]
   allowed=bool(v0@np.linalg.solve(H0@sp@H0.T+row['R'],v0)<=9.210340371976184)
   sx,sp=update(sx,sp,H0,v0,row['R'],allowed)

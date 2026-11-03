@@ -45,7 +45,7 @@ def execute(phase,output):
   # The retrospective curve is a separate output with its creation time retained.
   values=[(emitted,i,x,P) for emitted,path in retro for i,x,P in path]
   if values:
-   np.savez_compressed(output/(name+'_RETROSPECTIVE.npz'),created_index=np.array([v[0] for v in values]),sample_index=np.array([v[1] for v in values]),x=np.array([v[2] for v in values]),P=np.array([v[3] for v in values]))
+   np.savez_compressed(output/(name+'_RETROSPECTIVE.npz'),created_index=np.array([v[0] for v in values]),sample_index=np.array([v[1] for v in values]),pose_id=np.array([pk['pose_id'][v[1]] for v in values]),x=np.array([v[2] for v in values]),P=np.array([v[3] for v in values]))
   if identity['kind']!='M':
    scores.extend(dict(**identity,**row) for row in score(pk,tr,truth,identity['channel'],eps))
    for event in ev:
@@ -84,7 +84,7 @@ def execute(phase,output):
          ident=dict(route=route,bias=bias,channel=channel,seed=0,arm=arm,kind='length',variant=f'history{seconds}');record(ident,tr,ev,retro,timing,pk,truth,eps)
        for number,(start,state) in enumerate(selected.items()):
         end=snapshot_end_index(pk['t'],start)
-        write_json(output/f'{key}_M{number}_INITIAL.json',dict(start_index=start,chain=state_record(state[0]),history_last_index=state[1].last_index,history_seconds=state[1].seconds,checkpoints=[dict(last_index=cp.last_index,timestamp=cp.timestamp,config_hash=cp.config_hash,chain=state_record(cp.filter_state)) for cp in state[1].checkpoints]))
+        write_json(output/f'{key}_M{number}_INITIAL.json',dict(start_index=start,chain=state_record(state[0]),history_last_index=state[1].last_index,history_seconds=state[1].seconds,checkpoints=[dict(last_index=cp.last_index,last_pose_id=cp.last_pose_id,timestamp=cp.timestamp,config_hash=cp.config_hash,chain=state_record(cp.filter_state)) for cp in state[1].checkpoints]))
         for arm in ('A','B','C_CP','D_CP'):
          tr,ev,retro,_,timing=replay(pk,ct,arm,p.b.core,p.b.model,p.spec,config,start=start,end=end,initial_state=state,common_schedule=baseline['candidate'],common_first=baseline['episode_first'])
          ident=dict(route=route,bias=bias,channel=channel,seed=0,arm=arm,kind='M',variant=f'M{number}')
