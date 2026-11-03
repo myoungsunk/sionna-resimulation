@@ -81,7 +81,9 @@ jobs:
           assert v['pose_ids']==[75,305,610,809]
           assert v['verdict']=='NUMERIC_PARITY_PASS'
           assert i['status']=='INDEPENDENT_V2_NUMERIC_PARITY_PASS'
-          assert i['metrics']['n']==4\n          assert i['metrics']['all_tau_match']\n          assert i['metrics']['largest_path_reconstruction_absolute_error']<1e-10
+          assert i['metrics']['n']==4
+          assert i['metrics']['all_tau_match']
+          assert i['metrics']['largest_path_reconstruction_absolute_error']<1e-10
           assert i['metrics']['complex_rms']<=1e-4
           assert all(x['native_tau_equals_source_drjit_tau_on_all_bins_DIAGNOSTIC'] for x in v['records'])
           assert abs(v['counts']['bridge_rms']-i['metrics']['complex_rms'])<=1e-11
