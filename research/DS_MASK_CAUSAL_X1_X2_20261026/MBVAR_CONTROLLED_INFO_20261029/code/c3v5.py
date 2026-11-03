@@ -655,8 +655,97 @@ def cmd_aggregate(shards, out):
         mode["n_fields_with_alternative"] = 0
         mode["paired_sensitivity_status"] = "NO_RECORDED_AMBIGUOUS_MODE"
     # Only registered near-cost competitor rows may appear in the sensitivity ledger.
-    if len(SENS) != int(C.n_alt_ambiguous.sum()) if len(C) else len(SENS) != 0:
+    if (len(SENS) != int(C.n_alt_ambiguous.sum())) if len(C) else (len(SENS) != 0):
         raise SystemExit("ERR_A010_MODE_SENSITIVITY_COUNT")
+    # R5-01. Verify a complete ten-terminal receipt per original C3 row,
+    # including uncapped polish, common-probe descent and exact start set.
+    r5_policy,r5_policy_sha=R5.spec_with_sha()
+    cert_paths=sorted(Path(shards).glob("**/C3V5_R5_TERMINAL_CERT_*.csv"))
+    CERT=pd.concat([pd.read_csv(p) for p in cert_paths],ignore_index=True) if cert_paths else pd.DataFrame()
+    cert_state=dict(status="UNRESOLVED_PRECISION",pass_=False,n_rows=len(C),
+                    n_terminal_records=len(CERT),n_unresolved=len(C),
+                    reason="MISSING_CERTIFIED_TERMINAL_RECEIPTS",
+                    policy_sha256=r5_policy_sha,science_release_allowed=False)
+    if len(CERT):
+        if CERT.duplicated(list(AV.ROW_KEY_FIELDS)+["start"]).any():
+            raise SystemExit("ERR_R5_DUPLICATE_TERMINAL_START")
+        groups={tuple(k):v.to_dict("records") for k,v in CERT.groupby(list(AV.ROW_KEY_FIELDS))}
+        expected_keys={tuple(r[k] for k in AV.ROW_KEY_FIELDS) for _,r in C.iterrows()}
+        if set(groups)!=expected_keys:
+            raise SystemExit("ERR_R5_TERMINAL_ROWKEY_MISMATCH")
+        unresolved=[];summary=[]
+        for _,r in C.iterrows():
+            key=tuple(r[k] for k in AV.ROW_KEY_FIELDS)
+            verdict=R5.validate_terminals(groups[key],r5_policy)
+            if verdict["status"]!=str(r["R5_PRECISION_STATUS"]) or
+               verdict["pass_"]!=bool(r["R5_PRECISION_PASS"]):
+                raise SystemExit("ERR_R5_TERMINAL_ROW_VERDICT_MISMATCH")
+            if not verdict["pass_"]:
+                unresolved.append(dict(key=list(key),errors=verdict["failure_reasons"]))
+            summary.append(dict(zip(AV.ROW_KEY_FIELDS,key),
+                                 R5_PRECISION_STATUS=verdict["status"],
+                                 R5_TERMINAL_COUNT=verdict["n_solutions"],
+                                 R5_TERMINAL_FAIL_COUNT=verdict["n_failures"]))
+        cert_state=dict(status=("PASS" if not unresolved else "UNRESOLVED_PRECISION"),
+                        pass_=not unresolved,n_rows=len(C),
+                        n_terminal_records=len(CERT),n_unresolved=len(unresolved),
+                        unresolved_keys=unresolved[:30],
+                        policy_sha256=r5_policy_sha,
+                        science_release_allowed=False)
+        pd.DataFrame(summary).to_csv(out/"A010_R5_TERMINAL_PRECISION_BY_ROW.csv",
+                                      index=False)
+        CERT.to_csv(out/"A010_R5_TERMINAL_PRECISION_DETAILS.csv",index=False)
+    # R5-02. Numeric flags are prospective; they must not delete or relabel
+    # ambiguous starts in the main S1V5 H/CAL data or science analysis.
+    if len(SENS):
+        if SENS.duplicated(list(AV.ROW_KEY_FIELDS)+["alt_start"]).any():
+            raise SystemExit("ERR_R5_DUPLICATE_SENSITIVITY_START")
+        flags=[R5.numeric_flags(r,r5_policy) for r in SENS.to_dict("records")]
+        SENS["R5_MATERIAL_NUMERIC_SENSITIVITY"]=[f["material_numeric_sensitivity"] for f in flags]
+        SENS["R5_MAX_NORMALIZED_SQERR_DELTA"]=[f["max_scaled_squared_error_delta"] for f in flags]
+        if any(not f["numeric_finite"] for f in flags):
+            cert_state["pass_"]=False;cert_state["status"]="UNRESOLVED_PRECISION"
+            cert_state["reason"]="NONFINITE_SENSITIVITY_EFFECT"
+        SENS.to_csv(out/"A010_R5_FIELD_PAIRED_ALTERNATIVE_DETAILS.csv",index=False)
+    paired_science=dict(status="NOT_EVALUATED_INCOMPLETE",
+                        reason="NO_FULL_REGISTERED_FIELDS_OR_PRECISION_CERTIFICATE",
+                        n_registered_rows=len(C),n_expected_rows=n_exp,
+                        science_release_allowed=False)
+    if allrows and cert_state["pass_"]:
+        # Same original S1V5 field-level data used for all H/CAL effects.
+        # None of the outcomes of DEV3 or HOLDOUT2 are opened pre-freeze.
+        raw_science=pd.read_csv(src/f"S1V5_RESULTS_{SPLIT}.csv")
+        science=T.B3.with_P(raw_science,AJ.PRIMARY)
+        s0root=Path(os.environ["S0V2_RESULTS_DIR"])
+        pred=pd.read_csv(s0root/"S0V2_PREDICTIONS.csv").set_index(["role","cell"])
+        did=pd.read_csv(s0root/"S0V2_DID.csv")
+        revisit=pd.read_csv(s0root/"S0V2_REVISIT.csv").set_index(["role","cell","arm"])
+        sep=pd.read_csv(s0root/"S0V2_SEP.csv")
+        paired_science=R5.field_paired_conclusion_gate(science,SENS,
+                            (pred,did,revisit,sep,lk["resolved"]["EFFECT_SIZE_RULES"]),
+                            r5_policy)
+    (out/"A010_R5_COMMON_PRECISION.json").write_text(json.dumps(cert_state,indent=1))
+    (out/"A010_R5_FIELD_PAIRED_CONCLUSION_STABILITY.json").write_text(
+        json.dumps(paired_science,indent=1,default=float))
+    mode["R5_PRECISION"]=cert_state
+    mode["R5_SCIENTIFIC_CONCLUSION_SENSITIVITY"]=dict(
+        status=paired_science["status"],
+        alternative_changes_conclusion=paired_science.get("alternative_changes_conclusion"),
+        potential_changed_hypotheses=paired_science.get("possible_changed_hypotheses"),
+        science_release_allowed=False)
+    if cert_state["status"]!="PASS":
+        mode["legacy_pre_r5_mode_status"]=mode["status"]
+        mode["status"]="UNRESOLVED_PRECISION"
+    # Even when no ambiguity was found on a finite nine-start grid,
+    # global uniqueness remains unproved.
+    mode["unique_map_claim_allowed"]=False
+    crit["R5_PRECISION_SCOPE_REPORTED"]=dict(pass_=cert_state["pass_"],
+                       status=cert_state["status"],
+                       note="scientific scope gate; not part of G5_NUMERIC_REPLAY")
+    crit["R5_ALTERNATIVE_CONCLUSION_SCOPE_REPORTED"]=dict(
+                       pass_=paired_science["status"]=="STABLE_ON_GRID_AND_CONSERVATIVE_BOUNDS",
+                       status=paired_science["status"],
+                       note="no auto science release; prospective field bootstrap")
     C[["field", "role", "cell", "sensor_seed", "arm", "n_alt_ambiguous",
        "E_vs_best_dref", "alt_ambiguous_starts"]].to_csv(out / "A010_MODE_IDENTIFIABILITY.csv", index=False) if len(C) else None
     numeric = AV.gate_verdict(crit)
