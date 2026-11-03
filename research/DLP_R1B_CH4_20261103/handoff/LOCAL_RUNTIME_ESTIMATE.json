@@ -1,0 +1,78 @@
+{
+  "schema": "DLP_R1B_LOCAL_RUN_001_TIME_ESTIMATE_V1",
+  "created_kst": "2026-11-03",
+  "status": "ESTIMATE_ONLY_NO_LOCAL_EXECUTION",
+  "population": {
+    "n_pose": 917,
+    "bins_per_pose": 257,
+    "paired_native_full_los_calls_per_pose": 514,
+    "total_native_solver_calls": 471338
+  },
+  "observations": [
+    {
+      "source": "P0 original eight canary",
+      "source_commit": "24d657af7773d1c0347e843ece6b49e9c2d55ac2",
+      "cold_pose_s": 246.0802341360013,
+      "warm_poses_s": [
+        36.42006644299909,
+        35.80200297900046,
+        36.42693746000077,
+        40.241331175000596,
+        38.09757225000067,
+        38.7619924720002,
+        37.348280497000815
+      ],
+      "warm_mean_s": 37.58545475371466,
+      "estimated_917_serial_h": 9.63,
+      "source_file": "research/DLP_R1B_CH4_20261103/P0_COST_MEASUREMENT.json"
+    },
+    {
+      "source": "2026-11-03 four prospective Native poses",
+      "source_commit": "f08a376a01ff2be1cd749a6a0d691b2414b2a65f",
+      "source_action_run": 41599666331,
+      "cold_pose_s_approx": 559.6,
+      "warm_pose_bin256_elapsed_s": [
+        73.702,
+        73.933,
+        73.526
+      ],
+      "warm_mean_s_approx": 73.72033333333333,
+      "estimated_917_serial_h": 18.91
+    }
+  ],
+  "ideal_parallel_excluding_overheads_h": {
+    "workers_1": [
+      9.6,
+      18.9
+    ],
+    "workers_4": [
+      2.4,
+      4.7
+    ],
+    "workers_8": [
+      1.2,
+      2.35
+    ],
+    "workers_12": [
+      0.8,
+      1.57
+    ]
+  },
+  "local_snowball_actual_runtime": "NOT_MEASURED",
+  "threshold_decision": ">2H_MOVE_TO_LOCAL_SERVER",
+  "pilot_worker_counts": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "conditions": [
+    "original V2 HOLD_RF_PARITY immutable",
+    "numeric V2 precision representation PASS 12 pose != science release",
+    "new science contract amendment and independent P0 auditor required before 917",
+    "r1b_acquire.py must be revised; existing PASS-only and 8+909 locks prohibit production",
+    "existing raw 12+905 reuse only if verified/authorized; else 0+917",
+    "full 257-bin independent Native LoS and Full mandatory"
+  ],
+  "project_status": "HANDOFF_POSTED_NOT_RUNNING"
+}
