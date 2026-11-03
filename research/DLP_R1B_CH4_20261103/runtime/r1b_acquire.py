@@ -32,6 +32,8 @@ ROOT = native.ROOT
 N_POSES = 917
 PORT_LAYOUT = "[pose,frequency,rx(+45,-45),tx(+45,-45)]"
 CREATED_OUTPUT = None
+LEVELS_32 = (1, 2, 4, 8, 16, 32)
+RESOURCE_LIMITS_32 = dict(cpus=list(range(32)), memory_max_bytes=144 * 1024**3)
 
 
 def need(value, reason):
@@ -159,6 +161,8 @@ def load_local_locks(args, contract, rows):
     contract_sha, canary_sha = native.sha(args.contract), native.sha(args.canary_qa)
     need(plan.get('status') == 'FROZEN' and plan.get('local_amendment_id') == 'LOCAL-P1-V1',
          'LOCAL_PLAN_NOT_FROZEN')
+    if local.get('resource_amendment_id'):
+        validate_benchmark_source(plan, contract)
     for key, expected in [('contract_sha256', contract_sha), ('canary_qa_sha256', canary_sha),
                           ('runner_sha256', native.sha(__file__))]:
         need(plan.get(key) == expected, 'LOCAL_PLAN_BINDING_MISMATCH:' + key)
@@ -190,6 +194,9 @@ def load_local_locks(args, contract, rows):
                           ('contract_sha256', contract_sha), ('canary_qa_sha256', canary_sha)]:
         need(audit.get(key) == expected, 'PRODUCTION_AUDIT_BINDING_MISMATCH:' + key)
     shards = plan['shards']
+    if local.get('resource_amendment_id'):
+        need(len(shards) >= 32 and plan.get('resource_limits') == RESOURCE_LIMITS_32,
+             'RESOURCE_PLAN_NEEDS_AT_LEAST_32_SHARDS')
     need([s['shard_index'] for s in shards] == list(range(len(shards))) and shards,
          'SHARD_INDICES_NOT_CANONICAL')
     selected = [pose for s in shards for pose in s['pose_ids']]
@@ -223,6 +230,14 @@ def validate_release(args, plan):
     need(release.get('production_plan_sha256') == native.sha(args.production_plan) and
          release.get('production_audit_sha256') == plan['production_audit']['sha256'],
          'PRODUCTION_RELEASE_BINDING_MISMATCH')
+    extended = plan.get('resource_amendment_id') == 'LOCAL-P1-V1-32'
+    source_sha = plan['contract_sha256']
+    if extended:
+        validate_benchmark_source(plan, native.readj(args.contract))
+        source_sha = plan['benchmark_source_contract']['sha256']
+        need(release.get('production_contract_sha256') == plan['contract_sha256'],
+             'PRODUCTION_RELEASE_CONTRACT_MISMATCH')
+        need(current_resource_limits() == RESOURCE_LIMITS_32, 'PRODUCTION_RESOURCE_LIMITS_MISMATCH')
     evidence = {}
     for name in ('environment', 'benchmark'):
         spec = release[name]
@@ -230,19 +245,23 @@ def validate_release(args, plan):
         need(native.sha(path) == spec['sha256'], 'PRODUCTION_RELEASE_EVIDENCE_CHANGED:' + name)
         evidence[name] = native.readj(path)
         need(evidence[name].get('status') == 'PASS', 'PRODUCTION_RELEASE_EVIDENCE_NOT_PASS:' + name)
-        need(evidence[name].get('contract_sha256') == plan['contract_sha256'] and
+        need(evidence[name].get('contract_sha256') == source_sha and
              evidence[name].get('execution_host') == socket.gethostname(),
              'PRODUCTION_RELEASE_EVIDENCE_BINDING_MISMATCH:' + name)
+        if extended:
+            need(evidence[name].get('resource_limits') == RESOURCE_LIMITS_32,
+                 'BENCHMARK_RESOURCE_LIMITS_MISMATCH:' + name)
     need(evidence['environment'].get('actual_smoke_test') is True,
          'NATIVE_ENVIRONMENT_SMOKE_TEST_REQUIRED')
     benchmark = evidence['benchmark']
+    levels = LEVELS_32 if extended else (1, 2, 4, 8)
     need(benchmark.get('environment_sha256') == release['environment']['sha256'] and
-         benchmark.get('chosen_worker_count') in (1, 2, 4, 8) and
+         benchmark.get('chosen_worker_count') in levels and
          benchmark['chosen_worker_count'] <= len(plan['shards']),
          'BENCHMARK_ENVIRONMENT_OR_WORKER_COUNT_MISMATCH')
     measurements = benchmark['measurements']
-    need([r.get('worker_count') for r in measurements] == [1, 2, 4, 8],
-         'EXACT_1_2_4_8_NATIVE_BENCHMARK_REQUIRED')
+    need([r.get('worker_count') for r in measurements] == list(levels),
+         'EXACT_FROZEN_NATIVE_BENCHMARK_LEVELS_REQUIRED')
     for row in measurements:
         count, wall = row.get('completed_pose_count'), row.get('wall_elapsed_s')
         need(type(count) is int and count >= row['worker_count'] and row.get('actual_native_solver') is True,
@@ -252,7 +271,56 @@ def validate_release(args, plan):
              'BENCHMARK_MEASUREMENTS_INVALID')
         need(np.isclose(row['throughput_pose_per_minute'], 60*count/wall, rtol=1e-6, atol=0),
              'BENCHMARK_THROUGHPUT_INCONSISTENT')
+        if extended:
+            n = row['worker_count']
+            expected = [((2*(n-1)+2*w+j)*137+75) % N_POSES for w in range(n) for j in (0, 1)]
+            need(count == 2*n and row.get('pose_ids') == expected and
+                 row.get('scientific_checks_passed') is True,
+                 'BENCHMARK_FROZEN_POSES_OR_SCIENTIFIC_GATES_FAILED')
+    if extended:
+        need(benchmark.get('production_contract_sha256') == plan['contract_sha256'],
+             'BENCHMARK_PRODUCTION_CONTRACT_BINDING_MISMATCH')
+        winner = max(measurements, key=lambda r: (r['throughput_pose_per_minute'], -r['worker_count']))
+        need(benchmark.get('selection_rule') == 'MAX_MEASURED_AGGREGATE_THROUGHPUT_TIE_FEWER_WORKERS' and
+             benchmark['chosen_worker_count'] == winner['worker_count'], 'BENCHMARK_WINNER_SELECTION_MISMATCH')
     return benchmark['chosen_worker_count']
+
+
+def measurement_fingerprint(contract):
+    fields = {key: contract[key] for key in ('geometry', 'population', 'inputs', 'rf', 'runtime',
+                                            'tolerances', 'replay', 'code_files')}
+    fields['precision_adapter'] = contract['local_production']['precision_adapter']
+    fields['local_required_python'] = contract['local_production']['local_required_python']
+    fields['acquisition_policy'] = contract['local_production']['acquisition_policy']
+    encoded = json.dumps(fields, sort_keys=True, separators=(',', ':'), allow_nan=False).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def validate_benchmark_source(plan, contract):
+    local = contract['local_production']
+    need(local.get('resource_amendment_id') == plan.get('resource_amendment_id') == 'LOCAL-P1-V1-32' and
+         local.get('benchmark_levels') == list(LEVELS_32) and local.get('resource_limits') == RESOURCE_LIMITS_32,
+         'UNKNOWN_OR_UNFROZEN_RESOURCE_AMENDMENT')
+    source_spec = local['benchmark_source_contract']
+    need(source_spec == plan.get('benchmark_source_contract'), 'BENCHMARK_SOURCE_PLAN_BINDING_MISMATCH')
+    source_path = native.resolve(source_spec['path'])
+    need(native.sha(source_path) == source_spec['sha256'], 'BENCHMARK_SOURCE_CONTRACT_CHANGED')
+    source = native.readj(source_path)
+    fingerprint = measurement_fingerprint(source)
+    need(measurement_fingerprint(contract) == fingerprint == local.get('benchmark_measurement_fingerprint') ==
+         plan.get('benchmark_measurement_fingerprint'), 'BENCHMARK_PHYSICAL_CONTRACT_MISMATCH')
+    native_specs = [item for item in source['code_files'] if item['path'].endswith('/r1b_native.py')]
+    need(len(native_specs) == 1 and native.sha(native.resolve(native_specs[0]['path'])) == native_specs[0]['sha256'],
+         'BENCHMARK_NATIVE_BYTES_CHANGED')
+
+
+def current_resource_limits():
+    cpus = sorted(os.sched_getaffinity(0))
+    candidates = [Path('/sys/fs/cgroup/memory.max'), Path('/sys/fs/cgroup/memory/memory.limit_in_bytes')]
+    values = [int(path.read_text().strip()) for path in candidates
+              if path.exists() and path.read_text().strip().isdigit()]
+    need(bool(values), 'FINITE_CGROUP_MEMORY_LIMIT_REQUIRED')
+    return dict(cpus=cpus, memory_max_bytes=min(values))
 
 
 def claim_worker_slot(plan, worker_count):
