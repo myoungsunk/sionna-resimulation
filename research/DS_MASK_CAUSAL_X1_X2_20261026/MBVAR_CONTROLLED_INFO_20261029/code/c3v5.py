@@ -362,6 +362,19 @@ def cmd_run(field, group, out):
                                   covariance_alt_spd=bool(eigP > 0), nees4_E=float(r["nees4_C10"]),
                                   nees4_alt=neA, delta_nees4=float(neA-r["nees4_C10"]),
                                   delta_logdet_P=float(detA[1]-detE[1]) if detE[0]>0 and detA[0]>0 else float("nan"))
+                        # R5 full matrix provenance: all ten unique entries of
+                        # BOTH the operational E' and the alternative C10.
+                        # Diagonal-only comparisons cannot validate NEES or
+                        # correlated-state covariance claims.
+                        sr.update({f"R5_C10E_{i}{j}":float(Pe[i,j])
+                                   for i in range(4) for j in range(i,4)})
+                        sr.update({f"R5_C10ALT_{i}{j}":float(PP_r[i,j])
+                                   for i in range(4) for j in range(i,4)})
+                        sr["R5_C10ALT_MIN_EIG"]=eigP
+                        sr["R5_C10ALT_LOG10_COND"]=(float(np.log10(np.linalg.cond(
+                            PP_r/np.sqrt(np.diag(PP_r))[:,None]/
+                            np.sqrt(np.diag(PP_r))[None,:])))
+                            if eigP>0 else float("inf"))
                         for j, label in enumerate(T.STATES):
                             sr[f"delta_sq_err_{label}"] = float(erA[j]**2-erE[j]**2)
                             sr[f"delta_P_{label}"] = float(PP_r[j,j]-Pe[j,j])
