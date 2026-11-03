@@ -8,6 +8,7 @@ The historical solver/antenna/SourceFFD files are imported without modifications
 from __future__ import annotations
 import argparse, csv, datetime, hashlib, importlib.metadata, json, os, pathlib
 import platform, resource, subprocess, sys, time, traceback
+import importlib.util
 import numpy as np
 
 ROOT = pathlib.Path(__file__).resolve().parents[3]
@@ -36,6 +37,21 @@ def require(ok, message):
 def resolve(p):
     p = pathlib.Path(p)
     return p if p.is_absolute() else ROOT / p
+
+
+def precision_reference(c, h, freq, xyz, anchor):
+    """Apply the frozen source-only V2 representation, without Native inputs."""
+    local = c.get('local_production')
+    if local is None:
+        return h
+    require(local.get('amendment_id') == 'LOCAL-P1-V1', 'UNKNOWN_LOCAL_AMENDMENT')
+    spec = local['precision_adapter']
+    path = resolve(spec['path'])
+    require(sha(path) == spec['sha256'], 'PRECISION_ADAPTER_HASH_MISMATCH')
+    module_spec = importlib.util.spec_from_file_location('r1b_frozen_precision_v2', path)
+    adapter = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(adapter)
+    return adapter.render(h, freq, xyz, anchor)
 
 def load_contract(path):
     c = readj(path)
@@ -78,6 +94,9 @@ def observer(h):
             'strong_port': port, 'power_plus': float(p[0]), 'power_minus': float(p[1])}, cir
 
 def initialize(c, banks_dir, out):
+    if c.get('local_production') is not None:
+        require(c['local_production'].get('local_required_python') == '3.11.17' and
+                platform.python_version() == '3.11.17', 'LOCAL_PYTHON_VERSION_NOT_FROZEN')
     SM, SI = source_modules()
     dictionaries = []
     for spec in c['inputs']['banks']:
@@ -236,6 +255,20 @@ def acquire_pose(c, row, engine, out):
         payload[mode + '_objects'] = np.concatenate(d['objects'], axis=-1)
         payload[mode + '_path_counts'] = np.asarray(d['counts'], dtype=np.int32)
         metrics[mode] = {**ob, 'observer_recompute_abs': delta, 'min_paths': int(min(d['counts'])), 'max_paths': int(max(d['counts']))}
+    if c.get('local_production') is not None:
+        matched = precision_reference(c, ref, freq, xyz, setup.anchor_position)
+        matched_h = np.zeros((N, 2, 2), dtype=np.complex128)
+        matched_h[:, :, 0] = matched
+        matched_obs, _ = observer(matched_h)
+        payload['source_precision_matched_h'] = matched
+        metrics['original_native_source_complex_relative'] = float(np.linalg.norm(data['los']['H'][:, :, 0] - ref) / np.linalg.norm(data['los']['H'][:, :, 0]))
+        metrics['original_source_model_s'] = float(pred[1])
+        ref = matched
+        pred = pred.copy()
+        pred[1] = matched_obs['s']
+        metrics['source_detector_range_m'] = matched_obs['r_m']
+        metrics['source_tap'] = matched_obs['tap']
+        metrics['source_strong_port'] = matched_obs['strong_port']
     metrics['native_source_complex_relative'] = float(np.linalg.norm(data['los']['H'][:, :, 0] - ref) / np.linalg.norm(data['los']['H'][:, :, 0]))
     metrics['native_source_s_abs'] = abs(metrics['los']['s'] - float(pred[1]))
     metrics['native_source_tap_mismatch'] = int(metrics['los']['tap'] != metrics['source_tap'])
@@ -278,6 +311,7 @@ def preserve_partial(out):
 
 def run_canary(args):
     contract, rows = load_contract(args.contract)
+    require(contract.get('local_production') is None, 'LOCAL_CONTRACT_REQUIRES_GUARDED_PRODUCTION_DRIVER')
     out = pathlib.Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
     ids = contract['canary']['pose_ids']
@@ -339,6 +373,13 @@ def main():
     ap.add_argument('--banks', required=True)
     ap.add_argument('--out', required=True)
     args = ap.parse_args()
+    # Reject the amended contract before the legacy error writer can touch output.
+    try:
+        require(readj(args.contract).get('local_production') is None,
+                'LOCAL_CONTRACT_REQUIRES_GUARDED_PRODUCTION_DRIVER')
+    except Exception as exc:
+        print('R1B_CANARY_PREFLIGHT_HOLD', repr(exc), file=sys.stderr)
+        return 2
     try:
         return run_canary(args)
     except Exception as exc:

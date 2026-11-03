@@ -19,6 +19,10 @@ import subprocess
 import sys
 import time
 import traceback
+import socket
+import os
+import secrets
+import signal
 
 import numpy as np
 
@@ -67,6 +71,8 @@ def lineage(args, plan, audit):
 
 def load_locks(args):
     contract, rows = native.load_contract(args.contract)
+    if contract.get('local_production') is not None:
+        return load_local_locks(args, contract, rows)
     need("P1" in contract.get("authorized_stages", []), "NATIVE_PRODUCTION_PHASE_NOT_AUTHORIZED")
     canary = native.readj(args.canary_qa)
     contract_sha, canary_sha = native.sha(args.contract), native.sha(args.canary_qa)
@@ -145,6 +151,241 @@ def load_locks(args):
     return contract, rows, canary, plan, audit
 
 
+def load_local_locks(args, contract, rows):
+    local = contract['local_production']
+    need(local.get('amendment_id') == 'LOCAL-P1-V1' and
+         local.get('acquisition_policy') == 'FRESH_917', 'LOCAL_POLICY_NOT_FROZEN')
+    plan = native.readj(args.production_plan)
+    contract_sha, canary_sha = native.sha(args.contract), native.sha(args.canary_qa)
+    need(plan.get('status') == 'FROZEN' and plan.get('local_amendment_id') == 'LOCAL-P1-V1',
+         'LOCAL_PLAN_NOT_FROZEN')
+    for key, expected in [('contract_sha256', contract_sha), ('canary_qa_sha256', canary_sha),
+                          ('runner_sha256', native.sha(__file__))]:
+        need(plan.get(key) == expected, 'LOCAL_PLAN_BINDING_MISMATCH:' + key)
+    spec_sha = canonical_spec_sha(plan)
+    need(plan.get('production_spec_sha256') == spec_sha, 'PRODUCTION_SPEC_HASH_MISMATCH')
+    parity = plan['parity_receipt']
+    parity_path = native.resolve(parity['path'])
+    need(native.sha(parity_path) == parity['sha256'], 'V2_PARITY_RECEIPT_CHANGED')
+    receipt = native.readj(parity_path)
+    need(receipt.get('verdict') == 'NUMERIC_PARITY_PASS' and
+         bool(receipt.get('checks')) and all(value is True for value in receipt['checks'].values()),
+         'V2_NUMERIC_PARITY_NOT_PASS')
+    need(receipt.get('original_canary_qa_sha256') == canary_sha and
+         receipt.get('contract_sha256') == contract_sha, 'V2_PARITY_BINDING_MISMATCH')
+    adapter = local['precision_adapter']
+    need(native.sha(native.resolve(adapter['path'])) == adapter['sha256'], 'PRECISION_ADAPTER_HASH_MISMATCH')
+    need(receipt.get('precision_adapter_sha256') == adapter['sha256'] and
+         receipt.get('pose_ids') == [0, 150, 221, 440, 458, 476, 696, 916, 75, 305, 610, 809],
+         'V2_PARITY_ADAPTER_OR_POSE_BINDING_MISMATCH')
+    audit_spec = plan['production_audit']
+    audit_path = native.resolve(audit_spec['path'])
+    need(native.sha(audit_path) == audit_spec['sha256'], 'PRODUCTION_AUDIT_BYTES_CHANGED')
+    audit = native.readj(audit_path)
+    need(audit.get('status') == 'PASS' and audit.get('separate_agent') is True and
+         audit.get('role') in ('INDEPENDENT_AUDITOR', 'INDEPENDENT_COMPUTATIONAL_AUDITOR') and
+         bool(audit.get('auditor_identity')) and audit['auditor_identity'] != plan['implementer_identity'],
+         'DISTINCT_COMPUTATIONAL_PRODUCTION_AUDIT_REQUIRED')
+    for key, expected in [('production_spec_sha256', spec_sha), ('runner_sha256', native.sha(__file__)),
+                          ('contract_sha256', contract_sha), ('canary_qa_sha256', canary_sha)]:
+        need(audit.get(key) == expected, 'PRODUCTION_AUDIT_BINDING_MISMATCH:' + key)
+    shards = plan['shards']
+    need([s['shard_index'] for s in shards] == list(range(len(shards))) and shards,
+         'SHARD_INDICES_NOT_CANONICAL')
+    selected = [pose for s in shards for pose in s['pose_ids']]
+    need(all(type(pose) is int for pose in selected) and sorted(selected) == list(range(N_POSES)) and
+         plan.get('reuse_pose_ids') == [] and plan.get('new_pose_ids') == list(range(N_POSES)),
+         'LOCAL_SHARDS_NOT_EXACT_917_FRESH_POSES')
+    need(all(s['pose_ids'] and s['pose_ids'] == sorted(s['pose_ids']) for s in shards),
+         'SHARD_POSE_ORDER_OR_EMPTY_PARTITION')
+    directories = [native.resolve(s['output_dir']).resolve() for s in shards]
+    directories.append(native.resolve(plan['assembly_dir']).resolve())
+    need(len(set(directories)) == len(directories) and
+         not any(a.is_relative_to(b) or b.is_relative_to(a)
+                 for i, a in enumerate(directories) for b in directories[i+1:]),
+         'FROZEN_OUTPUT_DIRECTORIES_MUST_NOT_NEST')
+    stop = native.resolve(plan['global_stop_file']).resolve()
+    need(not any(stop.is_relative_to(d) for d in directories), 'STOP_FILE_INSIDE_OUTPUT')
+    for bank in contract['inputs']['banks']:
+        need(native.sha(Path(args.banks) / Path(bank['path']).name) == bank['sha256'],
+             'PRODUCTION_FFD_BANK_HASH_MISMATCH')
+    if args.mode == 'shard':
+        args.validated_worker_count = validate_release(args, plan)
+    return contract, rows, native.readj(args.canary_qa), plan, audit
+
+
+def validate_release(args, plan):
+    need(bool(getattr(args, 'production_release', None)), 'USER_PRODUCTION_APPROVAL_REQUIRED')
+    release = native.readj(args.production_release)
+    need(release.get('status') == 'APPROVED' and release.get('authorized_stages') == ['P1'] and
+         bool(release.get('approver_identity')) and bool(release.get('user_approval_reference')),
+         'USER_PRODUCTION_APPROVAL_REQUIRED')
+    need(release.get('production_plan_sha256') == native.sha(args.production_plan) and
+         release.get('production_audit_sha256') == plan['production_audit']['sha256'],
+         'PRODUCTION_RELEASE_BINDING_MISMATCH')
+    evidence = {}
+    for name in ('environment', 'benchmark'):
+        spec = release[name]
+        path = native.resolve(spec['path'])
+        need(native.sha(path) == spec['sha256'], 'PRODUCTION_RELEASE_EVIDENCE_CHANGED:' + name)
+        evidence[name] = native.readj(path)
+        need(evidence[name].get('status') == 'PASS', 'PRODUCTION_RELEASE_EVIDENCE_NOT_PASS:' + name)
+        need(evidence[name].get('contract_sha256') == plan['contract_sha256'] and
+             evidence[name].get('execution_host') == socket.gethostname(),
+             'PRODUCTION_RELEASE_EVIDENCE_BINDING_MISMATCH:' + name)
+    need(evidence['environment'].get('actual_smoke_test') is True,
+         'NATIVE_ENVIRONMENT_SMOKE_TEST_REQUIRED')
+    benchmark = evidence['benchmark']
+    need(benchmark.get('environment_sha256') == release['environment']['sha256'] and
+         benchmark.get('chosen_worker_count') in (1, 2, 4, 8) and
+         benchmark['chosen_worker_count'] <= len(plan['shards']),
+         'BENCHMARK_ENVIRONMENT_OR_WORKER_COUNT_MISMATCH')
+    measurements = benchmark['measurements']
+    need([r.get('worker_count') for r in measurements] == [1, 2, 4, 8],
+         'EXACT_1_2_4_8_NATIVE_BENCHMARK_REQUIRED')
+    for row in measurements:
+        count, wall = row.get('completed_pose_count'), row.get('wall_elapsed_s')
+        need(type(count) is int and count >= row['worker_count'] and row.get('actual_native_solver') is True,
+             'BENCHMARK_NATIVE_COMPLETION_REQUIRED')
+        values = [wall, row.get('throughput_pose_per_minute'), row.get('max_rss_mib')]
+        need(all(isinstance(v, (int, float)) and np.isfinite(v) and v > 0 for v in values),
+             'BENCHMARK_MEASUREMENTS_INVALID')
+        need(np.isclose(row['throughput_pose_per_minute'], 60*count/wall, rtol=1e-6, atol=0),
+             'BENCHMARK_THROUGHPUT_INCONSISTENT')
+    return benchmark['chosen_worker_count']
+
+
+def claim_worker_slot(plan, worker_count):
+    """Kernel-held slots cap concurrent shard processes on the approved host."""
+    import fcntl
+    directory = native.resolve(plan['global_stop_file']).parent / '.worker_slots'
+    directory.mkdir(parents=True, exist_ok=True)
+    for index in range(worker_count):
+        handle = (directory / ('slot_%02d.lock' % index)).open('a')
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return handle
+        except BlockingIOError:
+            handle.close()
+    raise RuntimeError('APPROVED_WORKER_CONCURRENCY_EXCEEDED')
+
+
+def check_global_stop(plan):
+    if plan.get('local_amendment_id'):
+        need(not native.resolve(plan['global_stop_file']).exists(), 'GLOBAL_STOP_REQUESTED')
+        directory = native.resolve(plan['global_stop_file']).parent / '.supervisors'
+        for path in directory.glob('*/STARTED.json'):
+            try:
+                result = path.parent / 'RESULT.json'
+                if result.exists():
+                    need(native.readj(result).get('status') == 'PASS', 'PRIOR_SUPERVISOR_FAILURE')
+                    continue
+                record = native.readj(path)
+                need(process_start(record['supervisor_pid']) == record['supervisor_start_ticks'],
+                     'ORPHANED_SUPERVISOR')
+            except Exception as error:
+                signal_global_stop(plan, 'ORPHANED_SUPERVISOR:' + str(path) + ':' + repr(error))
+                raise RuntimeError('ORPHANED_SUPERVISOR_REQUIRES_REVIEW') from error
+
+
+def process_start(pid):
+    """Linux PID identity includes start ticks, preventing PID reuse acceptance."""
+    fields = Path('/proc/%d/stat' % pid).read_text().rsplit(')', 1)[1].split()
+    need(fields[0] != 'Z', 'SUPERVISOR_IS_ZOMBIE')
+    return int(fields[19])
+
+
+def finish_supervisor(directory, result):
+    temporary = directory / 'RESULT_PENDING.json'
+    final = directory / 'RESULT.json'
+    need(not temporary.exists() and not final.exists(), 'SUPERVISOR_RESULT_ALREADY_EXISTS')
+    native.writej(temporary, result)
+    temporary.replace(final)
+
+
+def supervise_command(plan, binding, command, output_dir=None):
+    """Register before spawning and stop all reservations on abnormal child exit."""
+    check_global_stop(plan)
+    directory = native.resolve(plan['global_stop_file']).parent / '.supervisors' / secrets.token_hex(16)
+    directory.mkdir(parents=True)
+    token = secrets.token_hex(32)
+    started = directory / 'STARTED.json'
+    native.writej(started, dict(**binding, supervisor_pid=os.getpid(),
+                  supervisor_start_ticks=process_start(os.getpid()),
+                  worker_token_sha256=hashlib.sha256(token.encode()).hexdigest(), utc=now()))
+    environment = os.environ.copy()
+    environment['R1B_SUPERVISOR_RECORD'] = str(started)
+    environment['R1B_SUPERVISOR_TOKEN'] = token
+    child = None
+    try:
+        child = subprocess.Popen(command, env=environment)
+        native.writej(directory / 'CHILD_STARTED.json', dict(pid=child.pid, utc=now()))
+        code = child.wait()
+        if code != 0:
+            signal_global_stop(plan, 'ABNORMAL_SHARD_EXIT:' + str(code))
+        retained = []
+        if code != 0 and output_dir is not None and Path(output_dir).exists():
+            retained = [file_record(path) for path in sorted(Path(output_dir).rglob('*'))
+                        if path.is_file() and path.suffix in ('.json', '.npz')]
+        finish_supervisor(directory, dict(status='PASS' if code == 0 else 'HOLD_CHILD_EXIT',
+                      child_returncode=code, retained_output_files=retained,
+                      incomplete_memory_only_bins_recoverable=False, utc=now()))
+        return code
+    except BaseException as error:
+        signal_global_stop(plan, 'SUPERVISOR_EXCEPTION:' + repr(error))
+        if child is not None and child.poll() is None:
+            child.terminate()
+            try:
+                child.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                child.kill()
+                child.wait()
+        finish_supervisor(directory, dict(status='HOLD_SUPERVISOR_EXCEPTION',
+                      exception=repr(error), utc=now()))
+        raise
+
+
+def validate_worker_supervision(plan):
+    path = Path(os.environ.get('R1B_SUPERVISOR_RECORD', ''))
+    token = os.environ.get('R1B_SUPERVISOR_TOKEN', '')
+    expected_root = native.resolve(plan['global_stop_file']).parent / '.supervisors'
+    need(path.is_file() and path.name == 'STARTED.json' and
+         path.resolve().parent.parent == expected_root.resolve() and bool(token),
+         'SUPERVISED_WORKER_ENTRY_REQUIRED')
+    record = native.readj(path)
+    need(record['supervisor_pid'] == os.getppid() and
+         record['supervisor_start_ticks'] == process_start(os.getppid()) and
+         record['worker_token_sha256'] == hashlib.sha256(token.encode()).hexdigest() and
+         record['production_spec_sha256'] == canonical_spec_sha(plan) and
+         record['driver_sha256'] == native.sha(__file__) and
+         not (path.parent / 'RESULT.json').exists(), 'SUPERVISOR_BINDING_MISMATCH')
+
+
+def run_supervised_shard(args, contract, rows, canary, plan, audit):
+    command = [sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--internal-worker']
+    code = supervise_command(plan, lineage(args, plan, audit), command, args.out)
+    need(code == 0, 'SUPERVISED_SHARD_ABNORMAL_EXIT:' + str(code))
+    receipt = native.readj(Path(args.out) / 'SHARD_RECEIPT.json')
+    need(receipt.get('status') == 'PASS', 'SUPERVISED_SHARD_RECEIPT_NOT_PASS')
+    return receipt
+
+
+def stop_signal(signum, frame):
+    raise RuntimeError('WORKER_OR_SUPERVISOR_SIGNAL_STOP:' + str(signum))
+
+
+def signal_global_stop(plan, reason):
+    if not plan.get('local_amendment_id'):
+        return
+    path = native.resolve(plan['global_stop_file'])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open('x', encoding='utf-8') as handle:
+            json.dump(dict(status='STOP', reason=reason, utc=now()), handle)
+    except FileExistsError:
+        pass
+
+
 def check_pose_metrics(contract, record):
     tolerance = contract["tolerances"]
     scalar_checks = {
@@ -185,29 +426,76 @@ def new_output(path):
 
 
 def run_shard(args, contract, rows, canary, plan, audit):
+    try:
+        return _run_shard(args, contract, rows, canary, plan, audit)
+    except Exception as error:
+        signal_global_stop(plan, repr(error))
+        raise
+
+
+def _run_shard(args, contract, rows, canary, plan, audit):
     need(args.shard_index is not None and 0 <= args.shard_index < len(plan["shards"]), "SHARD_INDEX_NOT_FROZEN")
     item = plan["shards"][args.shard_index]
     need(Path(args.out).resolve() == native.resolve(item["output_dir"]).resolve(), "SHARD_OUTPUT_NOT_FROZEN")
-    out = new_output(args.out)
     binding = lineage(args, plan, audit)
-    native.writej(out / "SHARD_STARTED.json", dict(**binding, shard_index=args.shard_index,
-                  pose_ids=item["pose_ids"], status="STARTED", utc=now()))
+    out = Path(args.out).resolve()
+    resume = getattr(args, 'resume', False)
+    if resume:
+        need(plan.get('local_amendment_id') == 'LOCAL-P1-V1', 'RESUME_REQUIRES_LOCAL_AMENDMENT')
+        started = native.readj(out / 'SHARD_STARTED.json')
+        need(all(started.get(key) == value for key, value in binding.items()) and
+             started.get('pose_ids') == item['pose_ids'], 'RESUME_BINDING_CHANGED')
+        need(not (out / 'SHARD_RECEIPT.json').exists(), 'COMPLETED_SHARD_MUST_NOT_RESUME')
+    else:
+        out = new_output(args.out)
+        native.writej(out / "SHARD_STARTED.json", dict(**binding, shard_index=args.shard_index,
+                      pose_ids=item["pose_ids"], status="STARTED", utc=now()))
+    # The runtime is Linux-only. The advisory lock is released even after a crash.
+    import fcntl
+    lock = (out / '.worker.lock').open('a')
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    slot = None
+    attempt = out / ('attempt_' + datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'))
+    attempt.mkdir()
     wall_start, cpu_start = time.monotonic(), time.process_time()
     records = []
     try:
-        engine = native.initialize(contract, args.banks, out)
+        check_global_stop(plan)
+        if plan.get('local_amendment_id'):
+            slot = claim_worker_slot(plan, args.validated_worker_count)
+        if resume:
+            for pose in item['pose_ids']:
+                checkpoint = out / ('CHECKPOINT_%04d.json' % pose)
+                if not checkpoint.exists():
+                    need(not (out / ('pose_%04d.npz' % pose)).exists() and
+                         not (out / ('pose_%04d.json' % pose)).exists(), 'UNCOMMITTED_POSE_REQUIRES_REVIEW')
+                    continue
+                saved = native.readj(checkpoint)
+                need(all(saved.get(key) == value for key, value in binding.items()), 'RESUME_CHECKPOINT_BINDING_CHANGED')
+                record = saved['record']
+                need(record['pose_id'] == pose and native.sha(out / ('pose_%04d.json' % pose)) ==
+                     record['metrics_json_sha256'], 'RESUME_METRICS_HASH_CHANGED')
+                validate_raw_pose(out / record['raw_file'], rows[pose], record, contract)
+                records.append(record)
+        engine = native.initialize(contract, args.banks, attempt)
         for pose in item["pose_ids"]:
+            if pose in {r['pose_id'] for r in records}:
+                continue
+            check_global_stop(plan)
             record = native.acquire_pose(contract, rows[pose], engine, out)
-            records.append(record)
             check_pose_metrics(contract, record)
             record["metrics_json_sha256"] = native.sha(out / ("pose_%04d.json" % pose))
-            native.writej(out / ("PROGRESS_%04d.json" % len(records)),
+            native.writej(out / ('CHECKPOINT_%04d.json' % pose), dict(**binding, record=record))
+            records.append(record)
+            native.writej(attempt / ("PROGRESS_%04d.json" % len(records)),
                           dict(**binding, completed_pose_ids=[r["pose_id"] for r in records],
                                latest_record=record, elapsed_s=time.monotonic()-wall_start, status="IN_PROGRESS"))
+        records.sort(key=lambda r: r['pose_id'])
         need([r["pose_id"] for r in records] == item["pose_ids"], "SHARD_POSE_ORDER_CHANGED")
+        check_global_stop(plan)
         receipt = dict(**binding, status="PASS", shard_index=args.shard_index, pose_ids=item["pose_ids"],
                        completed_pose_count=len(records), actual_native_solver=True, no_new_RF_noise=True,
-                       records=records, environment=file_record(out / "ENVIRONMENT.json"),
+                       records=records, environment=file_record(attempt / "ENVIRONMENT.json"),
                        measured_cost=dict(wall_elapsed_s=time.monotonic()-wall_start,
                                           process_cpu_s=time.process_time()-cpu_start,
                                           acquisition_s=sum(r["acquisition_seconds"] for r in records),
@@ -216,12 +504,17 @@ def run_shard(args, contract, rows, canary, plan, audit):
         native.writej(out / "SHARD_RECEIPT.json", receipt)
         return receipt
     except Exception as error:
-        partial = native.preserve_partial(out)
-        native.writej(out / "SHARD_FAILURE.json", dict(**binding, status="HOLD_RF_PARITY",
+        signal_global_stop(plan, repr(error))
+        partial = native.preserve_partial(attempt)
+        native.writej(attempt / "SHARD_FAILURE.json", dict(**binding, status="HOLD_RF_PARITY",
                       shard_index=args.shard_index, exception=repr(error), traceback=traceback.format_exc(),
                       completed_records=records, retained_partial=partial,
                       elapsed_s=time.monotonic()-wall_start, utc=now()))
         raise
+    finally:
+        if slot is not None:
+            slot.close()
+        lock.close()
 
 
 def col_observer(h_col):
@@ -249,7 +542,8 @@ def validate_raw_pose(path, row, record, contract):
     need(data["xyz_m"].shape == (3,) and max(abs(data["xyz_m"]-xyz)) <= 1e-6, "RAW_POSE_XYZ_MISMATCH")
     yaw_diff = (float(data["psi_rad"]) - np.radians(float(row["yaw_body_deg"])) + np.pi) % (2*np.pi) - np.pi
     need(abs(np.degrees(yaw_diff)) <= 1e-6, "RAW_YAW_MISMATCH")
-    need(np.array_equal(data["anchor_xyz_m"], np.array([10., 0., 2.65])), "RAW_ANCHOR_NOT_B")
+    need(data['anchor_xyz_m'].shape == (3,) and np.isfinite(data['anchor_xyz_m']).all() and
+         np.allclose(data['anchor_xyz_m'], [10., 0., 2.65], atol=1e-12, rtol=0), 'RAW_ANCHOR_NOT_B')
     freq = 6250400000. + 1950000.*np.arange(native.N)
     need(np.array_equal(data["freq_hz"], freq), "RAW_FREQUENCY_AXIS_MISMATCH")
     tolerance = contract["tolerances"]
@@ -303,7 +597,14 @@ def validate_raw_pose(path, row, record, contract):
     source_obs, _ = col_observer(source_h)
     need(np.linalg.norm(source_independent)>0 and np.linalg.norm(data["H_los"][:, :, 0])>0, "ZERO_SOURCE_REFERENCE")
     internal = float(np.linalg.norm(source_h-source_independent)/np.linalg.norm(source_independent))
-    rel = float(np.linalg.norm(data["H_los"][:, :, 0]-source_h)/np.linalg.norm(data["H_los"][:, :, 0]))
+    matched_h = native.precision_reference(contract, source_h, freq, data['xyz_m'], data['anchor_xyz_m'])
+    if contract.get('local_production') is not None:
+        need('source_precision_matched_h' in data and data['source_precision_matched_h'].shape == (native.N, 2) and
+             np.isfinite(data['source_precision_matched_h']).all() and
+             np.max(abs(data['source_precision_matched_h'] - matched_h)) <= tolerance['observer_abs'],
+             'RAW_V2_MATCHED_SOURCE_CHANGED')
+    parity_obs, _ = col_observer(matched_h)
+    rel = float(np.linalg.norm(data["H_los"][:, :, 0]-matched_h)/np.linalg.norm(data["H_los"][:, :, 0]))
     pred = data["source_model_h"]
     need(pred.shape == (2,) and np.isfinite(pred).all(), "RAW_SOURCE_MODEL_INVALID")
     need(abs(pred[1]-source_obs["s"]) <= tolerance["observer_abs"], "SOURCE_PHYSICAL_OBSERVER_PARITY_FAILED")
@@ -313,10 +614,10 @@ def validate_raw_pose(path, row, record, contract):
     need(np.array_equal(data["source_model_H"][:, 3], np.zeros(2)), "SOURCE_DIRECT_BIAS_DERIVATIVE_NONZERO")
     recomputed = {**record,
                   "source_direct_relative": internal, "native_source_complex_relative": rel,
-                  "native_source_s_abs": abs(obs["los"]["s"]-float(pred[1])),
-                  "native_source_tap_mismatch": int(obs["los"]["tap"] != source_obs["tap"]),
-                  "native_source_port_mismatch": int(obs["los"]["strong_port"] != source_obs["strong_port"]),
-                  "native_source_detector_range_abs": abs(obs["los"]["r_m"]-source_obs["r_m"]),
+                  "native_source_s_abs": abs(obs["los"]["s"]-parity_obs['s']),
+                  "native_source_tap_mismatch": int(obs["los"]["tap"] != parity_obs["tap"]),
+                  "native_source_port_mismatch": int(obs["los"]["strong_port"] != parity_obs["strong_port"]),
+                  "native_source_detector_range_abs": abs(obs["los"]["r_m"]-parity_obs["r_m"]),
                   "los_delay_abs_s": los_delay_error, "full_unique_direct_bins": int(np.sum(np.array(direct_count)==1)),
                   "full_direct_vs_separate_los_relative_max": max(direct_parity),
                   "raw_path_sum_H_max_abs": path_sum_error}
@@ -330,12 +631,15 @@ def validate_raw_pose(path, row, record, contract):
 def run_assemble(args, contract, rows, canary, plan, audit):
     need(args.shard_index is None, "ASSEMBLE_HAS_NO_SHARD_INDEX")
     need(Path(args.out).resolve() == native.resolve(plan["assembly_dir"]).resolve(), "ASSEMBLY_OUTPUT_NOT_FROZEN")
+    check_global_stop(plan)
     # Validate every finished shard receipt before creating any combined output.
     binding = lineage(args, plan, audit)
     sources = []
-    canary_dir = native.resolve(plan["canary_directory"])
-    for record in canary["records"]:
-        sources.append((record["pose_id"], canary_dir/record["raw_file"], record, "CANARY"))
+    local = plan.get('local_amendment_id') == 'LOCAL-P1-V1'
+    if not local:
+        canary_dir = native.resolve(plan["canary_directory"])
+        for record in canary["records"]:
+            sources.append((record["pose_id"], canary_dir/record["raw_file"], record, "CANARY"))
     shard_receipts = []
     for item in plan["shards"]:
         directory = native.resolve(item["output_dir"])
@@ -373,6 +677,7 @@ def run_assemble(args, contract, rows, canary, plan, audit):
     recomputed_metrics, raw_ledger, observation_rows = [], [], []
     try:
         for pose, path, record, origin in sources:
+            check_global_stop(plan)
             data, metric = validate_raw_pose(path, rows[pose], record, contract)
             h_full[pose], h_los[pose] = data["H_full"], data["H_los"]
             recomputed_metrics.append(metric)
@@ -422,15 +727,16 @@ def run_assemble(args, contract, rows, canary, plan, audit):
                             direct_los_visible=np.array([row["direct_los_visible"] for row in observation_rows], dtype=bool))
         cost = dict(assembly_wall_elapsed_s=time.monotonic()-wall_start, assembly_process_cpu_s=time.process_time()-cpu_start,
                     acquisition_seconds_sum_all_917=sum(r["acquisition_seconds"] for r in recomputed_metrics),
-                    canary_measured_cost=canary["measured_cost"],
+                    canary_measured_cost=None if local else canary["measured_cost"],
                     shard_wall_elapsed_s_sum=sum(r["measured_cost"]["wall_elapsed_s"] for r in shard_receipts),
                     shard_process_cpu_s_sum=sum(r["measured_cost"]["process_cpu_s"] for r in shard_receipts),
                     assembly_max_rss_mib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024)
         manifest = dict(**binding, status="PASS", n_pose=N_POSES, paired_pose_count=N_POSES, missing_pose_count=0,
                         channels=["FULL", "LOS"], actual_native_solver=True, port_layout=PORT_LAYOUT,
                         rf_sha256=native.sha(rf_path), rf_file=file_record(rf_path),
-                        original_pose_csv=contract["inputs"]["pose_csv"], reused_canary_pose_ids=contract["canary"]["pose_ids"],
-                        newly_acquired_pose_count=909, aggregate_parity=aggregate, measured_cost=cost,
+                        original_pose_csv=contract["inputs"]["pose_csv"],
+                        reused_canary_pose_ids=[] if local else contract["canary"]["pose_ids"],
+                        newly_acquired_pose_count=N_POSES if local else 909, aggregate_parity=aggregate, measured_cost=cost,
                         raw_files=raw_ledger, shard_receipts=shard_receipts,
                         path_arrays="Preserved in every original per-pose NPZ; offsets partition tau/a/interactions/objects by frequency",
                         direct_visibility_definition="Exactly one zero-interaction ray within frozen geometric-delay tolerance at every frequency",
@@ -438,6 +744,7 @@ def run_assemble(args, contract, rows, canary, plan, audit):
         native.writej(dest/"channel_full_and_los_manifest.json", manifest)
         return manifest
     except Exception as error:
+        signal_global_stop(plan, repr(error))
         native.writej(out/"ASSEMBLY_FAILURE.json", dict(**binding, status="HOLD_RF_PARITY", exception=repr(error),
                       traceback=traceback.format_exc(), completed_pose_ids=[r["pose_id"] for r in recomputed_metrics],
                       checked_raw_files=raw_ledger, original_per_pose_RF_preserved=True, utc=now()))
@@ -453,14 +760,29 @@ def main():
     parser.add_argument("--banks", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--shard-index", type=int)
+    parser.add_argument('--production-release', help='Explicit user approval bound to final plan, audit and benchmark')
+    parser.add_argument('--resume', action='store_true', help='Resume only hash-verified checkpoints in the frozen shard')
+    parser.add_argument('--internal-worker', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
+    plan = None
     try:
         contract, rows, canary, plan, audit = load_locks(args)
+        if args.mode == 'shard' and plan.get('local_amendment_id') == 'LOCAL-P1-V1':
+            signal.signal(signal.SIGTERM, stop_signal)
+            signal.signal(signal.SIGINT, stop_signal)
         runner = run_shard if args.mode == "shard" else run_assemble
+        if args.internal_worker:
+            need(args.mode == 'shard' and plan.get('local_amendment_id') == 'LOCAL-P1-V1',
+                 'INTERNAL_WORKER_SCOPE_INVALID')
+            validate_worker_supervision(plan)
+        elif args.mode == 'shard' and plan.get('local_amendment_id') == 'LOCAL-P1-V1':
+            runner = run_supervised_shard
         receipt = runner(args, contract, rows, canary, plan, audit)
         print(json.dumps(dict(mode=args.mode, status=receipt["status"])), flush=True)
         return 0
     except Exception as error:
+        if plan is not None:
+            signal_global_stop(plan, repr(error))
         print("R1B_PRODUCTION_HOLD", repr(error), file=sys.stderr)
         # A preflight failure never writes into an existing output directory.
         if CREATED_OUTPUT is not None and not any((CREATED_OUTPUT/name).exists() for name in

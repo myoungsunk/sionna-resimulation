@@ -1,0 +1,6 @@
+FROM python:3.11.17-slim-bookworm
+RUN apt-get update && apt-get install -y --no-install-recommends libllvm15 libgomp1 libatomic1 git && rm -rf /var/lib/apt/lists/*
+RUN python -m pip install --no-cache-dir numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+ENV DRJIT_LIBLLVM_PATH=/usr/lib/x86_64-linux-gnu/libLLVM-15.so.1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1
+RUN python -c "import mitsuba as mi, drjit as dr; mi.set_variant('llvm_ad_mono_polarized'); dr.set_thread_count(1); assert float(dr.norm(mi.Vector3f(3,4,0))[0]) == 5"
+

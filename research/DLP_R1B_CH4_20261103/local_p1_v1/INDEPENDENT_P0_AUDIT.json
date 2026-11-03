@@ -1,0 +1,105 @@
+{
+  "schema": "DLP_R1B_LOCAL_P1_V1_INDEPENDENT_P0_AUDIT",
+  "status": "PASS",
+  "verdict": "ACCEPT",
+  "role": "INDEPENDENT_COMPUTATIONAL_AUDITOR",
+  "auditor_identity": "/root/preaudit",
+  "separate_agent": true,
+  "date_kst": "2026-11-03",
+  "base_git_sha": "435e05b2a6c735e8a964f1e701cb94b93db64795",
+  "scope": "P0 static contract, implementation, input lineage, historical numerical evidence and negative production gates",
+  "production_spec_sha256": "0d485a63bbac1c0e7dfb8948cca85c37a4538b0c7b20c3c6d8eb8a03d803b7b9",
+  "runner_sha256": "b2891b708e82563c4e86539da56fe468ecf3009f0e99265c2a8bc954b3e464a9",
+  "native_sha256": "32f0fb165950ee8d396de470c6d59628583849eddf5992001bc1fddaf6f88c5c",
+  "contract_sha256": "50265967634461b281ec10c7c806d34d5b4d2c0a01ef2911cfd902ad79be2727",
+  "canary_qa_sha256": "ac5959437500c480e0b3d93cd6a4c4988d537f76b331eecb1de0a5764062f5d0",
+  "governance": {
+    "source": "Local research-governance fallback. Repository MBVAR instructions explicitly scope their governance to another experiment.",
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_AUDITOR.md": "e1bdc2f231c71cdc27201c688e041b078576a6adf6c0290acc16ce4d8218291a"
+  },
+  "checks": {
+    "source_and_input_locks_99_exact": true,
+    "historical_hold_preserved": true,
+    "geometry_population_inputs_rf_tolerances_replay_canary_inherited_exact": true,
+    "source_only_v2_delay_adapter_without_native_delay_input_or_fitting": true,
+    "ekf_h_H_f_F_Q_R_unchanged": true,
+    "fresh_917_unique_partition_without_reuse": true,
+    "anchor_shape_finite_atol_1e_12_rtol_zero": true,
+    "append_only_output_and_preserved_failure_evidence": true,
+    "sha_verified_resume_path_reviewed": true,
+    "shared_stop_and_abnormal_child_supervision_reviewed": true,
+    "worker_concurrency_cap_reviewed": true,
+    "sigterm_sigint_failure_handling_reviewed": true,
+    "alternative_native_cli_rejected_before_output_write": true,
+    "explicit_user_release_and_bound_environment_benchmark_required": true,
+    "exact_environment_smoke_without_solver_calls": true
+  },
+  "independent_raw_arithmetic": {
+    "pose_count": 12,
+    "old8_raw_sha256_verified": true,
+    "prospective4_raw_sha256_verified": true,
+    "frequency_bins_per_pose": 257,
+    "arms_per_pose": 2,
+    "arm_frequency_matrices_reconstructed": 6168,
+    "reconstructed_H_from": "Preserved native a and tau",
+    "maximum_absolute_difference": 3.576224061345498e-18,
+    "auditor_native_solver_calls": 0
+  },
+  "test_evidence": {
+    "auditor_local_windows_execution": {
+      "tests_total": 11,
+      "passed": 8,
+      "linux_specific_skipped": 3,
+      "failed": 0
+    },
+    "reviewed_snowball_linux_execution": {
+      "tests_total": 11,
+      "passed": 11,
+      "skipped": 0,
+      "failed": 0,
+      "log": "research/DLP_R1B_CH4_20261103/local_p1_v1/evidence/snowball/collector_linux_tests_02.log",
+      "sha256": "7557b8d44e8ec46c33b3c545b53df4e3df22d62f35d5231942f93de0a5763b0f"
+    },
+    "exact_environment_smoke": {
+      "log": "research/DLP_R1B_CH4_20261103/local_p1_v1/evidence/snowball/exact_environment_smoke_03.log",
+      "sha256": "8819623f6924e2ec8a47ceeb2b65768df588608db239a880cd12c35dd4fa2409",
+      "python": "3.11.17",
+      "numpy": "1.26.4",
+      "scipy": "1.14.1",
+      "sionna_rt": "2.0.1",
+      "mitsuba": "3.8.0",
+      "drjit": "1.3.1",
+      "variant": "llvm_ad_mono_polarized",
+      "drjit_threads": 1,
+      "frozen_mesh_material_count": 6,
+      "native_solver_calls": 0
+    },
+    "reviewed_exact_environment_old8_and_new4_rechecks": "NUMERIC_PARITY_PASS"
+  },
+  "stage_authority": {
+    "P0_static_preaudit": "ACCEPT",
+    "throughput_benchmark_1_2_4_8": "NOT_RUN",
+    "P1_917": "NOT_RUN",
+    "P2": "NOT_RUN",
+    "P3": "NOT_RUN",
+    "production_authorized": false,
+    "user_production_approval": "ABSENT",
+    "required_before_production": [
+      "Actual 1,2,4,8 worker throughput and memory measurements",
+      "Benchmark evidence and chosen concurrency bound to the exact environment and contract",
+      "Explicit user approval bound to the final plan and independent audit"
+    ]
+  },
+  "claim_boundaries": {
+    "original_science_status": "HOLD_RF_PARITY",
+    "historical_hold_rewritten": false,
+    "numeric_representation_parity_supported": true,
+    "independent_scientific_signoff": false,
+    "scientific_supported": false,
+    "two_hour_completion_established": false,
+    "new_native_rf_executed_for_this_preaudit": false
+  },
+  "required_corrections": [],
+  "unresolved_p0_blockers": []
+}
