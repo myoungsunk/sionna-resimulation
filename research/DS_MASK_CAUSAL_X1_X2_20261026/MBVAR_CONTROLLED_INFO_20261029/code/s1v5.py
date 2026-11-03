@@ -154,15 +154,38 @@ def polish(hb, z, Sm, ds_m, gy_m, dts, x0, theta, seed):
     return (th0, thv), POLISH_MAX, True
 
 
-def estimate(w, Sm, inp, seed_key, max_iter=FL.V2_MAX_ITER, hb=None):
+def estimate(w, Sm, inp, seed_key, max_iter=FL.V2_MAX_ITER, hb=None, boundary_expected=None):
     """E' (v4) = batch_map_v2_ms (E, unchanged) + F2 polish. hb defaults to the true-tap model (B option overrides)."""
     hb = hb or hb_true_tap(w)
     z, x0, ds_m, gy_m, dts = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"], w["dts"]
-    X, _, info = FL.batch_map_v2_ms(hb, z, np.zeros((N, 2)), Sm, ds_m, gy_m, dts, x0, P0M, max_iter=max_iter)
+    # R3: attestation occurs *inside* the estimator, adjacent to the actual
+    # optimizer call. Comparing an object to a receipt before the call only
+    # does NOT prove that those bytes reached the solver.
+    def attest():
+        if boundary_expected is None:
+            return None
+        return AV.optimizer_boundary_attestation(boundary_expected,
+            dict(z=z,x0=x0,ds_m=ds_m,gy_m=gy_m,
+                 Sigma_model=Sm,dts=dts,taps=w["taps"]))
+    attestation_before = attest()
+    X, Pstate, info = FL.batch_map_v2_ms(hb, z, np.zeros((N, 2)), Sm,
+                                         ds_m, gy_m, dts, x0, P0M, max_iter=max_iter)
+    attestation_after = attest()
+    if attestation_before is not None and (
+            attestation_before["digest"] != attestation_after["digest"]):
+        raise SystemExit("ERR_A010_OPTIMIZER_MUTATED_RECEIPT_INPUT")
     thp, nst, cap = polish(hb, z, Sm, ds_m, gy_m, dts, x0, info["theta"], key_seed("POLISH", *seed_key))
     Lm, L0, qv = B3._mats(Sm, ds_m, dts)
     cp, Xp = FL._v2_parts(hb, z, np.zeros((N, 2)), Lm, L0, x0, qv, ds_m, gy_m, dts, thp[0], thp[1], jac=False)
-    rec = dict(polish_steps=nst, polish_cost_decrease=float(info["cost"] - cp), polish_hit_cap=bool(cap), polish_E_vs_Ep_dref=dref_diff(X[-1], Xp[-1]))
+    rec = dict(polish_steps=nst, polish_cost_decrease=float(info["cost"] - cp),
+               polish_hit_cap=bool(cap), polish_E_vs_Ep_dref=dref_diff(X[-1], Xp[-1]))
+    if attestation_before is not None:
+        rec.update(OPTIMIZER_BOUNDARY_EXACT=True,
+                   OPTIMIZER_BOUNDARY_INPUT_SHA=attestation_before["digest"],
+                   OPTIMIZER_BOUNDARY_ARRAYS_CHECKED=attestation_before["n_arrays"],
+                   OPTIMIZER_X_OUTPUT_SHA=AV.array_sha(X),
+                   OPTIMIZER_P_OUTPUT_SHA=AV.array_sha(np.asarray(Pstate)),
+                   OPTIMIZER_EPRIME_OUTPUT_SHA=AV.array_sha(Xp))
     return X, info, thp, Xp, float(cp), rec
 
 
@@ -174,11 +197,12 @@ def c10_end(hb, z, Sm, ds_m, gy_m, dts, x0, theta):
     return 0.5 * (Pe + Pe.T)
 
 
-def eval_batch(w, arm, Sm, inp, seed_key, hb=None):
+def eval_batch(w, arm, Sm, inp, seed_key, hb=None, boundary_expected=None):
     """E'(v4) + A8-3 + class v3.1 + F4 for one batch arm. Returns (row, X', info_E, theta')."""
     hb = hb or hb_true_tap(w)
     z, x0, ds_m, gy_m, dts = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"], w["dts"]
-    XE, info, thp, Xp, cp, prec = estimate(w, Sm, inp, seed_key, hb=hb)
+    XE, info, thp, Xp, cp, prec = estimate(w, Sm, inp, seed_key, hb=hb,
+                                           boundary_expected=boundary_expected)
     T = IC.rotation_rt(w["Xtrue"][-1], Wd.ANCHORS["A"])
     pf = B3.post_fit_P(hb, z, Sm, ds_m, gy_m, dts, x0, thp, T); gn = pf.pop("_gn_steps"); PA = pf.pop("_PA_end"); pf.pop("_X")
     dmin, which, _ = probe(hb, z, Sm, ds_m, gy_m, dts, x0, thp, key_seed("CLASS", *seed_key), gn)
