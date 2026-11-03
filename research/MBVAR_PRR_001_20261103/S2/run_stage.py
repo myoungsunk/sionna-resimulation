@@ -14,7 +14,7 @@ from score import score
 from summary import paired_summary
 sys.path.insert(0,str(s))
 from recovery import replay,validate_covariance
-from endpoints import recovery_endpoints
+from endpoints import recovery_endpoints,snapshot_end_index
 
 def sha(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 def write_json(path,value):path.write_text(json.dumps(value,indent=2,allow_nan=False))
@@ -61,7 +61,7 @@ def execute(phase,output):
        scores.extend(dict(**identity,**row) for row in score(pk,tr,truth,channel,epsilon))
        events.extend(dict(**identity,**row) for row in ev);counts.append(dict(**identity,recoveries=len(ev)))
        for event in ev:
-        ei=event['index'];event_endpoints.append(dict(**identity,event_index=ei,**recovery_endpoints(pk['t'][ei:],tr['x'][ei:],truth['truth'][ei:],pk['t'][ei])))
+        ei=event['index'];event_endpoints.append(dict(**identity,event_index=ei,**recovery_endpoints(pk['t'][ei:],tr['x'][ei:],truth['truth'][ei:],pk['t'][ei],pretreatment_prior=tr['prior'][ei],pretreatment_truth=truth['truth'][ei])))
        if arm=='A':common=tr;common_schedule=tr['candidate'].copy()
        if arm in ('A','B'):
         baseline='W0' if arm=='A' else 'W-d0-DS'
@@ -78,6 +78,8 @@ def execute(phase,output):
        identity=dict(route=route,bias=bias,channel=channel,seed=seed,arm=label,kind='ablation')
        f=output/f'{key}_{seed}_{label}.npz';index.append(dict(**identity,**save_trace(f,tr,pk)))
        scores.extend(dict(**identity,**row) for row in score(pk,tr,truth,channel,epsilon));events.extend(dict(**identity,**row) for row in ev);counts.append(dict(**identity,recoveries=len(ev)))
+       for event in ev:
+        ei=event['index'];event_endpoints.append(dict(**identity,event_index=ei,**recovery_endpoints(pk['t'][ei:],tr['x'][ei:],truth['truth'][ei:],pk['t'][ei],pretreatment_prior=tr['prior'][ei],pretreatment_truth=truth['truth'][ei])))
        if seed==0:
         starts={int(np.searchsorted(pk['t'],time)) for time in (30,60,90) if time<=pk['t'][-1]}
         # First packet of each virtual baseline latch is a causal diagnostic start.
@@ -86,12 +88,12 @@ def execute(phase,output):
         selected=sorted(k for k in starts if k>=0)[:10]
         counts.append(dict(route=route,bias=bias,channel=channel,seed=seed,kind='M_eligibility',eligible=len(starts),selected=len(selected),missing=10-len(selected)))
         for number,start in enumerate(selected):
-         end=int(np.searchsorted(pk['t'],pk['t'][start]+20,side='right'));initial=(common['x'][start-1].copy(),common['P'][start-1].copy()) if start else (np.r_[ct['x0'],0.],pk['P0'].copy())
+         end=snapshot_end_index(pk['t'],start);initial=(common['x'][start-1].copy(),common['P'][start-1].copy()) if start else (np.r_[ct['x0'],0.],pk['P0'].copy())
          for arm in ('A','B','C_P','D_P'):
           tr,ev=replay(pk,ct,arm,p.b.core,p.b.model,p.spec,p.online,schedule=common_schedule,start=start,initial=initial,end=end)
           identity=dict(route=route,bias=bias,channel=channel,seed=0,arm=arm,kind='M',snapshot=number,start_index=start)
           f=output/f'{key}_snapshot{number}_{arm}.npz';index.append(dict(**identity,**save_trace(f,tr,pk,initial_x=initial[0],initial_P=initial[1],common_schedule=common_schedule[start:end])))
-          snapshot_rows.append(dict(**identity,**recovery_endpoints(pk['t'][start:end],tr['x'],truth['truth'][start:end],pk['t'][start])))
+          snapshot_rows.append(dict(**identity,**recovery_endpoints(pk['t'][start:end],tr['x'],truth['truth'][start:end],pk['t'][start],pretreatment_prior=common['prior'][start],pretreatment_truth=truth['truth'][start])))
           events.extend(dict(**identity,**row) for row in ev)
       print(key,seed,flush=True)
  except Exception as error:

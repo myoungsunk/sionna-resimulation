@@ -61,6 +61,19 @@ def run():
  trO,_=replay(pk,ct,'C_P',Core,Model,spec,online,schedule=schedule,gate_mode='O')
  assert not trF['mask'][0] and trO['mask'][0] and not trO['preinjection_mask'][0]
  assert np.array_equal(trF['x'][0],np.zeros(4));checks+=1
+ from endpoints import snapshot_end_index,recovery_endpoints
+ t=np.arange(501)*.2
+ cases=[k for k in range(300) if np.searchsorted(t,t[k]+20,side='right')<k+101]
+ assert cases
+ for start in cases[:12]:assert snapshot_end_index(t,start)==start+101
+ checks+=1
+ truth=np.zeros((101,3));one=np.zeros((101,4));other=np.zeros((101,4));other[:,2]=math.radians(3)
+ before=np.array([0.,0.,math.radians(2),0.]);tt=np.arange(101)*.2
+ a=recovery_endpoints(tt,one,truth,0.,pretreatment_prior=before,pretreatment_truth=truth[0])
+ b=recovery_endpoints(tt,other,truth,0.,pretreatment_prior=before,pretreatment_truth=truth[0])
+ assert not a['already_accurate'] and not b['already_accurate']
+ assert a['start_heading_deg']==b['start_heading_deg'] and a['first_emitted_heading_deg']!=b['first_emitted_heading_deg']
+ assert not a['window_20s_censored'] and b['censored'];checks+=1
  result=dict(status='PASS' ,synthetic_cases=checks,scope='injection and causal state machine only, no scientific replay')
  print(json.dumps(result));return result
 if __name__=='__main__':run()
