@@ -410,3 +410,148 @@ def _scaled_c10_diff(a, b):
     for j in range(4):
         denom[j,j]=max(denom[j,j],1e-300)
     return float(np.max(np.abs(P-Q)/np.maximum(denom,1e-300)))
+
+
+# ---------------------------------------------------------------------------
+# A010 post-audit prospective technical safeguards (R1/R2/R3/R4).
+# No change to frozen science threshold, historical records or estimator policy.
+ROW_KEY_FIELDS = ("field", "role", "cell", "sensor_seed", "arm")
+BOUNDARY_ARRAY_NAMES = ("z", "x0", "ds_m", "gy_m", "Sigma_model", "dts", "taps")
+BOUNDARY_SCHEMA = "A010_OPTIMIZER_CALL_V1"
+
+
+def exact_registered_keyset(actual, expected):
+    """R1: equality of registered 5-tuples incl uniqueness, not count equality.
+
+    Inputs are ordered lists of canonical tuples, never data-dependent inferred
+    row sets. Even a duplicate replacing one missing row must fail closed.
+    """
+    from collections import Counter
+    actual = [tuple(k) for k in actual]
+    expected = [tuple(k) for k in expected]
+    if any(len(k) != len(ROW_KEY_FIELDS) for k in actual + expected):
+        raise ValueError("ERR_A010_ROW_KEY_SHAPE")
+    if len(set(expected)) != len(expected):
+        raise ValueError("ERR_A010_REGISTERED_KEY_DUPLICATE")
+    counts = Counter(actual)
+    duplicate = sorted(k for k, n in counts.items() if n > 1)
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    def digest(keys):
+        text = "\n".join(json.dumps(list(k), separators=(",", ":"), ensure_ascii=True)
+                         for k in sorted(keys))
+        return hashlib.sha256(text.encode()).hexdigest()
+    return dict(pass_=bool(actual and not duplicate and not missing and
+                           not unexpected and len(actual) == len(expected)),
+                n_expected=len(expected), n_actual=len(actual),
+                n_distinct_actual=len(counts), n_duplicate_keys=len(duplicate),
+                n_missing_keys=len(missing), n_unexpected_keys=len(unexpected),
+                duplicate_keys=[list(k) for k in duplicate[:12]],
+                missing_keys=[list(k) for k in missing[:12]],
+                unexpected_keys=[list(k) for k in unexpected[:12]],
+                actual_multiset_sha256=digest(actual),
+                expected_multiset_sha256=digest(expected),
+                scope="registered (field,role,cell,sensor_seed,arm); count alone is not a gate")
+
+
+def expected_s1_row_keys(fields, sensors, role_cells, role_arms):
+    """Contract/geometry-origin expected S1 keys, independent of RESULTS.csv."""
+    keys = []
+    for f in fields:
+        for role, cells in role_cells.items():
+            for cell in cells:
+                for sn in sensors:
+                    for arm in role_arms(role, cell):
+                        keys.append((int(f), str(role), str(cell), int(sn), str(arm)))
+    if len(keys) != len(set(keys)):
+        raise ValueError("ERR_A010_REGISTERED_S1_DUPLICATE")
+    return keys
+
+
+def expected_c3_row_keys(fields, sensors, lh_cells, rv_cells, xmodel_cells):
+    """Full preregistered C3 field×role×cell×arm×sensor keys (not reduced smoke)."""
+    xc = set(xmodel_cells)
+    role_cells = {r:lh_cells for r in ("LOW", "HIGH")}
+    role_cells.update({r:rv_cells for r in ("REV60", "FWD60")})
+    def arms(role, cell):
+        return ("IID_BATCH", "ORACLE_CORR_BATCH") + (
+            ("XMODEL_BATCH",) if role in ("REV60","FWD60") and cell in xc else ())
+    return expected_s1_row_keys(fields, sensors, role_cells, arms)
+
+
+def dataframe_row_keys(frame):
+    """Validate identity columns BEFORE setting a pandas index (duplicates may hide)."""
+    if not all(name in frame.columns for name in ROW_KEY_FIELDS):
+        raise ValueError("ERR_A010_ROW_KEY_COLUMN_MISSING")
+    out = []
+    for row in frame[list(ROW_KEY_FIELDS)].itertuples(index=False, name=None):
+        f, role, cell, sn, arm = row
+        if not np.isfinite(float(f)) or not np.isfinite(float(sn)):
+            raise ValueError("ERR_A010_ROW_KEY_NONFINITE")
+        if float(f) != int(f) or float(sn) != int(sn):
+            raise ValueError("ERR_A010_ROW_KEY_NON_INTEGER")
+        if not role or not cell or not arm:
+            raise ValueError("ERR_A010_ROW_KEY_EMPTY")
+        out.append((int(f),str(role),str(cell),int(sn),str(arm)))
+    return out
+
+
+def enforce_finite_rows(frame, names, label):
+    """R4: fail on nan/inf rather than silently passing a <= comparison."""
+    if not len(frame):
+        return dict(pass_=False, n_rows=0, n_columns=len(names), reason="EMPTY")
+    missing = [name for name in names if name not in frame.columns]
+    if missing:
+        raise ValueError("ERR_A010_FINITE_MISSING_COLUMN " + label + " " + ",".join(missing))
+    values = frame[list(names)].to_numpy(dtype=np.float64)
+    if not np.isfinite(values).all():
+        bad = np.argwhere(~np.isfinite(values))
+        raise ValueError(f"ERR_A010_NONFINITE_{label} row={int(bad[0,0])} col={names[int(bad[0,1])]}")
+    return dict(pass_=True, n_rows=int(len(frame)), n_columns=len(names),
+                full_finite_payload=True)
+
+
+def optimizer_boundary_attestation(expected, actual):
+    """R3: test exact arrays at the ACTUAL optimizer call site, before/after.
+
+    Expected data are original per-field S1 receipt arrays including geometry
+    dts and fixed taps. Never includes Sigma_true or Xtrue. No hashes are
+    computed from reconstructed/regen data as an alleged original receipt.
+    """
+    if set(expected) != set(BOUNDARY_ARRAY_NAMES) or set(actual) != set(BOUNDARY_ARRAY_NAMES):
+        raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_SCHEMA")
+    x = {k:np.asarray(v) for k,v in expected.items()}
+    y = {k:np.asarray(v) for k,v in actual.items()}
+    n = x["z"].shape[0]
+    shape = {"z":(n,2), "x0":(4,), "ds_m":(n,), "gy_m":(n,),
+             "Sigma_model":(2*n,2*n), "dts":(n,), "taps":(n,)}
+    if n <= 0:
+        raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_EMPTY")
+    for key in BOUNDARY_ARRAY_NAMES:
+        a, b = x[key], y[key]
+        if a.shape != shape[key] or b.shape != shape[key]:
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_SHAPE " + key)
+        if key == "taps":
+            if a.dtype.kind not in "iu" or b.dtype != a.dtype:
+                raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_TAP_DTYPE")
+            if np.any(a < 0) or np.any(a >= 4096):
+                raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_TAP_RANGE")
+        elif a.dtype.str != "<f8" or b.dtype.str != "<f8":
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_DTYPE " + key)
+        if not np.isfinite(a).all() or not np.isfinite(b).all():
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_NONFINITE " + key)
+        if array_sha(a) != array_sha(b):
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_BYTE_MISMATCH " + key)
+    hashes = {name:array_sha(x[name]) for name in BOUNDARY_ARRAY_NAMES}
+    return dict(pass_=True, schema=BOUNDARY_SCHEMA, n_arrays=len(hashes),
+                hash_algorithm="sha256(dtype.str+shape+complete_C_bytes)",
+                original_array_sha256=hashes,
+                digest=hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),
+                source="S1V5 exact field-qualified saved receipt, not regenerated inputs")
+
+
+def finite_scalar_check(*values):
+    try:
+        return bool(values and np.isfinite(np.asarray(values, dtype=float)).all())
+    except (ValueError, TypeError, OverflowError):
+        return False
