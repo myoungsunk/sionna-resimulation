@@ -27,7 +27,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /research/DLP_R1B_CH4_20261103/precision_v2/**
-            /research/DLP_R1B_CH4_20261103/precision_v1/independent_raw_audit.py
+            /research/DLP_R1B_CH4_20261103/precision_v2/independent_solver_matched_delay_audit.py
           lfs: false
       - uses: actions/setup-python@v5
         with:
@@ -73,19 +73,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -u research/DLP_R1B_CH4_20261103/precision_v1/independent_raw_audit.py             --raw-dir review_input/new_native             --out qa/INDEPENDENT_4_RAW_AUDIT.json
+          python -u research/DLP_R1B_CH4_20261103/precision_v2/independent_solver_matched_delay_audit.py             --raw-dir review_input/new_native             --out qa/INDEPENDENT_V2_4_RAW_AUDIT.json
           python - <<'PY'
           import json, pathlib, hashlib
           v=json.loads(pathlib.Path('qa/V2_PROSPECTIVE_4_NUMERICAL_QA.json').read_text())
-          i=json.loads(pathlib.Path('qa/INDEPENDENT_4_RAW_AUDIT.json').read_text())
+          i=json.loads(pathlib.Path('qa/INDEPENDENT_V2_4_RAW_AUDIT.json').read_text())
           assert v['pose_ids']==[75,305,610,809]
           assert v['verdict']=='NUMERIC_PARITY_PASS'
-          assert i['status']=='INDEPENDENT_ARITHMETIC_PASS'
-          assert i['metrics']['n']==4
-          assert i['metrics']['bridge_complex_rms']<=1e-4
+          assert i['status']=='INDEPENDENT_V2_NUMERIC_PARITY_PASS'
+          assert i['metrics']['n']==4\n          assert i['metrics']['all_tau_match']\n          assert i['metrics']['largest_path_reconstruction_absolute_error']<1e-10
+          assert i['metrics']['complex_rms']<=1e-4
           assert all(x['native_tau_equals_source_drjit_tau_on_all_bins_DIAGNOSTIC'] for x in v['records'])
-          assert abs(v['counts']['bridge_rms']-i['metrics']['bridge_complex_rms'])<=1e-11
-          assert abs(v['counts']['bridge_max']-i['metrics']['bridge_complex_max'])<=1e-11
+          assert abs(v['counts']['bridge_rms']-i['metrics']['complex_rms'])<=1e-11
+          assert abs(v['counts']['bridge_max']-i['metrics']['complex_max'])<=1e-11
           files=[]
           for p in sorted(pathlib.Path('qa').glob('*.json')):
             files.append(dict(name=p.name,size_bytes=p.stat().st_size,sha256=hashlib.sha256(p.read_bytes()).hexdigest()))
