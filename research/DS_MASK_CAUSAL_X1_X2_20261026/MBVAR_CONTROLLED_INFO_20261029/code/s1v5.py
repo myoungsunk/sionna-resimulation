@@ -349,6 +349,40 @@ def cmd_aggregate(shards, split, out):
     expected = requested_fields()
     rule_ok = expected == sorted(plan["fields"]) and set(expected) <= set(lk["splits"]["S_field"][split])
     got = sorted(int(x) for x in rows.field.unique()) if len(rows) else []
+    # R1: construct the registered key universe from the immutable plan and
+    # geometry, not from the observed rows. The SMOKE subset is diagnostic only.
+    setup = canonical_setup(lk)
+    expected_cells = (set(plan["cells_subset"]) if split == "SMOKE" and
+                      "cells_subset" in plan else set(S0V2.cells_v2(Wd.PARAMS)))
+    if set(setup["cells"]) != expected_cells:
+        raise SystemExit("ERR_A010_REGISTERED_CELL_SCOPE_MISMATCH")
+    if "sensor_seeds" in plan and list(M.SENSOR_SEEDS) != list(plan["sensor_seeds"]):
+        raise SystemExit("ERR_A010_REGISTERED_SENSOR_SCOPE_MISMATCH")
+    roles = {name:tuple(c for c in setup["cells"] if c in w["cells"])
+             for name,w in setup["wins"].items()}
+    if set(roles) != {"LOW","HIGH","REV60","FWD60"}:
+        raise SystemExit("ERR_A010_REGISTERED_ROLE_SCOPE_MISMATCH")
+    def registered_arms(role, cell):
+        if role in ("LOW","HIGH"):
+            return V.LH_ARMS
+        return ("IID_BATCH","ORACLE_CORR_BATCH") + (
+            ("XMODEL_BATCH",) if cell in S0V2.XMODEL else ())
+    expected_keys = AV.expected_s1_row_keys(expected,M.SENSOR_SEEDS,roles,registered_arms)
+    coverage = AV.exact_registered_keyset(AV.dataframe_row_keys(rows),expected_keys)
+    (out / "A010_S1_REGISTERED_ROW_COVERAGE.json").write_text(json.dumps(coverage,indent=1))
+    if len(rows):
+        batch = rows[rows.arm.astype(str).str.endswith("_BATCH") & (rows.status == "OK")]
+        numeric_cols = (["cost", "nees4_C10"] +
+                        [f"xend_{i}" for i in range(4)] +
+                        [f"C10rot_{i}{j}" for i in range(4) for j in range(i,4)])
+        # Missing scientific batch output is a completeness failure, never a PASS.
+        if len(batch):
+            try:
+                AV.enforce_finite_rows(batch,numeric_cols,"S1V5_BATCH")
+            except ValueError as ex:
+                (out / "A010_S1_NONFINITE_FAILURE.json").write_text(
+                    json.dumps(dict(status="FAIL",reason=str(ex)),indent=1))
+                raise SystemExit(str(ex)) from ex
     rows.to_csv(out / f"{PREFIX}_RESULTS_{split}.csv", index=False, float_format="%.17g"); seeds.to_csv(out / "SEED_LEDGER.csv", index=False)
     qa.to_csv(out / f"{PREFIX}_QA_{split}.csv", index=False, float_format="%.17g")
     mm = qa[qa.check == "mahalanobis_per_dim"].groupby(["role", "cell"]).value.mean(); mtol = 4 * math.sqrt(2 / (2 * N)) / math.sqrt(max(len(got), 1))
@@ -361,7 +395,8 @@ def cmd_aggregate(shards, split, out):
     n_exp = len(expected) * len(M.SENSOR_SEEDS) * (2 * len(V.LH_CELLS) * len(V.LH_ARMS) + 2 * (len(S0V2.REV_CELLS) * 3 - 1))
     fail_nc = {"|".join(k): f"{v[0]}/{v[1]}" for k, v in nc.items() if v[0] > 0.01 * v[1]}
     scope = ((b.polish_E_vs_Ep_dref <= POLISH_MAX_DREF) & (b.polish_cost_decrease <= POLISH_MAX_DCOST)) if len(b) else pd.Series(dtype=bool)
-    qaj = dict(fields_expected=expected, fields_got=got, request_field_rule_ok=bool(rule_ok), mahalanobis_tol=mtol,
+    qaj = dict(fields_expected=expected, fields_got=got, request_field_rule_ok=bool(rule_ok),
+               A010_REGISTERED_ROW_COVERAGE=coverage, mahalanobis_tol=mtol,
                mahalanobis_mean={f"{k[0]}|{k[1]}": float(v) for k, v in mm.items()},
                revisit_pose_identical_max=float(rp.max()) if len(rp) else None, revisit_time_differs_min=float(rt.min()) if len(rt) else None,
                stops=int((rows.status == "STOP_UNPHYSICAL_OBSERVATION").sum()), failures=int(rows.status.astype(str).str.startswith("FAILED").sum()),
@@ -386,7 +421,7 @@ def cmd_aggregate(shards, split, out):
     qaj["pass"] = bool(got == expected and rule_ok and len(mm) and all(abs(v - 1) <= mtol for v in mm.values) and qaj["revisit_pose_identical_max"] == 0.0
                        and (qaj["revisit_time_differs_min"] or 0) > 0 and qaj["stops"] == 0 and qaj["failures"] == 0 and qaj["n_rows"] == n_exp
                        and not fail_nc and qaj["primary_P_pd_all"] and qaj["A82_polish_all_within_scope"]
-                        and len(zips) == len(expected) and not rows.duplicated(["field", "role", "cell", "sensor_seed", "arm"]).any())
+                        and len(zips) == len(expected) and coverage["pass_"])
     (out / f"{PREFIX}_QA.json").write_text(json.dumps(qaj, indent=1, default=float))
     s0d = Path(os.environ["S0V2_RESULTS_DIR"]); s0m = json.loads((s0d / "MANIFEST.json").read_text())
     s0_ok = s0m.get("execution_status") == "PASS" and s0m.get("contract_sha256") == MF.sha256_file(MF.CONTRACT)
@@ -432,7 +467,7 @@ def cmd_aggregate(shards, split, out):
     status = "PASS" if ok else "FAIL"
     MF.write_manifest(out, phase="P2_S1", status=status, contract_sha=MF.sha256_file(MF.CONTRACT),
                       config_files=[Wd.EXP / "config/PLAN_PARAMETERS.json"] + [Wd.EXP / f"contracts/AMENDMENT-00{i}.md" for i in range(3, 10)] + [Wd.EXP / "contracts/AMENDMENT-010.md"],
-                      input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(out.glob(f"{PREFIX}_*")),
+                      input_lock=Path(os.environ.get("REFLECT_ROOT", ".")) / "out" / "INPUT_LOCK.sha256", outputs=sorted(list(out.glob(f"{PREFIX}_*")) + list(out.glob("A010_S1_*"))),
                       seed_ledger=out / "SEED_LEDGER.csv", verdict="NOT_EVALUATED", unit="field_realization",
                       limitations=["DEV3 technical qualification only, not a confirmatory experiment", "post-fit P convention C10 is numerical; statistical validity only via A8-5",
                                    "synthetic additive noise on the FFD LOS model; not RF physics", "SELF_REVIEW_ONLY; TECHNICAL_QA_ONLY"],
