@@ -2,8 +2,8 @@
   "approval_id": "MBVAR-PRR-001-S2-SCOPED-EXCEPTION-20261103",
   "date_kst": "2026-11-03",
   "request_basis": "User explicitly requested independent audit and a separate approval after S0/S1 completion",
-  "approval_decision": "APPROVE_NEXT_STAGE_S2_SCOPED_RESEARCH_PREPARATION",
-  "approval_scope": "Scientific causal study of recovery from already overconfident MB_VAR states, not S1 success reclassification",
+  "approval_decision": "VERIFY_EXISTING_OWNER_APPROVAL_AND_GO_S2_DEV",
+  "approval_scope": "Existing S2 owner approval is verified; no duplicate authorization is issued by this audit branch",
   "s1": {
     "technical": "S1_RESULT_ACCEPTED_WITH_SCOPE",
     "scientific": "S1_C3_NOT_SUPPORTED_ADOPTION_NO_GO",
@@ -57,32 +57,39 @@
     "new_RF": false
   },
   "allowed_now": [
-    "independent S2 scientific design preaudit request",
-    "development-seed-only read-only trigger feasibility",
-    "isolated S2 code preparation and synthetic/unit testing without scientific DEV execution",
-    "new S2 contract and source SHA lock preparation"
+    "S2 DEVELOPMENT ONLY pursuant to existing GO_S2_DEV token and frozen rules",
+    "Independent development result audit and case/seed protection analysis",
+    "Prepare separate locked-evaluation approval following results audit"
   ],
   "prohibited_now": [
-    "S1 result changes",
-    "S2 new-policy full development/science execution before code audit and GO_S2_DEV",
-    "S2 locked evaluation before GO_S2_LOCKED_EVAL",
-    "posthoc tuning on locked seeds",
-    "S3 checkpoint stage",
-    "claim of algorithm adoption"
+    "Any S1 scientific result revision",
+    "S2 locked evaluation without new GO_S2_LOCKED_EVAL",
+    "Posthoc threshold/seed tuning",
+    "Unconditional S3 scientific execution",
+    "Claim of S2 recovery success without traces"
   ],
   "gates": {
-    "GO_S2_DEV": false,
+    "GO_S2_DEV": true,
     "GO_S2_LOCKED_EVAL": false,
-    "external_independent_s2_design_auditor_assigned": false,
+    "independent_s2_code_audit_report_present": true,
     "require": [
-      "auditor identifier, independent session and runner",
-      "trigger feasibility on dev seeds 0-9",
-      "frozen S2 code/input/contract SHA",
-      "per-packet S1 zero-intervention parity and math/no-leak code audit",
-      "actual independent design/code auditor result",
-      "authorized stage-specific GO_S2_DEV token"
+      "S2 DEV 320 main replays/registered ablations and snapshots",
+      "Independent S2 development results and claim audit",
+      "Exact SHA/contract/checks before GO_S2_LOCKED_EVAL",
+      "Owner and auditor next phase grant per original plan"
     ]
   },
   "scope_approval_is_not_scientific_success": true,
-  "owner_signature": "NOT_CRYPTOGRAPHICALLY_SIGNED; authorization basis is the invoking user's current request"
+  "owner_signature": "EXISTING OWNER AUTHORIZATION REPORTED IN ORIGINAL REPOSITORY (no new signature by this audit branch)",
+  "current_original_branch_head_checked": "13c8ef89ffea3212847fc8e3e257ad55409bfd41",
+  "existing_authorization": {
+    "owner_document": "research/MBVAR_PRR_001_20261103/S2/OWNER_APPROVAL.json",
+    "owner_approved_S2": true,
+    "owner_document_authorizes_S3_sequence": true,
+    "original_S2_code_sha": "4eeb7f539ea40fbbc4a4d5eb477d788f2d230945",
+    "independent_code_audit": "research/MBVAR_PRR_001_20261103/S2/audit/CODE_FINDINGS_S2.md",
+    "independent_code_audit_reported_runner": "prr31117",
+    "actual_S2_DEV_token": "research/MBVAR_PRR_001_20261103/S2/audit/GO_S2_DEV.json",
+    "frozen_core_files_match_head": true
+  }
 }
