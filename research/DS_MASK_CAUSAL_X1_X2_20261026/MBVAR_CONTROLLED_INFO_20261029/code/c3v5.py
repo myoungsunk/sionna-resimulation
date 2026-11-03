@@ -676,8 +676,28 @@ def cmd_aggregate(shards, out):
     # R5-01. Verify a complete ten-terminal receipt per original C3 row,
     # including uncapped polish, common-probe descent and exact start set.
     r5_policy,r5_policy_sha=R5.spec_with_sha()
+    if (tuple(V.LH_CELLS)!=R5.LH_CELLS or
+        tuple(S0V2.REV_CELLS)!=R5.RV_CELLS or
+        set(S0V2.XMODEL)!=set(R5.XMODEL_CELLS)):
+        raise SystemExit("ERR_R5_REGISTERED_CONTRACT_CELL_DRIFT")
     cert_paths=sorted(Path(shards).glob("**/C3V5_R5_TERMINAL_CERT_*.csv"))
     CERT=pd.concat([pd.read_csv(p) for p in cert_paths],ignore_index=True) if cert_paths else pd.DataFrame()
+    # A18-02: independent source/terminal/alternative receipt metadata
+    # provenance. Never promote a reported PASS when SHA or seed is forged.
+    evidence_integrity=dict(pass_=False,reason="MISSING_TERMINAL_LEDGER",
+                            n_source_rows=len(C),n_terminals=len(CERT))
+    if len(C) and len(CERT):
+        try:
+            evidence_integrity=R5.verify_stored_r5_provenance(
+                C.to_dict("records"),CERT.to_dict("records"),
+                SENS.to_dict("records") if len(SENS) else [],
+                r5_policy_sha,T.key_seed)
+        except (ValueError,KeyError,TypeError) as exc:
+            (out/"A010_R5_EVIDENCE_INTEGRITY_FAILURE.json").write_text(
+                json.dumps(dict(status="FAIL",reason=str(exc)),indent=1))
+            raise SystemExit("ERR_R5_EVIDENCE_INTEGRITY "+str(exc)) from exc
+    (out/"A010_R5_EVIDENCE_INTEGRITY.json").write_text(
+        json.dumps(evidence_integrity,indent=1))
     cert_state=dict(status="UNRESOLVED_PRECISION",pass_=False,n_rows=len(C),
                     n_terminal_records=len(CERT),n_unresolved=len(C),
                     reason="MISSING_CERTIFIED_TERMINAL_RECEIPTS",
@@ -716,6 +736,29 @@ def cmd_aggregate(shards, out):
     if len(SENS):
         if SENS.duplicated(list(AV.ROW_KEY_FIELDS)+["alt_start"]).any():
             raise SystemExit("ERR_R5_DUPLICATE_SENSITIVITY_START")
+        # A18-03: trust neither positive diagonals nor the stored SPD bit.
+        # Independently reconstruct BOTH 4x4 C10 matrices and recompute NEES,
+        # condition, logdet, full diag ΔP and signed squared-error effects.
+        source_rows={R5._key(row):row for row in C.to_dict("records")}
+        full_check=[]
+        try:
+            for row in SENS.to_dict("records"):
+                key=R5._key(row)
+                if key not in source_rows:
+                    raise ValueError("ERR_R5_ALT_NO_REGISTERED_SOURCE")
+                full_check.append(R5.verify_stored_alternative_full_c10(
+                    row,source_rows[key]))
+        except (ValueError,KeyError,TypeError,np.linalg.LinAlgError) as exc:
+            (out/"A010_R5_ALT_C10_RECALC_FAILURE.json").write_text(
+                json.dumps(dict(status="FAIL",reason=str(exc)),indent=1))
+            raise SystemExit("ERR_R5_ALT_C10_RECALC "+str(exc)) from exc
+        for k in full_check[0]:
+            SENS["R5_RECHECK_"+k]=[v[k] for v in full_check]
+        (out/"A010_R5_ALTERNATIVE_FULL_C10_RECHECK.json").write_text(
+            json.dumps(dict(pass_=True,n_alternatives=len(full_check),
+                            upper_triangle_entries_verified=sum(
+                                x["upper_triangle_entries_checked"] for x in full_check),
+                            independent_NEESE_and_NEESALT_verified=True),indent=1))
         flags=[R5.numeric_flags(r,r5_policy) for r in SENS.to_dict("records")]
         SENS["R5_MATERIAL_NUMERIC_SENSITIVITY"]=[f["material_numeric_sensitivity"] for f in flags]
         SENS["R5_MAX_NORMALIZED_SQERR_DELTA"]=[f["max_scaled_squared_error_delta"] for f in flags]
@@ -739,7 +782,9 @@ def cmd_aggregate(shards, out):
         sep=pd.read_csv(s0root/"S0V2_SEP.csv")
         paired_science=R5.field_paired_conclusion_gate(science,SENS,
                             (pred,did,revisit,sep,lk["resolved"]["EFFECT_SIZE_RULES"]),
-                            r5_policy)
+                            r5_policy,require_full_keys=True,
+                            registered_fields=fields,
+                            registered_sensor_seeds=M.SENSOR_SEEDS)
     (out/"A010_R5_COMMON_PRECISION.json").write_text(json.dumps(cert_state,indent=1))
     (out/"A010_R5_FIELD_PAIRED_CONCLUSION_STABILITY.json").write_text(
         json.dumps(paired_science,indent=1,default=float))
