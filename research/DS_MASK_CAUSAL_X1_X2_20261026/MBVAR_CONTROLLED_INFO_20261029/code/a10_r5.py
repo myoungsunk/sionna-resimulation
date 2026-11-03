@@ -49,26 +49,70 @@ def finite(*args):
         return False
 
 
+def _terminal_bool(value):
+    """Deserialize CSV round-trip bool without Python's bool("False") trap.
+
+    Unknown/missing encodings never default to a successful certificate.
+    """
+    if isinstance(value,(bool,np.bool_)):
+        return bool(value)
+    if isinstance(value,str) and value in ("True","False"):
+        return value=="True"
+    return None
+
+
+def _terminal_end_state(value):
+    """Require exactly four finite state scalars from live arrays or CSV JSON."""
+    if isinstance(value,str):
+        try:
+            value=json.loads(value)
+        except (ValueError,TypeError):
+            return None
+    try:
+        a=np.asarray(value,dtype=np.float64)
+    except (ValueError,TypeError,OverflowError):
+        return None
+    return a if a.shape==(4,) and np.isfinite(a).all() else None
+
+
+def _terminal_steps(value,max_steps):
+    try:
+        n=float(value)
+    except (TypeError,ValueError,OverflowError):
+        return None
+    if not math.isfinite(n) or n!=int(n) or not (0<=n<=max_steps):
+        return None
+    return int(n)
+
+
 def validate_terminals(records,cfg,required=SOLS):
-    """Strict ten-solution set; a single bad/capped/probe-descending state
-    blocks science scope, but does not delete a legacy H/CAL observation.
+    """Exact E'+9 nonoracle terminal certificate, both live and CSV replay.
+
+    A failed CSV schema/cap/descent check yields UNRESOLVED_PRECISION.
+    Neither textual "False" nor stringified 4D state is implicitly coerced
+    to a misleading truth value. This is stricter than the original schema.
     """
     records=list(records); names=[r.get("start") for r in records]
     reasons=[]
     if len(records)!=len(required) or set(names)!=set(required) or len(set(names))!=len(names):
         reasons.append("ERR_R5_TERMINAL_SET")
     tol=float(cfg["polish"]["cost_descent_tol_chi2"])
+    max_steps=int(cfg["polish"]["max_steps"])
     for r in records:
         name=str(r.get("start"))
-        if not finite(r.get("cost"),r.get("dmin"),r.get("end_state")):
-            reasons.append("ERR_R5_NONFINITE_"+name);continue
-        if bool(r.get("polish_hit_cap",True)):
+        cap=_terminal_bool(r.get("polish_hit_cap"))
+        state=_terminal_end_state(r.get("end_state"))
+        steps=_terminal_steps(r.get("polish_steps"),max_steps)
+        if state is None or not finite(r.get("cost"),r.get("dmin")):
+            reasons.append("ERR_R5_NONFINITE_OR_INVALID_STATE_"+name)
+        if cap is None:
+            reasons.append("ERR_R5_POLISH_CAP_SCHEMA_"+name)
+        elif cap:
             reasons.append("ERR_R5_POLISH_CAP_"+name)
-        if int(r.get("polish_steps",-1))<0 or int(r.get("polish_steps",-1))>30:
+        if steps is None:
             reasons.append("ERR_R5_POLISH_STEPS_"+name)
-        if float(r["dmin"]) < -tol:
+        if finite(r.get("dmin")) and float(r["dmin"]) < -tol:
             reasons.append("ERR_R5_COMMON_PROBE_DESCENT_"+name)
-        # Oracle-only truth does not belong in this set.
         if name=="truth":
             reasons.append("ERR_R5_ORACLE_IN_CERTIFICATE")
     return dict(status="PASS" if not reasons else "UNRESOLVED_PRECISION",
