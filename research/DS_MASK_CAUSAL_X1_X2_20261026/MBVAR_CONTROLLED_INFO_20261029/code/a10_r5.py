@@ -304,6 +304,67 @@ def _incomplete(reason, **detail):
                 science_release_allowed=False,**detail)
 
 
+def verify_stored_r5_provenance(source_rows,terminal_rows,alt_rows,policy_sha,seed_fn):
+    """A18-02: exact policy and deterministic row-key seed for ALL receipts.
+
+    Reject a missing or mismatched SHA/seed, including 1-bit mutations.
+    No trust is placed in the source-row's declared PASS status.
+    """
+    rows=list(source_rows);certs=list(terminal_rows);alts=list(alt_rows)
+    if not rows:
+        raise ValueError("ERR_R5_PROVENANCE_MISSING_SOURCE")
+    registered={}
+    for r in rows:
+        key=_key(r)
+        if key in registered:
+            raise ValueError("ERR_R5_PROVENANCE_DUPLICATE_SOURCE_KEY")
+        if r.get("R5_POLICY_SHA256")!=policy_sha:
+            raise ValueError("ERR_R5_PROVENANCE_SOURCE_POLICY_SHA")
+        seed=int(seed_fn("R5_CERT",int(key[0]),key[1],key[2],int(key[3]),key[4]))
+        if not _seed_equal(r.get("R5_CERT_SEED"),seed):
+            raise ValueError("ERR_R5_PROVENANCE_SOURCE_SEED")
+        registered[key]=seed
+    byrow=defaultdict(set)
+    for r in certs:
+        key=_key(r);name=str(r.get("start"))
+        if key not in registered or name not in SOLS or name in byrow[key]:
+            raise ValueError("ERR_R5_PROVENANCE_TERMINAL_EXTRA_DUPLICATE")
+        if r.get("r5_policy_sha256")!=policy_sha:
+            raise ValueError("ERR_R5_PROVENANCE_TERMINAL_POLICY_SHA")
+        if not _seed_equal(r.get("r5_cert_seed"),registered[key]):
+            raise ValueError("ERR_R5_PROVENANCE_TERMINAL_SEED")
+        byrow[key].add(name)
+    if set(byrow)!=set(registered) or any(byrow[k]!=set(SOLS) for k in registered):
+        raise ValueError("ERR_R5_PROVENANCE_TERMINAL_SET_NOT_COMPLETE")
+    seen=set()
+    for r in alts:
+        key=_key(r);name=str(r.get("alt_start"))
+        if key not in registered or name not in STARTS or (key,name) in seen:
+            raise ValueError("ERR_R5_PROVENANCE_ALTERNATIVE_EXTRA_DUPLICATE")
+        seen.add((key,name))
+        if r.get("R5_POLICY_SHA256")!=policy_sha:
+            raise ValueError("ERR_R5_PROVENANCE_ALTERNATIVE_POLICY_SHA")
+        if not _seed_equal(r.get("r5_cert_seed"),registered[key]):
+            raise ValueError("ERR_R5_PROVENANCE_ALTERNATIVE_SEED")
+    return dict(pass_=True,registered_rows=len(rows),
+                verified_terminal_records=len(certs),
+                verified_alternative_records=len(alts),
+                policy_sha256=policy_sha,science_release_allowed=False)
+
+
+def _seed_equal(value,expected):
+    """No float conversion for 60-bit SHA-derived seeds (precision loss)."""
+    if isinstance(value,(bool,np.bool_)) or isinstance(value,(float,np.floating)):
+        return False
+    try:
+        if isinstance(value,str):
+            if not value.isdecimal() or value.startswith("+"):
+                return False
+        return int(value)==expected
+    except (ValueError,TypeError,OverflowError):
+        return False
+
+
 def _hypotheses(pred,did_pred,rvpred,sep_pred,eff,lh_primary,rv_cells,xmodel_cells):
     """All original V.decide_v2 registered primary H1/H2/H3/CAL/H4/H4_REPRO
     contrasts. A term is (weight, role, cell, arm, state, 'infl'|'mse').
