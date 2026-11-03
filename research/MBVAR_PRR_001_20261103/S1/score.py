@@ -1,7 +1,7 @@
 """Postprocess a completed trace using scoring-only ground truth."""
 import numpy as np
 from scipy.stats import chi2
-def score(pk,tr,truth,channel):
+def score(pk,tr,truth,channel,epsilon_s):
  x=tr['x'];P=tr['P'];t=truth['t'];gt=truth['truth']
  e=np.column_stack((x[:,:3]-gt,x[:,3]-truth['bg']));e[:,2]=np.angle(np.exp(1j*e[:,2]))
  rad=gt[:,:2]-[10.,0.];rho=np.linalg.norm(rad,axis=1);rad=rad/rho[:,None];tan=np.column_stack((-rad[:,1],rad[:,0]))
@@ -23,7 +23,16 @@ def score(pk,tr,truth,channel):
   d['precision']=d['true_positive']/d['discounted'] if d['discounted'] else None;d['recall']=d['true_positive']/d['large'] if d['large'] else None
   d['clean_loss']=d['clean_flagged']/d['clean'] if d['clean'] else None;d['pregate_nis_mean']=float(np.mean(tr['nis'][sel]))
   if elig.any():
-   r=tr['nu'][elig,1]**2;v=tr['Reff'][elig,1,1];d['mean_residual2_over_R']=float(np.mean(r/v));d['ratio_mean_residual2_to_mean_R']=float(np.mean(r)/np.mean(v))
+   v=tr['Reff'][elig,1,1]
+   for label,series in [('innovation',tr['nu'][:,1]),('measurement_epsilon',epsilon_s)]:
+    squares=series[elig]**2
+    d[f'mean_{label}2_over_Reff_joint_accepted']=float(np.mean(squares/v))
+    d[f'ratio_mean_{label}2_to_mean_Reff_joint_accepted']=float(np.mean(squares)/np.mean(v))
+   used=elig&(tr['weight']>0)
+   if used.any():
+    squares=epsilon_s[used]**2;variance=tr['Reff'][used,1,1]
+    d['mean_epsilon2_over_Reff_s_used']=float(np.mean(squares/variance))
+    d['ratio_mean_epsilon2_to_mean_Reff_s_used']=float(np.mean(squares)/np.mean(variance))
   for q in (.50,.95,.99):d[f'packet_p{round(q*100)}_ms']=float(np.quantile(tr['latency_ns'][sel],q)/1e6)
   out.append(d)
  return out
