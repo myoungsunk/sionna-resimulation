@@ -357,6 +357,7 @@ def cmd_run(field, group, out):
                                   R5_ALTERNATIVE_ADMISSIBLE=bool(r5_precision["pass_"] and eigP>0),
                                   R5_PRECISION_STATUS=r5_precision["status"],
                                   R5_POLICY_SHA256=r5_policy_sha,
+                                  r5_cert_seed=int(common_seed),
                                   delta_chi2=float(cost-r["cost"]),
                                   end_dref=dref_diff(XE[-1], XX[-1]),
                                   covariance_alt_spd=bool(eigP > 0), nees4_E=float(r["nees4_C10"]),
@@ -379,6 +380,7 @@ def cmd_run(field, group, out):
                             sr[f"delta_sq_err_{label}"] = float(erA[j]**2-erE[j]**2)
                             sr[f"delta_P_{label}"] = float(PP_r[j,j]-Pe[j,j])
                             sr[f"alt_end_error_{label}"] = float(erA[j])
+                            sr[f"R5_E_END_ERROR_{label}"] = float(erE[j])
                         sensitivity_rows.append(sr)
                     # Truth-start is a diagnostic, NEVER part of the operational/reference best-start choice.
                     nonoracle = {k:v for k,v in sol.items() if k != "truth"}
@@ -390,6 +392,7 @@ def cmd_run(field, group, out):
                         raise SystemExit(f"ERR_A010_ESTIMATOR_INPUT_BYTES {kb}|{arm} {integrity['mismatches']}")
                     rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm,
                                 R5_POLICY_SHA256=r5_policy_sha,
+                                R5_CERT_SEED=int(common_seed),
                                 R5_PRECISION_STATUS=r5_precision["status"],
                                 R5_PRECISION_PASS=r5_precision["pass_"],
                                 R5_N_SOLUTIONS=r5_precision["n_solutions"],
