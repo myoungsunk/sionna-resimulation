@@ -252,7 +252,7 @@ def field_paired_conclusion_gate(science_rows,alternatives,reference,config,
     if S.duplicated(list(ROWKEY)).any() or len(S)==0:
         raise ValueError("ERR_R5_MAIN_KEYSET")
     keys={_key(r) for r in S.to_dict("records")}
-    if A.duplicated(list(ROWKEY)+["alt_start"]).any():
+    if len(A) and A.duplicated(list(ROWKEY)+["alt_start"]).any():
         raise ValueError("ERR_R5_ALT_DUPLICATE")
     if len(A) and not {_key(x) for x in A.to_dict("records")}.issubset(keys):
         raise ValueError("ERR_R5_ALT_EXTRA_KEY")
