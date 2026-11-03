@@ -1,0 +1,128 @@
+name: MBVAR A010 R5 archived terminal CSV validator replay (technical, no science)
+on:
+  push:
+    branches: [implement/mbvar-a010-r5-precision-sensitivity-20261103]
+    paths:
+      - '.github/workflows/mbvar-a010-r5-aggregate-replay-20261103.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  GIT_LFS_SKIP_SMUDGE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  c3-aggregate-replay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/scripts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/config
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P1_S0V2_run_40863614683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install pinned numeric stack
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+      - name: Verify original DRAFT and input source
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '9e6b8bd72f9e935315eecdfd0c38c42f18db58f535c1596dbbfe391db383b77b  '"$EXP/RUN_REQUEST.json" | sha256sum -c -
+          test "$(git hash-object "$EXP/code/contract_lock.py")" = "a62d43dfce65d7a9ec9cc061916ecc836960d4e9"
+          test "$(git hash-object "$EXP/contracts/AMENDMENT-010.md")" = "3ee2e9995f46bfbe8e6e563fb18605feb47ba56f"
+      - name: Retrieve EXACT archived failed SMOKE data (fields 900 and 901 only)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/archive"
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/13212596577/zip" > "$RUNNER_TEMP/archive/failed-smoke.zip"
+          echo "db018998861332b69c2ca2df3203731339315fde3a5603c552706e85d0b032ee  $RUNNER_TEMP/archive/failed-smoke.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/archive/failed-smoke.zip" -d "$RUNNER_TEMP"
+          test -s "$RUNNER_TEMP/e2e/c3sh/900LH/C3V5_R5_TERMINAL_CERT_900_LH.csv"
+          test -s "$RUNNER_TEMP/e2e/c3sh/901RV/C3V5_R5_TERMINAL_CERT_901_RV.csv"
+          test -s "$RUNNER_TEMP/e2e/s1agg/S1V5_RESULTS_SMOKE.csv"
+      - name: Download only original locked FFD code, not RF simulation
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          test -s "$REFLECT_ROOT/out/INPUT_LOCK.sha256"
+      - name: Check 100 original terminal CSV rows by current R5 validator (no source lock override)
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - "$EXP" "$RUNNER_TEMP/e2e" <<'PY'
+          import copy, json, pathlib, sys, os
+          import pandas as pd
+          project=pathlib.Path(sys.argv[1]);root=pathlib.Path(sys.argv[2])
+          sys.path.insert(0,str(project/"code"))
+          import a10_r5 as R5
+          cfg,policy_sha=R5.spec_with_sha()
+          keys=["field","role","cell","sensor_seed","arm"]
+          records=[]
+          for folder,suffix in (("900LH","900_LH"),("901RV","901_RV")):
+              cert=pd.read_csv(root/f"c3sh/{folder}/C3V5_R5_TERMINAL_CERT_{suffix}.csv")
+              rows=pd.read_csv(root/f"c3sh/{folder}/C3V5_ROWS_{suffix}.csv")
+              assert not rows.duplicated(keys).any() and not cert.duplicated(keys+["start"]).any()
+              groups={k:v.to_dict("records") for k,v in cert.groupby(keys)}
+              expected={tuple(x[k] for k in keys) for x in rows.to_dict("records")}
+              assert set(groups)==expected
+              for row in rows.to_dict("records"):
+                  key=tuple(row[k] for k in keys)
+                  evidence=groups[key]
+                  out=R5.validate_terminals(evidence,cfg)
+                  assert out["n_solutions"]==10 and out["n_expected"]==10
+                  assert out["status"]==row["R5_PRECISION_STATUS"]
+                  assert out["pass_"]==bool(row["R5_PRECISION_PASS"])
+                  assert row["R5_POLICY_SHA256"]==policy_sha
+                  assert all(x["r5_policy_sha256"]==policy_sha for x in evidence)
+                  raw=copy.deepcopy(evidence)
+                  raw[0]["polish_hit_cap"]="False"
+                  assert R5.validate_terminals(raw,cfg)["pass_"]==out["pass_"]
+                  for attack,val in (("polish_hit_cap","True"),("polish_hit_cap","invalid"),
+                                     ("end_state","[0,0,nan,0]"),("dmin","-0.1")):
+                      bad=copy.deepcopy(raw);bad[0][attack]=val
+                      blocked=R5.validate_terminals(bad,cfg)
+                      assert blocked["status"]=="UNRESOLVED_PRECISION" and not blocked["pass_"]
+                  records.append(dict(key=list(key),status=out["status"],n_solutions=len(evidence)))
+          assert len(records)==10 and all(x["status"]=="PASS" for x in records)
+          report=dict(status="R5_TERMINAL_CSV_REPLAY_PASS",
+                      original_artifact_sha256="db018998861332b69c2ca2df3203731339315fde3a5603c552706e85d0b032ee",
+                      original_tested_source_sha="8511a3196a95408e3f8379bc13af6614ef707190",
+                      current_validation_source_sha=os.environ["GITHUB_SHA"],
+                      n_rows=len(records),n_terminals=sum(x["n_solutions"] for x in records),
+                      negative_mutations_checked=40,
+                      scope="ARCHIVED_TERMINAL_CSV_VALIDATION_ONLY_NOT_FULL_C3_SCIENCE",
+                      a010_science_frozen=False,dev3="NO-GO",holdout2="NO-GO",rt="NO-GO",
+                      original_full_C3_G5_status="FAIL",rows=records)
+          (root/"R5_CSV_VALIDATION.json").write_text(json.dumps(report,indent=2)+"\n")
+          print("A010_R5_ARCHIVED_TERMINAL_CSV_REPLAY_PASS",len(records),report["n_terminals"],flush=True)
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-r5-c3agg-replay-${{ github.run_id }}
+          path: ${{ runner.temp }}/e2e/R5_CSV_VALIDATION.json
+          if-no-files-found: warn
+          retention-days: 90

@@ -28,6 +28,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import a10_canonical as CAN  # noqa: E402
 import a10_validation as AV  # noqa: E402
+import a10_r5 as R5  # noqa: E402
 import a8_jac as AJ  # noqa: E402
 import filters as FL  # noqa: E402
 import info_core as IC  # noqa: E402
@@ -197,7 +198,13 @@ def cmd_run(field, group, out):
     if field not in lk["run_plan"]["C3V5"]["fields"]:
         raise SystemExit("ERR_SPLIT_LEAK C3V5 runs on the frozen S1V5 DEV3 fields only")
     out = Path(out); out.mkdir(parents=True, exist_ok=True)
+    # Proposer R5 contract is read-only DRAFT and cannot authorise DEV3.
+    r5_policy, r5_policy_sha = R5.spec_with_sha()
+    if (T.POLISH_TOL != r5_policy["polish"]["cost_descent_tol_chi2"] or
+        T.POLISH_MAX != r5_policy["polish"]["max_steps"]):
+        raise SystemExit("ERR_R5_F2_CONFIG_NOT_PROPOSER_SPEC")
     S = T.canonical_setup(lk); root = M.seed_root(); rows = []; sensitivity_rows = []
+    precision_rows = []
     rec, receipt_stats = load_receipts_with_stats(s1v5_dir(), strict=True)
     if not receipt_stats["strict_index_verified"]:
         raise SystemExit("ERR_A010_INDEX_NOT_VERIFIED")
@@ -278,6 +285,7 @@ def cmd_run(field, group, out):
                     starts["x+1"] = (x0 + np.r_[sd0[0], 0, 0, 0], np.zeros((N, 2))); starts["y+1"] = (x0 + np.r_[0, sd0[1], 0, 0], np.zeros((N, 2)))
                     starts["truth"] = (w["Xtrue"][0].copy(), -inp["vn"])
                     sol = {"E": (r["cost"], XE)}; sol_theta = {"E": thp}
+                    sol_polish = {"E": (int(r["polish_steps"]),bool(r["polish_hit_cap"]))}
                     for nm, th in starts.items():
                         # R3: all diagnostic solver calls use the same saved bytes.
                         AV.optimizer_boundary_attestation(boundary_expected,
@@ -291,7 +299,7 @@ def cmd_run(field, group, out):
                         # D4: score each truth-free alternative after the same F2
                         # polish and the same exact objective as E'. Oracle-only
                         # truth is still excluded from best-start and mode choice.
-                        th_diag, _, _ = T.polish(ht, z, Sm, dsm, gym, w["dts"], x0,
+                        th_diag, n_diag, cap_diag = T.polish(ht, z, Sm, dsm, gym, w["dts"], x0,
                                                  Is["theta"],
                                                  T.key_seed("DIAG_POLISH", field, w["role"], cn, sn, arm, nm))
                         Lm, L0, qv = T.B3._mats(Sm, dsm, w["dts"])
@@ -302,6 +310,27 @@ def cmd_run(field, group, out):
                                 all(np.isfinite(t).all() for t in th_diag)):
                             raise SystemExit("ERR_A010_NONFINITE_DIAGNOSTIC_SOLUTION")
                         sol[nm] = (float(c_diag), X_diag); sol_theta[nm] = th_diag
+                        if nm!="truth":
+                            sol_polish[nm]=(int(n_diag),bool(cap_diag))
+                    # R5: exactly E' plus nine truth-free starts must all pass
+                    # the SAME row-keyed terminal common GN/random probe. Truth
+                    # start is deliberately absent, not a tenth diagnostic start.
+                    common_seed = T.key_seed("R5_CERT",field,w["role"],cn,sn,arm)
+                    cert_items=[]
+                    for cert_name in R5.SOLS:
+                        nsteps,hit_cap=sol_polish[cert_name]
+                        item=R5.certify_at_terminal(T,ht,z,Sm,dsm,gym,w["dts"],x0,
+                                   sol_theta[cert_name],common_seed,nsteps,
+                                   hit_cap,cert_name)
+                        item.update(field=field,role=w["role"],cell=cn,
+                                    sensor_seed=sn,arm=arm,
+                                    r5_policy_sha256=r5_policy_sha,
+                                    r5_cert_seed=common_seed)
+                        cert_items.append(item)
+                    r5_precision=R5.validate_terminals(cert_items,r5_policy)
+                    precision_rows.extend(cert_items)
+                    # A rejected candidate remains in a complete R5 ledger;
+                    # never omit it to artificially improve identification.
                     # D4 prospectively saves individual near-cost alternatives, not only the best.
                     # These are paired with E' on the same field, geometry and noise;
                     # H1/H2/H3 science statistics continue to use all original rows.
@@ -324,11 +353,28 @@ def cmd_run(field, group, out):
                         eigP = float(np.linalg.eigvalsh(PP_r)[0])
                         detE, detA = np.linalg.slogdet(Pe), np.linalg.slogdet(PP_r)
                         sr = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn,
-                                  arm=arm, alt_start=nm, delta_chi2=float(cost-r["cost"]),
+                                  arm=arm, alt_start=nm,
+                                  R5_ALTERNATIVE_ADMISSIBLE=bool(r5_precision["pass_"] and eigP>0),
+                                  R5_PRECISION_STATUS=r5_precision["status"],
+                                  R5_POLICY_SHA256=r5_policy_sha,
+                                  delta_chi2=float(cost-r["cost"]),
                                   end_dref=dref_diff(XE[-1], XX[-1]),
                                   covariance_alt_spd=bool(eigP > 0), nees4_E=float(r["nees4_C10"]),
                                   nees4_alt=neA, delta_nees4=float(neA-r["nees4_C10"]),
                                   delta_logdet_P=float(detA[1]-detE[1]) if detE[0]>0 and detA[0]>0 else float("nan"))
+                        # R5 full matrix provenance: all ten unique entries of
+                        # BOTH the operational E' and the alternative C10.
+                        # Diagonal-only comparisons cannot validate NEES or
+                        # correlated-state covariance claims.
+                        sr.update({f"R5_C10E_{i}{j}":float(Pe[i,j])
+                                   for i in range(4) for j in range(i,4)})
+                        sr.update({f"R5_C10ALT_{i}{j}":float(PP_r[i,j])
+                                   for i in range(4) for j in range(i,4)})
+                        sr["R5_C10ALT_MIN_EIG"]=eigP
+                        sr["R5_C10ALT_LOG10_COND"]=(float(np.log10(np.linalg.cond(
+                            PP_r/np.sqrt(np.diag(PP_r))[:,None]/
+                            np.sqrt(np.diag(PP_r))[None,:])))
+                            if eigP>0 else float("inf"))
                         for j, label in enumerate(T.STATES):
                             sr[f"delta_sq_err_{label}"] = float(erA[j]**2-erE[j]**2)
                             sr[f"delta_P_{label}"] = float(PP_r[j,j]-Pe[j,j])
@@ -343,6 +389,13 @@ def cmd_run(field, group, out):
                     if not integrity["pass_"]:
                         raise SystemExit(f"ERR_A010_ESTIMATOR_INPUT_BYTES {kb}|{arm} {integrity['mismatches']}")
                     rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm,
+                                R5_POLICY_SHA256=r5_policy_sha,
+                                R5_PRECISION_STATUS=r5_precision["status"],
+                                R5_PRECISION_PASS=r5_precision["pass_"],
+                                R5_N_SOLUTIONS=r5_precision["n_solutions"],
+                                R5_N_UNCERTIFIED=r5_precision["n_failures"],
+                                R5_UNCERTIFIED_REASONS=";".join(r5_precision["failure_reasons"]),
+                                R5_COMMON_PROBE_DMIN=float(min(item["dmin"] for item in cert_items)),
                                 OPTIMIZER_BOUNDARY_EXACT=r["OPTIMIZER_BOUNDARY_EXACT"],
                                 OPTIMIZER_BOUNDARY_INPUT_SHA=r["OPTIMIZER_BOUNDARY_INPUT_SHA"],
                                 OPTIMIZER_BOUNDARY_ARRAYS_CHECKED=r["OPTIMIZER_BOUNDARY_ARRAYS_CHECKED"],
@@ -372,6 +425,9 @@ def cmd_run(field, group, out):
                     rows.append(rec_)
         print("C3V5", field, group, cn, len(rows), flush=True)
     pd.DataFrame(rows).to_csv(out / f"C3V5_ROWS_{field}_{group}.csv", index=False, float_format="%.17g")
+    if precision_rows:
+        pd.DataFrame(precision_rows).to_csv(out / f"C3V5_R5_TERMINAL_CERT_{field}_{group}.csv",
+                                            index=False,float_format="%.17g")
     if sensitivity_rows:
         pd.DataFrame(sensitivity_rows).to_csv(out / f"C3V5_MODE_SENSITIVITY_{field}_{group}.csv",
                                               index=False, float_format="%.17g")
@@ -612,8 +668,97 @@ def cmd_aggregate(shards, out):
         mode["n_fields_with_alternative"] = 0
         mode["paired_sensitivity_status"] = "NO_RECORDED_AMBIGUOUS_MODE"
     # Only registered near-cost competitor rows may appear in the sensitivity ledger.
-    if len(SENS) != int(C.n_alt_ambiguous.sum()) if len(C) else len(SENS) != 0:
+    if (len(SENS) != int(C.n_alt_ambiguous.sum())) if len(C) else (len(SENS) != 0):
         raise SystemExit("ERR_A010_MODE_SENSITIVITY_COUNT")
+    # R5-01. Verify a complete ten-terminal receipt per original C3 row,
+    # including uncapped polish, common-probe descent and exact start set.
+    r5_policy,r5_policy_sha=R5.spec_with_sha()
+    cert_paths=sorted(Path(shards).glob("**/C3V5_R5_TERMINAL_CERT_*.csv"))
+    CERT=pd.concat([pd.read_csv(p) for p in cert_paths],ignore_index=True) if cert_paths else pd.DataFrame()
+    cert_state=dict(status="UNRESOLVED_PRECISION",pass_=False,n_rows=len(C),
+                    n_terminal_records=len(CERT),n_unresolved=len(C),
+                    reason="MISSING_CERTIFIED_TERMINAL_RECEIPTS",
+                    policy_sha256=r5_policy_sha,science_release_allowed=False)
+    if len(CERT):
+        if CERT.duplicated(list(AV.ROW_KEY_FIELDS)+["start"]).any():
+            raise SystemExit("ERR_R5_DUPLICATE_TERMINAL_START")
+        groups={tuple(k):v.to_dict("records") for k,v in CERT.groupby(list(AV.ROW_KEY_FIELDS))}
+        expected_keys={tuple(r[k] for k in AV.ROW_KEY_FIELDS) for _,r in C.iterrows()}
+        if set(groups)!=expected_keys:
+            raise SystemExit("ERR_R5_TERMINAL_ROWKEY_MISMATCH")
+        unresolved=[];summary=[]
+        for _,r in C.iterrows():
+            key=tuple(r[k] for k in AV.ROW_KEY_FIELDS)
+            verdict=R5.validate_terminals(groups[key],r5_policy)
+            if (verdict["status"]!=str(r["R5_PRECISION_STATUS"]) or
+                verdict["pass_"]!=bool(r["R5_PRECISION_PASS"])):
+                raise SystemExit("ERR_R5_TERMINAL_ROW_VERDICT_MISMATCH")
+            if not verdict["pass_"]:
+                unresolved.append(dict(key=list(key),errors=verdict["failure_reasons"]))
+            summary.append(dict(zip(AV.ROW_KEY_FIELDS,key),
+                                 R5_PRECISION_STATUS=verdict["status"],
+                                 R5_TERMINAL_COUNT=verdict["n_solutions"],
+                                 R5_TERMINAL_FAIL_COUNT=verdict["n_failures"]))
+        cert_state=dict(status=("PASS" if not unresolved else "UNRESOLVED_PRECISION"),
+                        pass_=not unresolved,n_rows=len(C),
+                        n_terminal_records=len(CERT),n_unresolved=len(unresolved),
+                        unresolved_keys=unresolved[:30],
+                        policy_sha256=r5_policy_sha,
+                        science_release_allowed=False)
+        pd.DataFrame(summary).to_csv(out/"A010_R5_TERMINAL_PRECISION_BY_ROW.csv",
+                                      index=False)
+        CERT.to_csv(out/"A010_R5_TERMINAL_PRECISION_DETAILS.csv",index=False)
+    # R5-02. Numeric flags are prospective; they must not delete or relabel
+    # ambiguous starts in the main S1V5 H/CAL data or science analysis.
+    if len(SENS):
+        if SENS.duplicated(list(AV.ROW_KEY_FIELDS)+["alt_start"]).any():
+            raise SystemExit("ERR_R5_DUPLICATE_SENSITIVITY_START")
+        flags=[R5.numeric_flags(r,r5_policy) for r in SENS.to_dict("records")]
+        SENS["R5_MATERIAL_NUMERIC_SENSITIVITY"]=[f["material_numeric_sensitivity"] for f in flags]
+        SENS["R5_MAX_NORMALIZED_SQERR_DELTA"]=[f["max_scaled_squared_error_delta"] for f in flags]
+        if any(not f["numeric_finite"] for f in flags):
+            cert_state["pass_"]=False;cert_state["status"]="UNRESOLVED_PRECISION"
+            cert_state["reason"]="NONFINITE_SENSITIVITY_EFFECT"
+        SENS.to_csv(out/"A010_R5_FIELD_PAIRED_ALTERNATIVE_DETAILS.csv",index=False)
+    paired_science=dict(status="NOT_EVALUATED_INCOMPLETE",
+                        reason="NO_FULL_REGISTERED_FIELDS_OR_PRECISION_CERTIFICATE",
+                        n_registered_rows=len(C),n_expected_rows=n_exp,
+                        science_release_allowed=False)
+    if allrows and cert_state["pass_"]:
+        # Same original S1V5 field-level data used for all H/CAL effects.
+        # None of the outcomes of DEV3 or HOLDOUT2 are opened pre-freeze.
+        raw_science=pd.read_csv(src/f"S1V5_RESULTS_{SPLIT}.csv")
+        science=T.B3.with_P(raw_science,AJ.PRIMARY)
+        s0root=Path(os.environ["S0V2_RESULTS_DIR"])
+        pred=pd.read_csv(s0root/"S0V2_PREDICTIONS.csv").set_index(["role","cell"])
+        did=pd.read_csv(s0root/"S0V2_DID.csv")
+        revisit=pd.read_csv(s0root/"S0V2_REVISIT.csv").set_index(["role","cell","arm"])
+        sep=pd.read_csv(s0root/"S0V2_SEP.csv")
+        paired_science=R5.field_paired_conclusion_gate(science,SENS,
+                            (pred,did,revisit,sep,lk["resolved"]["EFFECT_SIZE_RULES"]),
+                            r5_policy)
+    (out/"A010_R5_COMMON_PRECISION.json").write_text(json.dumps(cert_state,indent=1))
+    (out/"A010_R5_FIELD_PAIRED_CONCLUSION_STABILITY.json").write_text(
+        json.dumps(paired_science,indent=1,default=float))
+    mode["R5_PRECISION"]=cert_state
+    mode["R5_SCIENTIFIC_CONCLUSION_SENSITIVITY"]=dict(
+        status=paired_science["status"],
+        alternative_changes_conclusion=paired_science.get("alternative_changes_conclusion"),
+        potential_changed_hypotheses=paired_science.get("possible_changed_hypotheses"),
+        science_release_allowed=False)
+    if cert_state["status"]!="PASS":
+        mode["legacy_pre_r5_mode_status"]=mode["status"]
+        mode["status"]="UNRESOLVED_PRECISION"
+    # Even when no ambiguity was found on a finite nine-start grid,
+    # global uniqueness remains unproved.
+    mode["unique_map_claim_allowed"]=False
+    crit["R5_PRECISION_SCOPE_REPORTED"]=dict(pass_=cert_state["pass_"],
+                       status=cert_state["status"],
+                       note="scientific scope gate; not part of G5_NUMERIC_REPLAY")
+    crit["R5_ALTERNATIVE_CONCLUSION_SCOPE_REPORTED"]=dict(
+                       pass_=paired_science["status"]=="STABLE_ON_GRID_AND_CONSERVATIVE_BOUNDS",
+                       status=paired_science["status"],
+                       note="no auto science release; prospective field bootstrap")
     C[["field", "role", "cell", "sensor_seed", "arm", "n_alt_ambiguous",
        "E_vs_best_dref", "alt_ambiguous_starts"]].to_csv(out / "A010_MODE_IDENTIFIABILITY.csv", index=False) if len(C) else None
     numeric = AV.gate_verdict(crit)

@@ -1,0 +1,142 @@
+name: MBVAR A010 R5 terminal precision and field-block science scope QA (SMOKE 900/901 reduced e2e; no research run)
+# TECHNICAL QA ONLY. Not RUN_REQUEST driven, writes nothing to the repository (contents: read), uploads artifacts only.
+# Never DEV3 (20-29), HOLDOUT2 (5000-5059), reserve (5060-5119) or RT. A green run is NOT a scientific result.
+on:
+  push:
+    branches:
+      - 'implement/mbvar-a010-r5-precision-sensitivity-20261103'
+    paths:
+      - '.github/workflows/mbvar-a010-r5-terminal-sensitivity-20261103.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts/AMENDMENT-010-D2D3D4D6-DRAFT.md'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/**'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+  RUN_REQUEST_SHA256: 9e6b8bd72f9e935315eecdfd0c38c42f18db58f535c1596dbbfe391db383b77b
+  GIT_LFS_SKIP_SMUDGE: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  a010-fast-contract-and-negative-fixtures:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install pinned pure math tests
+        run: python -m pip install numpy==2.3.3 pandas==2.3.2 pytest==8.3.3
+      - name: Python syntax plus adversarial receipts and split tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import pathlib
+          root=pathlib.Path("research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029")
+          for p in sorted((root/"code").glob("*.py"))+sorted((root/"tests").glob("*.py")):
+              compile(p.read_text(),str(p),"exec")
+          PY
+          python -m pytest -v -p no:cacheprovider "$EXP/tests/test_a10_d2d3d4d6.py" "$EXP/tests/test_a10_audit_r1_r6.py" "$EXP/tests/test_a10_r5.py"
+  a010-fix-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/scripts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/config
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P2_A010P0_GEN_run_41269011836
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/results/P1_S0V2_run_40863614683
+      - name: Guard — RUN_REQUEST unchanged, AMENDMENT-010 still DRAFT
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$RUN_REQUEST_SHA256  $EXP/RUN_REQUEST.json" | sha256sum -c -
+          if grep -q '"status": "FROZEN"' "$EXP/contracts/AMENDMENT-010.md"; then echo "ERR: AMENDMENT-010 is FROZEN; this smoke is for the DRAFT stage"; exit 1; fi
+          git rev-parse HEAD
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install pinned dependencies (same pins as mbvar-info-run.yml)
+        run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Fetch and hash-lock inputs (same as mbvar-info-run.yml inputs job, FETCH_RF=0)
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          du -sh "$REFLECT_ROOT"/*
+          nproc; lscpu | grep -E 'Model name|^CPU\(s\)' || true
+      - name: Compile (in memory, no .pyc written)
+        run: python -c 'import sys; [compile(open(f).read(), f, "exec") for f in sys.argv[1:]]' "$EXP/code/a10_canonical.py" "$EXP/code/a10_validation.py" "$EXP/code/s1v5.py" "$EXP/code/c3v5.py" "$EXP/code/run_phase.py" "$EXP/tests/a10_e2e_smoke.py"
+      - name: Tests — canonical fixtures, execution-level D1/D2/D5 regressions, reduced SMOKE e2e
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi" MBVAR_A010_REQUIRE_INPUTS=1 MBVAR_A010_E2E=1 MBVAR_A010_E2E_WORK="$RUNNER_TEMP/e2e"
+          mkdir -p "$RUNNER_TEMP/e2e"
+          python -m pytest -v -p no:cacheprovider --junitxml="$RUNNER_TEMP/e2e/junit.xml" \
+            "$EXP/tests/test_a10_canonical.py" "$EXP/tests/test_a10_d2d3d4d6.py" "$EXP/tests/test_a10_audit_r1_r6.py" "$EXP/tests/test_a10_r5.py" "$EXP/tests/test_a10_s1v5_c3v5_exec.py" 2>&1 | tee "$RUNNER_TEMP/e2e/pytest.log"
+      - name: Print technical e2e summary (machine-readable copies are in the artifact)
+        if: always()
+        shell: bash
+        run: |
+          set -uo pipefail
+          W="$RUNNER_TEMP/e2e"
+          cat "$W/E2E_SUMMARY.json" 2>/dev/null || echo "no E2E_SUMMARY.json"
+          python - "$W" <<'PY' || true
+          import json, sys, pathlib
+          w = pathlib.Path(sys.argv[1])
+          q = json.loads((w / "s1agg/S1V5_QA.json").read_text())
+          print("S1V5_QA", json.dumps({k: q[k] for k in ("pass", "n_rows", "n_rows_expected", "failures", "stops", "n_input_receipt_files",
+                "revisit_pose_identical_max", "revisit_time_differs_min", "primary_P_pd_all", "A82_polish_all_within_scope",
+                "NOT_CERTIFIED_v31_cells_failing", "class_v31_counts", "A010_KP_BYTE_MATCH")}, default=float))
+          s = json.loads((w / "c3agg/C3V5_STATUS.json").read_text())
+          print("C3V5_STATUS", s["status"], "| receipt_load", json.dumps(s["receipt_load"]), "| MAT_CROSS_FIELD", json.dumps(s["MAT_CROSS_FIELD_REPORTED"]))
+          for k, v in s["criteria"].items():
+              print("  ", k, json.dumps(v, default=float)[:400])
+          PY
+      - name: Guard — nothing written into the repository
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git status --porcelain --ignored
+          test -z "$(git status --porcelain)" || { echo "ERR: repository workspace modified"; exit 1; }
+      - name: Publish technical evidence (artifact only)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: a010-r5-terminal-sensitivity-smoke-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/e2e/
+            ${{ runner.temp }}/mi/out/INPUT_LOCK.sha256
+          if-no-files-found: warn
+          retention-days: 30
