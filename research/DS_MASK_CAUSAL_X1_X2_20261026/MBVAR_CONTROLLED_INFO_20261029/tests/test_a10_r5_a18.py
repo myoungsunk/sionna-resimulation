@@ -38,7 +38,7 @@ def test_a18_02_positive_all_source_terminal_alternatives_sha_seed():
 def test_a18_02_any_single_sha_or_seed_corruption_blocks(target,field):
     src,cert,alt=evidence()
     row={"source":src[0],"terminal":cert[3],"alternative":alt[0]}[target]
-    if field.endswith("SHA256"):row[field]="b"*64
+    if field.lower().endswith("sha256"):row[field]="b"*64
     else:row[field]=int(row[field])^1
     with pytest.raises(ValueError,match="ERR_R5_PROVENANCE"):
         R5.verify_stored_r5_provenance(src,cert,alt,POLICY,independent_seed)
