@@ -1,0 +1,256 @@
+{
+  "contract_id": "MBVAR-PRR-001",
+  "version": "0.1",
+  "date": "2026-11-03",
+  "status": "PROPOSER_DRAFT",
+  "execution_authorized": false,
+  "implementation_status": "NOT_IMPLEMENTED",
+  "scientific_runs_status": "NOT_RUN",
+  "scope": {
+    "runtime_cases": [
+      "R4_aB_m0",
+      "R5_aB_m0"
+    ],
+    "anchor": "B",
+    "mount_deg": 0,
+    "state": [
+      "x_m",
+      "y_m",
+      "psi_rad",
+      "bg_rad_s"
+    ],
+    "model": "MB_VAR",
+    "channels": [
+      "Full",
+      "Native_LoS"
+    ],
+    "biases": [
+      "B0",
+      "L2"
+    ],
+    "new_rf_allowed": false,
+    "new_route_training_allowed": false,
+    "factor_graph_transition_allowed": false,
+    "mean_retraining_allowed": false
+  },
+  "source_reference": {
+    "repository": "myoungsunk/sionna-resimulation",
+    "pr": 19,
+    "observed_head_sha": "7e2855314de867e0481f8eb5ed1a07c48710f364",
+    "is_future_execution_sha": false
+  },
+  "locks_required": {
+    "baseline_source_sha": null,
+    "implementation_sha_by_stage": {
+      "S1": null,
+      "S2": null,
+      "S3": null
+    },
+    "input_lock_sha256": null,
+    "environment_lock_sha256": null,
+    "frozen_contract_sha256": null
+  },
+  "seeds": {
+    "development": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "proposed_stability": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "stability_is_new_environment": false,
+    "reuse_registry_check_required": true
+  },
+  "time": {
+    "rate_hz": 5,
+    "recurse_start_s": 0,
+    "primary_score_start_s": 30
+  },
+  "gate": {
+    "mechanism": "FROZEN_BASE_MASK_PER_SEED_BIAS_CHANNEL",
+    "operational": "CAUSAL_SHADOW_BASE",
+    "self_gate_changes_in_primary": false,
+    "threshold_chi2_2_p99": 9.210340371976184
+  },
+  "S1": {
+    "parameter_status": "PROPOSED_NOT_APPROVED",
+    "primary": "W_d0_DS",
+    "ablation": "W_d0",
+    "tau_d_proposed": 0.2,
+    "tau_d_sensitivity": [
+      0.2,
+      0.25,
+      0.3
+    ],
+    "w_min": 0.25,
+    "power": 2,
+    "tau_ds": null,
+    "tau_ds_rule": {
+      "route": "R2_aB_m0",
+      "timeline": "Tnone",
+      "channels": [
+        "Full"
+      ],
+      "population": "unique_pose_id_all_t_drive_and_turn",
+      "feature": "abs(s(fp+1)-s(fp))",
+      "quantile": 0.9,
+      "quantile_method": "linear",
+      "evaluation_routes_used": false
+    },
+    "R_rule": "R_eff_ss = R_VAR_ss / w_s; R_rr unchanged; R_rs must match locked zero",
+    "same_R_in_gain_and_Joseph": true
+  },
+  "S2": {
+    "parameter_status": "PROPOSED_NOT_APPROVED",
+    "primary_axes": [
+      "position_tangent",
+      "heading"
+    ],
+    "target_tangent_std_m": 0.1,
+    "target_heading_std_deg": 1,
+    "bias_mean_reset": false,
+    "bias_variance_injection_in_primary": false,
+    "near_axis_cutoff_m": 0.25,
+    "near_axis_fallback": "isotropic_XY_PSD_floor",
+    "suspect_rule": {
+      "window_s": 5,
+      "min_accepted_risky_samples": 3,
+      "risk_min": 0.5
+    },
+    "candidate_recovery": {
+      "quiet_s": 1,
+      "risk_max": 0.25,
+      "estimated_range_max_m": 1.5,
+      "information_window_s": 2,
+      "normalized_pose_information_lambda_min": 1e-06,
+      "information_normalization_scales": {
+        "xy_m": 0.1,
+        "heading_deg": 1,
+        "bg_deg_per_s": 0.05
+      },
+      "marginalize_nuisance_bias": true
+    },
+    "cooldown_s": 20,
+    "max_recovery_per_route": 3,
+    "mean_changes_only_via_measurement": true,
+    "suspect_latch_max_age_s": 60,
+    "suspect_expiration_action": "HISTORY_EXPIRED_REMAIN_SUSPECT",
+    "post_application_monitor_dwell_s": 2
+  },
+  "S3": {
+    "parameter_status": "PROPOSED_NOT_APPROVED",
+    "primary_history_s": 60,
+    "history_s_sensitivity": [
+      10,
+      30,
+      60
+    ],
+    "checkpoint_interval_s": 1,
+    "historical_episode_w_cap": 0.25,
+    "P_injection_in_primary": false,
+    "identity_replay_required": true,
+    "independent_cold_replay_required": true,
+    "missing_history_action": "ABSTAIN_KEEP_CURRENT_PROTECTED_FILTER",
+    "current_state_fusion_with_replay_candidate": false,
+    "atomic_replacement": true,
+    "primary_metric_stream": "ONLINE_EMITTED",
+    "retroactive_history_is_secondary": true,
+    "foreground_p99_budget_ms_proposed": 200,
+    "hardware_id": null,
+    "candidate_adoption": {
+      "rule": "ALL_TECHNICALLY_VALID_WITH_FIXED_SAFETY_BOUNDS",
+      "uses_truth": false,
+      "uses_lower_NIS_as_success": false,
+      "max_change_xy_m": 0.5,
+      "max_change_heading_deg": 10,
+      "max_change_bg_deg_per_s": 0.1,
+      "clip_on_excess": false,
+      "last_sample_id_must_match_current": true
+    }
+  },
+  "factorial": {
+    "S2": [
+      "A",
+      "B",
+      "C_P",
+      "D_P"
+    ],
+    "S3": [
+      "A",
+      "B",
+      "C_CP",
+      "D_CP"
+    ],
+    "combined_P_CP_is_primary": false,
+    "development_runs_per_recovery_type": 320,
+    "stability_runs_per_recovery_type": 640
+  },
+  "proposed_adoption_gates": {
+    "R4_Full_heading_rmse_median_ratio_max": 0.9,
+    "R4_Full_XY_rmse_median_ratio_max": 1.05,
+    "heading95_improvement_pp_goal": 10,
+    "protect_median_rmse_ratio_max": 1.05,
+    "protect_p90_rmse_ratio_max": 1.2,
+    "near_zero_absolute_heading_margin_deg": 0.05,
+    "near_zero_absolute_XY_margin_m": 0.01,
+    "calibrated_95_claim_automatic": false,
+    "recovery_heading_abs_deg": 1,
+    "recovery_XY_m": 0.1,
+    "recovery_dwell_s": 2
+  },
+  "independence": {
+    "proposer_id": null,
+    "implementer_id": null,
+    "preauditor_id": null,
+    "code_auditor_by_stage": {
+      "S1": null,
+      "S2": null,
+      "S3": null
+    },
+    "result_auditor_by_stage": {
+      "S1": null,
+      "S2": null,
+      "S3": null
+    },
+    "separate_sessions_required": true,
+    "separate_runners_required": true,
+    "independent_reference_code_required": true
+  },
+  "approval": {
+    "spec_approved": false,
+    "responsible_owner_approved": false,
+    "stage_go_tokens": {
+      "S1": null,
+      "S2": null,
+      "S3": null
+    }
+  },
+  "stop_on_missing_fields": true
+}
