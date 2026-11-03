@@ -1,6 +1,6 @@
 """Read-only case/pose joined sensitivity-versus-physical-multipath analysis.
-Source C1 is the EKF-prior Jacobian. C1B.g is the GT Jacobian
-from original R2DIAG; verify its definition in R2DIAG source before interpreting.
+Source C1 is the EKF-prior Jacobian. C1B.g is the GT Jacobian in units per degree
+from original R2DIAG (p2_r2diag.py multiplies radian derivative by pi/180).
 """
 import pandas as pd, numpy as np, pathlib, json
 ROOT=pathlib.Path(__file__).resolve().parents[2]
@@ -27,7 +27,7 @@ for case,sub in v.groupby("case"):
    for bin,group in ss.groupby("quantile_bin",observed=True):
     print("BIN",json.dumps({"case":case,"pop":filtname,"gtype":gtype,"sensitivity_bin":str(bin),"n":len(group),"median_abs_g":float(abs(group[gtype]).median()),"mean_abs_e":float(group.abs_e.mean()),"rms_e":float(np.sqrt(np.mean(group.e_true**2))),"frac_abs_e_gt_0p2":float(np.mean(group.abs_e>.2)),"frac_abs_e_gt_0p3":float(np.mean(group.abs_e>.3))}),flush=True)
   for val in [.002,.005,.01,.02,.03]:
-   group=filt[abs(filt["g"])*np.pi/180 < val]
+   group=filt[abs(filt["g"]) < val]
    if len(group):
     print("LOWG",json.dumps({"case":case,"pop":filtname,"g_GT_per_deg_max":val,"n":len(group),"n_e_gt0p2":int((group.abs_e>.2).sum()),"max_abs_e":float(group.abs_e.max()),"max_idx":int(group.loc[group.abs_e.idxmax(),"pose_id"])}),flush=True)
 v.to_csv("/tmp/sensitivity_vs_multipath.csv",index=False)
