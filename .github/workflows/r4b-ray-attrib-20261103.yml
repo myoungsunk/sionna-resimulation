@@ -1,0 +1,94 @@
+name: R4-B native coherent ray contribution attribution (isolated diagnostic)
+on:
+  push:
+    branches: ['codex/r4b-ray-attrib-20261103']
+    paths:
+      - '.github/workflows/r4b-ray-attrib-20261103.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  GIT_LFS_SKIP_SMUDGE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  compute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    strategy:
+      fail-fast: false
+      matrix:
+        region: [approach, depart]
+    steps:
+      - name: Sparse checkout original frozen R4-B full/LoS channels, source and diagnostic
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat >.git/info/sparse-checkout <<'LIST'
+          /research/R4B_RAY_ATTRIB_20261103/compute.py
+          /scripts/corridor_sionna_run.py
+          /scripts/g2_completion/sionna_native_runtime.py
+          /src/qclean_uwb/scenarios/corridor.py
+          /src/qclean_uwb/drivesim/observation.py
+          /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+          /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/MANIFEST.json
+          /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+          LIST
+          git checkout --detach FETCH_HEAD
+          python3 -m py_compile research/R4B_RAY_ATTRIB_20261103/compute.py
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install frozen native polarized Sionna RT CPU physics
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+          if ! ldconfig -p | grep -q 'libLLVM.so'; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+      - name: Recover SHA-certified original dual-port complex FFD banks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/r4b-original-bank-download /tmp/r4b-original-bank /tmp/r4b-output
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir /tmp/r4b-original-bank-download
+          for n in LP_plus45_bank.npz LP_minus45_bank.npz; do
+            mapfile -t matches < <(find /tmp/r4b-original-bank-download -type f -name "$n")
+            test "${#matches[@]}" -eq 1
+            ln -s "${matches[0]}" "/tmp/r4b-original-bank/$n"
+          done
+          test -s /tmp/r4b-original-bank/LP_plus45_bank.npz
+          test -s /tmp/r4b-original-bank/LP_minus45_bank.npz
+      - name: Native full path solver 257 frequencies, exactly add coherent ray powers, compare source archive
+        shell: bash
+        env:
+          R4B_BANK: /tmp/r4b-original-bank
+        run: |
+          set -uo pipefail
+          python -u research/R4B_RAY_ATTRIB_20261103/compute.py --region "${{ matrix.region }}" --out /tmp/r4b-output 2>&1 | tee /tmp/r4b-output/trace.log
+          exit "${PIPESTATUS[0]}"
+      - name: Preserve path-level per-port complex interference decomposition
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: r4b-rays-${{ matrix.region }}-${{ github.run_id }}
+          path: |
+            /tmp/r4b-output/*.json
+            /tmp/r4b-output/*.log
+          retention-days: 30
+          compression-level: 0
+          if-no-files-found: warn
