@@ -13,10 +13,21 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
-        with:
-          persist-credentials: false
-          lfs: false
+      - name: Sparse checkout exact original immutable per-pose gradient and residual tables
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /research/R4B_RAY_ATTRIB_20261103/sensitivity_vs_multipath.py
+          /research/DS_MASK_CAUSAL_X1_X2_20261026/pol_azimuth_alloc/C1_PACKETS.csv.gz
+          /research/DS_MASK_CAUSAL_X1_X2_20261026/pol_azimuth_alloc/C1B_PACKETS.csv.gz
+          LIST
+          git checkout --detach FETCH_HEAD
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
