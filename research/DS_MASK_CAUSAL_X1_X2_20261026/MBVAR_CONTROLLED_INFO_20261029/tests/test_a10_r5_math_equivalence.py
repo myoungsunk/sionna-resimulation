@@ -50,6 +50,12 @@ def test_a18_04_all_62_hypotheses_match_original_independent_v2_math():
                         claim=.4+.04*j+.02*ri+.016*ci+.013*ai
                         row[f"e_{state}"]=value*(-1 if f%2 else 1)
                         row[f"P_{state}"]=claim
+                    # Original frozen M.field_table aggregates these three
+                    # diagnostics even when a given H1/H4 equation uses only
+                    # squared error and post-fit covariance.
+                    row["nees4"]=sum(row[f"e_{k}"]**2/row[f"P_{k}"] for k in stateids)
+                    row["win_head_ms_deg2"]=(row["e_psi"]*180/math.pi)**2
+                    row["win_xy_ms_cm2"]=1e4*(row["e_rad"]**2+row["e_tan"]**2)
                     rows.append(row)
     rows=pd.DataFrame(rows)
     assert len(rows)==len(fields)*36
