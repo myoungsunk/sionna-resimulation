@@ -1,0 +1,3 @@
+# S2 owner authorization following S1
+The owner explicitly directed S2 and then S3 to proceed following the published S1 decision e3dfbe8e2d7216ddfa5bf754edb991989856dfd5. S1 overall prevention and adoption remain unsupported.
+S2 asks whether selective prior covariance expansion improves subsequent heading and position from the same damaged state under the frozen measurement policy. Compare actual errors and time to recovery independently of coverage. S3 will address the additional causal value of reprocessing history, subject to its own technical gates. No thresholds, inputs, arms, or S1 results are revised.
