@@ -192,3 +192,52 @@ def test_r5_arm_stratification_existing_legacy_hard_gate():
     r=AV.mode_identifiability([row("A",.1)]*101+[row("B",1.5)])
     assert not r["legacy_full_rows_pass"]
     assert not r["per_arm"]["B"]["legacy_all_rows"]["pass_"]
+
+
+def test_r5_csv_roundtrip_preserves_positive_terminal_certificate(tmp_path):
+    """Real C3V5 terminal CSV serializes end_state as '[x,y,psi,bg]' text."""
+    records=terminals()
+    csv=tmp_path/"R5_CERT.csv"
+    pd.DataFrame(records).to_csv(csv,index=False,float_format="%.17g")
+    observed=pd.read_csv(csv).to_dict("records")
+    assert isinstance(observed[0]["end_state"],str)
+    assert R5.validate_terminals(observed,policy())["pass_"]
+    assert R5.validate_terminals(records,policy())["pass_"]
+
+
+def test_r5_csv_roundtrip_explicit_false_is_not_cap(tmp_path):
+    """A raw csv.DictReader caller receives 'False' TEXT, not Python False."""
+    import csv as csvlib
+    source=tmp_path/"R5_RAW.csv"
+    pd.DataFrame(terminals()).to_csv(source,index=False)
+    with source.open() as fh:
+        raw=list(csvlib.DictReader(fh))
+    assert raw[0]["polish_hit_cap"]=="False"
+    assert R5.validate_terminals(raw,policy())["pass_"]
+
+
+@pytest.mark.parametrize("attack",[
+    ("polish_hit_cap","True"),
+    ("polish_hit_cap","unknown"),
+    ("polish_hit_cap",""),
+    ("polish_steps","NaN"),
+    ("polish_steps","31"),
+    ("end_state","[]"),
+    ("end_state","[1, 2, 3]"),
+    ("end_state","[1, 2, 3, NaN]"),
+    ("end_state","not-json"),
+    ("end_state","[1, 2, 3, Infinity]"),
+    ("cost","inf"),
+    ("dmin","-0.00101"),
+])
+def test_r5_csv_corrupted_terminals_rejected(tmp_path,attack):
+    """String-record attacks all produce UNRESOLVED_PRECISION, not exception/PASS."""
+    import csv as csvlib
+    source=tmp_path/"R5_ATTACK.csv"
+    pd.DataFrame(terminals()).to_csv(source,index=False)
+    with source.open() as fh:
+        records=list(csvlib.DictReader(fh))
+    records[0][attack[0]]=attack[1]
+    out=R5.validate_terminals(records,policy())
+    assert out["status"]=="UNRESOLVED_PRECISION"
+    assert not out["pass_"] and out["n_failures"]>0
