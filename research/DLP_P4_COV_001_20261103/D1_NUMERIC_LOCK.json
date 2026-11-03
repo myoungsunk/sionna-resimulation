@@ -1,0 +1,150 @@
+{
+  "schema": "DLP_P4_COV_001_D1_NUMERIC_LOCK_V1",
+  "role": "PROPOSER",
+  "phase": "D1",
+  "status": "FROZEN_SPEC_AUDIT_PENDING",
+  "basis": {
+    "states": [
+      "x_m",
+      "y_m",
+      "psi_rad",
+      "gyro_bias_rad_s"
+    ],
+    "score_t_min_inclusive_s": 30,
+    "route_step_n": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    },
+    "route_score_n": {
+      "R2": 829,
+      "R4": 592,
+      "R5": 1265
+    },
+    "modes": [
+      "los",
+      "full"
+    ],
+    "bias": [
+      "B0",
+      "L2"
+    ],
+    "arms": [
+      "DR4",
+      "R4_A_FULL",
+      "J4_A_FULL",
+      "R4_AB_FULL",
+      "R4_ABC_FULL",
+      "R4_A_EQPKT",
+      "R4_ABC_EQPKT"
+    ],
+    "expected_case_n": 84,
+    "expected_trace_n": 12,
+    "expected_total_scored_arm_epochs": 75208,
+    "independent_scenes": 1
+  },
+  "chi2_95": {
+    "xy_2df": 5.991464547107979,
+    "heading_1df": 3.841458820694124,
+    "pose_3df": 7.814727903251179
+  },
+  "window": {
+    "width_seconds": [
+      10,
+      20,
+      40
+    ],
+    "anchor_s": 30,
+    "inclusion": "[30+j*w,30+(j+1)*w)",
+    "last_partial_window": "INCLUDE_WITH_N",
+    "zero_n_window": "OMIT",
+    "overlap_per_width": false
+  },
+  "onset": {
+    "earliest_failed_xy95": "first t>=30 with NEES_xy>chi2_2_95",
+    "persistent_failed": "first run of 25 consecutive scored epochs with NEES_xy>chi2_2_95",
+    "not_found": "NOT_FOUND"
+  },
+  "metrics": {
+    "primary": [
+      "n_eval",
+      "xy_rmse_m",
+      "heading_rmse_deg",
+      "mean_xy_nees",
+      "xy95_fraction",
+      "mean_heading_nees",
+      "heading95_fraction",
+      "mean_pose_nees",
+      "pose95_fraction",
+      "xy_signed_error_x_mean_m",
+      "xy_signed_error_y_mean_m",
+      "xy_major_sigma_m_median",
+      "xy_minor_sigma_m_median",
+      "xy_error_2norm_m_median"
+    ],
+    "epoch": [
+      "t_s",
+      "pose_id",
+      "state_error_x_m",
+      "state_error_y_m",
+      "state_error_psi_rad",
+      "xy_nees",
+      "heading_nees",
+      "pose_nees",
+      "conditional_heading_nees",
+      "minor_sigma_m",
+      "major_sigma_m",
+      "major_axis_angle_mod180_deg",
+      "error_along_major_m",
+      "error_along_minor_m",
+      "error_to_major_axis_angle_deg",
+      "xy_in_95",
+      "heading_in_95",
+      "pose_in_95",
+      "status"
+    ],
+    "paired": [
+      "AB_TO_ABC_same_route_channel_bias",
+      "LoS_TO_Full_same_route_bias_arm"
+    ]
+  },
+  "math": {
+    "xy": "e_xy.T @ solve(P[:2,:2],e_xy)",
+    "heading": "e_psi**2/P[2,2]",
+    "pose": "e_3.T @ solve(P[:3,:3],e_3)",
+    "schur": "s=P[2,2]-P[2,:2]@solve(P[:2,:2],P[:2,2]); c=e_psi-P[2,:2]@solve(P[:2,:2],e_xy); conditional_heading_nees=c*c/s",
+    "axis": "eigvalsh(Pxy) ascending; sigma_minor=sqrt(lambda_min); sigma_major=sqrt(lambda_max); axis orientation mod 180deg; projection onto eigenvectors",
+    "error_to_major": "acos(clamp(abs(dot(e_xy,unit_major))/norm(e_xy),0,1)) degrees; if zero error, set null",
+    "signed_error": "estimate - original float64 GT",
+    "psi_wrap": "(estimate_psi - gt_psi + pi) % (2*pi) - pi",
+    "rmse": "sqrt(mean(e_x**2+e_y**2))",
+    "compare": "All compared traces use identical original pose_id,t_s and float64 GT"
+  },
+  "numeric": {
+    "original_score_max_abs_tolerance": 1e-9,
+    "schur_decomposition_abs_tol": 1e-8,
+    "schur_decomposition_rel_tol": 1e-10,
+    "symmetry_abs_tol": 1e-10,
+    "requires_spd_cholesky": true,
+    "source_timeline_tolerance_s": 1e-9,
+    "metric_equality_coverage_counts_exact": true,
+    "runtime_fail_on_nonfinite_or_duplicate": true,
+    "all_84_keys_required": true,
+    "no_posthoc_exclusion": true,
+    "counts_per_trace_all_samples": true,
+    "original_q_r_gate_frozen": true
+  },
+  "observations": {
+    "full_p4_ABC_range_only": true,
+    "C_signed_s_is_not_EKF_observation": true,
+    "no_new_RF": true,
+    "no_new_filter_replay": true,
+    "no_empirical_R_fitting": true,
+    "no_new_cov_model": true
+  },
+  "separate_stages": {
+    "D2": "NOT_AUTHORIZED_UNTIL_SEPARATE_GATE",
+    "D3": "NOT_AUTHORIZED_UNTIL_SEPARATE_GATE",
+    "D4": "NOT_AUTHORIZED_UNTIL_SEPARATE_GATE"
+  }
+}
