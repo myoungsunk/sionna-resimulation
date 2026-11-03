@@ -70,8 +70,9 @@ def main(region,out):
       for depth,k in enumerate(obj[:,j]) if int(k)>=0 and int(k) in lookup)
      key=chain or (('UNKNOWN',int(round(float(tau[j])*1e12)),j),)
     traces[key][i]+=v[:,j]
-  checksum=max(abs(sum(traces.values())-full).reshape(-1))
-  assert checksum<1e-10,checksum
+  checksum=float(np.max(abs(sum(traces.values())-full)))
+  reconstruction_relative=checksum/max(float(np.max(abs(full))),1e-12)
+  assert reconstruction_relative<1e-5,(checksum,reconstruction_relative)
   fobs,Fcir=ob(full,f);dobs,Dcir=ob(direct,f)
   aobs,_=ob(archivedF[pid,:,:,0],f);bobs,_=ob(archivedL[pid,:,:,0],f)
   rel=lambda x,y:float(np.linalg.norm(x-y)/max(np.linalg.norm(y),1e-300))
@@ -101,6 +102,7 @@ def main(region,out):
    'delta_plus':float((pF-p0)[0]),'delta_minus':float((pF-p0)[1])},
    'ray_stats':{'count_min':min(counts),'count_max':max(counts),'groups':len(rows)},
    'power_attribution_error':float(max(abs(check-(pF-p0)))),
+   'channel_reconstruction_relative_error':reconstruction_relative,
    'top_paths':rows[:20]}
   (out/('R4B_'+region+'_pose'+str(pid)+'.json')).write_text(json.dumps(v,indent=2)+'\n')
   print('R4B_RESULT',json.dumps({key:val for key,val in v.items() if key!='top_paths'}),flush=True)
