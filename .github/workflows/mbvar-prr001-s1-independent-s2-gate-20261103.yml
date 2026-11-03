@@ -1,0 +1,40 @@
+name: MBVAR PRR-001 independently verify locked S1 before S2 exception
+on:
+  push:
+    branches: [audit/mbvar-prr001-s2-exception-20261103]
+    paths:
+      - ".github/workflows/mbvar-prr001-s1-independent-s2-gate-20261103.yml"
+      - "research/MBVAR_PRR_001_20261103/S2_PREAUDIT_20261103/**"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-s1-published-scores:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Read-only checkout at invoking SHA (no LFS payload substitution)
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          filter: blob:none
+          lfs: false
+          sparse-checkout: |
+            research/MBVAR_PRR_001_20261103/S1/audit
+            research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001
+            research/MBVAR_PRR_001_20261103/S2_PREAUDIT_20261103
+      - name: Run independently written S1 audit without production scoring dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -B research/MBVAR_PRR_001_20261103/S2_PREAUDIT_20261103/verify_s1_scores_independent.py \
+            | tee /tmp/mbvar_prr001_independent_s1.log
+      - name: Retain score-audit report and log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mbvar-s1-independent-score-gate-${{ github.run_id }}
+          path: |
+            /tmp/mbvar_s1_independent_score_audit.json
+            /tmp/mbvar_prr001_independent_s1.log
+          retention-days: 30
