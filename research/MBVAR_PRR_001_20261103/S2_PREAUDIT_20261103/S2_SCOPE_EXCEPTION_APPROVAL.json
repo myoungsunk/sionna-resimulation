@@ -1,0 +1,95 @@
+{
+  "approval_id": "MBVAR-PRR-001-S2-SCOPED-EXCEPTION-20261103",
+  "date_kst": "2026-11-03",
+  "request_basis": "User explicitly requested independent audit and a separate approval after S0/S1 completion",
+  "approval_decision": "VERIFY_EXISTING_OWNER_APPROVAL_AND_GO_S2_DEV",
+  "approval_scope": "Existing S2 owner approval is verified; no duplicate authorization is issued by this audit branch",
+  "s1": {
+    "technical": "S1_RESULT_ACCEPTED_WITH_SCOPE",
+    "scientific": "S1_C3_NOT_SUPPORTED_ADOPTION_NO_GO",
+    "full_fail_cells": 4,
+    "code_sha": "c4f7394842a808b59f3e14f3c5eb985250c0c5cd",
+    "final_audit_commit": "e3dfbe8e2d7216ddfa5bf754edb991989856dfd5",
+    "eval_commit": "5b82a7d15cb515285ad3e37a4db7976ce43286e2"
+  },
+  "new_independent_s1_validation": {
+    "workflow_run_id": 41636627036,
+    "run_sha": "5c55682f2a8c3c25ff3f769318f71babd13f62f2",
+    "conclusion": "PASS_SCORES_MANIFEST_ONLY",
+    "score_rows": 1600,
+    "paired_rows": 320,
+    "trace_index_rows": 320,
+    "trace_lfs_pointer_verified": 320,
+    "raw_trace_replayed_in_this_run": false,
+    "strict_primary_heading_ratios": {
+      "R4_B0": 0.9215142735297208,
+      "R4_L2": 0.9055490318959094,
+      "R5_B0": 1.0622484657944913,
+      "R5_L2": 1.0504346648120841
+    }
+  },
+  "scope_fixed": {
+    "routes": [
+      "R4_aB_m0",
+      "R5_aB_m0"
+    ],
+    "biases": [
+      "B0",
+      "L2"
+    ],
+    "channels": [
+      "Full",
+      "Native_LoS"
+    ],
+    "fixed_algorithm": "MB_VAR 4-state",
+    "recovery_mechanism": "PSD tangent+heading prior covariance expansion",
+    "arms": [
+      "A",
+      "B",
+      "C_P",
+      "D_P"
+    ],
+    "studies": [
+      "same_damaged_snapshot",
+      "causal_full_trajectory"
+    ],
+    "new_routes": false,
+    "new_RF": false
+  },
+  "allowed_now": [
+    "S2 DEVELOPMENT ONLY pursuant to existing GO_S2_DEV token and frozen rules",
+    "Independent development result audit and case/seed protection analysis",
+    "Prepare separate locked-evaluation approval following results audit"
+  ],
+  "prohibited_now": [
+    "Any S1 scientific result revision",
+    "S2 locked evaluation without new GO_S2_LOCKED_EVAL",
+    "Posthoc threshold/seed tuning",
+    "Unconditional S3 scientific execution",
+    "Claim of S2 recovery success without traces"
+  ],
+  "gates": {
+    "GO_S2_DEV": true,
+    "GO_S2_LOCKED_EVAL": false,
+    "independent_s2_code_audit_report_present": true,
+    "require": [
+      "S2 DEV 320 main replays/registered ablations and snapshots",
+      "Independent S2 development results and claim audit",
+      "Exact SHA/contract/checks before GO_S2_LOCKED_EVAL",
+      "Owner and auditor next phase grant per original plan"
+    ]
+  },
+  "scope_approval_is_not_scientific_success": true,
+  "owner_signature": "EXISTING OWNER AUTHORIZATION REPORTED IN ORIGINAL REPOSITORY (no new signature by this audit branch)",
+  "current_original_branch_head_checked": "13c8ef89ffea3212847fc8e3e257ad55409bfd41",
+  "existing_authorization": {
+    "owner_document": "research/MBVAR_PRR_001_20261103/S2/OWNER_APPROVAL.json",
+    "owner_approved_S2": true,
+    "owner_document_authorizes_S3_sequence": true,
+    "original_S2_code_sha": "4eeb7f539ea40fbbc4a4d5eb477d788f2d230945",
+    "independent_code_audit": "research/MBVAR_PRR_001_20261103/S2/audit/CODE_FINDINGS_S2.md",
+    "independent_code_audit_reported_runner": "prr31117",
+    "actual_S2_DEV_token": "research/MBVAR_PRR_001_20261103/S2/audit/GO_S2_DEV.json",
+    "frozen_core_files_match_head": true
+  }
+}
