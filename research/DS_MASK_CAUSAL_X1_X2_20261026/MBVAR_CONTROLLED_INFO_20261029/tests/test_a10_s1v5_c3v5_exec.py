@@ -268,6 +268,10 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
     assert qa["stops"] == 0 and qa["failures"] == 0 and qa["n_rows"] == n_sub
     assert not qa["NOT_CERTIFIED_v31_cells_failing"] and qa["primary_P_pd_all"] and qa["A82_polish_all_within_scope"]
     assert qa["n_input_receipt_files"] == len(D.SMOKE_FIELDS)
+    assert qa["A010_REGISTERED_ROW_COVERAGE"]["pass_"] is True
+    assert qa["A010_REGISTERED_ROW_COVERAGE"]["n_expected"] == n_sub
+    assert qa["A010_REGISTERED_ROW_COVERAGE"]["n_missing_keys"] == 0
+    assert qa["A010_REGISTERED_ROW_COVERAGE"]["n_duplicate_keys"] == 0
     assert qa["A010_KP_BYTE_MATCH"]["n_fields"] == len(D.SMOKE_FIELDS)
     import pandas as pd
     res = pd.read_csv(agg / "S1V5_RESULTS_SMOKE.csv")
@@ -291,6 +295,19 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
     assert st["MAT_CROSS_FIELD_REPORTED"]["n_groups_multi_field"] > 0
     Cr = pd.read_csv(work / "c3agg" / "C3V5_ROWS.csv")
     assert len(Cr) == crit["rows"]["n"] and len(Cr) > 0 and Cr.found.astype(bool).all()
+    # R1: exact full registered universe must FAIL for the deliberately reduced
+    # C3 smoke; a same-count duplicate cannot hide a missing registered key.
+    coverage = crit["rows"]["registered_key_set"]
+    assert not coverage["pass_"]
+    assert coverage["n_expected"] == crit["rows"]["n_expected"] == 72
+    assert coverage["n_actual"] == 10
+    assert coverage["n_duplicate_keys"] == 0
+    assert coverage["n_missing_keys"] == 62
+    assert Cr.OPTIMIZER_BOUNDARY_EXACT.astype(bool).all()
+    assert (Cr.OPTIMIZER_BOUNDARY_ARRAYS_CHECKED == 7).all()
+    assert Cr.OPTIMIZER_BOUNDARY_INPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all()
+    assert Cr.OPTIMIZER_X_OUTPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all()
+    assert crit["RECEIPT_INTEGRITY"]["actual_solver_call_boundary_verified"]
     # Recompute the prospective G5 hard gates on the REDUCED subset, never
     # misreport the full field-level gate as PASS (the original rows gate FAILs).
     gating = [k for k in st["gating"] if k not in ("rows", "SOLVER_REPRO")]
@@ -312,7 +329,8 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
         RECEIPT_INTEGRITY=bool(old_input_math and rl["strict_index_verified"] and
                                rl["array_hashes_verified"] > 0 and
                                Cr.RECEIPT_ARRAY_EXACT.astype(bool).all() and
-                               Cr.TRUTH_ONLY_VERIFIED.astype(bool).all()),
+                               Cr.TRUTH_ONLY_VERIFIED.astype(bool).all() and
+                               Cr.OPTIMIZER_BOUNDARY_EXACT.astype(bool).all()),
         GENERATOR_LAW=law_verified,
         CROSS_FIELD_COV_EQUIVALENCE=bool(xf.pass_.astype(bool).all() and
                                           (xf.delta_max <= 1e-10).all() and
