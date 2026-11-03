@@ -1,0 +1,132 @@
+name: R1B PREC-V1 legacy eight + prospective Native four
+on:
+  push:
+    branches:
+      - research/dlp-r1b-precision-bridge-v1-20261103
+    paths:
+      - .github/workflows/dlp-r1b-precision-v1.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  GIT_LFS_SKIP_SMUDGE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  DLP_FFD_BANKS: /tmp/ffd-banks
+jobs:
+  replay:
+    name: Original eight immutable raw channels, precision-representation parity
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout only the frozen task and V1 precision source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/DLP_R1B_CH4_20261103/**
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Restore exactly eight original LFS objects (no repository-wide scan)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs version
+          DIR=research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2
+          for i in 0000 0150 0221 0440 0458 0476 0696 0916; do
+            F="$DIR/pose_$i.npz"
+            test -s "$F"
+            TMP=$(mktemp)
+            env -u GIT_LFS_SKIP_SMUDGE git lfs smudge "$F" <"$F" >"$TMP"
+            mv "$TMP" "$F"
+          done
+          python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Recalculate preserved V2 HOLD and corrected numerical parity without solver
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u research/DLP_R1B_CH4_20261103/precision_v1/precision_bridge.py \
+            --run research/DLP_R1B_CH4_20261103/runs/P0_CANARY_V2 \
+            --out /tmp/PREC_V1_LEGACY8_REPLAY.json
+      - name: Retain legacy replay receipt even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1b-precision-v1-legacy8-${{ github.run_id }}
+          path: /tmp/PREC_V1_LEGACY8_REPLAY.json
+          retention-days: 30
+          if-no-files-found: warn
+  prospective_native:
+    name: Four preregistered R1B holdout poses, actual Native Full and LoS
+    needs: replay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Checkout only required science and origin data, no LFS smudge
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/DLP_R1B_CH4_20261103/**
+            /results/DRIVE_SIM_20261007/S1/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/**
+            /research/EKF4_RANGE_S_STAGED_20261014/**
+            /research/FFD_P0P3_20261016/**
+            /research/DUAL_LP_PAPER_GAP_20261030/contracts/**
+            /src/qclean_uwb/**
+            /scripts/corridor_sionna_run.py
+            /scripts/g2_completion/sionna_native_runtime.py
+            /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json
+          lfs: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install frozen Native-RT CPU stack and LLVM
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            'numpy==1.26.4' 'scipy==1.14.1' 'sionna-rt==2.0.1' \
+            'mitsuba==3.8.0' 'drjit==1.3.1'
+          if ! ldconfig -p | grep -q libLLVM.so; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+          python -m py_compile research/DLP_R1B_CH4_20261103/precision_v1/*.py
+      - name: Restore original FFD banks by immutable source artifact
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$DLP_FFD_BANKS"
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation \
+            --name ffd-verified-original-38875080492 --dir "$DLP_FFD_BANKS"
+          test -s "$DLP_FFD_BANKS/LP_plus45_bank.npz"
+          test -s "$DLP_FFD_BANKS/LP_minus45_bank.npz"
+      - name: Native PathSolver LoS and Full on fixed unseen 4 poses, no parameter fit
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/r1b_prec_v1
+          python -u research/DLP_R1B_CH4_20261103/precision_v1/prospective_native.py \
+            --banks "$DLP_FFD_BANKS" --out /tmp/r1b_prec_v1/new_native \
+            2>&1 | tee /tmp/r1b_prec_v1/EXECUTION_LOG.txt
+          exit "${PIPESTATUS[0]}"
+      - name: Retain all raw prospective Native arrays and QA, including on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r1b-precision-v1-prospective4-${{ github.run_id }}
+          path: /tmp/r1b_prec_v1/
+          retention-days: 30
+          if-no-files-found: warn
