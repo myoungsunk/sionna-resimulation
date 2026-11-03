@@ -1,4 +1,4 @@
-name: MBVAR A010 R5 archived SMOKE aggregate replay (technical, no science)
+name: MBVAR A010 R5 archived terminal CSV validator replay (technical, no science)
 on:
   push:
     branches: [implement/mbvar-a010-r5-precision-sensitivity-20261103]
@@ -68,42 +68,61 @@ jobs:
           FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
           rm -rf "$REFLECT_ROOT/.src.git"
           test -s "$REFLECT_ROOT/out/INPUT_LOCK.sha256"
-      - name: Reaggregate old 900/901 CSV using current corrected R5 validator
+      - name: Check 100 original terminal CSV rows by current R5 validator (no source lock override)
         shell: bash
         run: |
           set -euo pipefail
-          export REFLECT_ROOT="$RUNNER_TEMP/mi"
-          set +e
-          python "$EXP/tests/a10_e2e_smoke.py" c3agg --work "$RUNNER_TEMP/e2e" > "$RUNNER_TEMP/e2e/R5_C3AGG_REPLAY_LOG.txt" 2>&1
-          rc=$?
-          set -e
-          cat "$RUNNER_TEMP/e2e/R5_C3AGG_REPLAY_LOG.txt"
-          test "$rc" = "1"
-          test -s "$RUNNER_TEMP/e2e/c3agg/C3V5_STATUS.json"
-          python - "$RUNNER_TEMP/e2e" <<'PY'
-          import json,sys,pathlib
+          python - "$EXP" "$RUNNER_TEMP/e2e" <<'PY'
+          import copy, json, pathlib, sys, os
           import pandas as pd
-          root=pathlib.Path(sys.argv[1])
-          st=json.loads((root/"c3agg/C3V5_STATUS.json").read_text())
-          q=json.loads((root/"c3agg/A010_R5_COMMON_PRECISION.json").read_text())
-          outcome=json.loads((root/"c3agg/A010_R5_FIELD_PAIRED_CONCLUSION_STABILITY.json").read_text())
-          cert=pd.read_csv(root/"c3agg/A010_R5_TERMINAL_PRECISION_DETAILS.csv")
-          assert st["status"]=="FAIL" and st["G5_NUMERIC_REPLAY"]["status"]=="FAIL"
-          assert st["criteria"]["rows"]["registered_key_set"]["n_missing_keys"]==62
-          assert q["n_rows"]==10 and q["n_terminal_records"]==100
-          assert not cert.duplicated(["field","role","cell","sensor_seed","arm","start"]).any()
-          assert len(cert)==100
-          assert outcome["status"]=="NOT_EVALUATED_INCOMPLETE"
-          assert not outcome["science_release_allowed"]
-          assert st["science_release_allowed"] is False
-          print("A010_R5_C3_AGGREGATE_REPLAY_PASS",q["status"],q["n_unresolved"],outcome["status"])
+          project=pathlib.Path(sys.argv[1]);root=pathlib.Path(sys.argv[2])
+          sys.path.insert(0,str(project/"code"))
+          import a10_r5 as R5
+          cfg,policy_sha=R5.spec_with_sha()
+          keys=["field","role","cell","sensor_seed","arm"]
+          records=[]
+          for folder,suffix in (("900LH","900_LH"),("901RV","901_RV")):
+              cert=pd.read_csv(root/f"c3sh/{folder}/C3V5_R5_TERMINAL_CERT_{suffix}.csv")
+              rows=pd.read_csv(root/f"c3sh/{folder}/C3V5_ROWS_{suffix}.csv")
+              assert not rows.duplicated(keys).any() and not cert.duplicated(keys+["start"]).any()
+              groups={k:v.to_dict("records") for k,v in cert.groupby(keys)}
+              expected={tuple(x[k] for k in keys) for x in rows.to_dict("records")}
+              assert set(groups)==expected
+              for row in rows.to_dict("records"):
+                  key=tuple(row[k] for k in keys)
+                  evidence=groups[key]
+                  out=R5.validate_terminals(evidence,cfg)
+                  assert out["n_solutions"]==10 and out["n_expected"]==10
+                  assert out["status"]==row["R5_PRECISION_STATUS"]
+                  assert out["pass_"]==bool(row["R5_PRECISION_PASS"])
+                  assert row["R5_POLICY_SHA256"]==policy_sha
+                  assert all(x["r5_policy_sha256"]==policy_sha for x in evidence)
+                  raw=copy.deepcopy(evidence)
+                  raw[0]["polish_hit_cap"]="False"
+                  assert R5.validate_terminals(raw,cfg)["pass_"]==out["pass_"]
+                  for attack,val in (("polish_hit_cap","True"),("polish_hit_cap","invalid"),
+                                     ("end_state","[0,0,nan,0]"),("dmin","-0.1")):
+                      bad=copy.deepcopy(raw);bad[0][attack]=val
+                      blocked=R5.validate_terminals(bad,cfg)
+                      assert blocked["status"]=="UNRESOLVED_PRECISION" and not blocked["pass_"]
+                  records.append(dict(key=list(key),status=out["status"],n_solutions=len(evidence)))
+          assert len(records)==10 and all(x["status"]=="PASS" for x in records)
+          report=dict(status="R5_TERMINAL_CSV_REPLAY_PASS",
+                      original_artifact_sha256="db018998861332b69c2ca2df3203731339315fde3a5603c552706e85d0b032ee",
+                      original_tested_source_sha="8511a3196a95408e3f8379bc13af6614ef707190",
+                      current_validation_source_sha=os.environ["GITHUB_SHA"],
+                      n_rows=len(records),n_terminals=sum(x["n_solutions"] for x in records),
+                      negative_mutations_checked=40,
+                      scope="ARCHIVED_TERMINAL_CSV_VALIDATION_ONLY_NOT_FULL_C3_SCIENCE",
+                      a010_science_frozen=False,dev3="NO-GO",holdout2="NO-GO",rt="NO-GO",
+                      original_full_C3_G5_status="FAIL",rows=records)
+          (root/"R5_CSV_VALIDATION.json").write_text(json.dumps(report,indent=2)+"\n")
+          print("A010_R5_ARCHIVED_TERMINAL_CSV_REPLAY_PASS",len(records),report["n_terminals"],flush=True)
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
           name: a010-r5-c3agg-replay-${{ github.run_id }}
-          path: |
-            ${{ runner.temp }}/e2e/R5_C3AGG_REPLAY_LOG.txt
-            ${{ runner.temp }}/e2e/c3agg/
+          path: ${{ runner.temp }}/e2e/R5_CSV_VALIDATION.json
           if-no-files-found: warn
           retention-days: 90
