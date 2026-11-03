@@ -301,7 +301,8 @@ def covariance_replay_check(a, b, *, scaled_difference, nees_tolerance=1e-3):
     diff = float(scaled_difference(a, b))
     nees = abs(float(a["nees4_C10"]) - float(b["nees4_C10"])) / max(abs(float(b["nees4_C10"])), 1e-300)
     logdiff = abs(x["log10_condition"] - y["log10_condition"])
-    return dict(pass_=bool(diff <= nees_tolerance and nees <= nees_tolerance and logdiff <= C10_COND_LOG_TOL),
+    return dict(pass_=bool(finite_scalar_check(diff, nees, logdiff) and
+                           diff <= nees_tolerance and nees <= nees_tolerance and logdiff <= C10_COND_LOG_TOL),
                 full_C10_rel=diff, nees4_rel=nees, condition_log10_delta=logdiff,
                 source=x, replay=y)
 
@@ -328,29 +329,59 @@ def gate_verdict(criteria):
 
 
 def mode_identifiability(rows, tol1=1., tol2=2., fraction=.99):
-    """Rows retained in all science metrics.  Subset is diagnostic ONLY."""
+    """R2: per-ARM fixed-start stability; pooled clean average is not a gate.
+
+    Legacy and prospective subgroup thresholds are applied separately to each
+    arm; rows in the ambiguous subgroup are NOT dropped from main H/CAL outputs.
+    """
     rows = list(rows)
     if not rows:
-        return dict(status="NOT_RUN", n_rows=0, n_excluded=0, scientific_release=False)
-    alt = [r for r in rows if int(r["n_alt_ambiguous"]) > 0]
-    clean = [r for r in rows if int(r["n_alt_ambiguous"]) == 0]
-    groups = defaultdict(list)
+        return dict(status="NOT_RUN", n_rows=0, n_excluded=0,
+                    per_arm={}, scientific_release=False)
+    arms = defaultdict(list)
+    strata = defaultdict(list)
     for r in rows:
-        k = (r["field"], r["role"], r["cell"], r["arm"])
-        groups[k].append(r)
-    clean_ok = (bool(clean) and sum(float(r["E_vs_best_dref"]) <= tol1 for r in clean) / len(clean) >= fraction
-                and all(float(r["E_vs_best_dref"]) <= tol2 for r in clean))
-    legacy_ok = (sum(float(r["E_vs_best_dref"]) <= tol1 for r in rows) / len(rows) >= fraction
-                 and all(float(r["E_vs_best_dref"]) <= tol2 for r in rows))
-    return dict(status="MIXED" if alt else ("GRID_LOCAL_ONLY" if clean_ok else "NOT_IDENTIFIABLE"),
-                n_rows=len(rows), n_ambiguous=len(alt), n_excluded_from_nonambiguous_diagnostic=len(alt),
-                ambiguous_fraction=len(alt) / len(rows), clean_subset_stability_pass=clean_ok,
-                legacy_full_rows_pass=legacy_ok, strata_count=len(groups),
-                stratum_ambiguity={"|".join(map(str, k)): dict(rows=len(v),
-                    ambiguous=sum(int(r["n_alt_ambiguous"]) > 0 for r in v))
-                    for k, v in sorted(groups.items())},
+        a = str(r["arm"])
+        d = float(r["E_vs_best_dref"])
+        n = float(r["n_alt_ambiguous"])
+        if not finite_scalar_check(d, n) or n < 0 or n != int(n):
+            raise ValueError("ERR_A010_MODE_NONFINITE_OR_INVALID_ROW")
+        arms[a].append(r)
+        strata[(r["field"], r["role"], r["cell"], r["arm"])].append(r)
+    def verdict(rs):
+        if not rs:
+            return dict(pass_=False, n=0, frac_le_1dref=None,
+                        max_dref=None, reason="NO_NONAMBIGUOUS_ROWS")
+        vals = np.asarray([float(q["E_vs_best_dref"]) for q in rs])
+        share = float(np.mean(vals <= tol1))
+        mx = float(np.max(vals))
+        return dict(pass_=bool(share >= fraction and mx <= tol2),
+                    n=len(rs), frac_le_1dref=share, max_dref=mx)
+    per_arm = {}
+    for name, group in sorted(arms.items()):
+        clean = [r for r in group if int(r["n_alt_ambiguous"]) == 0]
+        per_arm[name] = dict(n_total=len(group), n_ambiguous=len(group)-len(clean),
+                             legacy_all_rows=verdict(group),
+                             clean_nonambiguous=verdict(clean))
+    alt = [r for r in rows if int(r["n_alt_ambiguous"]) > 0]
+    legacy_ok = all(p["legacy_all_rows"]["pass_"] for p in per_arm.values())
+    clean_ok = all(p["clean_nonambiguous"]["pass_"] for p in per_arm.values())
+    return dict(status=("MIXED" if alt else
+                        ("GRID_LOCAL_ONLY" if clean_ok else "NOT_IDENTIFIABLE")),
+                n_rows=len(rows), n_ambiguous=len(alt),
+                n_excluded_from_nonambiguous_diagnostic=len(alt),
+                ambiguous_fraction=len(alt)/len(rows),
+                clean_subset_stability_pass=bool(clean_ok),
+                legacy_full_rows_pass=bool(legacy_ok),
+                per_arm=per_arm, n_arms=len(arms),
+                stability_rule="each arm fraction <=1 d_ref >=0.99 AND max <=2 d_ref",
+                strata_count=len(strata),
+                stratum_ambiguity={"|".join(map(str,k)):dict(rows=len(v),
+                                   ambiguous=sum(int(q["n_alt_ambiguous"]) > 0 for q in v))
+                                   for k,v in sorted(strata.items())},
                 all_rows_retained_in_science=True, unique_map_claim_allowed=False,
-                scientific_release=False, sensitivity="REVIEW_REQUIRED_IF_ANY_AMBIGUOUS")
+                scientific_release=False,
+                sensitivity="REVIEW_REQUIRED_IF_ANY_AMBIGUOUS")
 
 
 def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
@@ -380,8 +411,14 @@ def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
     if set(x) != set(y):
         return dict(pass_=False, reason="ERR_SOLVER_REPRO_ROW_SET", missing=len(set(x)-set(y)), extra=len(set(y)-set(x)))
     failures = []
+    numeric_keys = ("cost", "nees4_C10") + tuple(f"xend_{i}" for i in range(4)) + tuple(
+        f"C10rot_{i}{j}" for i in range(4) for j in range(i,4))
     for key in sorted(x):
         one, two = x[key], y[key]
+        if any(not finite_scalar_check(*(float(r[k]) for k in numeric_keys))
+               for r in (one, two)):
+            failures.append(dict(key=key, reason="NONFINITE_COST_STATE_C10_NEES"))
+            continue
         if (one.get("class_v31") != two.get("class_v31") or
                 one.get("n_alt_ambiguous") != two.get("n_alt_ambiguous")):
             failures.append(dict(key=key, reason="CLASS_OR_MODE")); continue
@@ -390,8 +427,8 @@ def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
         delta = np.array([float(one[f"xend_{i}"])-float(two[f"xend_{i}"]) for i in range(4)])
         delta[2] = float(np.arctan2(np.sin(delta[2]),np.cos(delta[2])))
         d = float(np.max(np.abs(delta) / np.array([.02,.02,np.deg2rad(.25),np.deg2rad(.01)])))
-        if d>state_tol:
-            failures.append(dict(key=key, reason="STATE"));continue
+        if not finite_scalar_check(d) or d > state_tol:
+            failures.append(dict(key=key, reason="STATE_NONFINITE_OR_TOL"));continue
         cv = covariance_replay_check(one, two, scaled_difference=lambda u,v:
             _scaled_c10_diff(u,v), nees_tolerance=cov_tol)
         if not cv["pass_"] or cv.get("condition_log10_delta", np.inf)>cond_log_tol:
@@ -409,6 +446,8 @@ def _scaled_c10_diff(a, b):
                      np.sqrt(np.maximum(np.diag(Q),0))[None,:])
     for j in range(4):
         denom[j,j]=max(denom[j,j],1e-300)
+    if not np.isfinite(P).all() or not np.isfinite(Q).all():
+        return float("inf")
     return float(np.max(np.abs(P-Q)/np.maximum(denom,1e-300)))
 
 
