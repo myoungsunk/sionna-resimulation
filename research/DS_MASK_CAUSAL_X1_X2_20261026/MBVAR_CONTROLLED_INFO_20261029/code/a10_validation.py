@@ -301,7 +301,8 @@ def covariance_replay_check(a, b, *, scaled_difference, nees_tolerance=1e-3):
     diff = float(scaled_difference(a, b))
     nees = abs(float(a["nees4_C10"]) - float(b["nees4_C10"])) / max(abs(float(b["nees4_C10"])), 1e-300)
     logdiff = abs(x["log10_condition"] - y["log10_condition"])
-    return dict(pass_=bool(diff <= nees_tolerance and nees <= nees_tolerance and logdiff <= C10_COND_LOG_TOL),
+    return dict(pass_=bool(finite_scalar_check(diff, nees, logdiff) and
+                           diff <= nees_tolerance and nees <= nees_tolerance and logdiff <= C10_COND_LOG_TOL),
                 full_C10_rel=diff, nees4_rel=nees, condition_log10_delta=logdiff,
                 source=x, replay=y)
 
@@ -328,29 +329,59 @@ def gate_verdict(criteria):
 
 
 def mode_identifiability(rows, tol1=1., tol2=2., fraction=.99):
-    """Rows retained in all science metrics.  Subset is diagnostic ONLY."""
+    """R2: per-ARM fixed-start stability; pooled clean average is not a gate.
+
+    Legacy and prospective subgroup thresholds are applied separately to each
+    arm; rows in the ambiguous subgroup are NOT dropped from main H/CAL outputs.
+    """
     rows = list(rows)
     if not rows:
-        return dict(status="NOT_RUN", n_rows=0, n_excluded=0, scientific_release=False)
-    alt = [r for r in rows if int(r["n_alt_ambiguous"]) > 0]
-    clean = [r for r in rows if int(r["n_alt_ambiguous"]) == 0]
-    groups = defaultdict(list)
+        return dict(status="NOT_RUN", n_rows=0, n_excluded=0,
+                    per_arm={}, scientific_release=False)
+    arms = defaultdict(list)
+    strata = defaultdict(list)
     for r in rows:
-        k = (r["field"], r["role"], r["cell"], r["arm"])
-        groups[k].append(r)
-    clean_ok = (bool(clean) and sum(float(r["E_vs_best_dref"]) <= tol1 for r in clean) / len(clean) >= fraction
-                and all(float(r["E_vs_best_dref"]) <= tol2 for r in clean))
-    legacy_ok = (sum(float(r["E_vs_best_dref"]) <= tol1 for r in rows) / len(rows) >= fraction
-                 and all(float(r["E_vs_best_dref"]) <= tol2 for r in rows))
-    return dict(status="MIXED" if alt else ("GRID_LOCAL_ONLY" if clean_ok else "NOT_IDENTIFIABLE"),
-                n_rows=len(rows), n_ambiguous=len(alt), n_excluded_from_nonambiguous_diagnostic=len(alt),
-                ambiguous_fraction=len(alt) / len(rows), clean_subset_stability_pass=clean_ok,
-                legacy_full_rows_pass=legacy_ok, strata_count=len(groups),
-                stratum_ambiguity={"|".join(map(str, k)): dict(rows=len(v),
-                    ambiguous=sum(int(r["n_alt_ambiguous"]) > 0 for r in v))
-                    for k, v in sorted(groups.items())},
+        a = str(r["arm"])
+        d = float(r["E_vs_best_dref"])
+        n = float(r["n_alt_ambiguous"])
+        if not finite_scalar_check(d, n) or n < 0 or n != int(n):
+            raise ValueError("ERR_A010_MODE_NONFINITE_OR_INVALID_ROW")
+        arms[a].append(r)
+        strata[(r["field"], r["role"], r["cell"], r["arm"])].append(r)
+    def verdict(rs):
+        if not rs:
+            return dict(pass_=False, n=0, frac_le_1dref=None,
+                        max_dref=None, reason="NO_NONAMBIGUOUS_ROWS")
+        vals = np.asarray([float(q["E_vs_best_dref"]) for q in rs])
+        share = float(np.mean(vals <= tol1))
+        mx = float(np.max(vals))
+        return dict(pass_=bool(share >= fraction and mx <= tol2),
+                    n=len(rs), frac_le_1dref=share, max_dref=mx)
+    per_arm = {}
+    for name, group in sorted(arms.items()):
+        clean = [r for r in group if int(r["n_alt_ambiguous"]) == 0]
+        per_arm[name] = dict(n_total=len(group), n_ambiguous=len(group)-len(clean),
+                             legacy_all_rows=verdict(group),
+                             clean_nonambiguous=verdict(clean))
+    alt = [r for r in rows if int(r["n_alt_ambiguous"]) > 0]
+    legacy_ok = all(p["legacy_all_rows"]["pass_"] for p in per_arm.values())
+    clean_ok = all(p["clean_nonambiguous"]["pass_"] for p in per_arm.values())
+    return dict(status=("MIXED" if alt else
+                        ("GRID_LOCAL_ONLY" if clean_ok else "NOT_IDENTIFIABLE")),
+                n_rows=len(rows), n_ambiguous=len(alt),
+                n_excluded_from_nonambiguous_diagnostic=len(alt),
+                ambiguous_fraction=len(alt)/len(rows),
+                clean_subset_stability_pass=bool(clean_ok),
+                legacy_full_rows_pass=bool(legacy_ok),
+                per_arm=per_arm, n_arms=len(arms),
+                stability_rule="each arm fraction <=1 d_ref >=0.99 AND max <=2 d_ref",
+                strata_count=len(strata),
+                stratum_ambiguity={"|".join(map(str,k)):dict(rows=len(v),
+                                   ambiguous=sum(int(q["n_alt_ambiguous"]) > 0 for q in v))
+                                   for k,v in sorted(strata.items())},
                 all_rows_retained_in_science=True, unique_map_claim_allowed=False,
-                scientific_release=False, sensitivity="REVIEW_REQUIRED_IF_ANY_AMBIGUOUS")
+                scientific_release=False,
+                sensitivity="REVIEW_REQUIRED_IF_ANY_AMBIGUOUS")
 
 
 def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
@@ -380,8 +411,14 @@ def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
     if set(x) != set(y):
         return dict(pass_=False, reason="ERR_SOLVER_REPRO_ROW_SET", missing=len(set(x)-set(y)), extra=len(set(y)-set(x)))
     failures = []
+    numeric_keys = ("cost", "nees4_C10") + tuple(f"xend_{i}" for i in range(4)) + tuple(
+        f"C10rot_{i}{j}" for i in range(4) for j in range(i,4))
     for key in sorted(x):
         one, two = x[key], y[key]
+        if any(not finite_scalar_check(*(float(r[k]) for k in numeric_keys))
+               for r in (one, two)):
+            failures.append(dict(key=key, reason="NONFINITE_COST_STATE_C10_NEES"))
+            continue
         if (one.get("class_v31") != two.get("class_v31") or
                 one.get("n_alt_ambiguous") != two.get("n_alt_ambiguous")):
             failures.append(dict(key=key, reason="CLASS_OR_MODE")); continue
@@ -390,8 +427,8 @@ def validate_two_runner_solver_receipts(a, b, *, state_tol=1e-6, cost_tol=1e-6,
         delta = np.array([float(one[f"xend_{i}"])-float(two[f"xend_{i}"]) for i in range(4)])
         delta[2] = float(np.arctan2(np.sin(delta[2]),np.cos(delta[2])))
         d = float(np.max(np.abs(delta) / np.array([.02,.02,np.deg2rad(.25),np.deg2rad(.01)])))
-        if d>state_tol:
-            failures.append(dict(key=key, reason="STATE"));continue
+        if not finite_scalar_check(d) or d > state_tol:
+            failures.append(dict(key=key, reason="STATE_NONFINITE_OR_TOL"));continue
         cv = covariance_replay_check(one, two, scaled_difference=lambda u,v:
             _scaled_c10_diff(u,v), nees_tolerance=cov_tol)
         if not cv["pass_"] or cv.get("condition_log10_delta", np.inf)>cond_log_tol:
@@ -409,4 +446,151 @@ def _scaled_c10_diff(a, b):
                      np.sqrt(np.maximum(np.diag(Q),0))[None,:])
     for j in range(4):
         denom[j,j]=max(denom[j,j],1e-300)
+    if not np.isfinite(P).all() or not np.isfinite(Q).all():
+        return float("inf")
     return float(np.max(np.abs(P-Q)/np.maximum(denom,1e-300)))
+
+
+# ---------------------------------------------------------------------------
+# A010 post-audit prospective technical safeguards (R1/R2/R3/R4).
+# No change to frozen science threshold, historical records or estimator policy.
+ROW_KEY_FIELDS = ("field", "role", "cell", "sensor_seed", "arm")
+BOUNDARY_ARRAY_NAMES = ("z", "x0", "ds_m", "gy_m", "Sigma_model", "dts", "taps")
+BOUNDARY_SCHEMA = "A010_OPTIMIZER_CALL_V1"
+
+
+def exact_registered_keyset(actual, expected):
+    """R1: equality of registered 5-tuples incl uniqueness, not count equality.
+
+    Inputs are ordered lists of canonical tuples, never data-dependent inferred
+    row sets. Even a duplicate replacing one missing row must fail closed.
+    """
+    from collections import Counter
+    actual = [tuple(k) for k in actual]
+    expected = [tuple(k) for k in expected]
+    if any(len(k) != len(ROW_KEY_FIELDS) for k in actual + expected):
+        raise ValueError("ERR_A010_ROW_KEY_SHAPE")
+    if len(set(expected)) != len(expected):
+        raise ValueError("ERR_A010_REGISTERED_KEY_DUPLICATE")
+    counts = Counter(actual)
+    duplicate = sorted(k for k, n in counts.items() if n > 1)
+    missing = sorted(set(expected) - set(actual))
+    unexpected = sorted(set(actual) - set(expected))
+    def digest(keys):
+        text = "\n".join(json.dumps(list(k), separators=(",", ":"), ensure_ascii=True)
+                         for k in sorted(keys))
+        return hashlib.sha256(text.encode()).hexdigest()
+    return dict(pass_=bool(actual and not duplicate and not missing and
+                           not unexpected and len(actual) == len(expected)),
+                n_expected=len(expected), n_actual=len(actual),
+                n_distinct_actual=len(counts), n_duplicate_keys=len(duplicate),
+                n_missing_keys=len(missing), n_unexpected_keys=len(unexpected),
+                duplicate_keys=[list(k) for k in duplicate[:12]],
+                missing_keys=[list(k) for k in missing[:12]],
+                unexpected_keys=[list(k) for k in unexpected[:12]],
+                actual_multiset_sha256=digest(actual),
+                expected_multiset_sha256=digest(expected),
+                scope="registered (field,role,cell,sensor_seed,arm); count alone is not a gate")
+
+
+def expected_s1_row_keys(fields, sensors, role_cells, role_arms):
+    """Contract/geometry-origin expected S1 keys, independent of RESULTS.csv."""
+    keys = []
+    for f in fields:
+        for role, cells in role_cells.items():
+            for cell in cells:
+                for sn in sensors:
+                    for arm in role_arms(role, cell):
+                        keys.append((int(f), str(role), str(cell), int(sn), str(arm)))
+    if len(keys) != len(set(keys)):
+        raise ValueError("ERR_A010_REGISTERED_S1_DUPLICATE")
+    return keys
+
+
+def expected_c3_row_keys(fields, sensors, lh_cells, rv_cells, xmodel_cells):
+    """Full preregistered C3 field×role×cell×arm×sensor keys (not reduced smoke)."""
+    xc = set(xmodel_cells)
+    role_cells = {r:lh_cells for r in ("LOW", "HIGH")}
+    role_cells.update({r:rv_cells for r in ("REV60", "FWD60")})
+    def arms(role, cell):
+        return ("IID_BATCH", "ORACLE_CORR_BATCH") + (
+            ("XMODEL_BATCH",) if role in ("REV60","FWD60") and cell in xc else ())
+    return expected_s1_row_keys(fields, sensors, role_cells, arms)
+
+
+def dataframe_row_keys(frame):
+    """Validate identity columns BEFORE setting a pandas index (duplicates may hide)."""
+    if not all(name in frame.columns for name in ROW_KEY_FIELDS):
+        raise ValueError("ERR_A010_ROW_KEY_COLUMN_MISSING")
+    out = []
+    for row in frame[list(ROW_KEY_FIELDS)].itertuples(index=False, name=None):
+        f, role, cell, sn, arm = row
+        if not np.isfinite(float(f)) or not np.isfinite(float(sn)):
+            raise ValueError("ERR_A010_ROW_KEY_NONFINITE")
+        if float(f) != int(f) or float(sn) != int(sn):
+            raise ValueError("ERR_A010_ROW_KEY_NON_INTEGER")
+        if not role or not cell or not arm:
+            raise ValueError("ERR_A010_ROW_KEY_EMPTY")
+        out.append((int(f),str(role),str(cell),int(sn),str(arm)))
+    return out
+
+
+def enforce_finite_rows(frame, names, label):
+    """R4: fail on nan/inf rather than silently passing a <= comparison."""
+    if not len(frame):
+        return dict(pass_=False, n_rows=0, n_columns=len(names), reason="EMPTY")
+    missing = [name for name in names if name not in frame.columns]
+    if missing:
+        raise ValueError("ERR_A010_FINITE_MISSING_COLUMN " + label + " " + ",".join(missing))
+    values = frame[list(names)].to_numpy(dtype=np.float64)
+    if not np.isfinite(values).all():
+        bad = np.argwhere(~np.isfinite(values))
+        raise ValueError(f"ERR_A010_NONFINITE_{label} row={int(bad[0,0])} col={names[int(bad[0,1])]}")
+    return dict(pass_=True, n_rows=int(len(frame)), n_columns=len(names),
+                full_finite_payload=True)
+
+
+def optimizer_boundary_attestation(expected, actual):
+    """R3: test exact arrays at the ACTUAL optimizer call site, before/after.
+
+    Expected data are original per-field S1 receipt arrays including geometry
+    dts and fixed taps. Never includes Sigma_true or Xtrue. No hashes are
+    computed from reconstructed/regen data as an alleged original receipt.
+    """
+    if set(expected) != set(BOUNDARY_ARRAY_NAMES) or set(actual) != set(BOUNDARY_ARRAY_NAMES):
+        raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_SCHEMA")
+    x = {k:np.asarray(v) for k,v in expected.items()}
+    y = {k:np.asarray(v) for k,v in actual.items()}
+    n = x["z"].shape[0]
+    shape = {"z":(n,2), "x0":(4,), "ds_m":(n,), "gy_m":(n,),
+             "Sigma_model":(2*n,2*n), "dts":(n,), "taps":(n,)}
+    if n <= 0:
+        raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_EMPTY")
+    for key in BOUNDARY_ARRAY_NAMES:
+        a, b = x[key], y[key]
+        if a.shape != shape[key] or b.shape != shape[key]:
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_SHAPE " + key)
+        if key == "taps":
+            if a.dtype.kind not in "iu" or b.dtype != a.dtype:
+                raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_TAP_DTYPE")
+            if np.any(a < 0) or np.any(a >= 4096):
+                raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_TAP_RANGE")
+        elif a.dtype.str != "<f8" or b.dtype.str != "<f8":
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_DTYPE " + key)
+        if not np.isfinite(a).all() or not np.isfinite(b).all():
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_NONFINITE " + key)
+        if array_sha(a) != array_sha(b):
+            raise ValueError("ERR_A010_OPTIMIZER_BOUNDARY_BYTE_MISMATCH " + key)
+    hashes = {name:array_sha(x[name]) for name in BOUNDARY_ARRAY_NAMES}
+    return dict(pass_=True, schema=BOUNDARY_SCHEMA, n_arrays=len(hashes),
+                hash_algorithm="sha256(dtype.str+shape+complete_C_bytes)",
+                original_array_sha256=hashes,
+                digest=hashlib.sha256(json.dumps(hashes,sort_keys=True).encode()).hexdigest(),
+                source="S1V5 exact field-qualified saved receipt, not regenerated inputs")
+
+
+def finite_scalar_check(*values):
+    try:
+        return bool(values and np.isfinite(np.asarray(values, dtype=float)).all())
+    except (ValueError, TypeError, OverflowError):
+        return False

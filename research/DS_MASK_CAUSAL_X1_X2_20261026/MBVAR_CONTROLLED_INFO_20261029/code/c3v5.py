@@ -261,13 +261,33 @@ def cmd_run(field, group, out):
                 Tr = IC.rotation_rt(w["Xtrue"][-1], Wd.ANCHORS["A"])
                 for arm, Sm in models.items():
                     skey = (field, w["role"], cn, sn, arm)
-                    r, XE, IE, thp = T.eval_batch(w, arm, Sm, inp, skey)          # XE = X' (polished E); r["cost"] = cost(E')
+                    boundary_expected = {
+                        name:rec[f"{kb}|{name}"] for name in ("z","x0","ds_m","gy_m")}
+                    boundary_expected.update(
+                        Sigma_model=rec[T.mat_key(field,w["role"],cn,arm)],
+                        dts=rec[f"{tk}|dts"], taps=rec[f"{kb}|taps"])
+                    # Structural precheck plus a second proof INSIDE T.estimate
+                    # immediately before and after FL.batch_map_v2_ms.
+                    AV.optimizer_boundary_attestation(boundary_expected,
+                        dict(z=inp["z"],x0=inp["x0"],ds_m=inp["ds_m"],
+                             gy_m=inp["gy_m"],Sigma_model=Sm,
+                             dts=w["dts"],taps=w["taps"]))
+                    r, XE, IE, thp = T.eval_batch(w, arm, Sm, inp, skey,
+                                                  boundary_expected=boundary_expected)          # XE = X' (polished E); r["cost"] = cost(E')
                     starts = {f"psi{k:+d}": (np.r_[x0[:2], FL.wrap(x0[2] + k * sd0[2]), x0[3]], np.zeros((N, 2))) for k in FL.MS_K}
                     starts["x+1"] = (x0 + np.r_[sd0[0], 0, 0, 0], np.zeros((N, 2))); starts["y+1"] = (x0 + np.r_[0, sd0[1], 0, 0], np.zeros((N, 2)))
                     starts["truth"] = (w["Xtrue"][0].copy(), -inp["vn"])
                     sol = {"E": (r["cost"], XE)}; sol_theta = {"E": thp}
                     for nm, th in starts.items():
-                        Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm, gym, w["dts"], x0, P0M, theta0=th)
+                        # R3: all diagnostic solver calls use the same saved bytes.
+                        AV.optimizer_boundary_attestation(boundary_expected,
+                            dict(z=z,x0=x0,ds_m=dsm,gy_m=gym,
+                                 Sigma_model=Sm,dts=w["dts"],taps=w["taps"]))
+                        Xs, _, Is = FL.batch_map_v2(ht, z, mu, Sm, dsm,
+                                                    gym, w["dts"], x0, P0M, theta0=th)
+                        AV.optimizer_boundary_attestation(boundary_expected,
+                            dict(z=z,x0=x0,ds_m=dsm,gy_m=gym,
+                                 Sigma_model=Sm,dts=w["dts"],taps=w["taps"]))
                         # D4: score each truth-free alternative after the same F2
                         # polish and the same exact objective as E'. Oracle-only
                         # truth is still excluded from best-start and mode choice.
@@ -277,6 +297,10 @@ def cmd_run(field, group, out):
                         Lm, L0, qv = T.B3._mats(Sm, dsm, w["dts"])
                         c_diag, X_diag = FL._v2_parts(ht, z, mu, Lm, L0, x0, qv, dsm, gym,
                                                        w["dts"], th_diag[0], th_diag[1], jac=False)
+                        if (not AV.finite_scalar_check(c_diag) or not
+                                np.isfinite(X_diag).all() or not
+                                all(np.isfinite(t).all() for t in th_diag)):
+                            raise SystemExit("ERR_A010_NONFINITE_DIAGNOSTIC_SOLUTION")
                         sol[nm] = (float(c_diag), X_diag); sol_theta[nm] = th_diag
                     # D4 prospectively saves individual near-cost alternatives, not only the best.
                     # These are paired with E' on the same field, geometry and noise;
@@ -294,6 +318,9 @@ def cmd_run(field, group, out):
                         erE, erA = Tr @ errE, Tr @ errA
                         neA = float(errA @ np.linalg.solve(PP, errA))
                         Pe = AV.c10_matrix(r)
+                        if not (np.isfinite(PP_r).all() and np.isfinite(Pe).all()
+                                and AV.finite_scalar_check(neA, cost, r["cost"])):
+                            raise SystemExit("ERR_A010_NONFINITE_MODE_SENSITIVITY")
                         eigP = float(np.linalg.eigvalsh(PP_r)[0])
                         detE, detA = np.linalg.slogdet(Pe), np.linalg.slogdet(PP_r)
                         sr = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn,
@@ -316,6 +343,12 @@ def cmd_run(field, group, out):
                     if not integrity["pass_"]:
                         raise SystemExit(f"ERR_A010_ESTIMATOR_INPUT_BYTES {kb}|{arm} {integrity['mismatches']}")
                     rec_ = dict(field=field, role=w["role"], cell=cn, sensor_seed=sn, arm=arm,
+                                OPTIMIZER_BOUNDARY_EXACT=r["OPTIMIZER_BOUNDARY_EXACT"],
+                                OPTIMIZER_BOUNDARY_INPUT_SHA=r["OPTIMIZER_BOUNDARY_INPUT_SHA"],
+                                OPTIMIZER_BOUNDARY_ARRAYS_CHECKED=r["OPTIMIZER_BOUNDARY_ARRAYS_CHECKED"],
+                                OPTIMIZER_X_OUTPUT_SHA=r["OPTIMIZER_X_OUTPUT_SHA"],
+                                OPTIMIZER_P_OUTPUT_SHA=r["OPTIMIZER_P_OUTPUT_SHA"],
+                                OPTIMIZER_EPRIME_OUTPUT_SHA=r["OPTIMIZER_EPRIME_OUTPUT_SHA"],
                                 RECEIPT_ARRAY_EXACT=integrity["pass_"],
                                 RECEIPT_ARRAYS_CHECKED=integrity["n_checked"],
                                 TRUTH_ONLY_VERIFIED=truth_ok, GENERATOR_LAW_PASS=law["pass_"], **idf,
@@ -331,7 +364,8 @@ def cmd_run(field, group, out):
                                 **mode_ambiguity(sol),
                                 **T.probe_power(ht, z, Sm, dsm, gym, w["dts"], x0, thp, T.key_seed("PP", field, w["role"], cn, sn, arm) % (2 ** 62)))
                     if IE["status"] != "CONVERGED":
-                        _, I3, _, X3p, c3p, _ = T.estimate(w, Sm, inp, skey, max_iter=300)
+                        _, I3, _, X3p, c3p, _ = T.estimate(w, Sm, inp, skey, max_iter=300,
+                                                            boundary_expected=boundary_expected)
                         rec_.update(E300_status=I3["status"], E300_vs_E_dref=dref_diff(X3p[-1], XE[-1]), E300_cost_minus_E=c3p - r["cost"])
                     else:
                         rec_.update(E300_status="NOT_RUN_CONVERGED", E300_vs_E_dref=0.0, E300_cost_minus_E=0.0)
@@ -386,9 +420,35 @@ def cmd_aggregate(shards, out):
     laws = [json.loads(p.read_text()) for p in law_paths]
     gen_law_pass = bool(laws and len(laws) == len(fs)
                         and all(l.get("pass_") for l in laws))
-    D = D[D.arm.astype(str).str.endswith("_BATCH") & (D.status == "OK")].set_index(["field", "role", "cell", "sensor_seed", "arm"])
+    # R1: validate both row universes BEFORE set_index() can hide duplicates.
+    D = D[D.arm.astype(str).str.endswith("_BATCH") & (D.status == "OK")].copy()
     fields = lk["run_plan"]["C3V5"]["fields"]
-    n_exp = len(fields) * len(M.SENSOR_SEEDS) * (2 * len(V.LH_CELLS) * 2 + 2 * (len(S0V2.REV_CELLS) * 2 + len(S0V2.XMODEL)))
+    expected_keys = AV.expected_c3_row_keys(fields, M.SENSOR_SEEDS,
+                                              V.LH_CELLS, S0V2.REV_CELLS, S0V2.XMODEL)
+    n_exp = len(fields) * len(M.SENSOR_SEEDS) * (
+        2 * len(V.LH_CELLS) * 2 + 2 * (len(S0V2.REV_CELLS) * 2 + len(S0V2.XMODEL)))
+    if len(expected_keys) != n_exp:
+        raise SystemExit("ERR_A010_C3_REGISTERED_KEY_COUNT_NOT_CONSISTENT")
+    cov_rows = AV.exact_registered_keyset(AV.dataframe_row_keys(C),expected_keys)
+    (out / "A010_C3_REGISTERED_ROW_COVERAGE.json").write_text(
+        json.dumps(cov_rows,indent=1))
+    if cov_rows["n_duplicate_keys"]:
+        raise SystemExit("ERR_A010_C3_DUPLICATE_RESULT_ROW")
+    if len(D) and D.duplicated(list(AV.ROW_KEY_FIELDS)).any():
+        raise SystemExit("ERR_A010_C3_DUPLICATE_SOURCE_REFERENCE")
+    numeric_cols = (["cost", "cost_E", "nees4_C10"] +
+                    [f"xend_{i}" for i in range(4)] +
+                    [f"C10rot_{i}{j}" for i in range(4) for j in range(i,4)])
+    try:
+        if len(C):
+            AV.enforce_finite_rows(C,numeric_cols,"C3V5_RAW")
+        if len(D):
+            AV.enforce_finite_rows(D,numeric_cols,"S1V5_REFERENCE")
+    except ValueError as ex:
+        (out / "A010_C3_NONFINITE_FAILURE.json").write_text(
+            json.dumps(dict(status="FAIL",reason=str(ex)),indent=1))
+        raise SystemExit(str(ex)) from ex
+    D = D.set_index(list(AV.ROW_KEY_FIELDS))
     cmp = []
     for _, r in C.iterrows():
         k = (r.field, r.role, r.cell, r.sensor_seed, r.arm)
@@ -404,6 +464,19 @@ def cmd_aggregate(shards, out):
                         d_NEES4_C10_rel=abs(r.nees4_C10-s.nees4_C10)/max(abs(s.nees4_C10),1e-300),
                         same_class_v31=r.class_v31 == s.class_v31, same_old_class=r.conv == s.conv))
     C = pd.concat([C, pd.DataFrame(cmp, index=C.index)], axis=1) if len(C) else C
+    # R4: the comparison deltas themselves must be finite and every source row
+    # must exist. NaN comparisons may otherwise silently evade <=/max checks.
+    if len(C) and not C.found.astype(bool).all():
+        raise SystemExit("ERR_A010_C3_MISSING_SOURCE_REFERENCE")
+    if len(C):
+        try:
+            AV.enforce_finite_rows(C,["d_state_dref","d_cost","d_P_full_C10_rel",
+                "d_NEES4_C10_rel","d_P_C10_rel","d_P_A_rel",
+                "d_stateE_dref","d_costE"],"C3V5_REPLAY_DIFFERENCES")
+        except ValueError as ex:
+            (out / "A010_C3_NONFINITE_FAILURE.json").write_text(
+                json.dumps(dict(status="FAIL",reason=str(ex)),indent=1))
+            raise SystemExit(str(ex)) from ex
     # Reconstruct every 4x4 C10 in two independent receipts and check SPD/condition.
     full_c10_checks = []
     for _, rr in C.iterrows():
@@ -424,7 +497,7 @@ def cmd_aggregate(shards, out):
         C[["field", "role", "cell", "sensor_seed", "arm", "d_P_full_C10_rel",
            "d_NEES4_C10_rel", "full_C10_spd_pass", "c10_log10_cond_delta",
            "c10_source_eigmin", "c10_replay_eigmin"]].to_csv(out / "A010_FULL_C10_REPRO.csv", index=False)
-    allrows = bool(len(C) == n_exp and C.found.all()) if len(C) else False
+    allrows = bool(cov_rows["pass_"] and len(C) == n_exp and C.found.all()) if len(C) else False
     rf = C.INPUT_EXACT.astype(bool) if len(C) else pd.Series(dtype=bool)
     per_arm = C.groupby("arm").apply(lambda d: dict(n=len(d), frac_le_1dref=float((d.E_vs_best_dref <= TOL["stab1"]).mean()),
                                                     max_dref=float(d.E_vs_best_dref.max()), max_sdC10_REPORTED=float(d.E_vs_best_sdC10.max())),
@@ -471,13 +544,20 @@ def cmd_aggregate(shards, out):
                                      max_alt_dref_within_1chi2=float(C.max_alt_dref_within_1chi2.max()),
                                      n_ambiguous_best_start_only_legacy=int(((C.gap_E <= TOL["basin"]) & (C.E_vs_best_dref > TOL["stab2"])).sum()),
                                      claim_unique_map_allowed=False),
-        rows=dict(pass_=allrows, n=int(len(C)), n_expected=n_exp))
+        rows=dict(pass_=allrows, n=int(len(C)), n_expected=n_exp,
+                  registered_key_set=cov_rows))
     # D3/D4: no suffix-based gate selection; all IDs explicitly registered.
     criterion_input = crit["INPUT_REPRO_LEGACY_REPORTED"]
     receipt_ok = bool(allrows and receipt_load["strict_index_verified"] and
                       receipt_load["array_hashes_verified"] > 0 and len(C) and
                       C.RECEIPT_ARRAY_EXACT.astype(bool).all() and
                       C.TRUTH_ONLY_VERIFIED.astype(bool).all() and
+                      C.OPTIMIZER_BOUNDARY_EXACT.astype(bool).all() and
+                      (C.OPTIMIZER_BOUNDARY_ARRAYS_CHECKED == 7).all() and
+                      C.OPTIMIZER_BOUNDARY_INPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all() and
+                      C.OPTIMIZER_X_OUTPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all() and
+                      C.OPTIMIZER_P_OUTPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all() and
+                      C.OPTIMIZER_EPRIME_OUTPUT_SHA.astype(str).str.fullmatch("[0-9a-f]{64}").all() and
                       criterion_input["pass_"])
     # Independent second-runner evidence is a separate hard gate. No local
     # self-review, same-process repeat or SMOKE subset may claim this PASS.
@@ -486,6 +566,8 @@ def cmd_aggregate(shards, out):
     crit["RECEIPT_INTEGRITY"] = dict(pass_=receipt_ok, checked_input_arrays=receipt_load["array_hashes_verified"],
                                         exact_estimator_rows=int(C.RECEIPT_ARRAY_EXACT.astype(bool).sum()) if len(C) else 0,
                                         original_zip_and_index_sha_verified=True,
+                                        actual_solver_call_boundary_verified=bool(len(C) and
+                                            C.OPTIMIZER_BOUNDARY_EXACT.astype(bool).all()),
                                         truth_only_replayed=bool(len(C) and C.TRUTH_ONLY_VERIFIED.astype(bool).all()),
                                         note="Original S1V5 bytes used, not proof of the field's generating distribution")
     crit["GENERATOR_LAW"] = dict(pass_=gen_law_pass, n_runner_law_receipts=len(laws),
