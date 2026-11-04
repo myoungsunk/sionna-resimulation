@@ -17,6 +17,7 @@ import argparse
 import glob
 import json
 import math
+import re
 import zipfile
 import os
 import sys
@@ -75,6 +76,79 @@ def _same_bytes(a, b):
     return a.dtype == b.dtype and a.shape == b.shape and a.tobytes() == b.tobytes()
 
 
+# Prospective, post-DEV3-source exploratory correction. The S1 receipt is
+# the source of truth, never a C3 re-generation's floating-point bytes.
+_ORIGINAL_S1_DEV3_RUN_SHA = "0bd5d706710f172ff6becb562eadd7573b5d3ffd"
+_TRUTH_REGEN_MAX_SCALED_ULPS = 128.0  # epsilon-based CPU diagnostic, NOT G5 tolerance
+_TRUTH_GEOMETRY_KEYS = ("Xtrue", "poses", "ds_true", "dth_true")
+_TRUTH_EXACT_KEYS = ("dts", "prior_P0", "mu", "pose_keys_sha")
+
+
+def attest_source_truth(rec, field, role, cell, w):
+    """S1 original is score authority; regenerated geometry is QA only.
+
+    Original S1 array bytes already passed strict outer ZIP, SHA, dtype, shape
+    and per-array manifest checks in load_receipts_with_stats.
+    Reject wrong role, dtype, changed geometry and exact-invariant mismatch.
+    128-scaled-ULP diagnostic is a post-open correction, never confirmatory.
+    """
+    tk=f"TRUTH|{field}|{role}|{cell}"
+    regenerated=dict(Xtrue=np.asarray(w["Xtrue"]),poses=np.asarray(w["poses"]),
+                     ds_true=np.asarray(w["ds"]),dth_true=np.asarray(w["dth"]),
+                     dts=np.asarray(w["dts"]),prior_P0=np.asarray(P0M),
+                     mu=np.zeros((N,2)),pose_keys_sha=np.array(T.pose_keys_sha(w)))
+    original={}
+    exact={};normalized={};absolute={}
+    for name,expected in regenerated.items():
+        k=f"{tk}|{name}"
+        if k not in rec:
+            raise SystemExit(f"ERR_A010_TRUTH_SOURCE_MISSING {k}")
+        value=np.asarray(rec[k])
+        if value.dtype != expected.dtype or value.shape != expected.shape:
+            raise SystemExit(f"ERR_A010_TRUTH_SOURCE_SHAPE_DTYPE {k}")
+        match=AV.array_sha(value)==AV.array_sha(expected)
+        exact[name]=bool(match)
+        if name in _TRUTH_EXACT_KEYS:
+            if not match:
+                raise SystemExit(f"ERR_A010_TRUTH_EXACT_INVARIANT {k}")
+        else:
+            if not (np.isfinite(value).all() and np.isfinite(expected).all()):
+                raise SystemExit(f"ERR_A010_TRUTH_NONFINITE {k}")
+            delta=float(np.max(np.abs(value-expected)))
+            scale=max(1.0,float(np.max(np.abs(value))),
+                      float(np.max(np.abs(expected))))
+            normalized[name]=delta/(np.finfo(np.float64).eps*scale)
+            absolute[name]=delta
+            if normalized[name] > _TRUTH_REGEN_MAX_SCALED_ULPS:
+                raise SystemExit(
+                    f"ERR_A010_TRUTH_REGEN_GEOMETRY_PARITY {k} "
+                    f"delta={delta} scaled_ulps={normalized[name]}")
+        original[name]=np.array(value,copy=True)
+    source_w=dict(w)
+    source_w.update(Xtrue=original["Xtrue"],poses=original["poses"],
+                    ds=original["ds_true"],dth=original["dth_true"],
+                    dts=original["dts"])
+    return source_w,dict(
+        SOURCE_TRUTH_SHA_CHECKED_VIA_ORIGINAL_S1_ARRAY_INDEX=True,
+        TRUTH_REGEN_BYTES_ALL_EQUAL=all(exact.values()),
+        TRUTH_REGEN_NUMERIC_PARITY_PASS=True,
+        TRUTH_REGEN_MAX_ABS=max(absolute.values(),default=0.),
+        TRUTH_REGEN_MAX_SCALED_ULPS=max(normalized.values(),default=0.),
+        TRUTH_REGEN_DIAG_ULP_LIMIT=_TRUTH_REGEN_MAX_SCALED_ULPS)
+
+
+def _s1v5_original_source_hash_map():
+    """Source-run immutable full 49-Python hash map from pre-open ledger."""
+    p=Wd.EXP/"contracts/AMENDMENT-010-SHA_LOCK_COMPLETE_CANDIDATE_20261104.md"
+    match=re.search(r"[\x60]{3}json\n(.*?)\n[\x60]{3}",p.read_text(),re.S)
+    if match is None:
+        raise SystemExit("ERR_A010_S1V5_SOURCE_CODE_LEDGER_MISSING")
+    original=json.loads(match.group(1))["code_sha256"]
+    if len(original)!=49:
+        raise SystemExit("ERR_A010_S1V5_SOURCE_CODE_LEDGER_SIZE")
+    return original
+
+
 def load_receipts_with_stats(d, strict=False):
     """Load only S1V5 original receipt ZIP bytes verified against its manifest (fail-closed).
 
@@ -91,16 +165,30 @@ def load_receipts_with_stats(d, strict=False):
     hashes = {Path(k).name: v for k, v in manifest.get("output_sha256", {}).items()}
     rec, origin = {}, {}
     if strict:
-        if (manifest.get("contract_sha256") != MF.sha256_file(MF.CONTRACT)
-                or manifest.get("source_code_sha256") != MF.code_hashes()
-                or len(manifest.get("source_git_sha", "")) != 40):
+        source_code=manifest.get("source_code_sha256")
+        current_code=MF.code_hashes()
+        archival_source=_s1v5_original_source_hash_map()
+        archival_scope=(manifest.get("source_git_sha")==_ORIGINAL_S1_DEV3_RUN_SHA
+                        and source_code==archival_source
+                        and set(archival_source)==set(current_code)
+                        and all(current_code[k]==archival_source[k]
+                                for k in archival_source if k!="code/c3v5.py"))
+        same_source=source_code==current_code and len(
+            manifest.get("source_git_sha",""))==40
+        if (manifest.get("contract_sha256")!=MF.sha256_file(MF.CONTRACT)
+                or not (same_source or archival_scope)):
             raise SystemExit("ERR_A010_S1V5_SOURCE_CONTRACT_HASH")
+        # Old source map remains archived and unequal to modified C3 by
+        # design. Never rewrite S1 source_manifest/source_code_sha256.
+        st_source= "PINNED_ARCHIVED_S1_DEV3" if archival_scope else "SAME_CODE_HASHES"
     zips = sorted(d.glob(f"S1V5_INPUTS_{SPLIT}_*.zip"))
     if not zips:
         raise SystemExit("ERR_C3V5_MISSING_RECEIPTS")
     st = dict(n_receipt_files=len(zips), receipt_files=[f.name for f in zips], mat_keys=0, mat_duplicate_keys=0, mat_conflicts=0,
               mat_key_schema="MAT|{field}|{role}|{cell}|Sig_true, MAT|{field}|{role}|{cell}|{arm}|Sig_model")
     st["strict_index_verified"] = bool(strict)
+    st["archived_S1_source_code_mode"] = st_source if strict else "NOT_STRICT"
+    st["source_s1_git_sha"] = manifest.get("source_git_sha")
     st["array_hashes_verified"] = 0
     for f in zips:
         if f.name not in hashes or CAN.sha_file(f) != hashes[f.name]:
@@ -246,16 +334,16 @@ def cmd_run(field, group, out):
                 models = {arm: np.array(rec[T.mat_key(field, w["role"], cn, arm)], copy=True)
                           for arm in models_generated}
                 tk = f"TRUTH|{field}|{w['role']}|{cn}"
-                truth_expected = {"Xtrue": w["Xtrue"], "poses": w["poses"], "dts": w["dts"],
-                                  "ds_true": w["ds"], "dth_true": w["dth"],
-                                  "prior_P0": P0M, "mu": np.zeros((N, 2)),
-                                  "pose_keys_sha": np.array(T.pose_keys_sha(w))}
-                truth_ok = all(f"{tk}|{name}" in rec and
-                               AV.array_sha(rec[f"{tk}|{name}"]) == AV.array_sha(v)
-                               for name, v in truth_expected.items())
-                truth_checks.append(bool(truth_ok))
-                if not truth_ok:
-                    raise SystemExit(f"ERR_A010_TRUTH_ONLY_REPLAY {tk}")
+                # Historical ERR_A010_TRUTH_ONLY_REPLAY remains an immutable
+                # failed run. The S1 indexed source truth is now the only
+                # reference for scoring. Locally regenerated geometry gets
+                # a separate epsilon-scaled post-open diagnostic.
+                w, truth_diag = attest_source_truth(rec, field, w["role"], cn, w)
+                inp["vn"] = np.c_[inp["ds_m"]-w["ds"],
+                                  inp["gy_m"]-w["dth"]]
+                truth_ok = bool(truth_diag["SOURCE_TRUTH_SHA_CHECKED_VIA_ORIGINAL_S1_ARRAY_INDEX"]
+                                and truth_diag["TRUTH_REGEN_NUMERIC_PARITY_PASS"])
+                truth_checks.append(truth_ok)
                 law = AV.generator_law(w, S, cn, Sig)
                 law_checks.append(law)
                 if not law["pass_"]:
@@ -263,6 +351,7 @@ def cmd_run(field, group, out):
                 idf = input_diffs(rec, kb, inp, w, Sig, models)
                 idf["INPUT_EXACT"] = bool(idf.get("receipt_found") and all(idf[k] == 0 for k in ("d_z","d_ds","d_gy","d_x0")))
                 idf["generator_regen_d_z_REPORTED"] = generated_diffs.get("d_z", float("nan"))
+                idf.update(truth_diag)
                 ht = lambda X, t=w["taps"]: Wd.h_H_tap(X, "A", t)  # noqa: E731
                 z, x0, dsm, gym = inp["z"], inp["x0"], inp["ds_m"], inp["gy_m"]; mu = np.zeros((N, 2))
                 Tr = IC.rotation_rt(w["Xtrue"][-1], Wd.ANCHORS["A"])

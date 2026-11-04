@@ -1,0 +1,104 @@
+name: MBVAR A010 C3 amended source replay 2-row canary (NO full 1080)
+on:
+  push:
+    branches: [fix/mbvar-a010-c3-truth-byte-source-replay-20261104]
+    paths:
+      - '.github/workflows/mbvar-a010-c3-truth-source-2row-canary-20261104.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  GH_TOKEN: ${{ github.token }}
+  S1_DEV3_RUN: '41769652106'
+  PYTHONDONTWRITEBYTECODE: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  two-row-exploratory-canary:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 100
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+      - name: Restore original successful DEV3 S1 and frozen FFD inputs
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/s1agg" "$RUNNER_TEMP/mi" "$RUNNER_TEMP/c3out"
+          gh run download "$S1_DEV3_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_RUN --dir "$RUNNER_TEMP/s1agg"
+          gh run download "$S1_DEV3_RUN" --repo ${{ github.repository }} --name a010-dev3-source-$S1_DEV3_RUN --dir "$RUNNER_TEMP/mi"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $RUNNER_TEMP/mi/out/INPUT_LOCK.sha256" | sha256sum -c -
+      - name: In-memory two-row canary only; exact source lock, no success release
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          export S1V5_RUN="$RUNNER_TEMP/s1agg"
+          python -u - <<'PY' 2>&1 | tee "$RUNNER_TEMP/c3out/A010_C3_AMENDED_CANARY_LOG.txt"
+          import json,os,sys,pathlib,pandas as pd
+          exp=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(exp/"code"))
+          import contract_lock as CL,manifest as MF
+          import s1v5 as T,s1_mc as M,c3v5 as C,a10_r5 as R5
+          lk=CL.effective_lock()
+          assert lk["status"]=="FROZEN" and lk["code_sha256"]==MF.code_hashes()
+          assert lk["reviewer_status"]=="USER_AUTHORIZED_NONINDEPENDENT_POST_OPEN_CORRECTION"
+          assert lk["independent_auditor_signed"] is False
+          assert lk["source_correction_amendment"]=="contracts/AMENDMENT-010-TRUTH-REPLAY-ULP-001_20261104.md"
+          p,_=R5.spec_with_sha()
+          assert p["polish"]["max_steps"]==30
+          orig_setup=T.canonical_setup
+          def narrowed(lk):
+             S=orig_setup(lk)
+             S["cells"]={"LOWCORR":S["cells"]["LOWCORR"]}
+             return S
+          T.canonical_setup=narrowed
+          M.SENSOR_SEEDS=(0,)
+          C.GROUPS["LH"]=("LOW",)
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"c3out"
+          code=C.cmd_run(20,"LH",root)
+          assert code==0,("ERR_AMENDED_TWO_ROW_CANARY_RUN",code)
+          d=pd.read_csv(root/"C3V5_ROWS_20_LH.csv")
+          t=pd.read_csv(root/"C3V5_R5_TERMINAL_CERT_20_LH.csv")
+          assert len(d)==2 and len(t)==20
+          assert set(d.arm)=={"IID_BATCH","ORACLE_CORR_BATCH"}
+          assert d.RECEIPT_ARRAY_EXACT.astype(bool).all()
+          assert d.TRUTH_ONLY_VERIFIED.astype(bool).all()
+          assert d.TRUTH_REGEN_NUMERIC_PARITY_PASS.astype(bool).all()
+          assert d.SOURCE_TRUTH_SHA_CHECKED_VIA_ORIGINAL_S1_ARRAY_INDEX.astype(bool).all()
+          assert d.R5_PRECISION_PASS.astype(bool).all()
+          assert d.R5_N_SOLUTIONS.eq(10).all()
+          assert d.TRUTH_REGEN_MAX_SCALED_ULPS.max()<=128
+          assert d.OPTIMIZER_BOUNDARY_EXACT.astype(bool).all()
+          assert R5.validate_terminals(t[t.arm=="IID_BATCH"].to_dict("records"),p)["pass_"]
+          assert R5.validate_terminals(t[t.arm=="ORACLE_CORR_BATCH"].to_dict("records"),p)["pass_"]
+          with open(root/"AMENDED_CANARY_RESULT.json","w") as fh:
+             json.dump(dict(status="PASS_TWO_ROW_ONLY",source_s1_run=41769652106,
+                       corrected_C3_source_sha=MF.code_hashes()["code/c3v5.py"],
+                       n_rows=len(d),n_terminal=len(t),
+                       max_regen_scaled_ulps=float(d.TRUTH_REGEN_MAX_SCALED_ULPS.max()),
+                       original_1080_c3_qualifying_coverage=False,
+                       independent_auditor_signed=False,rt_allowed=False),fh,indent=2)
+          print("A010_AMENDED_C3_CANARY_2_ROWS_20_TERMINALS_PASS")
+          print("FULL_1080_G5_NOT_EVALUATED_NO_RT")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-c3-source-byte-amended-2row-canary-${{ github.run_id }}
+          path: ${{ runner.temp }}/c3out/
+          retention-days: 90
+          if-no-files-found: warn
