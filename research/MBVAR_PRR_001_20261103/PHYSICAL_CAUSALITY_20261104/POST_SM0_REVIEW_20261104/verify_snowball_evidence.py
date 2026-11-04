@@ -108,8 +108,19 @@ def run():
         for name,dig in ledger.items():
             require(name in payload,"ERR_"+prefix+"_FILE_MISSING "+name)
             require(sha(payload[name])==dig,"ERR_"+prefix+"_FILE_SHA "+name)
+        # Snowball packages the 151 output files PLUS its execution helper,
+        # log, patch and embedded hash list. These are not among the
+        # OUTPUT_SHA256 entries, but their full bytes are still bound by the
+        # outer rerun.tar.gz hash in BUNDLE_SHA256.txt.
         extra=set(payload)-set(ledger)
-        require(extra<=set(("OUTPUT_SHA256.txt","previous_OUTPUT_SHA256.txt")),"ERR_"+prefix+"_UNACCOUNTED_FILES "+str(sorted(extra)))
+        expected_aux=({"OUTPUT_SHA256.txt","controller.py","phase32.patch",
+                       "regression.py","run.log","runtime.txt"} if prefix=="NEW"
+                      else {"previous_OUTPUT_SHA256.txt","OUTPUT_SHA256.txt",
+                            "controller.py","phase32.patch","regression.py","run.log","runtime.txt"})
+        require(extra<=expected_aux,"ERR_"+prefix+"_UNACCOUNTED_FILES "+str(sorted(extra)))
+        if prefix=="NEW":
+            require(payload.get("OUTPUT_SHA256.txt")== (EV/"OUTPUT_SHA256.txt").read_bytes(),
+                    "ERR_TAR_EMBEDDED_OUTPUT_SHA_LEDGER")
     c00=json.loads((EV/"C00_QA.json").read_text())
     qa=json.loads((EV/"PAIRED_QA.json").read_text())
     require(c00["status"]=="C00_257BIN_STRICT_PARITY_PASS" and c00["n_expected"]==c00["n_pass"]==8,"ERR_C00_COUNT")
