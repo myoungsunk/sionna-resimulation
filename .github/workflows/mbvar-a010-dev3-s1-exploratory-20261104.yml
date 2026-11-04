@@ -1,0 +1,221 @@
+name: MBVAR A010 DEV3 S1V5 internal EXPLORATORY (USER_AUTHORIZED_NONINDEPENDENT)
+on:
+  push:
+    branches: [governance/mbvar-a010-user-approved-exploratory-freeze-20261104]
+    paths:
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json'
+      - '.github/workflows/mbvar-a010-dev3-s1-exploratory-20261104.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  PIP_PKGS: numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+  PYTHONDONTWRITEBYTECODE: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  MKL_DYNAMIC: 'FALSE'
+  GH_TOKEN: ${{ github.token }}
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      run_authorized: ${{ steps.s.outputs.authorized }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install pinned packages for run_phase frozen source check
+        run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Fail-closed USER_AUTHORIZED_NONINDEPENDENT frozen DEV3 only
+        id: s
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,sys,pathlib,os,hashlib
+          exp=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(exp/"code"))
+          import contract_lock as CL
+          import manifest as MF
+          auth=json.loads((exp/"contracts/AMENDMENT-010-USER_AUTHORIZED_NONINDEPENDENT_GOVERNANCE_20261104.json").read_text())
+          req=json.loads((exp/"RUN_REQUEST.json").read_text())
+          assert auth["approved"] is True and auth["scope"].startswith("A010 internal non-independent exploratory DEV3")
+          assert auth["independent_auditor_signed"] is False and auth["RT_NO_GO"] and auth["HOLDOUT2_NO_GO"]
+          assert req["role"]=="IMPLEMENTER" and req["contract_id"]=="MBVAR-INFO-001"
+          assert req["phase"]=="P2_S1V5" and req["split"]=="DEV3"
+          assert req["field_ids"]==list(range(20,30))
+          assert req["amendments"][-1]=="AMENDMENT-010"
+          assert req.get("execution_class")=="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY"
+          assert req.get("n_shards")==10
+          lk=CL.effective_lock()
+          assert lk["status"]=="FROZEN" and "AMENDMENT-010" in lk["applied_amendment_locks"]
+          assert lk["reviewer_status"]=="USER_AUTHORIZED_NONINDEPENDENT"
+          assert lk["independent_auditor_signed"] is False
+          assert lk["code_sha256"]==MF.code_hashes() and len(lk["code_sha256"])==49
+          assert lk["run_plan"]["S1V5"]["fields"]==list(range(20,30))
+          assert lk["run_plan"]["S1V5"]["split"]=="DEV3"
+          assert lk["splits"]["S_field"]["DEV3"]==list(range(20,30))
+          assert lk["required_s1_all_rows"]==1980 and lk["required_c3_batch_rows"]==1080
+          assert lk["stop_rules"]["HOLDOUT2"]=="NO-GO" and lk["stop_rules"]["RT"]=="NO-GO"
+          assert lk["science_and_numeric_choices"]["portable_numeric_tolerance_relaxation"] is False
+          assert lk["science_and_numeric_choices"]["kink_exception_allowed"] is False
+          assert req["s0v2_results"]=="results/P1_S0V2_run_40863614683"
+          assert req["a010_gen_run"]=="P2_A010P0_GEN_run_41269011836"
+          print("A010_DEV3_USER_AUTHORIZED_EXPLORATORY_LOCK_PASS")
+          print("A010_DEV3_ROW_SCOPE 10 fields 3 sensor seeds S1:1980 Batch:1080")
+          PY
+          python "$EXP/code/run_phase.py" plan
+          echo 'authorized=true' >> "$GITHUB_OUTPUT"
+      - name: Preserve source lock and report no RT
+        run: |
+          echo "EXPLORATORY ONLY. No HOLDOUT2 and no Sionna RT. GitHub code SHA ${{ github.sha }}."
+          test -z "$(git status --porcelain)"
+  inputs:
+    needs: guard
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+      - name: Fetch original pinned FFD and inputs, never RF/RT
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          test -s "$REFLECT_ROOT/out/INPUT_LOCK.sha256"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $REFLECT_ROOT/out/INPUT_LOCK.sha256" | sha256sum -c -
+          echo "A010_DEV3_PINNED_FFD_INPUTS_VERIFIED"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: a010-dev3-source-${{ github.run_id }}
+          path: ${{ runner.temp }}/mi/
+          compression-level: 0
+          retention-days: 90
+          if-no-files-found: error
+  s1-field:
+    needs: [guard,inputs]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 10
+      matrix:
+        field: [20,21,22,23,24,25,26,27,28,29]
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Restore exact reference source artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name a010-dev3-source-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $RUNNER_TEMP/mi/out/INPUT_LOCK.sha256" | sha256sum -c -
+      - name: Run ONE frozen DEV3 field; all 3 sensor seeds and ALL arms
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          mkdir -p "$RUNNER_TEMP/s1out"
+          python -u "$EXP/code/run_phase.py" run --shard "${{ matrix.field }}" --out "$RUNNER_TEMP/s1out" 2>&1 | tee "$RUNNER_TEMP/s1out/S1_DEV3_FIELD_${{ matrix.field }}.log"
+          test -s "$RUNNER_TEMP/s1out/S1V5_ROWS_DEV3_${{ matrix.field }}.csv"
+          test -s "$RUNNER_TEMP/s1out/S1V5_INPUTS_DEV3_${{ matrix.field }}.zip"
+          test -s "$RUNNER_TEMP/s1out/S1V5_INPUT_HASHES_DEV3_${{ matrix.field }}.json"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-dev3-s1-field-${{ matrix.field }}
+          path: ${{ runner.temp }}/s1out/
+          retention-days: 90
+          if-no-files-found: warn
+  s1-aggregate:
+    needs: [guard,inputs,s1-field]
+    if: always() && needs.guard.result == 'success' && needs.inputs.result == 'success' && needs.s1-field.result != 'skipped'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - run: python -m pip install --disable-pip-version-check $PIP_PKGS
+      - name: Restore input and all 10 full-field shards
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/shards" "$RUNNER_TEMP/mi" "$RUNNER_TEMP/s1agg"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name a010-dev3-source-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
+          gh run download ${{ github.run_id }} --repo ${{ github.repository }} --pattern 'a010-dev3-s1-field-*' --dir "$RUNNER_TEMP/shards"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $RUNNER_TEMP/mi/out/INPUT_LOCK.sha256" | sha256sum -c -
+      - name: Aggregate all S1 rows, no silent omission
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          export S0V2_RESULTS_DIR="$GITHUB_WORKSPACE/$EXP/results/P1_S0V2_run_40863614683"
+          test -s "$S0V2_RESULTS_DIR/S0V2_PREDICTIONS.csv"
+          set +e
+          python -u "$EXP/code/run_phase.py" aggregate --shards "$RUNNER_TEMP/shards" --out "$RUNNER_TEMP/s1agg" > "$RUNNER_TEMP/s1agg/A010_DEV3_AGG_LOG.txt" 2>&1
+          rc=$?
+          set -e
+          tail -100 "$RUNNER_TEMP/s1agg/A010_DEV3_AGG_LOG.txt"
+          if [ "$rc" -ne 0 ]; then echo "A010_S1_AGG_FAIL_PRESERVE $rc"; exit 1; fi
+          python - "$RUNNER_TEMP/s1agg" <<'PY'
+          import json,sys,pathlib
+          p=pathlib.Path(sys.argv[1])
+          q=json.loads((p/"S1V5_QA.json").read_text())
+          assert q["n_rows"]==1980,("ERR_S1_ROW_INCOMPLETE",q.get("n_rows"),q.get("n_rows_expected"))
+          assert q["n_rows_expected"]==1980
+          assert q["fields_got"]==list(range(20,30))
+          assert q["A010_REGISTERED_ROW_COVERAGE"]["pass_"]
+          assert q["A010_REGISTERED_ROW_COVERAGE"]["n_missing_keys"]==0
+          assert q["A010_REGISTERED_ROW_COVERAGE"]["n_duplicate_keys"]==0
+          assert q["stops"]==0 and q["failures"]==0
+          assert q["pass"] is True
+          m=json.loads((p/"MANIFEST.json").read_text())
+          assert m["reviewer_status"]=="SELF_REVIEW_ONLY"
+          assert len(m["source_code_sha256"])==49
+          print("A010_S1_DEV3_EXPLORATORY_NUMERIC_QA_PASS",q["n_rows"])
+          print("INDEPENDENT_AUDITOR_APPROVE_NOT_CLAIMED")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-dev3-s1-aggregate-${{ github.run_id }}
+          path: ${{ runner.temp }}/s1agg/
+          retention-days: 90
+          if-no-files-found: warn
