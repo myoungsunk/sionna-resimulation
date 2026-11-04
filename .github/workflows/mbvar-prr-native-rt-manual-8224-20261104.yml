@@ -66,16 +66,38 @@ jobs:
         env:
           APPROVAL_TEXT: ${{ inputs.confirmation }}
           APPROVAL_CALLS: ${{ inputs.budget_calls }}
-          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+          APPROVAL_WALL: ${{ needs.guard.outputs.approved_wall }}
         shell: bash
         run: |
           set -euo pipefail
           python "$BASE/native_rt_batch.py" --static
           python - <<'PY'
-          import os,json,pathlib
-          assert os.environ["APPROVAL_TEXT"]=="I_APPROVE_8224_NATIVE_CPU_CALLS"
-          assert int(os.environ["APPROVAL_CALLS"])==8224
-          assert 120<=int(os.environ["APPROVAL_WALL"])<=3600
+          import os,json,pathlib,subprocess
+          # On an unmerged branch workflow_dispatch may be inaccessible.
+          # The only push trigger is the exact explicit approval file.
+          if os.environ["GITHUB_EVENT_NAME"]=="push":
+            p=pathlib.Path(os.environ["BASE"])/"RT_EXECUTION_APPROVAL_EFFECTIVE.json"
+            assert p.is_file(),"ERR_USER_APPROVAL_RECORD_ABSENT"
+            q=json.loads(p.read_text())
+            assert q["schema"]=="MBVAR_RT_EXPLICIT_GITHUB_APPROVAL_V1"
+            assert q["approved_actor"]==os.environ["GITHUB_ACTOR"]=="myoungsunk"
+            assert q["approval_method"]=="EXPLICIT_GITHUB_APPROVAL_COMMIT"
+            def blob(name):
+              return subprocess.check_output(["git","hash-object",os.environ["BASE"]+"/"+name],text=True).strip()
+            assert q["expected_source_blob_sha"]==blob("native_rt_batch.py")
+            assert q["expected_lock_blob_sha"]==blob("P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json")
+            token=q["confirmation"]
+            calls=int(q["budget_calls"])
+            wall=int(q["wall_seconds_per_key"])
+          else:
+            token=os.environ["APPROVAL_TEXT"]
+            calls=int(os.environ["APPROVAL_CALLS"])
+            wall=int(os.environ["APPROVAL_WALL"])
+          assert token=="I_APPROVE_8224_NATIVE_CPU_CALLS"
+          assert calls==8224
+          assert 120<=wall<=3600
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+            f.write("wall="+str(wall)+"\n")
           lock=json.loads(pathlib.Path(os.environ["BASE"]+"/P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json").read_text())
           assert len(lock["pose_ids"])==4 and len(lock["scenes"])==4
           assert lock["simulated_workload"]["approved_solver_calls"]==0
@@ -144,7 +166,7 @@ jobs:
       - name: Exact manual budget and 2 C00 257-bin runs on same original pose
         env:
           POSE: ${{ matrix.pose }}
-          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+          APPROVAL_WALL: ${{ needs.guard.outputs.approved_wall }}
         shell: bash
         run: |
           set -uo pipefail
@@ -300,7 +322,7 @@ jobs:
       - name: Run exact C01 FLOOR, C10 PARALLEL, C11 OBLIQUE on paired same pose, 2 repeats
         env:
           POSE: ${{ matrix.pose }}
-          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+          APPROVAL_WALL: ${{ needs.guard.outputs.approved_wall }}
         shell: bash
         run: |
           set -uo pipefail
