@@ -1,0 +1,47 @@
+name: MBVAR PRR POST-SM0 archived Snowball raw SHA/H/FP evidence audit (no RT)
+on:
+  push:
+    branches: [science/mbvar-prr-post-sm0-sm1-sm2-design-20261104]
+    paths:
+      - '.github/workflows/mbvar-post-sm0-evidence-independent-readonly-20261104.yml'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/verify_snowball_evidence.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+jobs:
+  raw-byte-and-signal-recompute:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/corridor_sionna_run.py
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/native_rt_batch.py
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/snowball_20261104/**
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Independently verify original and rerun tar members/32 raw native H and FP/parity, NO RT
+        shell: bash
+        run: |
+          set -euo pipefail
+          export MBVAR_RT_AUDIT_OUT="$RUNNER_TEMP/mbvar_audit"
+          python -u research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/verify_snowball_evidence.py
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mbvar-post-sm0-stored-byte-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/mbvar_audit/
+          retention-days: 90
+          if-no-files-found: warn
