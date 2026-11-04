@@ -56,3 +56,18 @@ if not df.empty:
         joined['high_d0']=joined.d0_abs_mean>joined.d0_cut
         joined['high_context']=[r[c]>r['context_cut'] for (_,r),c in zip(joined.iterrows(),joined.context)]
         joined.groupby(descriptors+['high_d0','high_context','effect']).agg(n=('event','size'),seeds=('seed','nunique')).to_csv(here/'R2_IN_PUBLISHED_BINS.csv')
+
+# Repeat the published seed-median rank calculation within each R2 stratum.
+def correlation(v):
+    return v.iloc[:,0].rank().corr(v.iloc[:,1].rank()) if len(v)>=3 and v.nunique().min()>1 else np.nan
+if not df.empty:
+    variables=df.columns[df.columns.get_loc('last_feature_index')+1:]
+    associations=[]
+    keys=['stage','channel','bias','arm']
+    for group,part in df[df.applied].groupby(keys):
+        for variable in variables:
+            for endpoint in ['delta_head_int_20','delta_xy_int_20']:
+                vals=part.groupby('seed')[[variable,endpoint]].median().dropna()
+                deletions=pd.Series([correlation(vals.drop(s)) for s in vals.index],dtype=float)
+                associations.append(dict(zip(keys,group),feature=variable,endpoint=endpoint,seeds=len(vals),rho=correlation(vals),leave_one_min=deletions.min(),leave_one_max=deletions.max()))
+    pd.DataFrame(associations).to_csv(here/'SEED_ASSOCIATIONS.csv',index=False)
