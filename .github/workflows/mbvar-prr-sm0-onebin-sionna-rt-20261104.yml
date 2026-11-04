@@ -1,10 +1,11 @@
 name: MBVAR PRR native Sionna RT original R4-B194 center BIN (ONE SOLVER CALL)
 on:
-  push:
-    branches: [selfrun/mbvar-prr001-onebin-native-rt-20261104]
-    paths:
-      - '.github/workflows/mbvar-prr-sm0-onebin-sionna-rt-20261104.yml'
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type EXACTLY RUN_ONE_BIN_CPU_RT to authorize one real solver call'
+        required: true
+        type: string
 permissions:
   contents: read
   actions: read
@@ -40,6 +41,13 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11'
+      - name: Require explicit user-triggered one-bin authorization
+        shell: bash
+        env:
+          RT_CONFIRM: ${{ inputs.confirm }}
+        run: |
+          set -euo pipefail
+          test "$RT_CONFIRM" = "RUN_ONE_BIN_CPU_RT" || { echo "BLOCKED_NO_EXPLICIT_ONE_BIN_AUTHORIZATION"; exit 1; }
       - name: Assert explicit one-bin hard limit and code+source hash
         shell: bash
         run: |
