@@ -130,7 +130,11 @@ def test_official_RT_manual_yaml_has_no_auto_push_schedule():
     if not p.exists():pytest.skip("workflow outside checkout")
     t=p.read_text()
     assert "workflow_dispatch:" in t
-    assert "  push:" not in t and "  schedule:" not in t
+    assert "  schedule:" not in t
+    assert "  push:" in t
+    assert "RT_EXECUTION_APPROVAL_EFFECTIVE.json" in t
+    assert "    branches: [prepare/mbvar-prr-sm0-native-rt-runnable-20261104]" in t
+    assert "native_rt_batch.py'" not in t.split("paths:",1)[1].split("  workflow_dispatch:",1)[0]
     for stage in ("c00:","c00_qa:","paired:","paired_qa:"):
         assert "  "+stage in t
     assert "I_APPROVE_8224_NATIVE_CPU_CALLS" in t
