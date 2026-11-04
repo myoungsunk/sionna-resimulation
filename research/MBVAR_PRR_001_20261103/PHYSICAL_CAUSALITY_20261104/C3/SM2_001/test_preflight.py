@@ -30,6 +30,14 @@ class NegativeChecks(unittest.TestCase):
  def test_archive_spoof(self):
   a=copy.deepcopy(self.a);a['archive_full']=a['native_f64']
   with self.assertRaises(ValueError):qa.evaluate_arrays(a)
+ def test_native_cfr_missing_dtype_shape_nan_inf(self):
+  a=copy.deepcopy(self.a);del a['native_cfr32']
+  with self.assertRaises(ValueError):qa.evaluate_arrays(a)
+  for bad in [np.full((257,2),complex(float('nan'),0),np.complex64),np.full((257,2),complex(float('inf'),0),np.complex64),np.zeros((257,2),np.complex128),np.zeros((257,1),np.complex64)]:
+   a=copy.deepcopy(self.a);a['native_cfr32']=bad
+   with self.assertRaises(ValueError):qa.evaluate_arrays(a)
+  for bad in [np.full((2,),complex(float('nan'),0),np.complex64),np.full((2,),complex(float('inf'),0),np.complex64),np.zeros((2,),np.complex128),np.zeros((1,),np.complex64)]:
+   with self.assertRaises(ValueError):qa.native_cfr_check(bad,(2,))
  def test_semantic_counts_missing_invalid_object(self):
   for key in ('group_count','group_missing','source_index'):
    a=copy.deepcopy(self.a);a[key].flat[0]=a[key].flat[0]+1

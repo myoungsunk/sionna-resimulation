@@ -1,0 +1,64 @@
+{
+  "schema": "C3_SM2_CODE_AUDIT_V1",
+  "decision": "REDIRECT",
+  "scope": "G1_CODE_OFFLINE_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "edabb4d8fe3022f116d002173c95d25605b987de016254cf1834bf0961966eba",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71",
+    "authority.py": "0d2bb36dc648ce6335b3a0c10e0fcf260aff93958e76356a712fcdd32bd2d4e4",
+    "producer.py": "d2f501bf1520cdbd30f6a59808ae122f98f90033a50eccde0cc615a06462512f",
+    "qa.py": "7efaa53680fb461c1ac9604740b719fb8b38a222d12fa3579c55327fb42ad79d",
+    "launch.py": "e2342bb9f948688253e30a5111d7a921c13321d1485fd464747f8c2783b44624",
+    "test_preflight.py": "eccddf1b1ac9fcec98e67968eb8260c4ac8b754cda1c1294c0dcabcc73c99405"
+  },
+  "spec_audit_sha256": "035c9e93094de33fe31645ee19752527910aa0b58b13a30a05e70bd809cc662a",
+  "findings": [
+    {
+      "id": "C3-CODE-01",
+      "severity": "blocking",
+      "locations": [
+        "producer.py:72",
+        "producer.py:85",
+        "qa.py:97",
+        "qa.py:122"
+      ],
+      "description": "The native CFR API output is saved as cfr32/native_cfr32 but excluded from shape/dtype/finiteness QA. A retained-input mutation setting the entire saved native_cfr32 array to complex64 NaN still receives C3_RAW_NUMERICAL_PASS. This violates the frozen NaN/Inf STOP condition.",
+      "required_correction": "Validate the per-bin CFR API output immediately before another solver invocation (shape, pinned native dtype and finiteness), and validate the final native_cfr32 schema/finiteness at array QA. Add rejection controls for NaN/Inf, missing/wrong-shape/wrong-dtype native CFR; preserve failure evidence. Do not add an unregistered native-CFR-versus-legacy numerical equality threshold."
+    }
+  ],
+  "evidence": {
+    "mother_tests": {
+      "count": 9,
+      "status": "PASS",
+      "seconds": 7.909,
+      "exit_code": 0,
+      "log_sha256": "8b11511b2d011a355303ca412248fe566a89d709732cdf5df4bb9a1149f003f7",
+      "managed_receipt_sha256": "c3b0757f384f92961d76c9531b488bbbf74104ec04af33ccf74c4d2d64a87fd0",
+      "termination": "natural/released/process-supervisor-job-absent"
+    },
+    "independent_negative_control": {
+      "runtime": "pinned WSL Python3.11.17 numpy1.26.4",
+      "input": "retained accepted R4_aB_m0_168 RAW excluding archive fields",
+      "mutation": "native_cfr32 = full((257,2),NaN+0j,complex64)",
+      "observed": "C3_RAW_NUMERICAL_PASS",
+      "expected": "STOP",
+      "exit_code": 0
+    },
+    "static_review": "Four-file SPEC unchanged; canary authorization, published-byte binding, budget, projection and precision paths inspected."
+  },
+  "missing_evidence": [
+    "Passing regression evidence for the required native-CFR validation."
+  ],
+  "execution_go": false,
+  "g3_go": false,
+  "g4_go": false,
+  "activities": {
+    "new_rt_calls": 0,
+    "model_initializations": 0,
+    "files_modified": 0,
+    "children_spawned": 0
+  }
+}

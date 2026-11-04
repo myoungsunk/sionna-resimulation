@@ -11,6 +11,11 @@ from native_math import independent_sum, vector_fields
 from native_math import label_chain
 
 
+def native_cfr_check(value,shape):
+    if value.shape!=shape or value.dtype!=np.complex64 or not np.isfinite(value).all():
+        raise ValueError('native CFR shape/dtype/finite')
+
+
 def repeat_check(first, second):
     keys=('a','tau','valid','objects','interactions','primitives','vertices','theta_t','phi_t','theta_r','phi_r','source_index','original_field','fields')
     for k in keys:
@@ -96,6 +101,8 @@ def scalar_sum(fields):
 
 def evaluate_arrays(a):
     if 'archive_full' in a or 'archive_los' in a:raise ValueError('new yaw has no archive comparator')
+    if 'native_cfr32' not in a:raise ValueError('missing native CFR')
+    native_cfr_check(a['native_cfr32'],(257,2))
     if np.__version__ != '1.26.4':
         raise ValueError('pinned numpy 1.26.4 required for scalar-promotion semantics')
     if a['a'].dtype != np.complex64 or a['tau'].dtype != np.float32:

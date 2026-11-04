@@ -71,6 +71,7 @@ def main():
      saved=legacy.extract(paths,float(frequency),lookup,delay)
      saved['cfr32']=np.asarray(paths.cfr(frequencies=mi.Float([0.]),normalize_delays=False,normalize=False,out_type='numpy')).reshape(2,2)[:,0]
      np.savez_compressed(out/'bins'/f'{fi:03d}.npz',**saved,frequency_hz=np.asarray(frequency));bins.append(saved)
+     qa.native_cfr_check(saved['cfr32'],(2,))
      # Per-bin projection detects a mismatch before tracing subsequent bins.
      single=dict(a=saved['a'],tau=saved['tau'],offsets=np.array([0,len(saved['tau'])]),direct_source_index=np.array([saved['direct_index']]),frequencies_hz=np.array([frequency]))
      direct_checks.append(qa.direct_projection(single,[{**b, 'e_theta':b['e_theta'][fi:fi+1], 'e_phi':b['e_phi'][fi:fi+1]} for b in banks],row['xyz'],row['yaw_deg']))
