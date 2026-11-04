@@ -1,0 +1,148 @@
+{
+  "schema": "MBVAR_P3_RT_PREPARED_UNAUTHORIZED_MANIFEST_V1",
+  "contract_id": "MBVAR-INFO-001",
+  "role": "PROPOSER_PREP_ONLY",
+  "date": "2026-11-04",
+  "baseline_science_decisions": "AMENDMENT-010-PROPOSER-SCIENCE-DECISIONS-FINAL-20261104.md",
+  "physical_rt_stage": "P3_R0_PREP_NO_COMPUTE",
+  "rt_cache_key_schema_source": "code/rt_keys.py:REQUIRED",
+  "required_cache_key_fields": [
+    "scene_geometry_sha256",
+    "materials_sha256",
+    "anchor_xyz_m",
+    "pose_xy_m",
+    "yaw_deg",
+    "robot_z_m",
+    "mount_deg",
+    "ffd_bank_sha256",
+    "solver",
+    "solver_version",
+    "max_depth",
+    "solver_flags",
+    "freq_grid_sha256",
+    "extractor_sha256"
+  ],
+  "cache_key_sources": {
+    "scene_geometry_sha256": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "materials_sha256": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "anchor_xyz_m": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "pose_xy_m": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "yaw_deg": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "robot_z_m": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "mount_deg": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "ffd_bank_sha256": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "solver": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "solver_version": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "max_depth": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "solver_flags": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "freq_grid_sha256": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    },
+    "extractor_sha256": {
+      "status": "MISSING_OR_NOT_FROZEN",
+      "value": null
+    }
+  },
+  "reference_synthetic_anchor_A_xyz_m": [
+    2,
+    2,
+    2.65
+  ],
+  "reference_synthetic_robot_z_m": 0.45,
+  "reference_synthetic_mount_deg": 0,
+  "synthetic_geometry_must_not_be_assumed_equal_to_rt": true,
+  "expected_R_stage_contrasts": [
+    "C00_DIRECT",
+    "C01_FLOOR",
+    "C10_REFLECTOR",
+    "C11_REFLECTOR"
+  ],
+  "source_FFD_port_shape": "2x2; full complex H; 257 bins/FP conventions need pinned source extraction",
+  "tracked_physical_confounders": [
+    "LoS",
+    "tap",
+    "complex_path_gain",
+    "reflection_geometry",
+    "measurement_mean",
+    "observation_variance",
+    "port_convention"
+  ],
+  "scene_sampling_unit": "scene_variant_id clustered within scene_family",
+  "candidate_canary_unique_config_upper_bound": 288,
+  "numeric_user_approval": {
+    "approved": false,
+    "approved_unique_keys": 0,
+    "max_solver_calls": 0,
+    "max_GPU_hours": 0,
+    "max_storage_gb": 0,
+    "max_user_budget": 0,
+    "currency": null,
+    "hardware": null
+  },
+  "numerical_parity_tolerances": {
+    "status": "MISSING_NOT_REGISTERED",
+    "C00_complex_H": null,
+    "C01_vs_C00": null,
+    "first_path_tap": null
+  },
+  "signed_pre_p3_amendment": false,
+  "material_parameters_frozen": false,
+  "scene_variant_split_frozen": false,
+  "execution_effective": false,
+  "a010_science_frozen": false,
+  "dev3": "NO-GO",
+  "holdout2": "NO-GO",
+  "rt_canary": "NO-GO",
+  "rt_bulk": "NO-GO",
+  "allowed_operations": [
+    "static file/source inventory",
+    "hash ledger",
+    "rt_cache_key schema unit tests",
+    "non-generative no-input code lint"
+  ],
+  "prohibited_operations": [
+    "Sionna_RT invocation",
+    "new_poses_to_render",
+    "new_R_C00 canary",
+    "new_R_C01 floor",
+    "new_R_C10/C11 reflection",
+    "DEV3/HOLDOUT2 unsealing"
+  ]
+}
