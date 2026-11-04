@@ -12,7 +12,7 @@
 4. [INDEPENDENT_AUDIT_REQUEST_KO.md](INDEPENDENT_AUDIT_REQUEST_KO.md) — 단계별 별도 auditor와 수치·물리·과학 판정 항목, STOP.
 5. [c0a_aggregate_preflight.py](c0a_aggregate_preflight.py) — 기존 frozen raw H/pose/FFT 체인에서 물리 eMP, FP tap, same-tap 및 detector-choice 대수 분해.
 6. [C0A_EXECUTION_RECEIPT.json](C0A_EXECUTION_RECEIPT.json) — SHA, 전체 n=3136, 계산 실행 범위.
-7. [.github/workflows/mbvar-c0a-physical-preflight-20261104.yml](../../../../.github/workflows/mbvar-c0a-physical-preflight-20261104.yml) — read-only Actions 재현.
+7. [.github/workflows/mbvar-c0a-physical-preflight-20261104.yml](../../../.github/workflows/mbvar-c0a-physical-preflight-20261104.yml) — read-only Actions 재현.
 
 ## 실제 실행 결과
 
