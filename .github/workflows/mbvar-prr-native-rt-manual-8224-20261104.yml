@@ -1,0 +1,222 @@
+name: MBVAR PRR P3 real Native RT 8224-call MANUAL ONLY gated C00→paired
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type exactly I_APPROVE_8224_NATIVE_CPU_CALLS (16 configs x 257 bins x 2 repeats)
+        type: string
+        required: true
+      budget_calls:
+        description: Exact solver-call budget 8224; includes each 257-bin invocation
+        type: number
+        default: 0
+        required: true
+      wall_seconds_per_key:
+        description: Hard wall-clock ceiling per 257-bin config, 120–3600 seconds
+        type: number
+        default: 1200
+        required: true
+permissions:
+  contents: read
+  actions: read
+env:
+  GH_TOKEN: ${{ github.token }}
+  BASE: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
+            /src/qclean_uwb/**
+            /scripts/corridor_sionna_run.py
+            /scripts/g2_completion/sionna_native_runtime.py
+            /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+            /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.14.1
+      - name: Reject any dispatch without exact numeric user permission
+        env:
+          APPROVAL_TEXT: ${{ inputs.confirmation }}
+          APPROVAL_CALLS: ${{ inputs.budget_calls }}
+          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$BASE/native_rt_batch.py" --static
+          python - <<'PY'
+          import os,json,pathlib
+          assert os.environ["APPROVAL_TEXT"]=="I_APPROVE_8224_NATIVE_CPU_CALLS"
+          assert int(os.environ["APPROVAL_CALLS"])==8224
+          assert 120<=int(os.environ["APPROVAL_WALL"])<=3600
+          lock=json.loads(pathlib.Path(os.environ["BASE"]+"/P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json").read_text())
+          assert len(lock["pose_ids"])==4 and len(lock["scenes"])==4
+          assert lock["simulated_workload"]["approved_solver_calls"]==0
+          print("RT_MANUAL_USER_BUDGET_CONFIRMED_8224_ONE_TIME_RUN",os.environ["GITHUB_ACTOR"])
+          print("C00 strict parity gate; any failure blocks all 6168 paired calls")
+          PY
+  c00:
+    needs: guard
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        pose: [194,234,500,525]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
+            /src/qclean_uwb/**
+            /scripts/corridor_sionna_run.py
+            /scripts/g2_completion/sionna_native_runtime.py
+            /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+            /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Exact Native Sionna CPU versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+          if ! ldconfig -p | grep -q libLLVM; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+      - name: Restore original two-bank FFD archive with SHA
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bank_full" "$RUNNER_TEMP/bank"
+          gh run download 38875080492 --repo ${{ github.repository }} \
+            --name ffd-verified-original-38875080492 --dir "$RUNNER_TEMP/bank_full"
+          python - <<'PY'
+          import pathlib,os,json,hashlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          lock=json.loads(pathlib.Path(os.environ['BASE']+"/P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json").read_text())
+          for n,d in lock['original_ffd_sha256'].items():
+            hit=list((p/'bank_full').rglob(n))
+            assert len(hit)==1,(n,len(hit))
+            with hit[0].open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+            assert actual==d,(n,actual,d)
+            (p/'bank'/n).symlink_to(hit[0])
+          PY
+      - name: Exact manual budget and 2 C00 257-bin runs on same original pose
+        env:
+          POSE: ${{ matrix.pose }}
+          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$RUNNER_TEMP/results"
+          python - <<'PY'
+          import os,json,pathlib
+          b=dict(schema='MBVAR_RT_CPU_USER_DISPATCH_V1',status='USER_APPROVED_FOR_CPU_RT',
+            science_class='USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY',
+            github_actor=os.environ['GITHUB_ACTOR'],run_id=os.environ['GITHUB_RUN_ID'],
+            max_solver_calls=8224,max_job_wall_seconds=int(os.environ['APPROVAL_WALL']),
+            pose_ids=[194,234,500,525],
+            arm_ids=['C00_DIRECT','C01_FLOOR','C10_PARALLEL_PLATE','C11_OBLIQUE_PLATE'])
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/results/BUDGET.json').write_text(json.dumps(b,indent=2))
+          PY
+          for rep in 0 1; do
+            key="C00_DIRECT-$POSE-r$rep"
+            rc=0
+            python -u "$BASE/native_rt_batch.py" --execute --bank "$RUNNER_TEMP/bank" \
+              --arm C00_DIRECT --pose "$POSE" --repeat "$rep" --max-calls 257 \
+              --wall-seconds "$APPROVAL_WALL" --token I_AUTHORIZE_CPU_RT_STAGE \
+              --budget "$RUNNER_TEMP/results/BUDGET.json" \
+              --out "$RUNNER_TEMP/results/$key" \
+              > "$RUNNER_TEMP/results/$key.log" 2>&1 || rc=$?
+            tail -35 "$RUNNER_TEMP/results/$key.log"
+            if test "$rc" -ne 0; then echo "C00_STRICT_FAIL_STOP_PAIR $key"; exit "$rc"; fi
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-c00-pose-${{ matrix.pose }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/results/
+          if-no-files-found: warn
+          retention-days: 90
+  c00_qa:
+    needs: [guard,c00]
+    if: ${{ always() && needs.guard.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Reassemble original C00 receipts, including failed keys
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/download" "$RUNNER_TEMP/inputs" "$RUNNER_TEMP/qa"
+          gh run download "$GITHUB_RUN_ID" --repo ${{ github.repository }} \
+            --pattern 'native-c00-pose-*' --dir "$RUNNER_TEMP/download" || true
+          python - <<'PY'
+          import pathlib,os,shutil
+          t=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for f in (t/'download').rglob('MANIFEST.json'):
+            if not f.parent.name.startswith('C00_DIRECT-'):continue
+            to=t/'inputs'/f.parent.name
+            assert not to.exists(),('DUPLICATE_C00',f.parent.name)
+            shutil.copytree(f.parent,to)
+          print('C00_DIRECT_RECEIPTS',len(list((t/'inputs').glob('*/MANIFEST.json'))))
+          PY
+      - name: Independent stored 257-bin complex-H C00 strict parity aggregate
+        shell: bash
+        run: |
+          set -uo pipefail
+          rc=0
+          python "$BASE/native_rt_aggregate.py" --stage c00 \
+             --root "$RUNNER_TEMP/inputs" --out "$RUNNER_TEMP/qa" \
+             > "$RUNNER_TEMP/qa/QA_LOG.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/qa/QA_LOG.txt"
+          exit "$rc"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-c00-qa-${{ github.run_id }}
+          path: ${{ runner.temp }}/qa/
+          retention-days: 90
+          if-no-files-found: warn
