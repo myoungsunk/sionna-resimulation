@@ -1,5 +1,9 @@
-name: MBVAR PRR P3 real Native RT 8224-call MANUAL ONLY gated C00→paired
+name: MBVAR PRR P3 Native RT 8224 calls EXPLICIT APPROVAL gated C00→paired
 on:
+  push:
+    branches: [prepare/mbvar-prr-sm0-native-rt-runnable-20261104]
+    paths:
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/RT_EXECUTION_APPROVAL_EFFECTIVE.json'
   workflow_dispatch:
     inputs:
       confirmation:
@@ -31,6 +35,8 @@ jobs:
   guard:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      approved_wall: ${{ steps.approval.outputs.wall }}
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -39,6 +45,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/RT_EXECUTION_APPROVAL_EFFECTIVE.json
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
             /src/qclean_uwb/**
             /scripts/corridor_sionna_run.py
@@ -54,7 +61,8 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.14.1
-      - name: Reject any dispatch without exact numeric user permission
+      - name: Reject any run without exact user-confirmed numeric authorization
+        id: approval
         env:
           APPROVAL_TEXT: ${{ inputs.confirmation }}
           APPROVAL_CALLS: ${{ inputs.budget_calls }}
@@ -91,6 +99,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/RT_EXECUTION_APPROVAL_EFFECTIVE.json
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
             /src/qclean_uwb/**
             /scripts/corridor_sionna_run.py
@@ -239,6 +248,7 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/RT_EXECUTION_APPROVAL_EFFECTIVE.json
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
             /src/qclean_uwb/**
             /scripts/corridor_sionna_run.py
