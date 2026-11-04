@@ -1,0 +1,60 @@
+name: MBVAR physical C0A composite Full LoS first-path preflight
+on:
+  push:
+    branches: [proposal/mbvar-physical-causality-preflight-20261104]
+    paths:
+      - ".github/workflows/mbvar-c0a-physical-preflight-20261104.yml"
+      - "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/c0a_aggregate_preflight.py"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  composite-channel-data-preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - name: Checkout archived raw composite H and locked metadata, no LFS banks
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/qclean_uwb/drivesim/observation.py
+            /research/MBVAR_PRR_001_20261103/A0_R1/VERIFIED_INPUT_SUBSET.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/c0a_aggregate_preflight.py
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R2_Tnone.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R5_Tnone.csv
+      - name: Python runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Pin NumPy
+        run: python -m pip install numpy==2.3.3
+      - name: Execute C0A physical Full-minus-LoS fixed-tap decomposition
+        run: |
+          set -euo pipefail
+          python research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/c0a_aggregate_preflight.py --repo . --out c0a_outputs | tee c0a_outputs.log
+      - name: Preserve exact C0A data and provenance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: mbvar-physical-c0a-${{ github.run_id }}
+          path: |
+            c0a_outputs/C0A_AGGREGATE_TAP_DECOMPOSITION.csv
+            c0a_outputs/C0A_MANIFEST.json
+            c0a_outputs.log
+          if-no-files-found: warn
+          retention-days: 90
