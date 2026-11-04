@@ -52,9 +52,12 @@ jobs:
           assert frozen["authority_scope"]=="DEV3_INTERNAL_EXPLORATORY_ONLY"
           assert frozen["source_git_sha_tested"]=="360b496d089c54aaaa488ff1c2a571605547d96b"
           assert frozen["code_sha256"]==MF.code_hashes() and len(frozen["code_sha256"])==49
-          assert frozen["base_contract_sha256"]==hashlib.sha256(
+          # effective_lock deliberately excludes base_contract_sha256 from
+          # merged state; validate it on the original amendment lock itself.
+          raw_amendment=CL.amendment_lock("AMENDMENT-010")
+          assert raw_amendment["base_contract_sha256"]==hashlib.sha256(
               (exp/"contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md").read_bytes()).hexdigest()
-          assert frozen["base_contract_sha256"]=="68d73bd22bf467625559f3092433f250cbe91cb2fef011f92151975975b00f34"
+          assert raw_amendment["base_contract_sha256"]=="68d73bd22bf467625559f3092433f250cbe91cb2fef011f92151975975b00f34"
           assert frozen["input_lock_sha256"]=="28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee"
           assert "DEV3" not in prior["splits"]["S_field"]
           assert frozen["splits"]["S_field"]==dict(prior["splits"]["S_field"],DEV3=list(range(20,30)))
