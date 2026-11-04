@@ -80,6 +80,7 @@ jobs:
             assert p.is_file(),"ERR_USER_APPROVAL_RECORD_ABSENT"
             q=json.loads(p.read_text())
             assert q["schema"]=="MBVAR_RT_EXPLICIT_GITHUB_APPROVAL_V1"
+            assert q["status"]=="USER_APPROVED_ON_GITHUB"
             assert q["approved_actor"]==os.environ["GITHUB_ACTOR"]=="myoungsunk"
             assert q["approval_method"]=="EXPLICIT_GITHUB_APPROVAL_COMMIT"
             def blob(name):
