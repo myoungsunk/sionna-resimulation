@@ -75,6 +75,8 @@ def main():
                     numpy=np.__version__, platform=platform.platform(),
                     go_sha256=sha(args.go), bindings_sha256=bindings,
                     completed_cells=0, priors=0, posterior_rows=0,
+                    scientific_source_revision='17cbfb8bef78518729d5010dbf463df87e828c0c',
+                    implementation_identity='Exact local bytes bound by GO.bindings_sha256; no HEAD assumption',
                     new_filter_replays=0, new_RT_calls=0)
     checks = {}
     summaries = []
