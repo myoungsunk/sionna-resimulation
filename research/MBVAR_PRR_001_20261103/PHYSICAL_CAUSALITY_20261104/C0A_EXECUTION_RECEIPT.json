@@ -1,0 +1,119 @@
+{
+  "contract": "MBVAR-PHYSICAL-CAUSALITY-001",
+  "phase": "C0A",
+  "date_kst": "2026-11-04",
+  "status": "C0A_EXECUTED_SOURCE_SHA_AND_DECOMPOSITION_SELF_QA_PASS",
+  "not_independent_auditor_approval": true,
+  "repo": "myoungsunk/sionna-resimulation",
+  "base_from_pr24": "aac6fe8d4dba2bdaea3d531f3cf4fd196a773ce6",
+  "runner": "GitHub Actions 41783949902",
+  "run_url": "https://github.com/myoungsunk/sionna-resimulation/actions/runs/41783949902",
+  "first_runner_commit": "812d99a8ab4b1766d672ad06f7d8080c1e8cef97",
+  "artifact": {
+    "id": 13300457029,
+    "name": "mbvar-physical-c0a-41783949902",
+    "retention_days": 90,
+    "ephemeral": true,
+    "files": {
+      "C0A_AGGREGATE_TAP_DECOMPOSITION.csv": {
+        "size": 736987,
+        "sha256": "c134fcc16f78220abc00485cafd09e9596d3b091817112a88e19de7177d85966"
+      },
+      "C0A_MANIFEST.json": {
+        "size": 11383,
+        "sha256": "cc65692fdbc17ca0f6c1359bce24b97b8aa05c63095fa40ae1a90c9c7e65d4b3"
+      },
+      "c0a_outputs.log": {
+        "size": 6331,
+        "sha256": "7c201765cc125f44ea0bc53b200b666566fb9969c5f472013392d754afeed65a"
+      }
+    }
+  },
+  "mode": "noise-free original composite Full/LoS H, original Hann 4N IFFT and 30%-peak first-path detection",
+  "source_matched": {
+    "data_sha_files": 12,
+    "route_pose_counts": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    },
+    "n_total": 3136
+  },
+  "metrics": {
+    "R2": {
+      "s_delta_rms": 0.1082207197488923,
+      "extreme_gt_abs0p3": 25,
+      "extreme_with_tapshift": 12,
+      "all_tapshift": 286,
+      "biggest_abs_error_pose": 525
+    },
+    "R4": {
+      "s_delta_rms": 0.13380699286491035,
+      "extreme_gt_abs0p3": 39,
+      "extreme_with_tapshift": 27,
+      "all_tapshift": 284,
+      "biggest_abs_error_pose": 729
+    },
+    "R5": {
+      "s_delta_rms": 0.09362438682076331,
+      "extreme_gt_abs0p3": 30,
+      "extreme_with_tapshift": 27,
+      "all_tapshift": 433,
+      "biggest_abs_error_pose": 465
+    }
+  },
+  "selected": [
+    {
+      "route": "R4",
+      "pose_id": 168,
+      "t_s": 33.6,
+      "e_mp": 0.3422,
+      "delta_tap": 2,
+      "same_tap": 0.1104,
+      "tap_selection": 0.2317
+    },
+    {
+      "route": "R4",
+      "pose_id": 172,
+      "t_s": 34.4,
+      "e_mp": 0.3288,
+      "delta_tap": 1,
+      "same_tap": 0.1929,
+      "tap_selection": 0.136
+    },
+    {
+      "route": "R4",
+      "pose_id": 173,
+      "t_s": 34.6,
+      "e_mp": 0.3117,
+      "delta_tap": 2,
+      "same_tap": 0.1029,
+      "tap_selection": 0.2088
+    },
+    {
+      "route": "R5",
+      "pose_id": 982,
+      "t_s": 196.4,
+      "e_mp": 0.5875,
+      "delta_tap": 2,
+      "same_tap": 0.1095,
+      "tap_selection": 0.478
+    },
+    {
+      "route": "R2",
+      "pose_id": 525,
+      "e_mp": 0.7824272362716587,
+      "delta_tap": 0
+    }
+  ],
+  "identity_max_abs_residual_float_csv": 4.440892098500626e-16,
+  "causal_limitations": [
+    "same-tap and tap-choice components are algebraic not independent physical attribution",
+    "no ray-resolved Full path coefficients for required R4/R5 hotspots",
+    "existing composite H is noise-free; simulator packet noise and EKF effects not examined",
+    "no C1/C2 recursive counterfactuals performed",
+    "not independent reviewer PASS, only self-QA and separate manifest arithmetic check"
+  ],
+  "request": "SIMULATION_DATA_REQUEST_KO.md",
+  "validation": "CAUSAL_VERIFICATION_PLAN_KO.md"
+}
