@@ -418,7 +418,7 @@ def test_a010_truth_source_rejects_false_replay(mods,monkeypatch,attack,expected
     elif attack=="missing":rec.pop(f"{tk}|Xtrue")
     elif attack=="prior":rec[f"{tk}|prior_P0"][0,0]+=.001
     elif attack=="dts":rec[f"{tk}|dts"][0]+=.001
-    elif attack=="posekey":rec[f"{tk}|pose_keys_sha"]=np.array("tampered")
+    elif attack=="posekey":rec[f"{tk}|pose_keys_sha"]=np.array("tampered".ljust(len("fixture-pose-key")))
     elif attack=="nonfinite":rec[f"{tk}|Xtrue"][0,0]=np.nan
     elif attack=="dtype":rec[f"{tk}|Xtrue"]=rec[f"{tk}|Xtrue"].astype("<f4")
     elif attack=="shape":rec[f"{tk}|Xtrue"]=rec[f"{tk}|Xtrue"].reshape(-1)
