@@ -54,8 +54,14 @@ jobs:
             assert path.is_file(),path
             doc=yaml.safe_load(path.read_text())
             on=doc.get('on',doc.get(True))
-            assert isinstance(on,dict) and list(on)==['workflow_dispatch'],(name,on)
-            assert 'push' not in on and 'schedule' not in on
+            assert isinstance(on,dict) and 'workflow_dispatch' in on,(name,on)
+            assert 'schedule' not in on
+            if '8224' in name:
+              assert set(on)=={'push','workflow_dispatch'}
+              assert on['push']['branches']==['prepare/mbvar-prr-sm0-native-rt-runnable-20261104']
+              assert on['push']['paths']==['research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/RT_EXECUTION_APPROVAL_EFFECTIVE.json']
+            else:
+              assert set(on)=={'workflow_dispatch'}
             if '8224' in name:
               assert len(doc['jobs'])==5
               assert all(x in doc['jobs'] for x in ('guard','c00','c00_qa','paired','paired_qa'))
