@@ -24,6 +24,8 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /.github/workflows/mbvar-prr-native-rt-manual-8224-20261104.yml
+            /.github/workflows/mbvar-prr-sm0-onebin-sionna-rt-20261104.yml
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
             /src/qclean_uwb/**
             /scripts/corridor_sionna_run.py
@@ -39,7 +41,28 @@ jobs:
         with:
           python-version: '3.11'
       - name: Pinned non-raytracing arithmetic dependencies
-        run: python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'scipy==1.14.1' 'pytest==8.3.3'
+        run: python -m pip install --disable-pip-version-check 'numpy==1.26.4' 'scipy==1.14.1' 'pytest==8.3.3' 'PyYAML==6.0.2'
+      - name: Parse both YAML workflows and assert manual ONLY / no solver-on-push
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import yaml,pathlib
+          for name in ('mbvar-prr-native-rt-manual-8224-20261104.yml',
+                       'mbvar-prr-sm0-onebin-sionna-rt-20261104.yml'):
+            path=pathlib.Path('.github/workflows')/name
+            assert path.is_file(),path
+            doc=yaml.safe_load(path.read_text())
+            on=doc.get('on',doc.get(True))
+            assert isinstance(on,dict) and list(on)==['workflow_dispatch'],(name,on)
+            assert 'push' not in on and 'schedule' not in on
+            if '8224' in name:
+              assert len(doc['jobs'])==5
+              assert all(x in doc['jobs'] for x in ('guard','c00','c00_qa','paired','paired_qa'))
+              assert doc['jobs']['paired']['needs']==['guard','c00_qa']
+              assert doc['jobs']['paired']['strategy']['max-parallel']==4
+            print('GITHUB_RT_MANUAL_ONLY_YAML_VALID',name)
+          PY
       - name: Syntax validation for full pilot and one-bin hotfix
         run: |
           set -euo pipefail
