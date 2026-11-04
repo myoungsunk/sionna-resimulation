@@ -83,3 +83,54 @@ def test_original_S0_STOP_boundary_and_sealed_HOLDOUT():
 def test_src_imports_available_but_rt_not_automatically_imported():
     assert (B.ROOT/"scripts"/"corridor_sionna_run.py").is_file()
     assert not any(m in sys.modules for m in ("sionna.rt","drjit","mitsuba"))
+
+
+def test_approved_user_budget_is_separate_from_default_zero_permission(tmp_path):
+    cfg=json.loads(B.LOCK.read_text())
+    class Req:
+        token="I_AUTHORIZE_CPU_RT_STAGE";max_calls=257;wall_seconds=1200
+    req=Req()
+    req.budget=tmp_path/"BUDGET.json"
+    data=dict(status="USER_APPROVED_FOR_CPU_RT",
+        science_class="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
+        max_solver_calls=8224,max_job_wall_seconds=1200,
+        arm_ids=list(B.ARMS),pose_ids=cfg["pose_ids"])
+    req.budget.write_text(json.dumps(data))
+    assert B.check_budget(req,cfg)["max_solver_calls"]==8224
+    data["max_solver_calls"]=32
+    req.budget.write_text(json.dumps(data))
+    with pytest.raises(RuntimeError,match="BUDGET_CEILING_EXCEEDED"):
+        B.check_budget(req,cfg)
+
+def test_c00_stored_257bin_2x2_finite_raw_success_and_sha_mutation_reject(tmp_path):
+    import hashlib
+    keydir=tmp_path/"C00_DIRECT-194-r0"
+    keydir.mkdir()
+    H=np.ones((257,2,2),np.complex128)
+    freq=6250400000.+np.arange(257)*1950000.
+    raw=keydir/"RAW_COMPLEX_H_AND_PATHS.npz"
+    np.savez_compressed(raw,H_complex_rx_rx_tx=H,
+        frequencies_hz=freq,offsets=np.arange(258,dtype=np.int64),
+        path_counts=np.ones(257,np.int32),
+        path_delay_s=np.zeros(257,dtype=float),
+        path_coefficient=np.ones((257,2,2),dtype=np.complex128))
+    manifest=dict(status="COMPLETED",arm="C00_DIRECT",pose_id=194,
+        repeat_index=0,solver_calls_made=257,
+        lock_sha256=A.sha(A.LOCK),direct_parity="PASS",
+        file_sha256={raw.name:A.sha(raw)},observation={"fp_tap":0,"s":0.0})
+    (keydir/"MANIFEST.json").write_text(json.dumps(manifest))
+    assert A.audit_key(tmp_path,"C00_DIRECT",194,0)["status"]=="PASS"
+    with raw.open("ab") as f:f.write(b"tampered")
+    bad=A.audit_key(tmp_path,"C00_DIRECT",194,0)
+    assert bad["status"]=="MISSING"
+    assert bad["why"]=="RAW_FILE_MISSING_OR_SHA_MISMATCH"
+
+def test_official_RT_manual_yaml_has_no_auto_push_schedule():
+    p=B.ROOT/".github/workflows/mbvar-prr-native-rt-manual-8224-20261104.yml"
+    if not p.exists():pytest.skip("workflow outside checkout")
+    t=p.read_text()
+    assert "workflow_dispatch:" in t
+    assert "  push:" not in t and "  schedule:" not in t
+    for stage in ("c00:","c00_qa:","paired:","paired_qa:"):
+        assert "  "+stage in t
+    assert "I_APPROVE_8224_NATIVE_CPU_CALLS" in t
