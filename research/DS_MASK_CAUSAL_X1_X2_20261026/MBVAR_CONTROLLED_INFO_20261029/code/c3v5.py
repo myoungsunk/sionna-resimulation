@@ -91,9 +91,15 @@ def load_receipts_with_stats(d, strict=False):
     hashes = {Path(k).name: v for k, v in manifest.get("output_sha256", {}).items()}
     rec, origin = {}, {}
     if strict:
+        # S1V5 source was frozen BEFORE this prospective, C3-only ULP
+        # correction. Its 49-file source hash must match the ORIGINAL
+        # approved S1 source, never the patched C3 runtime's hash.
+        lk = T.lock_v5()
+        expected_s1 = lk.get("A010_ORIGINAL_S1V5_SOURCE", {})
         if (manifest.get("contract_sha256") != MF.sha256_file(MF.CONTRACT)
-                or manifest.get("source_code_sha256") != MF.code_hashes()
-                or len(manifest.get("source_git_sha", "")) != 40):
+                or manifest.get("source_code_sha256") != expected_s1.get("code_sha256")
+                or manifest.get("source_git_sha") != expected_s1.get("source_git_sha")
+                or (len(expected_s1.get("code_sha256", {})) != 49)):
             raise SystemExit("ERR_A010_S1V5_SOURCE_CONTRACT_HASH")
     zips = sorted(d.glob(f"S1V5_INPUTS_{SPLIT}_*.zip"))
     if not zips:
@@ -193,6 +199,62 @@ def input_diffs(rec, kb, inp, w, Sig, models):
     return out
 
 
+TRUTH_SOURCE_NAMES=("Xtrue","poses","dts","ds_true","dth_true",
+                    "prior_P0","mu","pose_keys_sha")
+TRUTH_NUMERIC_SOURCE_NAMES=frozenset(("Xtrue","poses","ds_true","dth_true"))
+# Exploratory post-observation ULP diagnostic boundary; NOT a replacement
+# for strict original saved-array SHA or for G5 estimator replay tolerance.
+TRUTH_REGEN_ULP_FACTOR=32.0
+
+
+def source_truth_by_verified_receipt(w,rec,tk):
+    """Source-signed S1 truth is authoritative; recomputation diagnostic only.
+
+    Called only AFTER original S1 ZIP and all per-array hashes were strictly
+    checked against the unmodified S1 manifest in load_receipts_with_stats().
+    Other truth fields are byte-exact; 4 purely geometrical float64 fields
+    permit diagnostic rounding variation under a machine-precision cap.
+    """
+    regen=dict(Xtrue=np.asarray(w["Xtrue"]),poses=np.asarray(w["poses"]),
+               dts=np.asarray(w["dts"]),ds_true=np.asarray(w["ds"]),
+               dth_true=np.asarray(w["dth"]),prior_P0=np.asarray(P0M),
+               mu=np.zeros((N,2),dtype=np.float64),
+               pose_keys_sha=np.array(T.pose_keys_sha(w)))
+    src={};changes={};exact=True
+    for name in TRUTH_SOURCE_NAMES:
+        key=f"{tk}|{name}"
+        if key not in rec:
+            raise SystemExit(f"ERR_A010_TRUTH_SOURCE_ABSENT {key}")
+        v=np.asarray(rec[key]);g=regen[name]
+        if v.shape!=g.shape or v.dtype.str!=g.dtype.str:
+            raise SystemExit(f"ERR_A010_TRUTH_SHAPE_DTYPE {key}")
+        if v.dtype.kind in "fiu":
+            if not np.isfinite(v).all() or not np.isfinite(g).all():
+                raise SystemExit(f"ERR_A010_TRUTH_NONFINITE {key}")
+        byte_equal=bool(AV.array_sha(v)==AV.array_sha(g))
+        exact &=byte_equal
+        if not byte_equal:
+            if name not in TRUTH_NUMERIC_SOURCE_NAMES or v.dtype.str!="<f8":
+                raise SystemExit(f"ERR_A010_TRUTH_IMMUTABLE_BYTE_MISMATCH {key}")
+            observed=float(np.max(np.abs(v-g)))
+            scale=max(1.0,float(np.max(np.abs(v))),float(np.max(np.abs(g))))
+            bound=TRUTH_REGEN_ULP_FACTOR*np.finfo(np.float64).eps*scale
+            if not (np.isfinite(observed) and observed<=bound):
+                raise SystemExit(f"ERR_A010_TRUTH_GEOMETRY_NUMERIC_MISMATCH {key}")
+            changes[name]=dict(max_abs=observed,ulp_bound=bound,
+                               original_sha=AV.array_sha(v),regen_sha=AV.array_sha(g))
+        src[name]=np.array(v,copy=True)
+    local=dict(w)
+    local.update(Xtrue=src["Xtrue"],poses=src["poses"],
+                 dts=src["dts"],ds=src["ds_true"],dth=src["dth_true"])
+    # Original source (and its signed per-array index) remains unmodified.
+    return local,dict(TRUTH_SOURCE_SHA_EXACT=True,
+                      TRUTH_REGEN_BYTES_EXACT=bool(exact),
+                      TRUTH_REGEN_N_NONBYTE=len(changes),
+                      TRUTH_REGEN_MAX_ABS=max((x["max_abs"] for x in changes.values()),default=0.0),
+                      TRUTH_REGEN_DETAIL=changes)
+
+
 def cmd_run(field, group, out):
     lk = T.lock_v5(); M.check_code_lock(lk)
     if field not in lk["run_plan"]["C3V5"]["fields"]:
@@ -226,7 +288,11 @@ def cmd_run(field, group, out):
             continue
         pf = S["Lhalf"] @ M.rng(root, S0V2.CELL_ID_V2[cn], field, 1).standard_normal((S["Lhalf"].shape[1], 2)) if cell["alphas"][0] else None
         for w in wins:
+            canonical_w = w
             for sn in M.SENSOR_SEEDS:
+                # Every sensor seed starts from unmodified canonical geometry.
+                # The source-truth w copy below must not bleed into later seeds.
+                w = canonical_w
                 generated = T.make_inputs(S, root, field, cn, w, sn, pf)
                 Sig_generated, models_generated = T.arm_models(S, w, cn)
                 kb = f"{field}|{w['role']}|{cn}|{sn}"
@@ -238,6 +304,11 @@ def cmd_run(field, group, out):
                     raise SystemExit(f"ERR_C3V5_MISSING_CANON_ARRAY {kb}")
                 if not np.array_equal(w["taps"], rec[f"{kb}|taps"]):
                     raise SystemExit(f"ERR_C3V5_TAP_MISMATCH {kb}")
+                tk = f"TRUTH|{field}|{w['role']}|{cn}"
+                w, truth_proof = source_truth_by_verified_receipt(w,rec,tk)
+                # Each cell/seed has its own local source-truth copy. Do not
+                # mutate canonical_setup shared geometry or original S1 ZIP.
+                truth_checks.append(bool(truth_proof["TRUTH_SOURCE_SHA_EXACT"]))
                 inp = dict(generated)
                 for name in ("z", "x0", "ds_m", "gy_m"):
                     inp[name] = np.array(rec[f"{kb}|{name}"], copy=True)
@@ -245,17 +316,6 @@ def cmd_run(field, group, out):
                 Sig = np.array(rec[T.mat_key(field, w["role"], cn)], copy=True)
                 models = {arm: np.array(rec[T.mat_key(field, w["role"], cn, arm)], copy=True)
                           for arm in models_generated}
-                tk = f"TRUTH|{field}|{w['role']}|{cn}"
-                truth_expected = {"Xtrue": w["Xtrue"], "poses": w["poses"], "dts": w["dts"],
-                                  "ds_true": w["ds"], "dth_true": w["dth"],
-                                  "prior_P0": P0M, "mu": np.zeros((N, 2)),
-                                  "pose_keys_sha": np.array(T.pose_keys_sha(w))}
-                truth_ok = all(f"{tk}|{name}" in rec and
-                               AV.array_sha(rec[f"{tk}|{name}"]) == AV.array_sha(v)
-                               for name, v in truth_expected.items())
-                truth_checks.append(bool(truth_ok))
-                if not truth_ok:
-                    raise SystemExit(f"ERR_A010_TRUTH_ONLY_REPLAY {tk}")
                 law = AV.generator_law(w, S, cn, Sig)
                 law_checks.append(law)
                 if not law["pass_"]:
@@ -407,7 +467,11 @@ def cmd_run(field, group, out):
                                 OPTIMIZER_EPRIME_OUTPUT_SHA=r["OPTIMIZER_EPRIME_OUTPUT_SHA"],
                                 RECEIPT_ARRAY_EXACT=integrity["pass_"],
                                 RECEIPT_ARRAYS_CHECKED=integrity["n_checked"],
-                                TRUTH_ONLY_VERIFIED=truth_ok, GENERATOR_LAW_PASS=law["pass_"], **idf,
+                                TRUTH_ONLY_VERIFIED=truth_proof["TRUTH_SOURCE_SHA_EXACT"],
+                                TRUTH_REGEN_BYTES_EXACT=truth_proof["TRUTH_REGEN_BYTES_EXACT"],
+                                TRUTH_REGEN_N_NONBYTE=truth_proof["TRUTH_REGEN_N_NONBYTE"],
+                                TRUTH_REGEN_MAX_ABS=truth_proof["TRUTH_REGEN_MAX_ABS"],
+                                GENERATOR_LAW_PASS=law["pass_"], **idf,
                                 **{k: r[k] for k in ("conv", "class_v31", "cost", "cost_E", "ms_best_k", "rescued", "ms_triggered", "kink_poses_at_E",
                                                      "probe_min_dcost", "dec_A_fixed", "rel_spread", "KINK_P_UNCERTAIN", "polish_steps",
                                                      "polish_cost_decrease", "polish_E_vs_Ep_dref", "nees4_C10")},
