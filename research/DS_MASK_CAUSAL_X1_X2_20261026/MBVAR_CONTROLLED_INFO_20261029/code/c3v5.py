@@ -288,7 +288,11 @@ def cmd_run(field, group, out):
             continue
         pf = S["Lhalf"] @ M.rng(root, S0V2.CELL_ID_V2[cn], field, 1).standard_normal((S["Lhalf"].shape[1], 2)) if cell["alphas"][0] else None
         for w in wins:
+            canonical_w = w
             for sn in M.SENSOR_SEEDS:
+                # Every sensor seed starts from unmodified canonical geometry.
+                # The source-truth w copy below must not bleed into later seeds.
+                w = canonical_w
                 generated = T.make_inputs(S, root, field, cn, w, sn, pf)
                 Sig_generated, models_generated = T.arm_models(S, w, cn)
                 kb = f"{field}|{w['role']}|{cn}|{sn}"
