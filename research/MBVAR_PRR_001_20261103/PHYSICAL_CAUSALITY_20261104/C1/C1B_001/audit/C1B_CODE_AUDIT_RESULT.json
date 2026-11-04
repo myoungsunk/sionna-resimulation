@@ -1,0 +1,65 @@
+{
+  "schema": "C1B_CODE_AUDIT_V1",
+  "decision": "ACCEPT",
+  "question_id": "C1B-BASE-GATE-001",
+  "scope": "Original-runtime C1b DEV seed10 six cells only",
+  "bindings_sha256": {
+    "conditional.py": "ea6b9f7683c07dc940b4491901317ec66cdef579feacc21d3c5a3a14e59f3db0",
+    "legacy.py": "18a96c73310f254e22abac4d56e9d89d4bc823c5b03410d7db9226decc83acca",
+    "score.py": "c795531bedfa63f2bd8e2d081744b1f71b6a86ae5435331f611557be029c98a0",
+    "run.py": "15448d5e7123815c0b76574c10cc3ff6517d02e4187b86df3d262278b900ab00",
+    "launch.py": "ee7bfc3b3002498030f935700ab71eb4e8cd4d26c6eac56c58a6819e8721234c",
+    "test_conditional.py": "4e941b8c05636d779c2a871cda2c29e4fe6d03073a9c324fc49d8e55ea6a20ac",
+    "PLAN.json": "ebc10500534e8fd975728e1c4be92291185c1324b4b6739788539722fe1e5aa1",
+    "INPUT_LOCK.json": "77727832cfe7771f64ccda1ef6d7157ae5d139925fb10c75acb6b5759c3c4b24",
+    "CONTRACT_KO.md": "5222dde41c87042c184590d7b58118381f9e656dc8638766042836b31547faf0",
+    "GOVERNANCE.json": "c5b5bfe219966df355223e6ee9985de4142c8026c58c2c830242a00bdbc61d44",
+    "../C1A_001/core.py": "986184777b89d1b960591776a3a40093bc9b3b47fa396c31818ae04b083bce72"
+  },
+  "findings": [
+    {
+      "status": "RESOLVED",
+      "location": "run.py:104-108,137-140",
+      "finding": "Previously unhashed C1a comparison cells are now verified through the hash-locked independent acceptance receipt and its accepted ARTIFACT_HASHES index before loading."
+    }
+  ],
+  "checks": {
+    "original_shadow_recursion": "Full only; original scalar unsymmetrized-S joint NIS and original Joseph operation order; exact archived FF mask checked every pose",
+    "unmasked_gain": "All-gates-true frozen C1a gain is selected per new arm mask, including old FF rejection with new hybrid acceptance",
+    "claim_scope": "Instantaneous conditional current-gate effect, no hybrid recursive histories, no C2/adoption/generalization GO",
+    "unit_tests_passed": 4,
+    "independent_synthetic_update_rows": 256,
+    "independent_synthetic_joint_NIS_rows": 256,
+    "independent_synthetic_score_rows": 256,
+    "independent_synthetic_score_summaries": 4,
+    "prelaunch_hash_drift_negative_controls": 11,
+    "accepted_C1a_comparison_cells_current_hash_verified": 120,
+    "max_absolute_errors": {
+      "K": 1.9914625504213745e-15,
+      "K_star": 1.9914625504213745e-15,
+      "P": 2.220446049250313e-15,
+      "u": 3.1086244689504383e-15,
+      "x": 3.1086244689504383e-15,
+      "nis": 2.6645352591003757e-14
+    },
+    "python": "3.13.15",
+    "packages": {
+      "numpy": "2.2.4",
+      "scipy": "1.15.2",
+      "pandas": "2.2.3",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.6.0"
+    },
+    "python_executable_sha256": "85b71d8c6ec1905935f74be0c9869aae198d00e98f39df699ec66f9c5a84cecd",
+    "actual_openblas_threads": 1,
+    "model_initializations": 0,
+    "scientific_filter_gate_runs": 0,
+    "scientific_scoring_runs": 0,
+    "new_RT_calls": 0,
+    "auditor_files_modified": 0,
+    "children": 0
+  },
+  "verifier_harness_note": "First launcher negative-control mock incorrectly denied read-only opens; corrected mode-aware mock passed all11 drift checks. No production-code change caused by that harness error.",
+  "remaining_conditions": "Seeds11-29 require independent DEV acceptance and a fresh phase-specific GO; seed10 must not rerun.",
+  "required_corrections": []
+}
