@@ -1,0 +1,86 @@
+name: MBVAR A010 C3 ULP source-truth repair preflight (READONLY / NO DEV3 solver)
+on:
+  push:
+    branches: [fix/mbvar-a010-dev3-c3-source-truth-20261104]
+    paths:
+      - '.github/workflows/mbvar-a010-dev3-c3-truth-source-preflight-20261104.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/c3v5.py'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests/test_a10_s1v5_c3v5_exec.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  PYTHONDONTWRITEBYTECODE: '1'
+  GIT_LFS_SKIP_SMUDGE: '1'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  source-truth-hash-negative-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+      - name: Fetch existing pinned SourceFFD, no RT scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          FETCH_RF=0 bash "$BASE_DIR/reflect_model/fetch_inputs.sh"
+          rm -rf "$REFLECT_ROOT/.src.git"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $REFLECT_ROOT/out/INPUT_LOCK.sha256" | sha256sum -c -
+      - name: Run actual source-truth one ULP and attack tests, no DEV3 field generation
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          python -m pytest -v -p no:cacheprovider "$EXP/tests/test_a10_s1v5_c3v5_exec.py" -k truth_source 2>&1 | tee "$RUNNER_TEMP/a010-c3-truth-pytest.log"
+      - name: Freeze 49 source file hashes into runner proof for later signed append-only amendment
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ledger"
+          python - <<'PY'
+          import sys,os,json,pathlib,hashlib
+          root=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(root/"code"))
+          import manifest as MF
+          hashes=MF.code_hashes()
+          assert len(hashes)==49
+          old=(root/"contracts/AMENDMENT-010.md").read_text()
+          assert '"reviewer_status": "USER_AUTHORIZED_NONINDEPENDENT"' in old
+          assert json.loads((root/"RUN_REQUEST.json").read_text())["phase"]=="P2_C3V5"
+          z=dict(schema="A010_TRUTH_ULP_CORRECTED_CODE_SHA_LEDGER_V1",
+                 source_git_sha=os.environ["GITHUB_SHA"],
+                 sha256={k:hashes[k] for k in sorted(hashes)},
+                 n_files=len(hashes),scope="POST_EXPOSURE_C3_TRUTH_EXPLORATORY_ONLY",
+                 original_S1_source_git_sha="0bd5d706710f172ff6becb562eadd7573b5d3ffd",
+                 original_S1_source_artifact="sha256:c5625668e1dcd00852fa3661b06b2e3ffafde236bb3424efa36def5846985481",
+                 execution_authorized=False,
+                 HOLDOUT2="NO-GO",RT="NO-GO")
+          out=pathlib.Path(os.environ["RUNNER_TEMP"])/"ledger/C3_TRUTH_REPLAY_POST_EXPOSURE_CODE_SHA.json"
+          out.write_text(json.dumps(z,sort_keys=True,indent=2)+"\n")
+          print("A010_C3_REPAIR_49_SOURCE_SHA_LEDGER "+json.dumps(z,separators=(",",":"),sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mbvar-a010-c3-truth-repair-preflight-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/ledger/
+            ${{ runner.temp }}/a010-c3-truth-pytest.log
+          retention-days: 90
+          if-no-files-found: warn
