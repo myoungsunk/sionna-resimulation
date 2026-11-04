@@ -1,0 +1,79 @@
+name: MBVAR A010 final-contract draft lock lint and no-open DEV3 (NO scientific run)
+on:
+  push:
+    branches: [proposer/mbvar-a010-freeze-review-packet-20261103]
+    paths:
+      - '.github/workflows/mbvar-a010-freeze-candidate-lint-20261104.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts/AMENDMENT-010-SHA_LOCK_COMPLETE_CANDIDATE_20261104.md'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  all-49-shas-candidate-draft:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/scripts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Machine-validate source SHA lock candidate and original independent approval barrier
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import sys,os,json,pathlib,hashlib
+          exp=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(exp/"code"))
+          import manifest as M
+          import contract_lock as CL
+          raw=(exp/"contracts/AMENDMENT-010-SHA_LOCK_COMPLETE_CANDIDATE_20261104.md").read_text()
+          marker=chr(96)*3+"json\n"
+          block=raw.split(marker,1)[1].split("\n"+chr(96)*3,1)[0]
+          c=json.loads(block)
+          actual=M.code_hashes()
+          assert c["status"]=="DRAFT_PENDING_A010_PRE_RUN_SIGNOFF"
+          assert c["code_sha256"]==actual and len(actual)==49
+          assert c["base_contract_sha256"]==hashlib.sha256(
+            (exp/"contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md").read_bytes()
+          ).hexdigest()
+          assert c["r5_numeric_policy_sha256"]==hashlib.sha256(
+            (exp/"contracts/AMENDMENT-010-R5-PROPOSER-SPEC-V1.json").read_bytes()
+          ).hexdigest()
+          lk=CL.effective_lock()
+          assert lk["status"]=="FROZEN" and CL.amendment_lock("AMENDMENT-010") is None
+          original=dict(lk["splits"]["S_field"])
+          original["DEV3"]=list(range(20,30))
+          assert c["splits"]["S_field"]==original
+          assert c["run_plan"]["S1V5"]["fields"]==list(range(20,30))
+          assert c["run_plan"]["C3V5"]["fields"]==list(range(20,30))
+          assert c["expected_C3V5_batch_rows"]==1080
+          assert c["expected_S1V5_all_arm_rows"]==1980
+          assert c["frozen_science_choices"]["kink_exception_allowed"] is False
+          assert c["frozen_science_choices"]["portable_numeric_tolerance_relaxation"] is False
+          assert c["independent_auditor_signed"] is False
+          assert c["alternate_user_waiver_effective"] is False
+          assert c["a010_science_frozen"] is False
+          assert c["permissions"]=={"dev3":"NO-GO","holdout2":"NO-GO","rt":"NO-GO"}
+          req=json.loads((exp/"RUN_REQUEST.json").read_text())
+          assert req["phase"]=="P2_A010P0_ABL"
+          assert req["amendments"][-1]=="AMENDMENT-010-P0"
+          print("A010_SHA_LOCK_CANDIDATE_LINT_PASS",len(actual),
+                c["expected_C3V5_batch_rows"],c["expected_S1V5_all_arm_rows"])
+          print("A010_AUDITOR_APPROVAL_STILL_PENDING_DO_NOT_RUN_DEV3")
+          PY
+      - name: Nothing changed in repository
+        run: test -z "$(git status --porcelain)"
