@@ -50,7 +50,8 @@ def preflight(bank=None):
         demand(name in expected and file.is_file(),"MISSING_SOURCE:"+name)
         demand(h(file)==expected[name],"SOURCE_BYTES_CHANGED:"+name)
     manifest=load(ROOT/"results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json")
-    demand(manifest["npz_sha256"]==cfg["original_ffd_sha256"],"BANK_MANIFEST_CHANGED")
+    demand(all(manifest["npz_sha256"].get(k)==v for k,v in cfg["original_ffd_sha256"].items()),
+           "BANK_LP_PLUS_MINUS_MANIFEST_CHANGED")
     if bank is not None:
         for name,digest in cfg["original_ffd_sha256"].items():
             p=Path(bank)/name
