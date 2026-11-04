@@ -17,6 +17,7 @@ import time
 
 import numpy as np
 from native_math import independent_sum, vector_fields, label_chain, grouped_spectra, errors
+from precision_qa import evaluate_precision, PRECISION_CONTRACT, ARCHIVE_LOS_MODEL, COHERENT_SUM_MODEL
 
 HERE = Path(__file__).resolve().parent
 BLOCK = 'results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C'
@@ -48,18 +49,22 @@ def lock_inputs(source, bank):
     if any(banks[n] != expected[n] for n in banks):raise ValueError('bank hash')
     return dict(source_sha256=hashes, source_hash_manifest_sha256=sha(source/'SOURCE_HASHES.json'),
                 bank_sha256=banks, source_revision=PIN,
-                code_sha256={n:sha(HERE/n) for n in ('producer.py','native_math.py','diagnostics.py','postprocess.py')},
+                code_sha256={n:sha(HERE/n) for n in ('producer.py','native_math.py','precision_qa.py','diagnostics.py','postprocess.py')},
+                precision_contract=PRECISION_CONTRACT, archive_los_reference=ARCHIVE_LOS_MODEL,
+                coherent_sum_reference=COHERENT_SUM_MODEL,
                 runtime_lock_sha256=sha(HERE/'RUNTIME_LOCK.json'),
                 thresholds=THRESHOLDS,
-                primary_reference='scalar math.cos/sin and math.fsum of ungrouped raw a/tau in float64',
+                primary_reference='F64 independent scalar path sum for coherent reconstruction; original complex64 expression for archived LoS',
                 grouping='exact canonical JSON ordered semantic object/type chain; no one-to-one ray tracking')
 
 
 def authorize(go_path, lock, case, pid):
     go=json.loads(Path(go_path).read_text(encoding='utf-8-sig'))
-    if go.get('schema')!='SM0_GO_V1' or go.get('decision')!='GO':raise ValueError('no GO')
+    if go.get('schema')!='SM0_GO_V2' or go.get('decision')!='GO':raise ValueError('no approved V2 GO')
     if dict(case=case,pose_id=pid) not in go.get('authorized',[]):raise ValueError('unauthorized pose')
-    for key in ('code_sha256','source_sha256','bank_sha256','thresholds','primary_reference','runtime_lock_sha256'):
+    for key in ('code_sha256','source_sha256','bank_sha256','thresholds',
+                'primary_reference','runtime_lock_sha256','precision_contract',
+                'archive_los_reference','coherent_sum_reference'):
         if go.get(key)!=lock[key]:raise ValueError('GO binding '+key)
     return sha(go_path)
 
@@ -207,18 +212,27 @@ def run(source, bank, output, case, pid, go):
         arrays['archive_los']=np.asarray(np.load(source/BLOCK/('H_LoS_'+case+'.npy'),mmap_mode='r')[pid,:,:,0])
         if arrays['archive_full'].shape!=(257,2) or arrays['archive_los'].shape!=(257,2):raise ValueError('archive axes')
         arrays['direct_f64']=arrays['group_fields'][int(arrays['direct_group'])]
+        precision=evaluate_precision(arrays,THRESHOLDS)
+        # Keep both precision paths inspectable. The legacy expression is the
+        # archive LoS comparator; F64 remains the independent coherent sum.
+        arrays['direct_legacy32']=precision['direct_legacy32']
         np.savez_compressed(output/'RAW.npz',**arrays)
-        reconstruction=errors(arrays['group_fields'].sum(0),arrays['native_f64'])
-        ef=errors(arrays['native_f64'],arrays['archive_full']);el=errors(arrays['direct_f64'],arrays['archive_los'])
+        reconstruction=precision['reconstruction_primary_f64']
+        ef=precision['archive_full_primary_f64']
+        el=precision['archive_los_primary_legacy32']
         receipt.update(raw_sha256=sha(output/'RAW.npz'),elapsed_s=time.perf_counter()-started,
                        array_schema={key:dict(shape=list(value.shape),dtype=str(value.dtype)) for key,value in arrays.items()},
                        reconstruction=reconstruction,archive_full_error=ef,archive_los_error=el,
+                       precision_contract=PRECISION_CONTRACT,
+                       archive_los_reference=ARCHIVE_LOS_MODEL,coherent_sum_reference=COHERENT_SUM_MODEL,
+                       archive_los_error_f64_diagnostic=precision['archive_los_diagnostic_f64'],
+                       archive_full_error_legacy32_diagnostic=precision['archive_full_diagnostic_legacy32'],
                        original32_vs_f64=errors(arrays['native_original32'],arrays['native_f64']),
                        cfr32_vs_f64=errors(arrays['native_cfr32'],arrays['native_f64']),
                        groups=len(grouped['group_labels']),paths_per_bin=[len(v['tau']) for v in bins],
                        multiple_same_chain_bins=int((grouped['group_count']>1).sum()),
                        note='Group identity is semantic chain. Per-bin ray IDs are not tracked one-to-one across frequencies.')
-        passed=(reconstruction['relative_l2']<=1e-8 and reconstruction['max_normalized']<=1e-8 and ef['relative_l2']<=1e-3 and el['relative_l2']<=1e-5)
+        passed=precision['pass_all']
         receipt['status']='PASS' if passed else 'STOP_MISMATCH'
         if not passed:raise ValueError('SM0 first mismatch; retained raw; no expansion')
     except BaseException as exc:
@@ -229,7 +243,10 @@ def run(source, bank, output, case, pid, go):
         receipt['end_utc']=datetime.datetime.now(datetime.timezone.utc).isoformat()
         put(output/'MANIFEST.json',receipt)
         put(output/'ARTIFACT_HASHES.json',{str(p.relative_to(output)):sha(p) for p in sorted(output.rglob('*')) if p.is_file() and p.name!='ARTIFACT_HASHES.json'})
-    print('SM0_RESULT',json.dumps(dict(status=receipt['status'],case=case,pose_id=pid,reconstruction=receipt['reconstruction'],full=receipt['archive_full_error'],los=receipt['archive_los_error'])),flush=True)
+    print('SM0_RESULT',json.dumps(dict(status=receipt['status'],case=case,pose_id=pid,
+                      reconstruction=receipt['reconstruction'],full=receipt['archive_full_error'],
+                      los_legacy32=receipt['archive_los_error'],
+                      los_f64_diagnostic=receipt['archive_los_error_f64_diagnostic'])),flush=True)
 
 
 if __name__=='__main__':
