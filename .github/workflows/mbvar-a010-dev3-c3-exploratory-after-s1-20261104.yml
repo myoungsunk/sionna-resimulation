@@ -20,6 +20,7 @@ env:
   MKL_DYNAMIC: 'FALSE'
   GH_TOKEN: ${{ github.token }}
   S1_DEV3_ORIGINAL_RUN: '41769652106'
+  S1_SOURCE_DIR_NAME: 'P2_S1V5_DEV3_USER_EXPLORATORY_run_41769652106'
 jobs:
   guard:
     runs-on: ubuntu-24.04
@@ -41,9 +42,9 @@ jobs:
           set -euo pipefail
           status=$(gh run view "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --json conclusion --jq .conclusion)
           test "$status" = "success" || { echo "BLOCKED_A010_S1_SOURCE_NOT_SUCCESS $status"; exit 1; }
-          mkdir -p "$RUNNER_TEMP/s1agg"
-          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$RUNNER_TEMP/s1agg"
-          export S1_AGG="$RUNNER_TEMP/s1agg"
+          mkdir -p "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME"
+          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME"
+          export S1_AGG="$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME"
           python - <<'PY'
           import json,os,sys,pathlib
           exp=pathlib.Path(os.environ["EXP"])
@@ -54,7 +55,7 @@ jobs:
           assert req["c3_fields"]==list(range(20,30))
           assert req["amendments"][-1]=="AMENDMENT-010"
           assert req["execution_class"]=="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY"
-          assert req["s1v5_run"]==str(pathlib.Path(os.environ["S1_AGG"]))
+          assert req["s1v5_run"]==os.environ["S1_SOURCE_DIR_NAME"]
           lk=CL.effective_lock()
           assert lk["status"]=="FROZEN" and lk["code_sha256"]==MF.code_hashes()
           assert len(lk["code_sha256"])==49
@@ -66,6 +67,9 @@ jobs:
           assert q["fields_got"]==list(range(20,30))
           assert q["A010_REGISTERED_ROW_COVERAGE"]["pass_"]
           assert m["source_code_sha256"]==MF.code_hashes()
+          assert m["source_git_sha"]=="0bd5d706710f172ff6becb562eadd7573b5d3ffd"
+          assert m["input_lock_sha256"]=="28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee"
+          assert m["scientific_verdict"]=="NOT_EVALUATED"
           assert m["reviewer_status"]=="SELF_REVIEW_ONLY"
           print("A010_DEV3_C3_REPLAY_ALLOWED_FROM_ORIGINAL_1980_ROW_S1_RECEIPT")
           PY
@@ -115,16 +119,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/mi" "$RUNNER_TEMP/s1agg" "$RUNNER_TEMP/c3out"
+          mkdir -p "$RUNNER_TEMP/mi" "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME" "$RUNNER_TEMP/c3out"
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name a010-c3-original-source-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
-          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$RUNNER_TEMP/s1agg"
+          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME"
           echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $RUNNER_TEMP/mi/out/INPUT_LOCK.sha256" | sha256sum -c -
       - name: Verify 7-array receipt SHA and replay one full key group
         shell: bash
         run: |
           set -euo pipefail
           export REFLECT_ROOT="$RUNNER_TEMP/mi"
-          export S1V5_RUN="$RUNNER_TEMP/s1agg"
+          export S1V5_RUN="$S1_SOURCE_DIR_NAME"
           python -u "$EXP/code/run_phase.py" run --shard "${{ matrix.field }}:${{ matrix.group }}" --out "$RUNNER_TEMP/c3out" 2>&1 | tee "$RUNNER_TEMP/c3out/C3_DEV3_${{ matrix.field }}_${{ matrix.group }}.log"
           test -s "$RUNNER_TEMP/c3out/C3V5_ROWS_${{ matrix.field }}_${{ matrix.group }}.csv"
           test -s "$RUNNER_TEMP/c3out/C3V5_R5_TERMINAL_CERT_${{ matrix.field }}_${{ matrix.group }}.csv"
@@ -156,16 +160,16 @@ jobs:
       - name: Restore exact source and 20 original replay shards
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/mi" "$RUNNER_TEMP/s1agg" "$RUNNER_TEMP/shards" "$RUNNER_TEMP/c3agg"
+          mkdir -p "$RUNNER_TEMP/mi" "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME" "$RUNNER_TEMP/shards" "$RUNNER_TEMP/c3agg"
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --name a010-c3-original-source-${{ github.run_id }} --dir "$RUNNER_TEMP/mi"
-          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$RUNNER_TEMP/s1agg"
+          gh run download "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_DEV3_ORIGINAL_RUN --dir "$GITHUB_WORKSPACE/$EXP/results/$S1_SOURCE_DIR_NAME"
           gh run download ${{ github.run_id }} --repo ${{ github.repository }} --pattern 'a010-c3-field-*' --dir "$RUNNER_TEMP/shards"
       - name: Aggregate full 1080 C3 keys; NEVER turn G5 FAIL into PASS
         shell: bash
         run: |
           set -euo pipefail
           export REFLECT_ROOT="$RUNNER_TEMP/mi"
-          export S1V5_RUN="$RUNNER_TEMP/s1agg"
+          export S1V5_RUN="$S1_SOURCE_DIR_NAME"
           export S0V2_RESULTS_DIR="$GITHUB_WORKSPACE/$EXP/results/P1_S0V2_run_40863614683"
           set +e
           python -u "$EXP/code/run_phase.py" aggregate --shards "$RUNNER_TEMP/shards" --out "$RUNNER_TEMP/c3agg" > "$RUNNER_TEMP/c3agg/A010_DEV3_C3_AGG_LOG.txt" 2>&1
