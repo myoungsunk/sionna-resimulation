@@ -30,9 +30,11 @@
 
 ## 3. GitHub에서 실제 실행할 정확한 방법 (현재 실행하지 않음)
 
-수동 workflow 이름: `MBVAR PRR P3 real Native RT 8224-call MANUAL ONLY gated C00→paired`.
+RT 실행 workflow 이름: `MBVAR PRR P3 Native RT 8224 calls EXPLICIT APPROVAL gated C00→paired`.
 
-GitHub 저장소 **Actions → 해당 workflow → Run workflow**에서 branch `prepare/mbvar-prr-sm0-native-rt-runnable-20261104`를 선택하고, **직접 계산을 승인할 때에만** 아래 3개 입력을 제공한다.
+**권장: 연구 feature 브랜치에서 직접 실행 승인 파일을 커밋**한다. `RT_EXECUTION_APPROVAL_TEMPLATE.json`을 복사해 실제 승인할 때에만 `RT_EXECUTION_APPROVAL_EFFECTIVE.json`이라는 새 파일로 만들고, `approved_actor=myoungsunk`, `confirmation=I_APPROVE_8224_NATIVE_CPU_CALLS`, `budget_calls=8224`, `wall_seconds_per_key=1200`, `approval_method=EXPLICIT_GITHUB_APPROVAL_COMMIT`, `expected_source_blob_sha` 및 `expected_lock_blob_sha`를 정확히 유지한다. **그 정확한 파일 경로의 커밋만** workflow의 push 실행을 발생시킨다. 현재 이 GO 파일은 존재하지 않는다.
+
+해당 workflow가 저장소 기본 브랜치에 등록된 후에는 **Actions → Run workflow**의 수동 입력으로도 같은 승인 조건을 적용할 수 있다. feature 브랜치에만 있는 새로운 workflow는 GitHub UI에서 `workflow_dispatch`가 보이지 않을 수 있으므로 승인 파일 방식을 준비했다.
 
 | Actions input | 승인 시 입력값 | 의미 |
 |---|---|---|
@@ -40,7 +42,7 @@ GitHub 저장소 **Actions → 해당 workflow → Run workflow**에서 branch `
 | `budget_calls` | `8224` | 정확한 전체 frequency-bin 호출 상한 (자동 증액 금지) |
 | `wall_seconds_per_key` | 예: `1200` | 한 configuration의 벽시계 하드 상한, 수동 120~3600초 선택 |
 
-승인값을 입력하지 않으면 GUARD FAIL로 계산이 진행되지 않는다. Actions 자동 push/schedule 트리거는 없다. `C00_DIRECT` 4 pose×2회, 총 **2056 calls**의 직접파 source 상대 L2 `<=1e−5`·해시·경로 산출이 모두 PASS여야 3개 반사 arm으로 자동 진입한다. 8개 중 하나라도 FAIL이면 원시 아티팩트와 STOP 판정을 남기고 **다음 6168 calls를 실행하지 않는다**.
+승인값이 정확하지 않으면 GUARD FAIL로 계산이 진행되지 않는다. **소스 코드 변경·일반 push·schedule로는 RT가 자동 실행되지 않는다**. 신규 **`RT_EXECUTION_APPROVAL_EFFECTIVE.json` 한 파일의 명시적 사용자 승인 커밋**만 별도 push 트리거다. `C00_DIRECT` 4 pose×2회, 총 **2056 calls**의 직접파 source 상대 L2 `<=1e−5`·해시·경로 산출이 모두 PASS여야 3개 반사 arm으로 자동 진입한다. 8개 중 하나라도 FAIL이면 원시 아티팩트와 STOP 판정을 남기고 **다음 6168 calls를 실행하지 않는다**.
 
 **원본 257-bin SM0 parity 실패를 고려하면 C00의 실제 통과를 보장할 수 없다.** 값이 높더라도 threshold를 사후 완화하지 않고 원인을 별도로 조사한다. 본 스레드에서 전체 Native RT workflow는 DISPATCH하지 않았다.
 
