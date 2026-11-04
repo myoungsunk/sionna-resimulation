@@ -1,0 +1,218 @@
+{
+  "schema": "MBVAR_PRR_POST_SM0_NEXT_RT_STAGE_CONTRACT_DRAFT_V1",
+  "contract_id": "PRR-RT-POST-SM0-001",
+  "date_kst": "2026-11-04",
+  "status": "PROPOSED_NOT_YET_APPROVED_FOR_NEW_RT",
+  "execution_class": "USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
+  "external_auditor_required_for_user_selfrun": false,
+  "independent_auditor_signed": false,
+  "original_existing_archives_preserved": true,
+  "reference": {
+    "pr": 33,
+    "sha": "e69fcdd6123d3d056cd95ea210ac8eb732f17628",
+    "source_phase32_sha256": "79226718784565a5b7d414350ed2eeb884363ad547654d555065275df5ff9de4",
+    "scene_lock_sha256": "1c3eb577e3030edcf97a6f430054875d6a02d80a9912b179186a801bfdc47412",
+    "pilot": {
+      "c00_pass": 8,
+      "c01_c10_c11_pass": 24,
+      "solver_calls": 8224,
+      "n_configs": 16,
+      "n_repeat": 2,
+      "n_frequency_bins": 257,
+      "elapsed_seconds": 895
+    },
+    "archived_evidence_audit": {
+      "run_id": 41815490532,
+      "files_success_SHA_verified": 151,
+      "files_previous_failure_SHA_verified": 19,
+      "raw_complex_H_keys_verified": 32,
+      "repeated_complex_H_identical": 16,
+      "max_relative_path_reconstruction": 9.286898332702478e-8
+    },
+    "phase32_phase_source_rule": "np.complex64(-2j*np.pi*float(freq)) * float32_tau; original archive phase convention",
+    "source_bank_sha256": {
+      "LP_plus45": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    }
+  },
+  "causal_scope": {
+    "original_circuit_scope": "Original R2/R4/R5 aB mount0 Tnone six-surface corridor, NOT new controlled 2-object floor/plate pilot",
+    "original_archive_full": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R{2,4,5}_aB_m0.npy",
+    "original_archive_los": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R{2,4,5}_aB_m0.npy",
+    "anchor_B_xyz_m": [
+      10,
+      0,
+      2.65
+    ],
+    "robot_z_reference_m": 0.45,
+    "initial_cases": {
+      "R4_B": [
+        168,
+        172,
+        173,
+        194,
+        234,
+        500,
+        525,
+        729
+      ],
+      "R5_B": [
+        401,
+        465,
+        979,
+        980,
+        982,
+        983
+      ],
+      "R2_B": [
+        525
+      ]
+    },
+    "n_original_cases": 15,
+    "selected_from_prior_analysis": "POSTHOC_DEVELOPMENT_HOTSPOTS_NOT_NEW_HOLDOUT",
+    "forced_negative_controls": [
+      "R4 pose234 small eMP",
+      "R2 pose525 large eMP without tap switch",
+      "controlled C10/C11 pose500/525 no plate response"
+    ],
+    "statistical_unit": "route trajectory / physical scene variant; not deterministic reruns or sensor-seed replicas"
+  },
+  "phases": [
+    {
+      "id": "R0",
+      "name": "existing controlled source path attribution",
+      "new_solver_calls": 0,
+      "run_approval": "READ_ONLY",
+      "input": "32 archived original H+path npz, source vs plate/floor spectra",
+      "prerequisites": [
+        "original evidence byte QA 41815490532 PASS"
+      ],
+      "output": [
+        "R0_RAY_INTERACTIONS.csv",
+        "R0_PLATE_VS_FLOOR_H.csv",
+        "R0_FP_FIXED_VS_RERUN.csv"
+      ],
+      "next_on_pass": "SM0B0"
+    },
+    {
+      "id": "SM0B0",
+      "name": "R4 original 6-surface source canary 194,234",
+      "n_pose": 2,
+      "n_mode": 2,
+      "n_bins": 257,
+      "new_solver_calls": 1028,
+      "modes": [
+        "Native_LoS",
+        "Full"
+      ],
+      "run_approval": "SEPARATE_FINITE_USER_BUDGET_BEFORE_RT",
+      "prerequisites": [
+        "mesh/material/bank/port/pose/timeline/source SHA locked",
+        "original H archive parity tolerances committed"
+      ],
+      "on_fail": "STOP_FURTHER_BULK_AND_PRESERVE_RAW",
+      "next_on_pass": "SM0B1"
+    },
+    {
+      "id": "SM0B1",
+      "name": "remaining 13 original route poses ray resolved",
+      "n_pose": 13,
+      "n_mode": 2,
+      "n_bins": 257,
+      "new_solver_calls": 6682,
+      "total_cumulative_calls": 7710,
+      "run_approval": "SEPARATE_FINITE_USER_BUDGET_BEFORE_RT",
+      "prerequisites": [
+        "SM0B0 original Full+LoS source parity PASS"
+      ],
+      "on_fail": "STOP_AND_PRESERVE",
+      "next_on_pass": "SM1a"
+    },
+    {
+      "id": "SM1a",
+      "name": "R4 33.0–35.2 and R5 195–198 source-aligned event windows",
+      "n_pose": "PENDING_ORIGINAL_TNONE_JOIN",
+      "solver_calls_formula": "2*257*N_new_unique_pose_not_in_SM0B",
+      "new_solver_calls": null,
+      "requires_split_lock_before_run": true,
+      "run_approval": "SEPARATE"
+    },
+    {
+      "id": "SM2a",
+      "name": "one exact XY R4 pose168, yaw-only physical intervention",
+      "n_fixed_xy": 1,
+      "n_yaw_max": 5,
+      "n_mode": 2,
+      "n_bins": 257,
+      "new_solver_calls_max": 2570,
+      "yaw_degrees": [
+        -35.7,
+        0,
+        35.7,
+        180,
+        "original_R4_168_yaw"
+      ],
+      "deduplicate_equal_yaw": true,
+      "run_approval": "SEPARATE",
+      "prerequisites": [
+        "original full scene RT parity",
+        "original source XY and collision verification",
+        "fixed yaw list before run"
+      ]
+    },
+    {
+      "id": "C1C2",
+      "name": "offline one-step/range polarization and natural recursive EKF causal checks",
+      "new_solver_calls": 0,
+      "run_approval": "SEPARATE_FILTER_EXPERIMENT_CONTRACT",
+      "no_claims_until_parity": true
+    }
+  ],
+  "numeric_gates": {
+    "native_LoS_archive_rel_L2_max": 0.00001,
+    "native_Full_archive_rel_L2_max_proposed_not_active": 0.001,
+    "per_path_sum_relL2_target_proposed_not_active": 1e-8,
+    "archived_phase32_must_remain_exact": true,
+    "independent_F64_diagnostic_not_source_parity": true,
+    "fft_hann_n_freq": 257,
+    "ifft_n": 1028,
+    "first_path_peak_fraction": 0.3,
+    "signed_s_definition": "(Pplus-Pminus)/(Pplus+Pminus) at frozen selected tap",
+    "finite_inputs_and_raw_sha_gate": true,
+    "zero_invalid_power": "FAIL",
+    "true_source_mismatch": "STOP"
+  },
+  "proposed_resource_budget": {
+    "current_user_approved_new_solver_calls": 0,
+    "SM0B0_calls_proposed": 1028,
+    "SM0B1_additional_calls_proposed": 6682,
+    "SM0B0_plus_B1": 7710,
+    "optional_four_pose_repeated_calls": 2056,
+    "SM2a_additional_calls_proposed_max": 2570,
+    "SM0B_plus_SM2a_without_SM1": 10280,
+    "preexecution_limit_requirements": [
+      "max_cpu_gpu_workers",
+      "max_total_calls",
+      "max_per_job_wall_s",
+      "max_total_wall_s",
+      "max_storage_gb",
+      "max_cost_currency_amount",
+      "retry_included_in_max",
+      "original_source_sha"
+    ],
+    "old_snowball_elapsed_s_not_guarantee": 895,
+    "never_silently_auto_expand": true
+  },
+  "banned_claims": [
+    "independent holdout verification",
+    "generalized temporal stochastic correlation from static RT",
+    "EKF covariance overconfidence explained by four controlled pilot poses alone",
+    "additive power contributions from path deletion",
+    "C3V5 G5 PASS from RT output",
+    "physical metal plate: original material is concrete"
+  ],
+  "source_status": "POSTSM0_SOURCE_QA_PASS",
+  "next_phase_status": "AWAITING_EXPLICIT_FIRST_SOURCE_ORIGINAL_MATERIAL_LOCK_AND_FINITE_COMPUTE_APPROVAL",
+  "holdout2": "SEALED",
+  "rt_work_not_executed_this_turn": true
+}
