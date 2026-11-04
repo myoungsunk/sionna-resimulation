@@ -153,9 +153,9 @@ def solver_options(original,arm):
                 diffraction=False,edge_diffraction=False,diffuse_reflection=False)
     return opts
 def check_budget(args,cfg):
-    require(args.token=="I_AUTHORIZE_CPU_RT_STAGE","MANUAL_TOKEN_REQUIRED")
-    require(args.max_calls==257 and 30<=args.wall_seconds<=3600,"CONFIG_BUDGET_INVALID")
-    require(args.budget is not None and args.budget.is_file(),"USER_BUDGET_RECORD_MISSING")
+    demand(args.token=="I_AUTHORIZE_CPU_RT_STAGE","MANUAL_TOKEN_REQUIRED")
+    demand(args.max_calls==257 and 30<=args.wall_seconds<=3600,"CONFIG_BUDGET_INVALID")
+    demand(args.budget is not None and args.budget.is_file(),"USER_BUDGET_RECORD_MISSING")
     budget=load(args.budget)
     demand(budget.get("status")=="USER_APPROVED_FOR_CPU_RT","USER_BUDGET_NOT_SIGNED")
     demand(budget.get("science_class")=="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
@@ -170,7 +170,7 @@ def check_budget(args,cfg):
 def execute(args):
     import numpy as np
     cfg,orig=preflight(args.bank)
-    require(args.arm in ARMS and args.pose in cfg["pose_ids"] and
+    demand(args.arm in ARMS and args.pose in cfg["pose_ids"] and
             args.repeat in (0,1),"UNREGISTERED_SIMULATION_KEY")
     budget=check_budget(args,cfg)
     if args.arm!="C00_DIRECT":
@@ -197,7 +197,7 @@ def execute(args):
         rt,C=imports()
         C.BANK_DIR=args.bank
         banks=C.load_banks();freqs=np.asarray(banks[0]["freqs_hz"],float)
-        require(freqs.shape==(257,) and np.array_equal(freqs,
+        demand(freqs.shape==(257,) and np.array_equal(freqs,
             np.load(ROOT/BLOCK/"freqs_hz.npy")),"FREQUENCY_GRID_DRIFT")
         scene,anchor,rx,meshes=build_scene(cfg,args.arm,pose,out,rt,C)
         ports=C.make_ports(banks);solver=rt.PathSolver()
