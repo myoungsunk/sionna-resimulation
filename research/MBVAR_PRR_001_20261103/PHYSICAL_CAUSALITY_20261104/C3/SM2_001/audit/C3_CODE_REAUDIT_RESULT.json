@@ -1,0 +1,68 @@
+{
+  "schema": "C3_SM2_CODE_REAUDIT_V1",
+  "decision": "ACCEPT",
+  "scope": "G1_CODE_CORRECTION_AND_OFFLINE_EVIDENCE_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "edabb4d8fe3022f116d002173c95d25605b987de016254cf1834bf0961966eba",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71",
+    "authority.py": "0d2bb36dc648ce6335b3a0c10e0fcf260aff93958e76356a712fcdd32bd2d4e4",
+    "producer.py": "d66e453bf515d97da69a1bd41e7b119f87655e90955fb9b4a060f46df1a3efc8",
+    "qa.py": "b1dfa6146a9693fc061382fa295188e4ad71b169355959efabab7223fbeaf5f7",
+    "launch.py": "e2342bb9f948688253e30a5111d7a921c13321d1485fd464747f8c2783b44624",
+    "test_preflight.py": "93c1e041cf1ef6444643a6612b71ae5d1f51294e4c4d953f61757b2244e0fa94"
+  },
+  "spec_audit_sha256": "035c9e93094de33fe31645ee19752527910aa0b58b13a30a05e70bd809cc662a",
+  "resolved_findings": [
+    "C3-CODE-01"
+  ],
+  "findings": [],
+  "evidence": {
+    "spec_four_files_unchanged": true,
+    "per_bin_guard": "producer.py:74; native shape/dtype/finiteness checked after saving raw and before repeat/next solver invocation",
+    "final_array_guard": "qa.py:104-105; missing native_cfr32 rejected; required (257,2) complex64 finite",
+    "mother_offline_tests": {
+      "count": 10,
+      "seconds": 7.711,
+      "status": "PASS",
+      "log_sha256": "bcbab6441c99f97d02e1d2650ab41ced67ad1624093263d6f4a01f8cca76dbcd",
+      "managed_receipt_sha256": "5ae06ffd83f8ebe197da60a1684f78d4a8c4c46dfe1c3d567fc76a7e029cbf8c",
+      "exit_code": 0,
+      "termination": "natural/released/ref0/process-supervisor-job-absent"
+    },
+    "independent_revalidation": {
+      "runtime": "pinned WSL Python3.11.17 NumPy1.26.4",
+      "retained_raw_baseline": "PASS",
+      "controls": {
+        "array_nan": "REJECTED",
+        "array_inf": "REJECTED",
+        "array_wrong_dtype": "REJECTED",
+        "array_wrong_shape": "REJECTED",
+        "array_missing": "REJECTED",
+        "bin_nan": "REJECTED",
+        "bin_inf": "REJECTED",
+        "bin_wrong_dtype": "REJECTED",
+        "bin_wrong_shape": "REJECTED"
+      },
+      "exit_code": 0
+    },
+    "previous_test_log_sha256": "8b11511b2d011a355303ca412248fe566a89d709732cdf5df4bb9a1149f003f7",
+    "correction_record_sha256": "9b2ce11db6feb03825d37aea66ef94b4b7699a283a261cf98cf9ccd3d1bc3620",
+    "fresh_output_absent": true
+  },
+  "required_correction": [],
+  "claim_boundaries": [
+    "Code acceptance and prospective G2 canary GO are not execution or independent DATA PASS.",
+    "Actual-yaw controls and previous accepted stages are not rerun.",
+    "G3 remaining20 and G4 source-model initialization are excluded.",
+    "No algorithm adoption or realtime claims."
+  ],
+  "activities": {
+    "new_rt_calls": 0,
+    "model_initializations": 0,
+    "auditor_files_modified": 0,
+    "children_spawned": 0
+  }
+}
