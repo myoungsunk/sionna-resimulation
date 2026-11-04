@@ -880,7 +880,7 @@ The effective lock is below. The last `## AMENDMENT_LOCK` JSON block is parsed a
     "tests/test_a10_r5.py": "dc8afba6513f0b6523a2890bc6963193af4b579c6ec633f7aaf69c47e592ce5f",
     "tests/test_a10_r5_a18.py": "88650e24ea920b032c45c280598fe418a3fcce4540672528e5717f335d4d0f15",
     "tests/test_a10_r5_math_equivalence.py": "94a63c5b7fd7f05fa0b3a31bc385da0c470834f34e19acda6baa1601915baed4",
-    "tests/test_a10_s1v5_c3v5_exec.py": "712cb78e9d4a6476782fdce4a2b297a40418c63eab34e6bd34afe040cc3305f8",
+    "tests/test_a10_s1v5_c3v5_exec.py": "51f3e68553093d2ab5f0451db0e146699ef688277862a81ee83b4505298fbe73",
     "tests/test_a10_two_runner_protocol.py": "13c0e779bb05862b20f52e66b61497f65396448d90163100be700ef643d53780",
     "tests/test_a8_jacobian.py": "ce379bf1f55ed01bc305575f612aca50ea54a6053f0967ed7a9497e79bc56a59",
     "tests/test_a9_class.py": "b97d08e89861a2d2c58a5d74564a1531021a29d047714ac887c9fa8f875e8b0c",
