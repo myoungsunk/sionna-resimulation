@@ -130,6 +130,11 @@ def build_scene(cfg,arm,pose,out,rt,C):
                           orientation=C.euler(setup.robot_rotation(pose["yaw_body_deg"]))))
     demand(np.linalg.norm(anchor-rx)>0,"ANCHOR_RX_COLLISION")
     return scene,anchor,rx,meshes
+def archive_channel(a,tau,freq):
+    import numpy as np
+    phase=np.complex64(-2j*np.pi*float(freq))*tau
+    return (a*np.exp(phase)[None,None,:]).sum(-1)
+
 def firstpath(H):
     import numpy as np
     demand(H.shape==(257,2,2) and np.isfinite(H).all(),"FULL_H_NOT_FINITE")
@@ -215,8 +220,7 @@ def execute(args):
             demand(n>0 and np.isfinite(tau).all(),"EMPTY_OR_INVALID_PATH_TAU")
             a=(np.asarray(paths.a[0])+1j*np.asarray(paths.a[1])).reshape(2,2,n)
             demand(np.isfinite(a).all(),"NONFINITE_PATH_COEFFICIENT")
-            H[fi]=(a.astype(np.complex128)*
-                   np.exp(-2j*np.pi*float(freq)*tau.astype(float))[None,None,:]).sum(-1)
+            H[fi]=archive_channel(a,tau,freq)
             all_a.append(a.transpose(2,0,1).copy());all_tau.append(tau)
             all_objects.append(np.asarray(paths.objects).reshape(-1,n).T.copy())
             all_inter.append(np.asarray(paths.interactions).reshape(-1,n).T.copy())

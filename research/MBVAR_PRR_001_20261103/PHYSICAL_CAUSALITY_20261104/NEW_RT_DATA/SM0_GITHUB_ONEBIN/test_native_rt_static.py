@@ -215,3 +215,62 @@ def test_inert_feature_branch_approval_template_binds_exact_tested_git_blobs():
         digest=subprocess.check_output(["git","hash-object",str(HERE/filename)],
                                        cwd=B.ROOT,text=True).strip()
         assert a[entry]==digest,(filename,digest,a[entry])
+
+
+@pytest.mark.parametrize("pose", [194, 234, 500, 525])
+def test_c00_replays_real_snowball_paths_without_rt(pose, monkeypatch, tmp_path):
+    import hashlib
+    import io
+    import tarfile
+    from types import SimpleNamespace
+
+    folder = HERE / "snowball_20261104"
+    key = f"out/C00_DIRECT-{pose}-r0"
+    with tarfile.open(folder / "previous_failure.tar.gz") as archive:
+        raw_bytes = archive.extractfile(f"{key}/RAW_COMPLEX_H_AND_PATHS.npz").read()
+        failed = json.load(archive.extractfile(f"{key}/MANIFEST.json"))
+    assert hashlib.sha256(raw_bytes).hexdigest() == failed["file_sha256"]["RAW_COMPLEX_H_AND_PATHS.npz"]
+    with np.load(io.BytesIO(raw_bytes), allow_pickle=False) as raw:
+        freq = raw["frequencies_hz"]
+        coeff = raw["path_coefficient"]
+        delays = raw["path_delay_s"]
+        old_h = raw["H_complex_rx_rx_tx"]
+        assert np.all(raw["path_counts"] == 1)
+    reference = np.load(B.ROOT / B.BLOCK / "H_LoS_R4_aB_m0.npy", mmap_mode="r")[pose, :, :, 0]
+    limit = json.loads(B.LOCK.read_text())["qa"]["original_archive_C00_LoS_max_rel_l2"]
+    old_error = np.linalg.norm(old_h[:, :, 0] - reference) / np.linalg.norm(reference)
+    assert old_error == pytest.approx(failed["direct_reference_relative_L2"], rel=1e-10)
+    assert old_error > limit
+
+    class SavedPaths:
+        def __init__(self):
+            self.calls = 0
+
+        def __call__(self, scene, **options):
+            idx = self.calls
+            self.calls += 1
+            a = coeff[idx, :, :, None]
+            return SimpleNamespace(a=(a.real, a.imag), tau=delays[idx:idx + 1],
+                                   objects=np.empty((0, 1), dtype=int),
+                                   interactions=np.empty((0, 1), dtype=int),
+                                   valid=np.ones(1, dtype=bool))
+
+    replay = SavedPaths()
+    corridor = SimpleNamespace(load_banks=lambda: [{"freqs_hz": freq}],
+                               make_ports=lambda banks: (None, None),
+                               set_bin=lambda *args: None)
+    monkeypatch.setattr(B, "imports", lambda: (SimpleNamespace(PathSolver=lambda: replay), corridor))
+    monkeypatch.setattr(B, "check_runtime", lambda: {"offline": True})
+    preflight = B.preflight
+    monkeypatch.setattr(B, "preflight", lambda bank: preflight())
+    monkeypatch.setattr(B, "build_scene", lambda *args: (
+        None, np.asarray(failed["anchor_xyz_m"]), np.asarray(failed["receiver_xyz_m"]), {}))
+    budget = tmp_path / "replay_budget.json"
+    budget.write_text(json.dumps(failed["budget"]))
+    out = tmp_path / "result"
+    B.execute(SimpleNamespace(arm="C00_DIRECT", pose=pose, repeat=0, bank=tmp_path,
+                              out=out, token="I_AUTHORIZE_CPU_RT_STAGE", budget=budget,
+                              max_calls=257, wall_seconds=1200))
+    receipt = json.loads((out / "MANIFEST.json").read_text())
+    assert replay.calls == 257 and receipt["direct_parity"] == "PASS"
+    assert receipt["direct_reference_relative_L2"] <= limit
