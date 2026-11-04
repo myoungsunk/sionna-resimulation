@@ -50,7 +50,7 @@ def main():
         writer=csv.DictWriter(output,fieldnames=list(aggregate[0]));writer.writeheader();writer.writerows(aggregate)
     lines = ['# C2 창 한정 관측 개입의 재귀 전파 결과', '',
         '실행 수치검사 완료. 이 보고서의 독립 결과감사 및 게시 검증 판정은 별도 감사 보고서를 따른다.', '',
-        '기존 Full 결과를 공통 시작 상태로 사용하고, 등록된 창 안에서만 거리(LF), 편파(FL), 양쪽(LL) 관측을 Native-LoS로 교체했다. 창 밖에서는 Full 관측으로 경로 끝까지 재귀했다. fixed는 기존 Full BASE 게이트, own은 각 분기의 BASE 게이트를 사용했다.', '',
+        '기존 Full 결과를 공통 시작 상태로 사용하고, 등록된 창 안에서만 거리(LF), 편파(FL), 양쪽(LL) 관측을 Native-LoS로 교체했다. 창 밖에서는 Full 관측으로 경로 끝까지 재귀했다. fixed는 기존 Full BASE 게이트, own은 각 분기의 BASE 게이트를 사용했다. Full의 학습 평균·관측 공분산·원래 모델·controls/Q는 유지하며, MB_VAR의 추가 편파 분산은 각 분기의 이전 posterior 거리에서 원래 규칙대로 계산했다. Native-LoS 전용으로 재학습하거나 보정한 필터의 성능 평가가 아니다.', '',
         '총 120개 원본 조건, 440개 창 조건, 2,640개 분기 궤적, 1,528,320개 suffix posterior 행이다. seed 10–29는 이미 공개된 같은 RF 자료의 반복이며 독립 RF 표본이나 새 잠금 평가로 해석하지 않는다.', '',
         '아래 값은 각 seed에서 계산한 전체 t≥30초 Heading RMSE의 Full 대비 차이(deg)를 20개 seed의 중앙값 [최솟값, 최댓값]으로 표시한다. 음수는 오차 감소이다. 창별 후속 적분, XY, 공분산, NEES, coverage와 own−fixed 비교는 AGGREGATE_SUMMARY.csv 및 원본 사건별 요약에 모두 보존했다.', '',
         '|경로|bias|창|게이트|LF ΔRMSE|FL ΔRMSE|LL ΔRMSE|',
