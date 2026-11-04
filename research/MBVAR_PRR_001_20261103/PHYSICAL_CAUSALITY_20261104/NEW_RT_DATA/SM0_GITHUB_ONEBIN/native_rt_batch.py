@@ -92,3 +92,189 @@ def imports():
     demand(Path(C.__file__).resolve()==(ROOT/"scripts/corridor_sionna_run.py").resolve(),
            "WRONG_CORRIDOR_IMPORT")
     return rt,C
+
+def plate_vertices(cfg,yaw):
+    import numpy as np
+    p=cfg["plate"];x,y,_=p["center_xyz_m"]
+    dx=p["width_m"]*.5*math.cos(math.radians(yaw))
+    dy=p["width_m"]*.5*math.sin(math.radians(yaw))
+    lo,hi=p["z_min_m"],p["z_max_m"]
+    return np.array([[x-dx,y-dy,lo],[x+dx,y+dy,lo],
+                     [x+dx,y+dy,hi],[x-dx,y-dy,hi]],float)
+def build_scene(cfg,arm,pose,out,rt,C):
+    import numpy as np
+    setup=C.CorridorSetup(anchor_x_m=10.)
+    demand(all(v["passed"] for v in setup.validate()),"CORRIDOR_SETUP_INVALID")
+    pdir=out/"scene";pdir.mkdir()
+    floor=pdir/"floor.ply"
+    C.write_ply(floor,setup.surfaces()["floor"])
+    parts=[rt.SceneObject(fname=str(floor),name="floor",
+        radio_material=rt.ITURadioMaterial(name="rm_floor",
+                                 itu_type="concrete",thickness=.2))]
+    meshes={"floor":h(floor)}
+    if arm in ARMS[2:]:
+        info=next(x for x in cfg["scenes"] if x["id"]==arm)
+        plate=pdir/"concrete_plate.ply"
+        C.write_ply(plate,plate_vertices(cfg,float(info["plate_yaw_deg"])))
+        parts.append(rt.SceneObject(fname=str(plate),name="concrete_plate",
+            radio_material=rt.ITURadioMaterial(name="rm_plate",
+                                   itu_type="concrete",thickness=.2)))
+        meshes["concrete_plate"]=h(plate)
+    scene=rt.load_scene()
+    scene.edit(add=parts)
+    anchor=setup.anchor_position;rx=setup.robot_position(pose["x"],pose["y"])
+    scene.add(rt.Transmitter("tx",position=anchor.tolist(),
+                            orientation=C.euler(C.ANCHOR_ROTATION)))
+    scene.add(rt.Receiver("rx",position=rx.tolist(),
+                          orientation=C.euler(setup.robot_rotation(pose["yaw_body_deg"]))))
+    demand(np.linalg.norm(anchor-rx)>0,"ANCHOR_RX_COLLISION")
+    return scene,anchor,rx,meshes
+def firstpath(H):
+    import numpy as np
+    demand(H.shape==(257,2,2) and np.isfinite(H).all(),"FULL_H_NOT_FINITE")
+    w=.5-.5*np.cos(2*np.pi*np.arange(257)/256)
+    cir=np.fft.ifft(H[:,:,0]*w[:,None],n=1028,axis=0)*257
+    env=np.abs(cir); rx=int(np.argmax(env.max(axis=0)))
+    mx=float(env[:,rx].max())
+    demand(mx>0 and np.isfinite(mx),"CIR_ZERO_POWER")
+    cand=np.flatnonzero(env[:,rx]>=.3*mx)
+    demand(len(cand)>0,"FIRSTPATH_NOT_FOUND")
+    tap=int(cand[0]);power=np.abs(cir[tap])**2
+    total=float(power.sum());demand(total>0 and np.isfinite(total),"FIRSTPATH_ZERO_POWER")
+    s=float((power[0]-power[1])/total)
+    demand(abs(s)<=1+1e-12,"SIGNED_POLARIZATION_RANGE")
+    return dict(fp_tap=tap,s=s,raw_r_m=tap*299792458/(1028*1950000),
+                plus_power=float(power[0]),minus_power=float(power[1])),cir
+def solver_options(original,arm):
+    opts=dict(original)
+    opts.update(max_depth=0 if arm=="C00_DIRECT" else 3,los=True,
+                specular_reflection=arm!="C00_DIRECT",refraction=False,
+                diffraction=False,edge_diffraction=False,diffuse_reflection=False)
+    return opts
+def check_budget(args,cfg):
+    require(args.token=="I_AUTHORIZE_CPU_RT_STAGE","MANUAL_TOKEN_REQUIRED")
+    require(args.max_calls==257 and 30<=args.wall_seconds<=3600,"CONFIG_BUDGET_INVALID")
+    require(args.budget is not None and args.budget.is_file(),"USER_BUDGET_RECORD_MISSING")
+    budget=load(args.budget)
+    demand(budget.get("status")=="USER_APPROVED_FOR_CPU_RT","USER_BUDGET_NOT_SIGNED")
+    demand(budget.get("science_class")=="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
+           "BUDGET_CLAIM_INDEPENDENCE")
+    demand(budget.get("max_solver_calls",0)>=257 and
+           budget.get("max_solver_calls",0)<=8224 and
+           budget.get("max_job_wall_seconds",0)>=args.wall_seconds,
+           "BUDGET_CEILING_EXCEEDED")
+    demand(budget.get("pose_ids")==cfg["pose_ids"] and
+           budget.get("arm_ids")==list(ARMS),"BUDGET_SCOPE_NOT_LOCKED")
+    return budget
+def execute(args):
+    import numpy as np
+    cfg,orig=preflight(args.bank)
+    require(args.arm in ARMS and args.pose in cfg["pose_ids"] and
+            args.repeat in (0,1),"UNREGISTERED_SIMULATION_KEY")
+    budget=check_budget(args,cfg)
+    if args.arm!="C00_DIRECT":
+        demand(args.c00_qa and args.c00_qa.is_file(),"C00_QA_RECEIPT_MISSING")
+        q=load(args.c00_qa)
+        demand(q.get("status")=="C00_257BIN_STRICT_PARITY_PASS" and
+               q.get("n_pass")==8 and q.get("lock_sha256")==h(LOCK),
+               "C00_STRICT_PARITY_GATE_NOT_PASSED")
+    runtime=check_runtime()
+    pose=get_pose(args.pose)
+    out=args.out
+    demand(not out.exists(),"OUTPUT_WOULD_OVERWRITE_ORIGINAL")
+    out.mkdir(parents=True)
+    start=time.monotonic();calls=0
+    result=dict(schema="MBVAR_P3_RT_CONTROLLED_PILOT_V1",
+                status="RUN_STARTED",arm=args.arm,pose_id=args.pose,
+                repeat_index=args.repeat,lock_sha256=h(LOCK),
+                source_input_lock_sha256=h(ORIG),
+                runtime=runtime,source_sha=os.getenv("GITHUB_SHA","LOCAL"),
+                original_SM0_STOP_preserved=True,science_class="NONINDEPENDENT_EXPLORATORY",
+                authorized_max_calls=257,budget=budget)
+    save(out/"MANIFEST.json",result)
+    try:
+        rt,C=imports()
+        C.BANK_DIR=args.bank
+        banks=C.load_banks();freqs=np.asarray(banks[0]["freqs_hz"],float)
+        require(freqs.shape==(257,) and np.array_equal(freqs,
+            np.load(ROOT/BLOCK/"freqs_hz.npy")),"FREQUENCY_GRID_DRIFT")
+        scene,anchor,rx,meshes=build_scene(cfg,args.arm,pose,out,rt,C)
+        ports=C.make_ports(banks);solver=rt.PathSolver()
+        options=solver_options(orig,args.arm)
+        H=np.empty((257,2,2),np.complex128);offsets=[0]
+        all_a=[];all_tau=[];all_objects=[];all_inter=[]
+        all_valid=[];pathcounts=[]
+        for fi,freq in enumerate(freqs):
+            demand(calls<args.max_calls,"MAX_SOLVER_CALLS")
+            demand(time.monotonic()-start<args.wall_seconds,"WALL_CLOCK_LIMIT")
+            C.set_bin(scene,banks,ports[0],ports[1],fi,float(freq))
+            paths=solver(scene,**options)
+            calls+=1
+            tau=np.asarray(paths.tau).reshape(-1).copy();n=len(tau)
+            demand(n>0 and np.isfinite(tau).all(),"EMPTY_OR_INVALID_PATH_TAU")
+            a=(np.asarray(paths.a[0])+1j*np.asarray(paths.a[1])).reshape(2,2,n)
+            demand(np.isfinite(a).all(),"NONFINITE_PATH_COEFFICIENT")
+            H[fi]=(a.astype(np.complex128)*
+                   np.exp(-2j*np.pi*float(freq)*tau.astype(float))[None,None,:]).sum(-1)
+            all_a.append(a.transpose(2,0,1).copy());all_tau.append(tau)
+            all_objects.append(np.asarray(paths.objects).reshape(-1,n).T.copy())
+            all_inter.append(np.asarray(paths.interactions).reshape(-1,n).T.copy())
+            all_valid.append(np.asarray(paths.valid).reshape(-1,n).T.copy())
+            pathcounts.append(n);offsets.append(offsets[-1]+n)
+            if fi%32==0:print("RT_NATIVE_PROGRESS",args.arm,args.pose,args.repeat,fi+1,flush=True)
+        obs,cir=firstpath(H)
+        losdiff=None;parity="NOT_DIRECT"
+        if args.arm=="C00_DIRECT":
+            reference=np.load(ROOT/BLOCK/"H_LoS_R4_aB_m0.npy",mmap_mode="r")[args.pose,:,:,0]
+            losdiff=float(np.linalg.norm(H[:,:,0]-reference)/(np.linalg.norm(reference)+1e-300))
+            parity="PASS" if losdiff<=cfg["qa"]["original_archive_C00_LoS_max_rel_l2"] else "FAIL"
+        np.savez_compressed(out/"RAW_COMPLEX_H_AND_PATHS.npz",
+            H_complex_rx_rx_tx=H,complex_CIR=cir,frequencies_hz=freqs,
+            offsets=np.asarray(offsets,np.int64),
+            path_coefficient=np.concatenate(all_a),
+            path_delay_s=np.concatenate(all_tau),
+            path_objects=np.concatenate(all_objects),
+            path_interactions=np.concatenate(all_inter),
+            path_valid=np.concatenate(all_valid),
+            path_counts=np.asarray(pathcounts,np.int32))
+        result.update(status="COMPLETED" if parity!="FAIL" else "DIRECT_PARITY_FAIL",
+            antenna_port_layout="257x2RXx2TX",mesh_sha256=meshes,
+            anchor_xyz_m=anchor.tolist(),receiver_xyz_m=rx.tolist(),
+            pose=pose,solver_options=options,observation=obs,
+            direct_reference_relative_L2=losdiff,direct_parity=parity,
+            source_reference_original_STOP_257bin="STOP_MISMATCH")
+        print("RT_NATIVE_COMPLETED",args.arm,args.pose,args.repeat,"parity",parity,flush=True)
+        demand(parity!="FAIL","ORIGINAL_DIRECT_PARITY_MISMATCH_PRESERVED")
+    except BaseException as exc:
+        result["status"]="STOP_WITH_RAW_EVIDENCE"
+        result["error"]=repr(exc)
+        result["traceback"]=traceback.format_exc()[-4500:]
+        raise
+    finally:
+        result["solver_calls_made"]=calls
+        result["total_wall_seconds"]=time.monotonic()-start
+        result["file_sha256"]={p.name:h(p) for p in out.iterdir() if p.is_file() and p.name!="MANIFEST.json"}
+        save(out/"MANIFEST.json",result)
+def main():
+    p=argparse.ArgumentParser()
+    p.add_argument("--static",action="store_true")
+    p.add_argument("--execute",action="store_true")
+    p.add_argument("--bank",type=Path)
+    p.add_argument("--arm",choices=ARMS)
+    p.add_argument("--pose",type=int)
+    p.add_argument("--repeat",type=int,default=0)
+    p.add_argument("--out",type=Path)
+    p.add_argument("--token",type=str)
+    p.add_argument("--budget",type=Path)
+    p.add_argument("--max-calls",type=int,default=257)
+    p.add_argument("--wall-seconds",type=int,default=1200)
+    p.add_argument("--c00-qa",type=Path)
+    args=p.parse_args()
+    if args.static:
+        lock,solver=preflight(args.bank)
+        print("RT_P3_STATIC_PREPARED_16_CONFIGURATIONS_8224_CALLS_UNAUTHORIZED")
+        return
+    demand(args.execute and args.bank and args.out and args.arm and args.pose is not None,
+           "RT_EXECUTION_NOT_AUTHORIZED")
+    execute(args)
+if __name__=="__main__":main()
