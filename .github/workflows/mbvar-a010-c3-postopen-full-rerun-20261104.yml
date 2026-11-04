@@ -25,7 +25,7 @@ env:
 jobs:
   guard:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 125
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
@@ -43,7 +43,19 @@ jobs:
           set -euo pipefail
           status=$(gh run view "$S1_DEV3_ORIGINAL_RUN" --repo ${{ github.repository }} --json conclusion --jq .conclusion)
           test "$status" = "success" || { echo "BLOCKED_A010_S1_SOURCE_NOT_SUCCESS $status"; exit 1; }
-          canary=$(gh run view "$C3_TRUTH_CANARY_RUN" --repo ${{ github.repository }} --json conclusion --jq .conclusion)
+          # Do not execute C3 if the source-truth 2-row solver canary has
+          # not completed successfully; CI may await it rather than claiming
+          # a queued run proves source numerical parity.
+          canary=""
+          for attempt in $(seq 1 115); do
+            canary=$(gh run view "$C3_TRUTH_CANARY_RUN" --repo ${{ github.repository }} --json status,conclusion --jq '.conclusion // .status')
+            if [ "$canary" = "success" ]; then break; fi
+            if [ "$canary" = "failure" ] || [ "$canary" = "cancelled" ] || [ "$canary" = "timed_out" ]; then
+              echo "BLOCKED_C3_CANARY_REJECTED $canary"; exit 1
+            fi
+            echo "C3_FULL_RERUN_GATED_CANARY_STATUS $canary"
+            sleep 60
+          done
           test "$canary" = "success" || { echo "BLOCKED_C3_SOURCE_BYTE_TWO_ROW_CANARY_NOT_SUCCESS $canary"; exit 1; }
           mkdir -p "$RUNNER_TEMP/canary"
           gh run download "$C3_TRUTH_CANARY_RUN" --repo ${{ github.repository }} --name a010-c3-source-byte-amended-2row-canary-$C3_TRUTH_CANARY_RUN --dir "$RUNNER_TEMP/canary"
