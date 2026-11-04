@@ -15,6 +15,7 @@
 2. [SIMULATION_REQUEST_SM0B_SM1_SM2_KO.md](SIMULATION_REQUEST_SM0B_SM1_SM2_KO.md) — Snowball/Codex가 바로 복사해 실행계획을 만들 수 있는 source hash, 고정 pose, raw 산출물, numeric QA, 예산 및 fail-closed 지시.
 3. [NEXT_RT_PHASE_CONTRACT_DRAFT_20261104.json](NEXT_RT_PHASE_CONTRACT_DRAFT_20261104.json) — 기계 판독용 6개 단계, 원본 bank/source SHA, 15 pose 원장, 수치 QA, 신규 호출 예산(현재 승인=0).
 4. [verify_snowball_evidence.py](verify_snowball_evidence.py) — 읽기 전용 독립 byte/복소 H·path·FFT 수치 재검산 코드. 생산 RT solver import·호출 없음.
+5. [POST_SM0_EVIDENCE_VERIFICATION_RECEIPT_20261104.json](POST_SM0_EVIDENCE_VERIFICATION_RECEIPT_20261104.json) — 통과한 GitHub Actions의 실제 151+19 SHA 및 32 H/ray 검증 결과를 영구 기록한 JSON.
 
 ## 다음 작업의 정확한 우선순위
 
