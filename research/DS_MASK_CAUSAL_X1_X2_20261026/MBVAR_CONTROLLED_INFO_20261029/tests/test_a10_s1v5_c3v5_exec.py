@@ -362,3 +362,65 @@ def test_smoke_reduced_end_to_end(mods, tmp_path):
         assert k in Cr.columns
     assert crit["MODE_AMBIGUITY_REPORTED"]["n_ambiguous"] == int((Cr.n_alt_ambiguous > 0).sum())
     assert st["science_release_allowed"] is False and st["holdout2_allowed"] is False
+
+
+# A010-TRUTH-ULP-001 post-exposure, exploratory forensic correction tests.
+# These tests do not alter original S1 arrays or optimizer input bytes.
+def _source_truth_fixture(mods, monkeypatch):
+    T,C=mods
+    monkeypatch.setattr(T,"pose_keys_sha",lambda w:"fixture-pose-key")
+    w=dict(Xtrue=np.array([[1.,2.,.1,.02]],dtype="<f8"),
+           poses=np.array([[1.,2.,.1]],dtype="<f8"),
+           dts=np.full(T.N,.5,dtype="<f8"),
+           ds=np.array([.2,.3],dtype="<f8"),
+           dth=np.array([.005,.01],dtype="<f8"))
+    source=dict(Xtrue=w["Xtrue"],poses=w["poses"],dts=w["dts"],
+                ds_true=w["ds"],dth_true=w["dth"],prior_P0=C.P0M,
+                mu=np.zeros((T.N,2),dtype="<f8"),
+                pose_keys_sha=np.array("fixture-pose-key"))
+    rec={f"TRUTH|20|LOW|LOWCORR|{k}":np.array(v,copy=True)
+         for k,v in source.items()}
+    return w,rec,"TRUTH|20|LOW|LOWCORR"
+
+
+def test_a010_truth_source_one_ulp_accepts_and_keeps_original_bytes(mods,monkeypatch):
+    T,C=mods
+    w,rec,tk=_source_truth_fixture(mods,monkeypatch)
+    before={k:C.AV.array_sha(v) for k,v in rec.items()}
+    rec[f"{tk}|poses"][0,0]=np.nextafter(1.0,2.0)
+    rec[f"{tk}|Xtrue"][0,1]=np.nextafter(2.0,3.0)
+    local,proof=C.source_truth_by_verified_receipt(w,rec,tk)
+    assert proof["TRUTH_SOURCE_SHA_EXACT"]
+    assert not proof["TRUTH_REGEN_BYTES_EXACT"]
+    assert proof["TRUTH_REGEN_N_NONBYTE"]==2
+    assert C.AV.array_sha(local["Xtrue"])==C.AV.array_sha(rec[f"{tk}|Xtrue"])
+    assert C.AV.array_sha(local["poses"])==C.AV.array_sha(rec[f"{tk}|poses"])
+    assert np.array_equal(w["poses"],[[1,2,.1]]) # input generator must remain untouched
+    assert all(C.AV.array_sha(rec[k])==(before[k] if k not in (f"{tk}|poses",f"{tk}|Xtrue") else C.AV.array_sha(rec[k])) for k in rec)
+
+
+@pytest.mark.parametrize("attack,expected",[
+    ("large_pose","ERR_A010_TRUTH_GEOMETRY_NUMERIC_MISMATCH"),
+    ("large_xtrue","ERR_A010_TRUTH_GEOMETRY_NUMERIC_MISMATCH"),
+    ("missing","ERR_A010_TRUTH_SOURCE_ABSENT"),
+    ("prior","ERR_A010_TRUTH_IMMUTABLE_BYTE_MISMATCH"),
+    ("dts","ERR_A010_TRUTH_IMMUTABLE_BYTE_MISMATCH"),
+    ("posekey","ERR_A010_TRUTH_IMMUTABLE_BYTE_MISMATCH"),
+    ("nonfinite","ERR_A010_TRUTH_NONFINITE"),
+    ("dtype","ERR_A010_TRUTH_SHAPE_DTYPE"),
+    ("shape","ERR_A010_TRUTH_SHAPE_DTYPE")
+])
+def test_a010_truth_source_rejects_false_replay(mods,monkeypatch,attack,expected):
+    T,C=mods
+    w,rec,tk=_source_truth_fixture(mods,monkeypatch)
+    if attack=="large_pose":rec[f"{tk}|poses"][0,0]+=.001
+    elif attack=="large_xtrue":rec[f"{tk}|Xtrue"][0,1]+=.001
+    elif attack=="missing":rec.pop(f"{tk}|Xtrue")
+    elif attack=="prior":rec[f"{tk}|prior_P0"][0,0]+=.001
+    elif attack=="dts":rec[f"{tk}|dts"][0]+=.001
+    elif attack=="posekey":rec[f"{tk}|pose_keys_sha"]=np.array("tampered")
+    elif attack=="nonfinite":rec[f"{tk}|Xtrue"][0,0]=np.nan
+    elif attack=="dtype":rec[f"{tk}|Xtrue"]=rec[f"{tk}|Xtrue"].astype("<f4")
+    elif attack=="shape":rec[f"{tk}|Xtrue"]=rec[f"{tk}|Xtrue"].reshape(-1)
+    with pytest.raises(SystemExit,match=expected):
+        C.source_truth_by_verified_receipt(w,rec,tk)
