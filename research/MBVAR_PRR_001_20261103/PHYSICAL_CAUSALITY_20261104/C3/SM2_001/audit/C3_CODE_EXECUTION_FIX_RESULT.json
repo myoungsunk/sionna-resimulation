@@ -1,0 +1,72 @@
+{
+  "schema": "C3_SM2_CODE_EXECUTION_FIX_V1",
+  "decision": "ACCEPT",
+  "scope": "C3_EXEC_01_CODE_AND_TEST_REAUDIT_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "30b62d6569effea7aadc2d8dd4734b0c634f2e0cf9a6c347a7bf3f92c280005c",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71",
+    "authority.py": "1210d116d1ada8b531ee6fa2ef8ec0b14ba6c3a1ead49f158fcbe715fb2190ba",
+    "producer.py": "18c7cbb361fb39e0fd618c0e588064db8eee3825b3e8267a21a566782aa58544",
+    "qa.py": "b1dfa6146a9693fc061382fa295188e4ad71b169355959efabab7223fbeaf5f7",
+    "launch.py": "6643dd0c231d057bd94d75d2eb81598babc6bf179564b69fe1e9198786649517",
+    "test_preflight.py": "e7cefd71711430da3feda5d0aabd05f5aa3895d7970eff97c41e76cd73607ce4"
+  },
+  "spec_audit_sha256": "d4737ecad015a622faae1429d46157edfc5c252f33c73bba8e91abf265b22cc9",
+  "resolved_findings": [
+    "C3-EXEC-01"
+  ],
+  "findings": [],
+  "evidence": {
+    "source_diff": "frequency scalar adapter and operational PLAN/GO/SPEC/output selection only; frozen physical inputs, thresholds, solver and conditions unchanged",
+    "independent_pinned_runtime_test": {
+      "actual_mitsuba_scalar": "PASS",
+      "nan": "REJECTED",
+      "inf": "REJECTED",
+      "multiple_elements": "REJECTED",
+      "empty": "REJECTED",
+      "new_rt_calls": 0,
+      "scene_constructions": 0,
+      "source_model_initializations": 0
+    },
+    "latest_offline_tests": {
+      "count": 11,
+      "seconds": 8.663,
+      "status": "PASS",
+      "exit_code": 0,
+      "log_sha256": "b77749c7e4593fc61851d32364df22866f79a3a866f8b9e215691dbc43283e58",
+      "managed_receipt_sha256": "6202e8cd0dd6fd8fc3ab2e73f86418aed0a142fda102cf75d236b17665685d9b",
+      "termination": "natural/released/ref0/process-supervisor-job-absent"
+    },
+    "preserved_test_harness_failure": {
+      "log_sha256": "eab804f55014bcf91dee4be2cf84a7a1781ee7bf8ec9a0e2d6104195c8b42763",
+      "managed_receipt_sha256": "a4fa574af0372af0ca84a50415c87a4caf2912f79133aa208ea59ebf33daebc0",
+      "description": "003 imported the old SM0 producer by generic module name; final test explicitly loads HERE/producer.py. Original log preserved; no scientific threshold changed."
+    },
+    "preserved_zero_solver_execution_failure": {
+      "manifest_sha256": "f97a5b159a5d1e6d2292083e196b8bf0c84f68090b49f276f20d6fa8050acf05",
+      "failures_sha256": "9d5acbe06d50fd16305086d9a81bafd3234c756aac811a309ac238722769f3be",
+      "artifact_index_sha256": "f1611270b0c769f229ccd04f1ad0fc3b399a9ff62560d37682c0dfe4c3027928",
+      "managed_receipt_sha256": "3af01df54b42b64bfd36cad78621ff177a4e4932ca251c0b269ec0743cd8644a",
+      "old_go_sha256": "b679eeac391b815a8515a8093df73ff712846d516e6c96344b5b48949c832bbe",
+      "status": "STOP_ERROR",
+      "primary_solver_calls": 0,
+      "repeat_solver_calls": 0
+    },
+    "fresh_CANARY_002_absent": true
+  },
+  "required_correction": [],
+  "claim_boundaries": [
+    "This is defect resolution and prospective authorization, not executed RF evidence or DATA acceptance.",
+    "Old CANARY_001 remains STOP; it is not relabeled PASS.",
+    "Remaining20 and G4 model initialization are excluded."
+  ],
+  "activities": {
+    "auditor_files_modified": 0,
+    "new_rt_calls": 0,
+    "source_model_initializations": 0,
+    "children_spawned": 0
+  }
+}
