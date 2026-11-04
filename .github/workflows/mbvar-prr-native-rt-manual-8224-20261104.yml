@@ -220,3 +220,168 @@ jobs:
           path: ${{ runner.temp }}/qa/
           retention-days: 90
           if-no-files-found: warn
+
+  paired:
+    needs: [guard,c00_qa]
+    if: ${{ needs.c00_qa.result == 'success' }}
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        pose: [194,234,500,525]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0/INPUT_LOCK_DRAFT_002.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
+            /src/qclean_uwb/**
+            /scripts/corridor_sionna_run.py
+            /scripts/g2_completion/sionna_native_runtime.py
+            /results/SIONNA_NATIVE41_REFRESH_20260925_01a0d84e/CONFIG.json
+            /results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/MANIFEST.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Install same pinned Sionna RT CPU backend
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+          if ! ldconfig -p | grep -q libLLVM; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq llvm-18 libllvm18
+          fi
+      - name: Restore same original FFD and independently recorded C00 PASS
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/bank_full" "$RUNNER_TEMP/bank" "$RUNNER_TEMP/c00"
+          gh run download 38875080492 --repo ${{ github.repository }} \
+            --name ffd-verified-original-38875080492 --dir "$RUNNER_TEMP/bank_full"
+          gh run download "$GITHUB_RUN_ID" --repo ${{ github.repository }} \
+            --name native-c00-qa-$GITHUB_RUN_ID --dir "$RUNNER_TEMP/c00"
+          python - <<'PY'
+          import pathlib,os,json,hashlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          lock=json.loads(pathlib.Path(os.environ['BASE']+"/P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json").read_text())
+          qa=json.loads((p/'c00/C00_QA.json').read_text())
+          assert qa["status"]=="C00_257BIN_STRICT_PARITY_PASS" and qa["n_pass"]==8
+          assert qa["lock_sha256"]==hashlib.sha256(pathlib.Path(os.environ['BASE']+"/P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json").read_bytes()).hexdigest()
+          for n,d in lock['original_ffd_sha256'].items():
+            hit=list((p/'bank_full').rglob(n))
+            assert len(hit)==1,(n,len(hit))
+            with hit[0].open('rb') as f:actual=hashlib.file_digest(f,'sha256').hexdigest()
+            assert actual==d,(n,actual,d)
+            (p/'bank'/n).symlink_to(hit[0])
+          print('PAIRED_RT_C00_STRICT_PASS_AND_SAME_FFD_BANK')
+          PY
+      - name: Run exact C01 FLOOR, C10 PARALLEL, C11 OBLIQUE on paired same pose, 2 repeats
+        env:
+          POSE: ${{ matrix.pose }}
+          APPROVAL_WALL: ${{ inputs.wall_seconds_per_key }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p "$RUNNER_TEMP/results"
+          python - <<'PY'
+          import os,json,pathlib
+          b=dict(schema='MBVAR_RT_CPU_USER_DISPATCH_V1',
+            status='USER_APPROVED_FOR_CPU_RT',
+            science_class='USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY',
+            github_actor=os.environ['GITHUB_ACTOR'],run_id=os.environ['GITHUB_RUN_ID'],
+            max_solver_calls=8224,max_job_wall_seconds=int(os.environ['APPROVAL_WALL']),
+            pose_ids=[194,234,500,525],
+            arm_ids=['C00_DIRECT','C01_FLOOR','C10_PARALLEL_PLATE','C11_OBLIQUE_PLATE'])
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/results/BUDGET.json').write_text(json.dumps(b,indent=2))
+          PY
+          for arm in C01_FLOOR C10_PARALLEL_PLATE C11_OBLIQUE_PLATE; do
+            for rep in 0 1; do
+              key="$arm-$POSE-r$rep"
+              rc=0
+              python -u "$BASE/native_rt_batch.py" --execute --bank "$RUNNER_TEMP/bank" \
+                --arm "$arm" --pose "$POSE" --repeat "$rep" --max-calls 257 \
+                --wall-seconds "$APPROVAL_WALL" --token I_AUTHORIZE_CPU_RT_STAGE \
+                --budget "$RUNNER_TEMP/results/BUDGET.json" \
+                --c00-qa "$RUNNER_TEMP/c00/C00_QA.json" \
+                --out "$RUNNER_TEMP/results/$key" \
+                > "$RUNNER_TEMP/results/$key.log" 2>&1 || rc=$?
+              tail -40 "$RUNNER_TEMP/results/$key.log"
+              if test "$rc" -ne 0; then echo "PAIRED_RT_STOP_EVIDENCE $key"; exit "$rc"; fi
+            done
+          done
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-paired-pose-${{ matrix.pose }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/results/
+          retention-days: 90
+          if-no-files-found: warn
+  paired_qa:
+    needs: [guard,c00_qa,paired]
+    if: ${{ always() && needs.guard.result == 'success' && needs.c00_qa.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/NEW_RT_DATA/SM0_GITHUB_ONEBIN/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m pip install --disable-pip-version-check numpy==1.26.4
+      - name: Retrieve ALL original C00 and paired output files without filtering failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/c00_dl" "$RUNNER_TEMP/paired_dl" "$RUNNER_TEMP/c00" "$RUNNER_TEMP/paired" "$RUNNER_TEMP/qa"
+          gh run download "$GITHUB_RUN_ID" --repo ${{ github.repository }} \
+            --pattern 'native-c00-pose-*' --dir "$RUNNER_TEMP/c00_dl" || true
+          gh run download "$GITHUB_RUN_ID" --repo ${{ github.repository }} \
+            --pattern 'native-paired-pose-*' --dir "$RUNNER_TEMP/paired_dl" || true
+          gh run download "$GITHUB_RUN_ID" --repo ${{ github.repository }} \
+            --name native-c00-qa-$GITHUB_RUN_ID --dir "$RUNNER_TEMP/c00"
+          python - <<'PY'
+          import pathlib,os,shutil
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])
+          for src,dst in ((p/'c00_dl',p/'c00'),(p/'paired_dl',p/'paired')):
+            for mf in src.rglob('MANIFEST.json'):
+              dirname=mf.parent.name
+              if not dirname.startswith(('C00_DIRECT-','C01_FLOOR-','C10_PARALLEL_PLATE-','C11_OBLIQUE_PLATE-')):continue
+              t=dst/dirname
+              assert not t.exists(),('DUPLICATE_RT_KEY',dirname)
+              shutil.copytree(mf.parent,t)
+          print('PAIRED_DATA_REASSEMBLED_INCLUDING_FAILED')
+          PY
+      - name: Full 24 keys 257-bin and paired complex-H technical QA (not science)
+        shell: bash
+        run: |
+          set -uo pipefail
+          rc=0
+          python "$BASE/native_rt_aggregate.py" --stage paired \
+            --root "$RUNNER_TEMP/paired" --c00-root "$RUNNER_TEMP/c00" --out "$RUNNER_TEMP/qa" \
+            > "$RUNNER_TEMP/qa/PAIRED_QA_LOG.txt" 2>&1 || rc=$?
+          cat "$RUNNER_TEMP/qa/PAIRED_QA_LOG.txt"
+          exit "$rc"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: native-paired-qa-${{ github.run_id }}
+          path: ${{ runner.temp }}/qa/
+          retention-days: 90
+          if-no-files-found: warn
