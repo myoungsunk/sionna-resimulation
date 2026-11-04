@@ -1,0 +1,75 @@
+name: MBVAR A010 USER_NONINDEPENDENT frozen protocol preflight (NO DEV3 execution)
+on:
+  push:
+    branches: [governance/mbvar-a010-user-approved-exploratory-freeze-20261104]
+    paths:
+      - '.github/workflows/mbvar-a010-user-waiver-freeze-gate-20261104.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  frozen-no-data-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/scripts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/audit
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+      - name: Validate real applied frozen A010 lock with explicit user waiver
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,json,pathlib,sys,hashlib
+          exp=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(exp/"code"))
+          import contract_lock as CL
+          import manifest as MF
+          a=json.loads((exp/"contracts/AMENDMENT-010-USER_AUTHORIZED_NONINDEPENDENT_GOVERNANCE_20261104.json").read_text())
+          req=json.loads((exp/"RUN_REQUEST.json").read_text())
+          assert a["approved"] is True and a["user_response"]=="승인한다"
+          assert a["scope"].startswith("A010 internal non-independent exploratory DEV3")
+          assert a["independent_auditor_signed"] is False and a["RT_NO_GO"] and a["HOLDOUT2_NO_GO"]
+          assert req["phase"]=="P2_A010P0_ABL" and req["amendments"][-1]=="AMENDMENT-010-P0"
+          prior=CL.effective_lock(req["amendments"])
+          frozen=CL.effective_lock(req["amendments"]+["AMENDMENT-010"])
+          assert "AMENDMENT-010" in frozen["applied_amendment_locks"]
+          assert frozen["status"]=="FROZEN"
+          assert frozen["reviewer_status"]=="USER_AUTHORIZED_NONINDEPENDENT"
+          assert frozen["independent_auditor_signed"] is False
+          assert frozen["freeze_claim_boundary"]=="NOT_INDEPENDENT_AUDITED_NOT_CONFIRMATORY"
+          assert frozen["authority_scope"]=="DEV3_INTERNAL_EXPLORATORY_ONLY"
+          assert frozen["source_git_sha_tested"]=="360b496d089c54aaaa488ff1c2a571605547d96b"
+          assert frozen["code_sha256"]==MF.code_hashes() and len(frozen["code_sha256"])==49
+          assert frozen["base_contract_sha256"]==hashlib.sha256(
+              (exp/"contracts/EXPERIMENT_CONTRACT_MBVAR-INFO-001.md").read_bytes()).hexdigest()
+          assert frozen["base_contract_sha256"]=="68d73bd22bf467625559f3092433f250cbe91cb2fef011f92151975975b00f34"
+          assert frozen["input_lock_sha256"]=="28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee"
+          assert "DEV3" not in prior["splits"]["S_field"]
+          assert frozen["splits"]["S_field"]==dict(prior["splits"]["S_field"],DEV3=list(range(20,30)))
+          assert frozen["run_plan"]["S1V5"]["fields"]==list(range(20,30))
+          assert frozen["run_plan"]["C3V5"]["fields"]==list(range(20,30))
+          assert frozen["run_plan"]["S1V5"]["sensor_seeds"]==[0,1,2]
+          assert frozen["run_plan"]["C3V5"]["sensor_seeds"]==[0,1,2]
+          assert frozen["science_and_numeric_choices"]["kink_exception_allowed"] is False
+          assert frozen["science_and_numeric_choices"]["portable_numeric_tolerance_relaxation"] is False
+          assert frozen["stop_rules"]["RT"]=="NO-GO" and frozen["stop_rules"]["HOLDOUT2"]=="NO-GO"
+          assert frozen["required_s1_all_rows"]==1980 and frozen["required_c3_batch_rows"]==1080
+          assert frozen["science_freeze"] is True
+          print("A010_USER_WAIVER_SCOPED_FROZEN_LOCK_PASS",len(frozen["code_sha256"]),
+                frozen["required_c3_batch_rows"],frozen["reviewer_status"])
+          print("A010_PRE_DEV3_NO_DATA_GENERATED")
+          PY
+      - name: No workspace mutation
+        run: test -z "$(git status --porcelain)"
