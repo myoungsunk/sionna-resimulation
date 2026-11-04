@@ -1,0 +1,59 @@
+name: MBVAR P3 RT preparation schema and budget NO-GO checks (NO RAY TRACING)
+on:
+  push:
+    branches: [proposer/mbvar-a010-freeze-review-packet-20261103]
+    paths:
+      - '.github/workflows/mbvar-p3-rt-prep-no-go-static-20261104.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  rt-static-gate-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/tests
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/contracts
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/RUN_REQUEST.json
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Existing RT cache-key pure function tests only
+        run: |
+          python -m pip install --disable-pip-version-check pytest==8.3.3
+          python -m pytest -v -p no:cacheprovider "$EXP/tests/test_rt_keys.py"
+      - name: Exact key schema + no authorized RT or DEV3 scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,pathlib,sys
+          root=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(root/"code"))
+          import rt_keys
+          cfg=json.loads((root/"contracts/P3_RT_READINESS_MANIFEST_DRAFT_20261104.json").read_text())
+          source=json.loads((root/"RUN_REQUEST.json").read_text())
+          assert cfg["required_cache_key_fields"]==list(rt_keys.REQUIRED)
+          assert set(cfg["cache_key_sources"])==set(rt_keys.REQUIRED)
+          assert all(x["value"] is None for x in cfg["cache_key_sources"].values())
+          assert source["phase"]=="P2_A010P0_ABL"
+          assert cfg["numeric_user_approval"]["max_solver_calls"]==0
+          assert cfg["numeric_user_approval"]["max_GPU_hours"]==0
+          assert cfg["numeric_user_approval"]["max_user_budget"]==0
+          assert cfg["signed_pre_p3_amendment"] is False
+          assert cfg["rt_canary"]==cfg["rt_bulk"]=="NO-GO"
+          assert cfg["dev3"]==cfg["holdout2"]=="NO-GO"
+          assert cfg["candidate_canary_unique_config_upper_bound"]==288
+          print("P3_RT_STATIC_SCHEMA_VERIFIED_NO_COMPUTE_AUTHORIZED")
+          PY
+      - name: Verify source repository unchanged
+        run: test -z "$(git status --porcelain)"
