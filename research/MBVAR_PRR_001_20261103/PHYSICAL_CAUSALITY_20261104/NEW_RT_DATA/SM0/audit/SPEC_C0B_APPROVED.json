@@ -1,0 +1,35 @@
+{
+  "auditor": "independent_a0",
+  "token": "SPEC_C0B_APPROVED",
+  "request_commit": "2173469403327dd7fdbfb3ecf3a3c77508b7b1da",
+  "simulation_request_sha256": "c336d66f3a69c0335440dd512b3e8812df3faaf35f2725b14f6a0558710c403d",
+  "scope": "SM0 requested fixed 15 historical pose IDs; first production canary R4_aB_m0 pose194 only; expansion only after accepted canary",
+  "archive_comparison": {
+    "layout": "257 frequency bins x RX(+45,-45), TX+45 column, complex fields",
+    "formula": "norm2(new-archived)/norm2(archived); nonzero finite archived reference required",
+    "Full_max": 0.001,
+    "LoS_direct_max": 1e-05,
+    "each_field_separately": true,
+    "per_port_errors_and_max_absolute_residuals_reported": true
+  },
+  "reconstruction": {
+    "precision": "F64 reconstructed per-ray/group fields, preserving original raw a/tau dtype separately",
+    "reference": "independent scalar double math.cos/sin and math.fsum from ungrouped raw a/tau, ignoring group labels",
+    "max_normalized_error_limit": 1e-08,
+    "normalization": "max_abs(grouped_F64_sum-reference_scalar_F64_sum)/max_abs(reference_scalar_F64_sum), nonzero finite reference required",
+    "relative_L2_reported": true,
+    "complex_all_bins_all_RX": true
+  },
+  "precision_rule": "Declare attribution field before execution; report original-compute32 and solver cfr32 and reconstructed F64 separately, preserve raw source dtype, report cross-precision differences. The actual attribution field must itself pass both applicable archive limits. No selecting a favorable precision after results, compensating phase/scale/shift, dropping paths/poses or loosening thresholds.",
+  "claim_boundaries": {
+    "input_provenance": "ACCEPT for DATA_A0 verified assets",
+    "code_math": "ACCEPT for independent noise-free composite observer; producer pending",
+    "science_causality": "NOT_TESTED",
+    "generalization": "NOT_TESTED",
+    "realtime": "NOT_TESTED"
+  },
+  "GO_SM0_CANARY": "NOT_GRANTED_PENDING_FROZEN_PRODUCER_ENV_BANK_SCENE_AUDIT",
+  "new_simulations": 0,
+  "new_fits": 0,
+  "files_written": 0
+}
