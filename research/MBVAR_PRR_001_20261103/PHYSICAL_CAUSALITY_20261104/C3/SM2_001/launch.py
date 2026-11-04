@@ -14,17 +14,18 @@ def main():
   child='/mnt/d/'+(HERE/'test_preflight.py').as_posix()[3:]
   command=[*plan['runtime_command'],'-B',child]
   raise SystemExit(subprocess.call(command))
- go=read(HERE/'GO_CANARY.json');check_go(go,plan,bindings(plan))
+ go_name=plan.get('go_file','GO_CANARY.json');spec_name=plan.get('spec_audit_file','audit/C3_SPEC_REAUDIT_RESULT.json')
+ go=read(HERE/go_name);check_go(go,plan,bindings(plan))
  revision=git('ls-remote','origin',BRANCH).decode().split()[0]
- for n in [*plan['bound_files'],'GO_CANARY.json','audit/C3_SPEC_REAUDIT_RESULT.json']:
+ for n in [*plan['bound_files'],go_name,spec_name]:
   relative=(HERE/n).relative_to(REPO).as_posix()
   if git('show',revision+':'+relative)!=(HERE/n).read_bytes():raise ValueError('published bytes mismatch '+n)
- output=HERE/'CANARY_001'
+ output=HERE/Path(plan['output_linux']).name
  if output.exists():raise ValueError('preserve existing output')
  if args.preflight:
   print(json.dumps(dict(status='PREFLIGHT_PASS',published_revision=revision,authorized=4,max_calls=1040)),flush=True);return
  linux='/mnt/d/'+HERE.as_posix()[3:]
- cmd=[*plan['runtime_command'],'-B',linux+'/producer.py','--go',linux+'/GO_CANARY.json','--out',plan['output_linux'],'--revision',revision]
+ cmd=[*plan['runtime_command'],'-B',linux+'/producer.py','--go',linux+'/'+go_name,'--out',plan['output_linux'],'--revision',revision]
  print(json.dumps(dict(command=cmd,published_revision=revision,managed_process_run=os.environ.get('MANAGED_PROCESS_RUN_ID'))),flush=True)
  raise SystemExit(subprocess.call(cmd))
 

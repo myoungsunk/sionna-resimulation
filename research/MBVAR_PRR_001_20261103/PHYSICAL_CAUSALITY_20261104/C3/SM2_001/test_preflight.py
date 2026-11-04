@@ -6,6 +6,14 @@ from authority import HERE,read,check_go,validate_row,sha
 import qa
 
 class NegativeChecks(unittest.TestCase):
+ def test_native_mitsuba_frequency_scalar(self):
+  spec=importlib.util.spec_from_file_location('sm2_frequency_check',HERE/'producer.py')
+  module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module);frequency_value=module.frequency_value
+  import mitsuba as mi
+  mi.set_variant('llvm_ad_mono_polarized')
+  self.assertEqual(frequency_value(mi.Float([6e9])),float(np.float32(6e9)))
+  for bad in [mi.Float([float('nan')]),mi.Float([1,2]),mi.Float([])]:
+   with self.assertRaises(ValueError):frequency_value(bad)
  def setUp(self):
   self.plan=read(HERE/'PLAN.json');self.row=self.plan['authorized'][0]
   old=HERE.parents[1]/'NEW_RT_DATA/SM0/BATCH_AMENDED_001/captures/R4_aB_m0_168/RAW.npz'

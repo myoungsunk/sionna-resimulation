@@ -14,9 +14,10 @@ def check_go(go,plan,bound):
  if go.get('schema')!='C3_SM2_GO_V1' or go.get('decision')!='GO':raise ValueError('C3 independent GO required')
  if go.get('bindings_sha256')!=bound or go.get('authorized')!=plan['authorized']:raise ValueError('GO code/contract/scope binding')
  if go.get('max_total_solver_calls')!=1040 or go.get('repeat_bins')!=[0,128,256]:raise ValueError('GO call budget')
- spec=read(HERE/'audit/C3_SPEC_REAUDIT_RESULT.json')
+ spec_path=HERE/plan.get('spec_audit_file','audit/C3_SPEC_REAUDIT_RESULT.json')
+ spec=read(spec_path)
  if spec.get('decision') not in ('SPEC_APPROVED','ACCEPT'):raise ValueError('independent SPEC acceptance')
- if go.get('spec_audit_sha256')!=sha(HERE/'audit/C3_SPEC_REAUDIT_RESULT.json'):raise ValueError('SPEC receipt binding')
+ if go.get('spec_audit_sha256')!=sha(spec_path):raise ValueError('SPEC receipt binding')
 def validate_row(row,plan):
  if row not in plan['authorized']:raise ValueError('unauthorized condition')
  if row['coordinate']!='R4_168' or row['xyz']!=[5.251464,.325895,.45] or row['yaw_deg'] not in [0.,180.,35.7,-35.7]:raise ValueError('canary only')

@@ -1,0 +1,48 @@
+{
+  "schema": "C3_SM2_SPEC_EXECUTION_FIX_V1",
+  "decision": "SPEC_APPROVED",
+  "audit_verdict": "ACCEPT",
+  "scope": "C3_EXEC_01_OPERATIONAL_AMENDMENT_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "prior_approved_commit": "ea9b4952edfdef3f09285736eb0d2c00a94d1949",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "30b62d6569effea7aadc2d8dd4734b0c634f2e0cf9a6c347a7bf3f92c280005c",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71"
+  },
+  "preserved_failure_sha256": {
+    "GO_CANARY.json": "b679eeac391b815a8515a8093df73ff712846d516e6c96344b5b48949c832bbe",
+    "CANARY_001/MANIFEST.json": "f97a5b159a5d1e6d2292083e196b8bf0c84f68090b49f276f20d6fa8050acf05",
+    "CANARY_001/FAILURES.jsonl": "9d5acbe06d50fd16305086d9a81bafd3234c756aac811a309ac238722769f3be",
+    "CANARY_001/ARTIFACT_HASHES.json": "f1611270b0c769f229ccd04f1ad0fc3b399a9ff62560d37682c0dfe4c3027928"
+  },
+  "correction_record_sha256": "d4048c7724eb85ea17e49e037b1988fcf796f9daad95f0498f6786a4849f489f",
+  "evidence": {
+    "failure_status": "STOP_ERROR",
+    "primary_solver_calls": 0,
+    "repeat_solver_calls": 0,
+    "completed_conditions": 0,
+    "preserved_indexed_artifacts_verified": 9,
+    "root_cause": "float(scene.frequency) rejects native Mitsuba Float before the first solver invocation",
+    "changed_plan_keys": [
+      "output_linux",
+      "go_file",
+      "spec_audit_file",
+      "execution_amendment"
+    ],
+    "scientific_conditions_thresholds_sources_and_budgets_unchanged": true,
+    "fresh_output": "CANARY_002"
+  },
+  "permitted_operational_change": "Read one finite native frequency scalar through np.asarray(value).reshape(-1) and retain the original exact-or-float32 frequency comparison; use fresh output and separately audited/published GO.",
+  "boundaries": [
+    "Old failure and original GO remain immutable evidence.",
+    "No outcome-conditioned scientific amendment or threshold relaxation.",
+    "A new exact-code GO is still required before CANARY_002.",
+    "Remaining20 and G4 source-model initialization remain excluded."
+  ],
+  "execution_go": false,
+  "g3_go": false,
+  "g4_go": false,
+  "required_correction": []
+}

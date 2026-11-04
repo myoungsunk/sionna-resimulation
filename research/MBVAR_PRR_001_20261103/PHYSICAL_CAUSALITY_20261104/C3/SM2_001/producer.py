@@ -9,6 +9,12 @@ def module(name,path):
  s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
 def inventory(root):return {p.relative_to(root).as_posix():sha(p) for p in sorted(root.rglob('*')) if p.is_file() and p.name!='ARTIFACT_HASHES.json'}
 
+def frequency_value(value):
+ import numpy as np
+ a=np.asarray(value).reshape(-1)
+ if a.size!=1 or not np.isfinite(a).all():raise ValueError('native frequency scalar')
+ return float(a[0])
+
 def main():
  p=argparse.ArgumentParser();p.add_argument('--go',type=Path,required=True);p.add_argument('--out',type=Path,required=True);p.add_argument('--revision',required=True);args=p.parse_args()
  plan,lock,go=check(args.go,args.out)
@@ -61,7 +67,7 @@ def main():
     delay=float(np.linalg.norm(setup.anchor_position-rxpos)/299792458.)
     for fi,frequency in enumerate(freq):
      C.set_bin(scene,banks,tx,rx,fi,float(frequency))
-     if float(scene.frequency) not in (float(frequency),float(np.float32(frequency))):raise ValueError('bin frequency drift')
+     if frequency_value(scene.frequency) not in (float(frequency),float(np.float32(frequency))):raise ValueError('bin frequency drift')
      if not np.allclose(np.asarray(scene.receivers['rx'].orientation).reshape(-1),rxorientation,atol=1e-7,rtol=1e-7):raise ValueError('RX orientation drift')
      if not np.allclose(np.asarray(scene.transmitters['tx'].orientation).reshape(-1),txorientation,atol=1e-7,rtol=1e-7):raise ValueError('TX orientation drift')
      for role,desired in ((scene.receivers['rx'],rxpos),(scene.transmitters['tx'],setup.anchor_position)):
