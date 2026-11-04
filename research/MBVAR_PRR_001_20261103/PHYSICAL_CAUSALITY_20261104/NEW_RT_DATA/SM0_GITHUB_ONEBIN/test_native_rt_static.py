@@ -199,3 +199,19 @@ def test_mock_native_backend_exercises_full_257bin_output_without_sionna(monkeyp
     assert r["status"]=="PASS"
     assert r["sum_path_count"]==257
     assert np.isfinite(r["signed_s"])
+
+
+def test_inert_feature_branch_approval_template_binds_exact_tested_git_blobs():
+    import subprocess
+    p=HERE/"RT_EXECUTION_APPROVAL_TEMPLATE.json"
+    a=json.loads(p.read_text())
+    assert a["status"]=="TEMPLATE_NOT_APPROVED_DO_NOT_RENAME_OR_COMMIT_AS_EFFECTIVE"
+    assert a["confirmation"] is None and a["budget_calls"]==0
+    assert not (HERE/"RT_EXECUTION_APPROVAL_EFFECTIVE.json").exists()
+    for filename,entry in (
+        ("native_rt_batch.py","expected_source_blob_sha"),
+        ("P3_NATIVE_CONTROLLED_SCENE_PREEXECUTION_LOCK_DRAFT.json","expected_lock_blob_sha")
+    ):
+        digest=subprocess.check_output(["git","hash-object",str(HERE/filename)],
+                                       cwd=B.ROOT,text=True).strip()
+        assert a[entry]==digest,(filename,digest,a[entry])
