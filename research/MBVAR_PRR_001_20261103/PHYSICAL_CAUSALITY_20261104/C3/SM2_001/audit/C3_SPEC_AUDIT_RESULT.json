@@ -1,0 +1,83 @@
+{
+  "schema": "C3_SPEC_AUDIT_V1",
+  "decision": "REDIRECT",
+  "scope": "G0_SCIENCE_SPEC_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "source_commit": "82a4817415bf71cf2d1f4e9a317c18cb23ab03bc",
+  "accepted_base_commit": "e8669d2c8c54402d44c0310da0ae57edd6fe1965",
+  "source_sha256": {
+    "C3_SM2_PROPOSER_CONTRACT_DRAFT_KO.md": "c6ffbffeda6c72729b10a45ca313e7220ddcf3ecafa167e02d77b11a108b8de7",
+    "C3_SM2_INDEPENDENT_PREAUDIT_REQUEST_KO.md": "4e3c2676e6624f0c86201d0c9c5a5c0c59d4438fdcb6eda4e3d12916439c4ae6",
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_AUDITOR.md": "e1bdc2f231c71cdc27201c688e041b078576a6adf6c0290acc16ce4d8218291a",
+    "SM0/PRECISION_AMENDMENT_001/AMENDMENT_KO.md": "9ddfb034b4b5943a48e03c6ca03c5f063e3d473979dac78e07c09d54f7b93cc3",
+    "SM0/PRECISION_AMENDMENT_001/producer.py": "36b687a3d28b04ef33313d2911108c27ca0b8190b536623441c310cef4af0967",
+    "SM0/PRECISION_AMENDMENT_001/qa.py": "502f32466c9ca3abc35cabe6dfef9340e37ebcbd17b6d3e2eb9070ff5aa0807e",
+    "SM0/RUNTIME_LOCK.json": "23c6ebe57c0c65b8d09d87c5f602ecf5e6c4e5d2f8a15f4f9b1759072ad7bbad",
+    "source/scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+    "source/src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+    "source/CONFIG.json": "3bfb56798c11369e21893f80db3757d26582a69c32111e959b49c0706ae76137"
+  },
+  "verified_facts": [
+    "Both draft files match PR35 Git bytes; accepted base is an ancestor of PR35.",
+    "The two proposed retained-site coordinates and original yaws exactly match SAMPLES.json used by SM0; higher-precision timeline values must not silently replace them.",
+    "All six sites are within the frozen six-surface corridor and conservative rotated-body clearance bounds. No geometric reason to relocate P10/P13.9 sites was found.",
+    "Original geometry uses right-handed Z-up axes, positive-CCW Rz(yaw degrees), local-to-world rotations, TX diag(1,-1,-1), RX mount zero, and ordered plus45/minus45 ports.",
+    "Four-canary then hold-twenty, no archive-parity claim for new yaws, separation of physical RF and EKF claims, and no cross-yaw ray-index identity assumption are appropriate."
+  ],
+  "mandatory_corrections": [
+    {
+      "id": "C3-SPEC-01",
+      "locations": [
+        "contract:18-33",
+        "preaudit:13-20"
+      ],
+      "requirement": "Freeze canonical SAMPLES coordinates, exact serialized TX/RX coordinates, all 24 ordered condition IDs/yaws, port/axis/mount conventions and point-antenna/no-robot-mesh scope. Bind the actual scene/config/material/bank/frequency/runtime and predecessor operator bytes by SHA. Preserve SAMPLES values; distinguish rounded captions from the TX z expression 2.7-0.05."
+    },
+    {
+      "id": "C3-SPEC-02",
+      "locations": [
+        "contract:37-45",
+        "preaudit:28-42"
+      ],
+      "requirement": "Replace closure/direct-geometry/repeat promises with a prospective numerical QA table: finite/zero-reference handling and RX-wise normalization, actual legacy versus separate F64 identities, unique-direct/tau test, analytic direct-port test, detector/floor/undefined rules. Existing accepted SM0/amended and C0B thresholds/operators can be referenced by exact hash; new-yaw archive parity remains inapplicable. Mother-proposed canary repeats at bins 0/128/256 are scientifically suitable if frozen as 12 additional solver calls, with reference capture, compared fields, exact-versus-tolerant comparisons, normalized channel metric and 1e-8 threshold explicitly defined. Repeated calls are QA evidence, not independent physical samples. Define failure STOP and keep remaining20 unauthorized."
+    },
+    {
+      "id": "C3-SPEC-03",
+      "locations": [
+        "contract:43",
+        "contract:47-54",
+        "preaudit:17-20"
+      ],
+      "requirement": "Define the h_s/H_psi provider/source SHA, inputs, evaluation point, derivative method/step and wrap/branch/undefined handling. A frozen source-model derivative is model sensitivity, not a full multipath physical yaw derivative or Fisher information. Four separated yaw values alone do not identify a local derivative; no unregistered yaw\u00b1epsilon RT calls. State unit conversion explicitly: H_rad=(180/pi)*g_deg and g_deg=(pi/180)*H_rad."
+    },
+    {
+      "id": "C3-SPEC-04",
+      "locations": [
+        "contract:47-65"
+      ],
+      "requirement": "Freeze pairwise contrast direction/reference, same-tap anchoring and selector decomposition, handling of zero/absent groups and the all-coordinate table before observing new RF outputs. Separate numerical/data acceptance from a positive yaw-effect conclusion; a null or mixed effect is a valid scientific result. The phrase referring to analysis after new RF values must not permit outcome-dependent selection or omission."
+    }
+  ],
+  "unresolved_choices": [
+    "Exact normalized metric/field equality policy for the proposed twelve repeat calls.",
+    "Exact h_s/H_psi source and derivative operator.",
+    "Exact ordered contrast and same-tap reporting specification."
+  ],
+  "claim_boundaries": [
+    "Selected simulated sites/yaws only; no environment-wide or natural-route causal generalization.",
+    "Physical port/channel response is distinct from source-model sensitivity and recursive EKF effects.",
+    "No adoption, new policy, real-time result or C3-EKF inference.",
+    "Old STOP, accepted14/C0B and C1/C2 evidence remain preserved."
+  ],
+  "activities": {
+    "static_document_source_hash_geometry_review": true,
+    "new_rt_calls": 0,
+    "model_initializations": 0,
+    "data_recalculations": 0,
+    "files_modified": 0,
+    "children_spawned": 0
+  },
+  "execution_go": false,
+  "remaining20_go": false
+}
