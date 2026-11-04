@@ -1,0 +1,139 @@
+name: MBVAR A010 C3 post-open truth source-byte correction QA (NO DEV3 solver)
+on:
+  push:
+    branches: [fix/mbvar-a010-c3-truth-byte-source-replay-20261104]
+    paths:
+      - '.github/workflows/mbvar-a010-c3-truth-source-byte-preflight-20261104.yml'
+      - 'research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029/code/c3v5.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+env:
+  EXP: research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+  BASE_DIR: research/DS_MASK_CAUSAL_X1_X2_20261026
+  GH_TOKEN: ${{ github.token }}
+  S1_SOURCE_RUN: '41769652106'
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          lfs: false
+          persist-credentials: false
+          sparse-checkout: |
+            research/DS_MASK_CAUSAL_X1_X2_20261026/reflect_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model
+            research/DS_MASK_CAUSAL_X1_X2_20261026/MBVAR_CONTROLLED_INFO_20261029
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 pytest==8.3.3
+      - name: Restore original S1 receipts and original hash-locked FFD code only
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/s1agg" "$RUNNER_TEMP/mi" "$RUNNER_TEMP/preflight"
+          gh run download "$S1_SOURCE_RUN" --repo ${{ github.repository }} --name a010-dev3-s1-aggregate-$S1_SOURCE_RUN --dir "$RUNNER_TEMP/s1agg"
+          gh run download "$S1_SOURCE_RUN" --repo ${{ github.repository }} --name a010-dev3-source-$S1_SOURCE_RUN --dir "$RUNNER_TEMP/mi"
+          echo "28de7b01c9ef29175a7f5920b12ad700488c22f0b64eb9b5e0f4797eaa88d9ee  $RUNNER_TEMP/mi/out/INPUT_LOCK.sha256" | sha256sum -c -
+      - name: Compile and prove exact indexed archival S1 source and ULP geometry split
+        shell: bash
+        run: |
+          set -euo pipefail
+          export REFLECT_ROOT="$RUNNER_TEMP/mi"
+          export S1V5_RUN="$RUNNER_TEMP/s1agg"
+          python -m py_compile "$EXP/code/c3v5.py"
+          python - <<'PY'
+          import os,sys,json,shutil,tempfile,pathlib,zipfile,numpy as np
+          exp=pathlib.Path(os.environ["EXP"])
+          sys.path.insert(0,str(exp/"code"))
+          import c3v5 as C, s1v5 as T, s1_mc as M, manifest as MF
+          s1=pathlib.Path(os.environ["RUNNER_TEMP"])/"s1agg"
+          manifest=json.loads((s1/"MANIFEST.json").read_text())
+          assert manifest["source_git_sha"]==C._ORIGINAL_S1_DEV3_RUN_SHA
+          assert manifest["source_code_sha256"]==C._s1v5_original_source_hash_map()
+          assert manifest["source_code_sha256"]["code/c3v5.py"]!=MF.code_hashes()["code/c3v5.py"]
+          assert all(manifest["source_code_sha256"][k]==MF.code_hashes()[k]
+                     for k in MF.code_hashes() if k!="code/c3v5.py")
+          rec,proof=C.load_receipts_with_stats(s1,strict=True)
+          assert proof["strict_index_verified"] and proof["archived_S1_source_code_mode"]=="PINNED_ARCHIVED_S1_DEV3"
+          lk=T.lock_v5()
+          S=T.canonical_setup(lk)
+          result={"schema":"A010_C3_SOURCE_TRUTH_PREFLIGHT_V1",
+                  "s1_git_sha":manifest["source_git_sha"],
+                  "s1_manifest_unmodified":True,
+                  "old_C3_source_sha256":manifest["source_code_sha256"]["code/c3v5.py"],
+                  "new_C3_source_sha256":MF.code_hashes()["code/c3v5.py"],
+                  "archived_manifest_verified":True,
+                  "n_components":0,"n_byte_unequal":0,"n_numeric_parity_failed":0,
+                  "max_scaled_ulps":0.,"max_abs":0.,"checked_fields":list(range(20,30)),
+                  "tamper_tests":{}}
+          for f in range(20,30):
+            for role,w in S["wins"].items():
+              for cn in S["cells"]:
+                if cn not in w["cells"]: continue
+                source,stats=C.attest_source_truth(rec,f,role,cn,w)
+                assert stats["SOURCE_TRUTH_SHA_CHECKED_VIA_ORIGINAL_S1_ARRAY_INDEX"]
+                assert stats["TRUTH_REGEN_NUMERIC_PARITY_PASS"]
+                assert stats["TRUTH_REGEN_DIAG_ULP_LIMIT"]==128.
+                tk=f"TRUTH|{f}|{role}|{cn}"
+                for name,v in (("Xtrue","Xtrue"),("poses","poses"),("dts","dts"),
+                               ("ds_true","ds"),("dth_true","dth")):
+                  assert np.array_equal(source[v],rec[tk+"|"+name])
+                result["n_components"]+=8
+                result["n_byte_unequal"]+=0 if stats["TRUTH_REGEN_BYTES_ALL_EQUAL"] else 1
+                result["max_scaled_ulps"]=max(result["max_scaled_ulps"],stats["TRUTH_REGEN_MAX_SCALED_ULPS"])
+                result["max_abs"]=max(result["max_abs"],stats["TRUTH_REGEN_MAX_ABS"])
+          w=S["wins"]["LOW"];cn="LOWCORR";tk="TRUTH|20|LOW|LOWCORR"
+          source,stats=C.attest_source_truth(rec,20,"LOW",cn,w)
+          import copy
+          def must_fail(mod,name):
+            try: C.attest_source_truth(mod,20,"LOW",cn,w)
+            except SystemExit as e:
+              result["tamper_tests"][name]=str(e)
+              return
+            raise AssertionError("failed to reject tampered "+name)
+          r=dict(rec);r.pop(tk+"|Xtrue");must_fail(r,"missing_source")
+          r=dict(rec);r[tk+"|Xtrue"]=np.asarray(rec[tk+"|Xtrue"]).astype(np.float32);must_fail(r,"dtype_flip")
+          r=dict(rec);r[tk+"|Xtrue"]=np.asarray(rec[tk+"|Xtrue"])[1:];must_fail(r,"shape_change")
+          r=dict(rec);val=rec[tk+"|poses"].copy();val[0,0]+=.01;r[tk+"|poses"]=val;must_fail(r,"geometry_corruption")
+          r=dict(rec);val=rec[tk+"|dts"].copy();val[0]=np.nextafter(val[0],np.inf);r[tk+"|dts"]=val;must_fail(r,"invariant_bit_flip")
+          # The true S1 archive integrity check must reject any actual
+          # adversarial 1-byte mutation before the new numeric diagnostic.
+          td=pathlib.Path(tempfile.mkdtemp(prefix="s1sha-"))
+          try:
+            fn=s1/"S1V5_INPUTS_DEV3_20.zip"
+            mutated=td/fn.name
+            payload=bytearray(fn.read_bytes());payload[len(payload)//2]^=1
+            mutated.write_bytes(payload)
+            (td/"MANIFEST.json").write_bytes((s1/"MANIFEST.json").read_bytes())
+            C.SPLIT="DEV3"
+            try:
+              C.load_receipts_with_stats(td,strict=True)
+            except SystemExit as ex:
+              assert "ERR_C3V5_RECEIPT_HASH" in str(ex)
+              result["tamper_tests"]["outer_zip_one_byte_flip"]=str(ex)
+            else: raise AssertionError("original ZIP one-byte corruption accepted")
+          finally: shutil.rmtree(td)
+          assert len(result["tamper_tests"])==6
+          target=pathlib.Path(os.environ["RUNNER_TEMP"])/"preflight/C3_TRUTH_SOURCE_PREFLIGHT.json"
+          target.write_text(json.dumps(result,indent=2,sort_keys=True))
+          print("A010_C3_TRUTH_ORIGINAL_SOURCE_PREFLIGHT_PASS",
+               result["n_components"],result["n_byte_unequal"],result["max_abs"],
+               result["max_scaled_ulps"],sorted(result["tamper_tests"]))
+          print("A010_PATCHED_C3_CODE_SHA256 "+result["new_C3_source_sha256"])
+          print("A010_NO_DEV3_SOLVER_IN_PREFLIGHT")
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: a010-c3-truth-source-preflight-${{ github.run_id }}
+          path: ${{ runner.temp }}/preflight/
+          retention-days: 90
+          if-no-files-found: warn
