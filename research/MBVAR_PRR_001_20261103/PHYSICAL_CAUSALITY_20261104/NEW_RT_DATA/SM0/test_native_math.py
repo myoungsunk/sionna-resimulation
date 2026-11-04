@@ -49,12 +49,19 @@ class NativeMathTests(unittest.TestCase):
 
     def test_go_rejects_unlisted_pose_and_changed_code(self):
         lock={k:{} for k in ('code_sha256','source_sha256','bank_sha256','thresholds')}
-        lock['primary_reference']='F64'
+        lock['primary_reference']='F64 primary independent; legacy32 archive comparator'
+        lock['precision_contract']='SM0_DUAL_PRECISION_V2'
+        lock['archive_los_reference']='legacy_original_expression_complex64'
+        lock['coherent_sum_reference']='independent_scalar_float64'
         lock['runtime_lock_sha256']='runtime manifest hash'
-        go=dict(schema='SM0_GO_V1',decision='GO',authorized=[dict(case='R4_aB_m0',pose_id=194)],**lock)
+        go=dict(schema='SM0_GO_V2',decision='GO',authorized=[dict(case='R4_aB_m0',pose_id=194)],**lock)
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/'GO.json';p.write_text(json.dumps(go))
             self.assertEqual(len(authorize(p,lock,'R4_aB_m0',194)),64)
+            old=dict(go,schema='SM0_GO_V1')
+            p.write_text(json.dumps(old))
+            with self.assertRaises(ValueError):authorize(p,lock,'R4_aB_m0',194)
+            p.write_text(json.dumps(go))
             with self.assertRaises(ValueError):authorize(p,lock,'R4_aB_m0',168)
             wrong=dict(lock,code_sha256={'producer.py':'changed'})
             with self.assertRaises(ValueError):authorize(p,wrong,'R4_aB_m0',194)
