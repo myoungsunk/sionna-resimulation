@@ -96,6 +96,14 @@ def main(outdir,bankdir):
         dr.set_thread_count(1)
         require(dr.thread_count()==1,"ERR_RT_THREADS")
         import sionna.rt as rt
+        # Checkout alone does not add repository scripts/ to Python sys.path.
+        # Both the direct script and the GitHub workflow must use pinned
+        # imports; never substitute an unrelated package named corridor_*.
+        sys.path.insert(0,str(ROOT/"scripts"))
+        sys.path.insert(0,str(ROOT/"scripts"/"g2_completion"))
+        sys.path.insert(0,str(ROOT/"src"))
+        require((ROOT/"scripts"/"corridor_sionna_run.py").is_file(),
+                "ERR_RT_ORIGINAL_CORRIDOR_MODULE_MISSING")
         import corridor_sionna_run as C
         C.BANK_DIR=Path(bankdir)
         banks=C.load_banks()
