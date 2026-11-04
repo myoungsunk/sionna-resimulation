@@ -134,3 +134,64 @@ def test_official_RT_manual_yaml_has_no_auto_push_schedule():
     for stage in ("c00:","c00_qa:","paired:","paired_qa:"):
         assert "  "+stage in t
     assert "I_APPROVE_8224_NATIVE_CPU_CALLS" in t
+
+
+def test_mock_native_backend_exercises_full_257bin_output_without_sionna(monkeypatch,tmp_path):
+    """Integration path mock, NOT a claim that physical PathSolver succeeded."""
+    from types import SimpleNamespace
+    cfg=json.loads(B.LOCK.read_text())
+    original=dict(max_depth=3,seed=20260924,samples_per_src=100000,
+                  max_num_paths_per_src=1000000,los=True,specular_reflection=True)
+    bank=tmp_path/"banks";bank.mkdir()
+    budget=tmp_path/"approved_budget.json"
+    budget.write_text(json.dumps(dict(
+        status="USER_APPROVED_FOR_CPU_RT",
+        science_class="USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
+        max_solver_calls=8224,max_job_wall_seconds=1200,
+        arm_ids=list(B.ARMS),pose_ids=cfg["pose_ids"])))
+    qa=tmp_path/"C00_QA.json"
+    qa.write_text(json.dumps(dict(status="C00_257BIN_STRICT_PARITY_PASS",
+                                  n_pass=8,lock_sha256=B.h(B.LOCK))))
+    args=SimpleNamespace(arm="C01_FLOOR",pose=194,repeat=0,
+                         bank=bank,budget=budget,token="I_AUTHORIZE_CPU_RT_STAGE",
+                         max_calls=257,wall_seconds=1200,
+                         c00_qa=qa,out=tmp_path/"C01_FLOOR-194-r0")
+    monkeypatch.setattr(B,"preflight",lambda b:(cfg,original))
+    monkeypatch.setattr(B,"check_runtime",lambda:{"mock_only":True})
+    monkeypatch.setattr(B,"get_pose",lambda p:{"x":6.103209,"y":-.269105,"yaw_body_deg":-39.343083})
+    import types
+    class FakeCorridor:
+        BANK_DIR=None
+        @staticmethod
+        def load_banks():
+            x=np.load(B.ROOT/B.BLOCK/"freqs_hz.npy")
+            return [{"freqs_hz":x},{"freqs_hz":x}]
+        @staticmethod
+        def make_ports(banks):return object(),object()
+        @staticmethod
+        def set_bin(scene,banks,tx,rx,i,f):return
+    class FakeSolver:
+        calls=0
+        def __call__(self,scene,**kw):
+            FakeSolver.calls+=1
+            shape=(2,2,1)
+            return SimpleNamespace(tau=np.array([5e-9]),
+               a=(np.ones(shape,float),np.zeros(shape,float)),
+               objects=np.zeros((1,1),int),
+               interactions=np.zeros((1,1),int),
+               valid=np.ones((1,1),bool))
+    class FakeRT:
+        PathSolver=FakeSolver
+    monkeypatch.setattr(B,"imports",lambda:(FakeRT,FakeCorridor))
+    monkeypatch.setattr(B,"build_scene",
+        lambda *args:(object(),np.array([10.,0.,2.65]),
+                      np.array([6.103209,-.269105,.45]),{"floor":"fake_mock"}))
+    B.execute(args)
+    assert FakeSolver.calls==257
+    assert (args.out/"RAW_COMPLEX_H_AND_PATHS.npz").is_file()
+    record=json.loads((args.out/"MANIFEST.json").read_text())
+    assert record["solver_calls_made"]==257 and record["status"]=="COMPLETED"
+    r=A.audit_key(tmp_path,"C01_FLOOR",194,0)
+    assert r["status"]=="PASS"
+    assert r["sum_path_count"]==257
+    assert np.isfinite(r["signed_s"])
