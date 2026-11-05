@@ -8,7 +8,7 @@
 
 - [ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv](ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv): 정확히 400개 실행 task_id. R2/R4/R5 190개 고유 복도 pose × Full/LoS = 380, PR #35 G3 20개 yaw = 20.
 - [ONE_SHOT_RT_EXTRACTION_PLAN_20261105.json](ONE_SHOT_RT_EXTRACTION_PLAN_20261105.json): 기존 raw 제외 전 최대 102,860 PathSolver 호출(1028+B1 6682+SM1 89950+G3 5200), 원본/scene 분리 및 계산 예산/중단 조건.
-- [ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json](ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json): GitHub Actions #41947190271 원본 3개 Tnone과 PR #35 G3 PLAN/GO 비교, 400개/102,860회 read-only PASS. Sionna RT 호출 0회.
+- [ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json](ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json): GitHub Actions #41947806258 원본 3개 Tnone 및 3개 SAMPLES의 native 자세(소수 6자리)와 PR #35 G3 PLAN/GO를 대조해 400개/102,860회 read-only PASS. Sionna RT 호출 0회.
 
 **이 최신 요청은 단계별 실행을 기다리며 서버를 여러 번 사용하는 대신, 전체 원본 키를 사전에 확정해 중복 없이 일괄 *데이터 생성*하는 방식이다.** 과학적 분석 순서는 아래 기존 설계가 유효하다. PR #35의 R4_168 G2 4 yaw는 이미 DATA ACCEPT이므로 다시 생성하지 않는다. G3 20 yaw는 실행 승인 문서가 있지만 이 요청에서 원본 로컬/원격 SHA를 확인하기 전에는 완료라고 단정하지 않는다.
 
