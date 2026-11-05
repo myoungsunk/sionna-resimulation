@@ -329,7 +329,7 @@ def main(argv=None):
             value = run(args.repo, args.manifest, args.approval, args.output, args.stages)
         print(json.dumps(jsonable(value), ensure_ascii=False, indent=2, allow_nan=False))
         return 0
-    except (ContractError, FileExistsError, KeyError, TypeError, ValueError) as exc:
+    except (ContractError, OSError, KeyError, TypeError, ValueError) as exc:
         print(f"BLOCKED: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 
