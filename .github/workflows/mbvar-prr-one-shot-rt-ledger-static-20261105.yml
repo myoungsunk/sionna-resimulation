@@ -11,8 +11,6 @@ permissions:
   contents: read
 env:
   PYTHONDONTWRITEBYTECODE: '1'
-  MBVAR_G3_ROOT: ${{ github.workspace }}/g3_source
-  MBVAR_ONE_SHOT_QA_OUT: ${{ runner.temp }}/ONE_SHOT_KEY_LEDGER_STATIC_QA.json
 jobs:
   keys-and-budget-source-reproduction:
     runs-on: ubuntu-24.04
@@ -49,6 +47,9 @@ jobs:
         with:
           python-version: '3.11'
       - name: Reconstruct whole pose and yaw key set without Sionna/NumPy
+        env:
+          MBVAR_G3_ROOT: ${{ github.workspace }}/g3_source
+          MBVAR_ONE_SHOT_QA_OUT: ${{ runner.temp }}/ONE_SHOT_KEY_LEDGER_STATIC_QA.json
         shell: bash
         run: |
           set -euo pipefail
