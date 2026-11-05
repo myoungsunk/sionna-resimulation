@@ -1,0 +1,13 @@
+Traceback (most recent call last):
+  File "/work/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/finalize_preparation.py", line 30, in <module>
+    assert result.wasSuccessful(),name
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: test_fp_sc_detection_prep
+Traceback (most recent call last):
+  File "D:\codex\FP_SC_E1_SNOWBALL_20261105\finalize_target.py", line 16, in <module>
+    subprocess.run(['ssh','-o','BatchMode=yes','Snowball',f'docker run --rm --name fp-sc-e102-final-check --cpuset-cpus 0-2 --cpus 3 --memory 8g -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e NUMEXPR_NUM_THREADS=1 -e PYTHONPATH=/work/src -e PREP_CODE_COMMIT={head} -v {T}:/prep -v {T}/repo:/work -w /work fp-sc-e1:20261105 sh -c "tar xf /prep/final_overlay.tar -C /work && python -u {O.as_posix()}/finalize_preparation.py"'],check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['ssh', '-o', 'BatchMode=yes', 'Snowball', 'docker run --rm --name fp-sc-e102-final-check --cpuset-cpus 0-2 --cpus 3 --memory 8g -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e NUMEXPR_NUM_THREADS=1 -e PYTHONPATH=/work/src -e PREP_CODE_COMMIT=950d1d363ecfc33b18ad7de2d2a8862b248513d0 -v /home/KMS/codex_runs/FP_SC_E102_PREP_20261105:/prep -v /home/KMS/codex_runs/FP_SC_E102_PREP_20261105/repo:/work -w /work fp-sc-e1:20261105 sh -c "tar xf /prep/final_overlay.tar -C /work && python -u research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/finalize_preparation.py"']' returned non-zero exit status 1.

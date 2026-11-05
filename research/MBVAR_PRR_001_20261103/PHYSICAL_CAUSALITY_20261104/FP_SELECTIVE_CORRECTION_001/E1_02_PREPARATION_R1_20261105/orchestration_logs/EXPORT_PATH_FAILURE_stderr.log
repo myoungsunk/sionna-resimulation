@@ -1,0 +1,16 @@
+Traceback (most recent call last):
+  File "/prep/repo/target_export.py", line 12, in <module>
+    with (out/(name+'.FINAL.log')).open('w') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/work/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/test_fp_sc_detection_prep.py.FINAL.log'
+Traceback (most recent call last):
+  File "D:\codex\FP_SC_E1_SNOWBALL_20261105\export_target.py", line 9, in <module>
+    subprocess.run(['ssh','-o','BatchMode=yes','Snowball',f'docker run --rm --name fp-sc-e102-export --cpuset-cpus 0-2 --cpus 3 --memory 8g -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e NUMEXPR_NUM_THREADS=1 -e PYTHONPATH=/work/src -v {T}:/prep -w /prep/repo fp-sc-e1:20261105 sh -c "tar xf /prep/export_overlay.tar -C /prep/repo && python -u target_export.py"'],check=True)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Myoungsun Kim\AppData\Local\Programs\Python\Python313\Lib\subprocess.py", line 577, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['ssh', '-o', 'BatchMode=yes', 'Snowball', 'docker run --rm --name fp-sc-e102-export --cpuset-cpus 0-2 --cpus 3 --memory 8g -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e NUMEXPR_NUM_THREADS=1 -e PYTHONPATH=/work/src -v /home/KMS/codex_runs/FP_SC_E102_PREP_20261105:/prep -w /prep/repo fp-sc-e1:20261105 sh -c "tar xf /prep/export_overlay.tar -C /prep/repo && python -u target_export.py"']' returned non-zero exit status 1.
