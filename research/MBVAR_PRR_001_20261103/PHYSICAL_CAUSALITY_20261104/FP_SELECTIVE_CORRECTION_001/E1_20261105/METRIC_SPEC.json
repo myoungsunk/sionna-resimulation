@@ -1,0 +1,40 @@
+{
+  "schema": "FP_SC_E1_01_METRICS_V1",
+  "reference_and_denominators": {
+    "reference": "Original receiver on clean Native-LoS from same locked pose or G4 condition; evaluator only",
+    "reference_valid": "Finite clean native CIR, positive peak above numeric floor, finite selected s/range and positive two-port denominator; one polarization null allowed. This is exact-clean arithmetic support, not physical device sensitivity.",
+    "raw_valid": "The same validity definition on the current waveform; original zero-CIR detected=True does not override invalid s/denominator.",
+    "normal": "reference_valid AND raw_valid AND n0==nL",
+    "wrong": "reference_valid AND raw_valid AND n0!=nL",
+    "large_error": "reference_valid AND raw_valid AND abs(n0-nL)>=2",
+    "one_tap_error": "reference_valid AND raw_valid AND abs(n0-nL)==1",
+    "unknown_reference": "not reference_valid; preserve in all-input and output-availability denominators",
+    "original_invalid": "reference_valid AND not raw_valid; report separately, do not turn an arbitrary invalid raw tap into a wrong-reference detection label",
+    "reference_in_all_pool": "nL appears in distinct tap IDs including raw fallback",
+    "reference_in_supported_pool": "nL has at least one actual supporting lobe record, not only the fallback role",
+    "reference_in_usable_pool": "reference_in_supported_pool AND no overflow AND raw_valid; this is the primary candidate-availability success event for large errors",
+    "normal_preservation": "For valid original frames, n0 is retained in the candidate pool exactly. For invalid frames, preserve only raw metadata and require no candidates. No replacement is performed, so this is a construction check rather than selective-correction false-positive performance."
+  },
+  "cluster_accounting": {
+    "dynamic_error_episode": "Within each route and waveform, maximal consecutive large-error rows; break when the label is not large, original pose_id is not prior+1, or elapsed timestamp exceeds 0.4s. Episode IDs are evaluator-only.",
+    "episode_metrics": [
+      "episode count",
+      "packet count per episode",
+      "per-episode usable reference recall",
+      "all-packets-recalled episode count",
+      "at-least-one-recalled episode count",
+      "longest contiguous missing-reference run"
+    ],
+    "static_cluster": "Coordinate ID; report four yaws together and all raw conditions individually",
+    "inference": "Descriptive packet/episode/coordinate counts only. No IID packet CI, population safety probability or claim of independent RF environments."
+  },
+  "observed_gate": {
+    "numerical_threshold": 0.95,
+    "primary": "Dynamic Full TWO_PORT_UNION usable candidate recall among >=2tap errors >=0.95, with all route denominators disclosed.",
+    "stratified_guard": "Every route with a nonzero large-error denominator must also meet >=0.95; otherwise report NOT_SUPPORTED_STRATIFIED and keep E2 GO false. A zero denominator is NOT_TESTED for that route, never 100% recall.",
+    "statistical_status": "Even a numeric pass is DESCRIPTIVE_CANDIDATE_AVAILABILITY only; reviewer must assess episode support. No automatic H2 selection success or E2 authorization.",
+    "E2_GO": false
+  },
+  "normal_preservation_is_implementation_invariant_not_false_correction_rate": true,
+  "no_inference_of_H2_selection_success": true
+}

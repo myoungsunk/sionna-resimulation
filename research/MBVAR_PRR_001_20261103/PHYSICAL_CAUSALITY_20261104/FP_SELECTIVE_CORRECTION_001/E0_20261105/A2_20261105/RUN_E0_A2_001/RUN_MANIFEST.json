@@ -1,0 +1,3623 @@
+{
+  "schema": "FP_SC_E0_A2_RUN_V1",
+  "stage": "E0",
+  "amendment": "A2_REMATERIALIZED_CONTROLS",
+  "utc_start": "2026-11-05T04:59:20.068931+00:00",
+  "status": "NUMERICAL_REPRODUCTION_WITH_REMATERIALIZED_CONTROLS",
+  "execution_commit": "7b3d6b368562632ce542b899a87ba7b14190faf6",
+  "implementation_commit": "7b3d6b368562632ce542b899a87ba7b14190faf6",
+  "execution_lock_sha256": "e2526c0809af7e690e516171e0d1c92e1cba90aa630794385a32e69a16d4e666",
+  "approval_sha256": "f7001a2e747a5763a4b4989a25f9671ddafd5c58dcd81631ef9fed124c2cad32",
+  "pre_execution": {
+    "status": "PASS_PRE_EXECUTION_IDENTITIES",
+    "files": 86,
+    "bytes": 647547760,
+    "implementation_commit": "7b3d6b368562632ce542b899a87ba7b14190faf6",
+    "execution_commit": "7b3d6b368562632ce542b899a87ba7b14190faf6",
+    "external_independent_accept": false
+  },
+  "exact_historical_control_bytes": "UNRESOLVED_R4_R5",
+  "external_independent_accept": false,
+  "next_stage_GO": false,
+  "hypotheses_H1_H7": "NOT_TESTED",
+  "results": {
+    "baseline": {
+      "study": "FP-SC-001",
+      "experiment": "E0-01_MBVAR",
+      "mode": "full",
+      "role": "IMPLEMENTER_CHECK",
+      "independent_acceptance": false,
+      "status": "PASS_FULL_BASELINE_PARITY",
+      "scope": {
+        "routes": [
+          "R2",
+          "R4",
+          "R5"
+        ],
+        "biases": [
+          "B0",
+          "L2"
+        ],
+        "channels": [
+          "Full",
+          "Native_LoS"
+        ],
+        "seeds": [
+          10
+        ]
+      },
+      "utc_start": "2026-11-05T04:59:20.074797+00:00",
+      "runtime": {
+        "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+        "numpy": "2.3.5",
+        "platform": "Linux-6.18.57-x86_64-with-glibc2.39"
+      },
+      "numeric_contract": {
+        "normalized_error_max": 1e-10,
+        "normalization": "abs(delta)/max(1,abs(reference))",
+        "covariance_relative_tolerance": 1e-12
+      },
+      "new_RT_calls": 0,
+      "new_data_calibration_fits": 0,
+      "cells": [
+        {
+          "cell": "R2_B0_Full_10",
+          "route": "R2",
+          "bias": "B0",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 979,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R2_aB_m0_B0_Full.npz",
+              "sha256": "07dfd65117bbe847f103589f34f05bda7f81907278dfbd8a11c026c155ca97ca"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/FULL_002/natural/R2_B0_Full_10_A.npz",
+              "sha256": "91fc4a750367db28ecddbb5295db40aae7c8e44c42f522351c43be3f559cb1db"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 979,
+            "accepted": 971,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.3552527156068805e-20,
+                "max_normalized_error": 1.3552527156068805e-20
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 5.421010862427522e-20,
+                "max_normalized_error": 5.421010862427522e-20
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 4.623121075442438e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.933346736375996e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.9333467363764444e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0024321010338611932,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.7486012637846216e-14,
+                "max_normalized_error": 1.7486012637846216e-14
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.457167719820518e-16,
+                "max_normalized_error": 1.457167719820518e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 1.765254609153999e-14,
+                "max_normalized_error": 1.765254609153999e-14
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 1.457167719820518e-16,
+                "max_normalized_error": 1.457167719820518e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 5.662137425588298e-15,
+                "max_normalized_error": 5.662137425588298e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.4654943925052066e-14,
+                "max_normalized_error": 1.2601821252653242e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 5.88418203051333e-15,
+                "max_normalized_error": 5.88418203051333e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 5.662137425588298e-15,
+                "max_normalized_error": 5.662137425588298e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 5.773159728050814e-15,
+                "max_normalized_error": 5.773159728050814e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.6697754290362354e-13,
+                "max_normalized_error": 1.1784834719776054e-13
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 5.662137425588298e-15,
+                "max_normalized_error": 5.662137425588298e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.9333467363764444e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.93334673637769e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 979,
+            "accepted": 971
+          },
+          "controls": {
+            "kind": "ARCHIVED_CONTROLS",
+            "file": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/inputs/R2_aB_m0_B0_10.npz",
+            "sha256": "350a16a4b0cb54d6a5e6718b728d041a5defc19ba0d278b5bb6abb3c5b9a34c2"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R2_B0_Native_LoS_10",
+          "route": "R2",
+          "bias": "B0",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 979,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R2_aB_m0_B0_Native_LoS.npz",
+              "sha256": "3879c6bc97060d993c88dacf5aa9ae93b92f38522c04be61b638c81cd67ec829"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/NATIVE_001/natural/R2_B0_Native_LoS_10_A.npz",
+              "sha256": "1265018569c9ad10023b5d295ebf2c0137fd97521ea22ef20b55f30a316ab745"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 979,
+            "accepted": 979,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 5.421010862427522e-20,
+                "max_normalized_error": 5.421010862427522e-20
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 4.042421638217927e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8077916278704128e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8077916278703243e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0024420007408001384,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.9484414082171497e-14,
+                "max_normalized_error": 1.9484414082171497e-14
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 6.002143226879753e-16,
+                "max_normalized_error": 6.002143226879753e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 1.9484414082171497e-14,
+                "max_normalized_error": 1.9484414082171497e-14
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 6.071532165918825e-16,
+                "max_normalized_error": 6.071532165918825e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 3.4416913763379853e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.2045919817182948e-14,
+                "max_normalized_error": 1.2045919817182948e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.248201624865942e-14,
+                "max_normalized_error": 2.248201624865942e-14
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 3.552713678800501e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 5.995204332975845e-15,
+                "max_normalized_error": 5.995204332975845e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 4.374278717023117e-14,
+                "max_normalized_error": 4.374278717023117e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 3.4416913763379853e-15,
+                "max_normalized_error": 3.4416913763379853e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8077916278701589e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8077916278702407e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 979,
+            "accepted": 979
+          },
+          "controls": {
+            "kind": "ARCHIVED_CONTROLS",
+            "file": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/inputs/R2_aB_m0_B0_10.npz",
+            "sha256": "350a16a4b0cb54d6a5e6718b728d041a5defc19ba0d278b5bb6abb3c5b9a34c2"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R2_L2_Full_10",
+          "route": "R2",
+          "bias": "L2",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 979,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R2_aB_m0_L2_Full.npz",
+              "sha256": "19113331f350fd9e49f2bcd9c137e9281b992b2bf8fae14edf7a852581dc82c9"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/FULL_002/natural/R2_L2_Full_10_A.npz",
+              "sha256": "7c109894501f9ffe07059a9b966e0d3f9a4487a8f6d808c358900c955057363e"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 979,
+            "accepted": 971,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.220446049250313e-16,
+                "max_normalized_error": 1.6153776032102699e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.0842021724855044e-19,
+                "max_normalized_error": 1.0842021724855044e-19
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 5.096668718563703e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8814265567294525e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.8814265567302474e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.002434478360131103,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 3.3861802251067274e-15,
+                "max_normalized_error": 3.3861802251067274e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 7.112366251504909e-17,
+                "max_normalized_error": 7.112366251504909e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 3.3861802251067274e-15,
+                "max_normalized_error": 3.3861802251067274e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 7.28583859910259e-17,
+                "max_normalized_error": 7.28583859910259e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 2.1094237467877974e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 7.105427357601002e-15,
+                "max_normalized_error": 6.55423069623081e-15
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.525757381022231e-15,
+                "max_normalized_error": 2.525757381022231e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 3.552713678800501e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 2.0816681711721685e-17,
+                "max_normalized_error": 2.0816681711721685e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 3.992680424612719e-16
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 2.6756374893466273e-14,
+                "max_normalized_error": 2.6756374893466273e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 2.1094237467877974e-15,
+                "max_normalized_error": 2.1094237467877974e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.881426556729612e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.881426556730088e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 979,
+            "accepted": 971
+          },
+          "controls": {
+            "kind": "ARCHIVED_CONTROLS",
+            "file": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/inputs/R2_aB_m0_L2_10.npz",
+            "sha256": "809c511d652337d3bc013313eeea2941f9eba43918f2b17cf09b29c4a2aa16b6"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R2_L2_Native_LoS_10",
+          "route": "R2",
+          "bias": "L2",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 979,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R2_aB_m0_L2_Native_LoS.npz",
+              "sha256": "3879c6bc97060d993c88dacf5aa9ae93b92f38522c04be61b638c81cd67ec829"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/NATIVE_001/natural/R2_L2_Native_LoS_10_A.npz",
+              "sha256": "77145a3f5a9d1d51471e09c58f703cddf094457a226cc3a69b9ce0fa79e6e679"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 979,
+            "accepted": 979,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 8.881784197001252e-16,
+                "max_normalized_error": 2.1137425377427842e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.3552527156068805e-20,
+                "max_normalized_error": 1.3552527156068805e-20
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 4.798200610431626e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.7998786550875656e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.799878655087507e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0024476555251454818,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 2.7183116868556567e-15,
+                "max_normalized_error": 2.7183116868556567e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 3.8163916471489756e-17,
+                "max_normalized_error": 3.8163916471489756e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 2.7183116868556567e-15,
+                "max_normalized_error": 2.7183116868556567e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 3.8163916471489756e-17,
+                "max_normalized_error": 3.8163916471489756e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 3.969047313034935e-15,
+                "max_normalized_error": 3.969047313034935e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.0824674490095276e-14,
+                "max_normalized_error": 1.0824674490095276e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 1.7763568394002505e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 3.969047313034935e-15,
+                "max_normalized_error": 3.969047313034935e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.1094237467877974e-15,
+                "max_normalized_error": 2.1094237467877974e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.9984014443252818e-14,
+                "max_normalized_error": 1.8707257964933888e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 3.969047313034935e-15,
+                "max_normalized_error": 3.969047313034935e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.799878655087712e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.7998786550877774e-09,
+                "max_symmetry_error": 0.0,
+                "count": 979
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 979,
+            "accepted": 979
+          },
+          "controls": {
+            "kind": "ARCHIVED_CONTROLS",
+            "file": "research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/inputs/R2_aB_m0_L2_10.npz",
+            "sha256": "809c511d652337d3bc013313eeea2941f9eba43918f2b17cf09b29c4a2aa16b6"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R4_B0_Full_10",
+          "route": "R4",
+          "bias": "B0",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 742,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_B0_Full.npz",
+              "sha256": "04b2edfc8d75b283910d264a541fcee3106bbc9f75e091eebad52acb48087cf2"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R4_aB_m0_B0_Full_10_W0.npz",
+              "sha256": "d175c6041918bc0aa9a353bfa96cdf79468edbb269944124861560761e870ffc"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 742,
+            "accepted": 728,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3010426069826053e-18,
+                "max_normalized_error": 1.3010426069826053e-18
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3010426069826053e-18,
+                "max_normalized_error": 1.3010426069826053e-18
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 4.440892098500626e-16,
+                "max_normalized_error": 1.6584421086775176e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 2.710505431213761e-20,
+                "max_normalized_error": 2.710505431213761e-20
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 8.673617379884035e-19,
+                "max_normalized_error": 8.673617379884035e-19
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.3010426069826053e-18,
+                "max_normalized_error": 1.3010426069826053e-18
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 8.881784197001252e-16,
+                "max_normalized_error": 2.596621309235243e-16
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 4.2771781636303255e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0368476464567095e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0368476464261573e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0019157484721898147,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 4.163336342344337e-15,
+                "max_normalized_error": 4.163336342344337e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.0408340855860843e-17,
+                "max_normalized_error": 1.0408340855860843e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 4.163336342344337e-15,
+                "max_normalized_error": 4.163336342344337e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 1.0408340855860843e-17,
+                "max_normalized_error": 1.0408340855860843e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 5.190292640122607e-15,
+                "max_normalized_error": 5.190292640122607e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.2656542480726785e-14,
+                "max_normalized_error": 1.1231807794232989e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.4432899320127035e-15,
+                "max_normalized_error": 1.4432899320127035e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 5.190292640122607e-15,
+                "max_normalized_error": 5.190292640122607e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 4.163336342344337e-17,
+                "max_normalized_error": 4.163336342344337e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 3.885780586188048e-16
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.5543122344752192e-13,
+                "max_normalized_error": 1.0458300891968975e-13
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 5.190292640122607e-15,
+                "max_normalized_error": 5.190292640122607e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.036847646426149e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0368476464566979e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 742,
+            "accepted": 728
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R4_aB_m0_B0_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_B0_10.npz",
+            "sha256": "9012083e3b7af18989c11a618ce9ff73e2ecf6bc07808506740e2673e223cdf9",
+            "array_identity": {
+              "ds": {
+                "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+                "shape": [
+                  742
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+                "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              },
+              "actual_array_sha256": {
+                "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R4_B0_Native_LoS_10",
+          "route": "R4",
+          "bias": "B0",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 742,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_B0_Native_LoS.npz",
+              "sha256": "fa3eb84014f2f0c613e5b6d57876a63b3469d7cf80c229dd84e44dcec5a92a83"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R4_aB_m0_B0_Native_LoS_10_W0.npz",
+              "sha256": "34049e5aa9e195a753dbd3d0440a1bee41bf26b277ed4095334da7ce9672941e"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 742,
+            "accepted": 742,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 3.4301185130168606e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.041180246108741e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411802460920456e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0019085905634589645,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 2.4980018054066022e-15,
+                "max_normalized_error": 2.4980018054066022e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 2.0816681711721685e-17,
+                "max_normalized_error": 2.0816681711721685e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 2.55351295663786e-15,
+                "max_normalized_error": 2.55351295663786e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 2.0816681711721685e-17,
+                "max_normalized_error": 2.0816681711721685e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 4.038436252074007e-15,
+                "max_normalized_error": 4.038436252074007e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 9.547918011776346e-15,
+                "max_normalized_error": 9.547918011776346e-15
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.2975731600306517e-15,
+                "max_normalized_error": 1.2975731600306517e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 4.038436252074007e-15,
+                "max_normalized_error": 4.038436252074007e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.4980018054066022e-15,
+                "max_normalized_error": 2.4980018054066022e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 5.5067062021407764e-14,
+                "max_normalized_error": 4.5852210917018965e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 4.038436252074007e-15,
+                "max_normalized_error": 4.038436252074007e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411802460920447e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411802461087476e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 742,
+            "accepted": 742
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R4_aB_m0_B0_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_B0_10.npz",
+            "sha256": "9012083e3b7af18989c11a618ce9ff73e2ecf6bc07808506740e2673e223cdf9",
+            "array_identity": {
+              "ds": {
+                "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+                "shape": [
+                  742
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+                "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              },
+              "actual_array_sha256": {
+                "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R4_L2_Full_10",
+          "route": "R4",
+          "bias": "L2",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 742,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_L2_Full.npz",
+              "sha256": "d891d4ada6f05182f3bb1d58e5e69f42bd63ba0838e119f30a6aadeabefc84ae"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R4_aB_m0_L2_Full_10_W0.npz",
+              "sha256": "ff2fdad54c19980eb3e3443f29c311f62286e663730335b4a0560778c0284956"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 742,
+            "accepted": 728,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.220446049250313e-16,
+                "max_normalized_error": 1.8319853336178086e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 6.776263578034403e-21,
+                "max_normalized_error": 6.776263578034403e-21
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 4.336808689942018e-19,
+                "max_normalized_error": 4.336808689942018e-19
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 5.146686611206621e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0370934505181201e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0370934504874497e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0019161339601351031,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 2.7200464103316335e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.0408340855860843e-17,
+                "max_normalized_error": 1.0408340855860843e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 2.7755575615628914e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 1.0408340855860843e-17,
+                "max_normalized_error": 1.0408340855860843e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 8.31279489688086e-15,
+                "max_normalized_error": 8.31279489688086e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.9095836023552692e-14,
+                "max_normalized_error": 1.5277573753260648e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-17,
+                "max_normalized_error": 6.938893903907228e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-17,
+                "max_normalized_error": 6.938893903907228e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.609823385706477e-15,
+                "max_normalized_error": 1.609823385706477e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 8.326672684688674e-15,
+                "max_normalized_error": 8.326672684688674e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-17,
+                "max_normalized_error": 6.938893903907228e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.6653345369377348e-16,
+                "max_normalized_error": 1.6653345369377348e-16
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 5.329070518200751e-15,
+                "max_normalized_error": 1.7763568394002505e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 2.291500322826323e-13,
+                "max_normalized_error": 9.880984919163893e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 8.326672684688674e-15,
+                "max_normalized_error": 8.326672684688674e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0370934504874543e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.037093450518127e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 742,
+            "accepted": 728
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R4_aB_m0_L2_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_L2_10.npz",
+            "sha256": "6d0a5288de5608c853a0371eac83e85e11f206f4361cab081717ad5c86d611b4",
+            "array_identity": {
+              "ds": {
+                "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+                "shape": [
+                  742
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+                "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              },
+              "actual_array_sha256": {
+                "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R4_L2_Native_LoS_10",
+          "route": "R4",
+          "bias": "L2",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 742,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_L2_Native_LoS.npz",
+              "sha256": "fa3eb84014f2f0c613e5b6d57876a63b3469d7cf80c229dd84e44dcec5a92a83"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R4_aB_m0_L2_Native_LoS_10_W0.npz",
+              "sha256": "178bef0f2af883128a7c975f2124717897a64ba3740155ef262f3213bfa4a5f5"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 742,
+            "accepted": 742,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.220446049250313e-16,
+                "max_normalized_error": 1.7379991064079736e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 4.235164736271502e-22,
+                "max_normalized_error": 4.235164736271502e-22
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 3.5404004859259644e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411934470624168e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411934470458922e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0019095313048936092,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.9984014443252818e-15,
+                "max_normalized_error": 1.9984014443252818e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 1.9984014443252818e-15,
+                "max_normalized_error": 1.9984014443252818e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 3.4555691641457997e-15,
+                "max_normalized_error": 3.4555691641457997e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 4.718447854656915e-15,
+                "max_normalized_error": 4.718447854656915e-15
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 8.500145032286355e-16,
+                "max_normalized_error": 8.500145032286355e-16
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 3.4555691641457997e-15,
+                "max_normalized_error": 3.4555691641457997e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 4.163336342344337e-17,
+                "max_normalized_error": 4.163336342344337e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 5.392368395556085e-16
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 3.8191672047105385e-14,
+                "max_normalized_error": 3.5638159090467525e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 3.4555691641457997e-15,
+                "max_normalized_error": 3.4555691641457997e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0411934470458767e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.041193447062405e-09,
+                "max_symmetry_error": 0.0,
+                "count": 742
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 742,
+            "accepted": 742
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R4_aB_m0_L2_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_L2_10.npz",
+            "sha256": "6d0a5288de5608c853a0371eac83e85e11f206f4361cab081717ad5c86d611b4",
+            "array_identity": {
+              "ds": {
+                "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+                "shape": [
+                  742
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+                "shape": [
+                  742
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+                "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              },
+              "actual_array_sha256": {
+                "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+                "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+                "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+                "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R5_B0_Full_10",
+          "route": "R5",
+          "bias": "B0",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 1415,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_B0_Full.npz",
+              "sha256": "43b2fbfc9a339f4b82edd39e8a19791fdb9b06c2a8fd3cae637c217a775e5fc2"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R5_aB_m0_B0_Full_10_W0.npz",
+              "sha256": "64366c2344048b4027514ae23c0320dd35cd8ae35838fd4eb219819688c493a2"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 1415,
+            "accepted": 1384,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 4.440892098500626e-16,
+                "max_normalized_error": 1.2782317461408073e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.3552527156068805e-20,
+                "max_normalized_error": 1.3552527156068805e-20
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.6940658945086007e-21,
+                "max_normalized_error": 1.6940658945086007e-21
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 3.730609689903988e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 2.220446049250313e-16,
+                "max_normalized_error": 2.220446049250313e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0685017468128184e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0685017468128133e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0031337657515596606,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 6.050715484207103e-15,
+                "max_normalized_error": 6.050715484207103e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 3.382710778154774e-16,
+                "max_normalized_error": 3.382710778154774e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 6.050715484207103e-15,
+                "max_normalized_error": 6.050715484207103e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 3.382710778154774e-16,
+                "max_normalized_error": 3.382710778154774e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 2.7755575615628914e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.025221574302293e-14,
+                "max_normalized_error": 1.025221574302293e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 5.655198531684391e-15,
+                "max_normalized_error": 5.655198531684391e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 3.552713678800501e-15,
+                "max_normalized_error": 3.552713678800501e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 4.163336342344337e-15,
+                "max_normalized_error": 4.163336342344337e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.8474111129762605e-13,
+                "max_normalized_error": 4.318767565791859e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-15,
+                "max_normalized_error": 2.7755575615628914e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0685017468128697e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0685017468128749e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 1415,
+            "accepted": 1384
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R5_aB_m0_B0_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_B0_10.npz",
+            "sha256": "f95b0eb9ee552c3a9e984b9046285e45201b317c3bcea22b07573a82e243e0ba",
+            "array_identity": {
+              "ds": {
+                "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+                "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              },
+              "actual_array_sha256": {
+                "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R5_B0_Native_LoS_10",
+          "route": "R5",
+          "bias": "B0",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 1415,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_B0_Native_LoS.npz",
+              "sha256": "51d077a4dcbb8aaa33f4741d1bca2b86f574c60142f972b9973cdda7b6414dc5"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R5_aB_m0_B0_Native_LoS_10_W0.npz",
+              "sha256": "381dc78712ed39b84408d9dd25637662749323e637fc167a282227042cde407c"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 1415,
+            "accepted": 1415,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 8.881784197001252e-16,
+                "max_normalized_error": 1.43388622771201e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 3.3881317890172014e-21,
+                "max_normalized_error": 3.3881317890172014e-21
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 4.481782251481745e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0778497280694252e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0778497280694183e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0031296772672849958,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.5376588891058418e-14,
+                "max_normalized_error": 1.5376588891058418e-14
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 2.8449465006019636e-16,
+                "max_normalized_error": 2.8449465006019636e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 1.5376588891058418e-14,
+                "max_normalized_error": 1.5376588891058418e-14
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 2.914335439641036e-16,
+                "max_normalized_error": 2.914335439641036e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 7.438494264988549e-15,
+                "max_normalized_error": 7.438494264988549e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.6209256159527285e-14,
+                "max_normalized_error": 1.6209256159527285e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 5.332106284283711e-15,
+                "max_normalized_error": 5.332106284283711e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 7.438494264988549e-15,
+                "max_normalized_error": 7.438494264988549e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 8.326672684688674e-17,
+                "max_normalized_error": 8.326672684688674e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.6653345369377348e-16,
+                "max_normalized_error": 1.6653345369377348e-16
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.2490009027033011e-14,
+                "max_normalized_error": 1.2490009027033011e-14
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 7.16093850883226e-14,
+                "max_normalized_error": 7.16093850883226e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 7.438494264988549e-15,
+                "max_normalized_error": 7.438494264988549e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0778497280693952e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.077849728069403e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 1415,
+            "accepted": 1415
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R5_aB_m0_B0_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_B0_10.npz",
+            "sha256": "f95b0eb9ee552c3a9e984b9046285e45201b317c3bcea22b07573a82e243e0ba",
+            "array_identity": {
+              "ds": {
+                "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+                "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              },
+              "actual_array_sha256": {
+                "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R5_L2_Full_10",
+          "route": "R5",
+          "bias": "L2",
+          "channel": "Full",
+          "seed": 10,
+          "expected_rows": 1415,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_L2_Full.npz",
+              "sha256": "089ae155cd160ab65ac6dcdfce66b4fc79f2e4b213863583babfccce5436f74d"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R5_aB_m0_L2_Full_10_W0.npz",
+              "sha256": "b903e9387cc02aa661b49904ef6d08b560c7cb5dbdf17a49fa77e5f759e445b2"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 1415,
+            "accepted": 1384,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.734723475976807e-18,
+                "max_normalized_error": 1.734723475976807e-18
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-18,
+                "max_normalized_error": 6.938893903907228e-18
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 5.295240853554388e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0117802794685729e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0117802794685677e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0031337518841169053,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 9.658940314238862e-15,
+                "max_normalized_error": 9.658940314238862e-15
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 2.5673907444456745e-16,
+                "max_normalized_error": 2.5673907444456745e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 9.658940314238862e-15,
+                "max_normalized_error": 9.658940314238862e-15
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 2.5673907444456745e-16,
+                "max_normalized_error": 2.5673907444456745e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 5.953570969552402e-15,
+                "max_normalized_error": 5.953570969552402e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 1.3322676295501878e-14,
+                "max_normalized_error": 1.2573275753879898e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 6.314393452555578e-15,
+                "max_normalized_error": 6.314393452555578e-15
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 5.9674487573602164e-15,
+                "max_normalized_error": 5.9674487573602164e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 6.938893903907228e-17,
+                "max_normalized_error": 6.938893903907228e-17
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 4.496403249731884e-15,
+                "max_normalized_error": 4.496403249731884e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 7.149836278586008e-14,
+                "max_normalized_error": 4.113376306236205e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 5.9674487573602164e-15,
+                "max_normalized_error": 5.9674487573602164e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0117802794686097e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0117802794686138e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 1415,
+            "accepted": 1384
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R5_aB_m0_L2_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_L2_10.npz",
+            "sha256": "4c17cf313b552623d6515687d70f9688000bea641c6cd376096c6e156df75d1d",
+            "array_identity": {
+              "ds": {
+                "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+                "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              },
+              "actual_array_sha256": {
+                "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        },
+        {
+          "cell": "R5_L2_Native_LoS_10",
+          "route": "R5",
+          "bias": "L2",
+          "channel": "Native_LoS",
+          "seed": 10,
+          "expected_rows": 1415,
+          "inputs": {
+            "packet": {
+              "path": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_L2_Native_LoS.npz",
+              "sha256": "51d077a4dcbb8aaa33f4741d1bca2b86f574c60142f972b9973cdda7b6414dc5"
+            },
+            "reference": {
+              "path": "research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/R5_aB_m0_L2_Native_LoS_10_W0.npz",
+              "sha256": "269f8bcac83cd37d41c9698f11d08f21072d11babdac963e1712a7aa5aa6c8f4"
+            }
+          },
+          "stored_arithmetic": {
+            "status": "PASS_STORED_ARITHMETIC",
+            "role": "IMPLEMENTER_CHECK",
+            "n": 1415,
+            "accepted": 1415,
+            "checks": {
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 2.220446049250313e-16,
+                "max_normalized_error": 1.4051885820512987e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 3.469446951953614e-18,
+                "max_normalized_error": 3.469446951953614e-18
+              },
+              "x": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 1.0842021724855044e-19,
+                "max_normalized_error": 1.0842021724855044e-19
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 2.7755575615628914e-17,
+                "max_normalized_error": 2.7755575615628914e-17
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 1.3877787807814457e-17,
+                "max_normalized_error": 1.3877787807814457e-17
+              },
+              "range_model_geometry_plus_B_OLD": {
+                "passed": true,
+                "max_abs_error": 1.7763568394002505e-15,
+                "max_normalized_error": 5.219208978096542e-16
+              },
+              "range_model_jacobian": {
+                "passed": true,
+                "max_abs_error": 3.3306690738754696e-16,
+                "max_normalized_error": 3.3306690738754696e-16
+              },
+              "initial_P": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0616598341050617e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.061659834105057e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "noise_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 0.0031299119193800764,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": false,
+            "polarization_h_H_regenerated": false,
+            "full_recursive_replay": false,
+            "claim": "Stored same-prior mathematical consistency; not a baseline replay or independent audit."
+          },
+          "recursive": {
+            "status": "PASS",
+            "checks": {
+              "x": {
+                "passed": true,
+                "max_abs_error": 1.2236739399540397e-14,
+                "max_normalized_error": 1.2236739399540397e-14
+              },
+              "P": {
+                "passed": true,
+                "max_abs_error": 8.881784197001252e-16,
+                "max_normalized_error": 8.881784197001252e-16
+              },
+              "prior": {
+                "passed": true,
+                "max_abs_error": 1.226796442210798e-14,
+                "max_normalized_error": 1.226796442210798e-14
+              },
+              "Pprior": {
+                "passed": true,
+                "max_abs_error": 8.951173136040325e-16,
+                "max_normalized_error": 8.951173136040325e-16
+              },
+              "h": {
+                "passed": true,
+                "max_abs_error": 5.329070518200751e-15,
+                "max_normalized_error": 3.7192471324942744e-15
+              },
+              "H": {
+                "passed": true,
+                "max_abs_error": 2.4924506902834764e-14,
+                "max_normalized_error": 2.4924506902834764e-14
+              },
+              "mu": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "Rvar": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "Reff": {
+                "passed": true,
+                "max_abs_error": 5.551115123125783e-17,
+                "max_normalized_error": 5.551115123125783e-17
+              },
+              "K": {
+                "passed": true,
+                "max_abs_error": 1.199040866595169e-14,
+                "max_normalized_error": 1.199040866595169e-14
+              },
+              "nu": {
+                "passed": true,
+                "max_abs_error": 5.329070518200751e-15,
+                "max_normalized_error": 5.329070518200751e-15
+              },
+              "S": {
+                "passed": true,
+                "max_abs_error": 1.249000902703301e-16,
+                "max_normalized_error": 1.249000902703301e-16
+              },
+              "sigma_b": {
+                "passed": true,
+                "max_abs_error": 1.1102230246251565e-16,
+                "max_normalized_error": 1.1102230246251565e-16
+              },
+              "rho_before": {
+                "passed": true,
+                "max_abs_error": 9.159339953157541e-15,
+                "max_normalized_error": 9.159339953157541e-15
+              },
+              "weight": {
+                "passed": true,
+                "max_abs_error": 0.0,
+                "max_normalized_error": 0.0
+              },
+              "nis": {
+                "passed": true,
+                "max_abs_error": 6.250555628639631e-14,
+                "max_normalized_error": 6.250555628639631e-14
+              },
+              "d0": {
+                "passed": true,
+                "max_abs_error": 3.7192471324942744e-15,
+                "max_normalized_error": 3.7192471324942744e-15
+              },
+              "mask": {
+                "passed": true,
+                "mismatches": 0
+              },
+              "posterior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0616598341049728e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              },
+              "prior_covariance": {
+                "passed": true,
+                "minimum_eigenvalue": 1.0616598341049765e-09,
+                "max_symmetry_error": 0.0,
+                "count": 1415
+              }
+            },
+            "mask_regenerated": true,
+            "h_H_regenerated": true,
+            "n": 1415,
+            "accepted": 1415
+          },
+          "controls": {
+            "kind": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+            "registry": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+            "registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+            "registry_key": "R5_aB_m0_L2_10",
+            "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_L2_10.npz",
+            "sha256": "4c17cf313b552623d6515687d70f9688000bea641c6cd376096c6e156df75d1d",
+            "array_identity": {
+              "ds": {
+                "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "gy": {
+                "sha256": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "dt": {
+                "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "x0": {
+                "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+                "shape": [
+                  3
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "t": {
+                "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<f8",
+                "hash_order": "C"
+              },
+              "pose_id": {
+                "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+                "shape": [
+                  1415
+                ],
+                "dtype": "<i8",
+                "hash_order": "C"
+              }
+            },
+            "historical_identity": {
+              "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+              "exact_historical_array_matches": {
+                "ds": false,
+                "gy": true,
+                "dt": true,
+                "x0": true
+              },
+              "expected_array_sha256": {
+                "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+                "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              },
+              "actual_array_sha256": {
+                "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+                "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+                "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+                "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+              }
+            },
+            "GT_use": "offline pinned original control materializer only; no truth loaded by this input helper"
+          },
+          "status": "PASS_FULL"
+        }
+      ],
+      "control_reproduction_mode": "A2_REMATERIALIZED_CONTROLS",
+      "exact_historical_control_bytes": "UNRESOLVED_R4_R5",
+      "source_model_initialization": "Original deterministic FFD source-ring polynomial cap fit; no new RF-label training.",
+      "source_model": {
+        "status": "READY",
+        "code_sha256": {
+          "research/FFD_P0P3_20261016/source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+          "research/FFD_P0P3_20261016/p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+          "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+          "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+          "research/MBVAR_PRR_001_20261103/S1/online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+          "src/qclean_uwb/drivesim/hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/sensor_v2.py": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+          "src/qclean_uwb/drivesim/sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118"
+        },
+        "bank_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        }
+      },
+      "utc_end": "2026-11-05T05:04:09.688740+00:00",
+      "completed_recursive_cells": 12,
+      "completed_stored_arithmetic_cells": 12,
+      "full_recursive_gate_pass": true,
+      "controls_regenerated_from_truth_offline_only": true
+    }
+  },
+  "utc_end": "2026-11-05T05:04:09.713329+00:00"
+}

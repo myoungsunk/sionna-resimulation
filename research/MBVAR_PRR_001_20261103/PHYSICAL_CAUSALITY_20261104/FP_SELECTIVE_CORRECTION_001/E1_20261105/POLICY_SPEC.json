@@ -1,0 +1,140 @@
+{
+  "schema": "FP_SC_E1_01_CANDIDATE_SPEC_V1",
+  "study_id": "FP-SC-001",
+  "experiment_id": "E1-01",
+  "status": "FROZEN_FOR_E1_01_CODE_REVIEW",
+  "execution_go": false,
+  "scope": "CIR-only candidate availability; no wrongness selector, P/M pruning, FP replacement, mu/R fit, EKF run or parameter optimization",
+  "source_base": "c68dcdcdd01180617b827e1f6ebb58e6740a8e29",
+  "mapping_boundary": "Candidate generation does not consume a distance prior. E0 native diagnostic semantics and any remaining baseline limitation must be stated by the parent run contract. No flat r(n)+/-half-step assumption is used, and no E1-02/E2 permission follows from this candidate-only execution.",
+  "corpus": {
+    "dynamic": {
+      "selection_source": "C1/C1A_001/FROZEN_PACKETS/algorithm_input/{route}_aB_m0_B0_Full.npz exact pose_id/t arrays",
+      "routes": {
+        "R2": 979,
+        "R4": 742,
+        "R5": 1415
+      },
+      "raw_full": "BLOCK_C/FULL_RF/H_{route}_aB_m0.npy at exact original pose_id, TX0",
+      "raw_los": "BLOCK_C/H_LoS_{route}_aB_m0.npy at the same exact pose_id, TX0",
+      "waveforms": [
+        "Full",
+        "Native_LoS"
+      ],
+      "bias_metadata": "B0, exposed seed10 pose set; neither bias nor seed enters generator",
+      "waveforms_per_channel": 3136,
+      "distinct_waveform_records": 6272,
+      "noisy_waveforms": 0
+    },
+    "static_g4": {
+      "selection_source": "C3/G4_001/RUN_001/CONDITIONS.json exact 24 condition IDs",
+      "raw_source": "C3/G4_001/RUN_001/{condition_id}/FIELDS_AND_WINDOWS.npz full_spectrum/direct_spectrum",
+      "selected_coordinates": 6,
+      "yaws_per_coordinate": 4,
+      "conditions": 24,
+      "waveforms": [
+        "Full",
+        "Native_LoS"
+      ],
+      "distinct_waveform_records": 48,
+      "time_series": false,
+      "statistical_role": "Secondary static controls, separate from the primary dynamic denominator; 24 conditions are not 24 independent environments."
+    },
+    "totals": {
+      "dynamic_plus_static_waveform_records": 6320,
+      "candidate_pool_modes": 2,
+      "expected_packet_mode_rows": 12640,
+      "primary_dynamic_full_rows_per_mode": 3136,
+      "native_los_protection_rows_per_mode": 3160
+    },
+    "primary_comparison": "TWO_PORT_UNION candidate recall on valid >=2tap reference errors in dynamic Full; STRONGEST_ONLY is the paired availability ablation. Do not pool G4 into the dynamic primary score.",
+    "sampling": "All locked IDs; no hotspots, random packet splits or post-hoc exclusions."
+  },
+  "fixed_generator": {
+    "eta_prominence": 0.06,
+    "local_leading_edge_amplitude_fraction": 0.3,
+    "neighbor_radius_taps": 1,
+    "candidate_min_fraction_of_local_peak": 0.15,
+    "minimum_noise_sigma": 3.0,
+    "packet_union_bound_pfa": 0.001,
+    "numeric_floor_epsilon_multiplier": 64,
+    "max_candidates_for_usable_pool": 64,
+    "per_bin_complex_noise_variance": 0.0,
+    "waveform_class": "CLEAN_EXACT",
+    "noise_floor_definition": "v_C=6*v_H; A_noise=max(3*sqrt(v_C),sqrt(v_C*ln(2*1028/0.001))). For this declared clean corpus v_H=0. The 3-sigma minimum is not a 99.7% claim, and the clean trial establishes no noisy detectability.",
+    "candidate_modes": [
+      "STRONGEST_ONLY",
+      "TWO_PORT_UNION"
+    ],
+    "raw_detector": "Unchanged source receiver: strongest RX peak, earliest port tie; first amplitude crossing >=0.30 of that strongest peak.",
+    "local_peak": "Interior maximal plateau strictly above both immediate neighboring samples; earliest plateau index. Boundary plateaus strictly above their sole neighbor are logged with BOUNDARY_PEAK_NOT_CANDIDATE, no candidates/groups; a constant full-array plateau is not a local peak. Valid raw fallback remains.",
+    "prominence": "For each peak, extend left/right until a higher sample or boundary; subtract the larger of the two side minima from peak magnitude. Exact equal side minima use the nearest index to the peak.",
+    "local_edge_segment": "Walk left from the earliest peak index along nondecreasing magnitudes to the nearest local minimum; this monotone rising segment is separate from the wider prominence basin. If its minimum is not below 0.30*peak, mark unresolved and generate no edge.",
+    "significant_peak": "peak>=max(A_noise,A_numeric) AND prominence>=max(A_noise,0.06*global_peak). A_numeric=64*eps_float64*global_peak for nonzero finite waveform.",
+    "candidate_generation": "For each significant resolved lobe, use its local first 30%-amplitude crossing e, then {e-1,e,e+1} inside the rising segment through the peak. Retain a tap only if its generating RX magnitude is >=max(A_noise,A_numeric,0.15*local_peak). No GT/LoS/prior/history inputs.",
+    "lobe_group": "Only significant resolved lobes with >=1 supported candidate, and ports active in that mode. Local valleys: walk left from earliest plateau peak while next-left<=current magnitude; walk right from last plateau index while next-right<=current magnitude. Group open intervals (left_local_valley,right_local_valley) by strictly positive overlap, with transitive components. Touching at one valley never merges. Number components by the minimum (left,right,rx,peak) tuple of each component, ascending.",
+    "two_port_null_rule": "One supported RX is sufficient; no minimum power on both ports.",
+    "duplicate_taps": "For valid raw frames, union candidate tap IDs retaining all supporting RX/lobe IDs and add original n0 as fallback if absent. For invalid raw frames candidate lists are EMPTY; original finite zero-signal tap/rx/range/s fields remain separate raw metadata. Nonfinite CIR has raw tap/rx=None and explicit invalid status.",
+    "overflow": "Count every distinct tap ID INCLUDING valid raw fallback; all candidates logged and no truncation. A >64 pool is marked overflow and unusable for primary usable-candidate recall.",
+    "no_signal": "Zero/nonfinite/invalid-denominator original sample cannot create a usable pool. Preserve original raw fields for audit; do not fabricate a candidate or count zero signal as a correct observation.",
+    "search": "Exactly one generator. The 27-setting E2 family is not run or selected here. If this fixed generator fails, preserve the failure; any redesign requires a new version/contract.",
+    "global_peak": "max(abs(CIR)) across BOTH RX ports, using the same normalization in STRONGEST_ONLY and TWO_PORT_UNION",
+    "denominator_power_floor": 0.0
+  },
+  "reference_and_denominators": {
+    "reference": "Original receiver on clean Native-LoS from same locked pose or G4 condition; evaluator only",
+    "reference_valid": "Finite clean native CIR, positive peak above numeric floor, finite selected s/range and positive two-port denominator; one polarization null allowed. This is exact-clean arithmetic support, not physical device sensitivity.",
+    "raw_valid": "The same validity definition on the current waveform; original zero-CIR detected=True does not override invalid s/denominator.",
+    "normal": "reference_valid AND raw_valid AND n0==nL",
+    "wrong": "reference_valid AND raw_valid AND n0!=nL",
+    "large_error": "reference_valid AND raw_valid AND abs(n0-nL)>=2",
+    "one_tap_error": "reference_valid AND raw_valid AND abs(n0-nL)==1",
+    "unknown_reference": "not reference_valid; preserve in all-input and output-availability denominators",
+    "original_invalid": "reference_valid AND not raw_valid; report separately, do not turn an arbitrary invalid raw tap into a wrong-reference detection label",
+    "reference_in_all_pool": "nL appears in distinct tap IDs including raw fallback",
+    "reference_in_supported_pool": "nL has at least one actual supporting lobe record, not only the fallback role",
+    "reference_in_usable_pool": "reference_in_supported_pool AND no overflow AND raw_valid; this is the primary candidate-availability success event for large errors",
+    "normal_preservation": "For valid original frames, n0 is retained in the candidate pool exactly. For invalid frames, preserve only raw metadata and require no candidates. No replacement is performed, so this is a construction check rather than selective-correction false-positive performance."
+  },
+  "cluster_accounting": {
+    "dynamic_error_episode": "Within each route and waveform, maximal consecutive large-error rows; break when the label is not large, original pose_id is not prior+1, or elapsed timestamp exceeds 0.4s. Episode IDs are evaluator-only.",
+    "episode_metrics": [
+      "episode count",
+      "packet count per episode",
+      "per-episode usable reference recall",
+      "all-packets-recalled episode count",
+      "at-least-one-recalled episode count",
+      "longest contiguous missing-reference run"
+    ],
+    "static_cluster": "Coordinate ID; report four yaws together and all raw conditions individually",
+    "inference": "Descriptive packet/episode/coordinate counts only. No IID packet CI, population safety probability or claim of independent RF environments."
+  },
+  "observed_gate_proposal": {
+    "numerical_threshold": 0.95,
+    "primary": "Dynamic Full TWO_PORT_UNION usable candidate recall among >=2tap errors >=0.95, with all route denominators disclosed.",
+    "stratified_guard": "Every route with a nonzero large-error denominator must also meet >=0.95; otherwise report NOT_SUPPORTED_STRATIFIED and keep E2 GO false. A zero denominator is NOT_TESTED for that route, never 100% recall.",
+    "statistical_status": "Even a numeric pass is DESCRIPTIVE_CANDIDATE_AVAILABILITY only; reviewer must assess episode support. No automatic H2 selection success or E2 authorization.",
+    "E2_GO": false
+  },
+  "required_outputs": [
+    "RUN_MANIFEST.json with source/code/spec/input/environment bindings and exact counts",
+    "PACKET_CANDIDATE_COVERAGE.csv for all 12640 packet-mode rows",
+    "CANDIDATES.csv.gz with every candidate tap, support/fallback role and lobe/port provenance; deterministic gzip mtime=0",
+    "LOBE_RECORDS.csv.gz once per waveform, with significant/unresolved/rejected/boundary peak reasons; deterministic gzip mtime=0",
+    "EPISODES.csv and STATIC_COORDINATE_SUMMARY.json",
+    "SUMMARY.json with per-route/per-channel/per-mode normal/wrong/large/unknown denominators and observed gate",
+    "FAILURE_LEDGER.json for any missing, malformed or failed inputs",
+    "ARTIFACT_HASHES.json excluding its own self-reference"
+  ],
+  "technical_checks_before_run": [
+    "Pure generator accepts only CIR and immutable config; no route/seed/GT/prior fields",
+    "Strongest-only taps are a subset of two-port union taps before any overflow eligibility",
+    "For valid raw frames the original raw tap is always retained; invalid raw frames preserve metadata and have empty pools. Two-port one-null cases remain supported.",
+    "Prominence/local amplitude definition is not power 30%",
+    "Local edge neighbors cannot expand to arbitrary whole-window candidates",
+    "Exact source pose/time joins and corpus counts enforced",
+    "Reference labels opened only in evaluator after generator outputs exist",
+    "Permuting reference/GT metadata cannot change generator outputs",
+    "No-real-data execution without root-owned frozen locks and reviewed entry gate"
+  ]
+}
