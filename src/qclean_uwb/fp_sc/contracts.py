@@ -96,6 +96,8 @@ def verify_lock(repo, lock, approval):
     repo = Path(repo).resolve()
     if lock.get('schema') != SCHEMA or lock.get('stage') != 'E0':
         raise ValueError('WRONG_STAGE_OR_SCHEMA')
+    if lock.get('amendment') not in (None, 'A2_REMATERIALIZED_CONTROLS'):
+        raise ValueError('UNRECOGNIZED_AMENDMENT')
     if not re.fullmatch('[0-9a-f]{40}', lock.get('implementation_commit', '')):
         raise ValueError('MISSING_IMPLEMENTATION_COMMIT')
     if approval.get('schema') != 'FP_SC_E0_OWNER_SCOPED_EXECUTION_V1' or not approval.get('GO_E0'):
@@ -133,10 +135,19 @@ def verify_lock(repo, lock, approval):
         if not path.is_file() or path.stat().st_size != entry['size_bytes'] or sha256(path) != entry['sha256']:
             raise ValueError(f'INPUT_DRIFT: {entry["path"]}')
         observed_bytes += path.stat().st_size
-    if lock['run_scope'] != {'sensor_seed': 10, 'baseline_cells': 12, 'dynamic_pose_ids': 3136,
+    original_scope = {'sensor_seed': 10, 'baseline_cells': 12, 'dynamic_pose_ids': 3136,
                              'g4_conditions': 24, 'flat_samples': 14000, 'new_rt': 0, 'selector_runs': 0,
-                             'sealed_trajectories': 0}:
+                             'sealed_trajectories': 0}
+    a2_scope = {'sensor_seed': 10, 'baseline_cells': 12, 'dynamic_pose_ids': 0,
+                'g4_conditions': 0, 'flat_samples': 0, 'new_rt': 0, 'selector_runs': 0,
+                'sealed_trajectories': 0}
+    allowed_scope = a2_scope if lock.get('amendment') == 'A2_REMATERIALIZED_CONTROLS' else original_scope
+    if lock['run_scope'] != allowed_scope:
         raise ValueError('RUN_SCOPE_DRIFT')
+    if lock.get('amendment') == 'A2_REMATERIALIZED_CONTROLS':
+        registry = lock.get('rematerialized_controls_registry')
+        if not registry or registry not in lock['documents']:
+            raise ValueError('A2_CONTROLS_REGISTRY_NOT_LOCKED')
     return dict(status='PASS_PRE_EXECUTION_IDENTITIES', files=len(inputs['files']), bytes=observed_bytes,
                 implementation_commit=lock['implementation_commit'], execution_commit=git_head(repo),
                 external_independent_accept=False)

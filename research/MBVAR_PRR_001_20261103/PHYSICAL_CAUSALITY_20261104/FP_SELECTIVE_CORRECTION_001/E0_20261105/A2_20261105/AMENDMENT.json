@@ -1,0 +1,62 @@
+{
+  "schema": "FP_SC_E0_A2_AMENDMENT_V1",
+  "study": "FP-SC-001",
+  "stage": "E0",
+  "amendment": "A2_REMATERIALIZED_CONTROLS",
+  "created_utc": "2026-11-05T04:54:51.063437+00:00",
+  "status": "PREREGISTERED_PENDING_CODE_REVIEW",
+  "prior_run": "../RUN_E0_001",
+  "prior_run_verdict_preserved": "PARTIAL_BASELINE_PARITY",
+  "reason": "The original R4/R5 control NPZ payloads are unavailable in the bounded repository/LFS search; the pinned original recipe gives exact gy/dt/x0 but different ds byte hashes on this Linux environment.",
+  "new_question": "Does the untouched original W0 filter reproduce every archived trace field and exact gate mask using separately frozen primary-Linux controls from the original recipe?",
+  "controls_rule": "Generate once with primary environment and original sensor recipe, seed10. Freeze before recursion. No use of inverse state-derived ds, no ULP editing, no selection among runtime variants.",
+  "historical_bytes_requirement": "EXACT_HISTORICAL_CONTROL_BYTES=UNRESOLVED_R4_R5, regardless of numerical outcome",
+  "successful_claim": "NUMERICAL_REPRODUCTION_WITH_REMATERIALIZED_CONTROLS",
+  "unchanged_numeric_contract": {
+    "normalized_abs_error_max": 1e-10,
+    "normalization": "abs(actual-reference)/max(1,abs(reference))",
+    "exact": [
+      "pose_id",
+      "t",
+      "mask"
+    ],
+    "covariance_relative_tolerance": 1e-12
+  },
+  "baseline_cells": 12,
+  "routes": [
+    "R2",
+    "R4",
+    "R5"
+  ],
+  "biases": [
+    "B0",
+    "L2"
+  ],
+  "channels": [
+    "Full",
+    "Native_LoS"
+  ],
+  "sensor_seed": 10,
+  "R2_controls": "Actual archived original payloads, unchanged.",
+  "R4_R5_controls": "Newly identified files and array hashes, explicitly rematerialized. Require original exact gy/dt/x0 hashes.",
+  "repeat_scope": "Baseline recursion only; do not repeat unaffected receiver/G4/flat results. Original E0 results remain separately referenced.",
+  "mapping_definition": {
+    "filter_surrogate": "h_r=geometric distance+B_OLD, unchanged in W0",
+    "detector_prediction": "SourceFFD diagnostic native_range is the direct-source detector-domain output; geometry+B_OLD must not be treated as the quantized native detector.",
+    "existing_evidence": "G4 SourceFFD native range matches operational direct-only detector in24/24; this resolves definition only, not uncertain-prior support or moving-path validity.",
+    "unresolved_for_selector": "P/M uncertain-prior support must be separately frozen and tested; no universal half-tap or hard4cm claim."
+  },
+  "execution_authority": {
+    "instruction": "계획대로, 구현 - 실행 - 깃허브 푸시하도록",
+    "source": "Current user instruction; stage preconditions preserved"
+  },
+  "result_review_required": true,
+  "E1_E5_GO": false,
+  "external_independent_accept": false,
+  "abort_if": [
+    "Any file or code drift",
+    "Any numeric parity or exact gate/pose/time mismatch",
+    "Any data-derived tweaking of controls",
+    "Missing primary-environment or source identity"
+  ]
+}

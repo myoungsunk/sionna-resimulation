@@ -1,0 +1,686 @@
+{
+  "schema": "FP_SC_001_E0_A2_CONTROLS_V1",
+  "identity": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+  "amendment_id": "FP-SC-001-E0-A2",
+  "created_utc": "2026-11-05T04:55:59.618461+00:00",
+  "command": [
+    "scripts/fp_sc_materialize_controls.py",
+    "--output",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls"
+  ],
+  "status": "INPUTS_PREPARED_NOT_A_SCIENTIFIC_RUN",
+  "historical_byte_identity_status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+  "source_recipe_only": true,
+  "ekf_executed": false,
+  "archived_filter_states_used": false,
+  "historical_registry": "research/MBVAR_PRR_001_20261103/A0_R3_REFIT/BASE_INPUTS.json",
+  "source_files": {
+    "research/DS_MASK_CAUSAL_X1_X2_20261026/pol_bias_model/exp_pb.py": {
+      "sha256": "a637c3ef0322546215cab7aef76889f1e6e256048bb2821f1b9967679e534972",
+      "size": 12319
+    },
+    "research/EKF4_RANGE_S_STAGED_20261014/core.py": {
+      "sha256": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+      "size": 13141
+    },
+    "src/qclean_uwb/drivesim/sensor_v2.py": {
+      "sha256": "56ea1c8f5afbd1c9662885366155c490d7ad01009d8a0bf8ebe3d7f85647c2ac",
+      "size": 9898
+    },
+    "src/qclean_uwb/drivesim/sensors.py": {
+      "sha256": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118",
+      "size": 4620
+    },
+    "research/MBVAR_PRR_001_20261103/A0_R3_REFIT/BASE_INPUTS.json": {
+      "sha256": "512dc5b5e0e52db3b653171e241fd7e906fcdb93336a2ab41adf51a96d20f554",
+      "size": 48021
+    },
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/MANIFEST.json": {
+      "sha256": "54570bf06aec36065ce6851fac070ff67455e261109c82a1c26335c99c38f99a",
+      "size": 3525
+    }
+  },
+  "producer_sha256": {
+    "src/qclean_uwb/fp_sc/e0_rematerialized.py": "c7560d93ff5c7d1c44b9f48fac2ad7221b66468e72edfb72492a07030a58cdf1",
+    "scripts/fp_sc_materialize_controls.py": "00279f69c2d653a1697f57e47743d6c74a7e4ae8051425613a9c160ceabf0948"
+  },
+  "recipe": {
+    "method": "execute only pinned original build_controls/constants and core.wrap AST",
+    "selected_ast_sha256": "abc1b84c39d17f0b1c65a47153c8dfcb0d65aee8ede33e5320e747899a84d8d7",
+    "uses_archived_state_or_prior": false,
+    "per_row_value_adjustment": false,
+    "runtime_selection_by_replay_metric": false
+  },
+  "runtime": {
+    "python": "3.12.14",
+    "python_full": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "numpy": "2.3.5",
+    "system": "Linux",
+    "machine": "x86_64",
+    "thread_and_dispatch_environment": {
+      "OPENBLAS_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_CORETYPE": null,
+      "NPY_DISABLE_CPU_FEATURES": null
+    },
+    "numpy_build": {
+      "Compilers": {
+        "c": {
+          "name": "gcc",
+          "linker": "ld.bfd",
+          "version": "14.2.1",
+          "commands": "cc"
+        },
+        "cython": {
+          "name": "cython",
+          "linker": "cython",
+          "version": "3.2.1",
+          "commands": "cython"
+        },
+        "c++": {
+          "name": "gcc",
+          "linker": "ld.bfd",
+          "version": "14.2.1",
+          "commands": "c++"
+        }
+      },
+      "Machine Information": {
+        "host": {
+          "cpu": "x86_64",
+          "family": "x86_64",
+          "endian": "little",
+          "system": "linux"
+        },
+        "build": {
+          "cpu": "x86_64",
+          "family": "x86_64",
+          "endian": "little",
+          "system": "linux"
+        }
+      },
+      "Build Dependencies": {
+        "blas": {
+          "name": "scipy-openblas",
+          "found": true,
+          "version": "0.3.30",
+          "detection method": "pkgconfig",
+          "include directory": "/opt/_internal/cpython-3.12.12/lib/python3.12/site-packages/scipy_openblas64/include",
+          "lib directory": "/opt/_internal/cpython-3.12.12/lib/python3.12/site-packages/scipy_openblas64/lib",
+          "openblas configuration": "OpenBLAS 0.3.30  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "pc file directory": "/project/.openblas"
+        },
+        "lapack": {
+          "name": "scipy-openblas",
+          "found": true,
+          "version": "0.3.30",
+          "detection method": "pkgconfig",
+          "include directory": "/opt/_internal/cpython-3.12.12/lib/python3.12/site-packages/scipy_openblas64/include",
+          "lib directory": "/opt/_internal/cpython-3.12.12/lib/python3.12/site-packages/scipy_openblas64/lib",
+          "openblas configuration": "OpenBLAS 0.3.30  USE64BITINT DYNAMIC_ARCH NO_AFFINITY Haswell MAX_THREADS=64",
+          "pc file directory": "/project/.openblas"
+        }
+      },
+      "Python Information": {
+        "path": "/tmp/build-env-aw1mwcap/bin/python",
+        "version": "3.12"
+      },
+      "SIMD Extensions": {
+        "baseline": [
+          "SSE",
+          "SSE2",
+          "SSE3"
+        ],
+        "found": [
+          "SSSE3",
+          "SSE41",
+          "POPCNT",
+          "SSE42",
+          "AVX",
+          "F16C",
+          "FMA3",
+          "AVX2",
+          "AVX512F",
+          "AVX512CD",
+          "AVX512_SKX",
+          "AVX512_CLX",
+          "AVX512_CNL",
+          "AVX512_ICL",
+          "AVX512_SPR"
+        ],
+        "not found": [
+          "AVX512_KNL",
+          "AVX512_KNM"
+        ]
+      }
+    }
+  },
+  "entries": {
+    "R4_aB_m0_B0_10": {
+      "identity": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+      "route": "R4",
+      "bias": "B0",
+      "seed": 10,
+      "n": 742,
+      "time_min_s": 0.0,
+      "time_max_s": 148.20000000000002,
+      "max_delta_t_s": 0.20000000000001705,
+      "arrays": {
+        "ds": {
+          "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "gy": {
+          "sha256": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "dt": {
+          "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "x0": {
+          "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+          "shape": [
+            3
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "t": {
+          "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "pose_id": {
+          "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+          "shape": [
+            742
+          ],
+          "dtype": "<i8",
+          "hash_order": "C"
+        }
+      },
+      "historical_identity": {
+        "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+        "exact_historical_array_matches": {
+          "ds": false,
+          "gy": true,
+          "dt": true,
+          "x0": true
+        },
+        "expected_array_sha256": {
+          "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+          "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+          "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+        },
+        "actual_array_sha256": {
+          "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+          "gy": "3abc308a33bb9a39e5b3bc479d2eeb918c1a035ea27720b886384645f06bc2ff",
+          "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+        }
+      },
+      "truth": {
+        "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/evaluator_truth/R4_B0_TRUTH.npz",
+        "sha256": "a39de030922ac9f6770c7e3278f4f0f7de0c2ea72626de8b904126956928bc11",
+        "size": 20378,
+        "input_lock_key": "R4_B0_TRUTH.npz",
+        "arrays": {
+          "t": {
+            "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+            "shape": [
+              742
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          },
+          "pose_id": {
+            "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+            "shape": [
+              742
+            ],
+            "dtype": "<i8",
+            "hash_order": "C"
+          },
+          "truth": {
+            "sha256": "c7bf9e97d482fab05894c38a0c328ded332ce3d3be9d8fb8e15d64c394ba8bee",
+            "shape": [
+              742,
+              3
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          }
+        }
+      },
+      "packets": {
+        "Full": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_B0_Full.npz",
+          "sha256": "04b2edfc8d75b283910d264a541fcee3106bbc9f75e091eebad52acb48087cf2",
+          "size": 39279,
+          "input_lock_key": "R4_aB_m0_B0_Full.npz"
+        },
+        "Native_LoS": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_B0_Native_LoS.npz",
+          "sha256": "fa3eb84014f2f0c613e5b6d57876a63b3469d7cf80c229dd84e44dcec5a92a83",
+          "size": 38519,
+          "input_lock_key": "R4_aB_m0_B0_Native_LoS.npz"
+        }
+      },
+      "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_B0_10.npz",
+      "sha256": "9012083e3b7af18989c11a618ce9ff73e2ecf6bc07808506740e2673e223cdf9",
+      "size": 13578
+    },
+    "R4_aB_m0_L2_10": {
+      "identity": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+      "route": "R4",
+      "bias": "L2",
+      "seed": 10,
+      "n": 742,
+      "time_min_s": 0.0,
+      "time_max_s": 148.20000000000002,
+      "max_delta_t_s": 0.20000000000001705,
+      "arrays": {
+        "ds": {
+          "sha256": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "gy": {
+          "sha256": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "dt": {
+          "sha256": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "x0": {
+          "sha256": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850",
+          "shape": [
+            3
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "t": {
+          "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+          "shape": [
+            742
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "pose_id": {
+          "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+          "shape": [
+            742
+          ],
+          "dtype": "<i8",
+          "hash_order": "C"
+        }
+      },
+      "historical_identity": {
+        "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+        "exact_historical_array_matches": {
+          "ds": false,
+          "gy": true,
+          "dt": true,
+          "x0": true
+        },
+        "expected_array_sha256": {
+          "ds": "d366d1d3fcd447cba0a357d0b6cced801f04c687e323df553527852c43953b5a",
+          "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+          "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+        },
+        "actual_array_sha256": {
+          "ds": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+          "gy": "f2bfd47be2d28514cdc0801d9ca6b164e5a4e7081616110d55c6c07ce15a96a5",
+          "dt": "166f95a8df0a0b9008336c14371d279cdb660f97faa001d30993592406ea3d14",
+          "x0": "146f08db2c36f2e1a8e9bd48f1017d2bbf69ee04ed7ff838511314e764003850"
+        }
+      },
+      "truth": {
+        "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/evaluator_truth/R4_L2_TRUTH.npz",
+        "sha256": "f978bbfee3f1b5e1e819d85c17ee7e286a7c3b44f3dd6122c2c8e94095e116a1",
+        "size": 20384,
+        "input_lock_key": "R4_L2_TRUTH.npz",
+        "arrays": {
+          "t": {
+            "sha256": "301d075defb8afbcc230b5f89c4fe7c41f7d174ce002b53a091014d6ac1a1005",
+            "shape": [
+              742
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          },
+          "pose_id": {
+            "sha256": "027d4b7c9249f9119ec97a53b075ae0b2b0abcef41c6bf23042b21b759c86818",
+            "shape": [
+              742
+            ],
+            "dtype": "<i8",
+            "hash_order": "C"
+          },
+          "truth": {
+            "sha256": "c7bf9e97d482fab05894c38a0c328ded332ce3d3be9d8fb8e15d64c394ba8bee",
+            "shape": [
+              742,
+              3
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          }
+        }
+      },
+      "packets": {
+        "Full": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_L2_Full.npz",
+          "sha256": "d891d4ada6f05182f3bb1d58e5e69f42bd63ba0838e119f30a6aadeabefc84ae",
+          "size": 39281,
+          "input_lock_key": "R4_aB_m0_L2_Full.npz"
+        },
+        "Native_LoS": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_L2_Native_LoS.npz",
+          "sha256": "fa3eb84014f2f0c613e5b6d57876a63b3469d7cf80c229dd84e44dcec5a92a83",
+          "size": 38519,
+          "input_lock_key": "R4_aB_m0_L2_Native_LoS.npz"
+        }
+      },
+      "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R4_aB_m0_L2_10.npz",
+      "sha256": "6d0a5288de5608c853a0371eac83e85e11f206f4361cab081717ad5c86d611b4",
+      "size": 13572
+    },
+    "R5_aB_m0_B0_10": {
+      "identity": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+      "route": "R5",
+      "bias": "B0",
+      "seed": 10,
+      "n": 1415,
+      "time_min_s": 0.0,
+      "time_max_s": 282.8,
+      "max_delta_t_s": 0.20000000000004547,
+      "arrays": {
+        "ds": {
+          "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "gy": {
+          "sha256": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "dt": {
+          "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "x0": {
+          "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+          "shape": [
+            3
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "t": {
+          "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "pose_id": {
+          "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+          "shape": [
+            1415
+          ],
+          "dtype": "<i8",
+          "hash_order": "C"
+        }
+      },
+      "historical_identity": {
+        "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+        "exact_historical_array_matches": {
+          "ds": false,
+          "gy": true,
+          "dt": true,
+          "x0": true
+        },
+        "expected_array_sha256": {
+          "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+          "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+          "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+        },
+        "actual_array_sha256": {
+          "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+          "gy": "b4267b61165231957f5996fcf97fe101bd98eb3264f9853233bc9a7e51c15ed6",
+          "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+        }
+      },
+      "truth": {
+        "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/evaluator_truth/R5_B0_TRUTH.npz",
+        "sha256": "004fd723969635a40d73a7331c719558fb82db8cd3126fc86c00ca89af02c13f",
+        "size": 34412,
+        "input_lock_key": "R5_B0_TRUTH.npz",
+        "arrays": {
+          "t": {
+            "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+            "shape": [
+              1415
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          },
+          "pose_id": {
+            "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+            "shape": [
+              1415
+            ],
+            "dtype": "<i8",
+            "hash_order": "C"
+          },
+          "truth": {
+            "sha256": "3893235ab2bb0f64141fb8da4b8dc778b03f8ce780d355a2a20d3f02ebfe21fb",
+            "shape": [
+              1415,
+              3
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          }
+        }
+      },
+      "packets": {
+        "Full": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_B0_Full.npz",
+          "sha256": "43b2fbfc9a339f4b82edd39e8a19791fdb9b06c2a8fd3cae637c217a775e5fc2",
+          "size": 71927,
+          "input_lock_key": "R5_aB_m0_B0_Full.npz"
+        },
+        "Native_LoS": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_B0_Native_LoS.npz",
+          "sha256": "51d077a4dcbb8aaa33f4741d1bca2b86f574c60142f972b9973cdda7b6414dc5",
+          "size": 69633,
+          "input_lock_key": "R5_aB_m0_B0_Native_LoS.npz"
+        }
+      },
+      "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_B0_10.npz",
+      "sha256": "f95b0eb9ee552c3a9e984b9046285e45201b317c3bcea22b07573a82e243e0ba",
+      "size": 26716
+    },
+    "R5_aB_m0_L2_10": {
+      "identity": "LINUX_REMATERIALIZED_ORIGINAL_RECIPE",
+      "route": "R5",
+      "bias": "L2",
+      "seed": 10,
+      "n": 1415,
+      "time_min_s": 0.0,
+      "time_max_s": 282.8,
+      "max_delta_t_s": 0.20000000000004547,
+      "arrays": {
+        "ds": {
+          "sha256": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "gy": {
+          "sha256": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "dt": {
+          "sha256": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "x0": {
+          "sha256": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2",
+          "shape": [
+            3
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "t": {
+          "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+          "shape": [
+            1415
+          ],
+          "dtype": "<f8",
+          "hash_order": "C"
+        },
+        "pose_id": {
+          "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+          "shape": [
+            1415
+          ],
+          "dtype": "<i8",
+          "hash_order": "C"
+        }
+      },
+      "historical_identity": {
+        "status": "UNRESOLVED_EXACT_HISTORICAL_DS_BYTES",
+        "exact_historical_array_matches": {
+          "ds": false,
+          "gy": true,
+          "dt": true,
+          "x0": true
+        },
+        "expected_array_sha256": {
+          "ds": "e71729173c521fc5a90421b7b33e6195bd9a0038f8955f82392f43f2005dea73",
+          "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+          "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+        },
+        "actual_array_sha256": {
+          "ds": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65",
+          "gy": "68604167dec119528d9c2532701993b4d0ac8032037f8a187fd9088a57299694",
+          "dt": "c2d58610511af0841d0290bfa52f300a1ef935489fea20e6c1c3e3a300b82c93",
+          "x0": "b9c0be098f3593f71221bc9f3f8b36534fb7c33c07a32a8d9b6134aec8e00af2"
+        }
+      },
+      "truth": {
+        "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/evaluator_truth/R5_L2_TRUTH.npz",
+        "sha256": "77964572628f6a79c640d7647b0772f5da1d0880fe29b5c6551e7cec77e1d00a",
+        "size": 34418,
+        "input_lock_key": "R5_L2_TRUTH.npz",
+        "arrays": {
+          "t": {
+            "sha256": "523c23db00879dd468832f02206f0855ef44e52c06b773871a019edd9a22af39",
+            "shape": [
+              1415
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          },
+          "pose_id": {
+            "sha256": "16112b5193cdc7373718ec892f80c5d17812b274933b9afb5f85aedcae8ed304",
+            "shape": [
+              1415
+            ],
+            "dtype": "<i8",
+            "hash_order": "C"
+          },
+          "truth": {
+            "sha256": "3893235ab2bb0f64141fb8da4b8dc778b03f8ce780d355a2a20d3f02ebfe21fb",
+            "shape": [
+              1415,
+              3
+            ],
+            "dtype": "<f8",
+            "hash_order": "C"
+          }
+        }
+      },
+      "packets": {
+        "Full": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_L2_Full.npz",
+          "sha256": "089ae155cd160ab65ac6dcdfce66b4fc79f2e4b213863583babfccce5436f74d",
+          "size": 71926,
+          "input_lock_key": "R5_aB_m0_L2_Full.npz"
+        },
+        "Native_LoS": {
+          "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_L2_Native_LoS.npz",
+          "sha256": "51d077a4dcbb8aaa33f4741d1bca2b86f574c60142f972b9973cdda7b6414dc5",
+          "size": 69633,
+          "input_lock_key": "R5_aB_m0_L2_Native_LoS.npz"
+        }
+      },
+      "file": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/R5_aB_m0_L2_10.npz",
+      "sha256": "4c17cf313b552623d6515687d70f9688000bea641c6cd376096c6e156df75d1d",
+      "size": 26736
+    }
+  },
+  "recursive_tolerance_unchanged": 1e-10,
+  "discrete_mask_time_pose_mismatches_allowed": 0
+}

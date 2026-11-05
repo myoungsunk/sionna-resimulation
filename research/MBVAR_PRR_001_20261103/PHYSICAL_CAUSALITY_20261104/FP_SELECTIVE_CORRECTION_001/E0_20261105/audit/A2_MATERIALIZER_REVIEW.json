@@ -1,0 +1,42 @@
+{
+  "schema": "FP_SC_A2_MATERIALIZER_REVIEW_V1",
+  "study_id": "FP-SC-001",
+  "stage": "E0_A2_INPUT_PREPARATION",
+  "verdict": "PASS_FOR_INPUT_PREPARATION",
+  "reviewer": "/root/design_audit",
+  "reviewer_provenance": "SAME_SESSION_SEPARATE_REVIEWER",
+  "external_independent_accept": false,
+  "utc": "2026-11-05T04:56:09.786348+00:00",
+  "reviewed_files": {
+    "src/qclean_uwb/fp_sc/e0_rematerialized.py": "c7560d93ff5c7d1c44b9f48fac2ad7221b66468e72edfb72492a07030a58cdf1",
+    "scripts/fp_sc_materialize_controls.py": "00279f69c2d653a1697f57e47743d6c74a7e4ae8051425613a9c160ceabf0948",
+    "tests/test_fp_sc_e0_rematerialized.py": "ecb943de32ad00b7f85bb01206823a6a0fc2237fbca20a9c456fe7f8a4bfc3f0"
+  },
+  "basis": [
+    "Only pinned original control function/constants and wrap are extracted; model setup does not execute.",
+    "Source sensor modules must resolve to pinned repository files.",
+    "Primary runtime, generator seed and canonical ds identities are fixed before recursion.",
+    "Historical gy/dt/x0 hashes must match exactly; ds mismatch stays unresolved.",
+    "Original truth/t/pose enters only offline published input generator; no archived prior/posterior/filter-output dependency.",
+    "All four inputs validate before a new output directory is created; writes are exclusive.",
+    "Fresh payload hashes plus per-array dtype/shape/order/hash and source-grid provenance are retained."
+  ],
+  "scope": {
+    "new_controls": 4,
+    "routes": [
+      "R4",
+      "R5"
+    ],
+    "biases": [
+      "B0",
+      "L2"
+    ],
+    "seed": 10,
+    "EKF_runs": 0,
+    "RF_runs": 0,
+    "selector_runs": 0
+  },
+  "test_review": "Read5 substantive synthetic test definitions; implementation agent reported5PASS. No redundant rerun of those same tests by this reviewer.",
+  "scientific_execution_GO": false,
+  "next_requirement": "Bind prepared REGISTRY/payloads and new runner/code/environment to the A2 execution contract, then final code review."
+}

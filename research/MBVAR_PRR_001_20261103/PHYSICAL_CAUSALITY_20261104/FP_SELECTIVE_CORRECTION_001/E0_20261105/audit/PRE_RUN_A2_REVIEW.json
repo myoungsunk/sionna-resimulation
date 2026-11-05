@@ -1,0 +1,133 @@
+{
+  "schema": "FP_SC_A2_PRE_RUN_SPEC_REVIEW_V1",
+  "study_id": "FP-SC-001",
+  "amendment_id": "FP-SC-001-E0-A2",
+  "reviewer": "/root/design_audit",
+  "reviewer_provenance": "SAME_SESSION_SEPARATE_REVIEWER",
+  "external_independent_accept": false,
+  "utc": "2026-11-05T04:54:34.108392+00:00",
+  "verdict": "PASS_SPEC_FOR_A2_NUMERICAL_BASELINE_REPRODUCTION",
+  "GO_EXECUTION": false,
+  "code_and_final_input_lock_review_required": true,
+  "scope_decision": "A new explicit control identity may support functional numerical baseline reproduction at unchanged tolerance. It cannot satisfy historical control byte-recovery or retroactively clear RUN_E0_001.",
+  "reviewed_evidence": {
+    "controls_recovery_notes.md": "9e5fb413e72759551f68f9e3e4f823087d0bdbfaf7273b8a8bebbf4391b1e84a",
+    "controls_recovery_evidence.json": "7f9bbed59001cd71675080ab77402f739a107be55dd76170169c33d173a34725",
+    "original_controls_lfs_lookup.json": "11b7dc128dce67425c453437609d13a77560c5241afc1c015422f733123104d8",
+    "prior_separate_result_review": "0dd1fb9ea6929458d4c53094f2621d1380d8e60a5853bf414036c3d727476068"
+  },
+  "forensic_evidence_limits": [
+    "Four exact original controls NPZ OIDs returned object-level404; no claim that every private/offline archive was exhaustively searched.",
+    "R2 archived-versus-regenerated ds differs at3 rows by up to1.3877787807814457e-17m; this supports arithmetic-platform sensitivity, not proof of R4/R5 original bytes.",
+    "R4/R5 inverse archived-prior ds discrepancy <=1.77e-15m is a nonunique diagnostic, not a verified bound on unknown original control bytes.",
+    "The small inverse diagnostic is not an acceptance criterion and must not be used as the replay input."
+  ],
+  "preregistered_materialization_conditions": [
+    "Use one fixed primary Linux runtime and the unchanged original source recipe. Freeze source hashes, generator namespace, seed10, shape/order/dtype and environment before recursion.",
+    "Use original truth/timeline only for offline regeneration through the published sensor recipe; never read archived prior/posterior/filter residuals in the materializer.",
+    "Do not use inverse-from-prior ds, per-row ULP changes, alternate-runtime best-of selection, resampling or output-guided control tuning.",
+    "Write four new R4/R5 B0/L2 NPZ payloads with a fresh identity LINUX_REMATERIALIZED_ORIGINAL_RECIPE. Freeze container hash and ds/gy/dt/x0 byte hashes before replay.",
+    "Require exact historical gyro/dt/x0 hashes for every route/bias pair; preserve historical ds expected hashes and mismatch as explicit unresolved facts.",
+    "Require ds B0==L2 bytewise within each route, since the published recipe shares the wheel realization.",
+    "Bind original pose_id/t/time/truth payload hashes; expected rowcounts R4=742 and R5=1415; no lost/duplicated/reordered samples.",
+    "R2 uses its already-present exact archived controls, not rematerialized substitutes."
+  ],
+  "expected_new_ds_array_sha256": {
+    "R4": "3997268152be79329a4e7adcce82ea2edcf12dbfbaad10049ed748a75288ced3",
+    "R5": "d67b1945dbb20d7be32d4c0309b99478661bd1ad594d6d541133d7e934199e65"
+  },
+  "allowed_run_scope": {
+    "stage": "E0_A2_BASELINE_ONLY",
+    "sensor_seed": 10,
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "biases": [
+      "B0",
+      "L2"
+    ],
+    "channels": [
+      "Full",
+      "Native_LoS"
+    ],
+    "baseline_cells": 12,
+    "new_materialized_controls_payloads": 4,
+    "R2_controls": "EXACT_ARCHIVED_ORIGINAL",
+    "R4_R5_controls": "EXPLICIT_LINUX_REMATERIALIZATION",
+    "new_receiver_or_G4_or_flat_runs": 0,
+    "new_RT": 0,
+    "selector_runs": 0,
+    "calibration_or_sealed_runs": 0,
+    "reason_to_include_R2": "A2 integration must preserve the original-control branch while adding the explicit rematerialized branch; reuse separately only if exact code/input/environment invariants are documented."
+  },
+  "numeric_acceptance_unchanged": {
+    "normalized_error_max": 1e-10,
+    "normalization": "abs(actual-reference)/max(1,abs(reference))",
+    "discrete_fields": [
+      "pose_id",
+      "timestamp_join",
+      "BASE_acceptance_mask"
+    ],
+    "discrete_tolerance": "EXACT",
+    "continuous_fields": [
+      "prior",
+      "Pprior",
+      "h",
+      "H",
+      "mu",
+      "Rvar",
+      "Reff",
+      "K",
+      "nu",
+      "S",
+      "x",
+      "P",
+      "sigma_b",
+      "rho_before",
+      "weight",
+      "nis",
+      "d0"
+    ],
+    "full_time_recursion": "t=0; own previous posterior and covariance; original W0 and original BASE shadow gate; no stored-prior forcing",
+    "runtime_timing": "latency is diagnostic, excluded from numeric equality and not E5 evidence",
+    "failure": "Any required field/mask fails => preserve failed A2 run and HOLD; no after-the-fact tolerance/denominator/source changes."
+  },
+  "result_review_requirements": [
+    "Rehash new controls and original observation/model inputs independently; verify exact gyro/dt/x0 equality and explicit ds mismatch.",
+    "Compare every archived/replayed trace row, with per-field maximum error, exact masks, covariance symmetry/PSD and count reconciliation.",
+    "Separately recompute motion propagation and Joseph/gain/NIS from the newly frozen controls and retained original arrays.",
+    "Label successful R4/R5 cells NUMERICAL_REPRODUCTION_WITH_REMATERIALIZED_CONTROLS; label R2 original-control branch separately.",
+    "Leave original exact-historical-control-byte recovery UNRESOLVED and original RUN_E0_001 status unchanged."
+  ],
+  "detector_mapping": {
+    "definition_status": "RESOLVED_FOR_E0_SEMANTICS",
+    "continuous_filter_surrogate": "h_r(x)=geometry(x)+B_OLD, unchanged baseline convention",
+    "detector_domain_prediction": "SourceFFD native_range and native tap from the same receiver chain; separate function of hypothesized position and yaw",
+    "verified_G4_cases": 24,
+    "native_model_to_physical_direct_tap_matches": 24,
+    "continuous_surrogate_nearest_tap_matches": 22,
+    "proof_scope": "Existing24 static conditions; SourceFFD replay to archival model and raw direct-only arithmetic audited separately.",
+    "not_yet_proved": [
+      "Dynamic3136-pose native mapping under a newly registered evaluator",
+      "Support under biased/overconfident premeasurement prior",
+      "Yaw/quantization uncertainty interval coverage",
+      "Temporal4cm selection policy"
+    ],
+    "prohibitions": [
+      "Treating h_r/tapstep rounding as the primary online detector predictor",
+      "Using flat-spectrum half-tap intervals as universal FFD supports",
+      "Calling finite covariance probes calibrated probability/guaranteed ellipsoid coverage",
+      "Using GT/LoS/current-packet posterior inside an online selector"
+    ]
+  },
+  "H0_gate_if_A2_passes": {
+    "functional_reproduction": "QUALIFIED_H0_NUMERICAL_REPRODUCTION",
+    "historical_byte_recovery": "UNRESOLVED_NOT_PASSED",
+    "semantic_mapping": "RESOLVED_WITH_VALIDATION_SCOPE_LIMITS",
+    "next_stage_GO": false,
+    "allowed_next_design": "Separately freeze/review E1-01 CIR-only candidate availability and reference validity. P/M-dependent E1-02 and E2 require explicit mapping/support/causality policy validation."
+  },
+  "reviewer_reasoning": "Changing the declared control identity is scientifically defensible because the generating recipe and all known non-wheel arrays remain fixed and the resulting full trajectory must satisfy the original stringent numerical and discrete checks. This tests numerical reproducibility rather than claiming missing byte identity. The distinction must remain visible in contracts, results and publication."
+}

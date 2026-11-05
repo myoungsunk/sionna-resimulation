@@ -61,6 +61,38 @@ class ContractTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,'CODE_SET_MISMATCH'):
                 verify_lock(d,lock,approval)
 
+    def test_unrecognized_amendment_is_rejected(self):
+        with self.assertRaisesRegex(ValueError, 'UNRECOGNIZED_AMENDMENT'):
+            verify_lock('.', {'schema':'FP_SC_E0_EXECUTION_LOCK_V1','stage':'E0',
+                'amendment':'ALLOW_ANY_CONTROLS'}, {})
+
+    def test_a2_registry_and_narrow_scope_are_required(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            env = {'threads': {key:'1' for key in ('OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','OMP_NUM_THREADS')}}
+            for name, content in [('code.json',{'files':{}}),('env.json',env),
+                                  ('input.json',{'files':[]}),('controls.json',{})]:
+                write_json(root/name,content)
+            lock = {'schema':'FP_SC_E0_EXECUTION_LOCK_V1','stage':'E0',
+                'implementation_commit':'a'*40,'amendment':'A2_REMATERIALIZED_CONTROLS',
+                'code':{},'code_lock_file':'code.json','environment_file':'env.json',
+                'input_lock_file':'input.json',
+                'documents':{name:sha256(root/name) for name in ('code.json','env.json','input.json')},
+                'run_scope':{'sensor_seed':10,'baseline_cells':12,'dynamic_pose_ids':0,
+                    'g4_conditions':0,'flat_samples':0,'new_rt':0,'selector_runs':0,'sealed_trajectories':0}}
+            approval = {'schema':'FP_SC_E0_OWNER_SCOPED_EXECUTION_V1','stage':'E0','GO_E0':True,
+                'implementation_commit':'a'*40,'external_independent_accept':False}
+            with patch('qclean_uwb.fp_sc.contracts.environment',return_value=env), \
+                 patch('qclean_uwb.fp_sc.contracts.git_head',return_value='a'*40):
+                with self.assertRaisesRegex(ValueError,'A2_CONTROLS_REGISTRY_NOT_LOCKED'):
+                    verify_lock(d,lock,approval)
+                lock['rematerialized_controls_registry']='controls.json'
+                lock['documents']['controls.json']=sha256(root/'controls.json')
+                self.assertEqual(verify_lock(d,lock,approval)['status'],'PASS_PRE_EXECUTION_IDENTITIES')
+                lock['run_scope']['selector_runs']=1
+                with self.assertRaisesRegex(ValueError,'RUN_SCOPE_DRIFT'):
+                    verify_lock(d,lock,approval)
+
 
 if __name__ == '__main__':
     unittest.main()

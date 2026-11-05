@@ -332,13 +332,16 @@ def load_original_model(repo: str | Path):
     return _original_model(Path(repo).resolve())
 
 
-def run_baseline(repo: str | Path, output_dir: str | Path, *, mode: str = "auto") -> dict[str, Any]:
+def run_baseline(repo: str | Path, output_dir: str | Path, *, mode: str = "auto",
+                 rematerialized_registry: str | Path | None = None) -> dict[str, Any]:
     """Run the caller-authorized E0 subset; ``arithmetic`` never starts recursion.
 
     ``auto`` attempts full original replay and explicitly records unavailable
     dependencies. ``full`` has the same fail-closed checks, with requested scope
     recorded. The caller should require ``PASS_FULL_BASELINE_PARITY`` before
-    claiming the complete baseline parity part of E0-01.
+    claiming the complete baseline parity part of E0-01. A separately reviewed
+    A2 registry may supply newly frozen R4/R5 controls; this never changes the
+    default historical byte-identity requirement or any numerical tolerance.
     """
     if mode not in ("auto", "arithmetic", "full"):
         raise ValueError("INVALID_BASELINE_MODE")
@@ -353,6 +356,8 @@ def run_baseline(repo: str | Path, output_dir: str | Path, *, mode: str = "auto"
         "runtime": {"python": sys.version, "numpy": np.__version__, "platform": platform.platform()},
         "numeric_contract": {"normalized_error_max": TOL, "normalization": "abs(delta)/max(1,abs(reference))", "covariance_relative_tolerance": 1e-12},
         "new_RT_calls": 0, "new_data_calibration_fits": 0, "cells": rows,
+        "control_reproduction_mode": "HISTORICAL_IDENTITY" if rematerialized_registry is None else "A2_REMATERIALIZED_CONTROLS",
+        "exact_historical_control_bytes": "REQUIRED" if rematerialized_registry is None else "UNRESOLVED_R4_R5",
         "source_model_initialization": "Original deterministic FFD source-ring polynomial cap fit; no new RF-label training.",
     }
     _put(output / "MANIFEST.json", manifest)
@@ -394,7 +399,12 @@ def run_baseline(repo: str | Path, output_dir: str | Path, *, mode: str = "auto"
                         if original is not None:
                             truth_name = f"evaluator_truth/{route}_{bias}_TRUTH.npz"
                             truth = read_npz(repo / PACKETS / truth_name, registry[truth_name]["sha256"])
-                            controls, provenance = _controls(repo, route, bias, packet, truth)
+                            if rematerialized_registry is not None and route in ("R4", "R5"):
+                                from qclean_uwb.fp_sc.e0_rematerialized import load_rematerialized_controls
+                                controls, provenance = load_rematerialized_controls(
+                                    repo, route, bias, packet, rematerialized_registry)
+                            else:
+                                controls, provenance = _controls(repo, route, bias, packet, truth)
                             record["controls"] = provenance
                             # Truth is used only by the offline controls materializer;
                             # the original replay receives packet and controls only.
