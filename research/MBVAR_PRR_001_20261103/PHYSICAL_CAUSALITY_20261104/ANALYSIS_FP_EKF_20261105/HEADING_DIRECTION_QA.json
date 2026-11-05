@@ -1,0 +1,20 @@
+{
+  "source": "GitHub historical replay Actions 39376076166; C0A Actions 41783949902; no new simulation",
+  "source_types": "B0 Full and native LoS original traces, three filter arms, original 0.4s UPDATE_ORIGINS",
+  "timeline_rows": 12942,
+  "update_rows": 1079,
+  "example_rows": 12,
+  "max_identity_residual_deg": 2.842170943040401e-14,
+  "excluded_initial_for_angle_score_s": 30.0,
+  "heading_convention": "radians in input, degrees displayed; 0° +X, CCW positive; wrap [-180,180)",
+  "caveats": [
+    "angle bins are observational: yaw confounded with route position/time",
+    "s-only projected angle is prior+Kalman-weighted innovation, not unique inverse s→yaw; other state and model matter",
+    "update origin archive only every two timesteps, actual full route traces every 0.2s",
+    "post t=30 analysis excludes startup but observations follow t=0 recursive history",
+    "counterfactual fixed prior does not replay future x,P,H,gate or noise",
+    "multiple time samples are serially correlated, not independent replications"
+  ],
+  "status": "NONINDEPENDENT_EXPLORATORY_VERIFIED_RECOMPUTATION",
+  "update_origin_scope": "POWER1 only; JOINT4 UPDATE_ORIGINS differs from TRACE NIS and gate in some snapshots; JOINT4 directional errors from TRACE only"
+}
