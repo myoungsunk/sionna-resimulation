@@ -20,7 +20,9 @@ from .study import validate_trajectory_grid
 
 
 MODEL_STAGES = {"E3-04", "E4-01", "E4-02", "E4-03", "E5-01", "E5-02", "E5-03"}
-STREAM_STAGES = {"E4-01", "E4-02", "E4-03", "E5-01", "E5-02", "E5-03"}
+# Stream ALL stages: even several dozen repeated E1/E2/E3 cases can exhaust
+# memory when the same complex CFRs are cached across a long manual run.
+STREAM_STAGES = set(STAGES)
 EXACT_METADATA = {
     "case_id", "route", "bias", "channel", "sensor_seed",
     "split", "noise_variance", "corpus", "environment_id",
