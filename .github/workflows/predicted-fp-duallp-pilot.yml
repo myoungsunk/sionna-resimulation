@@ -1,0 +1,86 @@
+name: Predicted first path Dual-LP clean-CIR pilot
+on:
+  push:
+    branches: ['experiment/predicted-fp-duallp-pilot-20261105']
+    paths:
+      - '.github/workflows/predicted-fp-duallp-pilot.yml'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/pilot.py'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/test_pilot.py'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/CONTRACT_KO.md'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: predicted-fp-duallp-pilot
+  cancel-in-progress: false
+jobs:
+  offline-comparison:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source and pinned LFS inputs only
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+          persist-credentials: true
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitattributes
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/RESULTS_001/cells/R2_B0_10.npz
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/RESULTS_001/cells/R4_B0_10.npz
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/RESULTS_001/cells/R5_B0_10.npz
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy
+      - name: Get only already-existing original LFS payloads
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs pull --include='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R*_aB_m0.npy,results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R*_aB_m0.npy,research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/RESULTS_001/cells/R*_B0_10.npz' --exclude=''
+      - name: Python 3.11 and pinned array runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install NumPy without RT
+        run: python -m pip install numpy==1.26.4
+      - name: Test fail-closed selector with synthetic fixtures
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m unittest -v research.MBVAR_PRR_001_20261103.PHYSICAL_CAUSALITY_20261104.FP_PRIOR_PILOT_001.test_pilot
+      - name: Run full-RF clean-CIR frozen-prior offline pilot
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/pilot.py \
+            --output research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001 \
+            | tee /tmp/fp-pilot-output.log
+      - name: Verify artifacts present before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001/SUMMARY.json
+          test -s research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001/R2_SELECTIONS.csv
+          test -s research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001/R4_SELECTIONS.csv
+          test -s research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001/R5_SELECTIONS.csv
+      - name: Commit only provenance-bound experimental result CSV/JSON
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_001
+          git commit -m 'Publish non-GO original-CIR FP selection pilot results for R2/R4/R5'
+          git push origin HEAD:experiment/predicted-fp-duallp-pilot-20261105
+      - name: Upload independent run log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: predicted-fp-duallp-pilot-log
+          path: /tmp/fp-pilot-output.log
+          retention-days: 30
