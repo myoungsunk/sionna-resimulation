@@ -53,6 +53,12 @@ class Evaluator:
                            any(c.tap == ref.raw_tap and c.supported for c in e.candidates)),
                        pool_hash=e.pool_hash, history=item["history"],
                        prior_support=item["prior_support"], motion_support=item["motion_support"])
+            if detect_only and 'prior_integrity' in item:
+                # Carry the protected online output through evaluation unchanged.
+                # Diagnostic costs are never promoted to the flag/score above.
+                for key in ('prior_integrity', 'effective_mode', 'diagnostic_only_scores',
+                            'diagnostic_only_prior_scores', 'diagnostic_status'):
+                    row[key] = item[key]
             for name, value in (("raw", raw), ("selected", selected)):
                 valid = reference is not None and value is not None and row["reference_valid"]
                 row[name+"_range_error"] = float(value[0]-reference[0]) if valid else None

@@ -102,5 +102,54 @@ class IntegrityTests(unittest.TestCase):
         self.assertEqual(r['prior_integrity']['state'],'INVALID')
         self.assertIsNone(r['decision'].wrong_score)
 
+    def test_evaluator_preserves_integrity_and_does_not_promote_diagnostics(self):
+        from qclean_uwb.fp_sc.followup.study import Evaluator
+        from qclean_uwb.fp_sc.followup.numerics import factorial
+        c=SimpleNamespace(case_id='SYNTHETIC',t=np.array([0.]))
+        adapter=SimpleNamespace(evidence=lambda *a:self.e)
+        ev=Evaluator(c,np.ones((1,257,2),complex),np.zeros((1,3)),adapter,detection_only=True)
+        d,_=detect(self.e,'P',self.p,prior=self.s)
+        item=dict(k=0,pose_id=0,t=0.,evidence=self.e,decision=d,history={},
+                  prior_support=asdict(self.s),motion_support=None,
+                  observation=factorial(np.ones((1028,2),complex),self.e.raw_tap,self.e.raw_tap),
+                  prior_integrity=asdict(PriorIntegrity()),effective_mode='HOLD',
+                  diagnostic_only_scores=({'score':999.},),diagnostic_only_prior_scores=({'p':99.},),
+                  diagnostic_status='BUILT')
+        row=ev.label([item],detect_only=True)[0]
+        self.assertIsNone(row['flag']);self.assertIsNone(row['wrong_score'])
+        self.assertEqual(row['diagnostic_only_scores'],({'score':999.},))
+        self.assertEqual(row['effective_mode'],'HOLD')
+        self.assertEqual(row['prior_integrity']['state'],'UNKNOWN')
+
+    def test_complete_mapping_receipt_still_cannot_claim_valid_provider(self):
+        import tempfile,json,platform
+        from pathlib import Path
+        from qclean_uwb.fp_sc.followup.contracts import authorize,sha256,digest
+        from qclean_uwb.fp_sc.followup.integrity import INTEGRITY_RECIPE
+        from qclean_uwb.fp_sc.followup.detection import HISTORY_RECIPE
+        from qclean_uwb.fp_sc.followup.bridge import RECIPE_SHA
+        from qclean_uwb.fp_sc.followup.selection import SELECTOR_SET_RECIPE
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);(root/'fixture').write_text('SYNTHETIC_ONLY')
+            lock={'fixture':sha256(root/'fixture')}
+            mapping=dict(status='PASS_DYNAMIC_MAPPING_REVIEW',policy_sha256=self.p.sha,
+                candidate_mode='TWO_PORT_UNION',arm='VAB',bridge_recipe_sha256=RECIPE_SHA,
+                selector_recipe=SELECTOR_SET_RECIPE,history_recipe=HISTORY_RECIPE,
+                integrity_recipe=INTEGRITY_RECIPE,code_lock_sha256=digest(lock),
+                baseline_source_lock_sha256=digest({}),case_payload_lock_sha256=digest({}),
+                evidence_files=lock,reviewer='SYNTHETIC_ONLY',provider_ready=True)
+            (root/'mapping.json').write_text(json.dumps(mapping))
+            manifest=dict(schema='FP_SC_FOLLOWUP_STUDY_V1',execution_profile='VAB_DETECTION_ONLY_R1',
+                candidate_mode='TWO_PORT_UNION',policy=asdict(self.p),policy_sha256=self.p.sha,
+                environment=dict(python=platform.python_version(),numpy=np.__version__),
+                mapping_reviewed=True,mapping_receipt='mapping.json',code_files=lock,
+                input_files={**lock,'mapping.json':sha256(root/'mapping.json')},cases={})
+            (root/'manifest.json').write_text(json.dumps(manifest))
+            (root/'approval.json').write_text(json.dumps(dict(execute_science=True,
+                manifest_sha256=sha256(root/'manifest.json'),stages=['E1-02'],actor='SYNTHETIC_ONLY',
+                issued_utc='SYNTHETIC',code_lock_sha256=digest(lock))))
+            with self.assertRaisesRegex(ContractError,'HOLD_PRIOR_INTEGRITY_PROVIDER_MISSING'):
+                authorize(root,root/'manifest.json',root/'approval.json',['E1-02'],['fixture'])
+
 
 if __name__=='__main__': unittest.main()
