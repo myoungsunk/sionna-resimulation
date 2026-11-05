@@ -1,0 +1,17 @@
+experiment_id,hypotheses,entrypoint,implementation,validation_scope,real_experiment_status
+E1-02,H1,study.e1_detection,C/P/M/PM detection and explicit denominators,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E1-03,"H1,H2",study.stress,OFAT prior/history/null/dropout; static CIR-only controls,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E2-01,"H2,H3",study.e2_select,8 online comparisons plus evaluator oracle; optional CAL grid27,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E2-02,H2,study.e2_history,self-updated vs teacher-forced histories and lock-in,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E2-03,"H3,H4",study.e2_confidence,margin/lobe/ambiguity score bins; not calibrated probability,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E2-04,"H1,H2,H4",study.stress,new packet-keyed noise and corrupted-prior OFAT,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E3-01,H3,study.e3_observations,F00/F10/F01/F11 measurements,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E3-02,H3,study.e3_observations,same-reference-tap + detector-choice residual closure,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E3-03,H4,study.fit_models,heldout-route TRAIN mean/full covariance; support guard,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E3-04,H5,study.e3_one_step,archived W0 same prior/mask/Reff and matched/own gate,SYNTHETIC_FUNCTION_AND_DISPATCH,NOT_RUN
+E4-01,H6,study.e4_closed_loop,"own-prior A-F, W0 parity, exact720 grid",SYNTHETIC_KERNEL_AND_GRID_METADATA,NOT_RUN
+E4-02,H6,study.e4_closed_loop,sealed1440 grid and paired seed aggregation,SYNTHETIC_KERNEL_AND_GRID_METADATA,NOT_RUN
+E4-03,H6,runner.run,explicit full-pipeline outer-fold policy/model registration,GENERIC_DISPATCH_IMPLEMENTED_REAL_FOLDS_NOT_RUN,NOT_RUN
+E5-01,H7,runtime.DeadlineRunner,scheduled output timing including sink,FAKE_CLOCK_ONLY_NO_HARDWARE,NOT_RUN
+E5-02,H7,runtime.arrivals;study.e5_runtime,duplicate/reorder/drop/delay/null/stale; immutable output,SYNTHETIC_FAULT_TESTS_NO_HARDWARE,NOT_RUN
+E5-03,"H6,H7",runner.run,external contract and disjoint domain evaluation,GENERIC_DISPATCH_IMPLEMENTED_NEW_ENVIRONMENT_NOT_RUN,NOT_RUN
