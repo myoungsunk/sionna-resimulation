@@ -15,7 +15,12 @@
     "g3_go_blob": "cdca2944204252dafa3eef0e8c1d3cdb97b4fc00",
     "raw_pr35_completed_canary": "R4_168 yaw0,180,+35.7,-35.7, 4x257+12 repeat calls; NOT repeated here",
     "raw_pr33_completed": "New controlled floor+concrete plate 4pose×4scenes×2 repeats 8,224 calls; NOT an original six-wall source",
-    "scientific_role": "USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY"
+    "scientific_role": "USER_AUTHORIZED_NONINDEPENDENT_EXPLORATORY",
+    "native_pose_sample_blobs": {
+      "R2": "cb51065dabc3dc60473a48ed5458bca284c2ff97",
+      "R4": "4e0ef31074f6627cdc81c9f0a15a805563d40500",
+      "R5": "c4e4fbfe06115444077dee263c6dc96367251c40"
+    }
   },
   "source_policy": {
     "original_scene": "Original six-surface R2/R4/R5 corridor per BLOCK_C route manifest, NEVER new controlled C00-C11 floor+plate scene",
@@ -27,7 +32,27 @@
     "exact_G3_lock": "Reuse PR35 G3_001 bound source/code/runtime, PLAN.json, INPUT_LOCK.json, GO_G3_001.json; no SCIENTIFIC redefinition",
     "no_time_to_pose_inference": true,
     "original_Tnone_join_exact": true,
-    "source_sha_mismatch_blocks_all": true
+    "source_sha_mismatch_blocks_all": true,
+    "pose_source_alignment": {
+      "original_RT_geometry_authority": "BLOCK_C/{route}_aB_m0/SAMPLES.json at exact pose_id, x/y/yaw rounded to original source precision",
+      "tnone_event_time_authority": "BLOCK_C/INPUTS/timeline_R{route}_Tnone.csv full precision, for time-index join only",
+      "never_replace_original_native_SAMPLES_xyz_with_Tnone_F64_xyz": true,
+      "max_observed_xy_source_minus_tnone_abs_m": 4.966923101701326e-7,
+      "max_observed_yaw_source_minus_tnone_abs_deg": 4.822846904062317e-7,
+      "preflight_alignment_tolerance": 6e-7,
+      "original_corridor_raw_RT_pose_fields": [
+        "native_x_m",
+        "native_y_m",
+        "native_yaw_deg"
+      ],
+      "original_timeline_fields_for_events": [
+        "x_m",
+        "y_m",
+        "yaw_deg",
+        "t_s",
+        "idx"
+      ]
+    }
   },
   "windows": {
     "R4": [
