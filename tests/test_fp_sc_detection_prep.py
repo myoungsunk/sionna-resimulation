@@ -116,15 +116,17 @@ class MappingAuthorizationTests(unittest.TestCase):
         from qclean_uwb.fp_sc.followup.contracts import authorize,sha256,digest
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);m=root/'manifest.json';a=root/'approval.json';p=Policy()
+            (root/'fixture.txt').write_text('SYNTHETIC_TEST_ONLY')
+            lock={'fixture.txt':sha256(root/'fixture.txt')}
             manifest=dict(schema='FP_SC_FOLLOWUP_STUDY_V1',execution_profile='VAB_DETECTION_ONLY_R1',
                 policy=__import__('dataclasses').asdict(p),policy_sha256=p.sha,
                 environment=dict(python=platform.python_version(),numpy=np.__version__),
-                mapping_reviewed=True,code_files={},input_files={})
+                mapping_reviewed=True,code_files=lock,input_files=lock)
             m.write_text(json.dumps(manifest))
             a.write_text(json.dumps(dict(execute_science=True,manifest_sha256=sha256(m),
-                stages=['E1-02'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest({}))))
+                stages=['E1-02'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest(lock))))
             with self.assertRaisesRegex(ContractError,'MAPPING_EVIDENCE_NOT_LOCKED'):
-                authorize(root,m,a,['E1-02'],[])
+                authorize(root,m,a,['E1-02'],['fixture.txt'])
 
     def test_vab_profile_rejects_e2_even_with_synthetic_approval(self):
         import tempfile,json,platform
@@ -133,12 +135,14 @@ class MappingAuthorizationTests(unittest.TestCase):
         from qclean_uwb.fp_sc.followup.contracts import authorize,sha256,digest
         with tempfile.TemporaryDirectory() as td:
             root=Path(td);m=root/'manifest.json';a=root/'approval.json';p=Policy()
+            (root/'fixture.txt').write_text('SYNTHETIC_TEST_ONLY')
+            lock={'fixture.txt':sha256(root/'fixture.txt')}
             m.write_text(json.dumps(dict(schema='FP_SC_FOLLOWUP_STUDY_V1',execution_profile='VAB_DETECTION_ONLY_R1',
                 policy=asdict(p),policy_sha256=p.sha,environment=dict(python=platform.python_version(),numpy=np.__version__),
-                mapping_reviewed=True,code_files={},input_files={})))
+                mapping_reviewed=True,code_files=lock,input_files=lock)))
             a.write_text(json.dumps(dict(execute_science=True,manifest_sha256=sha256(m),
-                stages=['E2-01'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest({}))))
+                stages=['E2-01'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest(lock))))
             with self.assertRaisesRegex(ContractError,'VAB_DETECTION_SINGLE_STAGE_ONLY'):
-                authorize(root,m,a,['E2-01'],[])
+                authorize(root,m,a,['E2-01'],['fixture.txt'])
 
 if __name__ == '__main__': unittest.main()
