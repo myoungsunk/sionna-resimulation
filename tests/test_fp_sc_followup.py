@@ -180,11 +180,16 @@ class ContractsTest(unittest.TestCase):
             with self.assertRaises(ContractError): verify_files(Path(d),{"x":"0"*64})
     def test_default_execution_block_before_data(self):
         with tempfile.TemporaryDirectory() as d:
-            root=Path(d);m=root/"m.json";a=root/"a.json"
+            root=Path(__file__).resolve().parents[1];m=Path(d)/"m.json";a=Path(d)/"a.json"
             write_json(m,{});write_json(a,{"execute_science":False})
-            with self.assertRaisesRegex(ContractError,"SCIENCE_EXECUTION_NOT_AUTHORIZED"):
-                run(root,m,a,root/"not_created",["E1-02"])
-            self.assertFalse((root/"not_created").exists())
+            output=Path(d)/"not_created"
+            with patch("qclean_uwb.fp_sc.followup.contracts.verify_files") as verify:
+                with self.assertRaisesRegex(ContractError,"SCIENCE_EXECUTION_NOT_AUTHORIZED"):
+                    run(root,m,a,output,["E1-02"])
+                verify.assert_not_called()
+            with self.assertRaisesRegex(ContractError,"EXECUTING_CODE_OUTSIDE_DECLARED_REPOSITORY"):
+                run(Path(d),m,a,output,["E1-02"])
+            self.assertFalse(output.exists())
     def test_prerequisite_negative_preserved(self):
         r={"E1-01":{"execution_status":"COMPLETE","numerical_qa_pass":True,"scientific_gate":"NOT_SUPPORTED"}}
         with self.assertRaises(ContractError): prerequisite("E1-02",r,{})

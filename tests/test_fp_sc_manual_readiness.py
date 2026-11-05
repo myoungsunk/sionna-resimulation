@@ -195,6 +195,78 @@ class LocalPreflightTest(unittest.TestCase):
                 self.inspect(root, mp, ap)
 
 
+class BridgePreflightRegressionTest(unittest.TestCase):
+    def fixture(self, root, *, continuation=False, stored_parent=False):
+        mp, ap = LocalPreflightTest().fixture(root)
+        run, review = E101BridgeTest().fixture(root)
+        # A second review payload ensures both registries are rechecked.
+        write_json(review / "DETAIL.json", {"checked": True})
+        write_json(review / "ARTIFACT_HASHES.json", {
+            p.name: sha256(p) for p in review.iterdir() if p.name != "ARTIFACT_HASHES.json"})
+        bridge = adopt_e1(root, run, review, root / "bridge.json")
+        m = json.loads(mp.read_text())
+        cid = next(iter(m["cases"]))
+        m["stage_config"] = {s: {"case_ids": [cid]} for s in ("E1-02", "E1-03")}
+        m["prerequisite_receipts"] = {"E1-01": "bridge.json"}
+        for rel in ["bridge.json"] + [v["path"] for v in bridge["source_files"].values()]:
+            m["input_files"][rel] = sha256(root / rel)
+        if stored_parent:
+            write_json(root / "old_parent.json", dict(stage="E1-02", study_id="FP-SC-001",
+                       execution_status="COMPLETE", numerical_qa_pass=True, scientific_gate="PASS"))
+            m["input_files"]["old_parent.json"] = sha256(root / "old_parent.json")
+            m["prerequisite_receipts"]["E1-02"] = "old_parent.json"
+        write_json(mp, m)
+        a = json.loads(ap.read_text())
+        a.update(manifest_sha256=sha256(mp), stages=["E1-02", "E1-03"],
+                 exploratory_after_nonpass=["E1-01"] + (["E1-02"] if continuation else []))
+        write_json(ap, a)
+        return mp, ap, run, review
+
+    def inspect(self, root, mp, ap, stages):
+        return preflight(root, mp, ap, stages, ["code.py"], ("source.py",))[2]
+
+    def test_original_evidence_and_authorized_chain_pass(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            mp, ap, _, _ = self.fixture(root, continuation=True)
+            self.assertEqual(self.inspect(root, mp, ap, ["E1-02", "E1-03"])["status"],
+                             "PASS_LOCAL_PREFLIGHT_NO_SCIENCE")
+
+    def test_payload_drift_or_loss_after_bridge_is_blocked(self):
+        for side, name in (("production", "SUMMARY.json"), ("review", "DETAIL.json")):
+            for action in ("change", "delete"):
+                with self.subTest(side=side, action=action), tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    mp, ap, run, review = self.fixture(root)
+                    p = (run if side == "production" else review) / name
+                    if action == "change":
+                        p.write_text('{"changed":true}')
+                    else:
+                        p.unlink()
+                    with self.assertRaisesRegex(ContractError, "E1_ARTIFACT"):
+                        self.inspect(root, mp, ap, ["E1-02"])
+
+    def test_missing_continuation_blocked_even_with_old_pass_receipt(self):
+        for stored in (False, True):
+            with self.subTest(stored=stored), tempfile.TemporaryDirectory() as d:
+                root = Path(d)
+                mp, ap, _, _ = self.fixture(root, stored_parent=stored)
+                with self.assertRaisesRegex(ContractError, "PREREQUISITE_SCIENTIFIC_HOLD:E1-02"):
+                    self.inspect(root, mp, ap, ["E1-02", "E1-03"])
+
+    def test_missing_bridge_source_is_blocked(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            mp, ap, _, _ = self.fixture(root)
+            bridge = json.loads((root / "bridge.json").read_text())
+            del bridge["source_files"]["production_artifact_index"]
+            write_json(root / "bridge.json", bridge)
+            LocalPreflightTest().update_manifest(root, mp, ap, lambda m:
+                m["input_files"].update({"bridge.json": sha256(root / "bridge.json")}))
+            with self.assertRaisesRegex(ContractError, "E1_BRIDGE_SOURCE_SET_INCOMPLETE"):
+                self.inspect(root, mp, ap, ["E1-02"])
+
+
 class StableArtifactTest(unittest.TestCase):
     def test_gzip_json_hash_is_deterministic_and_readable(self):
         import gzip

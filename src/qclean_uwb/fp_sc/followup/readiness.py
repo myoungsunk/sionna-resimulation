@@ -126,9 +126,23 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
         # If the native E1 receipt has been bridged, verify its original
         # immutable evidence again, not merely the editable wrapper file.
         if r.get("schema") == "FP_SC_E1_01_LOCAL_BRIDGE_V1":
+            required_sources = {"production_manifest", "production_artifact_index",
+                                "separate_review", "separate_review_index"}
+            if set(r.get("source_files", {})) != required_sources:
+                raise ContractError("E1_BRIDGE_SOURCE_SET_INCOMPLETE")
             for item in r["source_files"].values():
                 if item["path"] not in locked or sha256(rooted(root, item["path"])) != item["sha256"]:
                     raise ContractError("E1_BRIDGE_SOURCE_NOT_LOCKED_OR_DRIFTED")
+            for document_key, index_key, filename in (
+                    ("production_manifest", "production_artifact_index", "RUN_MANIFEST.json"),
+                    ("separate_review", "separate_review_index", "E1_RESULT_REVIEW.json")):
+                index = rooted(root, r["source_files"][index_key]["path"])
+                document = rooted(root, r["source_files"][document_key]["path"])
+                if index.name != "ARTIFACT_HASHES.json" or document != index.parent / filename:
+                    raise ContractError("E1_BRIDGE_SOURCE_LAYOUT_MISMATCH")
+                entries = _verified_index(index.parent)
+                if entries.get(filename) != sha256(document):
+                    raise ContractError("E1_BRIDGE_DOCUMENT_NOT_INDEXED")
             if r.get("scientific_gate") != "HOLD_RESULT_REVIEW" or r.get("external_independent_accept") is not False:
                 raise ContractError("E1_BRIDGE_CANNOT_ASSERT_SCIENTIFIC_PASS")
         previous[stage] = r
@@ -143,8 +157,15 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
         for parent in DEPENDENCIES[stage]:
             if parent not in previous and parent not in ordered:
                 raise ContractError("MISSING_PREREQUISITE_BEFORE_RUN:" + parent)
-        if all(parent in previous for parent in DEPENDENCIES[stage]):
-            prerequisite(stage, previous, approval)
+        # An earlier stage in this invocation replaces any stored receipt and
+        # always emits HOLD_RESULT_REVIEW. Check its continuation approval now.
+        effective_previous = dict(previous)
+        for parent in DEPENDENCIES[stage]:
+            if parent in ordered:
+                effective_previous[parent] = dict(
+                    execution_status="COMPLETE", numerical_qa_pass=True,
+                    scientific_gate="HOLD_RESULT_REVIEW")
+        prerequisite(stage, effective_previous, approval)
         stage_meta = []
         for cid in ids:
             if cid not in cases or not isinstance(cases[cid], dict):
