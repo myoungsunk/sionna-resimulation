@@ -4,6 +4,7 @@ on:
     branches: [audit/fp-ekf-ab-recursion-20261105]
     paths:
       - research/FP_EKF_AB_REAUDIT_20261105/audit.py
+      - research/FP_EKF_AB_REAUDIT_20261105/extended_audit.py
       - .github/workflows/fp_ekf_ab_reaudit.yml
   workflow_dispatch:
 permissions:
@@ -20,6 +21,7 @@ jobs:
       GIT_LFS_SKIP_SMUDGE: '1'
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,21 +33,39 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install numpy==2.3.5 pandas==2.2.3 requests==2.32.5
-      - name: Validate script and audit original archived data
+      - name: Re-audit original inputs and validate isolated fixes
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -o pipefail
-          python -m py_compile research/FP_EKF_AB_REAUDIT_20261105/audit.py
-          mkdir -p research/FP_EKF_AB_REAUDIT_20261105/evidence
-          python -u research/FP_EKF_AB_REAUDIT_20261105/audit.py --out research/FP_EKF_AB_REAUDIT_20261105/evidence 2>&1 | tee research/FP_EKF_AB_REAUDIT_20261105/RUN_LOG.txt
+          ROOT=research/FP_EKF_AB_REAUDIT_20261105
+          mkdir -p "$ROOT/evidence"
+          MODE=""
+          if test -f "$ROOT/evidence/INPUT_MANIFEST.json"; then MODE="--offline"; fi
+          python -u "$ROOT/audit.py" --out "$ROOT/evidence" $MODE 2>&1 | tee "$ROOT/RUN_LOG.txt"
+          python - <<'PY'
+          from pathlib import Path
+          import requests, json, hashlib
+          root=Path('research/FP_EKF_AB_REAUDIT_20261105/evidence/inputs')
+          prefix='results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/drivesim/'
+          paths=[prefix+'sensor_v2.py',prefix+'sensors.py','research/MBVAR_PRR_001_20261103/S1/materialize.py']
+          records=[]
+          for path in paths:
+              r=requests.get('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/d70360a4cac98de47c3365244a08112bf6414e28/'+path,timeout=60);r.raise_for_status()
+              p=root/path;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(r.content)
+              records.append(dict(path=path,sha256=hashlib.sha256(r.content).hexdigest(),bytes=len(r.content)))
+          (root.parent/'ADDITIONAL_SOURCE_MANIFEST.json').write_text(json.dumps(records,indent=2))
+          PY
+          python -u "$ROOT/extended_audit.py" --root "$ROOT" 2>&1 | tee "$ROOT/EXTENDED_RUN_LOG.txt"
       - name: Preserve inputs, outputs, code and failure evidence in branch
         if: always()
         run: |
-          printf '*.npz -filter -diff -merge -text\n*.zip -filter -diff -merge -text\n' > research/FP_EKF_AB_REAUDIT_20261105/.gitattributes
+          ROOT=research/FP_EKF_AB_REAUDIT_20261105
+          printf '*.npz -filter -diff -merge -text\n*.zip -filter -diff -merge -text\n' > "$ROOT/.gitattributes"
+          find "$ROOT" -type d -name __pycache__ -prune -exec rm -rf '{}' +
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add -f research/FP_EKF_AB_REAUDIT_20261105
+          git add -f "$ROOT"
           if ! git diff --cached --quiet; then
             git commit -m "Preserve FP/EKF re-audit evidence run $GITHUB_RUN_ID [skip ci]"
             git push origin HEAD:audit/fp-ekf-ab-recursion-20261105
