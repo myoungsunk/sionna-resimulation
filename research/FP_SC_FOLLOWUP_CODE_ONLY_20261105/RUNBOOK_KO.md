@@ -108,13 +108,13 @@ python scripts/fp_sc_followup.py plan
 
 ### (2) E1-01 원본 증거를 후속 prerequisite으로 연결
 
-원래 E1-01의 `RUN_MANIFEST.json`은 후속 실행기의 `study_id/execution_status/numerical_qa_pass` 형식을 따르지 않는다. 따라서 **원본 결과와 별도 재검산이 모두 완료된 경우에만** 아래 변환을 한다. 두 디렉터리는 repository 내부에 있어야 한다.
+원래 E1-01의 `RUN_MANIFEST.json`은 후속 실행기의 `study_id/execution_status/numerical_qa_pass` 형식을 따르지 않는다. 따라서 **원본 결과와 별도 재검산이 모두 완료된 경우에만** 아래 변환을 한다. 두 디렉터리는 repository 내부에 있어야 한다. 아래의 `...`는 예시이므로 **실제 존재하는 경로로 반드시 바꿔야 한다**.
 
 ```bash
 python scripts/fp_sc_followup.py adopt-e1 \
   --repo . \
-  --run-dir <repo-relative-E1-production-run-dir> \
-  --review-dir <repo-relative-E1-separate-review-dir> \
+  --run-dir "research/.../E1_20261105/RUN_001" \
+  --review-dir "research/.../E1_20261105/audit/REVIEW_001" \
   --output research/FP_SC_FOLLOWUP_E1_PARENT.json
 ```
 
