@@ -1,0 +1,67 @@
+name: MBVAR PRR one-shot remaining RT 400-key ledger static verification (NO SOLVER)
+on:
+  push:
+    branches: [proposal/mbvar-prr-one-shot-extract-20261105]
+    paths:
+      - '.github/workflows/mbvar-prr-one-shot-rt-ledger-static-20261105.yml'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/ONE_SHOT_*'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/validate_one_shot_rt_ledger.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  keys-and-budget-source-reproduction:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Read-only checkout of original R2/R4/R5 Tnone and one-shot ledger
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/corridor_sionna_run.py
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R2_Tnone.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R4_Tnone.csv
+            /results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS/timeline_R5_Tnone.csv
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/ONE_SHOT_RT_EXTRACTION_PLAN_20261105.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/ONE_SHOT_SIMULATION_DATA_EXTRACTION_REQUEST_KO.md
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/validate_one_shot_rt_ledger.py
+      - name: Separately pin PR35 G3 authorized 20 keys and original acceptance status
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: ce1f30da7637cef22bc952d029989b5edf939094
+          path: g3_source
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G3_001/PLAN.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G3_001/GO_G3_001.json
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/SM2_001/G2_FINAL_STATUS_KO.md
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - name: Reconstruct whole pose and yaw key set without Sionna/NumPy
+        env:
+          MBVAR_G3_ROOT: ${{ github.workspace }}/g3_source
+          MBVAR_ONE_SHOT_QA_OUT: ${{ runner.temp }}/ONE_SHOT_KEY_LEDGER_STATIC_QA.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/POST_SM0_REVIEW_20261104/validate_one_shot_rt_ledger.py
+      - name: Retain 400-key and 102860-call source QA
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mbvar-one-shot-key-ledger-static-${{ github.run_id }}
+          path: ${{ runner.temp }}/ONE_SHOT_KEY_LEDGER_STATIC_QA.json
+          if-no-files-found: warn
+          retention-days: 90
