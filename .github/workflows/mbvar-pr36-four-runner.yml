@@ -40,6 +40,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           persist-credentials: false
+          fetch-depth: 2
           sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -54,8 +55,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "approved=false" >> "$GITHUB_OUTPUT"
-          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$EXECUTE" = true ]; then
-            test "$CONFIRMATION" = APPROVE_PR36_80184_16_WORKERS
+          if [ "$(python "$BASE/approval_gate.py")" = true ]; then
             tag="pr36-rt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
             gh release create "$tag" --target "$GITHUB_SHA" --draft --title "PR36 RT $GITHUB_RUN_ID" --notes "Collection in progress."
             echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -89,6 +89,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           persist-credentials: false
+          fetch-depth: 2
           sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
       - run: |
           apt-get update -qq
@@ -137,6 +138,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           persist-credentials: false
+          fetch-depth: 2
           sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
       - run: |
           apt-get update -qq
@@ -175,6 +177,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
         with:
           persist-credentials: false
+          fetch-depth: 2
           sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:

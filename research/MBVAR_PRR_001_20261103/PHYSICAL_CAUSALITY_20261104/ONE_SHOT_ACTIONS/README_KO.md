@@ -1,6 +1,6 @@
 # PR36 4-runner 실행 준비
 
-이 변경은 실행 준비 요청을 반영한다. push는 원본 SHA·재사용·키 분할 검증만 수행하며 Native RT는 호출하지 않는다. 4개 runner × 각 4개 worker는 총 16개 논리 CPU에 제한한다. 공개 ubuntu-24.04 runner, 컨테이너별 CPU 4·RAM 12 GiB, 내부 스레드 각 1개다.
+이 변경은 실행 준비 요청을 반영한다. 기본 승인 파일은 approved=false이며 일반 push는 원본 SHA·재사용·키 분할 검증만 수행하고 Native RT는 호출하지 않는다. 4개 runner × 각 4개 worker는 총 16개 논리 CPU에 제한한다. 공개 ubuntu-24.04 runner, 컨테이너별 CPU 4·RAM 12 GiB, 내부 스레드 각 1개다.
 
 기존 단일 서버 세션 조건을 단일 workflow의 canary gate → 4개 shard → 통합 인계로 바꾼다. B0 4키는 기존 raw를 전수 검증하고, 원래 요청서대로 새 실행 환경에서 R4 pose 194·234 Full/LoS canary 1,028회를 먼저 수행한다. canary PASS 후에만 4개 본 계산 shard를 시작한다. 기존 B0 raw는 덮어쓰지 않는다. 이후 모든 신규 키도 원본 Full/LoS archive와 비교한다. 새로운 호스트에서의 solver 동등성은 실제 계산 전에는 미검증이다.
 
@@ -17,3 +17,5 @@ RT 예측 60~90분은 runner 실측 전 추정이다. 보수적인 준비 상한
 원본은 실패해도 각 shard의 draft release에 보존하고 최종 400키 상태를 작성한다. 성공 시 전체 신규·재사용 raw와 입력을 handoff.tar.gz로 묶고 GitHub Release에서 재다운로드해 SHA를 확인한 뒤 공개 완료 상태로 바꾼다. Actions artifact는 보조 복사본이다. 진행 중 강제 job 취소나 runner 자체 소실은 업로드 전 파일 손실 위험이 있어 자동 fail-fast 취소는 사용하지 않는다.
 
 판정은 사용자 승인 기반 비독립 탐색 수집이다. 계산 중 과학적 결과에 따라 새 pose나 yaw를 추가하지 않는다. EKF·논문 채택은 이 workflow의 완료 기준에 포함하지 않는다.
+
+기본 브랜치 병합 없이 실행할 수 있는 별도 승인 커밋 진입점도 준비했다. 사용자가 실행을 승인한 뒤 EXECUTION_APPROVAL.json의 approved=true 및 implementation_commit=직전 준비 커밋을 기록하는 단독 커밋을 push하면 된다. 총 80,184회·4 runner·16 worker·재시도 0이 일치해야 하며 run_attempt=1만 허용한다. 후속 일반 커밋과 Actions 재실행은 RT를 다시 시작하지 않는다. 현재 파일은 false이며 승인 커밋을 만들지 않았다.

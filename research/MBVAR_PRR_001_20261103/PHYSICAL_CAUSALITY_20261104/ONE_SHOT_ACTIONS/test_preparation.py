@@ -6,6 +6,13 @@ import unittest
 import orchestrate as O
 
 class PreparationTests(unittest.TestCase):
+ def test_approval_gate(self):
+  from approval_gate import authorized
+  a=dict(approved=True,implementation_commit="abc",total_calls=80184,runners=4,workers=16,retries=0)
+  self.assertTrue(authorized("push","1",None,None,a,"abc"))
+  self.assertFalse(authorized("push","1",None,None,a,"other"))
+  self.assertFalse(authorized("push","2",None,None,a,"abc"))
+  self.assertFalse(authorized("push","1",None,None,dict(a,approved=False),"abc"))
  def test_registered_universe(self):
   rows=O.ledger()
   self.assertEqual(sum(int(r["expected_solver_calls"]) for r in rows),102860)
