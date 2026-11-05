@@ -59,7 +59,7 @@ if complete:assert sum(r["calls"] for r in allkeys)==79156
 dump(downloads/"ALL_KEYS.json",allkeys)
 dump(downloads/"CANARY_STATUS.json",canary_status)
 dump(downloads/"VALIDATION_ERRORS.json",validation_errors)
-dump(downloads/"FINAL_QA.json",dict(status="PASS_TECHNICAL_SELF_CHECK" if complete else "INCOMPLETE",registered=400,new=308,reused=92,recorded_calls=sum(r["calls"] or 0 for r in allkeys+canary_status),missing_call_counts=any(r["calls"] is None for r in allkeys)))
+dump(downloads/"FINAL_QA.json",dict(status="PASS_TECHNICAL_SELF_CHECK" if complete else "INCOMPLETE",registered=400,new=308,reused=92,recorded_calls=sum(r["calls"] or 0 for r in allkeys),reused_canary_calls=1028,canary_source_run=41954082829,missing_call_counts=any(r["calls"] is None for r in allkeys)))
 handoff=downloads/"handoff.tar.gz"
 with tarfile.open(handoff,"w:gz") as out:
  for name in ["ALL_KEYS.json","FINAL_QA.json","CANARY_STATUS.json","VALIDATION_ERRORS.json"]:

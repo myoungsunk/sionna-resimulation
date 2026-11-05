@@ -19,3 +19,9 @@ RT 예측 60~90분은 runner 실측 전 추정이다. 보수적인 준비 상한
 판정은 사용자 승인 기반 비독립 탐색 수집이다. 계산 중 과학적 결과에 따라 새 pose나 yaw를 추가하지 않는다. EKF·논문 채택은 이 workflow의 완료 기준에 포함하지 않는다.
 
 기본 브랜치 병합 없이 실행할 수 있는 별도 승인 커밋 진입점도 준비했다. 사용자가 실행을 승인한 뒤 EXECUTION_APPROVAL.json의 approved=true 및 implementation_commit=직전 준비 커밋을 기록하는 단독 커밋을 push하면 된다. 총 80,184회·4 runner·16 worker·재시도 0이 일치해야 하며 run_attempt=1만 허용한다. 후속 일반 커밋과 Actions 재실행은 RT를 다시 시작하지 않는다. 현재 파일은 false이며 승인 커밋을 만들지 않았다.
+
+
+## 2026-11-05 재개 수정
+첫 실행 41954082829의 canary 4키는 PASS_TECHNICAL, 1,028회 완료했다. Release 업로드가 컨테이너 Git 소유권 검사에서 실패했으며 본 계산은 0회다. artifact 13382138765의 원본 1,086파일을 전수 SHA 검증하고 기존 증거는 보존한다.
+이번 실행은 해당 canary를 SHA 고정 원본에서 재검증·재사용한다. canary solver 호출은 코드에서 금지하며 신규 상한은 79,156회다. GH_REPO 및 명시적 --repo로 업로드가 로컬 Git 소유권에 의존하지 않게 수정했다.
+4키 배치마다 runner별 완료 키·호출 수·경과시간을 PROGRESS_<shard>.json으로 게시한다. 실패 중단, 4 runner·16 worker, 기존 수치 기준은 유지한다. 승인은 APPROVE_PR36_79156_16_WORKERS 또는 직전 구현 SHA에 결속한 승인 커밋이다. 위 최초 실행 설명보다 이 재개 절차가 우선한다.

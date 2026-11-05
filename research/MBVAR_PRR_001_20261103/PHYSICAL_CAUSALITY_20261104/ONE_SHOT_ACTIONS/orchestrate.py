@@ -145,14 +145,15 @@ def prepare(work):
     for i, tasks in enumerate(shards):
         dump(work/f"shard_{i}.json",tasks)
     dump(work/"inventory.json",dict(reused=reuse,pending=[r["task_id"] for r in pending],
-                                  calls=80184,canary="1028 fresh solver calls required before 4 production shards"))
+                                  calls=79156,canary="Verified raw reused from successful run 41954082829; zero new canary calls"))
     dump(work/"PRECHECK.json",dict(status="PASS_OFFLINE",registered=400,reused=92,
                                   new_tasks=308,new_calls=79156,shard_tasks=list(map(len,shards))))
     return shards
 
 def run_shard(work, shard):
     # Manual dispatch creates an immutable run-specific draft release before this step.
-    assert os.environ.get("RT_EXECUTION_APPROVED") == "80184"
+    assert os.environ.get("RT_EXECUTION_APPROVED") == "79156"
+    assert str(shard) in ("0","1","2","3"), "CANARY_RERUN_FORBIDDEN"
     available=sorted(os.sched_getaffinity(0))
     assert len(available)>=4, "FOUR_CPU_RUNNER_REQUIRED"
     os.sched_setaffinity(0,set(available[:4]))
@@ -209,6 +210,17 @@ def run_shard(work, shard):
     with ThreadPoolExecutor(max_workers=4) as pool:
         for start in range(0,len(tasks),4):
             list(pool.map(execute,tasks[start:start+4]))
+            receipts=[json.loads(f.read_text()) for f in output.glob("*/result.json")]
+            progress=dict(shard=shard,completed=sum(r["status"]=="PASS_TECHNICAL" for r in receipts),
+                          finished=len(receipts),total=77,calls=sum(r["calls"] for r in receipts),
+                          elapsed_s=time.monotonic()-started,stopped=(output/"STOP").exists())
+            progressfile=work/f"PROGRESS_{shard}.json"
+            dump(progressfile,progress)
+            print(json.dumps(progress),flush=True)
+            try:
+                subprocess.run(["gh","release","upload",tag,str(progressfile),"--clobber","--repo",repo],check=True,timeout=30)
+            except Exception as error:
+                remote_errors.append(str(error));(output/"STOP").touch()
             if (output/"STOP").exists():
                 break
     finished.set()
