@@ -2,6 +2,16 @@
 
 **제출일:** 2026-11-04 · **역할:** USER_AUTHORIZED_NONINDEPENDENT / PROPOSER
 
+## 2026-11-05 통합 서버 데이터 수집 요청 — 최신 실행 원장
+
+[ONE_SHOT_SIMULATION_DATA_EXTRACTION_REQUEST_KO.md](ONE_SHOT_SIMULATION_DATA_EXTRACTION_REQUEST_KO.md) — 중간 과학 분석 없이 원래 6면 복도 Full/LoS와 PR #35 고정 yaw의 남은 원시자료만 한 번의 서버 세션에 수집하는 최신 실행 요청서.
+
+- [ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv](ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv): 정확히 400개 실행 task_id. R2/R4/R5 190개 고유 복도 pose × Full/LoS = 380, PR #35 G3 20개 yaw = 20.
+- [ONE_SHOT_RT_EXTRACTION_PLAN_20261105.json](ONE_SHOT_RT_EXTRACTION_PLAN_20261105.json): 기존 raw 제외 전 최대 102,860 PathSolver 호출(1028+B1 6682+SM1 89950+G3 5200), 원본/scene 분리 및 계산 예산/중단 조건.
+- [ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json](ONE_SHOT_RT_KEY_LEDGER_QA_RECEIPT_20261105.json): GitHub Actions #41947190271 원본 3개 Tnone과 PR #35 G3 PLAN/GO 비교, 400개/102,860회 read-only PASS. Sionna RT 호출 0회.
+
+**이 최신 요청은 단계별 실행을 기다리며 서버를 여러 번 사용하는 대신, 전체 원본 키를 사전에 확정해 중복 없이 일괄 *데이터 생성*하는 방식이다.** 과학적 분석 순서는 아래 기존 설계가 유효하다. PR #35의 R4_168 G2 4 yaw는 이미 DATA ACCEPT이므로 다시 생성하지 않는다. G3 20 yaw는 실행 승인 문서가 있지만 이 요청에서 원본 로컬/원격 SHA를 확인하기 전에는 완료라고 단정하지 않는다.
+
 ## 판정
 
 - PR #33 @ e69fcdd: C00 8/8 PASS, C01/C10/C11 24/24 PASS, 16 pose-scene 구성의 2회 반복 complex H 해시 일치, 8,224 native PathSolver calls 성공.
