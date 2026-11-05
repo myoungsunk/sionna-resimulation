@@ -1,0 +1,412 @@
+{
+  "schema": "FP_SC_E1_01_PRE_EXECUTION_CODE_REVIEW_V1",
+  "study_id": "FP-SC-001",
+  "stage": "E1-01",
+  "reviewer": "/root/design_audit",
+  "reviewer_provenance": "SAME_SESSION_SEPARATE_REVIEWER",
+  "external_independent_accept": false,
+  "utc": "2026-11-05T05:12:34.002948+00:00",
+  "verdict": "PASS_FOR_E1_01_EXECUTION",
+  "code_lock_sha256": "0fff182f1ef9aa02f2056275c1809b03fa839b45ba0f7fdc662a13382339085b",
+  "reviewed_document_hashes": {
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/INPUT_LOCK.json": "d38e8c1b93889726720a5d06d9dcb7e4ee2b728f4cccf6dc3cf0454a9c483d9a",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/ENV_LOCK.json": "e082adb6a0171e0084a4afed407ea967f6d1f7d1a00fc90dd3a80c0fa440c53f",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/POLICY_SPEC.json": "8f6ae767aeb91fc59060e799fdd4dc8aa25b34c8c993a5cc47f750dd606e232a",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/METRIC_SPEC.json": "203cf556809500b36abe3a8538342d2222e400a3db121cd1e907301d75603251",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/SPLIT_MANIFEST.json": "236bfafed502e1c20fe632f11e666600e19009c3f6f7f1339ac3ea97ec8c5726",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_MATRIX.csv": "d0785cb359b1d883c5bd022c2f0f5170fab32cecd8e317db1154c99191b948c8",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/SYNTHETIC_TEST_RECEIPT.json": "3096ab6fb9c9c5d887775f25baf0a71150b04ff0a24af0a3a467f3e629f9067e",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/H0_GATE_REVIEW.json": "c9a35104aaf16cb897f58d04c3f09cf9e2f0e85abe2299a01d03ebb9c12f031b"
+  },
+  "source_publication_and_owner_scoped_execution_lock_required": true,
+  "no_real_E1_metrics_executed_for_review": true,
+  "scoped_permission": {
+    "dynamic_waveforms": 6272,
+    "static_G4_waveforms": 48,
+    "total_waveforms": 6320,
+    "packet_mode_rows": 12640,
+    "run_matrix_groups": 108,
+    "candidate_family_settings": 1,
+    "candidate_modes": [
+      "STRONGEST_ONLY",
+      "TWO_PORT_UNION"
+    ],
+    "selector_runs": 0,
+    "EKF_runs": 0,
+    "new_RT": 0,
+    "sealed_or_calibration_runs": 0
+  },
+  "code_and_contract_findings": [
+    "Current-CIR-only immutable generator API; no GT/reference/prior/history/route/seed argument and no external I/O or random state in candidate computations.",
+    "Original amplitude30% detector preserved; both modes use the same global magnitude maximum across both RX.",
+    "Local prominence and leading-edge segment are distinct; candidate support is only edge+/-1 inside the rising segment with stated floor.",
+    "One polarization null allowed. Invalid original frames preserve raw metadata but yield empty pools and no normal/wrong label.",
+    "Explicit ignored-boundary peak records added before freeze; whole-array flat RX is not a peak.",
+    "Raw fallback included in candidate count; overflow above64 logs all candidates and makes the pool unusable.",
+    "Same-mode lobe groups are strict positive-overlap connected components; all support/port/lobe provenance retained.",
+    "Evaluator computes Native-LoS reference only after candidate pools exist; fixed exact packet/condition joins and all6320 waveform denominator retained.",
+    "Primary recall uses valid>=2tap dynamicFull errors with actual supported reference and no overflow; G4 and Native-LoS are separate controls.",
+    "Paired usable gains/losses are retained, including possible union overflow despite strongest tap-set inclusion.",
+    "Threshold .95 and per-nonempty-route guard fixed; zero denominator NOT_TESTED; descriptive status cannot imply H2/E2 success.",
+    "Strict stage guard binds reviewed code bytes to code-lock and git implementation commit, required document hashes, qualified H0 evidence, owner scoped approval, exact35 actual inputs, and single-thread environment before waveform math or output creation.",
+    "Failures preserve partial outputs; existing output directory is refused.",
+    "Separate result checker reconstructs Hann/per-port FFT, scalar peaks/edges/groups/candidates, all packet classifications and aggregates without production candidate imports. It shares only identity/stage guard and NumPy FFT runtime."
+  ],
+  "pre_freeze_resolutions": [
+    "Exact two-port global normalization, invalid-raw invariant, and fallback-inclusive overflow made explicit.",
+    "Boundary evidence recording and constant-flat handling aligned.",
+    "Independent checker invalid-raw preservation invariant aligned to contract.",
+    "Lossless gzip output filenames stated in policy before freeze."
+  ],
+  "validation_evidence": {
+    "parent_test_receipt": {
+      "status": "PASS",
+      "tests": 61,
+      "failures": 0,
+      "scope": "All test_fp_sc_*.py, including9separate candidate checker tests and16candidate implementation tests",
+      "command": "OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=src python -m unittest discover -s tests -p 'test_fp_sc_*.py' -q",
+      "real_E1_data_run": false
+    },
+    "reviewer_reran_full_test_suite": false,
+    "reviewer_test_source_review": "Read hand-derived generator, checker and guard tests; no redundant full-suite rerun.",
+    "actual_code_files_rehashed": 12,
+    "actual_input_files_rehashed": 35,
+    "actual_input_bytes_rehashed": 141841815,
+    "metadata_and_identity_checks": [
+      {
+        "name": "code:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/audit/check_candidates.py",
+        "pass": true
+      },
+      {
+        "name": "code:scripts/fp_sc_e1.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/__init__.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/drivesim/__init__.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/drivesim/observation.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/fp_sc/__init__.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/fp_sc/candidates.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/fp_sc/contracts.py",
+        "pass": true
+      },
+      {
+        "name": "code:src/qclean_uwb/fp_sc/e1_contracts.py",
+        "pass": true
+      },
+      {
+        "name": "code:tests/test_fp_sc_candidates.py",
+        "pass": true
+      },
+      {
+        "name": "code:tests/test_fp_sc_e1_candidate_checker.py",
+        "pass": true
+      },
+      {
+        "name": "code:tests/test_fp_sc_e1_contracts.py",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R2_aB_m0_B0_Full.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R4_aB_m0_B0_Full.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/R5_aB_m0_B0_Full.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/CONDITIONS.json",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y0/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y1/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y2/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y3/FIELDS_AND_WINDOWS.npz",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy",
+        "pass": true
+      },
+      {
+        "name": "input:results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy",
+        "pass": true
+      },
+      {
+        "name": "split_pose:R2",
+        "pass": true
+      },
+      {
+        "name": "split_time:R2",
+        "pass": true
+      },
+      {
+        "name": "split_payload:R2",
+        "pass": true
+      },
+      {
+        "name": "split_pose:R4",
+        "pass": true
+      },
+      {
+        "name": "split_time:R4",
+        "pass": true
+      },
+      {
+        "name": "split_payload:R4",
+        "pass": true
+      },
+      {
+        "name": "split_pose:R5",
+        "pass": true
+      },
+      {
+        "name": "split_time:R5",
+        "pass": true
+      },
+      {
+        "name": "split_payload:R5",
+        "pass": true
+      },
+      {
+        "name": "exact_static_conditions",
+        "pass": true
+      },
+      {
+        "name": "matrix_scope",
+        "pass": true
+      },
+      {
+        "name": "metric_policy:reference_and_denominators",
+        "pass": true
+      },
+      {
+        "name": "metric_policy:cluster_accounting",
+        "pass": true
+      },
+      {
+        "name": "metric_threshold",
+        "pass": true
+      },
+      {
+        "name": "qualified_H0_only",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/RUN_E0_001/RUN_MANIFEST.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/RUN_E0_001/ARTIFACT_HASHES.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/RESULT_REVIEW_001/E0_RESULT_REVIEW.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/RESULT_REVIEW_001/ARTIFACT_HASHES.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/E0_RESULT_SCOPE_ADDENDUM.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/DETECTOR_MAPPING_REVIEW.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/PRE_RUN_A2_REVIEW.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/E0_A2_CODE_REVIEW.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/AMENDMENT.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/controls/REGISTRY.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/CODE_LOCK.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/INPUT_LOCK.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/EXECUTION_LOCK.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/RUN_E0_A2_001/RUN_MANIFEST.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/A2_20261105/RUN_E0_A2_001/ARTIFACT_HASHES.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/audit_e0_a2_results.py",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/A2_RESULT_REVIEW_001/E0_A2_RESULT_REVIEW.json",
+        "pass": true
+      },
+      {
+        "name": "H0_evidence:research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105/audit/A2_RESULT_REVIEW_001/ARTIFACT_HASHES.json",
+        "pass": true
+      }
+    ]
+  },
+  "result_review_required": [
+    "Verify exact source/code/spec/input/environment/run identities.",
+    "Recompute all6320waveforms/12640mode rows, all candidate/lobe/support records and denominator/episode/paired aggregates.",
+    "Distinguish technical reproduction from observed candidate availability and population inference.",
+    "Preserve any failed threshold or unsupported route; no result-guided parameter changes to this run."
+  ],
+  "E1_02_E5_GO": false,
+  "E2_GO": false,
+  "limitations": [
+    "Same-session separate reviewer, not external independent acceptance.",
+    "Candidate availability only: no wrongness detection precision, selective FP replacement, polarization/ranging intervention, filter improvement or realtime result.",
+    "Clean exposed same-RF corpus; no RF-noise or environment generalization claim.",
+    "Historical R4/R5 controls-byte issue remains unresolved despite accepted A2 functional numerical reproduction."
+  ]
+}
