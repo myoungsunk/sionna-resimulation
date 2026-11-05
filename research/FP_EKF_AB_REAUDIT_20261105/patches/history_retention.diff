@@ -1,0 +1,11 @@
+--- S3/history.py (original)
++++ S3/history.py (proposed boundary fix)
+@@ -62,7 +62,7 @@
+         cutoff = timestamp - self.seconds
+         while self.packets and self.packets[0][1] < cutoff:
+             self.packets.popleft()
+-        while self.checkpoints and self.checkpoints[0].timestamp < cutoff:
++        while len(self.checkpoints) > 1 and self.checkpoints[1].timestamp < cutoff:
+             self.checkpoints.popleft()
+         return True
+ 

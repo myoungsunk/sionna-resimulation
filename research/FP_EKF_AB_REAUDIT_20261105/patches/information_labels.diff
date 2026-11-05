@@ -1,0 +1,14 @@
+--- S2/recovery.py (original)
++++ S2/recovery.py (label-only proposed fix)
+@@ -48,9 +48,9 @@
+   if c < -tol:raise ValueError('negative nuisance information')
+   if c>tol:S=A-np.outer(b,b)/c
+   elif np.linalg.norm(b)<=tol:S=A
+-  else:return False,float(np.linalg.eigvalsh(A)[0]),float('nan'),G
++  else:return False,float('nan'),float(np.linalg.eigvalsh(A)[0]),G
+   minimum=float(np.linalg.eigvalsh((S+S.T)/2)[0])
+-  return minimum>=1e-6,float(np.linalg.eigvalsh(A)[0]),minimum,G
++  return minimum>=1e-6,minimum,float(np.linalg.eigvalsh(A)[0]),G
+ 
+ class RecoveryMachine:
+  def __init__(self):
