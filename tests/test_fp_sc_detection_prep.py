@@ -109,4 +109,36 @@ class DetectionPreparationTests(unittest.TestCase):
         for r in before: self.assertEqual(r['decision'].selected_tap,e.raw_tap)
         self.assertEqual(before[2]['history']['detector_m'],e.raw_tap*STEP_M)
 
+class MappingAuthorizationTests(unittest.TestCase):
+    def test_boolean_cannot_replace_mapping_evidence(self):
+        import tempfile,json,platform
+        from pathlib import Path
+        from qclean_uwb.fp_sc.followup.contracts import authorize,sha256,digest
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);m=root/'manifest.json';a=root/'approval.json';p=Policy()
+            manifest=dict(schema='FP_SC_FOLLOWUP_STUDY_V1',execution_profile='VAB_DETECTION_ONLY_R1',
+                policy=__import__('dataclasses').asdict(p),policy_sha256=p.sha,
+                environment=dict(python=platform.python_version(),numpy=np.__version__),
+                mapping_reviewed=True,code_files={},input_files={})
+            m.write_text(json.dumps(manifest))
+            a.write_text(json.dumps(dict(execute_science=True,manifest_sha256=sha256(m),
+                stages=['E1-02'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest({}))))
+            with self.assertRaisesRegex(ContractError,'MAPPING_EVIDENCE_NOT_LOCKED'):
+                authorize(root,m,a,['E1-02'],[])
+
+    def test_vab_profile_rejects_e2_even_with_synthetic_approval(self):
+        import tempfile,json,platform
+        from pathlib import Path
+        from dataclasses import asdict
+        from qclean_uwb.fp_sc.followup.contracts import authorize,sha256,digest
+        with tempfile.TemporaryDirectory() as td:
+            root=Path(td);m=root/'manifest.json';a=root/'approval.json';p=Policy()
+            m.write_text(json.dumps(dict(schema='FP_SC_FOLLOWUP_STUDY_V1',execution_profile='VAB_DETECTION_ONLY_R1',
+                policy=asdict(p),policy_sha256=p.sha,environment=dict(python=platform.python_version(),numpy=np.__version__),
+                mapping_reviewed=True,code_files={},input_files={})))
+            a.write_text(json.dumps(dict(execute_science=True,manifest_sha256=sha256(m),
+                stages=['E2-01'],actor='SYNTHETIC_UNIT_TEST',issued_utc='SYNTHETIC',code_lock_sha256=digest({}))))
+            with self.assertRaisesRegex(ContractError,'VAB_DETECTION_SINGLE_STAGE_ONLY'):
+                authorize(root,m,a,['E2-01'],[])
+
 if __name__ == '__main__': unittest.main()
