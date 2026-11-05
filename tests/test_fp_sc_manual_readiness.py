@@ -195,6 +195,21 @@ class LocalPreflightTest(unittest.TestCase):
                 self.inspect(root, mp, ap)
 
 
+class StableArtifactTest(unittest.TestCase):
+    def test_gzip_json_hash_is_deterministic_and_readable(self):
+        import gzip
+        from qclean_uwb.fp_sc.followup.runner import _gzip_json
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            p1, p2 = root / "first.json.gz", root / "other.json.gz"
+            value = {"x": [1, 2, 3], "record": {"valid": False}}
+            _gzip_json(p1, value)
+            _gzip_json(p2, value)
+            self.assertEqual(sha256(p1), sha256(p2))
+            with gzip.open(p1, "rt", encoding="utf-8") as handle:
+                self.assertEqual(json.load(handle), value)
+
+
 class PartialAuditTest(unittest.TestCase):
     def test_failed_run_hashes_are_hold_not_pass(self):
         with tempfile.TemporaryDirectory() as temporary:
