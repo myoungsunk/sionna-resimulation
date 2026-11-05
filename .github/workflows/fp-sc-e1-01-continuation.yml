@@ -1,0 +1,248 @@
+name: FP-SC-001 E1-01 continuation and independent replay
+on:
+  push:
+    branches:
+      - implement/fp-sc-001-e1-run-20261105
+    paths:
+      - .github/workflows/fp-sc-e1-01-continuation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fp-sc-001-e1-01-continuation
+  cancel-in-progress: false
+
+jobs:
+  e1-candidate-availability:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+      PYTHONPATH: src
+      GIT_LFS_SKIP_SMUDGE: "1"
+      E1ROOT: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105
+      RUN_DIR: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_GHA_A1
+    steps:
+      - name: Checkout reviewed source and exact input paths
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 4
+          persist-credentials: true
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            .gitattributes
+            .github/workflows/fp-sc-e1-01-continuation.yml
+            scripts/fp_sc_e1.py
+            src/qclean_uwb/__init__.py
+            src/qclean_uwb/drivesim/__init__.py
+            src/qclean_uwb/drivesim/observation.py
+            src/qclean_uwb/fp_sc
+            tests/test_fp_sc_
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E0_20261105
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input
+            research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/freqs_hz.npy
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R
+            results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R
+
+      - name: Materialize previously frozen LFS inputs (no RF simulation)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include='results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R*_aB_m0.npy,results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R*_aB_m0.npy,research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C1/C1A_001/FROZEN_PACKETS/algorithm_input/*.npz,research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/*/FIELDS_AND_WINDOWS.npz' --exclude=''
+
+      - name: Install pinned scientific packages in declared hosted runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned array dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0 pandas==2.2.3 joblib==1.5.3 threadpoolctl==3.6.0
+          python -m unittest discover -s tests -p 'test_fp_sc_*.py' -q
+
+      - name: Check frozen E1 lock and record runtime-only A1 amendment before any science
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          import sys
+          sys.path.insert(0, str(Path('src').resolve()))
+          from qclean_uwb.fp_sc.contracts import environment, sha256, write_json
+          base = Path('research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105')
+          dest = base / 'RUN_GHA_A1'
+          dest.mkdir(exist_ok=False)
+          runtime = environment()
+          historical = json.loads((base/'ENV_LOCK.json').read_text())
+          write_json(dest/'ENV_RUNTIME_OBSERVED.json', runtime)
+          original_lock = json.loads((base/'EXECUTION_LOCK.json').read_text())
+          original_approval = json.loads((base/'GO_E1_01.json').read_text())
+          mode = 'EXACT_FROZEN_ENV' if runtime == historical else 'EXPLORATORY_RUNTIME_ONLY_AMENDMENT'
+          if mode == 'EXACT_FROZEN_ENV':
+              lockpath = base/'EXECUTION_LOCK.json'
+              approvalpath = base/'GO_E1_01.json'
+          else:
+              new_environment_path = (dest/'ENV_RUNTIME_OBSERVED.json').as_posix()
+              lock = copy.deepcopy(original_lock)
+              old_environment_path = lock['environment_file']
+              assert lock['documents'][old_environment_path] == sha256(Path(old_environment_path))
+              del lock['documents'][old_environment_path]
+              lock['environment_file'] = new_environment_path
+              lock['documents'][new_environment_path] = sha256(dest/'ENV_RUNTIME_OBSERVED.json')
+              lock['amendment'] = 'GHA_A1_RUNTIME_ONLY_NOT_ORIGINAL_PRE_REVIEWED_ENV'
+              lock['source_execution_lock_sha256'] = sha256(base/'EXECUTION_LOCK.json')
+              lockpath = dest/'EXECUTION_LOCK_RUNTIME_A1.json'
+              write_json(lockpath, lock)
+              approval = copy.deepcopy(original_approval)
+              approval['execution_lock_sha256'] = sha256(lockpath)
+              approval['amendment'] = 'GHA_A1_RUNTIME_ONLY_PROVISIONAL_NO_EXTERNAL_ACCEPT'
+              approval['source_approval_sha256'] = sha256(base/'GO_E1_01.json')
+              approval['authorization_source'] = 'Owner-directed continuation 2026-11-05; runtime amendment clearly disclosed'
+              approvalpath = dest/'GO_E1_01_RUNTIME_A1.json'
+              write_json(approvalpath, approval)
+          write_json(dest/'RUNTIME_PROVENANCE.json', {
+              'mode': mode, 'source_implementation_commit': original_lock['implementation_commit'],
+              'original_environment_hash': sha256(base/'ENV_LOCK.json'),
+              'runtime_environment_hash': sha256(dest/'ENV_RUNTIME_OBSERVED.json'),
+              'original_lock_preserved': True, 'scientific_code_and_generator_parameters_unchanged': True,
+              'original_environment_independent_review_applies_to_A1': False,
+              'original_contract_frozen_environment_pass': runtime == historical,
+              'external_independent_accept': False, 'E1_02_E5_GO': False,
+              'scope': 'Candidate availability only. No RT, no FP replacement, no EKF.',
+              'lock_file': str(lockpath), 'approval_file': str(approvalpath)
+          })
+          print('PRE_EXECUTION_RUNTIME_MODE', mode, flush=True)
+          PY
+
+      - name: Execute complete 6320-waveform E1-01 candidate experiment
+        id: production
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u - <<'PY' 2>&1 | tee "$RUN_DIR/production.log"
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+          base = Path('research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_GHA_A1')
+          meta = json.loads((base/'RUNTIME_PROVENANCE.json').read_text())
+          subprocess.run([sys.executable, '-u', 'scripts/fp_sc_e1.py', 'run',
+                         '--lock', meta['lock_file'], '--approval', meta['approval_file'],
+                         '--output', str(base/'RUN_001')], check=True)
+          PY
+
+      - name: Independently recompute full candidate, lobe and aggregate evidence
+        id: review
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u - <<'PY' 2>&1 | tee "$RUN_DIR/review.log"
+          import json
+          import subprocess
+          import sys
+          from pathlib import Path
+          base = Path('research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_GHA_A1')
+          meta = json.loads((base/'RUNTIME_PROVENANCE.json').read_text())
+          subprocess.run([sys.executable, '-u',
+                          'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/audit/check_candidates.py',
+                          '--repo', '.', '--run', str(base/'RUN_001'),
+                          '--output', str(base/'REVIEW_001'),
+                          '--lock', meta['lock_file'], '--approval', meta['approval_file']], check=True)
+          PY
+
+      - name: Record missed-reference cases and fail-closed scientific verdict
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import csv
+          import gzip
+          import json
+          from collections import Counter, defaultdict
+          from pathlib import Path
+          base = Path('research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_GHA_A1')
+          base.mkdir(parents=True, exist_ok=True)
+          def load(path):
+              return json.loads(path.read_text()) if path.is_file() else None
+          prov = load(base/'RUNTIME_PROVENANCE.json')
+          run = load(base/'RUN_001/RUN_MANIFEST.json')
+          summary = load(base/'RUN_001/SUMMARY.json')
+          review = load(base/'REVIEW_001/E1_RESULT_REVIEW.json')
+          cases = []
+          coverage = base/'RUN_001/PACKET_CANDIDATE_COVERAGE.csv'
+          if coverage.is_file():
+              with coverage.open(newline='') as f:
+                  for row in csv.DictReader(f):
+                      if row['corpus'] != 'dynamic' or row['channel'] != 'Full' or row['mode'] != 'TWO_PORT_UNION' or row['large_error'] != 'True' or row['reference_usable'] == 'True':
+                          continue
+                      r = {key:row.get(key) for key in ('packet_uid','route','pose_id','t_s','raw_tap','raw_rx','reference_tap','candidate_count','supported_count','overflow','reference_in_all','reference_in_supported','reference_usable','pool_status','raw_reason','noise_amplitude_floor')}
+                      r['error_taps'] = int(row['raw_tap']) - int(row['reference_tap'])
+                      r['failure_class'] = ('CANDIDATE_OVERFLOW' if row['overflow']=='True' else 'NO_SUPPORTED_REFERENCE' if row['reference_in_supported'] != 'True' else 'INVALID_RAW_OR_OTHER')
+                      cases.append(r)
+          targeted = {r['packet_uid']: r for r in cases}
+          candidates = base/'RUN_001/CANDIDATES.csv.gz'
+          if targeted and candidates.is_file():
+              nearest = defaultdict(list)
+              with gzip.open(candidates,'rt',newline='') as f:
+                  for c in csv.DictReader(f):
+                      if c['mode']=='TWO_PORT_UNION' and c['packet_uid'] in targeted:
+                          uid=c['packet_uid']
+                          nearest[uid].append({'tap':int(c['tap']),'supported':c['supported'],'is_raw':c['is_raw'],'distance_to_reference_taps':abs(int(c['tap'])-int(targeted[uid]['reference_tap']))})
+              for r in cases:
+                  r['closest_candidates'] = sorted(nearest[r['packet_uid']],key=lambda c:c['distance_to_reference_taps'])[:8]
+          (base/'MISSING_REFERENCE_CASES.json').write_text(json.dumps({'stage':'E1-01','population':'dynamic Full >=2-tap reference errors, TWO_PORT_UNION','missed_count':len(cases),'by_route':dict(Counter(c['route'] for c in cases)),'cases':cases},ensure_ascii=False,indent=2)+'\n')
+          completed = bool(run and run.get('status')=='COMPLETED_PENDING_SEPARATE_RESULT_REVIEW' and run.get('actual_waveforms')==6320 and run.get('actual_packet_mode_rows')==12640)
+          verified = bool(review and review.get('status')=='PASS_CANDIDATE_AVAILABILITY_REPRODUCTION')
+          verdict = {
+              'stage':'E1-01','scientific_code_unchanged':True,
+              'runtime_mode': prov['mode'] if prov else 'PREFLIGHT_DID_NOT_RUN',
+              'execution_completed':completed,'separate_arithmetic_review_pass':verified,
+              'e1_observed_gate': summary.get('observed_gate') if summary else None,
+              'missing_reference_cases_count':len(cases),
+              'frozen_environment_e1_pass': bool(completed and verified and prov and prov['mode']=='EXACT_FROZEN_ENV'),
+              'result_class': 'PROVISIONAL_RUNTIME_A1' if prov and prov['mode']!='EXACT_FROZEN_ENV' else 'ORIGINAL_RUNTIME',
+              'external_independent_accept': False,
+              'E1_02_E5_GO':False,'E2_GO':False,
+              'do_not_claim': ['runtime-adapted data equals original frozen-env result',
+                               'E1-02 selector success', 'FP correction success', 'EKF improvement']
+          }
+          (base/'FINAL_VERDICT.json').write_text(json.dumps(verdict,ensure_ascii=False,indent=2)+'\n')
+          print(json.dumps(verdict,ensure_ascii=False),flush=True)
+          PY
+
+      - name: Publish bounded review evidence on current branch (preserve frozen source)
+        if: always()
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          find "$RUN_DIR" -type f \( -name '*.json' -o -name '*.csv' \) -size -50M -print0 | while IFS= read -r -d '' p; do git add -f -- "$p"; done
+          if ! git diff --cached --quiet; then
+            git commit -m 'Publish FP-SC E1-01 candidate coverage, runtime delta and separate result review (E2 blocked)'
+            git push origin HEAD:implement/fp-sc-001-e1-run-20261105
+          fi
+
+      - name: Retain complete candidate and lobe evidence incl. failed partial outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fp-sc-e1-01-candidate-coverage-and-checker
+          path: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_20261105/RUN_GHA_A1
+          retention-days: 30
+          if-no-files-found: warn
