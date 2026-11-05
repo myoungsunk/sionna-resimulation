@@ -8,6 +8,8 @@ import gzip
 import json
 import sys
 import traceback
+import gc
+from types import SimpleNamespace
 import numpy as np
 from .contracts import (BASE_SHA, DEPENDENCIES, OPTIONAL, STAGES, ContractError, Policy,
                         authorize, digest, environment, jsonable, prerequisite, rooted,
@@ -20,6 +22,7 @@ from .study import (calibration_records, e1_detection, e2_confidence, e2_history
                     labelled, select_policy_from_calibration, stress, validate_trajectory_grid)
 from .selection import policy_grid
 from .evaluation import selection_summary
+from .readiness import STREAM_STAGES, adopt_e1, preflight
 
 SOURCES_REQUIRED = (
     "src/qclean_uwb/fp_sc/candidates.py", "src/qclean_uwb/fp_sc/e0_baseline.py",
@@ -100,23 +103,16 @@ def _aggregate_e4(records, case_meta):
 
 def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stages: list[str]):
     root = root.resolve()
-    manifest, approval = authorize(root, manifest_path, approval_path, stages, code_paths(root))
     if Path(__file__).resolve().parents[4] != root:
         raise ContractError("EXECUTING_CODE_OUTSIDE_DECLARED_REPOSITORY")
-    if set(manifest.get("baseline_sources", {})) != set(SOURCES_REQUIRED):
-        raise ContractError("BASELINE_SOURCE_LOCK_INCOMPLETE")
-    verify_files(root, manifest["baseline_sources"])
-    for bank in ("LP_plus45_bank.npz", "LP_minus45_bank.npz"):
-        if bank not in manifest["input_files"]:
-            raise ContractError("FFD_BANK_NOT_IN_INPUT_LOCK")
-    requested = set(stages)
-    if stages != [s for s in STAGES if s in requested]:
-        raise ContractError("STAGES_NOT_IN_TOPOLOGICAL_ORDER")
+    manifest, approval, preflight_receipt = preflight(
+        root, manifest_path, approval_path, stages, code_paths(root), SOURCES_REQUIRED)
     if not output.resolve().is_relative_to(root) and not approval.get("external_output_allowed", False):
         raise ContractError("EXTERNAL_OUTPUT_PATH_NOT_APPROVED")
     output.mkdir(parents=True, exist_ok=False)
     receipt = dict(status="RUNNING", manifest_sha256=sha256(manifest_path), approval_sha256=sha256(approval_path),
-                   code_lock_sha256=digest(manifest["code_files"]), environment=environment(), stages={},
+                   code_lock_sha256=digest(manifest["code_files"]), environment=environment(),
+                   local_preflight=preflight_receipt, stages={},
                    start_utc=dt.datetime.now(dt.timezone.utc).isoformat(), new_RT_calls=0,
                    external_independent_accept=False, actor_role="IMPLEMENTER_SELF_CHECK")
     write_json(output/"RUN_MANIFEST.json", receipt)
@@ -138,18 +134,31 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             case_ids = cfg["case_ids"]
             if len(case_ids) != len(set(case_ids)) or not case_ids:
                 raise ContractError("EMPTY_OR_DUPLICATE_STAGE_CASES")
+            # E4/E5 may include 120/240 trajectories, each with multiple
+            # full-size complex CFR arrays. Never preload/retain the entire grid.
+            stream_stage = stage in STREAM_STAGES
+            if stream_stage:
+                cache.clear()
+            stage_meta = {}
             for case_id in case_ids:
-                if case_id not in cache:
-                    cache[case_id] = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
-                if cache[case_id][0].case_id != case_id:
-                    raise ContractError("CASE_KEY_IDENTITY_MISMATCH")
-            if stage.startswith(("E1-", "E2-", "E3-")) and any(cache[c][0].split == "SEALED" for c in case_ids):
+                if stream_stage:
+                    metadata = case_specs[case_id]["metadata"]
+                    stage_meta[case_id] = SimpleNamespace(**metadata, t=np.array([0.]))
+                else:
+                    if case_id not in cache:
+                        cache[case_id] = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
+                    if cache[case_id][0].case_id != case_id:
+                        raise ContractError("CASE_KEY_IDENTITY_MISMATCH")
+                    stage_meta[case_id] = cache[case_id][0]
+            if stage.startswith(("E1-", "E2-", "E3-")) and any(stage_meta[c].split == "SEALED" for c in case_ids):
                 raise ContractError("SEALED_DATA_NOT_ALLOWED_IN_DEVELOPMENT_STAGES")
-            validate_trajectory_grid([cache[c][0] for c in case_ids], stage)
+            # Metadata grid checked before calculation. Actual t[0] and the
+            # complete timeline are checked when each streamed case is loaded.
+            validate_trajectory_grid([stage_meta[c] for c in case_ids], stage)
             if stage == "E4-03":
                 folds = manifest.get("outer_fold_policies", {})
                 for case_id in case_ids:
-                    case = cache[case_id][0]
+                    case = stage_meta[case_id]
                     fold = folds.get(case.route)
                     if not fold or case.route in fold["training_routes"] or not fold.get("full_pipeline_holdout_reviewed"):
                         raise ContractError("ENTIRE_PIPELINE_ROUTE_HOLDOUT_NOT_REGISTERED")
@@ -162,7 +171,7 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 domain = json.loads(rooted(root, path).read_text(encoding="utf-8"))
                 if not domain.get("new_data_reviewed") or set(domain["evaluation_domain_ids"]) & set(domain["development_domain_ids"]):
                     raise ContractError("EXTERNAL_ENVIRONMENT_NOT_DISJOINT_OR_NOT_REVIEWED")
-                if any(cache[c][0].corpus != "external" or cache[c][0].environment_id not in domain["evaluation_domain_ids"] for c in case_ids):
+                if any(stage_meta[c].corpus != "external" or stage_meta[c].environment_id not in domain["evaluation_domain_ids"] for c in case_ids):
                     raise ContractError("OLD_CORRIDOR_IS_NOT_EXTERNAL_GENERALIZATION")
             folder = output/stage
             folder.mkdir(exist_ok=False)
@@ -199,7 +208,12 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 write_json(folder/"CAL_POLICY_SELECTION.json", selected)
                 _gzip_json(folder/"CAL_POLICY_GRID.json.gz", search_results)
             for case_id in case_ids:
-                case, ev = cache[case_id]
+                if stream_stage:
+                    case, ev = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
+                    if case.case_id != case_id or abs(float(case.t[0])) > 1e-12:
+                        raise ContractError("STREAMED_CASE_IDENTITY_OR_T0_MISMATCH:" + case_id)
+                else:
+                    case, ev = cache[case_id]
                 active_policy = policy
                 if stage == "E4-03":
                     active_policy = Policy(**manifest["outer_fold_policies"][case.route]["policy"])
@@ -232,7 +246,8 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                     result = e3_one_step(case, ev, adapter, active_policy, matched)
                 elif stage in {"E4-01", "E4-02", "E4-03", "E5-03"}:
                     result = e4_closed_loop(case, ev, adapter, active_policy, matched)
-                    e4_results[case_id] = result
+                    # The aggregation only needs metrics, not six full traces.
+                    e4_results[case_id] = {"metrics": result["metrics"]}
                 elif stage in {"E5-01", "E5-02"}:
                     sink_path = folder/(case_id+"_OUTPUTS.jsonl")
                     with sink_path.open("x", encoding="utf-8") as sink_file:
@@ -244,8 +259,11 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 else:
                     raise ContractError("NO_STAGE_DISPATCHER")
                 _gzip_json(folder/(case_id+".json.gz"), result)
+                if stream_stage:
+                    del result, case, ev
+                    gc.collect()
             if e4_results:
-                write_json(folder/"PAIRED_CLAIMS.json", _aggregate_e4(e4_results, {c: cache[c][0] for c in case_ids}))
+                write_json(folder/"PAIRED_CLAIMS.json", _aggregate_e4(e4_results, stage_meta))
             stage_receipt.update(execution_status="COMPLETE", numerical_qa_pass=True,
                                  files={p.name: sha256(p) for p in sorted(folder.iterdir()) if p.name != "STAGE_RECEIPT.json"})
             write_json(folder/"STAGE_RECEIPT.json", stage_receipt)
@@ -254,8 +272,16 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             write_json(output/"RUN_MANIFEST.json", receipt)
         receipt["status"] = "COMPLETE_TECHNICAL_ONLY"
     except Exception as exc:
-        receipt.update(status="FAILED_PRESERVED", error=f"{type(exc).__name__}:{exc}", traceback=traceback.format_exc())
+        receipt.update(status="FAILED_PRESERVED", error=f"{type(exc).__name__}:{exc}",
+                       traceback=traceback.format_exc(),
+                       end_utc=dt.datetime.now(dt.timezone.utc).isoformat())
         write_json(output/"RUN_MANIFEST.json", receipt)
+        # A failed run remains failed, but its partial evidence can be checked
+        # for byte tampering; audit.py explicitly refuses to certify it.
+        write_json(output/"ARTIFACT_HASHES.json", {
+            str(p.relative_to(output)): sha256(p) for p in sorted(output.rglob("*"))
+            if p.is_file() and p.name != "ARTIFACT_HASHES.json"
+        })
         raise
     receipt["end_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
     write_json(output/"RUN_MANIFEST.json", receipt)
@@ -270,6 +296,13 @@ def main(argv=None):
     sub.add_parser("plan")
     audit_command=sub.add_parser("audit")
     audit_command.add_argument("--directory",required=True,type=Path)
+    inspection = sub.add_parser("preflight")
+    for name in ("repo", "manifest", "approval"):
+        inspection.add_argument("--"+name, required=True, type=Path)
+    inspection.add_argument("--stages", nargs="+", choices=STAGES, required=True)
+    e1bridge = sub.add_parser("adopt-e1")
+    for name in ("repo", "run-dir", "review-dir", "output"):
+        e1bridge.add_argument("--"+name, required=True, type=Path)
     execute = sub.add_parser("run")
     for name in ("repo", "manifest", "approval", "output"):
         execute.add_argument("--"+name, required=True, type=Path)
@@ -286,6 +319,11 @@ def main(argv=None):
             value=audit_directory(args.directory)
         elif args.command == "export-archive":
             value = export_archive(args.repo, json.loads(args.spec.read_text(encoding="utf-8")), args.output)
+        elif args.command == "preflight":
+            value = preflight(args.repo, args.manifest, args.approval, args.stages,
+                              code_paths(args.repo.resolve()), SOURCES_REQUIRED)[2]
+        elif args.command == "adopt-e1":
+            value = adopt_e1(args.repo, args.run_dir, args.review_dir, args.output)
         else:
             value = run(args.repo, args.manifest, args.approval, args.output, args.stages)
         print(json.dumps(jsonable(value), ensure_ascii=False, indent=2, allow_nan=False))
