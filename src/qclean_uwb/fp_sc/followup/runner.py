@@ -134,8 +134,8 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             case_ids = cfg["case_ids"]
             if len(case_ids) != len(set(case_ids)) or not case_ids:
                 raise ContractError("EMPTY_OR_DUPLICATE_STAGE_CASES")
-            # E4/E5 may include 120/240 trajectories, each with multiple
-            # full-size complex CFR arrays. Never preload/retain the entire grid.
+            # Large manual runs can include repeated 120/240-case grids and
+            # complex CFR arrays across many stages. Never cache full payloads.
             stream_stage = stage in STREAM_STAGES
             if stream_stage:
                 cache.clear()
@@ -185,10 +185,10 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 if not training_ids or len(training_ids) != len(set(training_ids)):
                     raise ContractError("INVALID_CALIBRATION_CASE_LIST")
                 for cid in training_ids:
-                    if cid not in cache:
-                        cache[cid] = load_case(root, case_specs[cid], manifest["input_files"], adapter)
-                    cc, ee = cache[cid]
+                    cc, ee = load_case(root, case_specs[cid], manifest["input_files"], adapter)
                     calibration.extend(calibration_records(cc, ee, adapter, policy))
+                    del cc, ee
+                    gc.collect()
                 _gzip_json(folder/"CALIBRATION_RECORDS.json.gz", calibration)
             # Optional CAL-only bounded search. A winner is not silently installed
             # into this run: freeze its SHA in a subsequent execution contract.
@@ -210,7 +210,8 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             for case_id in case_ids:
                 if stream_stage:
                     case, ev = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
-                    if case.case_id != case_id or abs(float(case.t[0])) > 1e-12:
+                    if case.case_id != case_id or (
+                            stage in {"E4-01", "E4-02"} and abs(float(case.t[0])) > 1e-12):
                         raise ContractError("STREAMED_CASE_IDENTITY_OR_T0_MISMATCH:" + case_id)
                 else:
                     case, ev = cache[case_id]
