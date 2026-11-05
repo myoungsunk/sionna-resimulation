@@ -208,6 +208,7 @@ def authorize(root: Path, manifest_path: Path, approval_path: Path,
         from .detection import HISTORY_RECIPE
         from .bridge import RECIPE_SHA
         from .selection import SELECTOR_SET_RECIPE
+        from .integrity import INTEGRITY_RECIPE
         path = manifest.get('mapping_receipt')
         if path not in manifest.get('input_files', {}):
             raise ContractError('MAPPING_EVIDENCE_NOT_LOCKED')
@@ -216,6 +217,7 @@ def authorize(root: Path, manifest_path: Path, approval_path: Path,
                         candidate_mode=manifest.get('candidate_mode'), arm='VAB',
                         bridge_recipe_sha256=RECIPE_SHA, selector_recipe=SELECTOR_SET_RECIPE,
                         history_recipe=HISTORY_RECIPE, code_lock_sha256=digest(locked_code),
+                        integrity_recipe=INTEGRITY_RECIPE,
                         baseline_source_lock_sha256=digest(manifest.get('baseline_sources', {})),
                         case_payload_lock_sha256=digest({spec[key]: manifest['input_files'].get(spec[key])
                             for spec in [*manifest['cases'].values(), *manifest.get('static_cases', {}).values()]
@@ -227,6 +229,9 @@ def authorize(root: Path, manifest_path: Path, approval_path: Path,
         for rel, sha in mapping['evidence_files'].items():
             if manifest['input_files'].get(rel) != sha:
                 raise ContractError('MAPPING_EVIDENCE_NOT_LOCKED')
+        # No reviewed provider can attest VALID prior integrity in this version.
+        # A forged readiness boolean or receipt must not activate P/M execution.
+        raise ContractError('HOLD_PRIOR_INTEGRITY_PROVIDER_MISSING')
     if any(s in stages for s in ("E4-02", "E4-03")):
         if manifest.get("seed_exposure_reviewed") is not True:
             raise ContractError("SEALED_SEED_EXPOSURE_UNRESOLVED")

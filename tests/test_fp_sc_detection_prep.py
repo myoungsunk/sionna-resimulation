@@ -6,7 +6,7 @@ from unittest.mock import patch
 import numpy as np
 from qclean_uwb.fp_sc.followup.bridge import RevisionEvidenceAdapter
 from qclean_uwb.fp_sc.followup.contracts import Policy, Support, STEP_M, ContractError
-from qclean_uwb.fp_sc.followup.detection import detect, detection_loop, RawDetectionHistory
+from qclean_uwb.fp_sc.followup.detection import detect, detection_loop, RawDetectionHistory, prepare_detection
 from qclean_uwb.fp_sc.followup.selection import select, TrustedHistory
 
 
@@ -20,16 +20,18 @@ class DetectionPreparationTests(unittest.TestCase):
 
     def test_candidate_can_win_but_never_replaces_raw(self):
         d, s = detect(self.e, 'PM', self.p, prior=self.support, motion=self.support)
-        self.assertEqual(s.eligible[0]['tap'], 5)
+        probe = prepare_detection(self.e, 'PM', self.p, prior=self.support, motion=self.support)
+        self.assertEqual(probe.diagnostic.eligible[0]['tap'], 5)
         self.assertNotEqual(self.e.raw_tap, 5)
         self.assertEqual(d.selected_tap, self.e.raw_tap)
         self.assertEqual(d.action, 'KEEP_ORIGINAL')
-        self.assertEqual(d.wrong_score, next(r['score'] for r in s.rows if r['tap']==self.e.raw_tap))
+        self.assertIsNone(d.wrong_score)
+        self.assertEqual(d.reason, 'HOLD_PRIOR_INTEGRITY_UNKNOWN')
 
     def test_holds_have_no_detection_score(self):
         for mode, prior, reason in [('P',None,'HOLD_PRIOR'),('PM',self.support,'HOLD_HISTORY')]:
             d,_ = detect(self.e, mode, self.p, prior=prior)
-            self.assertEqual(d.reason, reason)
+            self.assertEqual(d.reason, 'HOLD_PRIOR_INTEGRITY_UNKNOWN')
             self.assertIsNone(d.wrong_score)
 
     def test_forced_and_e2_modes_rejected(self):
@@ -57,7 +59,7 @@ class DetectionPreparationTests(unittest.TestCase):
         for k in range(2):
             history.advance(float(k),k,0,self.p)
             history.observe_raw(e,float(k),0,support,self.p)
-        self.assertEqual(history.detector_m,e.raw_tap*STEP_M)
+        self.assertIsNone(history.detector_m)
         self.assertIsNone(history.support(10.,0,self.p))
 
     def test_loop_never_calls_selector_filter_or_native_for_c(self):
@@ -104,10 +106,10 @@ class DetectionPreparationTests(unittest.TestCase):
             before=detection_loop(case,adapter,self.p,'PM')
             case.prior[-1,0]=100
             after=detection_loop(case,adapter,self.p,'PM')
-        self.assertEqual(before[0]['decision'].reason,'HOLD_HISTORY')
+        self.assertEqual(before[0]['decision'].reason,'HOLD_PRIOR_INTEGRITY_UNKNOWN')
         for a,b in zip(before[:-1],after[:-1]): self.assertEqual(a['decision'],b['decision'])
         for r in before: self.assertEqual(r['decision'].selected_tap,e.raw_tap)
-        self.assertEqual(before[2]['history']['detector_m'],e.raw_tap*STEP_M)
+        self.assertIsNone(before[2]['history']['detector_m'])
 
 class MappingAuthorizationTests(unittest.TestCase):
     def test_boolean_cannot_replace_mapping_evidence(self):
