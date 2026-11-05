@@ -218,6 +218,20 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
                 for name in ("online_npz", "evaluator_npz"):
                     if s[name] not in locked:
                         raise ContractError("UNLOCKED_CALIBRATION_PAYLOAD:" + cid)
+            # This is only an upper bound on potential calibration support:
+            # actual changed_high/low strata can still be insufficient.
+            minimum = cfg.get("min_samples", 20)
+            if type(minimum) is not int or minimum < 2:
+                raise ContractError("INVALID_MINIMUM_CALIBRATION_SUPPORT")
+            for target_id in ids:
+                target = cases[target_id]["metadata"]
+                possible = sum(cases[cid]["expected_rows"] for cid in training
+                               if cases[cid]["metadata"]["split"] == "TRAIN"
+                               and cases[cid]["metadata"]["route"] != target["route"]
+                               and all(cases[cid]["metadata"][key] == target[key]
+                                       for key in ("bias", "channel", "noise_variance")))
+                if possible < minimum:
+                    raise ContractError("IMPOSSIBLE_ROUTE_HELDOUT_TRAIN_SUPPORT:" + target_id)
         if stage in {"E5-01", "E5-02"} and not cfg.get("hardware_id"):
             raise ContractError("E5_HARDWARE_ID_MISSING")
         if stage == "E4-03":
