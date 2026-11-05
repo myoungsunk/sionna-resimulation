@@ -25,7 +25,7 @@
 - `src/qclean_uwb/fp_sc/followup/readiness.py`: E1-01 증거 브리지 + preflight
 - `scripts/fp_sc_followup.py preflight`: 계산 전 SHA·모델·입력/시간축·격자 검사
 - `scripts/fp_sc_followup.py adopt-e1`: 원본 E1 증거를 안전하게 후속 선행증거 형식으로 변환
-- `tests/test_fp_sc_manual_readiness.py`: 총 9개의 실행 준비·증거 보존 회귀 테스트
+- `tests/test_fp_sc_manual_readiness.py`: 총 10개의 실행 준비·결정적 gzip 저장·증거 보존 회귀 테스트
 
 기존 `runner.py`, `audit.py`, `RUNBOOK_KO.md`에는 필요한 부분만 국소적으로 수정했다.
 
@@ -42,8 +42,8 @@
 ## 4. 검산 범위·상태
 
 - **확인한 것:** GitHub 커밋 및 22개 원본 변경 파일 목록, 실제 코드 경로의 계약 불일치, 메모리 적재 구조, E2 CAL 캐시 참조, 실패 산출물 검산 조건, source B37 Git blob 고정값.
-- **변경한 것:** 상기 로컬 실행 관리 기능과 아홉 합성 회귀 검사의 소스.
-- **이번 환경에서 실행하지 않은 것:** 새 regression 9개와 전체 기존 92개에 대한 실제 Python 시험, 720/1440 arm-trajectory, SourceFFD/RF, 로봇/실기기 측정. 테스트 코드의 존재를 `PASS`로 선언하지 않는다.
+- **변경한 것:** 상기 로컬 실행 관리 기능과 열 개 합성 회귀 검사의 소스.
+- **이번 환경에서 실행하지 않은 것:** 새 regression 10개와 전체 기존 92개에 대한 실제 Python 시험, 720/1440 arm-trajectory, SourceFFD/RF, 로봇/실기기 측정. 테스트 코드의 존재를 `PASS`로 선언하지 않는다.
 - **권장 판정:** `STATIC_CODE_AUDIT_AND_PATCH_PUBLISHED / LOCAL_QA_PENDING / SCIENCE_NOT_RUN`. 사용자는 `RUNBOOK_KO.md`의 회귀 명령과 `preflight`를 자기 환경에서 실행해야 한다.
 
 원본 SHA 잠금이 변경되거나 환류 테스트가 실패하면 이번 패치는 준비 완료 상태로 간주하지 않는다.
