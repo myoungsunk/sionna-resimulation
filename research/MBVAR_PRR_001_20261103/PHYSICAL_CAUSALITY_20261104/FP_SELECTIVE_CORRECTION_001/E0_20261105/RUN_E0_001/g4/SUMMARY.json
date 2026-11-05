@@ -1,0 +1,3280 @@
+{
+  "experiment_id": "E0-03",
+  "status": "RAW_RECEIVER_AND_ORACLE_REPRODUCED",
+  "independent_audit": false,
+  "new_rt_calls": 0,
+  "static_conditions": 24,
+  "locations": 6,
+  "raw_conditions_replayed": 24,
+  "raw_receiver_rows": 48,
+  "aggregate": {
+    "cases": 24,
+    "locations": 6,
+    "baseline_exact": 12,
+    "model_exact": 22,
+    "rescued": 11,
+    "harmed": 1,
+    "still_bad": 1
+  },
+  "matches": {
+    "baseline": 12,
+    "minus4cm": 20,
+    "zero": 22,
+    "plus4cm": 8
+  },
+  "all_parity_checks_pass": true,
+  "source_model_full_evaluation": "RUN",
+  "source_range_formula_evaluated": true,
+  "source_model_polarization_claim": "COMPARED_TO_ARCHIVE",
+  "oracle_basis": "archived SourceFFD h_r at true static pose; separately verified d+B_OLD formula",
+  "claim_limit": "24 static conditions from 6 selected coordinates; fixed CIR with perturbed oracle prediction, not motion, online policy, noisy replay or independent environments",
+  "missing": [],
+  "inputs": [
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/CONDITIONS.json",
+      "bytes": 140791,
+      "sha256": "140e78a090e8010661ce9adc2450e3fb31e1f952d7cee3178d39b8aca0917243",
+      "actual_payload_read": true
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/PLAN.json",
+      "bytes": 2455,
+      "sha256": "2aca9ad1913c0f5bf741a192bee829dec5f59d5b16fed8eb4c08d43005382232",
+      "actual_payload_read": true
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py",
+      "bytes": 5647,
+      "sha256": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+      "actual_payload_read": true
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261251,
+      "sha256": "ae00c42462aa9a56e05135fcd4dca2cdc5e884c2062cd0439468a36920302c44",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261358,
+      "sha256": "4049fb3328899d585d1e64ef5ecd0be65329badfb6ca80ec09b548c55ffdfcf4",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270407,
+      "sha256": "0f05b42b44ea10a96b45efd6fb80dfff85fd8314e93e1113fc82343cbcd4b6d5",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R4_168_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 272457,
+      "sha256": "ed581144824fbdbae69e77375e9b78c1e5ed8e6c0b1cdff3c3258c344addc477",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 272832,
+      "sha256": "632e3236b4453c0d86772c3e867c0d0a531162b6fae4d5b581fe473ce640ea6d",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270496,
+      "sha256": "2aeb1453d09151ab24791b0bb2c48e0f33e5cb35093ee76c80b1a4aa3e37147d",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 260540,
+      "sha256": "d2268720fa81367f6dffd561150661f031083bc2929b65e74259e0747fdbb7a1",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_R5_982_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 278474,
+      "sha256": "a809cb7fa3ad88725ee587a9749b66d84fc2cbc9038f2902b7b8d09f059f1dfd",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261984,
+      "sha256": "87abab3cfb90f6656a23c68da3174e23b8828fc94f5e5818d9f1dfb5e1821425",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261901,
+      "sha256": "72a089065d10c0a71c1b2df7940a5a7f89a43b5516787ac98f918d05c84fb2ba",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261504,
+      "sha256": "81f0f194bf7a96b0add317c8f398ffbbc22429e5a5b4287ad2954c3a591ba892",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yp_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261350,
+      "sha256": "566f528139a4aae5a830eaa7527476f95f08749a2776a84f7b09572a61f2cddb",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 262031,
+      "sha256": "6ab32553817136533655e38ef5ef95244bc4f73bb9f4798e8ca9f892f207d728",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261857,
+      "sha256": "c7080bbf4997a792ef371f99f2a71a7d108f02147fcd18335b7cf1f57e75bd44",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261491,
+      "sha256": "517bfe158195cb2b05bc1b56de222d691a0950151dfbed913bea2c5064c6cde4",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P10Yn_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261361,
+      "sha256": "e13ab95befad4687887ae7e4b7c92e41c43eaf0ca0b5f8c089f86dab257b8020",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270779,
+      "sha256": "27b734c666dbb473657a7c9d020366880cc0f62ff9b90e1d69b05933dad4339e",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270995,
+      "sha256": "09ec69abc98fc7cc2baceec9ee7d1cadaf3d151ac3021e35b845db1e538fd899",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270540,
+      "sha256": "81acca3dd7f7cd47032b2fcb1fbd69ded07f040f9dfe27524f2e11cd68f2ffce",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yp_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270442,
+      "sha256": "00010cb8d65d12583ce52d801ed3968c1ebdb439c1bd05bd3397de58d0a1668f",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y0/FIELDS_AND_WINDOWS.npz",
+      "bytes": 261420,
+      "sha256": "6f944f56ecf9ad789b5235152628262991771ce328ca28a8760d443a6b119fcc",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y1/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270963,
+      "sha256": "a8bf007b39d4ed7b030f3e696d87a5f37229ab740adaf2ef11eb9d311e103b34",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y2/FIELDS_AND_WINDOWS.npz",
+      "bytes": 270458,
+      "sha256": "442bc24817afa183070cbfa0a24ac77e087f6b7bba01f995f7a4542b78900089",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G4_001/RUN_001/SM2_P139Yn_Y3/FIELDS_AND_WINDOWS.npz",
+      "bytes": 272492,
+      "sha256": "5b64fcfad721242dba9a669b5e17804a301d2872598155ca39ee8aa744afd1b6",
+      "actual_payload_read": true,
+      "arrays": {
+        "full_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_spectrum": {
+          "shape": [
+            257,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_cir": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "direct_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "reflected_power": {
+          "shape": [
+            1028,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "group_labels": {
+          "shape": [
+            63
+          ],
+          "dtype": "<U52"
+        },
+        "window_indices": {
+          "shape": [
+            2,
+            9
+          ],
+          "dtype": "int64"
+        },
+        "group_windows": {
+          "shape": [
+            2,
+            63,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "full_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "direct_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "reflected_windows": {
+          "shape": [
+            2,
+            9,
+            2
+          ],
+          "dtype": "complex128"
+        },
+        "individual_power_center": {
+          "shape": [
+            2,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        },
+        "pair_cross_center": {
+          "shape": [
+            2,
+            63,
+            63,
+            2
+          ],
+          "dtype": "float64"
+        }
+      }
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_ORACLE_001/SUMMARY.json",
+      "bytes": 14373,
+      "sha256": "078a5a0edcc5a057bbfc8880c541b1f701e00e64901d7921d93ae90a5adefbb5",
+      "actual_payload_read": true
+    },
+    {
+      "path": "/workspace/scratch/dd87dad66e0c/repo/research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/RESULTS_ORACLE_001/SENSITIVITY_4CM.json",
+      "bytes": 6576,
+      "sha256": "fc74607bc52e72ffcad70cea404f2f35b85bbf83620beba16cc99a08d61b65b2",
+      "actual_payload_read": true
+    }
+  ]
+}

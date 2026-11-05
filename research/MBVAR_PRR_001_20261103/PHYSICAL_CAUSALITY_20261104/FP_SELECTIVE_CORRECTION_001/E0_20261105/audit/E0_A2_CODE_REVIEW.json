@@ -1,0 +1,87 @@
+{
+  "schema": "FP_SC_E0_A2_CODE_REVIEW_V1",
+  "study_id": "FP-SC-001",
+  "stage": "E0",
+  "amendment": "A2_REMATERIALIZED_CONTROLS",
+  "verdict": "PASS_FOR_E0_A2_EXECUTION",
+  "reviewer": "/root/design_audit",
+  "reviewer_provenance": "SAME_SESSION_SEPARATE_REVIEWER",
+  "external_independent_accept": false,
+  "utc": "2026-11-05T04:57:57.035428+00:00",
+  "code_lock_sha256": "556b775877072ba4134648daf677527d8b463f14d0ba17be2b71093ff273b54a",
+  "bound_code_files": 49,
+  "code_hash_mismatches": [],
+  "prepared_registry_sha256": "10ead58a18279ce95b755ee3d019579e111766df91bc68fe6673e46dc4d68367",
+  "input_lock_sha256": "de8da4b4e8888570237a539850efb39df2b204bdde25b0ff3265eeb92a483171",
+  "input_lock_entries": 86,
+  "amendment_sha256": "619b5fc094ec53d51884d708284f6e0a95d3253b74f5449628e37275a95a69af",
+  "prerun_spec_review_sha256": "203521a7be19f02c45a4f88c34dadb4b4f0b3b3ed51f25fc423b7a779f394a69",
+  "materializer_review_sha256": "aa54e81444c0998ecf24504077c03138284691bfe5b394da854b2985fb519010",
+  "review_scope": [
+    "New pinned source-only original-recipe control materializer and explicit-identity loader.",
+    "New baseline-only A2 CLI: reviewed CODE_LOCK/GO required,12 fixed baseline cells, no receiver/G4/flat/selector calls.",
+    "New optional-registry branch in E0 baseline: absent registry retains old exact-hash guard; R2 always uses exact archived original controls.",
+    "Contract verifier permits only originalE0 or exact A2baseline scope and requires locked registry; existing input/code/environment/commit hashes remain required.",
+    "New substantive tests and materialization/readback receipt.",
+    "Four actual new NPZ payloads independently rehashed, arrays inspected, dtype/shape/order/hash checked."
+  ],
+  "input_checks": {
+    "new_control_payloads": 4,
+    "new_control_payload_bytes": 80602,
+    "all_payload_and_array_hashes_match": true,
+    "R4_rows": 742,
+    "R5_rows": 1415,
+    "B0_L2_wheel_arrays_identical_within_route": true,
+    "original_gyro_dt_x0_exact_match_all4": true,
+    "original_ds_byte_identity": "UNRESOLVED_RECORDED_MISMATCH_ALL4",
+    "canonical_primary_Linux_ds_hash_match_all4": true,
+    "archived_prior_state_used_to_materialize": false
+  },
+  "scope": {
+    "baseline_cells": 12,
+    "seed": 10,
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "biases": [
+      "B0",
+      "L2"
+    ],
+    "channels": [
+      "Full",
+      "Native_LoS"
+    ],
+    "new_RF": 0,
+    "receiver_G4_flat_repeats": 0,
+    "selector_or_E1_E5_runs": 0
+  },
+  "criteria": {
+    "normalized_error_max": 1e-10,
+    "normalization": "abs(actual-reference)/max(1,abs(reference))",
+    "exact": [
+      "mask",
+      "pose_id",
+      "t"
+    ],
+    "prior_results_immutable": true,
+    "successful_R4_R5_claim": "NUMERICAL_REPRODUCTION_WITH_REMATERIALIZED_CONTROLS",
+    "exact_historical_control_identity_never_promoted": true
+  },
+  "tests": {
+    "implementer_reported_targeted_tests": 32,
+    "reported_failed": 0,
+    "reviewer_action": "Read new test cases and test receipt; no redundant repeat of already-passed suite."
+  },
+  "science_executed_by_this_code_review": false,
+  "execution_preconditions": [
+    "Every code byte must match the newly published implementation commit and reviewed CODE_LOCK.",
+    "Execution lock and owner-scoped GO must bind this review, exact A2 specs/environment/input/controls registry.",
+    "Output must use a new run directory and preserve RUN_E0_001.",
+    "Any all-time state/P/h/H/K/mask/time/pose mismatch retains failure and prevents qualified H0 acceptance.",
+    "Separate result checker must inspect all12 new recursions and newly frozen controls; no external independent acceptance is asserted."
+  ],
+  "H0_support": "PENDING_A2_RESULT_REVIEW",
+  "E1_GO": false
+}
