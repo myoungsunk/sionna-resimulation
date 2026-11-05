@@ -172,7 +172,8 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
                                 or ids_array.shape != t.shape
                                 or ids_array.dtype.kind not in "iu"
                                 or not np.isfinite(t).all()
-                                or abs(float(t[0])) > 1e-12
+                                or (stage in {"E4-01", "E4-02"}
+                                    and abs(float(t[0])) > 1e-12)
                                 or np.any(np.diff(t) <= 0)
                                 or np.any(np.diff(ids_array) <= 0)):
                             raise ContractError("BAD_STREAMED_TIMELINE:" + cid)
