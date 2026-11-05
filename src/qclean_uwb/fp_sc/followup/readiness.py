@@ -157,6 +157,25 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
             for name in ("online_npz", "evaluator_npz"):
                 if s[name] not in locked:
                     raise ContractError("UNLOCKED_CASE_PAYLOAD:" + cid + ":" + name)
+            if stage in STREAM_STAGES:
+                # Read only the small identity arrays: no CFR, FFD or EKF math.
+                # Catch malformed, offset or truncated timelines before a
+                # 120/240-trajectory run writes its first output.
+                online = rooted(root, s["online_npz"])
+                try:
+                    with np.load(online, allow_pickle=False) as source:
+                        t = source["t"]
+                        ids_array = source["pose_id"]
+                        if (t.shape != (s["expected_rows"],)
+                                or ids_array.shape != t.shape
+                                or ids_array.dtype.kind not in "iu"
+                                or not np.isfinite(t).all()
+                                or abs(float(t[0])) > 1e-12
+                                or np.any(np.diff(t) <= 0)
+                                or np.any(np.diff(ids_array) <= 0)):
+                            raise ContractError("BAD_STREAMED_TIMELINE:" + cid)
+                except (OSError, KeyError, ValueError) as exc:
+                    raise ContractError("BAD_STREAMED_NPZ_HEADER:" + cid) from exc
             stage_meta.append(SimpleNamespace(**s["metadata"], t=np.array([0.0])))
             used.add(cid)
             if stage in MODEL_STAGES:
@@ -164,6 +183,25 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
                 generated = "E3-03" in ordered and cid in configs["E3-03"]["case_ids"] and stage != "E4-03"
                 if not generated and source.get(cid) not in locked:
                     raise ContractError("MODEL_NOT_PREPARED_OR_LOCKED:" + stage + ":" + cid)
+                if not generated:
+                    try:
+                        model_set = json.loads(rooted(root, source[cid]).read_text(encoding="utf-8"))
+                    except (OSError, ValueError) as exc:
+                        raise ContractError("MODEL_JSON_INVALID:" + stage + ":" + cid) from exc
+                    active_sha = (Policy(**manifest["outer_fold_policies"][s["metadata"]["route"]]["policy"]).sha
+                                  if stage == "E4-03" else Policy(**manifest["policy"]).sha)
+                    if not isinstance(model_set, dict) or set(model_set) != {"F00", "F01", "F11"}:
+                        raise ContractError("MODEL_SET_INCOMPLETE:" + stage + ":" + cid)
+                    for extractor, model in model_set.items():
+                        body = dict(model)
+                        model_sha = body.pop("sha256", None)
+                        domain = {key: s["metadata"][key] for key in ("bias", "channel", "noise_variance")}
+                        if (digest(body) != model_sha
+                                or model.get("target_route") != s["metadata"]["route"]
+                                or model.get("extractor") != extractor
+                                or model.get("policy_sha") != active_sha
+                                or model.get("measurement_domain") != domain):
+                            raise ContractError("MODEL_SHA_OR_DOMAIN_MISMATCH:" + stage + ":" + cid + ":" + extractor)
         validate_trajectory_grid(stage_meta, stage)
         if stage == "E3-03":
             training = cfg.get("calibration_case_ids")
