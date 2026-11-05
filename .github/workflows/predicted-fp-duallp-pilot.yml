@@ -52,7 +52,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -m unittest -v research.MBVAR_PRR_001_20261103.PHYSICAL_CAUSALITY_20261104.FP_PRIOR_PILOT_001.test_pilot
+          cd research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001
+          python -m unittest -v test_pilot
       - name: Run full-RF clean-CIR frozen-prior offline pilot
         shell: bash
         run: |
