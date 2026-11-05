@@ -1,0 +1,55 @@
+{
+  "schema": "C3_G3_EXECUTION_DEFECT_DISPOSITION_V1",
+  "decision": "REDIRECT",
+  "scope": "ADMINISTRATIVE_METADATA_RECOVERY_AND_RETAINED_DATA_AUDIT_ELIGIBILITY_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "execution_status": "FORCED_AFTER_20_CONDITION_CAPTURES_BEFORE_ROOT_INVENTORY_AND_CLEAN_EXIT_EVIDENCE",
+  "original_clean_execution_acceptance": false,
+  "retained_data_numerical_acceptance": "NOT_YET_AUDITED",
+  "new_science_rerun_required_by_current_evidence": false,
+  "administrative_recovery_permitted_within_existing_scope": true,
+  "evidence": {
+    "immutable_code_revision": "ce1f30da7637cef22bc952d029989b5edf939094",
+    "managed_resource": "adb9c5e3-fbdc-448d-b6dd-aa63e6bcda2c",
+    "managed_run": "d42b2198-9456-4813-b276-1425d6ed8fa2",
+    "termination": "forced",
+    "exit_code": 3221225786,
+    "manager_end_utc": "2026-11-05T01:14:19.758159+00:00",
+    "whole_manifest_end_utc": "2026-11-05T01:13:46.590383+00:00",
+    "last_condition_end_utc": "2026-11-05T01:13:42.070553+00:00",
+    "conditions": 20,
+    "primary_calls": 5140,
+    "repeat_calls": 60,
+    "per_condition_artifact_indices": 20,
+    "independently_rehashed_condition_artifacts": 5380,
+    "hash_mismatches": 0,
+    "all_20_condition_artifact_sets_exact": true,
+    "total_existing_nonindex_artifacts": 5383,
+    "root_only_artifacts": [
+      "FAILURES.jsonl",
+      "INDEX.csv",
+      "MANIFEST.json"
+    ],
+    "all_20_INDEX_rows_in_exact_PLAN_order": true,
+    "empty_FAILURES_jsonl": true,
+    "root_ARTIFACT_HASHES_present": false,
+    "final_C3_RESULT_present": false,
+    "host_completion_receipt_present": false,
+    "manager_process_supervisor_job_absent": true
+  },
+  "frozen_evidence_sha256": {
+    "BATCH_001/MANIFEST.json": "dc433b7b935f5ea394d77d079050fd2d5d1b848187c2c94fa38ff27839dacb7a",
+    "BATCH_001/INDEX.csv": "464f35c5cdbb44ba77c1a19f3e9f5bc543ce4176b712df91396ca2b58b9cf38b",
+    "logs/G3_BATCH_001_MANAGED.json": "b9abe69a8bb8162c8ce08e7e54ca1a1f4ded14ad9f5ebebd9173ad7431399dd5"
+  },
+  "finding": "The source writes the final MANIFEST before root inventory and final stdout. Thus the saved pending-audit status cannot establish normal completion. Complete closed per-condition files and exact hashes support a separate retained-data audit, not a retrospective clean-exit PASS. The precise interrupted instruction is not independently observable.",
+  "required_correction": [
+    "Preserve BATCH_001, forced manager receipt, stdout/stderr, original reports and original independent verifier bytes unchanged.",
+    "Create only an external-to-capture recovered root index and recovery receipt. Bind all 5383 existing nonindex artifacts, each of the 20 original condition-index hashes, root metadata hashes, code/GO/SPEC and exact forced execution evidence. Independently recompute hashes and file-set equality; do not write the missing original BATCH_001/ARTIFACT_HASHES.json.",
+    "Mark the recovery as posthoc administrative metadata recovery. It cannot restore original natural-exit success or fabricate host receipt/final stdout.",
+    "Add a correction that explicitly supersedes the original EXECUTION_PASS summary/report label; report generated captures separately from forced execution completion.",
+    "Use a separately preserved amended independent verifier for retained-data-only acceptance, checking the forced status/recovery record explicitly while retaining all original numerical tolerances, semantic, per-bin, each-RX, projection, repeat, source/runtime and provenance checks. Preserve original verifier and prior decisions.",
+    "No RT or model/FFT rerun; stop on any missing/mismatched original payload or numerical failure. No G4/downstream GO or adoption/realtime claim under this disposition."
+  ],
+  "no_RT_or_model_or_FFT_execution": true
+}

@@ -1,0 +1,52 @@
+{
+  "schema": "C3_G3_CODE_AUDIT_V1",
+  "decision": "ACCEPT",
+  "scope": "G3_REMAINING20_RAW_CAPTURE_CODE_ONLY",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "d71948d3927384bf94d316bf350cdca963d3426d29694214469458e0fae9e327",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71",
+    "authority.py": "7136c964f39f759b11d66f41f2b1345dbdc7dfffc0fc2aaf8e203ba39dbf4eef",
+    "producer.py": "898e30590d7ba9c0f3f628569ac0abf5456e55d074829f6bb2a72e0501257c8f",
+    "qa.py": "b1dfa6146a9693fc061382fa295188e4ad71b169355959efabab7223fbeaf5f7",
+    "launch.py": "259e1f36ca535fb1feeb6e2bb8b533f9684337ada31a76090639c320b6a17e6e",
+    "test_preflight.py": "5498678e05377a98de09da64f547a887d980610b878769ad8de0b73e6afe342a",
+    "G3_AUTHORIZATION_KO.md": "842fd3a400bcf9f95563c7d6db573fe0baebb292ba794b2438f9ea25383f7150",
+    "G2_PREREQUISITE.json": "3e8c4cb0909bba17e8a3aadcfd630f4b7cdbdc833e0eca9bd83e05397dbd1570"
+  },
+  "spec_audit_sha256": "e60131061f73582d39e15b1c59a9c93ba097a138222cc4eae1261d2b5b92f339",
+  "evidence": {
+    "original_G2_contract_input_lock_governance_qa_byte_identical": true,
+    "producer_numerical_path_unchanged": true,
+    "producer_changes": "G3 label, 5200 cap, exact terminal 5140/60/20 counts and pending-audit status only.",
+    "exact_remaining_scope": "Five non-R4 coordinates in original order, each yaw [0,180,35.7,-35.7]; no completed G2 canary.",
+    "independent_scope_checks": {
+      "authorized_rows": 20,
+      "all20": "PASS",
+      "completed_G2_R4_injection": "REJECTED"
+    },
+    "all_five_G2_prerequisites_hash_verified": true,
+    "prelaunch_checks": "All11 bound files, exact GO and SPEC bytes, live origin branch Git bytes, fresh output, source/bank/runtime locks; failures precede Popen.",
+    "offline_tests": {
+      "count": 12,
+      "seconds": 17.788,
+      "exit_code": 0,
+      "solver_calls": 0,
+      "model_initializations": 0,
+      "receipt_sha256": "ea34140bbd8ac3d36240ba775e496512cfa43c44325cc873cabb3bdcdb7bbad6",
+      "stderr_sha256": "5cb43142a593366ecd7f7e4d32be39df43c8d5b9891176e3b112db88218f75d1",
+      "managed_sha256": "9da3774c9f8ecf519e2e6b59cf0dafa0fcc6b618460cbcd510646cbfe456cc55",
+      "termination": "natural",
+      "references": 0,
+      "process_supervisor_job": "absent"
+    }
+  },
+  "remaining_gate": "Actual G3 execution and independent retained-data acceptance are prospective.",
+  "required_correction": [],
+  "boundaries": [
+    "No G2 rerun.",
+    "First failure STOP with evidence preserved; no automatic rerun.",
+    "No G4 FFT/decomposition/model initialization, further conditions, adoption or realtime PASS."
+  ]
+}
