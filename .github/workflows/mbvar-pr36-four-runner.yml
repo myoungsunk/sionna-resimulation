@@ -1,0 +1,196 @@
+name: PR36 four-runner RT preparation and manual execution
+on:
+  push:
+    branches: [proposal/mbvar-prr-one-shot-extract-20261105]
+    paths:
+      - '.github/workflows/mbvar-pr36-four-runner.yml'
+      - 'research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS/**'
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Execute 80184 calls with 16 workers
+        type: boolean
+        default: false
+      confirmation:
+        description: APPROVE_PR36_80184_16_WORKERS
+        type: string
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: pr36-one-shot
+  cancel-in-progress: false
+env:
+  BASE: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONDONTWRITEBYTECODE: '1'
+jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      approved: ${{ steps.gate.outputs.approved }}
+      tag: ${{ steps.gate.outputs.tag }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.17'
+      - run: python -m pip install numpy==1.26.4
+      - run: python "$BASE/orchestrate.py" prepare --work "$RUNNER_TEMP/rt"
+      - run: python "$BASE/test_preparation.py"
+      - id: gate
+        env:
+          EXECUTE: ${{ inputs.execute }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "approved=false" >> "$GITHUB_OUTPUT"
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ] && [ "$EXECUTE" = true ]; then
+            test "$CONFIRMATION" = APPROVE_PR36_80184_16_WORKERS
+            tag="pr36-rt-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+            gh release create "$tag" --target "$GITHUB_SHA" --draft --title "PR36 RT $GITHUB_RUN_ID" --notes "Collection in progress."
+            echo "tag=$tag" >> "$GITHUB_OUTPUT"
+            echo "approved=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr36-preflight
+          path: |
+            ${{ runner.temp }}/rt/PRECHECK.json
+            ${{ runner.temp }}/rt/inventory.json
+            ${{ runner.temp }}/rt/shard_*.json
+  canary:
+    needs: preflight
+    if: needs.preflight.outputs.approved == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      contents: write
+      actions: read
+    container:
+      image: python:3.11.17-bookworm
+      options: --cpus 4 --memory 12g --memory-swap 12g
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RT_RELEASE_TAG: ${{ needs.preflight.outputs.tag }}
+      RT_EXECUTION_APPROVED: '80184'
+      DRJIT_LIBLLVM_PATH: /usr/lib/x86_64-linux-gnu/libLLVM-15.so.1
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
+      - run: |
+          apt-get update -qq
+          apt-get install -y -qq libllvm15 gh
+          python -m pip install numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+      - run: python "$BASE/orchestrate.py" prepare --work "$RUNNER_TEMP/rt"
+      - run: python "$BASE/orchestrate.py" run --work "$RUNNER_TEMP/rt" --shard "canary"
+      - name: Preserve raw including failures
+        if: always()
+        run: |
+          if [ -d "$RUNNER_TEMP/rt/output_canary" ]; then
+            python -c "import sys;sys.path.insert(0,'$BASE');from orchestrate import package;from pathlib import Path;p=Path('$RUNNER_TEMP/rt');package(p/'output_canary',p/'shard_canary.tar.gz')"
+            gh release upload "$RT_RELEASE_TAG" "$RUNNER_TEMP/rt/shard_canary.tar.gz" "$RUNNER_TEMP/rt/shard_canary.tar.gz.sha256.json" --clobber
+          fi
+      - if: failure()
+        run: |
+          echo '{"status":"STOP"}' > "$RUNNER_TEMP/GLOBAL_STOP_canary.json"
+          gh release upload "$RT_RELEASE_TAG" "$RUNNER_TEMP/GLOBAL_STOP_canary.json" --clobber
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr36-shard-canary
+          path: ${{ runner.temp }}/rt/shard_*
+  calculate:
+    needs: [preflight, canary]
+    if: needs.preflight.outputs.approved == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    permissions:
+      contents: write
+      actions: read
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        shard: [0,1,2,3]
+    container:
+      image: python:3.11.17-bookworm
+      options: --cpus 4 --memory 12g --memory-swap 12g
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RT_RELEASE_TAG: ${{ needs.preflight.outputs.tag }}
+      RT_EXECUTION_APPROVED: '80184'
+      DRJIT_LIBLLVM_PATH: /usr/lib/x86_64-linux-gnu/libLLVM-15.so.1
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
+      - run: |
+          apt-get update -qq
+          apt-get install -y -qq libllvm15 gh
+          python -m pip install numpy==1.26.4 scipy==1.14.1 sionna-rt==2.0.1 mitsuba==3.8.0 drjit==1.3.1
+      - run: python "$BASE/orchestrate.py" prepare --work "$RUNNER_TEMP/rt"
+      - run: python "$BASE/orchestrate.py" run --work "$RUNNER_TEMP/rt" --shard "${{ matrix.shard }}"
+      - name: Preserve raw including failures
+        if: always()
+        run: |
+          if [ -d "$RUNNER_TEMP/rt/output_${{ matrix.shard }}" ]; then
+            python -c "import sys;sys.path.insert(0,'$BASE');from orchestrate import package;from pathlib import Path;p=Path('$RUNNER_TEMP/rt');package(p/'output_${{ matrix.shard }}',p/'shard_${{ matrix.shard }}.tar.gz')"
+            gh release upload "$RT_RELEASE_TAG" "$RUNNER_TEMP/rt/shard_${{ matrix.shard }}.tar.gz" "$RUNNER_TEMP/rt/shard_${{ matrix.shard }}.tar.gz.sha256.json" --clobber
+          fi
+      - if: failure()
+        run: |
+          echo '{"status":"STOP"}' > "$RUNNER_TEMP/GLOBAL_STOP_${{ matrix.shard }}.json"
+          gh release upload "$RT_RELEASE_TAG" "$RUNNER_TEMP/GLOBAL_STOP_${{ matrix.shard }}.json" --clobber
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pr36-shard-${{ matrix.shard }}
+          path: ${{ runner.temp }}/rt/shard_*
+  handoff:
+    needs: [preflight, canary, calculate]
+    if: always() && needs.preflight.outputs.approved == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write
+      actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.preflight.outputs.tag }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          persist-credentials: false
+          sparse-checkout: research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ONE_SHOT_ACTIONS
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.17'
+      - run: python -m pip install numpy==1.26.4
+      - run: python "$BASE/orchestrate.py" prepare --work "$RUNNER_TEMP/rt"
+      - run: mkdir -p "$RUNNER_TEMP/results"; gh release download "$TAG" --dir "$RUNNER_TEMP/results" --pattern 'shard_*' || true
+      - run: python "$BASE/collect.py" "$RUNNER_TEMP/rt" "$RUNNER_TEMP/results"
+      - name: Publish and re-download permanent handoff
+        run: |
+          gh release upload "$TAG" "$RUNNER_TEMP/results/handoff.tar.gz" "$RUNNER_TEMP/results/HANDOFF_SHA256.json" "$RUNNER_TEMP/results/ALL_KEYS.json" "$RUNNER_TEMP/results/FINAL_QA.json"
+          gh release download "$TAG" --dir "$RUNNER_TEMP/verify" --pattern 'handoff.tar.gz'
+          python -c "import hashlib,json,pathlib;p=pathlib.Path('$RUNNER_TEMP');q=json.loads((p/'results/HANDOFF_SHA256.json').read_text());assert hashlib.sha256((p/'verify/handoff.tar.gz').read_bytes()).hexdigest()==q['sha256']"
+          if python -c "import json;assert json.load(open('$RUNNER_TEMP/results/FINAL_QA.json'))['status']=='PASS_TECHNICAL_SELF_CHECK'"; then
+            gh release edit "$TAG" --draft=false --notes "400 keys validated. 308 new, 92 reused, 1028 fresh canary + 79156 production calls. Non-independent exploratory data."
+          else
+            gh release edit "$TAG" --notes "INCOMPLETE. Partial raw and all 400 terminal statuses preserved."
+            exit 1
+          fi

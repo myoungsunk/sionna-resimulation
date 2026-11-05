@@ -1,0 +1,43 @@
+"""Preparation regression tests; no solver import or runtime invocation."""
+import ast,io,json,tarfile,tempfile
+from pathlib import Path
+from unittest.mock import patch
+import unittest
+import orchestrate as O
+
+class PreparationTests(unittest.TestCase):
+ def test_registered_universe(self):
+  rows=O.ledger()
+  self.assertEqual(sum(int(r["expected_solver_calls"]) for r in rows),102860)
+  self.assertEqual(len(rows),400)
+ def test_canary_registered(self):
+  rows=[r for r in O.ledger() if r["route"]=="R4_B" and r["pose_id"] in ("194","234") and r["source_track"]=="ORIGINAL_6_WALL_CORRIDOR"]
+  self.assertEqual(len(rows),4)
+  self.assertEqual(sum(int(r["expected_solver_calls"]) for r in rows),1028)
+ def test_mutated_ledger_rejected(self):
+  with patch.object(O,"sha",return_value="0"*64):
+   with self.assertRaises(AssertionError):O.ledger()
+ def test_traversal_rejected(self):
+  with tempfile.TemporaryDirectory() as d:
+   archive=Path(d)/"bad.tar"
+   with tarfile.open(archive,"w") as t:
+    m=tarfile.TarInfo("../escape");m.size=1;t.addfile(m,io.BytesIO(b"x"))
+   with self.assertRaises(AssertionError):O.safe_extract(archive,Path(d)/"target")
+ def test_symlink_rejected(self):
+  with tempfile.TemporaryDirectory() as d:
+   archive=Path(d)/"bad.tar"
+   with tarfile.open(archive,"w") as t:
+    m=tarfile.TarInfo("link");m.type=tarfile.SYMTYPE;m.linkname="/etc/passwd";t.addfile(m)
+   with self.assertRaises(AssertionError):O.safe_extract(archive,Path(d)/"target")
+ def test_source_syntax(self):
+  for f in ["orchestrate.py","task.py","collect.py"]:
+   ast.parse((O.HERE/f).read_text())
+ def test_bindings_unique_complete(self):
+  b=json.loads((O.HERE/"PR35_BINDINGS.json").read_text())
+  self.assertEqual(len(b),24)
+  self.assertTrue(all(len(v["raw_sha256"])==64 for v in b.values()))
+ def test_asset_hashes_frozen(self):
+  a=json.loads((O.HERE/"ASSETS.json").read_text())
+  self.assertEqual({v["group"] for v in a.values()},{"inputs","B0","B1","SM1a","G3"})
+  self.assertTrue(all(len(v["sha256"])==64 and v["size"]<=40*1024**2 for v in a.values()))
+if __name__=="__main__":unittest.main()
