@@ -18,6 +18,10 @@ ROOT=HERE
 while not (ROOT/"results").is_dir() and ROOT!=ROOT.parent:
     ROOT=ROOT.parent
 TIMELINE_ROOT=ROOT/"results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/INPUTS"
+SAMPLES_ROOT=ROOT/"results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C"
+SAMPLE_BLOBS={"R2":"cb51065dabc3dc60473a48ed5458bca284c2ff97",
+              "R4":"4e0ef31074f6627cdc81c9f0a15a805563d40500",
+              "R5":"c4e4fbfe06115444077dee263c6dc96367251c40"}
 G3_ROOT=Path(os.environ.get("MBVAR_G3_ROOT",str(ROOT/"g3_source")))
 G3=G3_ROOT/"research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/C3/G3_001"
 CSV=HERE/"ONE_SHOT_RT_EXTRACTION_LEDGER_20261105.csv"
@@ -62,6 +66,14 @@ def validate():
     identifiers=[r["task_id"] for r in actual]
     must(len(set(identifiers))==400,"ERR_DUPLICATE_TASK_ID")
     orig=original()
+    native_samples={}
+    for route in ("R2","R4","R5"):
+        path=SAMPLES_ROOT/(route+"_aB_m0")/"SAMPLES.json"
+        must(path.is_file(),"ERR_NATIVE_SAMPLES_MISSING_"+route)
+        rows=json.loads(path.read_text())
+        must(all(int(row["pose_id"])==i for i,row in enumerate(rows)),
+             "ERR_NATIVE_SAMPLES_ID_MAPPING_"+route)
+        native_samples[route]=rows
     expected={}
     count=Counter()
     for route in ("R4","R5","R2"):
@@ -94,6 +106,19 @@ def validate():
             must(r["route"]==route+"_B" and r["stage"]==stage,"ERR_ROUTE_OR_STAGE_"+id)
             must(int(r["pose_id"])==pose and r["rf_mode"]==mode,"ERR_ORIGINAL_MODE_"+id)
             must(r["window_tags"]==";".join(tags),"ERR_WINDOW_TAGS_"+id)
+            sample=native_samples[route][pose]
+            for f_native,f_sample in (("native_x_m","x"),("native_y_m","y"),
+                                      ("native_yaw_deg","yaw_body_deg")):
+                must(float(r[f_native])==float(sample[f_sample]),
+                     "ERR_NATIVE_RAY_POSE_SOURCE_VALUE_"+id+"_"+f_native)
+            must(r["native_pose_source"]==
+                 f"BLOCK_C/{route}_aB_m0/SAMPLES.json:pose_id={pose}",
+                 "ERR_NATIVE_POSE_SOURCE_"+id)
+            must(r["native_source_samples_blob_sha"]==SAMPLE_BLOBS[route],
+                 "ERR_NATIVE_POSE_BLOB_"+id)
+            for field,compare in (("x_m","x"),("y_m","y"),("yaw_deg","yaw_body_deg")):
+                must(abs(float(r[field])-float(sample[compare]))<=6e-7,
+                     "ERR_TNONE_NATIVE_PRECISION_ALIGNMENT_"+id)
             for field,compare in (("t_s","t_s"),("idx","idx"),("x_m","x"),("y_m","y"),("yaw_deg","yaw_body_deg")):
                 must(float(r[field])==float(source[compare]),"ERR_POSE_TNONE_VALUE_"+id+"_"+field)
             must(int(r["expected_solver_calls"])==257,"ERR_ORIGINAL_SOLVER_CALL_COUNT")
@@ -109,6 +134,12 @@ def validate():
             must(int(r["expected_solver_calls"])==260,"ERR_G3_CALL_COUNT")
             must(r["repeat_bin_indices"]=="0;128;256","ERR_G3_REPEAT_SET")
             must(r["rf_mode"]=="FULL_WITH_DIRECT_RAY_EXTRACTED","ERR_G3_MODE")
+            must([float(r[f]) for f in ("native_x_m","native_y_m")]==e["xyz"][:2],
+                 "ERR_G3_NATIVE_XY_"+id)
+            must(float(r["native_yaw_deg"])==float(e["yaw_deg"]),
+                 "ERR_G3_NATIVE_YAW_"+id)
+            must(r["native_pose_source"]=="PR35_G3_PLAN:"+id,
+                 "ERR_G3_NATIVE_SOURCE_"+id)
     must(not expected and not authorized,"ERR_MISSING_KEYS")
     calls=sum(int(x["expected_solver_calls"]) for x in actual)
     must(calls==102860 and plan["expected_solver_calls_exact_max"]==calls,"ERR_CALL_BUDGET")
