@@ -218,7 +218,8 @@ def authorize(root: Path, manifest_path: Path, approval_path: Path,
                         history_recipe=HISTORY_RECIPE, code_lock_sha256=digest(locked_code),
                         baseline_source_lock_sha256=digest(manifest.get('baseline_sources', {})),
                         case_payload_lock_sha256=digest({spec[key]: manifest['input_files'].get(spec[key])
-                            for spec in manifest['cases'].values() for key in ('online_npz','evaluator_npz')}))
+                            for spec in [*manifest['cases'].values(), *manifest.get('static_cases', {}).values()]
+                            for key in ('online_npz','evaluator_npz')}))
         if any(mapping.get(k) != v for k, v in expected.items()):
             raise ContractError('MAPPING_RECIPE_OR_REVIEW_MISMATCH')
         if not mapping.get('evidence_files') or not mapping.get('reviewer'):

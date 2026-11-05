@@ -107,6 +107,8 @@ def preflight(root: Path, manifest_path: Path, approval_path: Path,
     if set(manifest.get("baseline_sources", {})) != set(sources_required):
         raise ContractError("BASELINE_SOURCE_LOCK_INCOMPLETE")
     verify_files(root, manifest["baseline_sources"])
+    from .static_detection import validate_static_specs
+    validate_static_specs(root, manifest)
     if not {"LP_plus45_bank.npz", "LP_minus45_bank.npz"} <= set(manifest["input_files"]):
         raise ContractError("FFD_BANK_NOT_IN_INPUT_LOCK")
     if stages != [s for s in STAGES if s in set(stages)]:

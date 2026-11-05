@@ -39,7 +39,7 @@ SOURCES_REQUIRED = (
 
 def code_paths(root: Path) -> list[str]:
     package = root / "src/qclean_uwb/fp_sc/followup"
-    return sorted(str(p.relative_to(root)) for p in package.glob("*.py")) + [
+    return sorted(p.relative_to(root).as_posix() for p in package.glob("*.py")) + [
         "scripts/fp_sc_followup.py", "src/qclean_uwb/fp_sc/candidate_revision.py"]
 
 
@@ -284,6 +284,12 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 if stream_stage:
                     del result, case, ev
                     gc.collect()
+            if vab_detection and stage == 'E1-02' and manifest.get('static_cases'):
+                from .static_detection import load_static, evaluate_static
+                for static_id, spec in manifest['static_cases'].items():
+                    observed, reference = load_static(root, spec, manifest['input_files'])
+                    _gzip_json(folder/(static_id+'.json.gz'), evaluate_static(observed, reference, adapter, policy))
+                stage_receipt['static_case_ids'] = list(manifest['static_cases'])
             if e4_results:
                 write_json(folder/"PAIRED_CLAIMS.json", _aggregate_e4(e4_results, stage_meta))
             stage_receipt.update(execution_status="COMPLETE", numerical_qa_pass=True,
