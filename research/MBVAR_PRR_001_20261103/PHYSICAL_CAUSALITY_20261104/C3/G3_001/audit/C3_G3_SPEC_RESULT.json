@@ -1,0 +1,60 @@
+{
+  "schema": "C3_G3_SPEC_V1",
+  "decision": "SPEC_APPROVED",
+  "audit_verdict": "ACCEPT",
+  "scope": "G3_REMAINING20_RAW_CAPTURE_SPEC_ONLY",
+  "question_id": "C3-SM2-YAW-001",
+  "authorization": "Explicit user approval on 2026-11-05 for the remaining20 under the existing contract.",
+  "g2_accepted_head": "febe06a5e819018698251a27dc7da16e20ff11c2",
+  "bindings_sha256": {
+    "CONTRACT_KO.md": "0c62a36219c587a1ceb5f16e891685de53d605bce54c749ddb040d904c07b4c7",
+    "PLAN.json": "d71948d3927384bf94d316bf350cdca963d3426d29694214469458e0fae9e327",
+    "INPUT_LOCK.json": "ca441b3a002c52712ef010b86dc5f2fd8643e9f9fe232bce4082a373b0bb0550",
+    "GOVERNANCE.json": "123a4b2ca48c982f2ea62e794225175048a56541906e25f56e7340d333843a71",
+    "G3_AUTHORIZATION_KO.md": "842fd3a400bcf9f95563c7d6db573fe0baebb292ba794b2438f9ea25383f7150",
+    "G2_PREREQUISITE.json": "3e8c4cb0909bba17e8a3aadcfd630f4b7cdbdc833e0eca9bd83e05397dbd1570"
+  },
+  "g2_data_acceptance_sha256": "07894ecebf001388f76c7420ad4cfaee96f1627659fe18260178487803ee4996",
+  "evidence": {
+    "contract_input_lock_governance_and_qa_identical_to_accepted_G2": true,
+    "g2_bound_bytes_and_all_five_prerequisite_hashes_match_accepted_commit": true,
+    "authorized_coordinates": [
+      "R5_982",
+      "P10Yp",
+      "P10Yn",
+      "P139Yp",
+      "P139Yn"
+    ],
+    "yaw_order_deg": [
+      0,
+      180,
+      35.7,
+      -35.7
+    ],
+    "unique_conditions": 20,
+    "primary_calls": 5140,
+    "repeat_calls": 60,
+    "max_total_solver_calls": 5200,
+    "repeat_bins": [
+      0,
+      128,
+      256
+    ],
+    "source_physics_runtime_thresholds_and_failure_policy_unchanged": true,
+    "independent_scope_checks": {
+      "all20_rows": "PASS",
+      "injected_completed_G2_R4_condition": "REJECTED"
+    },
+    "fresh_output_absent": true
+  },
+  "scope_interpretation": "G3_AUTHORIZATION_KO.md instantiates the original G3 expansion gate. Historical G2-only counts in the byte-identical copied contract describe G2; current exact authorization is the bound G3 PLAN.",
+  "boundaries": [
+    "No G2 or prior-stage rerun.",
+    "First failure stops the batch; preserve all evidence; no automatic retry.",
+    "G4 FFT/polarization decomposition/source-model initialization and further RT are excluded.",
+    "Numerical DATA acceptance remains a separate independent gate.",
+    "No overall adoption or realtime PASS claim; NO-GO/HOLD remains."
+  ],
+  "required_correction": [],
+  "execution_go": false
+}
