@@ -1,0 +1,11 @@
+--- research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ANALYSIS_FP_EKF_20261105/verify_c1_selfgate.py (original)
++++ research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/ANALYSIS_FP_EKF_20261105/verify_c1_selfgate.py (isolated correction)
+@@ -94,7 +94,7 @@
+           for policy in ['frozen_gate','self_gate']:
+             yes=accepted if policy=='frozen_gate' else nis<=G2
+             post=wrap(prior_psi+(kp@nn if yes else 0.))
+-            var=Ppost if yes else Pprior
++            var=Pprior-float(kp@S@kp) if yes else Pprior
+             err=math.degrees(wrap(post-gt_psi))
+             sig=math.degrees(math.sqrt(var))
+             all_rows.append({**b,'arm':arm,'gate_policy':policy,'accepted':yes,'NIS_cf':nis,'heading_error_cf_deg':err,'sigma_cf_deg':sig,'heading_nees_cf':(err/sig)**2,'delta_heading_cf_deg':err-math.degrees(orig_err),'prior_to_post_var_ratio':var/Pprior})
