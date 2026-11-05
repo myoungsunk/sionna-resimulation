@@ -1,0 +1,29 @@
+{
+  "stage": "S2",
+  "primary_axes": "tangent_heading",
+  "primary_gate": "F",
+  "primary_arms": [
+    "A",
+    "B",
+    "C_P",
+    "D_P"
+  ],
+  "development_ablation": "one D_P replay per development cell, seed0-3 heading-only; seed4-6 tangent+heading+bg; seed7-9 O gate. Each changes one factor from corresponding seed D_P. Report paired within-seed differences separately per ablation, no cross-stratum attribution.",
+  "snapshot_selection": "seed0 only; sorted union of 30/60/90 second registered checkpoints and first causal baseline suspect-latch episode starts, first10 per cell, valid following20s not required and censoring recorded",
+  "snapshot_start": "baseline posterior immediately before selected timestamp; identical x/P and future controls for all four arms",
+  "snapshot_schedule": "common baseline A risk/geometry machine virtual recovery candidate schedule, independent of ground truth and not recomputed by treatment arms",
+  "snapshot_windows_s": [
+    10,
+    20
+  ],
+  "maximum_snapshots": 80,
+  "geometry": "sum historical H with inverse motion-transition transport to current prior; accepted observations, effective R, two-second trailing window; fixed D4 Schur complement rules",
+  "quiet_rule": "BASE accepted risk<=.25 continuously for1s; rejected packets reset quiet dwell",
+  "monitor_rule": "two continuous seconds of accepted quiet risk and geometry, then next episode enabled subject to20s cooldown and route maximum3",
+  "episode_schedule": "nonrecovery arms consume virtual candidates solely for causal diagnostic schedule; no mean or covariance intervention",
+  "no_trigger": "retain every cell and record zero events",
+  "accuracy_recovery": "heading absolute error<=1deg and XY error<=.1m jointly continuously2s; right censor at trace end",
+  "endpoint_cohort": "common baseline A predicted prior before first snapshot treatment, aligned to truth at the same timestamp, defines already_accurate for all arms; events use each own pre-treatment predicted prior; first emitted errors reported separately",
+  "endpoint_time_tolerance_s": 1e-09,
+  "repair_policy": "eight fixed short M traces only under GO_S2_REPAIR; immutable original main/ablation outcomes reused, full M and non-M event endpoint tables corrected additively"
+}
