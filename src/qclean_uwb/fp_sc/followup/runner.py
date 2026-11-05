@@ -5,6 +5,7 @@ from pathlib import Path
 import argparse
 import datetime as dt
 import gzip
+import io
 import json
 import sys
 import traceback
@@ -50,8 +51,13 @@ def plan() -> dict:
 
 
 def _gzip_json(path: Path, value):
-    with gzip.open(path, "wt", encoding="utf-8") as f:
-        json.dump(jsonable(value), f, ensure_ascii=False, allow_nan=False, separators=(",", ":"))
+    # gzip.open() embeds the wall clock by default, making the same numerical
+    # result produce different bytes and SHA across manual replays. Freeze mtime.
+    with path.open("xb") as raw:
+        with gzip.GzipFile(filename="", mode="wb", fileobj=raw, mtime=0) as zipped:
+            with io.TextIOWrapper(zipped, encoding="utf-8", newline="") as f:
+                json.dump(jsonable(value), f, ensure_ascii=False,
+                          allow_nan=False, separators=(",", ":"))
 
 
 def _load_models(root, case_id, manifest, cache):
