@@ -90,7 +90,22 @@ def audit_directory(directory: Path):
     directory=directory.resolve()
     hashes=json.loads((directory/"ARTIFACT_HASHES.json").read_text(encoding="utf-8"))
     _require(bool(hashes),"EMPTY_HASH_REGISTRY")
+    actual_files = {str(p.relative_to(directory)) for p in directory.rglob("*")
+                    if p.is_file() and p.name != "ARTIFACT_HASHES.json"}
+    _require(set(hashes) == actual_files, "UNINDEXED_OR_MISSING_ARTIFACT")
     total={"files":0,"updates":0,"summaries":0,"max_normalized_error":0.}
+    manifest = json.loads((directory/"RUN_MANIFEST.json").read_text(encoding="utf-8"))
+    if manifest.get("status") != "COMPLETE_TECHNICAL_ONLY":
+        # Inspect file bytes but never run the scientific result checker or
+        # return PASS for failed, interrupted or partial manual execution.
+        for name,expected in hashes.items():
+            path=(directory/name).resolve()
+            _require(path.is_relative_to(directory) and path.is_file(),"INVALID_ARTIFACT_PATH")
+            with path.open("rb") as f:actual=hashlib.file_digest(f,"sha256").hexdigest()
+            _require(actual==expected,"FILE_HASH_MISMATCH:"+name)
+        return dict(status="HOLD_INCOMPLETE_RUN",run_status=manifest.get("status"),
+                    byte_integrity_checked=len(hashes),
+                    numerical_science_pass=False,external_independent_accept=False)
     for name,expected in hashes.items():
         path=(directory/name).resolve()
         _require(path.is_relative_to(directory) and path.is_file(),"INVALID_ARTIFACT_PATH")
