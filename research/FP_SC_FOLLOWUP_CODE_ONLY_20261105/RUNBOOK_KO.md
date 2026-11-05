@@ -55,7 +55,7 @@ code_lock_sha256 = digest(code_lock)
 policy_sha256 = Policy(**policy_dictionary).sha
 ```
 
-`stage_config[stage].case_ids`는 기대 목록 전부다. E3-03은 `calibration_case_ids`, `min_samples`가 추가된다. E5-01/02에는 실제 hardware_id를 등록한다. E4-01/02는 R2/R4/R5×B0/L2×Full/Native-LoS×seed0~9/40~59 격자를 요구한다. 모든 case의 t[0]=0이어야 한다. 다른 seed 집합/범위를 사용할 때는 해당 검증기와 계약을 새 버전으로 함께 수정한다.
+`stage_config[stage].case_ids`는 기대 목록 전부다. E3-03은 `calibration_case_ids`, `min_samples`가 추가된다. E5-01/02에는 실제 hardware_id를 등록한다. E4-01/02는 R2/R4/R5×B0/L2×Full/Native-LoS×seed0~9/40~59 격자를 요구한다. E4-01/E4-02의 모든 trajectory는 `t[0]=0`이어야 한다. 다른 단계는 해당 연구 계약의 시간축을 그대로 보존하며, 시각의 단조성과 pose/time 일치 여부를 확인한다. 다른 seed 집합/범위를 사용할 때는 해당 검증기와 계약을 새 버전으로 함께 수정한다.
 
 모델 JSON은 E3-03이 생성한 F00/F01/F11 map이다. 같은 run에서는 내부 cache로 연결된다. 다른 run에서 이어서 쓰려면 `models_by_case`와 `input_files`에 등록한다. heldout route, policy SHA, bias/channel/noise domain, train sample IDs가 맞지 않으면 중단한다. E4-03은 outer_fold_policies/outer_fold_models_by_case를 따로 등록한다. E5-03은 external_environment_contract와 새로운 environment_id/corpus=external을 요구한다.
 
