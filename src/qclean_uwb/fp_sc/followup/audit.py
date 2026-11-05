@@ -93,6 +93,15 @@ def audit_directory(directory: Path):
     actual_files = {str(p.relative_to(directory)) for p in directory.rglob("*")
                     if p.is_file() and p.name != "ARTIFACT_HASHES.json"}
     _require(set(hashes) == actual_files, "UNINDEXED_OR_MISSING_ARTIFACT")
+    # Hash-check first so tampering is detected even if the run manifest is
+    # missing or corrupt. Preserve legacy audit regression behavior.
+    for name, expected in hashes.items():
+        path = (directory/name).resolve()
+        _require(path.is_relative_to(directory) and path.is_file(), "INVALID_ARTIFACT_PATH")
+        with path.open("rb") as f:
+            actual = hashlib.file_digest(f, "sha256").hexdigest()
+        _require(actual == expected, "FILE_HASH_MISMATCH:" + name)
+    _require((directory/"RUN_MANIFEST.json").is_file(), "MISSING_RUN_MANIFEST")
     total={"files":0,"updates":0,"summaries":0,"max_normalized_error":0.}
     manifest = json.loads((directory/"RUN_MANIFEST.json").read_text(encoding="utf-8"))
     if manifest.get("status") != "COMPLETE_TECHNICAL_ONLY":
