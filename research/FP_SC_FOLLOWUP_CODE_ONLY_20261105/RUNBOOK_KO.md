@@ -71,3 +71,86 @@ python scripts/fp_sc_followup.py audit --directory research/FP_SC_FOLLOWUP_RUN_0
 실패 시 기존 RUN_MANIFEST/부분 출력은 보존된다. 코드·입력·정책 변경 시 새 SHA와 새 출력 경로를 사용한다. 이전 단계 성공 receipt를 실제 파일 hash로 등록하고 실패한 단계부터 재개한다. 실패한 결과를 지우거나 같은 폴더를 덮어쓰는 resume은 제공하지 않는다.
 
 E5는 지정 기기에서 실제 arrival pacing·싱크 flush를 포함해 실행한다. 단순 fake-clock 테스트와 GitHub runner 수치로 실기기 5Hz PASS를 선언하지 않는다. 이 변경은 workflow를 추가/수정하거나 dispatch하지 않는다.
+
+
+## 5. 수동 실행 사전점검 (2026-11-05 감사 패치)
+
+**GitHub Actions는 불필요하며 이 패치는 Actions를 실행하지 않는다.** 원본 `74df3c99` 대신 별도 `audit/fp-sc-e1e5-local-readiness-20261105` 브랜치를 checkout한다. 원본 FP/EKF 정책·FFT·갱신 수식과 E0/E1-01 파일은 변경하지 않았다.
+
+현재 테스트 환경에서 증명할 수 있는 것은 문법/계약/합성 동작이며, **실제 RF·FFD payload·실기기 성능 검증은 별개의 실행**이다. 사전점검의 PASS를 과학적 PASS로 해석하지 않는다.
+
+### (1) 로컬 합성 회귀
+
+Linux/WSL/macOS Bash:
+
+```bash
+export PYTHONPATH=src OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1
+python -m unittest discover -s tests -p 'test_fp_sc_followup.py' -v
+python -m unittest discover -s tests -p 'test_fp_sc_manual_readiness.py' -v
+python -m compileall -q src/qclean_uwb/fp_sc/followup scripts/fp_sc_followup.py tests/test_fp_sc_manual_readiness.py
+python scripts/fp_sc_followup.py plan
+```
+
+Windows PowerShell:
+
+```powershell
+$env:PYTHONPATH = "src"
+$env:OPENBLAS_NUM_THREADS = "1"
+$env:MKL_NUM_THREADS = "1"
+$env:OMP_NUM_THREADS = "1"
+python -m unittest discover -s tests -p test_fp_sc_followup.py -v
+python -m unittest discover -s tests -p test_fp_sc_manual_readiness.py -v
+python -m compileall -q src/qclean_uwb/fp_sc/followup scripts/fp_sc_followup.py
+python scripts/fp_sc_followup.py plan
+```
+
+실제 소스, FFD bank, NPZ, model은 반드시 **실제 바이트와 정확한 SHA256**를 동결한다. Git LFS pointer만 존재하면 실행을 막는다. 별도의 실험 승인 없이 `APPROVAL_TEMPLATE.json`의 `execute_science`를 자동으로 true로 바꾸는 기능은 없다.
+
+### (2) E1-01 원본 증거를 후속 prerequisite으로 연결
+
+원래 E1-01의 `RUN_MANIFEST.json`은 후속 실행기의 `study_id/execution_status/numerical_qa_pass` 형식을 따르지 않는다. 따라서 **원본 결과와 별도 재검산이 모두 완료된 경우에만** 아래 변환을 한다. 두 디렉터리는 repository 내부에 있어야 한다.
+
+```bash
+python scripts/fp_sc_followup.py adopt-e1 \
+  --repo . \
+  --run-dir <repo-relative-E1-production-run-dir> \
+  --review-dir <repo-relative-E1-separate-review-dir> \
+  --output research/FP_SC_FOLLOWUP_E1_PARENT.json
+```
+
+변환은 E1-01 전체 6,320 waveform/12,640행, run/review 아티팩트 해시, 별도 checker의 수치 재현 여부를 재확인한다. 생성되는 prerequisite은 `execution_status=COMPLETE`, `numerical_qa_pass=true`지만 **`scientific_gate=HOLD_RESULT_REVIEW`**이다. 95% 문턱이나 경로별 실패를 임의로 PASS로 승격하지 않는다. 외부 독립승인도 표시하지 않는다.
+
+생성된 receipt와 그 `source_files`의 네 파일을 `manifest.input_files`에 **각각 실제 SHA256**로 등록하고, `manifest.prerequisite_receipts["E1-01"]`에 receipt 경로를 등록한다. H0/E1 결과가 기술적으로 완료되지 않은 경우 변환은 차단된다.
+
+### (3) preflight → run → audit
+
+동결된 manifest/approval을 준비한 후 (예시는 단계 순서만 설명하며 실제 실행승인이 아니다):
+
+```bash
+python scripts/fp_sc_followup.py preflight \
+  --repo . --manifest frozen_manifest.json --approval approved_scope.json \
+  --stages E1-02 E1-03 E2-01
+
+python scripts/fp_sc_followup.py run \
+  --repo . --manifest frozen_manifest.json --approval approved_scope.json \
+  --output research/FP_SC_FOLLOWUP_RUN_001 \
+  --stages E1-02 E1-03 E2-01
+
+python scripts/fp_sc_followup.py audit --directory research/FP_SC_FOLLOWUP_RUN_001
+```
+
+`preflight`는 계산 결과를 저장하지 않는다. 코드·원본·입력 파일의 SHA, 환경 버전, 선행 receipt, case ID/표본수, 단계 순서, 120/240 case 메타데이터, E3-03 학습 표본, 모델 파일·SHA·대상 route/domain, E4/E5 NPZ 시간/pose_id를 확인한다. 실질적인 RF/FFD·EKF 계산은 `run`에만 있다. `preflight=PASS_LOCAL_PREFLIGHT_NO_SCIENCE`는 실행 준비 형식 점검 결과일 뿐이다.
+
+E4/E5를 포함하여 모든 단계에서 원본 CFR case들을 **case 단위로 읽고 직후 해제**한다. E4 seed 집계에는 trace 전체가 아니라 필요한 지표만 남긴다. 메모리가 급격히 늘어나는 문제를 줄이지만, 단일 case 자체의 메모리 사용과 E5 실제 도착속도 처리 시간까지 보증하지 않는다.
+
+작업 도중 실패하면 파일을 지우거나 같은 output에 다시 쓰지 않는다. `RUN_MANIFEST.json`은 `FAILED_PRESERVED`로 남고 생성된 파일의 hash index도 저장된다. 이 경우 `audit`는 `HOLD_INCOMPLETE_RUN`만 반환하며 PASS하지 않는다. 다시 실행하려면 원인 수정 후 새 계약/새 output 경로를 사용한다.
+
+### (4) 실전 데이터에만 남는 미검증 항목
+
+- E1-01 후보 가용성이 95% 이상인지, 누락 후보 episode가 안전한지는 실제 원본 결과 재검산 필요
+- R2/R4/R5의 입력 시간축과 source FFD(native detector)가 본 실험 조건과 일치하는지 실제 데이터에서 검증 필요
+- E3 보정모델의 각 stratum 최소 표본, route-heldout, covariance 효과는 실제 수치 결과 검증 필요
+- E4 720/1,440개 arm-trajectory의 전체 실행 시간·메모리·성능은 실행 전까지 미확정
+- E5의 5 Hz 시간 규약·장애·실제 출력 sink flush는 해당 실기기에서만 판정 가능
+
+별도의 과학적 조건 변경·새 모델 재학습·실제 RF 계산은 이번 수동 실행 준비 패치의 범위가 아니다.
