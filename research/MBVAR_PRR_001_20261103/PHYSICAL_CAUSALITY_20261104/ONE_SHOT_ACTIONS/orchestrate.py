@@ -200,7 +200,10 @@ def run_shard(work, shard):
             (output/"STOP").touch()
             notice = work/f"GLOBAL_STOP_{shard}.json"
             dump(notice,dict(task_id=row["task_id"],reason="KEY_FAILURE",shard=shard))
-            subprocess.run(["gh","release","upload",tag,str(notice),"--clobber","--repo",repo],timeout=30,check=False)
+            try:
+                subprocess.run(["gh","release","upload",tag,str(notice),"--clobber","--repo",repo],timeout=30,check=True)
+            except Exception as error:
+                remote_errors.append(str(error))
         return row["task_id"]
     # Submit at most four keys so failure cannot leave a queued solver call.
     with ThreadPoolExecutor(max_workers=4) as pool:
@@ -220,7 +223,7 @@ def run_shard(work, shard):
     dump(output/"STATUS.json",statuses)
     dump(output/"CONTROL_PLANE_ERRORS.json",remote_errors)
     package(output,work/f"shard_{shard}.tar.gz")
-    assert len(statuses)==expected_count and all(r["status"]=="PASS_TECHNICAL" for r in statuses)
+    assert not (output/"STOP").exists() and len(statuses)==expected_count and all(r["status"]=="PASS_TECHNICAL" for r in statuses)
 
 def package(folder, destination):
     hashes={str(p.relative_to(folder)).replace(chr(92),"/"):sha(p) for p in folder.rglob("*") if p.is_file() and p.name!="OUTPUT_SHA256.json"}

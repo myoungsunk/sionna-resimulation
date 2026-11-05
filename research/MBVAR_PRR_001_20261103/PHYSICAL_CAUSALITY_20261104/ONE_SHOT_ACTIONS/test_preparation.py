@@ -1,5 +1,5 @@
 """Preparation regression tests; no solver import or runtime invocation."""
-import ast,io,json,tarfile,tempfile
+import ast,io,json,tarfile,tempfile,subprocess,sys
 from pathlib import Path
 from unittest.mock import patch
 import unittest
@@ -13,6 +13,17 @@ class PreparationTests(unittest.TestCase):
   self.assertFalse(authorized("push","1",None,None,a,"other"))
   self.assertFalse(authorized("push","2",None,None,a,"abc"))
   self.assertFalse(authorized("push","1",None,None,dict(a,approved=False),"abc"))
+ def test_partial_handoff_preserved(self):
+  with tempfile.TemporaryDirectory() as d:
+   root=Path(d);work=root/"work";out=root/"out";work.mkdir();out.mkdir()
+   ids=[r["task_id"] for r in O.ledger()]
+   O.dump(work/"inventory.json",dict(pending=ids[:308],reused={k:"preserved" for k in ids[308:]}))
+   for group in ["B0","B1","SM1a","G3","inputs"]:(work/(group+".tar.gz")).write_bytes(b"fixture")
+   (out/"shard_0.tar.gz").write_bytes(b"broken archive")
+   subprocess.run([sys.executable,str(O.HERE/"collect.py"),str(work),str(out)],check=True)
+   self.assertEqual(len(json.loads((out/"ALL_KEYS.json").read_text())),400)
+   self.assertEqual(json.loads((out/"FINAL_QA.json").read_text())["status"],"INCOMPLETE")
+   self.assertTrue((out/"handoff.tar.gz").is_file())
  def test_registered_universe(self):
   rows=O.ledger()
   self.assertEqual(sum(int(r["expected_solver_calls"]) for r in rows),102860)
