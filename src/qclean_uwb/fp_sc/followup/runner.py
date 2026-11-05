@@ -193,17 +193,21 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             # Optional CAL-only bounded search. A winner is not silently installed
             # into this run: freeze its SHA in a subsequent execution contract.
             if stage == "E2-01" and cfg.get("cal_policy_search", False):
-                if any(cache[c][0].split != "CAL" for c in case_ids):
+                if any(stage_meta[c].split != "CAL" for c in case_ids):
                     raise ContractError("POLICY_SEARCH_MUST_BE_CAL_ONLY")
-                search_results = {}
+                # Stream one CAL case at a time, evaluating all 27 frozen
+                # proposals while its CFR is resident. Store summaries only.
+                proposals = policy_grid(policy)
+                search_results = {candidate.sha: [] for candidate in proposals}
                 expected = set(case_ids)
-                for candidate in policy_grid(policy):
-                    grouped = []
-                    for cid in case_ids:
-                        cc, ee = cache[cid]
+                for cid in case_ids:
+                    cc, ee = load_case(root, case_specs[cid], manifest["input_files"], adapter)
+                    for candidate in proposals:
                         rows, _ = labelled(cc, ee, adapter, candidate, "PM")
-                        grouped.append(dict(stratum=cid, summary=selection_summary(rows)))
-                    search_results[candidate.sha] = grouped
+                        search_results[candidate.sha].append(
+                            dict(stratum=cid, summary=selection_summary(rows)))
+                    del cc, ee, rows
+                    gc.collect()
                 selected = select_policy_from_calibration(search_results, split="CAL", expected_strata=expected)
                 write_json(folder/"CAL_POLICY_SELECTION.json", selected)
                 _gzip_json(folder/"CAL_POLICY_GRID.json.gz", search_results)
