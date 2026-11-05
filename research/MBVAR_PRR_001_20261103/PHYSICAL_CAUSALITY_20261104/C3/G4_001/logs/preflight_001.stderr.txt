@@ -1,0 +1,26 @@
+test_coherent_power_surface_union_and_wrap (__main__.Preflight.test_coherent_power_surface_union_and_wrap) ... ERROR
+test_derivative_units_steps_and_bad_jacobian (__main__.Preflight.test_derivative_units_steps_and_bad_jacobian) ... ok
+test_fft_against_direct_dft (__main__.Preflight.test_fft_against_direct_dft) ... ok
+test_frozen_inputs_runtime_and_blas (__main__.Preflight.test_frozen_inputs_runtime_and_blas) ... ok
+test_go_missing_or_forged (__main__.Preflight.test_go_missing_or_forged) ... ok
+test_replay_negatives (__main__.Preflight.test_replay_negatives) ... ok
+test_scope_negatives (__main__.Preflight.test_scope_negatives) ... ok
+test_selector_amplitude_ties_and_zero (__main__.Preflight.test_selector_amplitude_ties_and_zero) ... ok
+test_signed_port_swap (__main__.Preflight.test_signed_port_swap) ... ok
+
+======================================================================
+ERROR: test_coherent_power_surface_union_and_wrap (__main__.Preflight.test_coherent_power_surface_union_and_wrap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "D:\codex\MBVAR_PRR_001_20261103\research\MBVAR_PRR_001_20261103\PHYSICAL_CAUSALITY_20261104\C3\G4_001\test_g4.py", line 72, in test_coherent_power_surface_union_and_wrap
+    result,arrays,groups,surfaces=P.analyze(synthetic(),D,PLAN)
+                                  ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "D:\codex\MBVAR_PRR_001_20261103\research\MBVAR_PRR_001_20261103\PHYSICAL_CAUSALITY_20261104\C3\G4_001\physics.py", line 28, in analyze
+    if not np.allclose(gc.sum(0),full,rtol=1e-8,atol=1e-28):raise ValueError('CIR linearity')
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: CIR linearity
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.860s
+
+FAILED (errors=1)
