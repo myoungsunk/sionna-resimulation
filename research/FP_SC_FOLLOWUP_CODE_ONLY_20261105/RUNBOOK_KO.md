@@ -141,7 +141,7 @@ python scripts/fp_sc_followup.py audit --directory research/FP_SC_FOLLOWUP_RUN_0
 
 `preflight`는 계산 결과를 저장하지 않는다. 코드·원본·입력 파일의 SHA, 환경 버전, 선행 receipt, case ID/표본수, 단계 순서, 120/240 case 메타데이터, E3-03 학습 표본, 모델 파일·SHA·대상 route/domain, E4/E5 NPZ 시간/pose_id를 확인한다. 실질적인 RF/FFD·EKF 계산은 `run`에만 있다. `preflight=PASS_LOCAL_PREFLIGHT_NO_SCIENCE`는 실행 준비 형식 점검 결과일 뿐이다.
 
-E4/E5를 포함하여 모든 단계에서 원본 CFR case들을 **case 단위로 읽고 직후 해제**한다. E4 seed 집계에는 trace 전체가 아니라 필요한 지표만 남긴다. 메모리가 급격히 늘어나는 문제를 줄이지만, 단일 case 자체의 메모리 사용과 E5 실제 도착속도 처리 시간까지 보증하지 않는다.
+E4/E5를 포함하여 모든 단계에서 원본 CFR case들을 **case 단위로 읽고 직후 해제**한다. gzip 결과는 `mtime=0`과 헤더 파일명 비우기로 반복 실행의 바이트/해시가 입력 숫자만에 의해 결정되도록 변경했다. E4 seed 집계에는 trace 전체가 아니라 필요한 지표만 남긴다. 메모리가 급격히 늘어나는 문제를 줄이지만, 단일 case 자체의 메모리 사용과 E5 실제 도착속도 처리 시간까지 보증하지 않는다.
 
 작업 도중 실패하면 파일을 지우거나 같은 output에 다시 쓰지 않는다. `RUN_MANIFEST.json`은 `FAILED_PRESERVED`로 남고 생성된 파일의 hash index도 저장된다. 이 경우 `audit`는 `HOLD_INCOMPLETE_RUN`만 반환하며 PASS하지 않는다. 다시 실행하려면 원인 수정 후 새 계약/새 output 경로를 사용한다.
 
