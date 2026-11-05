@@ -94,6 +94,10 @@ def original_qa(folder):
         with np.load(rawdir/"RAW_H.npz") as z:
             assert z["H"].shape == (257,2,2)
             assert np.array_equal(z["H"], np.asarray(hs, dtype=complex))
+            data=folder.parents[1]/"source/results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C"
+            case=route+"_aB_m0"
+            reference=data/(f"FULL_RF/H_{case}.npy" if q["mode"]=="Full" else f"H_LoS_{case}.npy")
+            assert np.array_equal(z["reference"],np.load(reference,mmap_mode="r")[q["pose"]])
             error = np.linalg.norm(z["H"][:,:,0]-z["reference"][:,:,0])/np.linalg.norm(z["reference"][:,:,0])
             assert error <= (1e-3 if q["mode"]=="Full" else 1e-5)
         yield (route+"_B",str(q["pose"]),"FULL" if q["mode"]=="Full" else "NATIVE_LOS"),rawdir
@@ -123,6 +127,8 @@ def prepare(work):
             assert sha(folder/"MANIFEST.json")==binding["manifest_sha256"]
             assert sha(folder/"RAW.npz")==binding["raw_sha256"]
             m=json.loads((folder/"MANIFEST.json").read_text())
+            assert m["code_revision"]==binding["code_revision"] and m["go_sha256"]==binding["go_sha256"]
+            assert m["condition"]==binding["condition"] and m["raw_sha256"]==binding["raw_sha256"]
             assert m["status"]=="C3_RAW_NUMERICAL_PASS" and m["primary_solver_calls"]==257 and m["repeat_solver_calls"]==3
             assert {f.name for f in (folder/"repeat").glob("*.npz")}=={"000.npz","128.npz","256.npz"}
             if group == "G3":

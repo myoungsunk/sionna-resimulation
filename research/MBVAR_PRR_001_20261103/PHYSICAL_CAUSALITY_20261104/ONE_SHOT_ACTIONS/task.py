@@ -45,7 +45,7 @@ def worker(key):
   solver=rt.PathSolver();hs=[];reb=[];hi=[];counts=[]
   for i,fr in enumerate(f):
    assert not stop.exists() and not (out.parent/'STOP').exists() and time.monotonic()-start<900 and sum(q.stat().st_size for q in bins.iterdir())<64*1024**2
-   C.set_bin(scene,banks,tx,rx,i,float(fr));calls+=1;p=solver(scene,**opt);tau=np.asarray(p.tau).reshape(-1).copy();n=len(tau)
+   C.set_bin(scene,banks,tx,rx,i,float(fr));calls+=1;dump(folder/'CALL_PROGRESS.json',dict(calls_started=calls,bin=i));p=solver(scene,**opt);tau=np.asarray(p.tau).reshape(-1).copy();n=len(tau)
    a=(np.asarray(p.a[0])+1j*np.asarray(p.a[1])).reshape(2,2,n).copy()
    raw={k:np.asarray(getattr(p,k)).copy() for k in ['objects','interactions','primitives','vertices','valid','theta_t','theta_r','phi_t','phi_r']}
    H=B.archive_channel(a,tau,fr);path=bins/f'{i:03d}.npz'
@@ -58,6 +58,7 @@ def worker(key):
    hi.append((a*np.exp(-2j*np.pi*float(fr)*tau.astype(float))[None,None,:]).sum(-1));hs.append(H);counts.append(n)
   H=np.asarray(hs,dtype=complex);cr=O.cir_batch(H[None,:,:,0]);obs=O.first_path_batch(cr,float(f[1]-f[0]));cref=O.cir_batch(ref[None,:,:,0]);oref=O.first_path_batch(cref,float(f[1]-f[0]))
   np.savez_compressed(folder/'RAW_H.npz',H=H,reference=ref,frequency=f,counts=counts,offsets=np.r_[0,np.cumsum(counts)],cir=cr)
+  np.savez_compressed(folder/'FIRST_PATH.npz',**{'observed_'+k:v for k,v in obs.items()},**{'reference_'+k:v for k,v in oref.items()})
   e=rel(H[:,:,0],ref[:,:,0]);rec=rel(np.array(reb),H);normmax=float(np.max(abs(np.array(reb)-H))/np.max(abs(H)))
   result.update(archive_rel_L2=e,all_ports_rel_L2=rel(H,ref),reassembly_rel_L2=rec,reassembly_max_normalized=normmax,independent_F64_diagnostic=rel(np.array(hi),H),tap=int(obs['index'][0]),reference_tap=int(oref['index'][0]),signed_s=float(obs['s'][0]),min_paths=min(counts),max_paths=max(counts))
   assert e<=({'LoS':1e-5,'Full':1e-3}[mode]) and rec<=1e-8 and normmax<=1e-8 and result['tap']==result['reference_tap'] and np.isfinite(obs['s']).all(),'PARITY_OR_EXTRACTOR_STOP'

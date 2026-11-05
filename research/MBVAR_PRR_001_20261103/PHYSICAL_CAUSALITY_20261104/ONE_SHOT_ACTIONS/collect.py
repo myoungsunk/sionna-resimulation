@@ -15,6 +15,17 @@ for i in ["canary",0,1,2,3]:
   assert sha(directory/name)==h
  statuses=json.loads((directory/"STATUS.json").read_text())
  assert len(statuses)==(4 if i=="canary" else 77)
+ expected={r["task_id"] for r in json.loads((work/f"shard_{i}.json").read_text())}
+ assert len({r["task_id"] for r in statuses})==len(statuses)
+ assert {r["task_id"] for r in statuses}==expected
+ for row in statuses:
+  if row["status"]=="PASS_TECHNICAL":
+   assert row["calls"]==257
+   folders=list((directory/row["task_id"]).glob("*/bins"))
+   assert len(folders)==1
+   assert {x.name for x in folders[0].glob("*.npz")}=={f"{j:03d}.npz" for j in range(257)}
+   assert (folders[0].parent/"RAW_H.npz").is_file()
+   assert (folders[0].parent/"FIRST_PATH.npz").is_file()
  if i=="canary":
   canary_status=statuses
   continue
