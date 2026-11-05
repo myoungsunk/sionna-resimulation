@@ -39,7 +39,8 @@ SOURCES_REQUIRED = (
 
 def code_paths(root: Path) -> list[str]:
     package = root / "src/qclean_uwb/fp_sc/followup"
-    return sorted(str(p.relative_to(root)) for p in package.glob("*.py")) + ["scripts/fp_sc_followup.py"]
+    return sorted(str(p.relative_to(root)) for p in package.glob("*.py")) + [
+        "scripts/fp_sc_followup.py", "src/qclean_uwb/fp_sc/candidate_revision.py"]
 
 
 def plan() -> dict:
@@ -130,7 +131,17 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
             prerequisites[stage] = json.loads(rooted(root, path).read_text(encoding="utf-8"))
             if prerequisites[stage].get("stage") != stage or prerequisites[stage].get("study_id") != "FP-SC-001":
                 raise ContractError("PREREQUISITE_RECEIPT_IDENTITY_MISMATCH")
-        adapter = OriginalAdapter(root)
+        vab_detection = manifest.get('execution_profile') == 'VAB_DETECTION_ONLY_R1'
+        if manifest.get('execution_profile') not in (None, 'VAB_DETECTION_ONLY_R1'):
+            raise ContractError('UNKNOWN_EXECUTION_PROFILE')
+        if vab_detection:
+            if stages != ['E1-02']:
+                raise ContractError('VAB_DETECTION_SINGLE_STAGE_ONLY')
+            from .bridge import RevisionEvidenceAdapter
+            adapter = OriginalAdapter(root, revision_evidence=RevisionEvidenceAdapter(
+                arm='VAB', mode=manifest['candidate_mode']))
+        else:
+            adapter = OriginalAdapter(root)
         case_specs = manifest["cases"]
         cache, models, calibration = {}, {}, []
         policy = Policy(**manifest["policy"])
@@ -152,7 +163,7 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                     stage_meta[case_id] = SimpleNamespace(**metadata, t=np.array([0.]))
                 else:
                     if case_id not in cache:
-                        cache[case_id] = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
+                        cache[case_id] = load_case(root, case_specs[case_id], manifest["input_files"], adapter, detection_only=vab_detection)
                     if cache[case_id][0].case_id != case_id:
                         raise ContractError("CASE_KEY_IDENTITY_MISMATCH")
                     stage_meta[case_id] = cache[case_id][0]
@@ -219,7 +230,7 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                 _gzip_json(folder/"CAL_POLICY_GRID.json.gz", search_results)
             for case_id in case_ids:
                 if stream_stage:
-                    case, ev = load_case(root, case_specs[case_id], manifest["input_files"], adapter)
+                    case, ev = load_case(root, case_specs[case_id], manifest["input_files"], adapter, detection_only=vab_detection)
                     if case.case_id != case_id or (
                             stage in {"E4-01", "E4-02"} and abs(float(case.t[0])) > 1e-12):
                         raise ContractError("STREAMED_CASE_IDENTITY_OR_T0_MISMATCH:" + case_id)
@@ -236,7 +247,7 @@ def run(root: Path, manifest_path: Path, approval_path: Path, output: Path, stag
                     else:
                         matched = _load_models(root, case_id, manifest, models)
                 if stage == "E1-02":
-                    result = e1_detection(case, ev, adapter, active_policy)
+                    result = e1_detection(case, ev, adapter, active_policy, vab_detection=vab_detection)
                 elif stage == "E1-03":
                     result = stress(case, ev, adapter, active_policy, detect_only=True)
                 elif stage == "E2-01":

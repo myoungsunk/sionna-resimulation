@@ -28,7 +28,7 @@ def _locked(root: Path, relative: str, lock: dict) -> Path:
     return rooted(root, relative)
 
 
-def load_case(root: Path, spec: dict, input_lock: dict, adapter):
+def load_case(root: Path, spec: dict, input_lock: dict, adapter, *, detection_only=False):
     required = {"online_npz", "evaluator_npz", "expected_rows", "metadata"}
     if set(spec) != required:
         raise ContractError(f"CASE_SPEC_KEYS_MISMATCH:{set(spec)^required}")
@@ -49,7 +49,7 @@ def load_case(root: Path, spec: dict, input_lock: dict, adapter):
     trace = {k: data["trace_"+k] for k in TRACE_FIELDS} if all("trace_"+k in data for k in TRACE_FIELDS) else None
     case = OnlineCase(**spec["metadata"], **{k: data[k] for k in ONLINE_ARRAYS},
                       baseline_trace=trace, clean_Hrf=data.get("clean_Hrf"))
-    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter)
+    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter, detection_only=detection_only)
 
 
 def export_archive(root: Path, spec: dict, output: Path) -> dict:
@@ -85,7 +85,8 @@ def export_archive(root: Path, spec: dict, output: Path) -> dict:
     if initial.shape == (3,):
         initial = np.r_[initial, 0.]  # original estimated bias initialization, NOT GT.
     state_truth = truth["truth"]
-    if state_truth.shape == (len(t), 3):
+    detection_only = spec.get('detection_only') is True
+    if state_truth.shape == (len(t), 3) and not detection_only:
         if "true_gyro_bias" not in truth or truth["true_gyro_bias"].shape != (len(t),):
             raise ContractError("TRUTH_GYRO_BIAS_REQUIRED_FOR_4D_NEES")
         state_truth = np.column_stack((state_truth, truth["true_gyro_bias"]))
@@ -97,14 +98,17 @@ def export_archive(root: Path, spec: dict, output: Path) -> dict:
     # Validate structure without loading any FFD observer or calculating a waveform.
     OnlineCase(**spec["metadata"], **{k: online[k] for k in ONLINE_ARRAYS},
                baseline_trace={k: trace[k] for k in TRACE_FIELDS}, clean_Hrf=H)
-    if state_truth.shape != (len(t), 4) or not np.isfinite(state_truth).all():
+    allowed_truth = {(len(t), 4), (len(t), 3)} if detection_only else {(len(t), 4)}
+    if state_truth.shape not in allowed_truth or not np.isfinite(state_truth).all():
         raise ContractError("EXPORT_TRUTH_SCHEMA")
     output.mkdir(parents=True, exist_ok=False)
     np.savez_compressed(output/"online.npz", **online)
     np.savez_compressed(output/"evaluator.npz", clean_H=rf["los_H"], truth=state_truth, t=t, pose_id=ids)
     receipt = dict(status="FORMAT_EXPORT_ONLY_NO_SCIENCE", source_files=spec["input_files"],
                    source_metadata=spec["metadata"], control_origin=spec["control_origin"],
-                   rows=len(t), arrays_unchanged_except_axis_selection_and_estimated_bias_initialization=True,
+                   rows=len(t), detection_only=detection_only,
+                   truth_columns=state_truth.shape[1], gyro_bias_not_invented=True,
+                   arrays_unchanged_except_axis_selection_and_estimated_bias_initialization=True,
                    files={p.name: sha256(p) for p in output.iterdir() if p.is_file()})
     write_json(output/"EXPORT_RECEIPT.json", receipt)
     return receipt

@@ -20,14 +20,18 @@ from .selection import policy_grid
 
 
 class Evaluator:
-    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter):
+    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter, *, detection_only=False):
         n = len(case.t)
         if clean_H.shape != (n, 257, 2) or not np.iscomplexobj(clean_H) or not np.isfinite(clean_H).all():
             raise ContractError("INVALID_EVALUATOR_LOS")
         self.case, self.clean_H, self.adapter = case, clean_H, adapter
-        self.truth = finite(truth, (n, 4), "EVALUATOR_TRUTH")
+        self.detection_only = detection_only
+        columns = 3 if detection_only and truth.shape == (n, 3) else 4
+        self.truth = finite(truth, (n, columns), "EVALUATOR_TRUTH")
 
     def label(self, online: list[dict], *, detect_only=False) -> list[dict]:
+        if self.detection_only and not detect_only:
+            raise ContractError('DETECTION_EVALUATOR_CANNOT_EVALUATE_CORRECTION')
         rows = []
         for item in online:
             k, e, d = item["k"], item["evidence"], item["decision"]
@@ -83,7 +87,18 @@ def static_cir_control(case, ev, adapter, policy):
                 static_conditions_not_independent_environments=True)
 
 
-def e1_detection(case, ev, adapter, policy):
+def e1_detection(case, ev, adapter, policy, *, vab_detection=False):
+    if vab_detection:
+        from .detection import detection_loop, HISTORY_RECIPE
+        outputs = {}
+        for mode in (('C',) if case.corpus == 'static_g4' else ('C', 'P', 'M', 'PM')):
+            online = detection_loop(case, adapter, policy, mode)
+            ev._wrong_cut = policy.wrong_cut
+            rows = ev.label(online, detect_only=True)
+            outputs[mode] = dict(rows=rows, summary=selection_summary(rows),
+                curve=detection_curve(rows, split=case.split), episodes=episodes(rows),
+                history_recipe=HISTORY_RECIPE, interpretation='FLAGS_ONLY_UNCALIBRATED_NO_REPLACEMENT')
+        return outputs
     if case.corpus == "static_g4":
         return {"C": static_cir_control(case,ev,adapter,policy),
                 "P_M_PM": {"status":"NOT_APPLICABLE_NO_CAUSAL_STATIC_PRIOR"}}

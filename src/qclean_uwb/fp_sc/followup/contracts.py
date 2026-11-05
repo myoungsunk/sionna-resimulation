@@ -202,6 +202,30 @@ def authorize(root: Path, manifest_path: Path, approval_path: Path,
         raise ContractError("POLICY_SHA_MISMATCH")
     if manifest.get("mapping_reviewed") is not True:
         raise ContractError("HOLD_MAPPING_UNRESOLVED")
+    if manifest.get('execution_profile') == 'VAB_DETECTION_ONLY_R1':
+        if stages != ['E1-02'] or approval.get('stages') != ['E1-02']:
+            raise ContractError('VAB_DETECTION_SINGLE_STAGE_ONLY')
+        from .detection import HISTORY_RECIPE
+        from .bridge import RECIPE_SHA
+        from .selection import SELECTOR_SET_RECIPE
+        path = manifest.get('mapping_receipt')
+        if path not in manifest.get('input_files', {}):
+            raise ContractError('MAPPING_EVIDENCE_NOT_LOCKED')
+        mapping = json.loads(rooted(root, path).read_text(encoding='utf-8'))
+        expected = dict(status='PASS_DYNAMIC_MAPPING_REVIEW', policy_sha256=manifest['policy_sha256'],
+                        candidate_mode=manifest.get('candidate_mode'), arm='VAB',
+                        bridge_recipe_sha256=RECIPE_SHA, selector_recipe=SELECTOR_SET_RECIPE,
+                        history_recipe=HISTORY_RECIPE, code_lock_sha256=digest(locked_code),
+                        baseline_source_lock_sha256=digest(manifest.get('baseline_sources', {})),
+                        case_payload_lock_sha256=digest({spec[key]: manifest['input_files'].get(spec[key])
+                            for spec in manifest['cases'].values() for key in ('online_npz','evaluator_npz')}))
+        if any(mapping.get(k) != v for k, v in expected.items()):
+            raise ContractError('MAPPING_RECIPE_OR_REVIEW_MISMATCH')
+        if not mapping.get('evidence_files') or not mapping.get('reviewer'):
+            raise ContractError('MAPPING_EVIDENCE_OR_REVIEWER_MISSING')
+        for rel, sha in mapping['evidence_files'].items():
+            if manifest['input_files'].get(rel) != sha:
+                raise ContractError('MAPPING_EVIDENCE_NOT_LOCKED')
     if any(s in stages for s in ("E4-02", "E4-03")):
         if manifest.get("seed_exposure_reviewed") is not True:
             raise ContractError("SEALED_SEED_EXPOSURE_UNRESOLVED")
