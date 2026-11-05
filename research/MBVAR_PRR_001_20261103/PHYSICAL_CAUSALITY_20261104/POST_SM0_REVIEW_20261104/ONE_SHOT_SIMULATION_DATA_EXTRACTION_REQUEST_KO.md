@@ -47,7 +47,9 @@
 
 위 186개 중 기존 고정 15개와 겹치는 것은 11개(R4 168/172/173/500/525; R5 401/465/979/980/982/983)다. 추가 시뮬레이션용 신규 pose는 정확히 **175개**다. 전체 6면 복도 고유 pose는 15+175=**190개**로, Full/LoS 2모드×257bin이 필요하므로 총 **97,660 호출**이다.
 
-pose_id는 저장된 원본 Tnone의 route/pose_id/time/XY/yaw를 키로 결합하여 추출했으며, 시간을 단순 5배 반올림해 추정하지 않았다. 모든 window 중 오염이 약하거나 zero effect인 구간도 데이터 수집에서 제외하지 않는다. R4 초기 0–15초는 기존 과학 설계에서 이미 선택한 창이며, 이번 일괄 수집에 포함한다.
+pose_id는 저장된 원본 Tnone의 route/pose_id/time/XY/yaw를 키로 결합하여 추출했으며, 시간을 단순 5배 반올림해 추정하지 않았다.
+
+**중요한 좌표 정밀도 구분:** Tnone의 x/y/yaw는 시간 정렬에 사용하는 원본 고정밀 값이지만, 기존 Native PathSolver의 실제 pose source는 BLOCK_C/{route}_aB_m0/SAMPLES.json의 소수 여섯 자리 x/y/yaw다. 동일 pose_id라도 두 데이터의 마지막 비트가 다르므로 새 RT에서는 원장에 추가한 **native_x_m, native_y_m, native_yaw_deg**를 반드시 사용한다. Tnone x_m/y_m/yaw_deg로 원래 ray scene을 다시 만들면 보관된 LoS 복소 H parity가 깨질 수 있다. 실제 소스 차이의 최대치는 XY 4.967×10⁻⁷m, yaw 4.823×10⁻⁷°이며 190개 pose에서 원본 키를 대조했다. **원본 source-rounded pose는 ray 입력**, Tnone F64는 time/trajectory join에만 사용한다. 모든 window 중 오염이 약하거나 zero effect인 구간도 데이터 수집에서 제외하지 않는다. R4 초기 0–15초는 기존 과학 설계에서 이미 선택한 창이며, 이번 일괄 수집에 포함한다.
 
 ### 1.3 PR #35 동일 위치 yaw: 기존 성공분은 제외
 
