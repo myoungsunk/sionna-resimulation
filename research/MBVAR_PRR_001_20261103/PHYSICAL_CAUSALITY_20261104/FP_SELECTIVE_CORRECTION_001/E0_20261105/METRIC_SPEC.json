@@ -1,0 +1,58 @@
+{
+  "study_id": "FP-SC-001",
+  "stage": "E0",
+  "discrete": [
+    "pose_id",
+    "timestamp_join",
+    "tap",
+    "rx",
+    "mask",
+    "finite_mask"
+  ],
+  "discrete_tolerance": "EXACT",
+  "normalized_f64_max_error": 1e-10,
+  "float_normalization": "abs(actual-reference)/max(1,abs(reference)) for SI-unit state/filter fields; additionally relative CIR/power closure where implemented",
+  "P_symmetry_bound": 1e-12,
+  "P_eig_min_bound": -1e-12,
+  "no_threshold_relaxation_after_run": true,
+  "range_measures": [
+    "r_geo",
+    "r_det",
+    "r_corrected=z_r-mu_r-B_OLD",
+    "r_state"
+  ],
+  "statistics": [
+    "count",
+    "bias",
+    "MAE",
+    "RMSE",
+    "p95_abs",
+    "p99_abs",
+    "max_abs",
+    "fraction_abs_le_0.04m",
+    "fraction_abs_le_1tap"
+  ],
+  "separate_populations": [
+    "route",
+    "bias",
+    "channel",
+    "clean_or_original_packet"
+  ],
+  "operational_reference": "clean LoS detector nL0; evaluation-only; not continuous physical first-path truth",
+  "reference_support": "finite two-port nonnegative power sum >0 and finite s, clean direct-containing channels; no calibrated noisy low-power validity claim",
+  "flat_sweep": {
+    "dist_min_m": 2.0,
+    "dist_max_exclusive_m": 16.0,
+    "step_m": 0.001,
+    "samples": 14000,
+    "spectrum": "exp(-2j*pi*f*d/c), identical flat ports",
+    "purpose": "E0 detector offset and sampled sub-tap support diagnostic, no RT"
+  },
+  "noise_parity_required_for_noisy_experiment": true,
+  "overall_E0": "All mandatory E0 subchecks required. Reproduced stored arithmetic alone is partial. Technical/claim/next-stage gates separate.",
+  "original_RF_receiver_parity_abs_tolerance": 1e-12,
+  "original_RF_receiver_parity_requires_both": [
+    "range",
+    "signed_s"
+  ]
+}

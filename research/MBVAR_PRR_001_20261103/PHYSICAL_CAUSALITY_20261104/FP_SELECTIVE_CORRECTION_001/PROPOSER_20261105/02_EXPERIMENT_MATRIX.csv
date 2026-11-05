@@ -1,0 +1,22 @@
+﻿experiment_id,stage,hypothesis_ids,question,assumptions_and_contract,arms_or_comparators,required_metrics,stop_or_claim_boundary,required_artifacts
+E0-01,E0,H0,기준선 수신기·필터 no-op 재현,원래 관측/controls/환경,원래 source vs 독립 reference,"tap·mask exact, h/H/state/K/P 단위 정규화 차이",parity/rowcount FAIL이면 중단,baseline parity CSV·DATA_LOCK
+E0-02,E0,H0,ranging 정의와 실제 정확도 분해,geo/detector/corrected/state range 분리,Full/LoS·원본/보정·state radial,"bias/MAE/RMSE/p95/p99, detector offset",mapping unresolved이면 HOLD,RANGE_ACCOUNTING.csv
+E0-03,E0,"H0,H2",24조건 oracle 및 rounding 음성 대조,GT-state oracle는 evaluator only,"원 detector vs oracle nearest, ±4cm imposed perturbation",reference match·false correction·미정의 참조,oracle를 online 결과로 승격 금지,ORACLE_REPRODUCTION.json
+E0-04,E0,H0,실원본·noise·clock·split 사용가능성,"LFS 실제 bytes/hash, source exposure",원 source manifests vs mounted arrays,필수 fields/rows/versions/noise recipe,부족 항목별 BLOCKED_DATA,INPUT_LOCK·SPLIT_MANIFEST·MISSING_DATA_REQUEST
+E1-01,E1,"H1,H2",후보 생성·pruning recall,prior/GT를 후보 삽입에 사용 금지,strongest-only vs two-port candidate sets,정상/오류/≥2tap candidate recall; pre/post pruning,후보 부재를 선택 실패와 분리,CANDIDATES.csv·COVERAGE.csv
+E1-02,E1,H1,현재 FP 오선택 탐지,동일 label·validity·candidate 정의,CIR-only vs P vs M vs PM risk,"TP/FP/PR/risk-coverage, route별 분모",정상 희생·zero-action PASS 금지,DETECTION_SCORES.csv
+E1-03,E1,"H1,H2",정상·회전·prior오류 음성시험,가짜 이전 FP와 실제 RF 변화 구분,"LoS, G4, prior shift, wrong-history, missing frames",false flag/correction·HOLD·null support,GT 누출·signal fabrication STOP,NEGATIVE_CONTROLS.json
+E2-01,E2,"H2,H3",동일 archived prior selector canary,"B0 seed10, 3136 pose, 현재 CIR는 동일",B0/B37/C/P/M/PM/PM-FORCE/NN-HARD/O-REF,rescue·harm·r/s errors·CIR support,선정 규칙 변경 시 새 version,SELECTIONS.csv·RUN_MANIFEST
+E2-02,E2,H2,선택기 자체 history 순환,"state fixed, tap history는 자기 결정",teacher-forced vs self-updated trusted-history,lock-in duration·init/reacquisition·state age,baseline history를 online으로 표시 금지,TRACKER_HISTORY.csv
+E2-03,E2,"H3,H4",후보 차이와 편파 개선 연계,큰 Δs는 개선 라벨 아님,confidence/margin/lobe/s spread bins,정정 precision·s MSE·harm·coverage reliability,확률 보정 전 score를 probability로 명명 금지,CONFIDENCE_CALIBRATION.csv
+E2-04,E2,"H1,H2,H4",noisy waveform·손상 prior 강건성,동일 ξ noise; pre-IFFT; OFAT grid,"원 SNR±6dB, radial/tangent/yaw/P perturb",conditional correction errors·failure modes,무승인 full combinatorial sweep 금지,STRESS_MATRIX.csv·STRESS_RESULTS.csv
+E3-01,E3,H3,r/s 추출 2×2 분해,"같은 n*, packet 및 prior",F00/F10/F01/F11,raw/corrected range and signed s error,F01 range 재보정시 변경 표시,OBSERVATION_FACTORIAL.csv
+E3-02,E3,H3,FP 선택과 잔여 간섭 효과,LoS tap oracle≠optimal s tap,원 FP/selected/reference fixed tap,same-tap residual·selector term·whole/changed outcomes,참조 s를 실제 측정에 복사 금지,RF_RESIDUAL_DECOMPOSITION.csv
+E3-03,E3,H4,정합 관측 평균·공분산 검증,"training/CAL/eval 분리, original exposure 공개",original model/cal-only/selector-matched/hybrid-matched,εmean/MSE/Rrs·PSD·conditional coverage/time correlation,selection-dependent error를 IID로 가정 금지,MODEL_LOCK·CALIBRATION_REPORT
+E3-04,E3,H5,동일-prior 1회 갱신,fixed H/K/μ/R/mask 먼저,F00/F10/F01/F11 then matchedR/own-gate,KΔz·Joseph·P equality·actual errors,duplicate information/masked K 오류 STOP,ONE_STEP_TRACE·INDEPENDENT_ARITHMETIC
+E4-01,E4,H6,전체 자연 재귀 개발,"t=0, 자기 prior/history, 공통 noise/controls","A/B/C/D/E/F 6arms, 120scenario=720runs",H/XY/radial/tangential·coverage/NEES·false corrections,R2/R5/LoS 실패 숨기기 금지,DEV_FULL_TRACES·SCORES_PER_SEED
+E4-02,E4,H6,새 sensor/noise seed 조건부 확인,"정책1개 동결, unused seeds 확인",6arms × 240scenario=1440runs,사전 paired claims·보호·tail·uncertainty,same-RF 결과를 새 환경으로 표시 금지,SEALED_TRACES·CLAIM_MATRIX
+E4-03,E4_OPTIONAL,H6,전체 pipeline route 전이,새 별도 GO; 3 outer routefold,selector/confidence/μR 모두 test route 제외,heldout route prediction with support analysis,주 2160 trajectory 예산 밖,OUTER_FOLD_MANIFEST·SCORES
+E5-01,E5,H7,5Hz 실제 출력 지연,동일 hw·arrival·logging·candidate workload,baseline vs 최종 동일정책,scheduled output p50/p95/p99/max·queue/RSS/drop,kernel-only timing으로 PASS 금지,LATENCY_TRACE·RUNTIME_REPORT
+E5-02,E5,H7,운용 실패·재획득,elapsed dt·stale history·ordered samples,dropout/duplicate/reorder/null-CIR/DR-slip,HOLD/KEEP·output deadlines·recovery behavior,온라인 출력 사후 덮어쓰기 금지,FAILURE_LEDGER·REACQUISITION_REPORT
+E5-03,E5_OPTIONAL,"H6,H7",새 RF/실측환경 일반화,현재 기존복도와 별도 데이터·승인,새 scene/device/trajectory,실환경 false correction·상태/지연 보호,현재 프로젝트 결과로 대체 금지,NEW_DATA_REQUEST·GENERALIZATION_AUDIT

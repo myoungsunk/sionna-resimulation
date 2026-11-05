@@ -1,0 +1,106 @@
+{
+  "schema": "FP_SC_E0_CODE_REVIEW_V1",
+  "study_id": "FP-SC-001",
+  "stage": "E0",
+  "verdict": "PASS_FOR_E0_EXECUTION",
+  "reviewer": "/root/design_audit",
+  "reviewer_provenance": "SAME_SESSION_SEPARATE_REVIEWER",
+  "external_independent_accept": false,
+  "utc_review": "2026-11-05T04:40:55.373401+00:00",
+  "code_lock_sha256": "fce108f05501380db0a28afb7902c4b8f86888720e51a89366a8f1bc2bde64bb",
+  "reviewed_code_files_bound_by_lock": 44,
+  "current_code_hash_mismatches": [],
+  "reviewed_in_full": [
+    "src/qclean_uwb/fp_sc/contracts.py",
+    "src/qclean_uwb/fp_sc/e0_baseline.py",
+    "src/qclean_uwb/fp_sc/e0_receiver.py",
+    "scripts/fp_sc_e0.py",
+    "scripts/fp_sc_acquire_inputs.py",
+    "tests/test_fp_sc_contracts.py",
+    "tests/test_fp_sc_e0_baseline.py",
+    "tests/test_fp_sc_e0_receiver.py",
+    "SCOPE_AMENDMENT.json",
+    "METRIC_SPEC.json",
+    "POLICY_SPEC.json",
+    "SPLIT_MANIFEST.json",
+    "RUN_MATRIX.csv",
+    "NOISE_LINEAGE_E0_KO.md"
+  ],
+  "original_source_review": [
+    "src/qclean_uwb/drivesim/observation.py: entire receiver",
+    "research/MBVAR_PRR_001_20261103/S1/online.py: entire W0 replay/gate/Joseph code",
+    "research/FFD_P0P3_20261016/source_model.py: entire SourceFFD",
+    "research/FFD_P0P3_20261016/p0_initial.py: entire file",
+    "research/EKF4_RANGE_S_STAGED_20261014/core.py: state/covariance/transition/predict/update definitions"
+  ],
+  "scope": {
+    "sensor_seed": 10,
+    "baseline_cells": 12,
+    "dynamic_pose_ids": 3136,
+    "g4_conditions": 24,
+    "flat_samples": 14000,
+    "new_rt": 0,
+    "selector_runs": 0,
+    "sealed_trajectories": 0
+  },
+  "findings": [
+    {
+      "id": "E0-CODE-01",
+      "issue": "Execution mapping could omit reviewed code or omit ENV/INPUT hashes.",
+      "resolution": "Required ENV_LOCK, INPUT_LOCK, CODE_LOCK document hashes and exact execution code mapping equality added; current source bytes also checked against implementation commit.",
+      "status": "RESOLVED_BEFORE_SCIENCE"
+    },
+    {
+      "id": "E0-CODE-02",
+      "issue": "Acquisition could overwrite an existing non-pointer mismatched RF payload.",
+      "resolution": "Existing non-pointer mismatches now return BLOCKED_DATA and preserve bytes.",
+      "status": "RESOLVED_BEFORE_SCIENCE"
+    },
+    {
+      "id": "E0-CODE-03",
+      "issue": "Dynamic extraction did not explicitly compare both archived range and signed s to clean raw extraction.",
+      "resolution": "Both range and signed s comparisons added with original stricter 1e-12 tolerance; clean lineage outcome remains conditional and visible.",
+      "status": "RESOLVED_BEFORE_SCIENCE"
+    }
+  ],
+  "code_assertions": {
+    "original_detector_and_model_not_modified": true,
+    "amplitude_not_power_threshold_and_first_tie_preserved": true,
+    "whole_batch_noise_order_preserved": true,
+    "zero_clean_source_behavior_separate_from_reference_validity": true,
+    "baseline_previous_posterior_sigma_timing_preserved": true,
+    "BASE_shadow_gate_uses_own_prior_and_muBASE": true,
+    "B_OLD_and_mu_r_removed_once_for_geometric_accounting": true,
+    "G4_runner_gets_real_SourceFFD_not_stored_h_as_model_execution": true,
+    "truth_used_only_offline_controls_and_evaluator": true,
+    "new_output_directory_required": true,
+    "partial_and_failed_components_preserved": true,
+    "no_H1_H7_or_E1_E5_success_claims_in_runner": true,
+    "latency_excluded_from_numerical_parity_and_not_called_E5": true
+  },
+  "verification_run": {
+    "kind": "IMPLEMENTER_AUTHORED_SYNTHETIC_TESTS_RERUN_BY_SEPARATE_REVIEWER",
+    "command": "OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=src python -m unittest discover -s tests -p test_fp_sc_*.py -v",
+    "tests": 25,
+    "passed": 25,
+    "failed": 0,
+    "independent_reference_synthetic_checks_previously_passed": 8
+  },
+  "raw_scientific_verification_in_this_review": {
+    "actual_RF_rows_recomputed": 0,
+    "baseline_trajectories_replayed": 0,
+    "G4_conditions_recomputed": 0,
+    "claim": "Code/spec and synthetic arithmetic review only. Actual input bytes are checked by the execution guard and will be rechecked by the separate result checker."
+  },
+  "required_runtime_conditions": [
+    "Implementation commit must contain every byte bound by this reviewed CODE_LOCK.",
+    "Exact owner-scoped E0 authorization must bind execution lock, this code review, and current input/environment/document hashes.",
+    "No E1-E5 or selector/SEALED work is authorized by this E0 verdict.",
+    "Any numeric mismatch must retain the failed run and original tolerances; E0 result acceptance remains separate.",
+    "Independent result checker must compare raw receiver results, archived r and s, no-op trace fields, oracle rows, counts and range statistics before a whole-E0 technical pass.",
+    "CIR and power relative arithmetic closure must be checked in the result audit in addition to absolute SI-unit source checks.",
+    "Current clean-reference validity is structural finite positive support only; it provides no noisy low-power safety claim."
+  ],
+  "hypothesis_support": "NOT_TESTED_CODE_REVIEW_ONLY",
+  "next_stage_GO": false
+}
