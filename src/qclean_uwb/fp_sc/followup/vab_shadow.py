@@ -199,3 +199,99 @@ def same_prior_shadow_one_step(case, online_rows, adapter, *, mode="PM"):
                                    step["updates"]["F00"]["unwrapped_delta"][2]))
                                for arm in ("F01","F11")}))
     return result
+
+
+
+def crosscheck_s1_s2_for_s3(case, s1_rows, s2_rows):
+    """S3 prerequisite: verify the reviewed S2 rows are exactly S1 decisions.
+
+    No selector, SourceFFD, reference-to-online feedback, or EKF execution.
+    Hash locks for both artifacts remain the caller's prerequisite.
+    """
+    expected={(k,m) for k in range(len(case.t)) for m in MODES}
+    by1={};by2={}
+    for row, dest, label in ((r,by1,"S1") for r in s1_rows):
+        key=(row.get("k"),row.get("mode"))
+        if key not in expected or key in dest:
+            raise ContractError("SHADOW_S3_"+label+"_KEY_OR_DUPLICATE")
+        dest[key]=row
+    for row in s2_rows:
+        key=(row.get("k"),row.get("mode"))
+        if key not in expected or key in by2:
+            raise ContractError("SHADOW_S3_S2_KEY_OR_DUPLICATE")
+        by2[key]=row
+    if set(by1)!=expected or set(by2)!=expected:
+        raise ContractError("SHADOW_S3_S1_S2_MISSING_PACKET_MODE")
+    for (k, mode),a in by1.items():
+        b=by2[(k,mode)]
+        if (a.get("scope") != SHADOW_SCOPE or
+            a.get("case_id") != case.case_id or b.get("case_id") != case.case_id or
+            a.get("pose_id") != int(case.pose_id[k]) or
+            a.get("t") != float(case.t[k]) or
+            a.get("raw_tap") != b.get("raw_tap") or
+            a.get("hypothetical_selected_tap") != b.get("proposed_tap") or
+            (a.get("raw_tap") != a.get("hypothetical_selected_tap")) != b.get("changed") or
+            b.get("scope") != "EVALUATOR_POSTHOC_ONLY_NOT_OPERATED"):
+            raise ContractError("SHADOW_S3_S1_S2_SELECTION_IDENTITY_MISMATCH")
+    return {"scope":"S3_REVIEWED_S1_S2_IDENTITIES",
+            "packet_mode_rows":len(expected),
+            "match":True}
+
+
+def posthoc_s3_one_step_errors(case, s3_rows, truth):
+    """S3 evaluator ONLY after fixed-prior update outputs have been saved.
+
+    Provides actual 1-step XY/Heading errors (and signed delta-vs-original).
+    Does not evaluate a recursive filter, include truth in selection, learn R,
+    or fabricate a gyro-bias ground-truth column / 4D NEES.
+    """
+    t=np.asarray(truth,dtype=float)
+    n=len(case.t)
+    if (t.shape not in ((n,3),(n,4)) or not np.isfinite(t).all() or
+        len(s3_rows)!=n):
+        raise ContractError("SHADOW_S3_POSTHOC_TRUTH_SHAPE_OR_COUNT")
+    rows=[]
+    seen=set()
+    for row in s3_rows:
+        k=row.get("k")
+        if type(k) is not int or k in seen or not 0<=k<n:
+            raise ContractError("SHADOW_S3_POSTHOC_DUPLICATE_OR_INVALID_K")
+        seen.add(k)
+        if (row.get("case_id")!=case.case_id or row.get("pose_id")!=int(case.pose_id[k]) or
+            row.get("t")!=float(case.t[k]) or
+            row.get("scope")!="FIXED_PRIOR_ONE_STEP_DIAGNOSTIC"):
+            raise ContractError("SHADOW_S3_POSTHOC_JOIN_MISMATCH")
+        if not row.get("valid"):
+            rows.append({"k":k,"status":"NOT_TESTED_INVALID_OBSERVATION",
+                         "truth_dimension":t.shape[1]})
+            continue
+        updates=row.get("updates")
+        if not isinstance(updates,dict) or set(updates)!={"F00","F10","F01","F11"}:
+            raise ContractError("SHADOW_S3_POSTHOC_FOUR_UPDATES_REQUIRED")
+        evaluated={}
+        for arm,updated in updates.items():
+            state=np.asarray(updated["x"],dtype=float)
+            cov=np.asarray(updated["P"],dtype=float)
+            if (state.shape!=(4,) or cov.shape!=(4,4) or
+                not np.isfinite(state).all() or not np.isfinite(cov).all()):
+                raise ContractError("SHADOW_S3_POSTHOC_NONFINITE_UPDATED_STATE")
+            dxy=state[:2]-t[k,:2]
+            dpsi=(state[2]-t[k,2]+math.pi)%(2*math.pi)-math.pi
+            evaluated[arm]={
+                "xy_abs_error_m":float(np.linalg.norm(dxy)),
+                "heading_signed_error_deg":float(np.degrees(dpsi)),
+                "heading_abs_error_deg":float(abs(np.degrees(dpsi))),
+                "heading_std_deg":float(np.degrees(np.sqrt(max(0.,cov[2,2])))),
+                "xy_covariance_trace_m2":float(np.trace(cov[:2,:2]))}
+        base=evaluated["F00"]
+        for arm,metric in evaluated.items():
+            metric["xy_abs_error_change_vs_F00_m"]=metric["xy_abs_error_m"]-base["xy_abs_error_m"]
+            metric["heading_abs_error_change_vs_F00_deg"]=metric["heading_abs_error_deg"]-base["heading_abs_error_deg"]
+        rows.append({"k":k,"status":"POSTHOC_FIXED_PRIOR_ONLY",
+                     "truth_dimension":t.shape[1],
+                     "truth_bias_status":"NOT_TESTED_NO_GYRO_BIAS" if t.shape[1]==3 else "AVAILABLE_NOT_USED",
+                     "original_mask_fixed":bool(row["context"]["accepted"]),
+                     "arms":evaluated})
+    if seen!=set(range(n)):
+        raise ContractError("SHADOW_S3_POSTHOC_INCOMPLETE_K")
+    return rows
