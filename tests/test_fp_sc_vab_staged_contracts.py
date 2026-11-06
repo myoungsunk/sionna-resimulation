@@ -36,7 +36,8 @@ class StageContractTests(unittest.TestCase):
              candidate_arm="VAB",candidate_mode="TWO_PORT_UNION",case=self.case,
              policy=asdict(p),policy_sha256=p.sha,
              code_files={name:"a"*64 for name in self.m.CODE_REQUIRED},
-             baseline_sources={"src/pinned.py":"b"*64},
+             baseline_sources={name:"b"*64 for name in self.m.BASELINE_REQUIRED},
+             model_files={name:"e"*64 for name in self.m.MODEL_REQUIRED},
              input_files={"online.npz":"c"*64,"evaluator.npz":"d"*64},
              previous={})
         self.path=self.root/"manifest.json"
@@ -54,6 +55,46 @@ class StageContractTests(unittest.TestCase):
         self.assertEqual(p["status"],"CODE_ONLY_NO_SCIENCE_RUN")
         self.assertEqual(len(p["stages"]),3)
         self.assertNotIn("E4",self.m.STAGES)
+
+    def test_common_identity_rejects_changed_payload_code_and_model(self):
+        from copy import deepcopy
+        original=self.m.identity(self.manifest)
+        for group,key in (("input_files","online.npz"),("input_files","evaluator.npz"),
+                          ("code_files",self.m.CODE_REQUIRED[0]),
+                          ("baseline_sources",self.m.BASELINE_REQUIRED[0]),("model_files",self.m.MODEL_REQUIRED[0])):
+            changed=deepcopy(self.manifest);changed[group][key]="f"*64
+            self.assertNotEqual(original,self.m.identity(changed),(group,key))
+
+    def test_stage_artifacts_do_not_change_common_identity(self):
+        original=self.m.identity(self.manifest)
+        self.manifest["stage"]=self.m.STAGES[1]
+        self.manifest["input_files"]["s1_result.json.gz"]="f"*64
+        self.assertEqual(original,self.m.identity(self.manifest))
+
+    def test_missing_model_lock_is_rejected(self):
+        self.manifest.pop("model_files")
+        with self.assertRaisesRegex(ContractError,"MODEL_LOCK_EMPTY"):
+            self.inspect()
+
+    def test_s2_rejects_changed_common_input_after_reviewed_s1(self):
+        m=self.manifest
+        stage=self.m.STAGES[0]
+        receipt=dict(stage=stage,status='COMPLETE_TECHNICAL_ONLY',
+                     identity_sha256=self.m.identity(m),result_sha256='f'*64)
+        review=dict(stage=stage,decision='ACCEPT_TO_NEXT_STAGE',
+                    receipt_sha256='a'*64,reviewer='SYNTHETIC',reviewed_at='SYNTHETIC')
+        (self.root/'receipt.json').write_text(json.dumps(receipt))
+        (self.root/'review.json').write_text(json.dumps(review))
+        m['stage']=self.m.STAGES[1]
+        m['previous']={stage:dict(result_path='result.gz',result_sha256='f'*64,
+            receipt_path='receipt.json',receipt_sha256='a'*64,
+            review_path='review.json',review_sha256='b'*64)}
+        m['input_files'].update({'result.gz':'f'*64,'receipt.json':'a'*64,'review.json':'b'*64})
+        with patch.object(self.m,'ROOT',self.root):
+            self.inspect()  # stage-specific artifacts are allowed
+            m['input_files']['online.npz']='0'*64
+            with self.assertRaisesRegex(ContractError,'PREVIOUS_RESULT_OR_IDENTITY_BAD'):
+                self.inspect()
 
     def test_stage_s1_preflight_structure_can_be_inspected_without_authorization(self):
         m,p=self.inspect()

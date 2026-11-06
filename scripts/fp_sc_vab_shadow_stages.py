@@ -26,6 +26,7 @@ from qclean_uwb.fp_sc.followup.data import (
     load_shadow_online_only, load_shadow_reference_after_s1)
 from qclean_uwb.fp_sc.followup.bridge import RevisionEvidenceAdapter
 from qclean_uwb.fp_sc.followup.engine import OriginalAdapter
+from qclean_uwb.fp_sc.e0_baseline import ORIGINAL_CODE
 from qclean_uwb.fp_sc.followup.vab_shadow import (
     shadow_select_case, compare_shadow_observations, same_prior_shadow_one_step)
 
@@ -43,7 +44,14 @@ CODE_REQUIRED=(
     "src/qclean_uwb/fp_sc/followup/contracts.py",
     "src/qclean_uwb/fp_sc/followup/engine.py",
     "src/qclean_uwb/fp_sc/followup/data.py",
+    "src/qclean_uwb/fp_sc/candidates.py",
+    "src/qclean_uwb/fp_sc/candidate_revision.py",
+    "src/qclean_uwb/fp_sc/e0_baseline.py",
+    "src/qclean_uwb/drivesim/observation.py",
 )
+MODEL_REQUIRED=("LP_plus45_bank.npz", "LP_minus45_bank.npz")
+BASELINE_REQUIRED=tuple(ORIGINAL_CODE) + (
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/pilot.py",)
 IDENTITY_FIELDS=("case","policy","policy_sha256","candidate_arm",
                  "candidate_mode","source_commit")
 
@@ -58,7 +66,16 @@ def plan():
 
 
 def identity(manifest):
-    return digest({key:manifest[key] for key in IDENTITY_FIELDS})
+    # Only common scientific inputs belong here: stage outputs/reviews differ
+    # legitimately between stages and must not perturb the common identity.
+    common = {key:manifest[key] for key in IDENTITY_FIELDS}
+    common.update(identity_recipe="SHADOW_COMMON_LOCK_V2",
+        code_files=manifest["code_files"],
+        baseline_sources=manifest["baseline_sources"],
+        model_files=manifest["model_files"],
+        case_payloads={manifest["case"][key]:manifest["input_files"][manifest["case"][key]]
+                       for key in ("online_npz", "evaluator_npz")})
+    return digest(common)
 
 
 def inspect_manifest(manifest_path, *, require_stage=None):
@@ -82,9 +99,12 @@ def inspect_manifest(manifest_path, *, require_stage=None):
     if not set(CODE_REQUIRED)<=set(m.get("code_files",{})):
         raise ContractError("SHADOW_CODE_LOCK_INCOMPLETE")
     verify_files(root,m["code_files"])
-    if not m.get("baseline_sources"):
+    if not set(BASELINE_REQUIRED) <= set(m.get("baseline_sources", {})):
         raise ContractError("SHADOW_BASELINE_SOURCE_LOCK_EMPTY")
     verify_files(root,m["baseline_sources"])
+    if not set(MODEL_REQUIRED) <= set(m.get("model_files", {})):
+        raise ContractError("SHADOW_MODEL_LOCK_EMPTY")
+    verify_files(root,m["model_files"])
     if not m.get("input_files"):
         raise ContractError("SHADOW_INPUT_LOCK_EMPTY")
     verify_files(root,m["input_files"])
@@ -162,6 +182,11 @@ def run(manifest_path,approval_path,out):
     output.mkdir(parents=True,exist_ok=False)
     receipt=dict(schema="FP_SC_VAB_SHADOW_RESULT_V1",stage=m["stage"],case_id=m["case_id"],
         status="RUNNING",identity_sha256=identity(m),
+        identity_recipe="SHADOW_COMMON_LOCK_V2",
+        common_locks=dict(code_files=m["code_files"], baseline_sources=m["baseline_sources"],
+                          model_files=m["model_files"],
+                          case_payloads={m["case"][key]:m["input_files"][m["case"][key]]
+                              for key in ("online_npz","evaluator_npz")}),
         manifest_sha256=sha256(Path(manifest_path)),approval_sha256=sha256(Path(approval_path)),
         source_commit=m["source_commit"],candidate="VAB",provider_valid_count=0,
         production_fp_writes=0,EKF_closed_loop_calls=0,old_E1_02_calls=0,

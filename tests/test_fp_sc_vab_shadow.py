@@ -140,6 +140,29 @@ class VabShadowTests(unittest.TestCase):
         with self.assertRaisesRegex(ContractError,"ARCHIVED_CONTEXT"):
             same_prior_shadow_one_step(case,rows,self.adapter)
 
+    def test_s3_saved_updates_reproduce_each_arm_without_truth(self):
+        import json
+        from qclean_uwb.fp_sc.followup.numerics import update
+        case=fake_case(2)
+        rows=same_prior_shadow_one_step(case,shadow_select_case(case,self.adapter,self.policy),self.adapter)
+        stored=json.loads(json.dumps(rows,allow_nan=False))
+        for row in stored:
+            c=row['context']
+            self.assertEqual(set(row['updates']),{'F00','F10','F01','F11'})
+            for arm,z in row['observations'].items():
+                check=update(c['prior'],c['Pprior'],c['h'],c['H'],z,c['mu'],c['R'],permitted=c['accepted'])
+                for key in ('x','P','K','innovation','S','unwrapped_delta','nis','accepted'):
+                    np.testing.assert_array_equal(check[key],row['updates'][arm][key])
+            self.assertNotIn('truth',row)
+
+    def test_s3_rejected_mask_preserves_prior_in_saved_updates(self):
+        case=fake_case(1);case.baseline_trace['mask'][:]=False
+        rows=same_prior_shadow_one_step(case,shadow_select_case(case,self.adapter,self.policy),self.adapter)
+        for value in rows[0]['updates'].values():
+            np.testing.assert_array_equal(value['x'],case.prior[0])
+            np.testing.assert_array_equal(value['P'],case.Pprior[0])
+            self.assertFalse(value['accepted'])
+
     def test_wrong_adapter_and_unapproved_modes_fail_closed(self):
         bad=FakeAdapter();bad.revision_evidence.mode="STRONGEST_ONLY"
         with self.assertRaisesRegex(ContractError,"TWO_PORT"):

@@ -11,7 +11,7 @@ from dataclasses import asdict
 import math
 import numpy as np
 
-from .contracts import ContractError, Policy, STEP_M, Support
+from .contracts import ContractError, Policy, STEP_M, Support, jsonable
 from .detection import binding_for
 from .integrity import assess_prior
 from .numerics import (cir_from_spectrum, factorial, raw_detection,
@@ -184,8 +184,15 @@ def same_prior_shadow_one_step(case, online_rows, adapter, *, mode="PM"):
         step=same_prior_factorial(xp,pp,h,H,obs,case.muMB[k],
                                   trace["Reff"][k],bool(trace["mask"][k]))
         result.append(dict(k=k,case_id=case.case_id,mode=mode,
+                           t=float(case.t[k]), pose_id=int(case.pose_id[k]),
                            scope="FIXED_PRIOR_ONE_STEP_DIAGNOSTIC",
                            valid=step["valid"],
+                           reason=step.get("reason"),
+                           context=jsonable(dict(prior=xp, Pprior=pp, h=h, H=H,
+                               mu=case.muMB[k], R=trace["Reff"][k],
+                               accepted=bool(trace["mask"][k]))),
+                           observations=jsonable(obs),
+                           updates=jsonable(step.get("updates")),
                            checks=step.get("checks"), 
                            delta_psi_deg=None if not step["valid"] else {
                                arm:float(np.degrees(step["updates"][arm]["unwrapped_delta"][2]-
