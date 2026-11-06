@@ -1,0 +1,55 @@
+name: FP-SC VAB shadow code-only QA
+on:
+  push:
+    branches:
+      - implement/fp-sc-vab-shadow-staged-20261106
+    paths:
+      - '.github/workflows/fp-sc-vab-shadow-codeonly-qa.yml'
+      - 'src/qclean_uwb/fp_sc/followup/**'
+      - 'tests/test_fp_sc_vab_shadow.py'
+      - 'tests/test_fp_sc_vab_staged_contracts.py'
+      - 'scripts/fp_sc_vab_shadow_stages.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  synthetic-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PYTHONPATH: src
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - name: Checkout code only, no Git LFS payloads
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: false
+      - name: Set Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install synthetic test dependencies
+        run: python -m pip install numpy==2.3.5 scipy==1.17.0
+      - name: Syntax validation without scientific execution
+        run: |
+          python -m compileall -q src/qclean_uwb/fp_sc/followup
+          python -m py_compile scripts/fp_sc_vab_shadow_stages.py
+      - name: VAB shadow selector and F01 F11 same-prior synthetic tests
+        run: python -m unittest discover -s tests -p 'test_fp_sc_vab_shadow.py' -v
+      - name: Stage authorization and 3D truth synthetic tests
+        run: python -m unittest discover -s tests -p 'test_fp_sc_vab_staged_contracts.py' -v
+      - name: Retain prior component integrity tests
+        run: python -m unittest discover -s tests -p 'test_fp_sc_prior_integrity.py' -v
+      - name: Retain prior VAB selector reach tests
+        run: python -m unittest discover -s tests -p 'test_fp_sc_selector_reach.py' -v
+      - name: Retain bridge and detection prep tests
+        run: |
+          python -m unittest discover -s tests -p 'test_fp_sc_bridge.py' -v
+          python -m unittest discover -s tests -p 'test_fp_sc_detection_prep.py' -v
+      - name: Retain static mapping synthetic tests
+        run: python -m unittest discover -s tests -p 'test_fp_sc_mapping_static.py' -v
+      - name: Plan command cannot run science
+        run: python scripts/fp_sc_vab_shadow_stages.py plan
