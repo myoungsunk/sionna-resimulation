@@ -26,7 +26,7 @@ def synthetic_cir():
 
 def prior(tap):
     x = tap * STEP_M
-    return Support(x-.06, x+.06, .15, "SYNTHETIC_ONLY")
+    return Support(x, x, .02, "SYNTHETIC_TEST_ONLY")
 
 
 class FakeAdapter:
