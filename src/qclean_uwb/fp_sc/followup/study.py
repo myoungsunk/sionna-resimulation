@@ -20,13 +20,14 @@ from .selection import policy_grid
 
 
 class Evaluator:
-    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter, *, detection_only=False):
+    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter, *,
+                 detection_only=False, allow_partial_truth=False):
         n = len(case.t)
         if clean_H.shape != (n, 257, 2) or not np.iscomplexobj(clean_H) or not np.isfinite(clean_H).all():
             raise ContractError("INVALID_EVALUATOR_LOS")
         self.case, self.clean_H, self.adapter = case, clean_H, adapter
         self.detection_only = detection_only
-        columns = 3 if detection_only and truth.shape == (n, 3) else 4
+        columns = 3 if (detection_only or allow_partial_truth) and truth.shape == (n, 3) else 4
         self.truth = finite(truth, (n, columns), "EVALUATOR_TRUTH")
 
     def label(self, online: list[dict], *, detect_only=False) -> list[dict]:

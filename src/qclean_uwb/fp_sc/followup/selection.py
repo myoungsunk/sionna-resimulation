@@ -234,6 +234,53 @@ def prepare_candidate_set(e: Evidence, mode: str, policy: Policy, *,
     return PreparedCandidateSet(tuple(rows), tuple(accepted), tuple(excluded), status, recipe)
 
 
+def decide_prepared_candidate_set(e: Evidence, mode: str, policy: Policy,
+                                  prepared: PreparedCandidateSet, *,
+                                  candidate_trace: Callable | None = None) -> Decision:
+    """One pure decision rule for legacy select() and offline VAB shadow.
+
+    Does not load truth, update history or authorize an operational replacement.
+    Operational caller must still use select() and pass its original guards.
+    """
+    if prepared.status != "BUILT":
+        if candidate_trace is not None:
+            candidate_trace(dict(stage="NOT_REACHED", reason=prepared.status, eligible_taps=[]))
+        return Decision(e.raw_tap, e.raw_tap, "KEEP_ORIGINAL", prepared.status,
+                        mode, None, None, None, None, None, (), e.pool_hash)
+    def keep(reason, wrong=None, scores=(), margin=None, group=None, ambiguity=None):
+        return Decision(e.raw_tap, e.raw_tap, "KEEP_ORIGINAL", reason, mode,
+                        wrong, margin, group, None, ambiguity, tuple(scores), e.pool_hash)
+    rows, eligible = list(prepared.rows), list(prepared.eligible)
+    if candidate_trace is not None:
+        candidate_trace(dict(stage=prepared.status, eligible_taps=[r['tap'] for r in eligible],
+                             excluded=list(prepared.excluded), candidate_set_sha256=prepared.sha))
+    raw = next(r for r in rows if r["tap"] == e.raw_tap)
+    wrong = float(raw["score"])
+    ambiguity = float(np.ptp([r["signed_s"] for r in eligible])) if eligible else None
+    if not eligible:
+        return keep("NO_SUPPORTED_PATH", wrong, rows, ambiguity=ambiguity)
+    best = eligible[0]
+    margin = float(eligible[1]["score"] - best["score"]) if len(eligible) > 1 else None
+    rivals = [r for r in eligible[1:] if not set(r["groups"]) & set(best["groups"])]
+    group = float(rivals[0]["score"] - best["score"]) if rivals else None
+    gain = float(raw["score"] - best["score"])
+    if best["tap"] == e.raw_tap:
+        return keep("ORIGINAL_BEST", wrong, rows, margin, group, ambiguity)
+    force = mode == "PM-FORCE"
+    if not force and (wrong < policy.wrong_cut or gain < policy.replace_gain):
+        return keep("INSUFFICIENT_WRONGNESS_OR_GAIN", wrong, rows, margin, group, ambiguity)
+    # Do not manufacture infinite confidence when only one candidate exists.
+    if not force and (margin is not None and margin < policy.margin or
+                      group is not None and group < policy.margin):
+        return keep("ABSTAIN_AMBIGUOUS", wrong, rows, margin, group, ambiguity)
+    if not force and max(best["p"] or 0., best["m"] or 0.) > 1.:
+        return keep("NULL_PATH_PRIOR_CONFLICT", wrong, rows, margin, group, ambiguity)
+    conf = min([gain, best["support"]] + ([] if margin is None else [margin]) +
+               ([] if group is None else [group]))
+    return Decision(e.raw_tap, int(best["tap"]), "REPLACE_SUPPORTED", "FORCED_NEGATIVE" if force else "SUPPORTED",
+                    mode, wrong, margin, group, float(conf), ambiguity, tuple(rows), e.pool_hash)
+
+
 def select(e: Evidence, mode: str, policy: Policy, *, prior: Support | None = None,
            motion: Support | None = None, synthetic_probe: SyntheticSelectionProbe | None = None,
            candidate_trace: Callable | None = None) -> Decision:
@@ -276,35 +323,8 @@ def select(e: Evidence, mode: str, policy: Policy, *, prior: Support | None = No
         return Decision(e.raw_tap, n, "REPLACE_NEGATIVE_CONTROL" if n != e.raw_tap else "KEEP_ORIGINAL",
                         "HARD_ROUNDING_NEGATIVE_ONLY", mode, None, None, None, None, None, (), e.pool_hash)
     prepared = prepare_candidate_set(e, mode, policy, prior=prior, motion=motion, binding=binding)
-    rows, eligible = list(prepared.rows), list(prepared.eligible)
-    if candidate_trace is not None:
-        candidate_trace(dict(stage=prepared.status, eligible_taps=[r['tap'] for r in eligible],
-                             excluded=list(prepared.excluded), candidate_set_sha256=prepared.sha))
-    raw = next(r for r in rows if r["tap"] == e.raw_tap)
-    wrong = float(raw["score"])
-    ambiguity = float(np.ptp([r["signed_s"] for r in eligible])) if eligible else None
-    if not eligible:
-        return keep("NO_SUPPORTED_PATH", wrong, rows, ambiguity=ambiguity)
-    best = eligible[0]
-    margin = float(eligible[1]["score"] - best["score"]) if len(eligible) > 1 else None
-    rivals = [r for r in eligible[1:] if not set(r["groups"]) & set(best["groups"])]
-    group = float(rivals[0]["score"] - best["score"]) if rivals else None
-    gain = float(raw["score"] - best["score"])
-    if best["tap"] == e.raw_tap:
-        return keep("ORIGINAL_BEST", wrong, rows, margin, group, ambiguity)
-    force = mode == "PM-FORCE"
-    if not force and (wrong < policy.wrong_cut or gain < policy.replace_gain):
-        return keep("INSUFFICIENT_WRONGNESS_OR_GAIN", wrong, rows, margin, group, ambiguity)
-    # Do not manufacture infinite confidence when only one candidate exists.
-    if not force and (margin is not None and margin < policy.margin or
-                      group is not None and group < policy.margin):
-        return keep("ABSTAIN_AMBIGUOUS", wrong, rows, margin, group, ambiguity)
-    if not force and max(best["p"] or 0., best["m"] or 0.) > 1.:
-        return keep("NULL_PATH_PRIOR_CONFLICT", wrong, rows, margin, group, ambiguity)
-    conf = min([gain, best["support"]] + ([] if margin is None else [margin]) +
-               ([] if group is None else [group]))
-    return Decision(e.raw_tap, int(best["tap"]), "REPLACE_SUPPORTED", "FORCED_NEGATIVE" if force else "SUPPORTED",
-                    mode, wrong, margin, group, float(conf), ambiguity, tuple(rows), e.pool_hash)
+    return decide_prepared_candidate_set(e, mode, policy, prepared,
+                                         candidate_trace=candidate_trace)
 
 
 @dataclass

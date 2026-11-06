@@ -28,7 +28,8 @@ def _locked(root: Path, relative: str, lock: dict) -> Path:
     return rooted(root, relative)
 
 
-def load_case(root: Path, spec: dict, input_lock: dict, adapter, *, detection_only=False):
+def load_case(root: Path, spec: dict, input_lock: dict, adapter, *,
+              detection_only=False, allow_partial_truth=False):
     required = {"online_npz", "evaluator_npz", "expected_rows", "metadata"}
     if set(spec) != required:
         raise ContractError(f"CASE_SPEC_KEYS_MISMATCH:{set(spec)^required}")
@@ -49,7 +50,8 @@ def load_case(root: Path, spec: dict, input_lock: dict, adapter, *, detection_on
     trace = {k: data["trace_"+k] for k in TRACE_FIELDS} if all("trace_"+k in data for k in TRACE_FIELDS) else None
     case = OnlineCase(**spec["metadata"], **{k: data[k] for k in ONLINE_ARRAYS},
                       baseline_trace=trace, clean_Hrf=data.get("clean_Hrf"))
-    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter, detection_only=detection_only)
+    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter,
+                           detection_only=detection_only, allow_partial_truth=allow_partial_truth)
 
 
 def export_archive(root: Path, spec: dict, output: Path) -> dict:
@@ -112,3 +114,42 @@ def export_archive(root: Path, spec: dict, output: Path) -> dict:
                    files={p.name: sha256(p) for p in output.iterdir() if p.is_file()})
     write_json(output/"EXPORT_RECEIPT.json", receipt)
     return receipt
+
+
+def load_shadow_online_only(root: Path, spec: dict, input_lock: dict) -> OnlineCase:
+    """Stage S1/S3 loader: no evaluator/GT/LoS file is opened or materialized."""
+    if set(spec) != {"online_npz", "evaluator_npz", "expected_rows", "metadata"}:
+        raise ContractError("SHADOW_CASE_SPEC_KEYS")
+    rel = spec["online_npz"]
+    verify_files(root, {rel: input_lock[rel]})
+    values = npz(_locked(root, rel, input_lock))
+    if set(spec["metadata"]) != set(META):
+        raise ContractError("SHADOW_CASE_META_KEYS")
+    if any(key not in values for key in ONLINE_ARRAYS):
+        raise ContractError("SHADOW_ONLINE_REQUIRED_FIELDS")
+    if len(values["t"]) != spec["expected_rows"]:
+        raise ContractError("SHADOW_ONLINE_ROWCOUNT")
+    extra = set(values)-set(ONLINE_ARRAYS)-{"trace_"+k for k in TRACE_FIELDS}-{"clean_Hrf"}
+    if extra:
+        raise ContractError("SHADOW_ONLINE_UNKNOWN_FIELDS:"+str(sorted(extra)))
+    trace = {k:values["trace_"+k] for k in TRACE_FIELDS} if all(
+        "trace_"+k in values for k in TRACE_FIELDS) else None
+    return OnlineCase(**spec["metadata"], **{k:values[k] for k in ONLINE_ARRAYS},
+                      baseline_trace=trace, clean_Hrf=values.get("clean_Hrf"))
+
+
+def load_shadow_reference_after_s1(root: Path, spec: dict, input_lock: dict,
+                                  *, expected_t: np.ndarray, expected_pose: np.ndarray) -> np.ndarray:
+    """S2-only evaluator access; exact time/pose join and SHA-locked payload."""
+    rel=spec["evaluator_npz"]
+    verify_files(root,{rel:input_lock[rel]})
+    value=npz(_locked(root,rel,input_lock))
+    if not {"clean_H","t","pose_id"} <= set(value):
+        raise ContractError("SHADOW_EVALUATOR_FIELDS")
+    if not (np.array_equal(value["t"],expected_t) and
+            np.array_equal(value["pose_id"],expected_pose)):
+        raise ContractError("SHADOW_EVALUATOR_JOIN_MISMATCH")
+    clean=value["clean_H"]
+    if clean.shape != (len(expected_t),257,2) or not np.iscomplexobj(clean) or not np.isfinite(clean).all():
+        raise ContractError("SHADOW_EVALUATOR_INVALID_CFR")
+    return clean
