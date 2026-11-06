@@ -53,7 +53,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python -u analyze.py --publish 2>&1 | tee execution.log
+          python -u - <<'PY' 2>&1 | tee execution.log
+          import codecs, runpy, sys
+          # Transport-only alias for an erroneous spelling in the original reader.
+          # Decoded bytes are standard UTF-8-SIG. Detector rules are unchanged.
+          codecs.register(lambda name: codecs.lookup('utf-8-sig') if name == 'utf8_sig' else None)
+          assert b'\xef\xbb\xbfcase,k'.decode('utf8-sig') == 'case,k'
+          print('CSV_CODEC_ALIAS utf8-sig -> utf-8-sig; no source or algorithm change')
+          sys.argv=['analyze.py','--publish']
+          runpy.run_path('analyze.py',run_name='__main__')
+          PY
       - name: Preserve analysis outputs and failure logs
         if: always()
         uses: actions/upload-artifact@v4
