@@ -1,0 +1,85 @@
+{
+  "schema": "FP_SC_VAB_SHADOW_STAGES_V1",
+  "stage": "S1_SHADOW_SELECT",
+  "case_id": "R5_B0_Native_LoS_10",
+  "case": {
+    "online_npz": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R5_B0_Native_LoS_10/online.npz",
+    "evaluator_npz": "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R5_B0_Native_LoS_10/evaluator.npz",
+    "expected_rows": 1415,
+    "metadata": {
+      "case_id": "R5_B0_Native_LoS_10",
+      "route": "R5",
+      "bias": "B0",
+      "channel": "Native_LoS",
+      "sensor_seed": 10,
+      "split": "EXPOSED_DEV",
+      "noise_variance": 0.0,
+      "corpus": "dynamic",
+      "environment_id": "ORIGINAL_CORRIDOR"
+    }
+  },
+  "policy": {
+    "wrong_cut": 2.0,
+    "replace_gain": 0.8,
+    "margin": 0.5,
+    "prior_weight": 1.0,
+    "rf_weight": 0.7,
+    "min_support": 0.15,
+    "max_prior_width_m": 1.5,
+    "history_max_age_s": 2.0,
+    "vmax_mps": 0.2,
+    "motion_slack_m": 0.02,
+    "mapping_slack_m": 0.15,
+    "native_sigma_scale": 2.0,
+    "bootstrap_packets": 2,
+    "risk_R_multiplier": 4.0
+  },
+  "policy_sha256": "71336f1abf94a5c1ef48cb4d5afb3bdef749149be3a47133f1d89e17f54ec319",
+  "candidate_arm": "VAB",
+  "candidate_mode": "TWO_PORT_UNION",
+  "source_commit": "e416cf62c0cde15151a1851168231da73a0cbfff",
+  "implementation_commit": "9cc34f0675a79ee94e2af39f93bf84bb3e45d587",
+  "code_files": {
+    "scripts/fp_sc_vab_shadow_stages.py": "802af0decb7a91cd601508b591accf228db884802cffc73504a0f52709bec331",
+    "src/qclean_uwb/drivesim/__init__.py": "4db54503a560f2e5153c53f0b202f9a0bc5b118ce9f56ba689b25daab85cdef0",
+    "src/qclean_uwb/drivesim/observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+    "src/qclean_uwb/fp_sc/candidate_revision.py": "dc4cfaeecc7ca6f70a462f041baa264049e3f0f9872472278828e06fc01daf8b",
+    "src/qclean_uwb/fp_sc/candidates.py": "528c79cbe5955eb9f2a656c3e807e132a0c2ffe99d81bb5c1a8bcf3240a667dd",
+    "src/qclean_uwb/fp_sc/e0_baseline.py": "f022a4db43270d909b4b30022d42d064bf9cbb42b91a45b7f3c7a0d861c592a1",
+    "src/qclean_uwb/fp_sc/followup/__init__.py": "4eea6329980d596fbdb722f4ce6330637e77c22b88c4daac888ceb3ea2c3b050",
+    "src/qclean_uwb/fp_sc/followup/audit.py": "5fbcf64bf9d14b342f5a83202f48162170fdfdbbb7648f285f9faf954dec73e2",
+    "src/qclean_uwb/fp_sc/followup/bridge.py": "f1d67b23b2ca76b3ca4bd50274f51df7d5cd0d095817aaedebd98bae8fde5f5a",
+    "src/qclean_uwb/fp_sc/followup/contracts.py": "3034b5ca4fe5e5cb26f5660731693fd657d1e77232539ddd500cd307b3197c78",
+    "src/qclean_uwb/fp_sc/followup/data.py": "b3ff98313701213d771ec6686e4ce12d56c432de9e6d6bce96a31437c707d653",
+    "src/qclean_uwb/fp_sc/followup/detection.py": "ff3de11f209bac5ebffe1a5e1610d07e1faefa445a108770069bb868429175e9",
+    "src/qclean_uwb/fp_sc/followup/engine.py": "3afc31f35a5a07816918b908cd66567583322e22cf621d2fa652bd5959b49cb5",
+    "src/qclean_uwb/fp_sc/followup/evaluation.py": "8334f5bc84a3ac56fa1e12db98b8a46f14bdab3f4453011241bb33866b4ea467",
+    "src/qclean_uwb/fp_sc/followup/input_sensitivity.py": "b831387ffea7e6bead5a42f01f92719ae89ed21b74574dec1cb6ceed9808dae5",
+    "src/qclean_uwb/fp_sc/followup/integrity.py": "789c26aea50bac68beacbb56dfa9ef376b0254662d8470c0fd3e741f441487c1",
+    "src/qclean_uwb/fp_sc/followup/numerics.py": "27cdb4ae044f70a4a68ddb8826fab9505fd9d67056ee44d659adf04b548dcf79",
+    "src/qclean_uwb/fp_sc/followup/readiness.py": "5736de62ad7c04e91a2568809128cc54b694fb38c7484387b6fd3b6128e09f56",
+    "src/qclean_uwb/fp_sc/followup/runner.py": "c3592f5f5f2c993cb904c382c3e4f243f0f94723789c6934ec83cb94adf9e5b6",
+    "src/qclean_uwb/fp_sc/followup/runtime.py": "1fe7f926a2de0266c37f4bc0f00006826d5904523b5499e422ea8c597eb46905",
+    "src/qclean_uwb/fp_sc/followup/selection.py": "9e344fd94e34517f5c3d3844d40d87652670fcb3f6370ec1d2eae4aa343cf481",
+    "src/qclean_uwb/fp_sc/followup/static_detection.py": "a886961b1c0118891bf4189ab37372b4202f12b1a10ef0b68ad2fcb6d7ea5a78",
+    "src/qclean_uwb/fp_sc/followup/study.py": "70a0c72b286d817d847ca08c366f0e86b12825cb0944b6714fb48c69b50df564",
+    "src/qclean_uwb/fp_sc/followup/vab_shadow.py": "cf8ef974963ad77ff04a4f87809b4e4e378bd4217ebe0d48a6bc6ff6f440fada"
+  },
+  "baseline_sources": {
+    "research/FFD_P0P3_20261016/source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+    "research/FFD_P0P3_20261016/p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+    "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+    "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+    "research/MBVAR_PRR_001_20261103/S1/online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_PRIOR_PILOT_001/pilot.py": "52d19b2564893bdcfcbff222c9f259a893166db14a8fff1509f10b7d181ae266"
+  },
+  "model_files": {
+    "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "input_files": {
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R5_B0_Native_LoS_10/online.npz": "3fd4b12e29cc0981612ef11c8344a0678e76e7c08903737df2cbea99995f65af",
+    "research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R5_B0_Native_LoS_10/evaluator.npz": "b7b3fa5ce18f22108657c409d474747eea54b1cb8a8455c476c3235246d65661"
+  },
+  "previous": {}
+}
