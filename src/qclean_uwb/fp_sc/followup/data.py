@@ -28,7 +28,8 @@ def _locked(root: Path, relative: str, lock: dict) -> Path:
     return rooted(root, relative)
 
 
-def load_case(root: Path, spec: dict, input_lock: dict, adapter, *, detection_only=False):
+def load_case(root: Path, spec: dict, input_lock: dict, adapter, *,
+              detection_only=False, allow_partial_truth=False):
     required = {"online_npz", "evaluator_npz", "expected_rows", "metadata"}
     if set(spec) != required:
         raise ContractError(f"CASE_SPEC_KEYS_MISMATCH:{set(spec)^required}")
