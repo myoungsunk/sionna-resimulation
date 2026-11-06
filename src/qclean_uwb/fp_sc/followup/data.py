@@ -153,3 +153,23 @@ def load_shadow_reference_after_s1(root: Path, spec: dict, input_lock: dict,
     if clean.shape != (len(expected_t),257,2) or not np.iscomplexobj(clean) or not np.isfinite(clean).all():
         raise ContractError("SHADOW_EVALUATOR_INVALID_CFR")
     return clean
+
+
+
+def load_shadow_truth_for_s3_only(root: Path, spec: dict, input_lock: dict,
+                                 *, expected_t: np.ndarray,
+                                 expected_pose: np.ndarray) -> np.ndarray:
+    """Strictly post-update S3 evaluator: no truth in S1/S2 decisions or EKF."""
+    rel=spec["evaluator_npz"]
+    verify_files(root,{rel:input_lock[rel]})
+    d=npz(_locked(root,rel,input_lock))
+    if not {"truth","t","pose_id"} <= set(d):
+        raise ContractError("SHADOW_S3_POSTHOC_TRUTH_NOT_FOUND")
+    if not (np.array_equal(d["t"],expected_t) and
+            np.array_equal(d["pose_id"],expected_pose)):
+        raise ContractError("SHADOW_S3_POSTHOC_TIME_POSE_JOIN")
+    gt=np.asarray(d["truth"])
+    if (gt.shape not in ((len(expected_t),3),(len(expected_t),4)) or
+        not np.isfinite(gt).all()):
+        raise ContractError("SHADOW_S3_POSTHOC_TRUTH_SCHEMA")
+    return gt

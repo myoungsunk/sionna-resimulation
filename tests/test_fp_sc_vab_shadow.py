@@ -15,7 +15,8 @@ from qclean_uwb.fp_sc.followup.detection import binding_for
 from qclean_uwb.fp_sc.followup.selection import select, SyntheticSelectionProbe
 from qclean_uwb.fp_sc.followup.vab_shadow import (
     MODES, SHADOW_SCOPE, shadow_decision, shadow_select_case,
-    compare_shadow_observations, same_prior_shadow_one_step)
+    compare_shadow_observations, same_prior_shadow_one_step,
+    crosscheck_s1_s2_for_s3, posthoc_s3_one_step_errors)
 
 
 def synthetic_cir():
@@ -162,6 +163,67 @@ class VabShadowTests(unittest.TestCase):
             np.testing.assert_array_equal(value['x'],case.prior[0])
             np.testing.assert_array_equal(value['P'],case.Pprior[0])
             self.assertFalse(value['accepted'])
+
+    def test_s3_s2_packet_mode_alignment_cannot_be_inferred_from_hashes_only(self):
+        case=fake_case(2)
+        original=shadow_select_case(case,self.adapter,self.policy)
+        evaluated=compare_shadow_observations(case,original,np.ones_like(case.Hrf))
+        result=crosscheck_s1_s2_for_s3(case,original,evaluated)
+        self.assertEqual(result["packet_mode_rows"],8)
+        self.assertTrue(result["match"])
+        from copy import deepcopy
+        contaminated=deepcopy(evaluated)
+        contaminated[0]["proposed_tap"]=999
+        with self.assertRaisesRegex(ContractError,"S1_S2_SELECTION_IDENTITY"):
+            crosscheck_s1_s2_for_s3(case,original,contaminated)
+        duplicated=deepcopy(evaluated)
+        duplicated[1]["k"]=duplicated[0]["k"]
+        duplicated[1]["mode"]=duplicated[0]["mode"]
+        with self.assertRaises(ContractError):
+            crosscheck_s1_s2_for_s3(case,original,duplicated)
+
+    def test_s3_posthoc_accuracy_reports_heading_xy_without_bias_or_feedback(self):
+        case=fake_case(2)
+        s1=shadow_select_case(case,self.adapter,self.policy)
+        raw=same_prior_shadow_one_step(case,s1,self.adapter)
+        snapshot=str(raw)
+        gt=np.zeros((2,3));gt[:,2]=.35
+        accuracy=posthoc_s3_one_step_errors(case,raw,gt)
+        self.assertEqual(len(accuracy),2)
+        for row in accuracy:
+            self.assertEqual(row["truth_bias_status"],"NOT_TESTED_NO_GYRO_BIAS")
+            self.assertEqual(set(row["arms"]),{"F00","F10","F01","F11"})
+            self.assertAlmostEqual(row["arms"]["F00"]["heading_abs_error_change_vs_F00_deg"],0)
+            self.assertAlmostEqual(row["arms"]["F00"]["xy_abs_error_change_vs_F00_m"],0)
+            self.assertEqual(row["status"],"POSTHOC_FIXED_PRIOR_ONLY")
+        self.assertEqual(snapshot,str(raw)) # posthoc never alters fixed-prior output
+        other=gt.copy();other[:,2]=1.0
+        accuracy2=posthoc_s3_one_step_errors(case,raw,other)
+        self.assertNotEqual(accuracy[0]["arms"]["F00"]["heading_abs_error_deg"],
+                            accuracy2[0]["arms"]["F00"]["heading_abs_error_deg"])
+        self.assertEqual(snapshot,str(raw))
+
+    def test_s3_posthoc_truth_and_state_fail_closed(self):
+        case=fake_case(1)
+        raw=same_prior_shadow_one_step(case,shadow_select_case(case,self.adapter,self.policy),self.adapter)
+        with self.assertRaisesRegex(ContractError,"TRUTH_SHAPE"):
+            posthoc_s3_one_step_errors(case,raw,np.zeros((1,2)))
+        from copy import deepcopy
+        bad=deepcopy(raw);bad[0]["updates"]["F00"]["x"]=[float("nan")]*4
+        with self.assertRaisesRegex(ContractError,"NONFINITE"):
+            posthoc_s3_one_step_errors(case,bad,np.zeros((1,3)))
+        bad=deepcopy(raw);bad[0]["pose_id"]+=1
+        with self.assertRaisesRegex(ContractError,"JOIN"):
+            posthoc_s3_one_step_errors(case,bad,np.zeros((1,3)))
+
+    def test_s3_rejected_mask_posthoc_no_made_up_gain(self):
+        case=fake_case(1);case.baseline_trace["mask"][:]=False
+        raw=same_prior_shadow_one_step(case,shadow_select_case(case,self.adapter,self.policy),self.adapter)
+        post=posthoc_s3_one_step_errors(case,raw,np.zeros((1,3)))
+        self.assertFalse(post[0]["original_mask_fixed"])
+        for arm in ("F01","F11"):
+            self.assertEqual(post[0]["arms"][arm]["heading_abs_error_change_vs_F00_deg"],0)
+            self.assertEqual(post[0]["arms"][arm]["xy_abs_error_change_vs_F00_m"],0)
 
     def test_wrong_adapter_and_unapproved_modes_fail_closed(self):
         bad=FakeAdapter();bad.revision_evidence.mode="STRONGEST_ONLY"

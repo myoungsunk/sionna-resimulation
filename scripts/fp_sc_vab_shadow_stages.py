@@ -23,12 +23,14 @@ sys.path.insert(0,str(ROOT/"src"))
 from qclean_uwb.fp_sc.followup.contracts import (
     ContractError, Policy, digest, jsonable, rooted, sha256, verify_files, write_json)
 from qclean_uwb.fp_sc.followup.data import (
-    load_shadow_online_only, load_shadow_reference_after_s1)
+    load_shadow_online_only, load_shadow_reference_after_s1,
+    load_shadow_truth_for_s3_only)
 from qclean_uwb.fp_sc.followup.bridge import RevisionEvidenceAdapter
 from qclean_uwb.fp_sc.followup.engine import OriginalAdapter
 from qclean_uwb.fp_sc.e0_baseline import ORIGINAL_CODE
 from qclean_uwb.fp_sc.followup.vab_shadow import (
-    shadow_select_case, compare_shadow_observations, same_prior_shadow_one_step)
+    shadow_select_case, compare_shadow_observations, same_prior_shadow_one_step,
+    crosscheck_s1_s2_for_s3, posthoc_s3_one_step_errors)
 
 STAGES=("S1_SHADOW_SELECT","S2_OBSERVATION_COMPARE","S3_FIXED_PRIOR_EKF")
 PREREQ={STAGES[0]:(),STAGES[1]:(STAGES[0],),
@@ -207,12 +209,23 @@ def run(manifest_path,approval_path,out):
             rows=compare_shadow_observations(case,prior_rows,reference)
         elif stage==STAGES[2]:
             prior_rows=read_rows(m["previous"][STAGES[0]]["result_path"])
+            reviewed_s2=read_rows(m["previous"][STAGES[1]]["result_path"])
+            receipt["s1_s2_row_identity"]=crosscheck_s1_s2_for_s3(case,prior_rows,reviewed_s2)
             adapter=OriginalAdapter(ROOT,revision_evidence=RevisionEvidenceAdapter(
                 arm="VAB",mode="TWO_PORT_UNION"))
             rows=same_prior_shadow_one_step(case,prior_rows,adapter)
         else:
             raise ContractError("SHADOW_UNKNOWN_STAGE")
         gzip_result(output/"ROWS.json.gz",rows)
+        # Ground truth is deliberately read ONLY after the numerical S3 state
+        # outputs have been saved: it cannot influence the candidate/innovation.
+        if stage==STAGES[2]:
+            truth=load_shadow_truth_for_s3_only(ROOT,m["case"],m["input_files"],
+                expected_t=case.t,expected_pose=case.pose_id)
+            accuracy=posthoc_s3_one_step_errors(case,rows,truth)
+            gzip_result(output/"POSTHOC_ONE_STEP_ACCURACY.json.gz",accuracy)
+            receipt["posthoc_accuracy_sha256"]=sha256(output/"POSTHOC_ONE_STEP_ACCURACY.json.gz")
+            receipt["posthoc_scope"]="FIXED_PRIOR_ONE_STEP_NOT_RECURSIVE"
         receipt.update(status="COMPLETE_TECHNICAL_ONLY",result_sha256=sha256(output/"ROWS.json.gz"),
             row_count=len(rows),utc_end=datetime.now(timezone.utc).isoformat())
     except Exception as exc:
