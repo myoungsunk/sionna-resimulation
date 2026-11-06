@@ -50,7 +50,8 @@ def load_case(root: Path, spec: dict, input_lock: dict, adapter, *,
     trace = {k: data["trace_"+k] for k in TRACE_FIELDS} if all("trace_"+k in data for k in TRACE_FIELDS) else None
     case = OnlineCase(**spec["metadata"], **{k: data[k] for k in ONLINE_ARRAYS},
                       baseline_trace=trace, clean_Hrf=data.get("clean_Hrf"))
-    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter, detection_only=detection_only)
+    return case, Evaluator(case, truth["clean_H"], truth["truth"], adapter,
+                           detection_only=detection_only, allow_partial_truth=allow_partial_truth)
 
 
 def export_archive(root: Path, spec: dict, output: Path) -> dict:
