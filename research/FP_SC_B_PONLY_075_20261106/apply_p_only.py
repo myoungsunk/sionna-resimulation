@@ -48,4 +48,3 @@ def main():
         w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
     print(json.dumps({k:v for k,v in out.items() if k not in ['input_hashes','first_packets']},indent=2))
 if __name__=='__main__':main()
-
