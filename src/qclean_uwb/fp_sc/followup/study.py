@@ -20,7 +20,8 @@ from .selection import policy_grid
 
 
 class Evaluator:
-    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter, *, detection_only=False):
+    def __init__(self, case: OnlineCase, clean_H: np.ndarray, truth: np.ndarray, adapter, *,
+                 detection_only=False, allow_partial_truth=False):
         n = len(case.t)
         if clean_H.shape != (n, 257, 2) or not np.iscomplexobj(clean_H) or not np.isfinite(clean_H).all():
             raise ContractError("INVALID_EVALUATOR_LOS")
