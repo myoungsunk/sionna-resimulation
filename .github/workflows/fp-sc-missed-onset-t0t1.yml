@@ -1,0 +1,75 @@
+name: FP-SC missed-error T0 T1 detection only
+on:
+  push:
+    branches: ['analysis/fp-sc-missed-onset-t0t1-20261106']
+    paths:
+      - '.github/workflows/fp-sc-missed-onset-t0t1.yml'
+      - 'research/FP_SC_MISSED_ONSET_T0T1_20261106/analyze.py'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: fp-sc-missed-onset-t0t1
+  cancel-in-progress: false
+jobs:
+  pinned-waveform-analysis:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+    steps:
+      - name: Python runtime, no repository checkout
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Exact NumPy for source detector parity
+        run: python -m pip install numpy==2.3.5
+      - name: Fetch exact committed analysis script
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os,base64,json,hashlib
+          from urllib.request import Request,urlopen
+          from pathlib import Path
+          ref=os.environ['GITHUB_SHA']
+          p='research/FP_SC_MISSED_ONSET_T0T1_20261106/analyze.py'
+          url='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']+'/contents/'+p+'?ref='+ref
+          req=Request(url,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urlopen(req,timeout=60) as response: j=json.load(response)
+          raw=base64.b64decode(j['content'])
+          assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==j['sha']
+          Path('analyze.py').write_bytes(raw)
+          print('ANALYSIS_SOURCE',ref,j['sha'],hashlib.sha256(raw).hexdigest())
+          PY
+          python -m py_compile analyze.py
+      - name: Reproduce cohorts and evaluate RX onset disagreement; no corrections
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u - <<'PY' 2>&1 | tee execution.log
+          import codecs, runpy, sys
+          # Transport-only alias for an erroneous spelling in the original reader.
+          # Decoded bytes are standard UTF-8-SIG. Detector rules are unchanged.
+          codecs.register(lambda name: codecs.lookup('utf-8-sig') if name == 'utf8_sig' else None)
+          assert b'\xef\xbb\xbfcase,k'.decode('utf8-sig') == 'case,k'
+          print('CSV_CODEC_ALIAS utf8-sig -> utf-8-sig; no source or algorithm change')
+          sys.argv=['analyze.py','--publish']
+          runpy.run_path('analyze.py',run_name='__main__')
+          PY
+      - name: Preserve analysis outputs and failure logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fp-sc-t0t1-detection-${{ github.run_id }}
+          path: |
+            output/
+            execution.log
+            analyze.py
+          retention-days: 30
