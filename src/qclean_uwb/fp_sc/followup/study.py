@@ -27,7 +27,7 @@ class Evaluator:
             raise ContractError("INVALID_EVALUATOR_LOS")
         self.case, self.clean_H, self.adapter = case, clean_H, adapter
         self.detection_only = detection_only
-        columns = 3 if detection_only and truth.shape == (n, 3) else 4
+        columns = 3 if (detection_only or allow_partial_truth) and truth.shape == (n, 3) else 4
         self.truth = finite(truth, (n, columns), "EVALUATOR_TRUTH")
 
     def label(self, online: list[dict], *, detect_only=False) -> list[dict]:
