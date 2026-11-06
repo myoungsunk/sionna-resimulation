@@ -175,21 +175,26 @@ def trajectory_metrics(x, P, truth, times, *, anchor=(10., 0.), near_radius_m=No
     x, P, truth, t = np.asarray(x), np.asarray(P), np.asarray(truth), np.asarray(times)
     n = len(t)
     finite(x, (n, 4), "TRAJECTORY")
-    finite(truth, (n, 4), "TRUTH")
+    truth_dim = truth.shape[1] if truth.ndim == 2 and len(truth) == n else None
+    if truth_dim not in (3, 4):
+        raise ContractError("TRUTH_NEEDS_THREE_OR_FOUR_STATE_COLUMNS")
+    finite(truth, (n, truth_dim), "TRUTH")
     finite(P, (n, 4, 4), "COVARIANCE_TRAJECTORY")
     finite(t, (n,), "TIMES")
     if n == 0 or np.any(np.diff(t) <= 0):
         raise ContractError("EMPTY_OR_NONMONOTONE_TRAJECTORY")
-    err = x-truth
+    err = x[:, :truth_dim]-truth
     err[:, 2] = (err[:, 2]+np.pi) % (2*np.pi)-np.pi
     d = truth[:, :2]-np.asarray(anchor)
     radius = np.linalg.norm(d, axis=1)
     radial = np.divide(np.sum(err[:, :2]*d, axis=1), radius, out=np.zeros(n), where=radius > 0)
     tangential = np.divide(-err[:, 0]*d[:, 1]+err[:, 1]*d[:, 0], radius, out=np.zeros(n), where=radius > 0)
-    nees4, nees2, nees1 = np.empty(n), np.empty(n), np.empty(n)
+    nees4 = np.empty(n) if truth_dim == 4 else None
+    nees2, nees1 = np.empty(n), np.empty(n)
     for k in range(n):
         p = covariance(P[k], 4, positive=True)
-        nees4[k] = err[k]@np.linalg.solve(p, err[k])
+        if truth_dim == 4:
+            nees4[k] = err[k]@np.linalg.solve(p, err[k])
         nees2[k] = err[k, :2]@np.linalg.solve(p[:2, :2], err[k, :2])
         nees1[k] = err[k, 2]**2/p[2, 2]
     windows = {"primary_t_ge_30": t >= 30., "initial": t < 30., "all": np.ones(n, bool)}
@@ -207,11 +212,14 @@ def trajectory_metrics(x, P, truth, times, *, anchor=(10., 0.), near_radius_m=No
                     xy_m=error_stats(np.linalg.norm(err[mask, :2], axis=1)),
                     radial_m=error_stats(radial[radial_mask]), tangential_m=error_stats(tangential[radial_mask]),
                     radial_undefined=int(np.sum(mask & (radius == 0))),
-                    nees4_mean=float(nees4[mask].mean()), nees_xy_mean=float(nees2[mask].mean()),
+                    nees4_mean=None if nees4 is None else float(nees4[mask].mean()),
+                    nees_xy_mean=float(nees2[mask].mean()),
                     covariance_xy_trace_mean=float(np.trace(P[mask, :2, :2], axis1=1, axis2=2).mean()),
                     heading_std_deg_mean=float(np.degrees(np.sqrt(P[mask, 2, 2])).mean()))
-        item["coverage"] = {str(p): {"state4": float(np.mean(nees4[mask] <= chi2_threshold(p, 4))),
+        item["coverage"] = {str(p): {"state4": None if nees4 is None else
+                                      float(np.mean(nees4[mask] <= chi2_threshold(p, 4))),
                                       "xy": float(np.mean(nees2[mask] <= chi2_threshold(p, 2))),
                                       "heading": float(np.mean(nees1[mask] <= chi2_threshold(p, 1)))} for p in (.68, .95, .99)}
+        item["bias_truth_status"] = "NOT_TESTED_NO_TRUE_GYRO_BIAS" if truth_dim == 3 else "EVALUATED"
         output[name] = item
     return output
