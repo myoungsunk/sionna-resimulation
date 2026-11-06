@@ -27,6 +27,10 @@ jobs:
         with:
           fetch-depth: 1
           lfs: false
+          sparse-checkout: |
+            src
+            tests
+            scripts
       - name: Fetch only pinned legacy selector test reference
         run: git fetch --no-tags --depth=1 origin 486f0b6c008e7a953ada75a03a941ffa46994985
       - name: Set Python
