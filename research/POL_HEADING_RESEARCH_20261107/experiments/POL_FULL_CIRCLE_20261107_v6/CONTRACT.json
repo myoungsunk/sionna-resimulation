@@ -1,0 +1,22 @@
+{
+  "calibration": "t<30; LOS residual RMS then Full angular sigma and outlier fit",
+  "guard": "30<=t<40",
+  "evaluation": "t>=40; previously observed, not blind",
+  "methods": [
+    "S4",
+    "v3",
+    "v6",
+    "refined"
+  ],
+  "convergence": {
+    "heading_rmse_deg": 0.02,
+    "xy_rmse_m": 0.005,
+    "sigma_relative": 0.02
+  },
+  "approximations": [
+    "conditional XY linearization within LUT cells",
+    "Gaussian mixture projection with 1 degree smoothing and 1 percent prominence",
+    "prior quadrature within 9 sigma",
+    "near-zero circular resultant has undefined mean; largest branch fallback"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "question_id": "POL-ANGLE-UNCERTAINTY-004",
+  "role": "IMPLEMENTER",
+  "date": "2026-11-07",
+  "source_revision": "new local experiment; baseline archive branch commit 99b89ed2744ade40f5a6a7f28fecd8b8df190ff5; no claim new code ran at that commit",
+  "model": "all inverse LUT angular roots at each predicted component XY; equally weighted wrapped Gaussian angular pseudo-observation; latent angular sigma IMM",
+  "sigma_candidates_deg": [
+    1.0,
+    2.0,
+    5.0,
+    10.0,
+    20.0,
+    45.0
+  ],
+  "prior": [
+    0.7,
+    0.15,
+    0.075,
+    0.04,
+    0.025,
+    0.01
+  ],
+  "persistence_s": 5,
+  "angular_likelihood": "sum_m WN(wrap(psi-g_m(x,y,s)); sigma_j^2)/M; position dependence linearized using -dg/dxy = h_xy/h_psi; marginalize conditional position uncertainty and winding images",
+  "no_s_variance": "No Rs in new observation likelihood; sigma is directly angular. Fixed-sigma candidate is1deg.",
+  "inverse": "exact piecewise-linear LUT angular knot roots, no truth/prior yaw selection, equal candidate weights",
+  "unsupported": "no root, continuum root or inverse slope below1e-6 -> uniform angle likelihood; no fabricated nearest solution",
+  "approximation": "inverse angles depend on estimated XY; equal-root normalized pseudo-likelihood is NOT exact change of variable of original s likelihood; no independent angle sensor claim; no uncertainty calibration claim",
+  "topology": "same v3 smoothing sigma1deg/prominence1percent/soft partition1deg",
+  "windings": "each prior and observation winding evaluated separately with9sigma support",
+  "data": "same R2 AnchorB mount0 seed0; LOS/Full x4bias; 979 causal samples, score829 at t>=30",
+  "gate": "matched: original S4 causal mask; same gate for v3 comparison; no independent new gate performance claim",
+  "parameters": "frozen before evaluation; no GT fitting",
+  "convergence": {
+    "grids_all8": [
+      0.25,
+      0.125
+    ],
+    "shift_deg": 0.125,
+    "extra_FullB0": 0.0625,
+    "heading_rmse_tolerance_deg": 0.02,
+    "xy_rmse_tolerance_m": 0.005,
+    "relative_sigma_tolerance": 0.02
+  },
+  "adoption": "exploratory only; report both accuracy and coverage; no adoption/generalization from single route/seed",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  }
+}
