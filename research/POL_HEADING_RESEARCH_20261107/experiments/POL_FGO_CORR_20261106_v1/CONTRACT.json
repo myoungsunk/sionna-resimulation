@@ -1,0 +1,63 @@
+{
+  "question_id": "POL-FGO-CORR-001",
+  "stage": "exploratory implementation",
+  "case": {
+    "id": "R2_aB_m0",
+    "route": "R2",
+    "anchor": [
+      10,
+      0,
+      2.6500000000000004
+    ],
+    "mount_deg": 0,
+    "robot_z_m": 0.45,
+    "rf_count": 1303,
+    "H_shape": [
+      1303,
+      257,
+      2,
+      2
+    ],
+    "full_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy",
+    "los_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy",
+    "samples_path": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json"
+  },
+  "lag_intervals": 10,
+  "lag_s": 2.0,
+  "train": "Full t<30 only, offline truth used solely for noise identification and original control generation",
+  "score": "both channels t>=30,829 samples; no independent environment holdout",
+  "parameters": {
+    "R_epsilon": 0.003921637509189117,
+    "sigma_c2": 0.004178362490810883,
+    "tau_s": 1.7216405758647384,
+    "total_variance": 0.0081,
+    "rho_at_02s": 0.8903253993921763,
+    "train_n": 150,
+    "train_mean": 0.018120345292852433,
+    "gamma0": 0.005516979858596747,
+    "gamma1": 0.003720102253436488,
+    "gamma2": 0.003312101524570576,
+    "fit": "centered lag1/lag2 method of moments; rho [.05,.98], sigma_c2 [.01,.95]*total; total=max(original_RS,gamma0); no evaluation tuning"
+  },
+  "arms": [
+    "S4_original",
+    "S4_no_gate",
+    "FGO_basic",
+    "FGO_iid",
+    "FGO_corr"
+  ],
+  "gates": "original S4 unchanged; all new arms and S4_no_gate admit all observations",
+  "accuracy_tolerance": "exploratory candidate: <=10% degradation on BOTH RMSE metrics in every Full bias condition; not scientific acceptance",
+  "consistency": "coverage closer to .95 and mean NEES closer to dimension; no independent-sample chi-square aggregate test",
+  "timing": "report, no hardware budget specified",
+  "source_revision": "archive snapshot; no local Git revision claimed",
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4",
+  "scipy": "1.15.2",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da",
+    "ROLE_PROPOSER.md": "e7c4e6efa050448fc1624c9fe28c227b948631f189531ce75c7c6c0a695bc53e"
+  },
+  "created_utc": "2026-11-06T09:03:02.390065+00:00"
+}

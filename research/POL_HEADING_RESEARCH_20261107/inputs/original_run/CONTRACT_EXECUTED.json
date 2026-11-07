@@ -1,0 +1,322 @@
+{
+  "_status": "EXECUTED_TECHNICAL_PASS_SELF_CHECK",
+  "_note": "Frozen pre-execution contract is preserved in results/run_metadata/CONTRACT.json; this is an additive execution receipt.",
+  "question_id": "DLP-ANCHORB-8ARM-20261102",
+  "roles": "PROPOSER then IMPLEMENTER, self-check only",
+  "purpose": "Anchor B mount 0 에서 DR3/DR4/S3/S4/J3/J4/SR3/SR4 를 LoS/Full 두 채널, B0/L0/L1/L2 네 bias 수준으로 재생하여 DR 대비 편파 heading 관측의 기여와 편향 상태의 기여를 분리한다.",
+  "prior_art": {
+    "anchor_A_equivalent": "research/EKF4_RANGE_S_STAGED_20261014/R2_MOUNT0_45_GYRO_BIAS_B0_L0_L1_L2_RESULTS_20261015_KO.md",
+    "anchor_A_run_id": 38664617622,
+    "anchor_A_artifact_id": 11940333419,
+    "anchor_A_artifact_zip_sha256": "ac98c5b50077484f10bb3898138c46115d4921ac099753c5f935db33521da399",
+    "anchor_A_source_commit": "81cdffbdedf43b318ebf8eddb4fcbac1fd30d878",
+    "relation": "NEW_EXPERIMENT_NOT_RERUN"
+  },
+  "cases": [
+    "R2_aB_m0"
+  ],
+  "anchor_m": [
+    10,
+    0,
+    2.6500000000000004
+  ],
+  "mount_deg": 0,
+  "mount45_available": false,
+  "biases": [
+    "B0",
+    "L0",
+    "L1",
+    "L2"
+  ],
+  "bias_levels_dps": {
+    "B0": 0.0,
+    "L0": 0.01,
+    "L1": 0.05,
+    "L2": 0.2
+  },
+  "channels": [
+    "los",
+    "full"
+  ],
+  "methods": [
+    "DR3",
+    "DR4",
+    "S3",
+    "S4",
+    "J3",
+    "J4",
+    "SR3",
+    "SR4"
+  ],
+  "modes": [
+    "one_step",
+    "recursive"
+  ],
+  "seed": 0,
+  "intervention": "none; frozen RF replay only. No mean correction, no added variance, no refit.",
+  "controls": {
+    "R0_diag": [
+      0.0068578637,
+      0.0081
+    ],
+    "gate_joint": 9.210340371976184,
+    "gate_s": 6.6348966010212145,
+    "initial_pose_std": [
+      0.1,
+      0.1,
+      "radians(5)"
+    ],
+    "bias_prior_std": "radians(0.1)",
+    "retained_observer_range_offset_m": -0.5315983906250129,
+    "noise_model": "gyro_bias_positive_only_plus_pair_white_noise",
+    "other_drift_terms": "gyro_sf / wheel_asymmetry / wheelbase / common_scale forced zero; slip off; bias random walk zero"
+  },
+  "scoring": "t>=30, 829 evaluation frames of 979 total; separate scorer after replay; truth used only for sensor input generation and offline scoring",
+  "inputs": {
+    "frozen_rf_source": "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C",
+    "h_los": "H_LoS_R2_aB_m0.npy",
+    "h_full": "FULL_RF/H_R2_aB_m0.npy",
+    "case_manifest": "research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json",
+    "lut": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy",
+    "lut_meta": "results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json",
+    "TODO_input_zip_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+    "TODO_h_los_sha256": "NOT_USED: observations read from SHA-verified original P2 archive",
+    "TODO_h_full_sha256": "NOT_USED: observations read from SHA-verified original P2 archive",
+    "TODO_lut_sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "TODO_observation_builder_commit": "43825f15daaa50fd49c4dd73f9242bc6aee0fb05",
+    "acquired_archive_artifact": 11782748118,
+    "acquired_archive_run": 38331588521,
+    "use_original_archive_directly": true,
+    "archive_contains_other_cases_not_selected": true
+  },
+  "adapter": {
+    "required": false,
+    "reason": "Original immutable P2 archive contains Anchor B LoS/Full observations and independent DR3 prior.",
+    "must_reuse": "the same first-path observer used by the 12-condition Anchor B work (research/DS_MASK_CAUSAL_X1_X2_20261026/mbvar_premodel_diag_20261029/code). Do NOT reimplement.",
+    "output_arrays": [
+      "truth_for_offline_scoring_only",
+      "t_s",
+      "pose_id",
+      "z_r_m",
+      "z_s",
+      "xminus",
+      "Pminus"
+    ],
+    "frames": 979,
+    "cross_channel_identity_required": [
+      "truth_for_offline_scoring_only",
+      "t_s",
+      "pose_id"
+    ],
+    "TODO_b0_dr_prior_parity": {
+      "question_id": "DLP-ANCHORB-8ARM-20261102",
+      "status": "PASS",
+      "archive_sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+      "checks": [
+        {
+          "channel": "los",
+          "DR3_X_max_abs": 0.0,
+          "DR3_P_max_abs": 0.0,
+          "one_step": {
+            "S3": {
+              "X_max_abs": 0.0,
+              "P_max_abs": 0.0,
+              "mask_mismatch": 0,
+              "R_max_abs": 0.0
+            },
+            "J3": {
+              "X_max_abs": 8.881784197001252e-16,
+              "P_max_abs": 6.661338147750939e-16,
+              "mask_mismatch": 0,
+              "R_max_abs": 0.0
+            }
+          }
+        },
+        {
+          "channel": "full",
+          "DR3_X_max_abs": 0.0,
+          "DR3_P_max_abs": 0.0,
+          "one_step": {
+            "S3": {
+              "X_max_abs": 0.0,
+              "P_max_abs": 0.0,
+              "mask_mismatch": 0,
+              "R_max_abs": 0.0
+            },
+            "J3": {
+              "X_max_abs": 8.881784197001252e-16,
+              "P_max_abs": 6.661338147750939e-16,
+              "mask_mismatch": 0,
+              "R_max_abs": 0.0
+            }
+          }
+        }
+      ],
+      "scope": "independently archived DR3 prior and S3/J3 one-step X/P/mask/R with exact archived times and pose IDs",
+      "independent_audit": false,
+      "scientific_PASS": false
+    }
+  },
+  "patches": {
+    "r2_bias_replay.py:27": "CASES = (\"R2_aB_m0\",)",
+    "r2_bias_replay.py:195": "len(pair) != 2",
+    "r2_bias_audit.py:12": "ARCHIVE = <input zip sha256>",
+    "r2_bias_audit.py:56": "{\"R2_aB_m0\"}.issubset(idset)",
+    "r2_bias_audit.py:79": "case_ids = [\"R2_aB_m0\"]",
+    "unchanged": [
+      "P0_INPUT_MANIFEST.json (R2_aB_m0 already present)",
+      "FrozenLut (geometry LUT, anchor-agnostic)",
+      "R0 / gates / sensor generator"
+    ]
+  },
+  "environment": {
+    "host": "Snowball = acacia.postech.ac.kr (141.223.86.157)",
+    "method": "docker python:3.11.11",
+    "pins": {
+      "python": "3.11.11",
+      "numpy": "1.26.4",
+      "scipy": "1.13.1",
+      "pytest": "8.3.5"
+    },
+    "rationale": "GitHub Actions 워크플로 ekf4-r2-bias-l012.yml 과 동일 버전으로 고정하여 Anchor A 결과와 같은 수치 조건을 유지한다",
+    "cores_available": 128,
+    "gpu_required": false,
+    "sionna_required": false,
+    "TODO_script_sha256": "a01806a83a46e31de31653707bf3e77134f2a9c26b18f5ff7378942685d7b3ca",
+    "TODO_started_utc": "2026-11-02T04:31:59.385517+00:00"
+  },
+  "expected_outputs": {
+    "replay_npz": "16 scenario records (1 case x 2 channels x 4 biases x 2 modes)",
+    "metrics_csv": "R2_BIAS_METRICS.csv",
+    "contrasts_csv": "R2_BIAS_CONTRASTS.csv",
+    "expected_metric_rows": 128
+  },
+  "no_RT": true,
+  "no_refit": true,
+  "new_sionna_scene": false,
+  "allowed_claim": "Retrospective single-scene, single-seed, positive-bias-only simulation on Anchor B mount 0. Improvement is not assumed.",
+  "forbidden_claims": [
+    "generalized or calibrated RF advantage",
+    "mount-angle dependence (Anchor B has no mount 45 input)",
+    "negative gyro bias behaviour",
+    "multi-seed or independent-scene generalization",
+    "that a bias state always helps (Anchor A B0 showed J4 worse than J3)"
+  ],
+  "scientific_PASS": false,
+  "implementation": {
+    "upstream_commit": "81cdffbdedf43b318ebf8eddb4fcbac1fd30d878",
+    "execution_lock_sha256": "aba44969250f6067ad00c4345d0d7db93b5d24156857683c34de5fc04aa1ff3e",
+    "local_patch": true,
+    "patch_receipt": "CHANGES.diff",
+    "source_hashes": "EXECUTION_LOCK.json",
+    "governance": {
+      "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+      "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  },
+  "original_LUT_physics_limitation": "Original meta gate_L1_interpolation passed=false (max error 0.023972 >0.01); reuse establishes parity, not new LUT physical validation.",
+  "prior_task_packet_identity": {
+    "hs_lut_2deg.npy": {
+      "sha256": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+      "git_blob": "9a53057f6f646f63574574b9a70186452cb5aca9",
+      "bytes": 11923328
+    },
+    "hs_lut_meta.json": {
+      "sha256": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+      "git_blob": "5a24bf5f371eb3ad49b77e972b2bc77abecd679f",
+      "bytes": 995
+    },
+    "original_archive": {
+      "sha256": "88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63",
+      "traces_verified": 14,
+      "anchor_b_channels": [
+        "los",
+        "full"
+      ],
+      "summary_sha256": "8412e39cbeafa41656041ffe9f7778ef7f0d597508d3cfb2747e4735c4e83634",
+      "cross_channel_prior_identity": true
+    },
+    "prior_task_observation_comparison_los": {
+      "max_range_m": 0.0,
+      "max_s": 0.0,
+      "max_time_s": 2.842170943040401e-14,
+      "max_truth_abs": 3.552713678800501e-15
+    },
+    "prior_task_observation_comparison_full": {
+      "max_range_m": 3.552713678800501e-15,
+      "max_s": 2.220446049250313e-16,
+      "max_time_s": 2.842170943040401e-14,
+      "max_truth_abs": 3.552713678800501e-15
+    }
+  },
+  "execution_started": true,
+  "execution_id": "snowball-anchor-b-run-v1-20261102",
+  "execution_receipt": {
+    "started_utc": "2026-11-02T04:31:59.385517+00:00",
+    "finished_utc": "2026-11-02T04:33:48.018096+00:00",
+    "exit_code": 0,
+    "remote": "/home/KMS/codex_runs/DLP-ANCHORB-8ARM-20261102/run_v1",
+    "command": "bash run_snowball.sh <isolated workdir>"
+  },
+  "validation": {
+    "question_id": "DLP-ANCHORB-8ARM-20261102",
+    "execution": "COMPLETED",
+    "validation": "PASS_SELF_CHECK",
+    "npz_files": 16,
+    "metric_rows": 128,
+    "contrast_rows": 144,
+    "samples_per_trace": 979,
+    "scored_per_trace": 829,
+    "minimum_active_covariance_eigenvalue": 1.4043035533487819e-09,
+    "DR_channel_and_mode_identity": true,
+    "finite_states_and_covariances": true,
+    "invalid_model_frames": 0,
+    "scientific_PASS": false,
+    "independent_audit": false,
+    "file_sha256": {
+      "audit.log": "edc035ac9ed9764c2a542cc6683f33bac94d2c48bc195d3ffd86214255d9ca6b",
+      "environment.txt": "489acb89a0c465ddb60a7b8c09496a2c5b91efae19f6cccf2d23886425544222",
+      "EXECUTION_RECEIPT.json": "edf020fc9cfbb9ece04c41193210f42d43ae55f3cb3a01403d909b81ce0fa442",
+      "FIGURE_MAIN_COMPARISON.csv": "b93d36a663243f397e5263fb0d347db5eff3b769974c244066ab33d3eb88f3e1",
+      "FIGURE_TIME_DISTANCE.csv.gz": "cbd62f67d410f0a3d8a1bd739904c2dbcc81358203b7770ff8e9bb6fb094afa2",
+      "OUTPUT_SHA256.txt": "9051390eb0aab9f043ae440cef199ee13b0c724676c4b2ee80bed2c207f91fbf",
+      "PREFLIGHT.json": "2273790e1656562140bde2e327de6a1518076c1784be92bde7e5b5d04e922640",
+      "preflight.log": "d62de20b68bbfb3f038dfc7f0d31d6d52f134fdb4eab50645cc6f69a149b2624",
+      "replay.log": "37ad6f5fd9e3215f1c05f438ce871b71fc463776a62cf2b3734635f1eefa1599",
+      "score.log": "e6b2c3a25e62b830c590606c5466c764b5f2a3a464b1f1c6a62a0052f2e41009",
+      "tests.log": "f86d7b845b88fbf6f4242f61b4ce93784c548d3a2cbd75b06cc4a7989e1af9fa",
+      "TESTS.xml": "19f3b9855823a03ab68e95117b5b1a75755cbd7ada93616ff0251cf84197b0f2",
+      "audit/AUDIT.json": "fec129e2913332ea6538d5114785a20b6ed07c3f59e258da7db0be64abf234c9",
+      "replay/FINAL.json": "06e2a9ea37cc94befb693cf8df56bde02c62988e6e23aef63411ebcc54b79a6a",
+      "replay/PROGRESS.json": "1be7e1d55fb89408591973db639bb48a5f9e775710db982b6af0bf094c0fbf49",
+      "replay/R2_aB_m0_full_B0_seed0_one_step.npz": "2f738b730bede51d2fa75816bbd218bdb0eb64851397e9b01b16b2da9b7fd471",
+      "replay/R2_aB_m0_full_B0_seed0_recursive.npz": "e9406a6780dff5ba4b3e90f5c714dde6f293b17238149ee8a7b99b1722d8c2da",
+      "replay/R2_aB_m0_full_L0_seed0_one_step.npz": "47bf2768fdc4aaabf2c3e3ba585c5b7c3c229a9b18aba6485887db38ecef1425",
+      "replay/R2_aB_m0_full_L0_seed0_recursive.npz": "754064224b2b152d7c7d27607029af9609a18e04136501b7c90edb054448604d",
+      "replay/R2_aB_m0_full_L1_seed0_one_step.npz": "694882405d0bccbd1c552d207295cc2633c4ac5cf39707b2ed0b0240096ea570",
+      "replay/R2_aB_m0_full_L1_seed0_recursive.npz": "d8a8ece9376ad64f037ad3d5978a174975cdd3fda30fd106da69bf4519b7d549",
+      "replay/R2_aB_m0_full_L2_seed0_one_step.npz": "85b36f1337e1645974badd3a22345fd0ae29cfdecfe257de7a19755680f2353f",
+      "replay/R2_aB_m0_full_L2_seed0_recursive.npz": "6f829d25e640e4c9998d428ffad91584051723852bfd209a66ea370e7e7ffeda",
+      "replay/R2_aB_m0_los_B0_seed0_one_step.npz": "aeaf5012ec032e1c29d6e8883d29af9bf4eb4294dd05fc50974a9746a61a1bc9",
+      "replay/R2_aB_m0_los_B0_seed0_recursive.npz": "3bb83e250d10e817b1c8752ffa4de8bd97e53d36ceb24e6d2f259bfe9a00c03d",
+      "replay/R2_aB_m0_los_L0_seed0_one_step.npz": "0a624683182f6761893d84f38aac5048164f3d51396579c1d1d494ff0a98a4a3",
+      "replay/R2_aB_m0_los_L0_seed0_recursive.npz": "7a481e0033a859b191e8400b5ef06e9aea74b88f8f8d0683c10052db4ba27a65",
+      "replay/R2_aB_m0_los_L1_seed0_one_step.npz": "0a508559cdbed57a15220d60ed578f790995810994442f4f9ade0df6739a590b",
+      "replay/R2_aB_m0_los_L1_seed0_recursive.npz": "76a0367dbf083967748d5e221c8c2ed45b68c278b24b9c8288ff87b42caa9478",
+      "replay/R2_aB_m0_los_L2_seed0_one_step.npz": "095adbff81a6031775591202520337f55558e8a8fe336912e5571207251a7a18",
+      "replay/R2_aB_m0_los_L2_seed0_recursive.npz": "4094bb6b1049ce1f92927f5a0ed47026ab696f8fb5a38b036b03fb4d285d8754",
+      "replay/START.json": "5a3cb463e3609ad9c30ac251f52578ef4cf49ea8fc46118edd373f81c4ddf09a",
+      "run_metadata/ACQUISITION_CHECK.json": "c9adcfadb5a79cac38c8631423d111bb7ee3ef541d5c6411486bfb896cbe357f",
+      "run_metadata/CONTRACT.json": "1ef0a8156dd8392fe78c6e6f7b5c83d18a0ca709eccf98c02d77c473becc0efe",
+      "run_metadata/EXECUTION_LOCK.json": "aba44969250f6067ad00c4345d0d7db93b5d24156857683c34de5fc04aa1ff3e",
+      "run_metadata/FROZEN_BASE.json": "34e05caffb94113de2c65fe73bc7aa759f73e55874ce167c01a3ac071e238db1",
+      "run_metadata/PREFLIGHT_LOCAL.json": "896218e67b20164ad3f683e27b27bea4ac50472e2df366eb580afe7c2186bfb2",
+      "run_metadata/RUN_PACKAGE_HASHES.json": "339694c4f546927a39b36bbd9dd40cbe781d1eac7a77c798767e66e58a665fe8",
+      "run_metadata/run_snowball.sh": "a01806a83a46e31de31653707bf3e77134f2a9c26b18f5ff7378942685d7b3ca",
+      "score/FINAL.json": "c410ad4e63a362a6e5ab6e3d6d457af1015cd48d3d8a32451ab85472bf05fca5",
+      "score/R2_BIAS_CONTRASTS.csv": "c1166fd5a7d33fd7aa5447db7710b0ace54439826c08591f371a1c9f1994e921",
+      "score/R2_BIAS_METRICS.csv": "74381639fbd62eef19913d173ac524f7b502a3a12628dcf64bbc7fba7c4711fb"
+    }
+  },
+  "adoption": "NOT_PERFORMED; manuscript unchanged"
+}

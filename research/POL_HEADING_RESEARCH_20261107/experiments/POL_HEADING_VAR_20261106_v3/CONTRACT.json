@@ -1,0 +1,62 @@
+{
+  "question_id": "POL-HEADING-VAR-003",
+  "role": "IMPLEMENTER",
+  "source": "archived original S4; no new Git commit claimed",
+  "data": "R2 Anchor B mount0 seed0, 979 samples, score t>=30 (829)",
+  "model": "full-circle heading quadrature + conditional Gaussian position/bias; Gaussian-sum mode projection + discrete latent variance IMM",
+  "grid_deg": 0.25,
+  "variance_scales": [
+    1.0,
+    2.0,
+    4.0,
+    8.0,
+    16.0,
+    32.0
+  ],
+  "variance_prior": [
+    0.7,
+    0.15,
+    0.075,
+    0.04,
+    0.025,
+    0.01
+  ],
+  "variance_persistence_s": 5.0,
+  "parameters": "engineering choices frozen before results; no GT fitting/tuning",
+  "uncertainty": "full mixture covariance includes variance/heading mode scatter; conditional linearization approximation remains",
+  "ambiguity": "all circular-grid candidates retained at update; topology only: circular Gaussian smoothing sigma1deg, prominence1percent, subcell peak fit, soft angular-distance partition temperature1deg; raw likelihood unchanged; IMM preserves distinct posterior basin IDs; winding-specific correlated conditional calculations; 9-sigma prior tail truncation; no truth branch selection",
+  "limits": "known initial heading prior std5deg; no global relocalization claim; white conditional noise with variable scale does not model temporal error correlation; source LUT physics validity unproven",
+  "arms": [
+    "S4",
+    "v3",
+    "refined",
+    "shifted",
+    "fine:FullB0only"
+  ],
+  "gate": "matched uses original causal S4 selector; all uses every observation; selector covariance ignored",
+  "criteria": "exploratory: both Full RMSE <=1.10*S4 per bias, report NEES/coverage separately; no adoption on one seed",
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4",
+  "scipy": "1.15.2",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "comparison": "saved v2 HeadingVariable_matched versus new v3 and reproduced S4",
+  "convergence": {
+    "all_eight_conditions": [
+      "0.25deg",
+      "0.125deg",
+      "0.25deg shifted0.125deg"
+    ],
+    "extra_FullB0": "0.0625deg",
+    "thresholds": {
+      "heading_rmse_difference_deg": 0.02,
+      "xy_rmse_difference_m": 0.005,
+      "relative_rms_sigma": 0.02
+    },
+    "no_posthoc_relaxation": true
+  },
+  "intervention": "physical topology smoothing sigma1deg; prominence1percent; subcell centers; soft assignment temperature1deg; raw posterior not smoothed",
+  "resolution_limit": "sub-degree modes may not be distinguished; not an exact arbitrary multimodal representation"
+}
