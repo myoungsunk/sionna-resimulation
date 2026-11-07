@@ -1,0 +1,29 @@
+{
+  "question_id": "B-PONLY-RECOVERY-R2-20261107",
+  "role": "IMPLEMENTER_SELF_CHECK",
+  "source_commit": "fca24720524068badeab79b78098a244cebc62b5",
+  "local_analysis_script_sha256": "8d02cbbc648ebb27548e0cd8efd6403141801303d6dc989cc94f93c22c056a6d",
+  "started_utc": "2026-11-07T04:38:19.262470+00:00",
+  "python": "3.13.15",
+  "command": "python r2.py",
+  "scope": "R2 only; frozen 3136 rows and 689 alarms; no R3 metrics or EKF",
+  "radius_m": 0.075,
+  "M": false,
+  "tie_tolerance": 1e-12,
+  "policies": {
+    "K0": "retain B",
+    "K1": "nearest integer tap to fixed P center; no RF eligibility requirement",
+    "K2": "minimum existing RF cost among eligible RF candidates inside P",
+    "K3": "minimum existing RF cost among all eligible RF candidates, replace only if inside P"
+  },
+  "abstention": "retain B on absent/tied candidate or K3 mismatch; alarm remains",
+  "inputs": {
+    "A_ALL_3136.csv": "f205b32c62779ee2831bca6f75212484587cc455bc474353b2572d7bf8fd3cbc",
+    "B_CANDIDATES.csv": "8cb843d7072d71fa5a67946e20fbcbe2398461570a18ed72351951a4ae6dec37",
+    "SUMMARY.json": "384b25b4a2ca3810617d1895cfba5de5134302e0296c71b9db898d09c376df29"
+  },
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  }
+}
