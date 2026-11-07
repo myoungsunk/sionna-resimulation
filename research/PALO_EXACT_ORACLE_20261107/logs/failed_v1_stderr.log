@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\run_exact.py", line 62, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\run_exact.py", line 48, in main
+    arr,met=replay(ch,lv,'s4',core,lut,case); original=m.get_original(ROOT,ch,lv)
+            ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\run_exact.py", line 21, in replay
+    xm,Pm=m.predict(core,x,P,c,k)
+          ~~~~~~~~~^^^^^^^^^^^^^^
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\source\palo_oracle_closedloop.py", line 95, in predict
+    return core.predict(x,P,ds,da,dt,q)[:2]
+           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\inputs\experiments\POL_FGO_CORR_20261106_v1\frozen\repo\research\EKF4_RANGE_S_STAGED_20261014\core.py", line 83, in predict
+    Q_input = covariance(Q_input, G.shape[1])
+  File "D:\codex\PALO_EXACT_ORACLE_20261107_01\inputs\experiments\POL_FGO_CORR_20261106_v1\frozen\repo\research\EKF4_RANGE_S_STAGED_20261014\core.py", line 24, in covariance
+    raise ValueError('invalid covariance shape or nonfinite entries')
+ValueError: invalid covariance shape or nonfinite entries
