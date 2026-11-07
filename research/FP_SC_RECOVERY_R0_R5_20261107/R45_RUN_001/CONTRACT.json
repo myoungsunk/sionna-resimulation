@@ -1,0 +1,37 @@
+{
+  "question_id": "B-P075-R4-R5-20261107",
+  "role": "IMPLEMENTER_SELF_CHECK",
+  "source_commit": "fca24720524068badeab79b78098a244cebc62b5",
+  "script_sha256": "1a1668b429faa2115dd9055d077e8e9bb17c072628534abdbf956fa9675d7f4f",
+  "started_utc": "2026-11-07T04:55:06.392445+00:00",
+  "arms": [
+    "B",
+    "DROP",
+    "K1_R",
+    "K2_R",
+    "K1_RS",
+    "K2_RS"
+  ],
+  "P_radius_m": 0.075,
+  "native_stencil_sigma": 2,
+  "R4_offsets_cm": [
+    -15,
+    -7.5,
+    -5,
+    -2.5,
+    0,
+    2.5,
+    5,
+    7.5,
+    15
+  ],
+  "R4": "fixed archived P with additive bias, redetect all 3136 samples, no radius tuning",
+  "R5": "own main premeasurement prior and covariance each arm; own original W0 shadow gate using arm observation; DROP skips both main and shadow updates on alarm",
+  "fixed": "initial state/cov, controls, Q, base R, muMB/muBASE and original SourceFFD observer; no refit",
+  "truth": "evaluation after recursive runs only; 3D pose NEES, no invented gyro bias truth",
+  "scope": "R4 and R5 only; exposed seed10 B0 Full R2/R4/R5; not real hardware, no generalization",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  }
+}

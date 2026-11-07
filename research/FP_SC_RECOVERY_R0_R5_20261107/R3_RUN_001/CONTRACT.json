@@ -1,0 +1,24 @@
+{
+  "question_id": "B-PONLY-RECOVERY-R3-20261107",
+  "source_commit": "fca24720524068badeab79b78098a244cebc62b5",
+  "role": "IMPLEMENTER_SELF_CHECK",
+  "scope": "R3 only; frozen R2 decisions, P radius .075, no M, no R4 or EKF",
+  "range_definition": "(selected tap - Native LoS reference tap)*299792458/(1028*1950000), meters; not geometric range error",
+  "S_definition": "(abs(CIR0[n])**2-abs(CIR1[n])**2)/sum; common selected tap; compare Native LoS S",
+  "gain_definition": "positive = baseline error minus selected error; additive absolute and squared errors, not additive RMSE",
+  "inputs": {
+    "RUN_002\\A_ALL_3136.csv": "f205b32c62779ee2831bca6f75212484587cc455bc474353b2572d7bf8fd3cbc",
+    "RUN_002\\SUMMARY.json": "384b25b4a2ca3810617d1895cfba5de5134302e0296c71b9db898d09c376df29",
+    "R2_RUN_001\\ROWS.csv": "a34b55e05b0b3045546abc7978d454bc5ac7ca4530eb9c7114d80d7d3e6e22db",
+    "R2_RUN_001\\SUMMARY.json": "6fbc90a27166554684423453062f342934defc8106bb6d8ffa158e26f1998167"
+  },
+  "script_sha256": "77d9a42f4b779b98da428438b35b0839e29a1e6d58cac758866813ec1cf1aa4d",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "started_utc": "2026-11-07T04:41:05.838196+00:00",
+  "python": "3.13.15",
+  "numpy": "2.2.4",
+  "command": "python r3.py"
+}
