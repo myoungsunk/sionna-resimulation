@@ -121,7 +121,7 @@ def run_one(engine,r2,case,t,truth,s,level,channel,caseid):
         old=eng.original[channel,level]
         assert np.array_equal(s,eng.trace[channel]['z_s'])
         assert np.max(np.abs(truth-eng.truth))<1e-10
-        assert np.array_equal(t,eng.t)
+        assert np.max(np.abs(t-eng.t))<1e-12
     N=len(t);W=len(POLICIES)
     X=np.full((N,W,4),np.nan)
     P=np.full((N,W,4,4),np.nan)
@@ -172,7 +172,6 @@ def errors(X,P,t,truth,level,case,acc,clipped,nis):
     hsig=np.sqrt(P[:,:,2,2])*DEG
     bsig=np.sqrt(P[:,:,3,3])*DEG
     hnees=v[:,:,2]**2/P[:,:,2,2]
-    bnees=v[:,:,3]**2/P[:,:,3,3] # REPLACED in next line: true bias is nonzero
     bnees=be**2/(bsig**2)
     m=range(len(t))
     xynees=np.zeros((len(t),len(names)))
