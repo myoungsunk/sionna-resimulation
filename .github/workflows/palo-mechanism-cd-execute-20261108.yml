@@ -34,7 +34,7 @@ jobs:
           python - <<'PY'
           from pathlib import Path
           import hashlib, json, os, tarfile, time, urllib.request
-          expected_sha = '77cd3137bf451327b258106cbcfecd5873e2f717f046f5c541e2e03cf63212b2'
+          expected_sha = '9b80aca4d83989549fff602170e4d941ea050410f77e935d2b67e52686299777'
           prefix='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'
           uri=prefix+os.environ['GITHUB_SHA']+'/research/PALO_MECHANISM_CD_EXEC_20261108/pinned_source.tar.bz2'
           data=None
@@ -45,7 +45,7 @@ jobs:
               except Exception:
                   if attempt==5: raise
                   time.sleep(2**attempt)
-          assert len(data)==26920 and hashlib.sha256(data).hexdigest()==expected_sha
+          assert len(data)==26896 and hashlib.sha256(data).hexdigest()==expected_sha
           archive=Path('pinned_source.tar.bz2');archive.write_bytes(data)
           names={'common.py','run_cd.py','test_math.py','verify_results.py','publish.py','EXECUTION_CONTRACT_KO.md','DESIGN_SOURCE_KO.md'}
           records={}
