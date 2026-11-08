@@ -1,0 +1,104 @@
+name: FP Native vs B causal closed-loop validation
+on:
+  push:
+    branches:
+      - analysis/fp-native-b-causal-20261108
+    paths:
+      - .github/workflows/fp-native-b-causal-20261108.yml
+      - research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: fp-native-b-causal-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  causal-validate:
+    name: R2/R4/R5 B-only, K1/K2 replay and NN/BN/NB/BB causal split
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+      GH_TOKEN: ${{ github.token }}
+      RUN_DIR: /tmp/fp-native-b-causal
+    steps:
+      - name: Sparse checkout exact branch source and frozen input pointers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git init -q .
+          git remote add origin https://github.com/myoungsunk/sionna-resimulation.git
+          git -c protocol.version=2 fetch --no-tags --depth=1 --filter=blob:none origin "$GITHUB_SHA"
+          git config core.sparseCheckout true
+          mkdir -p .git/info
+          cat > .git/info/sparse-checkout <<'LIST'
+          /.github/workflows/fp-native-b-causal-20261108.yml
+          /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
+          /research/FP_SC_RECOVERY_R0_R5_20261107/**
+          /research/FP_SC_MISSED_ONSET_T0T1_20261106/RUN_001/*FEATURES.csv
+          /research/MBVAR_PRR_001_20261103/S1/runs/EVAL_001/SCORES_PER_SEED.csv
+          /research/MBVAR_PRR_001_20261103/POST_S3_PROPOSER_20261104/R2_EXTENSION/FULL_002/NATURAL_SUMMARY.csv
+          /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/**
+          /research/FP_SC_S1_RUN_20261106/RESULTS/*/ROWS.json.gz
+          LIST
+          git checkout --detach FETCH_HEAD
+          test -s research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/analysis_package.tar.xz
+          test -s research/FP_SC_RECOVERY_R0_R5_20261107/r45.py
+          git lfs install --local
+          git lfs pull --include='research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/**' --exclude=''
+      - name: Python and pinned numeric dependencies
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install array libraries and unpack verified source package
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0 pandas==2.3.3
+          mkdir -p "$RUN_DIR" /tmp/fp-causal-code
+          tar -xJf research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/analysis_package.tar.xz -C /tmp/fp-causal-code
+          python -m compileall -q /tmp/fp-causal-code
+          python /tmp/fp-causal-code/fp_ns_ablation.py --selftest | tee "$RUN_DIR/SELFTEST.log"
+      - name: Download immutable original FFD banks from published GitHub Actions artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/fp-verified-banks
+          gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir /tmp/fp-verified-banks
+          find /tmp/fp-verified-banks -name 'LP_*bank.npz' -type f -print
+      - name: Stage 11 exact-SHA assets without modifying the archived inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u /tmp/fp-causal-code/stage_inputs.py --repo "$GITHUB_WORKSPACE" --banks /tmp/fp-verified-banks --out "$RUN_DIR/stage"
+      - name: Reproduce native/B and K1/K2 stored comparison
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u /tmp/fp-causal-code/stored_audit.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/STORED_AUDIT.json"
+      - name: Execute true NN BN NB BB closed-loop and fixed-mask causal ablation
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -u /tmp/fp-causal-code/fp_ns_ablation.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/NN_BN_NB_BB" 2>&1 | tee "$RUN_DIR/CAUSAL_RUN.log"
+          exit "${PIPESTATUS[0]}"
+      - name: Replay B-only and original K1/K2 under same frozen inputs
+        shell: bash
+        run: |
+          set -uo pipefail
+          python -u /tmp/fp-causal-code/k_recovery_parity.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/B_K_REPLAY" 2>&1 | tee "$RUN_DIR/B_K_REPLAY.log"
+          exit "${PIPESTATUS[0]}"
+      - name: Archive source, checks, results, failures and trace evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fp-native-b-causal-${{ github.run_id }}
+          path: |
+            /tmp/fp-native-b-causal/**
+            /tmp/fp-causal-code/**
+          retention-days: 7
+          if-no-files-found: warn
