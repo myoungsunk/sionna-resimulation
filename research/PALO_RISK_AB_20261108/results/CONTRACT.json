@@ -1,0 +1,67 @@
+{
+  "scope": "A/B ONLY; stored-prior counterfactuals; NOT closed-loop policy performance",
+  "base_commit": "16450dc14366ba4ed2cb4e151952493f0efc944f",
+  "donors": "12 baseline (S4/DR/Heading oracle) plus 4 development learned; 979 each",
+  "fit": "baseline S4/DR only, 40<=t<100",
+  "calibration": "baseline S4/DR only, 100<=t<120",
+  "gap": "120<=t<140",
+  "diagnostic_test": "t>=140; every donor, grouped by same physical k; R2 already exposed, NOT independent holdout",
+  "alphas": [
+    0.0,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "models": [
+    "M0 refit stump",
+    "M1 magnitude",
+    "M2 signed interactions",
+    "M3 state/motion"
+  ],
+  "forest": {
+    "n_estimators": 64,
+    "max_depth": 4,
+    "min_samples_leaf": 40,
+    "max_features": 1.0,
+    "n_jobs": 2,
+    "random_state": 2308
+  },
+  "risk_cutoffs": [
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.2,
+    0.35,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "large_loss": {
+    "heading_abs_increase_deg": 0.5,
+    "xy_abs_increase_m": 0.01
+  },
+  "calibration_selection": ">=20 accepted; positive heading and nonnegative XY squared-error sum; empirical large-loss fractions <=.05 each; no negative sum in any level with >=10 accepted; maximize calibration heading gain. Otherwise abstain.",
+  "prohibited_inputs": [
+    "truth",
+    "errors",
+    "oracle action",
+    "level",
+    "donor",
+    "group",
+    "k",
+    "t",
+    "pose_id",
+    "absolute x/y",
+    "Full-LoS difference"
+  ],
+  "exclusions": [
+    "no C/D",
+    "no generalization claim",
+    "no Gaussian calibration claim",
+    "no independent audit claim"
+  ],
+  "frozen_before_test": true
+}
