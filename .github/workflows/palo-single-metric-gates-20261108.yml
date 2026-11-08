@@ -1,0 +1,117 @@
+name: PALO single-indicator nonlinear closed-loop gates
+on:
+  push:
+    branches: [analysis/palo-single-metric-gates-20261108]
+    paths:
+      - research/PALO_SINGLE_METRIC_20261108/experiment.py
+      - .github/workflows/palo-single-metric-gates-20261108.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: palo-single-metric-${{ github.ref }}
+  cancel-in-progress: false
+env:
+  PYTHONIOENCODING: utf-8
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+jobs:
+  prepare:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install locked binary dependencies
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Fetch experiment source at triggering commit
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          p='research/PALO_SINGLE_METRIC_20261108/experiment.py'
+          u='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p
+          with urllib.request.urlopen(u,timeout=120) as r: Path('experiment.py').write_bytes(r.read())
+          PY
+          python -m py_compile experiment.py
+      - name: Check pinned sources, original replay and RF frame pairing
+        run: python -u experiment.py prepare
+      - name: Save validated inputs and exact source
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-metric-inputs
+          path: |
+            cache/
+            shared/
+            vendor/
+            experiment.py
+          retention-days: 30
+      - name: Preserve preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: single-metric-preflight
+          path: shared/
+          retention-days: 30
+  sweep:
+    needs: prepare
+    runs-on: windows-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        channel: [los, full]
+        level: [B0, L0, L1, L2]
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install exact numerical dependencies
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+      - name: Run own-state nonlinear threshold policies
+        run: python -u experiment.py case --channel ${{ matrix.channel }} --level ${{ matrix.level }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smg-case-${{ matrix.channel }}-${{ matrix.level }}
+          path: cases/
+          retention-days: 30
+  verify_publish:
+    needs: [prepare, sweep]
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_BRANCH: analysis/palo-single-metric-gates-20261108
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install exact numerical dependencies
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: smg-case-*
+          merge-multiple: true
+          path: cases/
+      - name: Independently reaggregate saved arrays, select development thresholds and publish
+        run: python -u experiment.py aggregate --publish
+      - name: Retain full results and provenance
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PALO_SINGLE_METRIC_${{ github.run_id }}
+          path: release/
+          retention-days: 30
