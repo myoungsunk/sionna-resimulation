@@ -1,0 +1,43 @@
+name: PALO S4 LoS versus Full gyro bias control
+on:
+  push:
+    branches: [analysis/palo-motion-cir-risk-20261108]
+    paths:
+      - research/PALO_MOTION_CIR_RISK_20261108/bias_los_full_control.py
+      - .github/workflows/palo-bias-full-los-control-20261108.yml
+permissions:
+  contents: write
+jobs:
+  bias_control:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TARGET_BRANCH: analysis/palo-motion-cir-risk-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install exact wheel
+        run: python -m pip install --only-binary=:all: numpy==2.2.4
+      - name: Fetch frozen source at triggering SHA
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          p='research/PALO_MOTION_CIR_RISK_20261108/bias_los_full_control.py'
+          with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p,timeout=90) as r:
+              Path('bias_los_full_control.py').write_bytes(r.read())
+          PY
+      - name: Validate LoS-Full original S4 parity and publish
+        run: python -B bias_los_full_control.py | tee bias_control.log
+      - name: Preserve control output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-bias-control-${{ github.run_id }}
+          path: |
+            control_outputs/
+            bias_control.log
+            bias_los_full_control.py
+          retention-days: 30
