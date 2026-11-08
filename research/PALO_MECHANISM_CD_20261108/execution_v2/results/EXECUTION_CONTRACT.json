@@ -1,0 +1,53 @@
+{
+  "design_commit": "657af33d5bd52c1fc706546b18c75a0a8901312b",
+  "raw_input": "4c43020f04fbbf7d0510f792c4ab99a1d9f5ddb5",
+  "donor_input": "16450dc14366ba4ed2cb4e151952493f0efc944f",
+  "source_sha": "43be3e2a572b1c4931a475500c62df64d51c4321",
+  "scope": "C0-C4 and D checkpoint interventions; NOT detector evaluation",
+  "truth_use": "decomposition, event selection, offline score only; frozen future S4 gate/DR never reads truth",
+  "alphas": [
+    0,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1
+  ],
+  "arms": [
+    "off",
+    "mean_only",
+    "P_only",
+    "on",
+    "on_no_bg",
+    "bg_only",
+    "a005",
+    "a010",
+    "a025",
+    "a050"
+  ],
+  "horizons": [
+    0,
+    1,
+    5,
+    10,
+    20
+  ],
+  "event_selection": "all S4-vs-DR pre-gate heading-benefit disagreements at t>=40 plus illustrative fixed list; both source priors; no skipping gate discordance",
+  "partitions": [
+    40,
+    100,
+    120,
+    140
+  ],
+  "bias_truth_diagnostic_only": {
+    "B0": 0,
+    "L0": 0.01,
+    "L1": 0.05,
+    "L2": 0.2
+  },
+  "published_before_run": true,
+  "execution_version": "v2 operation-order repair; unchanged parity thresholds",
+  "failed_v1_run": 42450550130,
+  "base_runner_sha256": "c1eb36f4bf761141875464989193096c3c92f53681d924f24567365635428755",
+  "driver_sha256": "dff77c5cf6b24eacfa3d24ed8d96d85620b9b055a4b82b389a55051343b5b106"
+}
