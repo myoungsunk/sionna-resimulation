@@ -1,0 +1,29 @@
+{
+  "question": "Single additional indicator; exact own-state nonlinear closed loop",
+  "policies": 130,
+  "channels": [
+    "los",
+    "full"
+  ],
+  "bias_levels": [
+    "B0",
+    "L0",
+    "L1",
+    "L2"
+  ],
+  "frames": 979,
+  "full_eval": "t>=40",
+  "development": "40<=t<120",
+  "test": "t>=140",
+  "gap": "120<=t<140",
+  "selection": "One common threshold/direction per family minimizing worst joint H/XY ratio vs DR across four Full levels on development only. Threshold sweep is exploratory; test never used for selection.",
+  "gate": "all methods share original scalar NIS99 except DR; no truth in gate; no new ML; no alpha scaling",
+  "measured_s": "nearest exact inverse root at own predicted position, circular prior branch; no root means reject; root_exists is control",
+  "labels": "truth only for post-hoc metrics, LoS only for diagnostic pairing, never policy input",
+  "data_limit": "same previously explored R2 route/seed; simulated noise-free RF, not hardware CIR",
+  "original_refs": {
+    "CD": "8894353b10f790746f32d8d82159213aad9c82a7",
+    "input": "4c43020f04fbbf7d0510f792c4ab99a1d9f5ddb5"
+  },
+  "old_cir_join_error": "k-200 into 979-frame RF table; corrected to k/pose_id"
+}
