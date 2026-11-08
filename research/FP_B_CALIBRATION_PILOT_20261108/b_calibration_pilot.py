@@ -274,7 +274,7 @@ def main():
         contract['status']='PASS_IMPLEMENTER_SELF_CHECK';contract['ended_utc']=dt.datetime.now(dt.timezone.utc).isoformat()
         json_dump(out/'CONTRACT.json',contract)
         json_dump(out/'SHA256.json',{x.name:rehash(x) for x in out.iterdir() if x.is_file() and x.name!='SHA256.json'})
-        print('CALIBRATION_COMPLETE',json.dumps({'pooled':pooled,'improvements':improvements},ensure_ascii=False,indent=2),flush=True)
+        print('HELDOUT_CHECKS_PASS', heldout, 'n=', score['n'], flush=True)
     except BaseException as e:
         json_dump(out/'FAILURE.json',{'error':repr(e),'traceback':traceback.format_exc()})
         raise
