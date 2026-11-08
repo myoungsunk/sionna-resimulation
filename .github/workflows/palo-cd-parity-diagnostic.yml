@@ -1,0 +1,69 @@
+name: PALO CD parity diagnostic
+on:
+  push:
+    branches: [analysis/palo-mechanism-cd-20261108]
+    paths: [.github/workflows/palo-cd-parity-diagnostic.yml]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOURCE_SHA: ${{ github.sha }}
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Diagnose and retain actual inputs for byte-level inspection
+        run: |
+          python -u - <<'PY' 2>&1 | tee diag.log
+          import os,urllib.request,json,math
+          from pathlib import Path
+          import numpy as np
+          base='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['SOURCE_SHA']+'/research/PALO_MECHANISM_CD_20261108/'
+          for remote,local in [('execution_v1/run_cd.py','run_cd_base.py'),('execution_v2/run_cd_exact.py','run_cd_exact.py')]:
+            with urllib.request.urlopen(base+remote,timeout=90) as r: Path(local).write_bytes(r.read())
+          import run_cd_exact as E
+          M=E.M;src=Path('source');M.download(src);m=M.Model(src)
+          inp,ctr,orig,donors,t,truth=M.get_arrays(src)
+          report={}
+          for ch in ['los','full']:
+            lv='B0';c=ctr[ch,lv];x,P=M.initial(c);xb=x.copy();pb=P.copy();rows=[];X=[];PB=[]
+            for k,z in enumerate(inp[ch]['z_s']):
+              if k:
+                Q=np.diag([2e-5*abs(c['ds_odom'][k]),math.radians(.015)**2*c['dt_s'][k],0.])
+                xx,pp,*_=m.core.predict(x,P,c['ds_odom'][k],c['dtheta_gyro'][k],c['dt_s'][k],Q)
+                vxx,vpp=m.advance(x[None],P[None],c['ds_odom'][k],c['dtheta_gyro'][k],c['dt_s'][k])
+                perr=float(np.max(abs(vxx[0]-xx)));pcerr=float(np.max(abs(vpp[0]-pp)));x,P=xx,pp
+                xb,pb=m.advance(xb[None],pb[None],c['ds_odom'][k],c['dtheta_gyro'][k],c['dt_s'][k]);xb,pb=xb[0],pb[0]
+              else:perr=pcerr=0.
+              hh,HH=m.original.model(x,m.case);vh,vH,_=m.observe(x[None])
+              uu,cc,dd=m.core.gaussian_update(x,P,np.array([float(z)]),lambda q:(m.original.model(q,m.case)[0][1:],m.original.model(q,m.case)[1][1:]),np.array([[M.RS]]),gate_threshold=M.GATE)
+              vu,vc,vd=m.candidate(x[None],P[None],float(z));accepted=vd['nis'][0]<=M.GATE
+              vu,vc=(vu[0],vc[0]) if accepted else (x,P)
+              bu,bc,bd=m.candidate(xb[None],pb[None],float(z));use=bd['nis'][0]<=M.GATE;xb,pb=(bu[0],bc[0]) if use else (xb,pb)
+              row=dict(k=k,predict_X=perr,predict_P=pcerr,h=float(vh[0]-hh[1]),H=float(np.max(abs(vH[0]-HH[1]))),update_X=float(np.max(abs(vu-uu))),update_P=float(np.max(abs(vc-cc))),scalar_stored_X=float(np.max(abs(uu-orig[ch,lv]['estimate'][k,3]))),scalar_stored_P=float(np.max(abs(cc-orig[ch,lv]['covariance'][k,3]))),batch_stored_X=float(np.max(abs(xb-orig[ch,lv]['estimate'][k,3]))),batch_stored_P=float(np.max(abs(pb-orig[ch,lv]['covariance'][k,3]))))
+              rows.append(row);x,P=uu,cc;X.append(x.copy());PB.append(P.copy())
+            import pandas as pd
+            df=pd.DataFrame(rows);df.to_csv('parity_'+ch+'.csv',index=False)
+            report[ch]=dict(maxima=df.max().to_dict(),largest_H_rows=df.nlargest(5,'H').to_dict('records'),first_diff=df[df.batch_stored_X>1e-12].head().to_dict('records'),z_dtype=str(inp[ch]['z_s'].dtype),lut_dtype=str(m.lut.dtype))
+            np.savez_compressed('scalar_'+ch+'.npz',X=np.array(X),P=np.array(PB))
+          Path('diagnosis.json').write_text(json.dumps(report,indent=2));print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: palo-cd-parity-diagnostic-${{ github.run_id }}
+          path: |
+            source/
+            diagnosis.json
+            parity_*.csv
+            scalar_*.npz
+            diag.log
+            run_cd_base.py
+            run_cd_exact.py
+          retention-days: 30
+          compression-level: 0
