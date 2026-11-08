@@ -1,0 +1,45 @@
+name: PALO mechanism endpoint verification
+on:
+  push:
+    branches: [analysis/palo-mechanism-cd-20261108]
+    paths:
+      - research/PALO_MECHANISM_CD_20261108/analyze_mechanism.py
+      - .github/workflows/palo-mechanism-cd-design-20261108.yml
+permissions:
+  contents: write
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SOURCE_SHA: ${{ github.sha }}
+      BRANCH: analysis/palo-mechanism-cd-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fixed numerical dependencies
+        run: python -m pip install numpy==2.2.4 pandas==2.2.3
+      - name: Read exact submitted script without cloning the large repository
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          from pathlib import Path
+          u='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['SOURCE_SHA']+'/research/PALO_MECHANISM_CD_20261108/analyze_mechanism.py'
+          with urllib.request.urlopen(u, timeout=90) as r:
+              Path('analyze_mechanism.py').write_bytes(r.read())
+          PY
+      - name: Recalculate saved-row endpoint diagnostics and publish; no physical C/D
+        run: |
+          set -o pipefail
+          python analyze_mechanism.py --source source --output output --download --publish | tee run.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: palo-mechanism-endpoints-${{ github.run_id }}
+          path: |
+            output/
+            run.log
+            analyze_mechanism.py
+          retention-days: 30
