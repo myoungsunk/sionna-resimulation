@@ -1,0 +1,58 @@
+{
+  "question": "C/D same-RF mechanism verification",
+  "design_commit": "657af33d5bd52c1fc706546b18c75a0a8901312b",
+  "input_commit": "4c43020f04fbbf7d0510f792c4ab99a1d9f5ddb5",
+  "gap_commit": "16450dc14366ba4ed2cb4e151952493f0efc944f",
+  "source_sha": "d46a1fb924688284f780d3546288b2e0dba5b7d6",
+  "github_run_id": "42453921978",
+  "environment": {
+    "python": "3.13.17",
+    "numpy": "2.2.4",
+    "pandas": "2.2.3"
+  },
+  "alpha_grid": [
+    0.0,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "fixed_events": [
+    201,
+    483,
+    485,
+    525,
+    630,
+    962,
+    973
+  ],
+  "horizons": [
+    0,
+    1,
+    5,
+    10,
+    20
+  ],
+  "arms": [
+    "OFF",
+    "MEAN_ONLY",
+    "P_ONLY",
+    "ON",
+    "NO_BIAS_UPDATE",
+    "BIAS_ONLY",
+    "SOFT_005",
+    "SOFT_010",
+    "SOFT_025",
+    "SOFT_050"
+  ],
+  "futures": [
+    "s4",
+    "off"
+  ],
+  "truth": "offline diagnostics and scores only; no online selector is fit",
+  "primary": "S4 vs DR; full; 4 levels x779; all gate-before candidates",
+  "D_events": "all primary endpoint sign disagreements plus predeclared illustrations, BOTH S4 and DR checkpoints",
+  "horizon_boundary": "same 40/100/120/140 split segment; truncated horizons excluded",
+  "started": "2026-11-08T06:15:06.102567+00:00"
+}
