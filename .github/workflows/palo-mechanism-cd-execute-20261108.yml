@@ -1,0 +1,103 @@
+name: PALO exact mechanism C-D execution
+on:
+  push:
+    branches: ['analysis/palo-mechanism-cd-execution-*']
+    paths:
+      - 'research/PALO_MECHANISM_CD_EXEC_20261108/pinned_source.tar.bz2'
+      - '.github/workflows/palo-mechanism-cd-execute-20261108.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: palo-cd-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify-mechanism:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PYTHONUNBUFFERED: '1'
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fixed numerical environment
+        run: python -m pip install numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Restore pinned research sources and verify archive
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib, json, os, tarfile, time, urllib.request
+          expected_sha = '1d36b10925c6289b356df284ec52b34f203de04a6c2462182629f961a8990423'
+          prefix='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'
+          uri=prefix+os.environ['GITHUB_SHA']+'/research/PALO_MECHANISM_CD_EXEC_20261108/pinned_source.tar.bz2'
+          data=None
+          for attempt in range(6):
+              try:
+                  with urllib.request.urlopen(uri,timeout=120) as resp: data=resp.read()
+                  break
+              except Exception:
+                  if attempt==5: raise
+                  time.sleep(2**attempt)
+          assert len(data)==26782 and hashlib.sha256(data).hexdigest()==expected_sha
+          archive=Path('pinned_source.tar.bz2');archive.write_bytes(data)
+          names={'common.py','run_cd.py','test_math.py','verify_results.py','publish.py','EXECUTION_CONTRACT_KO.md','DESIGN_SOURCE_KO.md'}
+          records={}
+          with tarfile.open(archive,'r:bz2') as tf:
+              members=tf.getmembers()
+              assert {m.name for m in members}==names
+              for m in members:
+                  assert m.isfile() and '/' not in m.name and '\\' not in m.name and '..' not in m.name
+                  content=tf.extractfile(m).read()
+                  Path(m.name).write_bytes(content)
+                  records[m.name]={'bytes':len(content),'sha256':hashlib.sha256(content).hexdigest()}
+          Path('SOURCE_CODE_SHA256.json').write_text(json.dumps(records,indent=2)+'\n')
+          print('SOURCE_ARCHIVE_SHA256_OK',expected_sha,'files',len(records))
+          PY
+      - name: Synthetic mathematical and fail-closed tests
+        run: |
+          set -o pipefail
+          python test_math.py 2>&1 | tee synthetic.log
+      - name: C0 parity, C factorial interventions and D exact causal rollouts
+        run: |
+          set -o pipefail
+          python run_cd.py --download --cache cache --output output 2>&1 | tee execution.log
+      - name: Preserve exact executed code in result tree
+        run: |
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          out=Path('output')
+          sources=out/'executed_source';sources.mkdir(exist_ok=False)
+          names=('common.py','run_cd.py','test_math.py','verify_results.py','publish.py')
+          manifest=json.loads((out/'OUTPUT_SHA256.json').read_text())
+          for name in names:
+              source=Path(name).read_bytes()
+              dest=sources/name;dest.write_bytes(source)
+              manifest['executed_source/'+name]={'bytes':len(source),'sha256':hashlib.sha256(source).hexdigest()}
+          (out/'OUTPUT_SHA256.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          PY
+      - name: Independent stored-array and scalar-source verification
+        run: |
+          set -o pipefail
+          python verify_results.py --cache cache --output output 2>&1 | tee verification.log
+      - name: Commit verified code-generated data to same research branch
+        run: |
+          set -o pipefail
+          python publish.py --output output 2>&1 | tee publish.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: palo-mechanism-cd-${{ github.run_id }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            output/
+            pinned_source.tar.bz2
+            *.py
+            *.json
+            *.md
+            *.log
