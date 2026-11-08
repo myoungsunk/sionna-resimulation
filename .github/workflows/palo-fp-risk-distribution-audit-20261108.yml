@@ -1,0 +1,48 @@
+name: PALO FP spread and harmful heading update distribution audit
+on:
+  push:
+    branches: [analysis/palo-motion-cir-risk-20261108]
+    paths:
+      - research/PALO_MOTION_CIR_RISK_20261108/fp_risk_distribution_audit.py
+      - .github/workflows/palo-fp-risk-distribution-audit-20261108.yml
+permissions:
+  contents: write
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TARGET_BRANCH: analysis/palo-motion-cir-risk-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned binary wheels
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 scikit-learn==1.6.1
+      - name: Retrieve exact audit source
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          s=os.environ['GITHUB_SHA']
+          p='research/PALO_MOTION_CIR_RISK_20261108/fp_risk_distribution_audit.py'
+          req=urllib.request.Request('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+s+'/'+p,headers={'User-Agent':'PALO-FP-QA'})
+          with urllib.request.urlopen(req,timeout=90) as r:
+              Path('audit.py').write_bytes(r.read())
+          PY
+      - name: Recalculate gate-aware severity and publish
+        run: |
+          set -o pipefail
+          python -B audit.py | tee run.log
+      - name: Keep all evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-fp-harm-audit-${{ github.run_id }}
+          path: |
+            audit_outputs/
+            audit.py
+            run.log
+          retention-days: 30
