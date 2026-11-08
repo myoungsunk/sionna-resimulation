@@ -1,0 +1,45 @@
+name: PALO motion and first-path CIR risk diagnostic
+on:
+  push:
+    branches: [analysis/palo-motion-cir-risk-20261108]
+    paths:
+      - research/PALO_MOTION_CIR_RISK_20261108/run_analysis.py
+      - .github/workflows/palo-motion-cir-risk-20261108.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  frozen_r2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TARGET_BRANCH: analysis/palo-motion-cir-risk-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Install locked scientific dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 scikit-learn==1.6.1
+      - name: Fetch exact commit source (no huge repository clone)
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          from pathlib import Path
+          sha=os.environ['GITHUB_SHA']
+          url=f'https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/{sha}/research/PALO_MOTION_CIR_RISK_20261108/run_analysis.py'
+          req=urllib.request.Request(url,headers={'User-Agent':'PALO-research'})
+          with urllib.request.urlopen(req,timeout=90) as r: Path('run_analysis.py').write_bytes(r.read())
+          PY
+      - name: Execute provenance-gated motion and CIR diagnostic and commit full result
+        run: |
+          python -B run_analysis.py | tee run.log
+      - name: Retain logs and outputs even on failure
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: palo-motion-cir-${{ github.run_id }}
+          path: |
+            outputs/
+            run.log
+            run_analysis.py
+          retention-days: 30
