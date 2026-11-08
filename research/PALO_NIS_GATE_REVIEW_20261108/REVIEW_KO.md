@@ -1,6 +1,6 @@
 # PALO — NIS 스칼라 게이트의 의미, 필터 성능, 시점별 손익 재검증
 
-원전: [single-metric Actions #42466288321](https://github.com/myoungsunk/sionna-resimulation/actions/runs/42466288321); 결과 커밋 \`b369d894b70a2c35517314172a322d87fc2f1942\`, [ALL_METRICS.csv](../PALO_SINGLE_METRIC_20261108/runs/42466288321/ALL_METRICS.csv) (SHA256 \`f173f150fa6cafdd17277cc0605683e227c89c36d3f857643f2f573ef540d4ea\`), [원본 재귀 검증](../PALO_SINGLE_METRIC_20261108/runs/42466288321/VERIFICATION.json).
+원전: [single-metric Actions #42466288321](https://github.com/myoungsunk/sionna-resimulation/actions/runs/42466288321); 결과 커밋 `b369d894b70a2c35517314172a322d87fc2f1942`, [ALL_METRICS.csv](../PALO_SINGLE_METRIC_20261108/runs/42466288321/ALL_METRICS.csv) (SHA256 `f173f150fa6cafdd17277cc0605683e227c89c36d3f857643f2f573ef540d4ea`), [원본 재귀 검증](../PALO_SINGLE_METRIC_20261108/runs/42466288321/VERIFICATION.json).
 이 리뷰는 이미 통과한 1040 폐루프 궤적의 **저장 결과 재집계**이며 새로운 필터 실행 또는 새로운 독립 환경 시험은 아니다.
 [정리된 192행 NIS 정책별 데이터](NIS_POLICY_METRICS.csv) 포함.
 
