@@ -37,3 +37,7 @@ Per-run source hash file, checkout SHA, input receipts, baseline checkpoints, fu
 ## Local validation before dispatch
 
 See LOCAL_VALIDATION.json: all-route native/B baseline parity, max normalized discrepancy 1.7653e-14; targeted negative/positive tests; real R2 four-arm natural/fixed smoke; 11-file staging repeat. Local NumPy/SciPy versions differ from pinned CI; CI repeats parity and must fail before downstream calculations if platform drift exceeds the frozen threshold.
+
+## Input transport follow-up
+
+Run 42466883944 stopped on repeated HTTP 504 from Release browser URLs before science. Use pinned asset-ID API octet-stream requests first (Authorization only at API origin), retaining browser URL as final alternate. This changes transport only; original SHA/size stay fixed. Failed run evidence is retained.

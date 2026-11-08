@@ -20,7 +20,14 @@ def acquire(record,out,attempts=3):
     part=target.with_suffix(target.suffix+'.part')
     for attempt in range(attempts):
         try:
-            req=urllib.request.Request(record['download_url'],headers={'User-Agent':'fp-input-acquisition'})
+            # Asset API bypasses failing browser-download gateway responses.
+            # Authentication is sent only to api.github.com, never redirects.
+            if record.get('asset_id') and attempt<2:
+                url='https://api.github.com/repos/myoungsunk/sionna-resimulation/releases/assets/'+str(record['asset_id'])+'?download=1&attempt='+str(attempt)
+                req=urllib.request.Request(url,headers={'User-Agent':'fp-input-acquisition','Accept':'application/octet-stream'})
+                if os.environ.get('GH_TOKEN'):req.add_unredirected_header('Authorization','Bearer '+os.environ['GH_TOKEN'])
+            else:
+                req=urllib.request.Request(record['download_url'],headers={'User-Agent':'fp-input-acquisition'})
             with urllib.request.urlopen(req,timeout=60) as src,part.open('wb') as dst:
                 started=time.monotonic()
                 while chunk:=src.read(1024*1024):
