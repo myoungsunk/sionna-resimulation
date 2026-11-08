@@ -1,0 +1,51 @@
+name: PALO risk stages A and B
+on:
+  push:
+    branches: [analysis/palo-risk-ab-20261108]
+    paths:
+      - research/PALO_RISK_AB_20261108/run_ab.py
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: palo-risk-ab-20261108
+  cancel-in-progress: false
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fixed numerical dependencies
+        run: python -m pip install numpy==2.2.4 scipy==1.15.2 pandas==2.2.3 scikit-learn==1.6.1 joblib==1.4.2
+      - name: Read the exact submitted analysis script
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import os, urllib.request
+          u='https://raw.githubusercontent.com/'+os.environ['REPO']+'/'+os.environ['SOURCE_SHA']+'/research/PALO_RISK_AB_20261108/run_ab.py'
+          with urllib.request.urlopen(u, timeout=60) as r: data=r.read()
+          open('run_ab.py','wb').write(data)
+          PY
+      - name: Execute fixed-prior A and B and publish verified outputs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          BRANCH: analysis/palo-risk-ab-20261108
+          RUN_ID: ${{ github.run_id }}
+          OMP_NUM_THREADS: '1'
+          OPENBLAS_NUM_THREADS: '1'
+        run: python -u run_ab.py --output out --publish
+      - name: Retain output files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-risk-ab-${{ github.run_id }}
+          path: out
+          if-no-files-found: warn
+          retention-days: 30
