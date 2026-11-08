@@ -1,0 +1,137 @@
+name: PALO pinned NIS gate route transfer R2 R4 R5
+on:
+  push:
+    branches: [analysis/palo-nis-transfer-r2-r4-r5-20261108]
+    paths:
+      - research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py
+      - .github/workflows/palo-nis-route-transfer-20261108.yml
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Set Python and numerical wheels
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install original numerical dependencies
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Load R2 frozen input artifact (read-only and previously verified)
+        uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Load source at triggering SHA and verify R2 frozen files
+        run: |
+          python - <<'PY'
+          import os,urllib.request,hashlib
+          from pathlib import Path
+          source='research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py'
+          url=f"https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/{os.environ['GITHUB_SHA']}/{source}"
+          with urllib.request.urlopen(url,timeout=90) as r:b=r.read()
+          Path('validate_routes.py').write_bytes(b)
+          print('SOURCE_SHA256',hashlib.sha256(b).hexdigest(),'bytes',len(b))
+          assert Path('vendor/common.py').is_file()
+          assert Path('cache/pol/experiments/POL_FGO_CORR_20261106_v1/frozen/repo/results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy').is_file()
+          assert Path('cache/pol/inputs/original_run/results/replay/R2_aB_m0_full_B0_seed0_recursive.npz').is_file()
+          PY
+          python -m py_compile validate_routes.py
+  case:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        case:
+          - R2_aA_m0
+          - R2_aA_m45
+          - R2_aB_m0
+          - R4_aA_m0
+          - R4_aB_m0
+          - R5_aA_m0
+          - R5_aB_m0
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install binary numerical stack
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Fetch original frozen LUT, IMU simulator and R2 source artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch frozen experiment code
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          path='research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py'
+          url=f"https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/{os.environ['GITHUB_SHA']}/{path}"
+          with urllib.request.urlopen(url,timeout=90) as f:Path('validate_routes.py').write_bytes(f.read())
+          PY
+      - name: Replay four filter policies on one original RF geometry
+        run: |
+          set -o pipefail
+          python -B validate_routes.py case --case ${{ matrix.case }} | tee case_${{ matrix.case }}.log
+      - name: Preserve source and all per-case evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nis-case-${{ matrix.case }}
+          path: |
+            case-results/
+            case_${{ matrix.case }}.log
+          retention-days: 30
+  verify_publish:
+    needs: case
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TARGET_BRANCH: analysis/palo-nis-transfer-r2-r4-r5-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned result verifier
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3
+      - name: Retrieve seven complete case artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: nis-case-*
+          path: case-results/
+          merge-multiple: true
+      - name: Retrieve exact verified source
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          src='research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py'
+          with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+src,timeout=90) as r:Path('validate_routes.py').write_bytes(r.read())
+          PY
+      - name: Verify originals, aggregate and push immutable results
+        run: |
+          set -o pipefail
+          python -B validate_routes.py aggregate --publish | tee aggregate.log
+      - name: Preserve verified final outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-nis-transfer-${{ github.run_id }}
+          path: |
+            case-results/
+            validate_routes.py
+            aggregate.log
+          retention-days: 30
