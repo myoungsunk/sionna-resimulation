@@ -19,7 +19,8 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install exact wheel
-        run: python -m pip install --only-binary=:all: numpy==2.2.4
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4
       - name: Fetch frozen source at triggering SHA
         run: |
           python - <<'PY'
