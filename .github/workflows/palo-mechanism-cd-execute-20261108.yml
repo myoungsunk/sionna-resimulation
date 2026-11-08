@@ -12,25 +12,30 @@ concurrency:
   cancel-in-progress: false
 jobs:
   execute:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
     env:
       SOURCE_SHA: ${{ github.sha }}
       BRANCH: analysis/palo-mechanism-cd-20261108
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       OPENBLAS_NUM_THREADS: '1'
       OMP_NUM_THREADS: '1'
+      PYTHONUTF8: '1'
     steps:
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Install pinned numerical dependencies
+          python-version: '3.13'
+      - name: Install original pinned numerical dependencies
         run: python -m pip install numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
       - name: Fetch frozen base and repaired driver, compile
         run: |
           python - <<'PY'
-          import os,urllib.request,hashlib,py_compile
+          import os,urllib.request,hashlib,py_compile,platform
           from pathlib import Path
+          print('RUNTIME',platform.platform(),platform.python_version())
           base='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['SOURCE_SHA']+'/research/PALO_MECHANISM_CD_20261108/'
           for remote,local in [('execution_v1/run_cd.py','run_cd_base.py'),('execution_v2/run_cd_exact.py','run_cd_exact.py')]:
               with urllib.request.urlopen(base+remote,timeout=90) as r: b=r.read()
