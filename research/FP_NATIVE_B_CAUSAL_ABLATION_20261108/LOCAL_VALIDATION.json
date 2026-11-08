@@ -1,0 +1,122 @@
+{
+  "question_id": "FP-NATIVE-B-CAUSAL-REPAIR-20261108",
+  "role": "IMPLEMENTER_SELF_CHECK",
+  "base_commit": "89e582703fd9332315664db1afab6fea172f5c16",
+  "branch": "analysis/fp-native-b-causal-20261108",
+  "governance_applicability": "Repository governance explicitly scoped to MBVAR-INFO, outside this package. Local common contract applies; no independent audit claimed.",
+  "governance_sha256": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "baseline": {
+    "status": "PASS",
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "checks": {
+      "R2": {
+        "NN_prior": 1.765254609153999e-14,
+        "NN_Pprior": 1.457167719820518e-16,
+        "NN_h": 5.662137425588298e-15,
+        "NN_H": 1.26018212526534e-14,
+        "NN_K": 5.88418203051333e-15,
+        "NN_Reff": 5.551115123125783e-17,
+        "NN_mask": 0.0,
+        "NN_x": 1.7486012637846216e-14,
+        "NN_P": 1.457167719820518e-16,
+        "BB_x": 1.7208456881689926e-15,
+        "BB_P": 3.122502256758253e-17,
+        "BB_prior": 1.7208456881689926e-15,
+        "BB_Pprior": 3.122502256758253e-17,
+        "BB_h": 2.220446049250313e-15,
+        "BB_H": 1.074140776324839e-14,
+        "BB_K": 1.5126788710517758e-15,
+        "BB_Reff": 2.7755575615628914e-17,
+        "BB_mask": 0.0
+      },
+      "R4": {
+        "NN_prior": 4.218847493575595e-15,
+        "NN_Pprior": 1.0408340855860843e-17,
+        "NN_h": 5.190292640122607e-15,
+        "NN_H": 1.1231807794232863e-14,
+        "NN_K": 1.4432899320127035e-15,
+        "NN_Reff": 2.7755575615628914e-17,
+        "NN_mask": 0.0,
+        "NN_x": 4.218847493575595e-15,
+        "NN_P": 1.0408340855860843e-17,
+        "BB_x": 1.7208456881689926e-15,
+        "BB_P": 1.214306433183765e-17,
+        "BB_prior": 1.7208456881689926e-15,
+        "BB_Pprior": 1.214306433183765e-17,
+        "BB_h": 3.164135620181696e-15,
+        "BB_H": 9.159339953157541e-15,
+        "BB_K": 1.2351231148954867e-15,
+        "BB_Reff": 2.7755575615628914e-17,
+        "BB_mask": 0.0
+      },
+      "R5": {
+        "NN_prior": 6.050715484207103e-15,
+        "NN_Pprior": 3.382710778154774e-16,
+        "NN_h": 2.7755575615628914e-15,
+        "NN_H": 1.025221574302293e-14,
+        "NN_K": 5.655198531684391e-15,
+        "NN_Reff": 2.7755575615628914e-17,
+        "NN_mask": 0.0,
+        "NN_x": 6.050715484207103e-15,
+        "NN_P": 3.382710778154774e-16,
+        "BB_x": 6.5503158452884236e-15,
+        "BB_P": 1.6306400674181987e-16,
+        "BB_prior": 6.5503158452884236e-15,
+        "BB_Pprior": 1.6306400674181987e-16,
+        "BB_h": 1.4432899320127035e-15,
+        "BB_H": 9.159339953157541e-15,
+        "BB_K": 3.0461744238152733e-15,
+        "BB_Reff": 2.7755575615628914e-17,
+        "BB_mask": 0.0
+      }
+    },
+    "source_hashes": {
+      "research/FFD_P0P3_20261016/source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+      "research/FFD_P0P3_20261016/p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+      "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+      "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+      "research/MBVAR_PRR_001_20261103/S1/online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+      "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+      "src/qclean_uwb/drivesim/observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+      "src/qclean_uwb/drivesim/hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+      "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+      "src/qclean_uwb/drivesim/sensor_v2.py": "e74cd4657b9784f5a5ef06b6bbeae9bce807d1942ddc9046a1513186dde7be40",
+      "src/qclean_uwb/drivesim/sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118"
+    },
+    "checkpoint_sha256": {
+      "R2_BB.npz": "bbf260bf92b716db426a5b151f87ebb4ea1e24cb493d4e2ca223476688d26d47",
+      "R2_NN.npz": "378ca4f21ee9e728c54cf3ab2abd7a823efd055c1fb6a9198f22271827f4a24b",
+      "R4_BB.npz": "df06c8304efc37424a91b549b78a03e0dca76c352b9ba4e5d9031645087f5940",
+      "R4_NN.npz": "efd843e41780e0145e4cb13c0f68558c80e2a46ebd680550c43b151ff3082cd1",
+      "R5_BB.npz": "e683fbe2ecaba769f18abfce8208bc0abdf2a7ef185a6c15b65d1e002ddd8bda",
+      "R5_NN.npz": "56826c5061ff72ef746e3181c150b1ac2fd2201d2a19e7ae267c75dc0218b960"
+    },
+    "truth_access": false,
+    "tolerance": 1e-10
+  },
+  "tests": [
+    "4 targeted repair tests PASS",
+    "source compile PASS",
+    "YAML parse PASS",
+    "11 exact inputs staged twice PASS",
+    "stored audit PASS",
+    "R2 four-arm natural/fixed real RF canary PASS"
+  ],
+  "source_files_sha256": {
+    "acquire_inputs.py": "785cf41b01754f579531d01c5e7b2dacd45bf316b004c8497e2c8098b166c5e9",
+    "baseline_gate.py": "7f4f2c264eaa887bcc91f5dc799a76578a8730c020c5f11e5c40de6a7d428d80",
+    "fp_ns_ablation.py": "d0e62c74738a07cdc52e386d5d59fec4a0c98ddfe13619e309b5c2047c71c556",
+    "k_recovery_parity.py": "b25ac64f8ad0a4452888e7670f34ba48de7c707b21596390e8ceb8438c4ef06b",
+    "replay_evidence.py": "8eaf6510a56253ae6064115112b5b9ae411b32c813eafddce5becd5c72176e7d",
+    "stage_inputs.py": "260725f9e07e08f6c47353d1a9c36f256744ded7393b8772d6d4e7bc66f9408f",
+    "stored_audit.py": "1e71886de4f7830cc40b9a18f2e96ce6ae4ffdf7ed8be143ca069adb8978843d",
+    "test_repairs.py": "4f3ce1fd95e9935871ab4f43a02b9caa58e184f9b2e0c51172255b0ec1db97bf"
+  }
+}

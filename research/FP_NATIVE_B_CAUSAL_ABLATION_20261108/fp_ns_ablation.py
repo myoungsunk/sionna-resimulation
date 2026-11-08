@@ -19,6 +19,7 @@ import os
 import pathlib
 import sys
 import traceback
+from replay_evidence import replay_checkpoint,baseline_parity
 
 for _key in ('OPENBLAS_NUM_THREADS','MKL_NUM_THREADS','OMP_NUM_THREADS'):
     os.environ[_key]='1'
@@ -146,49 +147,48 @@ def common_shadow_gate(core,online,model,spec,controls,on,zs):
 def calc_one_step(trN, zs, on):
     z0=zs['NN'];K=np.asarray(trN['K'])
     dr=zs['BB'][:,0]-z0[:,0];ds=zs['BB'][:,1]-z0[:,1]
-    dR=K[:,:,0]*dr[:,None]
-    dS=K[:,:,1]*ds[:,None]
+    # Ungated hypothetical gain from the SAME native prior/H/Reff, even when
+    # the shadow gate rejected. This is a counterfactual, not an actual update.
+    H=trN['H'];P=trN['Pprior'];R=trN['Reff']
+    S=H@P@H.transpose(0,2,1)+R;S=(S+S.transpose(0,2,1))*.5
+    hypothetical=np.linalg.solve(S,H@P).transpose(0,2,1)
+    assert np.allclose(K[trN['mask']],hypothetical[trN['mask']],atol=1e-12,rtol=1e-12)
+    dR=K[:,:,0]*dr[:,None];dS=K[:,:,1]*ds[:,None]
+    potentialR=hypothetical[:,:,0]*dr[:,None];potentialS=hypothetical[:,:,1]*ds[:,None]
     direct=np.einsum('nij,nj->ni',K,zs['BB']-z0)
     assert np.max(abs(direct-dR-dS))<1e-12
-    return dr,ds,dR,dS
+    return dr,ds,dR,dS,potentialR,potentialS,hypothetical
 
 
-def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes):
+def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes,baseline,calibration):
     controls={k:on[k] for k in ['ds','gy','dt']}
     controls['x0']=on['x0'][:3]
     # Truth is not accessed until all genuine recursive calculations finish.
+    route=case.split('_')[0]
     traces={}
     for arm in ARMS:
         packet=dict(on);packet['z']=zs[arm]
-        traces[arm]=online.replay(packet,controls,'W0',core,model,r45.SPEC)
+        checkpoint=(baseline/(route+'_'+arm+'.npz')) if calibration=='frozen' and arm in ('NN','BB') else output/'checkpoints'/(route+'_'+arm+'.npz')
+        traces[arm]=replay_checkpoint(checkpoint,packet,controls,core,online,model,r45.SPEC,hashes)
     tN=traces['NN'];tB=traces['BB']
-    native_errors={}
-    for fld in ['x','P','prior','Pprior','h','H','K','mask']:
-        left=np.asarray(tN[fld]);right=np.asarray(on['trace_'+fld]);
-        native_errors[fld]=float(np.max(abs(left.astype(float)-right.astype(float))/np.maximum(1.,abs(right.astype(float)))))
-    assert max(native_errors.values())<=1e-10,(case,'NATIVE_W0_REPLAY_FAIL',native_errors)
-    assert np.array_equal(tN['mask'],on['trace_mask'])
-    route=case.split('_')[0]
-    archived=r45.ROOT/'R45_RUN_001'/(route+'_TRACE.npz')
-    assert archived.is_file(),('ARCHIVED_B_TRACE_MISSING',archived)
-    with np.load(archived,allow_pickle=False) as f:
-        b_errors={}
-        for fld in ['x','P','prior','Pprior','h','H','K']:
-            right=f[fld][:,0];left=tB[fld]
-            b_errors[fld]=float(np.max(abs(left-right)/np.maximum(1.,abs(right))))
-        assert max(b_errors.values())<=1e-10,(case,'B_W0_REPLAY_FAIL',b_errors)
-        assert np.array_equal(tB['mask'],f['accepted'][:,0].astype(bool))
+    if calibration=='frozen':
+        parity=baseline_parity(case,on,tN,tB,r45.ROOT/'R45_RUN_001'/(route+'_TRACE.npz'))
+        native_errors={k:v for k,v in parity.items() if k.startswith('NN_')}
+        b_errors={k:v for k,v in parity.items() if k.startswith('BB_')}
+    else:
+        native_errors={'status':'NOT_APPLICABLE_MODIFIED_CALIBRATION'}
+        b_errors={'status':'NOT_APPLICABLE_MODIFIED_CALIBRATION'}
 
     common_nis,common_mask=common_shadow_gate(core,online,model,r45.SPEC,controls,on,zs)
     assert np.array_equal(common_mask[:,0],tN['mask']),(case,'SHADOW_GATE_REPLAY_FAIL')
     # Third design: each arm receives NN gate decisions at ALL timesteps.
-    fixed={}
+    fixed={'NN':tN}
     for arm in ALT:
         packet=dict(on);packet['z']=zs[arm]
-        fixed[arm]=online.replay(packet,controls,'W0',core,model,r45.SPEC,fixed_mask=tN['mask'])
+        fixed[arm]=replay_checkpoint(output/'checkpoints'/(route+'_'+arm+'_fixed.npz'),packet,controls,core,online,model,r45.SPEC,hashes,mask=tN['mask'])
         assert np.array_equal(fixed[arm]['mask'],tN['mask'])
 
-    dr,ds,dR,dS=calc_one_step(tN,zs,on)
+    dr,ds,dR,dS,potentialR,potentialS,hypothetical=calc_one_step(tN,zs,on)
     # Exact innovation accounting: muMB is fixed in every arm.
     # nu_BB - nu_NN = (z_BB - z_NN) - (h_BB - h_NN).
     direct_z=zs['BB']-zs['NN']
@@ -226,6 +226,7 @@ def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes)
             's_only_NB_minus_NN':v['NB']-v['NN'],
             'total_BB_minus_NN':v['BB']-v['NN'],
             'interaction_BB_minus_BN_minus_NB_plus_NN':v['BB']-v['BN']-v['NB']+v['NN']}
+    interactions_fixed=interaction_effects(results_fixed)
     same=np.all(abs(zs['NN']-zs['BB'])<1e-10,axis=1)
     state_xy=np.linalg.norm(tB['x'][:,:2]-tN['x'][:,:2],axis=1)
     state_psi=np.degrees(abs(wrap(tB['x'][:,2]-tN['x'][:,2])))
@@ -243,6 +244,11 @@ def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes)
          instant_same_prior_mean_abs_heading_effect_range_deg=float(np.degrees(np.mean(abs(dR[:,2]))),),
          instant_same_prior_mean_abs_heading_effect_s_deg=float(np.degrees(np.mean(abs(dS[:,2]))),),
          instant_same_prior_heading_delta_correlation=float(np.corrcoef(dR[:,2],dS[:,2])[0,1]) if np.std(dR[:,2])>0 and np.std(dS[:,2])>0 else None)
+    one_step_groups={}
+    for label,mask in [('all',np.ones(len(dr),bool)),('native_accepted',tN['mask']),('native_rejected',~tN['mask'])]:
+        one_step_groups[label]={'n':int(mask.sum()),'counterfactual':True}
+        for name,v in [('actual_range',dR),('actual_s',dS),('potential_range',potentialR),('potential_s',potentialS)]:
+            one_step_groups[label][name+'_heading_mean_abs_deg']=float(np.degrees(np.mean(abs(v[mask,2])))) if mask.any() else None
     rows=[]
     for k in range(len(on['t'])):
         row={'case':case,'k':k,'t_s':float(on['t'][k]),'native_tap':int(native[k]),'B_tap':int(B[k]),
@@ -255,6 +261,8 @@ def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes)
              'NN_to_BB_state_heading_deg':float(state_psi[k]),
              'instant_psi_delta_range_deg':float(np.degrees(dR[k,2])),
              'instant_psi_delta_s_deg':float(np.degrees(dS[k,2])),
+             'potential_psi_delta_range_deg':float(np.degrees(potentialR[k,2])),
+             'potential_psi_delta_s_deg':float(np.degrees(potentialS[k,2])),
              'NN_heading_abs_error_deg':float(abs(np.degrees(wrap(tN['x'][k,2]-truth[k,2])))),
              'BB_heading_abs_error_deg':float(abs(np.degrees(wrap(tB['x'][k,2]-truth[k,2])))),
              'NN_XY_error_cm':float(100*np.linalg.norm(tN['x'][k,:2]-truth[k,:2])),
@@ -263,39 +271,43 @@ def case_data(case,on,ev_loader,zs,native,B,core,online,model,r45,output,hashes)
     dump_csv(output/(route+'_ROWS.csv'),rows)
     np.savez_compressed(output/(route+'_TRACES.npz'),
         native_tap=native,B_tap=B,delta_r_m=dr,delta_s=ds,
+        actual_delta_range=dR,actual_delta_s=dS,potential_delta_range=potentialR,potential_delta_s=potentialS,hypothetical_K=hypothetical,
         common_gate_nis=common_nis,common_gate_mask=common_mask,
-        **{a+'_x':traces[a]['x'] for a in ARMS},
-        **{a+'_P':traces[a]['P'] for a in ARMS},
-        **{a+'_prior':traces[a]['prior'] for a in ARMS},
-        **{a+'_H':traces[a]['H'] for a in ARMS},
-        **{a+'_K':traces[a]['K'] for a in ARMS},
-        **{a+'_mask':traces[a]['mask'] for a in ARMS},
-        **{a+'_fixedgate_x':fixed[a]['x'] for a in ALT},
-        **{a+'_fixedgate_P':fixed[a]['P'] for a in ALT},
+        **{a+'_'+key:value for a,tr in traces.items() for key,value in tr.items()},
+        **{a+'_fixedgate_'+key:value for a,tr in fixed.items() for key,value in tr.items()},
+        **{a+'_z':zs[a] for a in ARMS},base_R=on['R'],muBASE=on['muBASE'],muMB=on['muMB'],
         t=on['t'],pose_id=on['pose_id'])
     return dict(case=case,n=len(on['t']),metrics=results,metrics_fixed_mask=results_fixed,
-                interactions=interactions,contamination=contamination,
+                interactions=interactions,interactions_fixed_mask=interactions_fixed,one_step_groups=one_step_groups,contamination=contamination,
                 innovation_accounting=innovation_accounting,
                 original_W0_parity=native_errors,old_R5_B_parity=b_errors)
 
 
+def interaction_effects(results):
+    ans={}
+    for metric in ['heading_mse_deg2','xy_mse_m2']:
+        v={arm:results[arm][metric] for arm in ARMS}
+        ans[metric]={'range_BN_minus_NN':v['BN']-v['NN'],'s_NB_minus_NN':v['NB']-v['NN'],
+            'total_BB_minus_NN':v['BB']-v['NN'],'interaction':v['BB']-v['BN']-v['NB']+v['NN']}
+    return ans
+
+
 def pool(case_results):
     n=sum(s['n'] for s in case_results)
-    ans={'n':n,'metrics':{},'interactions':{}}
-    for arm in ARMS:
-        s={}
-        for key in ['heading_mse_deg2','xy_mse_m2','mean_nees3','pose95_coverage','xy95_coverage','heading95_coverage']:
-            s[key]=float(sum(v['n']*v['metrics'][arm][key] for v in case_results)/n)
-        s['heading_RMSE_deg']=float(np.sqrt(s['heading_mse_deg2']))
-        s['XY_RMSE_cm']=float(100*np.sqrt(s['xy_mse_m2']))
-        ans['metrics'][arm]=s
-    for metric in ['heading_mse_deg2','xy_mse_m2']:
-        v={arm:ans['metrics'][arm][metric] for arm in ARMS}
-        ans['interactions'][metric]={
-            'range_effect_BN_minus_NN':v['BN']-v['NN'],
-            's_effect_NB_minus_NN':v['NB']-v['NN'],
-            'total_effect_BB_minus_NN':v['BB']-v['NN'],
-            'interaction':v['BB']-v['BN']-v['NB']+v['NN']}
+    ans={'n':n}
+    for field in ['metrics','metrics_fixed_mask']:
+        pooled={}
+        for arm in ARMS:
+            d={key:float(sum(v['n']*v[field][arm][key] for v in case_results)/n) for key in
+                ['heading_mse_deg2','xy_mse_m2','mean_nees3','pose95_coverage','xy95_coverage','heading95_coverage']}
+            d['heading_RMSE_deg']=float(np.sqrt(d['heading_mse_deg2']))
+            d['XY_RMSE_cm']=float(100*np.sqrt(d['xy_mse_m2']))
+            d['accepted']=sum(v[field][arm]['accepted'] for v in case_results)
+            pooled[arm]=d
+        ans[field]=pooled
+        ans['interactions' if field=='metrics' else 'interactions_fixed_mask']=interaction_effects(pooled)
+    ans['natural_minus_fixed_interaction']={key:ans['interactions'][key]['interaction']-ans['interactions_fixed_mask'][key]['interaction'] for key in ['heading_mse_deg2','xy_mse_m2']}
+    ans['interpretation']='Natural-minus-fixed is a coupled mask/state intervention contrast, not uniquely identified gate-only causality.'
     return ans
 
 
@@ -305,17 +317,34 @@ def main():
     ap.add_argument('--out',type=pathlib.Path,help='NEW directory, must not already exist')
     ap.add_argument('--routes',nargs='+',choices=['R2','R4','R5'],default=['R2','R4','R5'])
     ap.add_argument('--selftest',action='store_true')
+    ap.add_argument('--baseline',type=pathlib.Path)
+    ap.add_argument('--resume',action='store_true',help='Resume only same-code incomplete output; completed results immutable')
+    ap.add_argument('--calibration',choices=['frozen','zero_mean','zero_mean_common_R'],default='frozen')
     args=ap.parse_args()
     if args.selftest:
         print(json.dumps(synthetic_selftest(),indent=2));return
     if args.repo is None or args.out is None:ap.error('--repo and --out are required unless --selftest')
+    if args.baseline is None:ap.error('--baseline is required')
+    gate=json.loads((args.baseline/'BASELINE_PASS.json').read_text())
+    assert gate['status']=='PASS' and set(args.routes)<=set(gate['routes'])
+    for name,digest in gate['checkpoint_sha256'].items():assert rehash(args.baseline/name)==digest
     repo=args.repo.resolve();output=args.out.resolve()
-    if output.exists():raise FileExistsError('Output exists (fail-closed): '+str(output))
+    if output.exists():
+        if not args.resume:raise FileExistsError('Output exists; explicit --resume required: '+str(output))
+        old=json.loads((output/'CONTRACT.json').read_text())
+        assert old['status']=='RUNNING','COMPLETED_OUTPUT_IMMUTABLE'
+        assert old['routes']==args.routes and old['calibration']==args.calibration
+        assert old['baseline_gate_sha256']==rehash(args.baseline/'BASELINE_PASS.json')
+        assert old['code_sha256']=={p.name:rehash(p) for p in pathlib.Path(__file__).parent.glob('*.py')},'RESUME_CODE_MISMATCH'
+
     r45,core,online,model,hashes=load_original_replay(repo)
-    output.mkdir(parents=True,exist_ok=False)
+    output.mkdir(parents=True,exist_ok=args.resume)
     contract=dict(source_commit=SOURCE_COMMIT,status='RUNNING',question='Native/B range-s 2x2 and closed-loop mechanisms',
                   running_utc=dt.datetime.now(dt.timezone.utc).isoformat(),
-                  routes=args.routes,arms=list(ARMS),
+                  routes=args.routes,arms=list(ARMS),calibration=args.calibration,
+                  baseline_gate_sha256=rehash(args.baseline/'BASELINE_PASS.json'),
+                  code_sha256={p.name:rehash(p) for p in pathlib.Path(__file__).parent.glob('*.py')},
+                  execution_git_sha=os.environ.get('GITHUB_SHA','LOCAL_UNCOMMITTED_SELF_CHECK'),
                   causal_claim='Same initial state and RF/DR inputs; source-fixed no refit. Main and shadow gate evolve per arm.',
                   fixed_gate='Original NN gate mask frozen for counterfactual; all other recursion updates evolve',
                   source_hashes=hashes,
@@ -330,12 +359,19 @@ def main():
             case=f'{route}_B0_Full_10'
             on=r45.data(case,'online.npz')
             B,native,zN,zB=identical_input_condition(on,r45,case)
+            if args.calibration!='frozen':
+                on=dict(on);on['muMB']=np.zeros_like(on['muMB']);on['muBASE']=np.zeros_like(on['muBASE'])
+            if args.calibration=='zero_mean_common_R':
+                # Common constant covariance from frozen input R only, no truth.
+                # Retrospective sensitivity, not detector-specific calibration.
+                common=np.mean(on['R'],axis=0);assert np.linalg.eigvalsh(common).min()>0
+                on['R']=np.broadcast_to(common,on['R'].shape).copy()
             zs={'NN':zN,'BN':np.column_stack([zB[:,0],zN[:,1]]),
                 'NB':np.column_stack([zN[:,0],zB[:,1]]),'BB':zB}
             # Replay without evaluator truth first.  The model is an identical
             # pinned SourceFFD model; no shortcut or geometry substitution.
             s=case_data(case,on,lambda case=case: r45.data(case,'evaluator.npz'),
-                        zs,native,B,core,online,model,r45,output,hashes)
+                        zs,native,B,core,online,model,r45,output,hashes,args.baseline,args.calibration)
             results.append(s)
             json_dump(output/'SUMMARY_PARTIAL.json',dict(cases=results))
             print('CASE_COMPLETE',route,flush=True)
@@ -343,9 +379,9 @@ def main():
         json_dump(output/'RESULTS.json',ans)
         contract['status']='PASS_IMPLEMENTER_SELF_CHECK'
         contract['ended_utc']=dt.datetime.now(dt.timezone.utc).isoformat()
-        contract['outputs_sha256']={p.name:rehash(p) for p in output.iterdir() if p.name not in ['CONTRACT.json','OUTPUT_SHA.json']}
+        contract['outputs_sha256']={p.name:rehash(p) for p in output.iterdir() if p.is_file() and p.name not in ['CONTRACT.json','OUTPUT_SHA.json']}
         json_dump(output/'CONTRACT.json',contract)
-        json_dump(output/'OUTPUT_SHA.json',{p.name:rehash(p) for p in output.iterdir() if p.name!='OUTPUT_SHA.json'})
+        json_dump(output/'OUTPUT_SHA.json',{p.name:rehash(p) for p in output.iterdir() if p.is_file() and p.name!='OUTPUT_SHA.json'})
         print(json.dumps(ans['pooled'],ensure_ascii=False,indent=2))
     except BaseException as e:
         json_dump(output/'FAILURE.json',{'error':repr(e),'traceback':traceback.format_exc()})

@@ -1,4 +1,4 @@
-name: FP Native vs B causal validation v2 (bounded checkout)
+name: FP Native vs B causal validation v3 (Release SHA + baseline gates)
 on:
   push:
     branches:
@@ -11,7 +11,7 @@ permissions:
   contents: read
   actions: read
 concurrency:
-  group: fp-native-b-causal-v2-${{ github.sha }}
+  group: fp-native-b-causal-v3-${{ github.sha }}
   cancel-in-progress: false
 jobs:
   causal-validate:
@@ -26,6 +26,7 @@ jobs:
       GIT_TERMINAL_PROMPT: '0'
       GH_TOKEN: ${{ github.token }}
       RUN_DIR: /tmp/fp-native-b-causal
+      CODE_DIR: research/FP_NATIVE_B_CAUSAL_ABLATION_20261108
     steps:
       - name: Sparse checkout pinned source only (LFS not smudged)
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -46,98 +47,81 @@ jobs:
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R4_B0_Full_10/**
             /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/R5_B0_Full_10/**
             /research/FP_SC_S1_RUN_20261106/RESULTS/*/ROWS.json.gz
-      - name: Verify checkout before LFS restoration
+      - name: Verify checkout and pin execution source
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUN_DIR" /tmp/fp-causal-code
           git rev-parse HEAD | tee "$RUN_DIR/CHECKOUT_SHA.txt"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          test -s research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/analysis_package.tar.xz
+          test -s "$CODE_DIR/RELEASE_INPUT_LOCK.json"
           test -s research/FP_SC_RECOVERY_R0_R5_20261107/r45.py
-          git lfs version
+          sha256sum "$CODE_DIR"/*.py "$CODE_DIR"/RELEASE_INPUT_LOCK.json > "$RUN_DIR/EXECUTED_SOURCE_SHA256.txt"
           echo 'CHECKOUT_PASS' | tee "$RUN_DIR/STAGES.txt"
-      - name: Fetch only six original B0 Full NPZ through bounded LFS
+      - name: Acquire eight exact-SHA Release inputs (fail closed)
+        timeout-minutes: 20
         shell: bash
         run: |
           set -euo pipefail
-          git lfs install --local
-          INPUT_ROOT='research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS'
-          INCLUDE="$INPUT_ROOT/R2_B0_Full_10/*.npz,$INPUT_ROOT/R4_B0_Full_10/*.npz,$INPUT_ROOT/R5_B0_Full_10/*.npz"
-          for attempt in 1 2; do
-            echo "LFS_FETCH_ATTEMPT=$attempt" | tee -a "$RUN_DIR/STAGES.txt"
-            if timeout --signal=TERM --kill-after=15s 420s git lfs pull --include="$INCLUDE" --exclude='' 2>&1 | tee "$RUN_DIR/LFS_ATTEMPT_$attempt.log"; then
-              break
-            fi
-          done
-          python3 - <<'PY'
-          import hashlib,json,pathlib
-          root=pathlib.Path('research/FP_SC_RECOVERY_R0_R5_20261107')
-          records=json.loads((root/'RUN_002/SUMMARY.json').read_text())['source_hashes']
-          checked=[]
-          for filename,record in records.items():
-              if filename.endswith(('/online.npz','/evaluator.npz','/ROWS.json.gz')):
-                  p=pathlib.Path(filename)
-                  assert p.is_file(),('MISSING_INPUT',filename)
-                  with p.open('rb') as f:
-                      assert not f.read(48).startswith(b'version https://git-lfs.github.com/spec/v1'),('UNRESOLVED_LFS',filename)
-                  with p.open('rb') as f:
-                      sha=hashlib.file_digest(f,'sha256').hexdigest()
-                  assert sha==record['sha256'],('SHA_MISMATCH',filename,sha,record['sha256'])
-                  checked.append(filename)
-          assert len(checked)==9,('EXPECTED_NINE_INPUTS',len(checked))
-          print('INPUT_9_OF_9_SHA_PASS')
-          PY
-          echo 'INPUT_9_OF_9_SHA_PASS' | tee -a "$RUN_DIR/STAGES.txt"
+          python3 -u "$CODE_DIR/acquire_inputs.py" --out /tmp/fp-release-assets 2>&1 | tee "$RUN_DIR/ACQUISITION.log"
+          echo 'RELEASE_INPUT_8_OF_8_SHA_PASS' | tee -a "$RUN_DIR/STAGES.txt"
       - name: Python and pinned numeric dependencies
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.12'
-      - name: Install array libraries and unpack verified source package
+      - name: Install pinned libraries and test actual checked-out sources
         shell: bash
         run: |
           set -euo pipefail
           timeout 300s python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0 pandas==2.3.3
-          mkdir -p "$RUN_DIR" /tmp/fp-causal-code
-          tar -xJf research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/analysis_package.tar.xz -C /tmp/fp-causal-code
-          python -m compileall -q /tmp/fp-causal-code
-          python /tmp/fp-causal-code/fp_ns_ablation.py --selftest | tee "$RUN_DIR/SELFTEST.log"
-      - name: Download immutable original FFD banks from published GitHub Actions artifact
+          cp "$CODE_DIR"/*.py "$CODE_DIR"/*.json "$CODE_DIR"/*.md /tmp/fp-causal-code/
+          python -m compileall -q "$CODE_DIR"
+          python "$CODE_DIR/test_repairs.py" 2>&1 | tee "$RUN_DIR/REPAIR_TESTS.log"
+          python "$CODE_DIR/fp_ns_ablation.py" --selftest | tee "$RUN_DIR/SELFTEST.log"
+      - name: Stage 11 exact-SHA assets with safe retry
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/fp-verified-banks
-          timeout --signal=TERM --kill-after=15s 480s gh run download 38875080492 --repo myoungsunk/sionna-resimulation --name ffd-verified-original-38875080492 --dir /tmp/fp-verified-banks
-          find /tmp/fp-verified-banks -name 'LP_*bank.npz' -type f -print
-      - name: Stage 11 exact-SHA assets without modifying the archived inputs
+          python -u "$CODE_DIR/stage_inputs.py" --repo "$GITHUB_WORKSPACE" --assets /tmp/fp-release-assets --out "$RUN_DIR/stage"
+          python -u "$CODE_DIR/stage_inputs.py" --repo "$GITHUB_WORKSPACE" --assets /tmp/fp-release-assets --out "$RUN_DIR/stage"
+      - name: Native and B baseline parity first (R2 then R4 R5)
         shell: bash
         run: |
           set -euo pipefail
-          python -u /tmp/fp-causal-code/stage_inputs.py --repo "$GITHUB_WORKSPACE" --banks /tmp/fp-verified-banks --out "$RUN_DIR/stage"
+          python -u "$CODE_DIR/baseline_gate.py" --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/BASELINE" --routes R2 R4 R5 2>&1 | tee "$RUN_DIR/BASELINE.log"
+      - name: Preserve completed baseline before full experiment
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fp-native-b-baseline-${{ github.run_id }}
+          path: /tmp/fp-native-b-causal/BASELINE/**
+          retention-days: 30
+          if-no-files-found: error
       - name: Reproduce native/B and K1/K2 stored comparison
         shell: bash
         run: |
           set -euo pipefail
-          python -u /tmp/fp-causal-code/stored_audit.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/STORED_AUDIT.json"
-      - name: Execute true NN BN NB BB closed-loop and fixed-mask causal ablation
+          python -u "$CODE_DIR/stored_audit.py" --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/STORED_AUDIT.json"
+      - name: Replay B-only and original K1/K2 under frozen inputs
         shell: bash
         run: |
-          set -uo pipefail
-          python -u /tmp/fp-causal-code/fp_ns_ablation.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/NN_BN_NB_BB" 2>&1 | tee "$RUN_DIR/CAUSAL_RUN.log"
-          exit "${PIPESTATUS[0]}"
-      - name: Replay B-only and original K1/K2 under same frozen inputs
+          set -euo pipefail
+          python -u "$CODE_DIR/k_recovery_parity.py" --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/B_K_REPLAY" 2>&1 | tee "$RUN_DIR/B_K_REPLAY.log"
+      - name: NN BN NB BB natural and fixed-gate analysis plus calibration sensitivity
         shell: bash
         run: |
-          set -uo pipefail
-          python -u /tmp/fp-causal-code/k_recovery_parity.py --repo "$GITHUB_WORKSPACE" --out "$RUN_DIR/B_K_REPLAY" 2>&1 | tee "$RUN_DIR/B_K_REPLAY.log"
-          exit "${PIPESTATUS[0]}"
+          set -euo pipefail
+          for calibration in frozen zero_mean zero_mean_common_R; do
+            python -u "$CODE_DIR/fp_ns_ablation.py" --repo "$GITHUB_WORKSPACE" --baseline "$RUN_DIR/BASELINE" --calibration "$calibration" --out "$RUN_DIR/CAUSAL_$calibration" 2>&1 | tee "$RUN_DIR/CAUSAL_$calibration.log"
+          done
       - name: Archive source, checks, results, failures and trace evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: fp-native-b-causal-v2-${{ github.run_id }}
+          name: fp-native-b-causal-v3-${{ github.run_id }}
           path: |
             /tmp/fp-native-b-causal/**
             /tmp/fp-causal-code/**
-          retention-days: 7
+            /tmp/fp-release-assets/*RECEIPT.json
+            /tmp/fp-release-assets/*FAILURE.json
+          retention-days: 30
           if-no-files-found: warn

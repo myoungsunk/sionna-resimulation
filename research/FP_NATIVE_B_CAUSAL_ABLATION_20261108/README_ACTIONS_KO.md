@@ -14,10 +14,14 @@
 ## 실행
 
 `.github/workflows/fp-native-b-causal-20261108.yml`은 이 브랜치 push 및 workflow_dispatch에 반응합니다.
-Workflow는 `analysis_package.tar.xz`에서 소스를 풀고, 검증된 FFD bank Actions 아티팩트 및 기존 LFS 입력을 받아 해시 검사 후 실행합니다.
-실행 로그 및 실패 기록은 `fp-native-b-causal-<run_id>` Actions 아티팩트에 보존하며 원본 소스를 덮어쓰지 않습니다.
+Workflow v3는 GitHub Release `fp-sc-original-npz-20261108`에서 NPZ 6개와 FFD bank 2개를 받고 저장소에 고정한 SHA-256 및 크기를 검증합니다. LFS와 만료되는 Actions 입력 아티팩트에 의존하지 않습니다.
+체크아웃한 Python 소스를 직접 실행하며 과거 analysis_package.tar.xz는 보존만 합니다.
 
-필수 FFD bank 아티팩트는 GitHub Actions run 38875080492, `ffd-verified-original-38875080492`이며 보존기한 내 사용해야 합니다.
+R2, R4, R5 Native/B 기준선 재현을 먼저 통과해야 K 재현과 전수 계산에 진입합니다. 자연/고정 게이트의 pooled MSE와 실제/가상 한 단계 효과를 분리합니다.
+보정 민감도는 frozen, zero_mean, zero_mean_common_R 세 설정입니다. B 전용 보정 학습이나 일반화 검증을 뜻하지 않습니다.
+
+결과는 fp-native-b-baseline-<run_id> 및 fp-native-b-causal-v3-<run_id> 아티팩트에 30일 보존합니다.
+세부 변경 계약은 [REPAIR_CONTRACT_20261108.md](REPAIR_CONTRACT_20261108.md), 사전 로컬 검증은 [LOCAL_VALIDATION.json](LOCAL_VALIDATION.json)을 참조합니다.
 
 **상태 구분:** 코드 정적·합성 검사 PASS는 과학 결과 PASS가 아닙니다. 실데이터 PASS는 실제 Actions `RESULTS.json` / `B_K_REPLAY/RESULTS.json`과 검증 완료 로그를 확인한 이후에만 주장합니다.
 원본 노출된 하나의 corridor·seed10 데이터이므로 외부 환경으로의 일반화/독립 감사는 아닙니다.

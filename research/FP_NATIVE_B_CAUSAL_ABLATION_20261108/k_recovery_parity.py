@@ -17,6 +17,7 @@ def main():
   case=route+'_B0_Full_10';on=r45.data(case,'online.npz')
   B,S,pools,oldcenter=r45.prepare(case,on)
   tr=r45.replay_six(core,online,model,on,B,S,pools,case)
+  np.savez_compressed(out/(route+'_REPLAY_TRACE.npz'),**tr,t=on['t'],pose_id=on['pose_id'])
   archived=root/'R45_RUN_001'/(route+'_TRACE.npz')
   assert archived.exists(),('MISSING_REFERENCE_TRACE',archived)
   parity={}
@@ -34,6 +35,8 @@ def main():
   ev=r45.data(case,'evaluator.npz')
   metrics,_,_=r45.evaluate(case,on,ev,B,S,pools,oldcenter,tr)
   rows+=metrics;checks.append({'case':case,'parity':parity,'status':'PASS_REPLAY_SELF_CHECK'})
+  (out/'CHECKS_PARTIAL.json').write_text(json.dumps(checks,indent=2))
+  (out/'METRICS_PARTIAL.json').write_text(json.dumps(rows,indent=2))
   print('K_REPLAY_COMPLETE',case,flush=True)
  names=['B','DROP','K1_R','K2_R','K1_RS','K2_RS'];pooled={}
  N=sum(len(r45.data(route+'_B0_Full_10','online.npz')['t']) for route in a.routes)
