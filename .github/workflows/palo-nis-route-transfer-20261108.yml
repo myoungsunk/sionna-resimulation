@@ -83,15 +83,13 @@ jobs:
       - name: Replay four filter policies on one original RF geometry
         run: |
           set -o pipefail
-          python -B validate_routes.py case --case ${{ matrix.case }} | tee case_${{ matrix.case }}.log
+          python -B validate_routes.py case --case ${{ matrix.case }} | tee case-results/case_${{ matrix.case }}.log
       - name: Preserve source and all per-case evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: nis-case-${{ matrix.case }}
-          path: |
-            case-results/
-            case_${{ matrix.case }}.log
+          path: case-results/
           retention-days: 30
   verify_publish:
     needs: case
