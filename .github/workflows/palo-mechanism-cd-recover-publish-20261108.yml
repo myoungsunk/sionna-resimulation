@@ -31,7 +31,7 @@ jobs:
           with urllib.request.urlopen(url,timeout=120) as r:
               body=r.read()
           git_blob=hashlib.sha1(f'blob {len(body)}\0'.encode()+body).hexdigest()
-          assert git_blob=='29d212f46ed90df6043289b7943ba20d739e17d1', git_blob
+          assert git_blob=='dbb5a62e16fba1f66ef49ab390a5b87630309b7b', git_blob
           Path('publish_recovery.py').write_bytes(body)
           print('RECOVERY_CODE_BLOB_VERIFIED',git_blob,flush=True)
           PY

@@ -80,13 +80,18 @@ def read_verified_output():
     actual={}
     total=0
     for name,meta in sorted(manifest.items()):
-        f=root/name
-        if not f.is_file() or f.is_symlink() or f.resolve().is_relative_to(root.resolve()) is False:
+        # Manifest was generated on Windows; Actions artifact is recovered on Linux.
+        # Normalize path separators only. Preserve the stored filename and SHA values.
+        canonical=name.replace(chr(92),'/')
+        if canonical in actual or canonical.startswith('/') or '..' in canonical.split('/'):
+            raise RuntimeError('Ambiguous or unsafe manifest path '+name)
+        f=root.joinpath(*canonical.split('/'))
+        if not f.is_file() or f.is_symlink() or not f.resolve().is_relative_to(root.resolve()):
             raise RuntimeError('Invalid source file/path '+name)
         content=f.read_bytes()
         if len(content)!=meta['bytes'] or sha256(content)!=meta['sha256']:
             raise RuntimeError('SHA256 or byte count mismatch '+name)
-        actual[name]=blob_sha(content)
+        actual[canonical]=blob_sha(content)
         total+=len(content)
     # The producer checks every payload except its own manifest; include that immutable manifest.
     manifest_content=(root/'OUTPUT_SHA256.json').read_bytes()
