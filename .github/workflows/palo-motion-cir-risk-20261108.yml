@@ -16,10 +16,13 @@ jobs:
       TARGET_BRANCH: analysis/palo-motion-cir-risk-20261108
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Install locked scientific dependencies
+      - name: Select wheel-backed Python runtime
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install locked numerical wheels only
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 scikit-learn==1.6.1
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2 scikit-learn==1.6.1
       - name: Fetch exact commit source (no huge repository clone)
         run: |
           python - <<'PY'
