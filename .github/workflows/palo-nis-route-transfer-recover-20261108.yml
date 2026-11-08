@@ -1,0 +1,54 @@
+name: PALO NIS route transfer verify saved case results
+on:
+  push:
+    branches: [analysis/palo-nis-transfer-r2-r4-r5-20261108]
+    paths:
+      - .github/workflows/palo-nis-route-transfer-recover-20261108.yml
+permissions:
+  contents: write
+jobs:
+  verify_saved:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      TARGET_BRANCH: analysis/palo-nis-transfer-r2-r4-r5-20261108
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install binary numerical packages
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3
+      - name: Retrieve all seven saved case archives from source run
+        uses: actions/download-artifact@v4
+        with:
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42482367261
+          pattern: nis-case-*
+          merge-multiple: true
+          path: case-results/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch exact source from this branch commit
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          path='research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py'
+          url='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+path
+          with urllib.request.urlopen(url,timeout=90) as r: Path('validate_routes.py').write_bytes(r.read())
+          PY
+      - name: Verify complete source-case parity, metric rows and 10s blocks; commit results
+        run: |
+          set -o pipefail
+          python -B validate_routes.py aggregate --publish | tee aggregate.log
+      - name: Preserve QA, route metrics and original case results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nis-route-transfer-verified-${{ github.run_id }}
+          path: |
+            case-results/
+            validate_routes.py
+            aggregate.log
+          retention-days: 30
