@@ -1,0 +1,131 @@
+name: B-MCG publish verified results 20261109
+on:
+  push:
+    branches:
+      - analysis/b-mcg-v1-20261109
+    paths:
+      - .github/workflows/b-mcg-publish-20261109.yml
+  workflow_dispatch:
+permissions:
+  actions: read
+  contents: write
+concurrency:
+  group: b-mcg-publish-42600632209
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout source with push credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Download SHA-locked traces and publish report and data
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/b-mcg-publish
+          for R in R2 R4 R5; do
+            gh run download 42600632209 --repo myoungsunk/sionna-resimulation --name "b-mcg-v1-$R-42600632209" --dir "/tmp/b-mcg-publish/$R"
+          done
+          python3 - <<'PY'
+          import csv,hashlib,json,math,pathlib,shutil
+          SHA="e3ddc9fa4371d899a08a2a873d2ee5cf32074a01";RUN=42600632209
+          N={"R2":979,"R4":742,"R5":1415};S=["B_FROZEN","B_BIAS_COV"];A=["OFF","ACTIVE_RS"]
+          source=pathlib.Path("/tmp/b-mcg-publish")
+          dest=pathlib.Path("research/B_MCG_V1_20261109/RUN_42600632209")
+          assert not dest.exists(),"RESULTS_IMMUTABLE"
+          dest.mkdir(parents=True)
+          hashes={};data={}
+          def h(p):
+           with p.open("rb") as f:return hashlib.file_digest(f,"sha256").hexdigest()
+          def copy(src,rel,expect=None):
+           assert src.is_file(),("MISSING",str(src))
+           if expect:assert h(src)==expect,("HASH_FAIL",str(src))
+           target=dest/rel;target.parent.mkdir(parents=True,exist_ok=True)
+           shutil.copyfile(src,target);hashes[str(rel)]=h(target)
+          for route,n in N.items():
+           root=source/route/"tmp"/"b-mcg-v1"/route
+           d=json.loads((root/"CI_ROUTE_SUMMARY.json").read_text())
+           assert d["route"]==route and d["execution_git_sha"]==SHA
+           assert d["status"]=="PASS_EXECUTION_PARITY_AND_NUMERICAL_CHECKS" and len(d["runs"])==4
+           copy(root/"CI_ROUTE_SUMMARY.json",pathlib.Path(route)/"CI_ROUTE_SUMMARY.json")
+           for name in ["baseline/"+route+"_PARITY.json"]+["baseline/"+route+"_"+s+".npz" for s in S]:
+            copy(root/name,pathlib.Path(route)/name)
+           seen=set()
+           for row in d["runs"]:
+            key=(row["stratum"],row["mode"]);assert key not in seen and key[0] in S and key[1] in A
+            seen.add(key);assert row["metrics"]["n"]==n
+            if row["mode"]=="OFF":
+             assert max(map(float,row["OFF_parity"].values()))<1e-10
+            for field,expected in [("metadata_relative_path","metadata_sha256"),("trace_relative_path","trace_sha256")]:
+             copy(root/row[field],pathlib.Path(route)/row[field],row[expected])
+           assert len(seen)==4
+           data[route]=d
+          pre=list(source.glob("*/home/runner/work/sionna-resimulation/sionna-resimulation/research/B_MCG_V1_20261109/PRIMARY_PRECHECK_REPORT.json"))
+          assert len(pre)==3 and all(x.read_bytes()==pre[0].read_bytes() for x in pre)
+          copy(pre[0],pathlib.Path("PRIMARY_PRECHECK_REPORT.json"))
+          p=json.loads(pre[0].read_text())
+          assert p["selected"]["B_FROZEN"]==dict.fromkeys(N,"OFF")
+          assert p["utility_demonstrated_for_all_folds"] is False
+          pooled=[]
+          for stratum in S:
+           for mode in A:
+            x=[next(r["metrics"] for r in data[route]["runs"] if r["stratum"]==stratum and r["mode"]==mode) for route in N]
+            total=sum(q["n"] for q in x);assert total==3136
+            pooled.append(dict(stratum=stratum,mode=mode,n=total,
+             heading_deg=math.sqrt(sum(q["n"]*q["heading_mse_deg2"] for q in x)/total),
+             xy_cm=100*math.sqrt(sum(q["n"]*q["xy_mse_m2"] for q in x)/total),
+             nees3=sum(q["n"]*q["mean_nees3"] for q in x)/total,
+             pose95=sum(q["n"]*q["pose95_coverage"] for q in x)/total,
+             damped=sum(q["guard_damped_legacy_accepted"] for q in x)))
+          summary=dict(status="EXECUTION_PASS_ADOPTION_HOLD",source_run=RUN,source_sha=SHA,
+           scope="R2/R4/R5, B0 Full seed10, one exposed corridor",
+           source_artifact_ids={"R2":13666845152,"R4":13665704068,"R5":13665868091},
+           selected=p["selected"],pooled=pooled,
+           limitations=["Diagnostic ACTIVE_RS is not adopted","No independent new environment or seed validation"])
+          (dest/"SUMMARY.json").write_text(json.dumps(summary,indent=2,ensure_ascii=False)+"\n")
+          with (dest/"POOLED_METRICS.csv").open("w",newline="") as f:
+           w=csv.DictWriter(f,fieldnames=list(pooled[0]));w.writeheader();w.writerows(pooled)
+          lines=["# B-MCG v1 검증 보고서 및 원본 데이터 인계","",
+           "**Actions 계산은 성공했지만 능동 가드 정책 채택은 보류입니다.** 사전 유용성 검증에서 R2/R4/R5 모두 선택 정책이 OFF였습니다.","",
+           "원본 Actions: https://github.com/myoungsunk/sionna-resimulation/actions/runs/42600632209",
+           "기존 구현 코드 커밋: "+SHA,"",
+           "## 전체 3,136시점 결과 (MSE 가중 풀링 후 제곱근)","",
+           "| 보정 | 가드 | Heading RMSE | XY RMSE | 평균 NEES3 | Pose95 | 감쇠 시점 |",
+           "|---|---|---:|---:|---:|---:|---:|"]
+          for x in pooled:
+           lines.append(f"| {x['stratum']} | {x['mode']} | {x['heading_deg']:.4f}° | {x['xy_cm']:.3f}cm | {x['nees3']:.3f} | {x['pose95']:.1%} | {x['damped']} |")
+          lines+=["","## 경로별 결과","",
+           "| 경로 | 보정 | 가드 | Heading RMSE (°) | XY RMSE (cm) | Pose95 | 감쇠 수 |",
+           "|---|---|---|---:|---:|---:|---:|"]
+          for route,obj in data.items():
+           for arm in obj["runs"]:
+            m=arm["metrics"]
+            lines.append(f"| {route} | {arm['stratum']} | {arm['mode']} | {m['heading_rmse_deg']:.4f} | {m['xy_rmse_cm']:.3f} | {m['pose95_coverage']:.1%} | {m['guard_damped_legacy_accepted']} |")
+          lines+=["","## 채택 보류와 적대적 실패",
+           "B_FROZEN의 전체 Heading/XY 오차는 소폭 감소했지만 R4가 악화했습니다. B_BIAS_COV의 R5 XY와 포함률은 악화하고 전체 pooled도 나빠졌습니다.",
+           "과거 RF 오염에 의해 잘못된 정렬 기준이 형성되면 정상 RF 복귀를 억제하는 실패가 발견됐습니다. 제한된 profile 후보 탐색이 허용 해를 놓칠 가능성도 확인했습니다. 운동과 일관된 편향은 가드로 식별하지 못할 수 있습니다.",
+           "따라서 ACTIVE_RS는 사전 지정된 진단용 개입이며 생산용 정책으로 승인하지 않습니다.",
+           "","## 코드·데이터 재현성",
+           "상위 research/B_MCG_V1_20261109 폴더에 mcg.py, experiment.py, ci_route.py 및 원본 실험 계약·코드 감사·테스트가 있습니다.",
+           "이 폴더에 각 경로의 CI_ROUTE_SUMMARY, 원본 baseline NPZ, OFF/ACTIVE_RS 원본 재귀 NPZ·JSON을 변경 없이 보관합니다.",
+           "모든 게시 파일 SHA256은 SHA256.json에 기록합니다. 온라인 입력과 FFD bank는 기존 pinned GitHub Release/원본 SHA LOCK을 사용합니다.",
+           "신규 독립 RF 재시뮬레이션이나 새로운 환경 일반화 검증은 수행하지 않았습니다.",""]
+          (dest/"RESULT_REPORT_KO.md").write_text("\n".join(lines))
+          for name in ["SUMMARY.json","POOLED_METRICS.csv","RESULT_REPORT_KO.md"]:hashes[name]=h(dest/name)
+          (dest/"SHA256.json").write_text(json.dumps(hashes,indent=2,ensure_ascii=False)+"\n")
+          assert len(hashes)==40,len(hashes)
+          print("PUBLISH_SHA_PASS",len(hashes),sum(q.stat().st_size for q in dest.rglob("*") if q.is_file()))
+          
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/B_MCG_V1_20261109/RUN_42600632209
+          git diff --cached --quiet && { echo NO_CHANGES; exit 0; }
+          git commit -m 'data(b-mcg): publish source-verified traces and report [skip ci]'
+          git push origin HEAD:refs/heads/analysis/b-mcg-v1-20261109
