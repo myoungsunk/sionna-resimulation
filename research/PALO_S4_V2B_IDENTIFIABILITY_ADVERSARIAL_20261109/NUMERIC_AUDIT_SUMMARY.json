@@ -1,0 +1,86 @@
+{
+  "status": "EXISTING_FROZEN_IMM_V2B_REAUDIT_NO_NEW_FILTER_RUN",
+  "as_of": "2026-11-09",
+  "source_commit": "2b1fa6f2e4bce1ca95c11ca79f25a3ce51a4ce8c",
+  "source_run": 42563563313,
+  "source_all_metrics_sha256": "1a084f8976a759b026f0595fa92cd25be3786b565b9a818e5e205947b5dde81c",
+  "full_conditions": 16,
+  "metrics": {
+    "all_ge40": {
+      "v2b_heading_rmse_lower": 0,
+      "v2b_xy_rmse_lower": 8,
+      "v2b_bias_rmse_lower": 4,
+      "v2b_headingNEES_closer_to_1": 4,
+      "v2b_xyNEES_closer_to_2": 10,
+      "v2b_head95_closer_to_nominal": 6,
+      "v2b_xy95_closer_to_nominal": 12,
+      "v2b_heading_q99_lower": 6
+    },
+    "evaluation_ge140": {
+      "v2b_heading_rmse_lower": 0,
+      "v2b_xy_rmse_lower": 5,
+      "v2b_bias_rmse_lower": 8,
+      "v2b_headingNEES_closer_to_1": 0,
+      "v2b_xyNEES_closer_to_2": 10,
+      "v2b_head95_closer_to_nominal": 0,
+      "v2b_xy95_closer_to_nominal": 4,
+      "v2b_heading_q99_lower": 0
+    }
+  },
+  "linear_observability_proxy": {
+    "scope": "Known-position, constant RF offset within each window, normal-mode LUT Hpsi from V2-B Full/B0, no RF temporal correlation or full motion covariances, NOT complete observability proof",
+    "windows_total": 594,
+    "window_2s": [
+      {
+        "case": "R2_aB_m0",
+        "n": 77,
+        "eta_heading_median": 0.0188,
+        "fraction_near_collinear": 0.727,
+        "bias_L2_per_frame_signal_sigma_median": 0.0174
+      },
+      {
+        "case": "R4_aA_m0",
+        "n": 54,
+        "eta_heading_median": 0.0056,
+        "fraction_near_collinear": 0.778,
+        "bias_L2_per_frame_signal_sigma_median": 0.0684
+      },
+      {
+        "case": "R5_aA_m0",
+        "n": 121,
+        "eta_heading_median": 0.0039,
+        "fraction_near_collinear": 0.835,
+        "bias_L2_per_frame_signal_sigma_median": 0.0201
+      },
+      {
+        "case": "R5_aB_m0",
+        "n": 121,
+        "eta_heading_median": 0.0251,
+        "fraction_near_collinear": 0.686,
+        "bias_L2_per_frame_signal_sigma_median": 0.0161
+      }
+    ],
+    "window_10s_eta_heading_median": {
+      "R2_B": 0.2023,
+      "R4_A": 0.7743,
+      "R5_A": 0.0585,
+      "R5_B": 0.4397
+    }
+  },
+  "R2_full_B0_offset_vs_full_minus_los": {
+    "t_ge40": {
+      "conditional_c_Pearson": 0.9797,
+      "weighted_piC_c_Pearson": 0.8977
+    },
+    "t_ge140": {
+      "conditional_c_Pearson": 0.9719,
+      "weighted_piC_c_Pearson": 0.8175
+    }
+  },
+  "warnings": [
+    "not an independent new scene or noise seed",
+    "offline LoS used for posthoc only",
+    "the local FIM diagnostic is insufficient to prove global identifiability",
+    "comparison of two different filter likelihood/gate definitions is not solely model structure ablation"
+  ]
+}
