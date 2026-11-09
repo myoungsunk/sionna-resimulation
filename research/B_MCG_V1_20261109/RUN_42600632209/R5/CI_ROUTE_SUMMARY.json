@@ -1,0 +1,471 @@
+{
+  "route": "R5",
+  "status": "PASS_EXECUTION_PARITY_AND_NUMERICAL_CHECKS",
+  "phase": "COMPLETE",
+  "started_utc": "2026-11-09T10:24:54.688224+00:00",
+  "execution_git_sha": "e3ddc9fa4371d899a08a2a873d2ee5cf32074a01",
+  "protocol": {
+    "schema": "B_MCG_CI_ROUTE_PROTOCOL_V1",
+    "route": "R5",
+    "expected_n": 1415,
+    "strata": [
+      "B_FROZEN",
+      "B_BIAS_COV"
+    ],
+    "arms": [
+      "OFF",
+      "ACTIVE_RS"
+    ],
+    "config": {
+      "span_s": 5.0,
+      "minimum_s": 2.0,
+      "bounds": [
+        0.5,
+        0.5,
+        0.5235987755982988,
+        0.003490658503988659
+      ],
+      "motion_xy_m": 0.03,
+      "motion_yaw_rad": 0.017453292519943295,
+      "regularizer": 0.01,
+      "fit_slack_per_sample": 0.1,
+      "max_prediction_span_sigma": 2.0,
+      "linearity_rms_sigma": 0.5,
+      "max_history_cost_per_sample": 6.0,
+      "projected_gradient_per_sample_max": 0.05,
+      "max_refinements": 3,
+      "minimum_profile_candidates": 3,
+      "tau_r": 2.0,
+      "tau_s": 2.0,
+      "tau_joint": 2.8284271247461903,
+      "beta_min": 0.25,
+      "max_history_gap_s": 0.3,
+      "enable_r": true,
+      "enable_s": true
+    },
+    "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+    "active_role": "predeclared_diagnostic",
+    "baseline": "Original SourceFFD W0 replay agrees with archived B_FROZEN and existing B_BIAS_COV",
+    "raw_legacy_gate": "Identical to original per-stratum B shadow for OFF and ACTIVE_RS",
+    "truth": "experiment.active reads evaluator only after completing each online recursion",
+    "new_parameter_training": false,
+    "production_activation": false,
+    "execution_success_is_performance_adoption": false
+  },
+  "protocol_sha256": "b6d94acf37f979f241d01e02d940fea3916efede512ea26ea4afb25e2a711e4b",
+  "protocol_config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+  "experiment_contract_sha256": "65c1a5a1425b2f5852d68ca1d33d9bd1ecfe9e07829c23c5b379b3d43f7371ca",
+  "runtime_code_sha256_before": {
+    "mcg.py": "8f58b7c412e54ca5fa308e61aa16c59c0fec30f05e482c505cb5cdea11099faf",
+    "experiment.py": "e4abd56b3224782efb2f4c861d61e0bd724e0e3687a8e06d8b81f0520229ed28",
+    "ci_route.py": "c0d50dad15db88f8726c1840b938a7b91dcffb31df2e8036ee9f3d525c582837"
+  },
+  "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+  "policy_lock_path": "research/B_MCG_V1_20261109/POLICY_LOCK.json",
+  "performance_adoption": "NOT_AUTHORIZED_BY_CI_EXECUTION",
+  "production_activation": false,
+  "runs": [
+    {
+      "stratum": "B_FROZEN",
+      "mode": "OFF",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_FROZEN/OFF/R5_OFF.json",
+      "trace_relative_path": "active/B_FROZEN/OFF/R5_OFF.npz",
+      "metadata_sha256": "016767bfdffd6adcf838aa6ec2b35160e8ea7abddc3d5618d19679322af219a6",
+      "trace_sha256": "e1e6fa008c09e5752bbcb9e2a6b456970cb8629c9344759f9d343e1937d3e498",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": {
+        "x": 8.826273045769994e-15,
+        "P": 1.0928757898653885e-16,
+        "prior": 8.826273045769994e-15,
+        "Pprior": 1.0928757898653885e-16,
+        "h": 5.10702591327572e-15,
+        "H": 1.2989609388114332e-14,
+        "mu": 0.0,
+        "Reff": 6.938893903907228e-17,
+        "K": 2.338407245616736e-15,
+        "nu": 5.10702591327572e-15,
+        "S": 6.938893903907228e-17,
+        "mask": 0.0
+      },
+      "metrics": {
+        "n": 1415,
+        "heading_mse_deg2": 1.3020098368829232,
+        "xy_mse_m2": 0.00796018527776511,
+        "heading_rmse_deg": 1.1410564564836059,
+        "xy_rmse_cm": 8.921987042001971,
+        "heading_MAE_deg": 0.7413547967978401,
+        "mean_nees3": 14.048079951035005,
+        "pose95_coverage": 0.568904593639576,
+        "xy95_coverage": 0.5512367491166078,
+        "heading95_coverage": 0.8777385159010601,
+        "accepted": 1411,
+        "guard_damped_legacy_accepted": 0,
+        "guard_valid_any": 0,
+        "legacy_rejections": 4,
+        "heading_rmse_ratio": 0.9999999999999831,
+        "xy_rmse_ratio": 0.9999999999999892,
+        "latency_total_p50_p95_p99_ms": [
+          4.30104,
+          4.4208553,
+          4.9040046399999895
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          0.007391,
+          0.008172,
+          0.012712319999999925
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 1415,
+        "legacy_accepted_n": 1411,
+        "guard_used_any_n": 1411,
+        "legacy_mask_sha256": "f72142dc7db2567725dd1686662a8325644ebf4a817aff5e00751471034eb352",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.059888032125208e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0598880321252175e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 9.315718608653063e-10
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031346491212234247
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031346491212234247
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.00313725098594367
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_FROZEN",
+      "mode": "ACTIVE_RS",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_FROZEN/ACTIVE_RS/R5_ACTIVE_RS.json",
+      "trace_relative_path": "active/B_FROZEN/ACTIVE_RS/R5_ACTIVE_RS.npz",
+      "metadata_sha256": "aae7c8d9089ec06a1f49981899631fc6ec32ce20023321b6f82b630d36e8a345",
+      "trace_sha256": "fb905dcb28edb0666f9ac53b0fc7f14eb5847921dd8451ef20c4c95d838a2e2d",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": null,
+      "metrics": {
+        "n": 1415,
+        "heading_mse_deg2": 1.176471140402462,
+        "xy_mse_m2": 0.007253984545800124,
+        "heading_rmse_deg": 1.0846525436297385,
+        "xy_rmse_cm": 8.517032667425976,
+        "heading_MAE_deg": 0.6945064912853187,
+        "mean_nees3": 13.346065072316792,
+        "pose95_coverage": 0.5886925795053004,
+        "xy95_coverage": 0.5978798586572438,
+        "heading95_coverage": 0.903886925795053,
+        "accepted": 1411,
+        "guard_damped_legacy_accepted": 9,
+        "guard_valid_any": 271,
+        "legacy_rejections": 4,
+        "heading_rmse_ratio": 0.9505686922558542,
+        "xy_rmse_ratio": 0.9546116383413599,
+        "latency_total_p50_p95_p99_ms": [
+          240.002815,
+          327.3747904,
+          335.47233104
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          235.385089,
+          322.7862377,
+          330.87208181999995
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 1415,
+        "legacy_accepted_n": 1411,
+        "guard_used_any_n": 1411,
+        "legacy_mask_sha256": "f72142dc7db2567725dd1686662a8325644ebf4a817aff5e00751471034eb352",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0584071979510687e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0584071979510802e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 9.315718608653063e-10
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031346747428028453
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031346747428028453
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.003137336125661887
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_BIAS_COV",
+      "mode": "OFF",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_BIAS_COV/OFF/R5_OFF.json",
+      "trace_relative_path": "active/B_BIAS_COV/OFF/R5_OFF.npz",
+      "metadata_sha256": "845e820625dad70b8e86fffa8c7f82450d2415e13e9cb9d7aba5b2bd9d05a131",
+      "trace_sha256": "8538c5aba748bd6b83d5ba6fb68e6c1bad77764a6524e27eecaee27886951dcc",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": {
+        "x": 2.2537527399890678e-14,
+        "P": 1.249000902703301e-16,
+        "prior": 2.2537527399890678e-14,
+        "Pprior": 1.249000902703301e-16,
+        "h": 3.552713678800501e-15,
+        "H": 1.2823075934420558e-14,
+        "mu": 0.0,
+        "Reff": 4.163336342344337e-17,
+        "K": 1.887379141862766e-15,
+        "nu": 3.552713678800501e-15,
+        "S": 4.163336342344337e-17,
+        "mask": 0.0
+      },
+      "metrics": {
+        "n": 1415,
+        "heading_mse_deg2": 0.6357538044583243,
+        "xy_mse_m2": 0.009143557146886588,
+        "heading_rmse_deg": 0.7973417112244437,
+        "xy_rmse_cm": 9.562194908537782,
+        "heading_MAE_deg": 0.6188158434646748,
+        "mean_nees3": 10.883508292335693,
+        "pose95_coverage": 0.2812720848056537,
+        "xy95_coverage": 0.5766784452296819,
+        "heading95_coverage": 0.9279151943462898,
+        "accepted": 1414,
+        "guard_damped_legacy_accepted": 0,
+        "guard_valid_any": 0,
+        "legacy_rejections": 1,
+        "heading_rmse_ratio": 1.0000000000000075,
+        "xy_rmse_ratio": 1.0000000000000229,
+        "latency_total_p50_p95_p99_ms": [
+          4.310641,
+          4.4175397,
+          4.636781179999999
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          0.007491,
+          0.008202,
+          0.012416319999999884
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 1415,
+        "legacy_accepted_n": 1414,
+        "guard_used_any_n": 1414,
+        "legacy_mask_sha256": "6bb8698b0f379361fcaff9cbb4042ea912fdf289f3957fe07e7ca1963d0a9c16",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0570204834313067e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0570204834313135e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 9.251929477513362e-10
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031488664888506936
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031488664888506936
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031540726716349303
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_BIAS_COV",
+      "mode": "ACTIVE_RS",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_BIAS_COV/ACTIVE_RS/R5_ACTIVE_RS.json",
+      "trace_relative_path": "active/B_BIAS_COV/ACTIVE_RS/R5_ACTIVE_RS.npz",
+      "metadata_sha256": "eb96c4e7fb63892272a3ab5df7602e1d180d977617d596c22b1c4171e78ca4f6",
+      "trace_sha256": "4e76eb8a73cb9deb77b5de9df9dc2ecd960897a5829ee1e83f5c324d9685179f",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": null,
+      "metrics": {
+        "n": 1415,
+        "heading_mse_deg2": 0.6419888345287321,
+        "xy_mse_m2": 0.010033834123026966,
+        "heading_rmse_deg": 0.8012420573888593,
+        "xy_rmse_cm": 10.016902776321114,
+        "heading_MAE_deg": 0.6256084908674725,
+        "mean_nees3": 11.426927466015078,
+        "pose95_coverage": 0.23462897526501766,
+        "xy95_coverage": 0.5257950530035336,
+        "heading95_coverage": 0.9307420494699646,
+        "accepted": 1414,
+        "guard_damped_legacy_accepted": 11,
+        "guard_valid_any": 236,
+        "legacy_rejections": 1,
+        "heading_rmse_ratio": 1.004891687101672,
+        "xy_rmse_ratio": 1.0475526667394708,
+        "latency_total_p50_p95_p99_ms": [
+          249.913021,
+          325.6717259,
+          334.0231468
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          245.316451,
+          320.95624779999997,
+          329.25682285999994
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 1415,
+        "legacy_accepted_n": 1414,
+        "guard_used_any_n": 1414,
+        "legacy_mask_sha256": "6bb8698b0f379361fcaff9cbb4042ea912fdf289f3957fe07e7ca1963d0a9c16",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0550584815758086e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.0550584815758154e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 9.251929477513362e-10
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031488521787841235
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0031488521787841235
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.003154176368603991
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    }
+  ],
+  "archive_receipt": {
+    "archive_lock_sha256": "971e90acc0764b3e70a3fd83c3906705c056db7481d840654c41707149ae6037",
+    "members_sha256": {
+      "R5/R5_B_FROZEN.npz": "be767d726603febb885450bbc678d1a56fcdaa3815dfb537a20ee23289ba2326",
+      "R5/R5_B_BIAS_COV.npz": "c83acd83b5cd0c2abc7f6af38d0c4502b78c620a8b99bba8f251c4d9abcc83ae",
+      "R5/RESULTS.json": "6d27096cf772e113da72244662327beda3f4bc3b0f01b28a8de47e81386da500"
+    }
+  },
+  "baseline_parity": {
+    "status": "PASS",
+    "route": "R5",
+    "strata": {
+      "B_FROZEN": {
+        "x": 0.0,
+        "P": 0.0,
+        "prior": 0.0,
+        "Pprior": 0.0,
+        "h": 0.0,
+        "H": 0.0,
+        "mu": 0.0,
+        "Reff": 0.0,
+        "K": 0.0,
+        "nu": 0.0,
+        "S": 0.0,
+        "mask": 0.0
+      },
+      "B_BIAS_COV": {
+        "x": 0.0,
+        "P": 0.0,
+        "prior": 0.0,
+        "Pprior": 0.0,
+        "h": 0.0,
+        "H": 0.0,
+        "mu": 0.0,
+        "Reff": 0.0,
+        "K": 0.0,
+        "nu": 0.0,
+        "S": 0.0,
+        "mask": 0.0
+      }
+    },
+    "source_hashes": {
+      "research/FFD_P0P3_20261016/source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+      "research/FFD_P0P3_20261016/p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+      "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+      "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+      "research/MBVAR_PRR_001_20261103/S1/online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+      "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+      "src/qclean_uwb/drivesim/observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+      "src/qclean_uwb/drivesim/hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+      "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+      "src/qclean_uwb/drivesim/sensor_v2.py": "e74cd4657b9784f5a5ef06b6bbeae9bce807d1942ddc9046a1513186dde7be40",
+      "src/qclean_uwb/drivesim/sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118"
+    },
+    "input_whitelist": [
+      "t",
+      "pose_id",
+      "ds",
+      "gy",
+      "dt",
+      "x0",
+      "P0",
+      "muMB",
+      "muBASE",
+      "R",
+      "D",
+      "z"
+    ],
+    "archive_sha256": {
+      "B_FROZEN": "be767d726603febb885450bbc678d1a56fcdaa3815dfb537a20ee23289ba2326",
+      "B_BIAS_COV": "c83acd83b5cd0c2abc7f6af38d0c4502b78c620a8b99bba8f251c4d9abcc83ae"
+    }
+  },
+  "runtime_code_sha256_after": {
+    "mcg.py": "8f58b7c412e54ca5fa308e61aa16c59c0fec30f05e482c505cb5cdea11099faf",
+    "experiment.py": "e4abd56b3224782efb2f4c861d61e0bd724e0e3687a8e06d8b81f0520229ed28",
+    "ci_route.py": "c0d50dad15db88f8726c1840b938a7b91dcffb31df2e8036ee9f3d525c582837"
+  },
+  "elapsed_s": 747.447555827,
+  "ended_utc": "2026-11-09T10:37:22.136043+00:00"
+}

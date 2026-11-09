@@ -1,0 +1,471 @@
+{
+  "route": "R2",
+  "status": "PASS_EXECUTION_PARITY_AND_NUMERICAL_CHECKS",
+  "phase": "COMPLETE",
+  "started_utc": "2026-11-09T10:25:17.852668+00:00",
+  "execution_git_sha": "e3ddc9fa4371d899a08a2a873d2ee5cf32074a01",
+  "protocol": {
+    "schema": "B_MCG_CI_ROUTE_PROTOCOL_V1",
+    "route": "R2",
+    "expected_n": 979,
+    "strata": [
+      "B_FROZEN",
+      "B_BIAS_COV"
+    ],
+    "arms": [
+      "OFF",
+      "ACTIVE_RS"
+    ],
+    "config": {
+      "span_s": 5.0,
+      "minimum_s": 2.0,
+      "bounds": [
+        0.5,
+        0.5,
+        0.5235987755982988,
+        0.003490658503988659
+      ],
+      "motion_xy_m": 0.03,
+      "motion_yaw_rad": 0.017453292519943295,
+      "regularizer": 0.01,
+      "fit_slack_per_sample": 0.1,
+      "max_prediction_span_sigma": 2.0,
+      "linearity_rms_sigma": 0.5,
+      "max_history_cost_per_sample": 6.0,
+      "projected_gradient_per_sample_max": 0.05,
+      "max_refinements": 3,
+      "minimum_profile_candidates": 3,
+      "tau_r": 2.0,
+      "tau_s": 2.0,
+      "tau_joint": 2.8284271247461903,
+      "beta_min": 0.25,
+      "max_history_gap_s": 0.3,
+      "enable_r": true,
+      "enable_s": true
+    },
+    "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+    "active_role": "predeclared_diagnostic",
+    "baseline": "Original SourceFFD W0 replay agrees with archived B_FROZEN and existing B_BIAS_COV",
+    "raw_legacy_gate": "Identical to original per-stratum B shadow for OFF and ACTIVE_RS",
+    "truth": "experiment.active reads evaluator only after completing each online recursion",
+    "new_parameter_training": false,
+    "production_activation": false,
+    "execution_success_is_performance_adoption": false
+  },
+  "protocol_sha256": "9f3f5fb0aba96b5e2848bdf08a8d6cadb3553bb43f536b8e602b5c3282ce9e75",
+  "protocol_config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+  "experiment_contract_sha256": "65c1a5a1425b2f5852d68ca1d33d9bd1ecfe9e07829c23c5b379b3d43f7371ca",
+  "runtime_code_sha256_before": {
+    "mcg.py": "8f58b7c412e54ca5fa308e61aa16c59c0fec30f05e482c505cb5cdea11099faf",
+    "experiment.py": "e4abd56b3224782efb2f4c861d61e0bd724e0e3687a8e06d8b81f0520229ed28",
+    "ci_route.py": "c0d50dad15db88f8726c1840b938a7b91dcffb31df2e8036ee9f3d525c582837"
+  },
+  "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+  "policy_lock_path": "research/B_MCG_V1_20261109/POLICY_LOCK.json",
+  "performance_adoption": "NOT_AUTHORIZED_BY_CI_EXECUTION",
+  "production_activation": false,
+  "runs": [
+    {
+      "stratum": "B_FROZEN",
+      "mode": "OFF",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_FROZEN/OFF/R2_OFF.json",
+      "trace_relative_path": "active/B_FROZEN/OFF/R2_OFF.npz",
+      "metadata_sha256": "aef1a86e2f8b2a382ec327db038ffe8105e88c35b093392710f86c05f5e26e72",
+      "trace_sha256": "58a0dbb049d74a674e8fc3e0ccc04f0a72088f527068d053823c8dfb33a52e37",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": {
+        "x": 1.074140776324839e-14,
+        "P": 3.2612801348363973e-16,
+        "prior": 1.0755285551056204e-14,
+        "Pprior": 3.2959746043559335e-16,
+        "h": 5.162537064506978e-15,
+        "H": 1.532107773982716e-14,
+        "mu": 0.0,
+        "Reff": 4.163336342344337e-17,
+        "K": 1.635844237846129e-15,
+        "nu": 5.162537064506978e-15,
+        "S": 4.163336342344337e-17,
+        "mask": 0.0
+      },
+      "metrics": {
+        "n": 979,
+        "heading_mse_deg2": 4.67243876418603,
+        "xy_mse_m2": 0.03249881941991913,
+        "heading_rmse_deg": 2.1615824675885094,
+        "xy_rmse_cm": 18.027428940345082,
+        "heading_MAE_deg": 1.7764700819422987,
+        "mean_nees3": 17.291544580948862,
+        "pose95_coverage": 0.4974463738508682,
+        "xy95_coverage": 0.47088866189989786,
+        "heading95_coverage": 0.5393258426966292,
+        "accepted": 977,
+        "guard_damped_legacy_accepted": 0,
+        "guard_valid_any": 0,
+        "legacy_rejections": 2,
+        "heading_rmse_ratio": 1.000000000000009,
+        "xy_rmse_ratio": 1.0000000000000093,
+        "latency_total_p50_p95_p99_ms": [
+          6.221727,
+          6.3621498999999995,
+          6.66363238
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          0.010299,
+          0.011364899999999997,
+          0.030229620000000013
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 979,
+        "legacy_accepted_n": 977,
+        "guard_used_any_n": 977,
+        "legacy_mask_sha256": "aae9df57f01ed7f83ea5d50264953333229d4de4c5d0a62331ef37702f895cc3",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.9365537491974787e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.9365537491975002e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.6256229426691268e-09
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002419203680812284
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002419203680812284
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002423155534213666
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_FROZEN",
+      "mode": "ACTIVE_RS",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_FROZEN/ACTIVE_RS/R2_ACTIVE_RS.json",
+      "trace_relative_path": "active/B_FROZEN/ACTIVE_RS/R2_ACTIVE_RS.npz",
+      "metadata_sha256": "d7a75494868236173cbca7a629e0a151dd8e141585b6c85feeb3342f73894128",
+      "trace_sha256": "567fd14ee0f12d6654bb2ce26caf684ea8e4243a4274049825b6296ec99c13b1",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": null,
+      "metrics": {
+        "n": 979,
+        "heading_mse_deg2": 4.644054176232709,
+        "xy_mse_m2": 0.0321965224328983,
+        "heading_rmse_deg": 2.1550067694169104,
+        "xy_rmse_cm": 17.943389432573294,
+        "heading_MAE_deg": 1.7701459382446207,
+        "mean_nees3": 17.25269103901321,
+        "pose95_coverage": 0.5137895812053116,
+        "xy95_coverage": 0.4770173646578141,
+        "heading95_coverage": 0.5393258426966292,
+        "accepted": 977,
+        "guard_damped_legacy_accepted": 1,
+        "guard_valid_any": 134,
+        "legacy_rejections": 2,
+        "heading_rmse_ratio": 0.996957923988477,
+        "xy_rmse_ratio": 0.9953382421836348,
+        "latency_total_p50_p95_p99_ms": [
+          328.932051,
+          434.01010099999996,
+          446.09702408
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          322.566552,
+          427.6151822,
+          439.6314686
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 979,
+        "legacy_accepted_n": 977,
+        "guard_used_any_n": 977,
+        "legacy_mask_sha256": "aae9df57f01ed7f83ea5d50264953333229d4de4c5d0a62331ef37702f895cc3",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.935631072214378e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.9356310722143984e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.6256229426691268e-09
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0024191767567393837
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0024191767567393837
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002423109602503429
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_BIAS_COV",
+      "mode": "OFF",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_BIAS_COV/OFF/R2_OFF.json",
+      "trace_relative_path": "active/B_BIAS_COV/OFF/R2_OFF.npz",
+      "metadata_sha256": "d1a2e6fa8bb3b44be0f1a2a440ba3b99337758cc0589ee82402e707e0bba0e53",
+      "trace_sha256": "86ce50d1bb30a01bdaf867b31c2495dd4be83f6741483473badcb6ed5bd2dbe7",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": {
+        "x": 1.9984014443252818e-15,
+        "P": 1.5612511283791264e-17,
+        "prior": 1.9984014443252818e-15,
+        "Pprior": 1.5612511283791264e-17,
+        "h": 2.7755575615628914e-15,
+        "H": 7.573207706907043e-15,
+        "mu": 0.0,
+        "Reff": 2.7755575615628914e-17,
+        "K": 1.27675647831893e-15,
+        "nu": 3.552713678800501e-15,
+        "S": 4.163336342344337e-17,
+        "mask": 0.0
+      },
+      "metrics": {
+        "n": 979,
+        "heading_mse_deg2": 0.8878119904334736,
+        "xy_mse_m2": 0.009434867863383687,
+        "heading_rmse_deg": 0.9422377568498694,
+        "xy_rmse_cm": 9.71332479812329,
+        "heading_MAE_deg": 0.6534127835833178,
+        "mean_nees3": 9.102357539618607,
+        "pose95_coverage": 0.4004085801838611,
+        "xy95_coverage": 0.609805924412666,
+        "heading95_coverage": 0.9489274770173647,
+        "accepted": 978,
+        "guard_damped_legacy_accepted": 0,
+        "guard_valid_any": 0,
+        "legacy_rejections": 1,
+        "heading_rmse_ratio": 1.000000000000001,
+        "xy_rmse_ratio": 0.9999999999999994,
+        "latency_total_p50_p95_p99_ms": [
+          6.244617,
+          6.3748093,
+          6.47835212
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          0.010229,
+          0.011032999999999998,
+          0.02277572000000007
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 979,
+        "legacy_accepted_n": 978,
+        "guard_used_any_n": 978,
+        "legacy_mask_sha256": "7ab334a50c6d158974f03c3adf87676f7a5da6a163de37f4aafccb3b2140bb3d",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.978151290637728e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.978151290637772e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.6625927278340378e-09
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002427107371451381
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002427107371451381
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0024281491621104966
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    },
+    {
+      "stratum": "B_BIAS_COV",
+      "mode": "ACTIVE_RS",
+      "execution_policy_role": "predeclared_diagnostic",
+      "metadata_relative_path": "active/B_BIAS_COV/ACTIVE_RS/R2_ACTIVE_RS.json",
+      "trace_relative_path": "active/B_BIAS_COV/ACTIVE_RS/R2_ACTIVE_RS.npz",
+      "metadata_sha256": "da11e4025d7e03242ad4f8af541d0aa0b1af115b73f56d16475d0b8f461a5aeb",
+      "trace_sha256": "eef2fc311962ffd38872c5c07727c9cc931a3bbf58c9235b07a10cd51233fb3e",
+      "config_sha256": "5226373c602bd914325cf9d5dfb45a353a8184f618ee48cdc66812b338336006",
+      "policy_lock_sha256": "7b92acfbd222e4bbcdfe206ca9224be82a768ffd3dc67edd11653ebbca6393da",
+      "OFF_parity": null,
+      "metrics": {
+        "n": 979,
+        "heading_mse_deg2": 0.8878119904334736,
+        "xy_mse_m2": 0.009434867863383687,
+        "heading_rmse_deg": 0.9422377568498694,
+        "xy_rmse_cm": 9.71332479812329,
+        "heading_MAE_deg": 0.6534127835833178,
+        "mean_nees3": 9.102357539618607,
+        "pose95_coverage": 0.4004085801838611,
+        "xy95_coverage": 0.609805924412666,
+        "heading95_coverage": 0.9489274770173647,
+        "accepted": 978,
+        "guard_damped_legacy_accepted": 0,
+        "guard_valid_any": 134,
+        "legacy_rejections": 1,
+        "heading_rmse_ratio": 1.000000000000001,
+        "xy_rmse_ratio": 0.9999999999999994,
+        "latency_total_p50_p95_p99_ms": [
+          315.731581,
+          421.6969041999999,
+          437.58575260000003
+        ],
+        "latency_guard_p50_p95_p99_ms": [
+          309.196372,
+          415.2455594999999,
+          431.12192906
+        ]
+      },
+      "numerical_checks": {
+        "status": "PASS_NUMERICAL_AND_MASK_CHECKS",
+        "n": 979,
+        "legacy_accepted_n": 978,
+        "guard_used_any_n": 978,
+        "legacy_mask_sha256": "7ab334a50c6d158974f03c3adf87676f7a5da6a163de37f4aafccb3b2140bb3d",
+        "covariances": {
+          "P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.978151290637728e-09
+          },
+          "Pprior": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.978151290637772e-09
+          },
+          "shadow_P": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 1.6625927278340378e-09
+          },
+          "Rbase": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002427107371451381
+          },
+          "Reff": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.002427107371451381
+          },
+          "S": {
+            "max_asymmetry": 0.0,
+            "minimum_eigenvalue": 0.0024281491621104966
+          }
+        },
+        "diagnostic_nan_policy": "Optional unresolved profile/theta/score diagnostics may be NaN; all actual state/update/covariance fields must be finite."
+      }
+    }
+  ],
+  "archive_receipt": {
+    "archive_lock_sha256": "971e90acc0764b3e70a3fd83c3906705c056db7481d840654c41707149ae6037",
+    "members_sha256": {
+      "R2/R2_B_FROZEN.npz": "46f0be0bf3023c02929aff03ce59eb2366dc46a5f0457fb985e583e75d818183",
+      "R2/R2_B_BIAS_COV.npz": "bd73b6a3ae82f61df130b3aebb9bdccdd4e79aa55a68c71f01159a44fa6a929d",
+      "R2/RESULTS.json": "a752a75941062308df23196a434509629466aeea823b45d21cd0db3133c1f90c"
+    }
+  },
+  "baseline_parity": {
+    "status": "PASS",
+    "route": "R2",
+    "strata": {
+      "B_FROZEN": {
+        "x": 1.0477729794899915e-14,
+        "P": 3.2959746043559335e-16,
+        "prior": 1.049160758270773e-14,
+        "Pprior": 3.3306690738754696e-16,
+        "h": 5.162537064506978e-15,
+        "H": 1.532107773982716e-14,
+        "mu": 0.0,
+        "Reff": 2.7755575615628914e-17,
+        "K": 1.5005358067199381e-15,
+        "nu": 5.162537064506978e-15,
+        "S": 4.163336342344337e-17,
+        "mask": 0.0
+      },
+      "B_BIAS_COV": {
+        "x": 1.8318679906315083e-15,
+        "P": 1.3877787807814457e-17,
+        "prior": 1.8318679906315083e-15,
+        "Pprior": 1.3877787807814457e-17,
+        "h": 2.7755575615628914e-15,
+        "H": 7.711932353313924e-15,
+        "mu": 0.0,
+        "Reff": 2.7755575615628914e-17,
+        "K": 2.0088097851811426e-15,
+        "nu": 3.552713678800501e-15,
+        "S": 2.7755575615628914e-17,
+        "mask": 0.0
+      }
+    },
+    "source_hashes": {
+      "research/FFD_P0P3_20261016/source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+      "research/FFD_P0P3_20261016/p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+      "research/EKF4_RANGE_S_STAGED_20261014/p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+      "research/EKF4_RANGE_S_STAGED_20261014/core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+      "research/MBVAR_PRR_001_20261103/S1/online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+      "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+      "src/qclean_uwb/drivesim/observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+      "src/qclean_uwb/drivesim/hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+      "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+      "src/qclean_uwb/drivesim/sensor_v2.py": "e74cd4657b9784f5a5ef06b6bbeae9bce807d1942ddc9046a1513186dde7be40",
+      "src/qclean_uwb/drivesim/sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118"
+    },
+    "input_whitelist": [
+      "t",
+      "pose_id",
+      "ds",
+      "gy",
+      "dt",
+      "x0",
+      "P0",
+      "muMB",
+      "muBASE",
+      "R",
+      "D",
+      "z"
+    ],
+    "archive_sha256": {
+      "B_FROZEN": "46f0be0bf3023c02929aff03ce59eb2366dc46a5f0457fb985e583e75d818183",
+      "B_BIAS_COV": "bd73b6a3ae82f61df130b3aebb9bdccdd4e79aa55a68c71f01159a44fa6a929d"
+    }
+  },
+  "runtime_code_sha256_after": {
+    "mcg.py": "8f58b7c412e54ca5fa308e61aa16c59c0fec30f05e482c505cb5cdea11099faf",
+    "experiment.py": "e4abd56b3224782efb2f4c861d61e0bd724e0e3687a8e06d8b81f0520229ed28",
+    "ci_route.py": "c0d50dad15db88f8726c1840b938a7b91dcffb31df2e8036ee9f3d525c582837"
+  },
+  "elapsed_s": 677.996940452,
+  "ended_utc": "2026-11-09T10:36:35.849926+00:00"
+}
