@@ -19,9 +19,12 @@ class ToyModel:
         return h,H if gradient else None
 
 def toy(n=26,offset=0.):
+    # Located beneath anchor (x=10), so legacy distance-dependent s noise is
+    # 0.011, not ~0.21 at x=1. Earlier fixture assumed the former incorrectly.
+    # Runtime score/thresholds are unchanged; previous failed CI is preserved.
     t=np.arange(n)*.2;ds=np.zeros(n);gy=np.zeros(n);dt=np.r_[0,np.diff(t)]
-    z=np.column_stack([np.ones(n),np.full(n,offset)])
-    s=OnlineSeries(t,ds,gy,dt,z,np.zeros((n,2)),np.tile(np.diag([.01**2,.01**2]),(n,1,1)),np.array([1.,0.,0.,0.]),np.diag([.01,.01,.05,.00001]),np.zeros((n,2)))
+    z=np.column_stack([np.full(n,10.),np.full(n,offset)])
+    s=OnlineSeries(t,ds,gy,dt,z,np.zeros((n,2)),np.tile(np.diag([.01**2,.01**2]),(n,1,1)),np.array([10.,0.,0.,0.]),np.diag([.01,.01,.05,.00001]),np.zeros((n,2)))
     pri=np.tile(s.x0,(n,1));P=np.tile(s.P0,(n,1,1))
     return s,pri,P
 
