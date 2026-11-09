@@ -1,0 +1,85 @@
+{
+  "schema": "PALO_IMM_V2_A_TO_B_AUDITED_FINAL_VERDICT",
+  "generated_kst": "2026-11-09",
+  "status": "CODE_AND_RESULT_AUDIT_PASS__SCIENTIFIC_GENERALIZATION_FAIL__DO_NOT_ADOPT",
+  "first_version": {
+    "name": "V2-A two-mode conditional EKF",
+    "actions_run": 42560919706,
+    "run_status": "success",
+    "scientific_status": "not_better_than_S4_all_Full_R2_bias_conditions"
+  },
+  "adversarial_revision": {
+    "name": "V2-B one persistent RF offset",
+    "rho": 0.9749898174792968,
+    "Vc": 0.13156001948146095,
+    "Qc": 0.006498388192869556,
+    "training": "R2 Anchor B t<120s, five C runs 40 frames, offline reference-state residual",
+    "parameter_adjusted_on_R4_R5": false
+  },
+  "revised_version": {
+    "actions_run": 42563563313,
+    "run_status": "success",
+    "raw_commit": "2b1fa6f2e4bce1ca95c11ca79f25a3ce51a4ce8c",
+    "cases": [
+      "R2_aB_m0",
+      "R4_aA_m0",
+      "R5_aA_m0",
+      "R5_aB_m0"
+    ],
+    "channels": [
+      "full",
+      "los"
+    ],
+    "bias_levels": [
+      "B0",
+      "L0",
+      "L1",
+      "L2"
+    ],
+    "baseline_historical_replay": "PASS_16_OF_16",
+    "scored_rows": 5952,
+    "stored_steps": 291264,
+    "audited_mode_transitions": 9792,
+    "max_metric_reaggregation_error": 1.4210854715202004e-14,
+    "max_model_revision_prior_error": 1.4210854715202004e-14,
+    "external_independent_audit": false
+  },
+  "science": {
+    "full_conditions": 16,
+    "B_heading_worse_S4_all_after_40": 16,
+    "B_heading_worse_S4_late_ge140": 16,
+    "B_both_H_XY_better_S4_all_after_40": 0,
+    "B_both_H_XY_better_S4_late_ge140": 0,
+    "B_both_H_XY_better_A_imm_all_after_40": 4,
+    "B_both_H_XY_better_A_imm_late_ge140": 0,
+    "B_both_H_XY_better_B_collapse_all_after_40": 4,
+    "B_both_H_XY_better_B_collapse_late_ge140": 0,
+    "worst_counterexample": {
+      "case": "R5_aA_m0",
+      "channel": "full",
+      "bias": "L2",
+      "late_window": "t>=140",
+      "S4_heading_rmse_deg": 2.006,
+      "S4_xy_rmse_m": 0.457,
+      "V2B_heading_rmse_deg": 17.534,
+      "V2B_xy_rmse_m": 2.052,
+      "V2B_heading_95coverage": 0,
+      "V2B_xy_95coverage": 0,
+      "V2B_heading_NEES": 194.607
+    }
+  },
+  "audit_limitations": [
+    "R2/R4/R5 are known variants of one simulated corridor",
+    "no independent noise seeds/new RF scenes/hardware",
+    "parameters trained with offline truth reference residual not an online calibration procedure",
+    "the same author performed separate numeric and scientific recomputation",
+    "higher contamination-mode probability is not probability of a beneficial heading update"
+  ],
+  "sources": {
+    "first_review": "research/PALO_IMM_V2_20261109/ADVERSARIAL_REVIEW_A_AND_REVISION_KO.md",
+    "final_review": "research/PALO_IMM_V2_20261109/ADVERSARIAL_REVIEW_B_FINAL_KO.md",
+    "raw_results": "research/PALO_IMM_V2_20261109/runs/42563563313/results/ALL_METRICS.csv",
+    "numeric_audit": "research/PALO_IMM_V2_20261109/runs/42563563313/results/INDEPENDENT_ARITHMETIC_AUDIT.json",
+    "revision_audit": "research/PALO_IMM_V2_20261109/runs/42563563313/results/ADVERSARIAL_REVISION_AUDIT.json"
+  }
+}
