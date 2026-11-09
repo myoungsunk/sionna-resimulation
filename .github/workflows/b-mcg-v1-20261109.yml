@@ -1,0 +1,93 @@
+name: B-MCG v1 verified research replay 20261109
+on:
+  push:
+    branches:
+      - analysis/b-mcg-v1-20261109
+    paths:
+      - .github/workflows/b-mcg-v1-20261109.yml
+      - research/B_MCG_V1_20261109/*.py
+      - research/B_MCG_V1_20261109/POLICY_LOCK.json
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: b-mcg-v1-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  source-replay:
+    name: Source replay ${{ matrix.route }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [R2, R4, R5]
+    env:
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      GIT_LFS_SKIP_SMUDGE: '1'
+      GH_TOKEN: ${{ github.token }}
+      BASE_CODE: research/FP_NATIVE_B_CAUSAL_ABLATION_20261108
+      MCG_CODE: research/B_MCG_V1_20261109
+      RUN_DIR: /tmp/b-mcg-v1
+    steps:
+      - name: Checkout exact experiment commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/b-mcg-v1-20261109.yml
+            /research/B_MCG_V1_20261109/**
+            /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
+            /research/FP_SC_RECOVERY_R0_R5_20261107/**
+            /research/FP_SC_S1_RUN_20261106/RESULTS/*/ROWS.json.gz
+      - name: Set up pinned Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Verify code and install locked numerical dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUN_DIR"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git rev-parse HEAD > "$RUN_DIR/COMMIT_SHA.txt"
+          sha256sum "$MCG_CODE"/*.py > "$RUN_DIR/EXECUTED_SOURCE_SHA256.txt"
+          timeout 300s python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0
+          python -m compileall -q "$MCG_CODE"
+          python "$MCG_CODE/test_mcg.py" 2>&1 | tee "$RUN_DIR/UNIT.log"
+          python "$MCG_CODE/test_calibration.py" 2>&1 | tee "$RUN_DIR/CALIBRATION_TESTS.log"
+      - name: Acquire original RF controls truth and FFD banks with SHA checks
+        timeout-minutes: 20
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u "$BASE_CODE/acquire_inputs.py" --out /tmp/fp-release-assets 2>&1 | tee "$RUN_DIR/INPUT_DOWNLOAD.log"
+          python -u "$BASE_CODE/stage_inputs.py" --repo "$GITHUB_WORKSPACE" --assets /tmp/fp-release-assets --out "$RUN_DIR/STAGE" 2>&1 | tee "$RUN_DIR/STAGE.log"
+          python -u "$MCG_CODE/acquire_archive.py" --out /tmp/b-mcg-reference 2>&1 | tee "$RUN_DIR/REFERENCE.log"
+      - name: Replay source baselines and declared diagnostic guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -u "$MCG_CODE/ci_route.py" \
+            --route '${{ matrix.route }}' \
+            --archives /tmp/b-mcg-reference/extracted/tmp/fp-b-calibration \
+            --policy-lock "$MCG_CODE/POLICY_LOCK.json" \
+            --out "$RUN_DIR/${{ matrix.route }}" 2>&1 | tee "$RUN_DIR/${{ matrix.route }}.log"
+      - name: Preserve code traces and scientific decisions even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: b-mcg-v1-${{ matrix.route }}-${{ github.run_id }}
+          path: |
+            /tmp/b-mcg-v1/**
+            /tmp/b-mcg-reference/ARCHIVE_RECEIPT.json
+            /tmp/fp-release-assets/*RECEIPT.json
+            research/B_MCG_V1_20261109/**
+          retention-days: 90
+          if-no-files-found: error

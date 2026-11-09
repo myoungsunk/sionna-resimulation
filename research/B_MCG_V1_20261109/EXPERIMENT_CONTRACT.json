@@ -1,0 +1,92 @@
+{
+  "schema": "B_MCG_V1_EXECUTION_CONTRACT_1",
+  "user_authorization": "2026-11-09: prechecks, investigate wrong-reference failures, implement B-MCG v1 and adversarially evaluate",
+  "source_commit": "c141839093d1a2e4a76f91eea632cb6467163e28",
+  "causal_repair_commit": "beb845665661ad8c68d07c88f6d268da4832e493",
+  "calibration_commit": "a8e76620b9f805b8e16d4525312c7a69b247306e",
+  "primary": "B_FROZEN",
+  "secondary": "B_BIAS_COV_EXISTING_FOLD_PARAMETERS",
+  "guard_numeric_policy": "Freeze before heldout evaluation; finite threshold grid; no positive-result search after failure",
+  "tau_grid": [
+    1.5,
+    2.0,
+    3.0,
+    4.0
+  ],
+  "beta_min": 0.25,
+  "hard_drop_enabled": false,
+  "runtime_inputs": [
+    "t",
+    "pose_id",
+    "ds",
+    "gy",
+    "dt",
+    "z_B",
+    "muMB",
+    "muBASE",
+    "R",
+    "x0",
+    "P0"
+  ],
+  "runtime_forbidden": [
+    "truth",
+    "clean_H",
+    "clean_Hrf",
+    "route_label_as_feature",
+    "future_observation",
+    "current_target_in_fit"
+  ],
+  "primary_window_s": 5.0,
+  "minimum_history_s": 2.0,
+  "sensitivity_windows_s": [
+    2.0,
+    10.0
+  ],
+  "fit": {
+    "nuisance": [
+      "anchor_dx",
+      "anchor_dy",
+      "yaw_alignment",
+      "constant_bg"
+    ],
+    "regularizer_weight": 0.01,
+    "robust_loss": "soft_l1",
+    "bounded_multistart": true,
+    "cost_slack_per_history_sample": 0.1,
+    "target_span_max_sigma": 2.0
+  },
+  "calibration": {
+    "split": "leave one route out; training chronological blocks with embargo",
+    "exposed_data": true,
+    "no_generalization_claim": true,
+    "loss_axes": [
+      "heading_deg2",
+      "xy_m2"
+    ],
+    "beneficial_lost_gain_max": 0.05
+  },
+  "adoption": {
+    "all_routes_rmse_ratio_max": 1.05,
+    "pooled_improvement_required_both_axes": true,
+    "coverage_drop_pp_max": 3.0,
+    "clean_recovery_time_ratio_max": 1.1,
+    "nontrivial_activity_required": true,
+    "p99_total_latency_ms_max": 200.0,
+    "guard_p95_latency_goal_ms": 50.0
+  },
+  "main_Q_change": false,
+  "B_detector_change": false,
+  "K1_K2": false,
+  "legacy_shadow": "unchanged raw B observation and original per-stratum calibration; cannot rescue rejections",
+  "UNKNOWN_action": "research bypass only, not declared safe",
+  "coherent_absolute_RF_bias": "not identifiable from motion consistency alone",
+  "amendments": [
+    "AMENDMENT_001_PROFILE_VALIDITY.md"
+  ],
+  "parameter_lock_scope": "Reference numerical validity amended before final policy calibration; tau grid, beta_min and budgets unchanged.",
+  "independence_limits": [
+    "R2/R4/R5 share gyro noise prefix and initial error; no independent seed or scene test",
+    "B_BIAS_COV secondary archives are historical per-route calibration, not nested guard holdout"
+  ],
+  "minimum_history_definition": "2 seconds from immutable anchor to current target; at 5Hz this uses ten past RF packets and current controls. Primary5s uses25past RF packets+current controls."
+}

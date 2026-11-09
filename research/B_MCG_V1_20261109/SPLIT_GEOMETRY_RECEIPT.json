@@ -1,0 +1,183 @@
+{
+  "status": "SPLIT_GEOMETRY_LOCKED",
+  "geometry_only_evaluator_access_before_policy_lock": true,
+  "geometry_truth_not_runtime_feature": true,
+  "geometry_not_used_to_rank_candidates": true,
+  "policy_selection_labels": "Only training/dev losses; no heldout losses until POLICY_LOCK.json exists.",
+  "time_split": "early 60% duration train and late 40% dev; train ends 10 s before cut, dev starts 5 s after cut",
+  "embargo_s": 15.0,
+  "support": "inclusive history [k-5s,k] and future diagnostic [k,k+10s]",
+  "near_pose_rule": {
+    "xy_euclidean_m": 0.25,
+    "wrapped_yaw_deg": 5.0,
+    "combination": "AND"
+  },
+  "purge": "Remove any target whose full support contains any pose near any heldout pose or any opposite-partition support pose; simultaneous conservative purge; no relaxation.",
+  "inputs": {
+    "R2": {
+      "evaluator_sha256": "90e4e2ad81a277290178ce50ba021ed2164ce2efcdf2b97908eb6104005da8c6",
+      "n": 979,
+      "cut_time_s": 117.35999999999999,
+      "raw_train_n": 512,
+      "raw_dev_n": 317
+    },
+    "R4": {
+      "evaluator_sha256": "b5cd93a576c300b2ba371c3755e1ab9e1c8141a742206a8bd69014b16fd20f60",
+      "n": 742,
+      "cut_time_s": 88.92,
+      "raw_train_n": 370,
+      "raw_dev_n": 222
+    },
+    "R5": {
+      "evaluator_sha256": "b7b3fa5ce18f22108657c409d474747eea54b1cb8a8455c476c3235246d65661",
+      "n": 1415,
+      "cut_time_s": 169.68,
+      "raw_train_n": 774,
+      "raw_dev_n": 491
+    }
+  },
+  "folds": {
+    "R2": {
+      "train_routes": [
+        "R4",
+        "R5"
+      ],
+      "routes": {
+        "R4": {
+          "train": {
+            "before_pose_purge": 370,
+            "excluded_near_heldout_support": 279,
+            "excluded_near_opposite_partition_support": 254,
+            "excluded_union": 370,
+            "remaining": 0,
+            "status": "NOT_ESTIMABLE_EMPTY_SPLIT"
+          },
+          "dev": {
+            "before_pose_purge": 222,
+            "excluded_near_heldout_support": 162,
+            "excluded_near_opposite_partition_support": 163,
+            "excluded_union": 163,
+            "remaining": 59,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          }
+        },
+        "R5": {
+          "train": {
+            "before_pose_purge": 774,
+            "excluded_near_heldout_support": 470,
+            "excluded_near_opposite_partition_support": 220,
+            "excluded_union": 476,
+            "remaining": 298,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          },
+          "dev": {
+            "before_pose_purge": 491,
+            "excluded_near_heldout_support": 0,
+            "excluded_near_opposite_partition_support": 283,
+            "excluded_union": 283,
+            "remaining": 208,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          }
+        }
+      },
+      "remaining_train_n": 298,
+      "remaining_dev_n": 267,
+      "all_requested_route_partitions_nonempty": false
+    },
+    "R4": {
+      "train_routes": [
+        "R2",
+        "R5"
+      ],
+      "routes": {
+        "R2": {
+          "train": {
+            "before_pose_purge": 512,
+            "excluded_near_heldout_support": 459,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 465,
+            "remaining": 47,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          },
+          "dev": {
+            "before_pose_purge": 317,
+            "excluded_near_heldout_support": 0,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 6,
+            "remaining": 311,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          }
+        },
+        "R5": {
+          "train": {
+            "before_pose_purge": 774,
+            "excluded_near_heldout_support": 419,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 425,
+            "remaining": 349,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          },
+          "dev": {
+            "before_pose_purge": 491,
+            "excluded_near_heldout_support": 383,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 389,
+            "remaining": 102,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          }
+        }
+      },
+      "remaining_train_n": 396,
+      "remaining_dev_n": 413,
+      "all_requested_route_partitions_nonempty": true
+    },
+    "R5": {
+      "train_routes": [
+        "R2",
+        "R4"
+      ],
+      "routes": {
+        "R2": {
+          "train": {
+            "before_pose_purge": 512,
+            "excluded_near_heldout_support": 509,
+            "excluded_near_opposite_partition_support": 219,
+            "excluded_union": 512,
+            "remaining": 0,
+            "status": "NOT_ESTIMABLE_EMPTY_SPLIT"
+          },
+          "dev": {
+            "before_pose_purge": 317,
+            "excluded_near_heldout_support": 0,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 6,
+            "remaining": 311,
+            "status": "ESTIMABLE_SAMPLE_AVAILABLE"
+          }
+        },
+        "R4": {
+          "train": {
+            "before_pose_purge": 370,
+            "excluded_near_heldout_support": 370,
+            "excluded_near_opposite_partition_support": 6,
+            "excluded_union": 370,
+            "remaining": 0,
+            "status": "NOT_ESTIMABLE_EMPTY_SPLIT"
+          },
+          "dev": {
+            "before_pose_purge": 222,
+            "excluded_near_heldout_support": 222,
+            "excluded_near_opposite_partition_support": 162,
+            "excluded_union": 222,
+            "remaining": 0,
+            "status": "NOT_ESTIMABLE_EMPTY_SPLIT"
+          }
+        }
+      },
+      "remaining_train_n": 0,
+      "remaining_dev_n": 311,
+      "all_requested_route_partitions_nonempty": false
+    }
+  },
+  "generalization_limit": "Exposed one corridor and seed10; gyro noise prefixes shared across routes. These masks do not establish independent-seed validation."
+}

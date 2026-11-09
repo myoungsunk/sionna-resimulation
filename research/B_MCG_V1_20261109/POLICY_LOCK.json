@@ -1,0 +1,3479 @@
+{
+  "schema": "B_MCG_POLICY_LOCK_V1",
+  "strata": [
+    "B_FROZEN"
+  ],
+  "locked_before_heldout_error_evaluation": true,
+  "splitter_only_heldout_geometry_access": true,
+  "runtime_truth_access": false,
+  "selection": {
+    "tau_grid": [
+      1.5,
+      2.0,
+      3.0,
+      4.0
+    ],
+    "modes": [
+      "ACTIVE_R",
+      "ACTIVE_S",
+      "ACTIVE_RS"
+    ],
+    "beta_min": 0.25,
+    "joint_threshold": "sqrt(2)*tau",
+    "positive_net_required": "both axes on train and dev",
+    "beneficial_lost_gain_max": 0.05,
+    "nontrivial_accepted_activity_required": true,
+    "beneficial_budget_numeric_tolerance": 1e-12,
+    "each_of_two_training_routes_must_retain_both_partitions": true,
+    "rank": "largest minimum fractional saved loss across two axes and train/dev; then higher tau; then fewer actual damped rows; then fixed candidate enumeration",
+    "zero_gain_denominator": "NOT_ESTIMABLE; fail eligibility",
+    "no_valid_candidate": "OFF; no split or threshold relaxation"
+  },
+  "same_prior_limit": "Profiles and actions use each archived baseline own prior; final policy recursion must be evaluated separately.",
+  "secondary_calibration_limit": "Preserve existing historical route-heldout B_BIAS_COV parameters per archive; do not refit. Training-route archives can have calibration learned using the guard-heldout route: this is secondary sensitivity, not nested independent holdout. B_FROZEN is controlling.",
+  "generalization": "No independent scene or noise-seed claim: exposed route data, shared seed10 gyro-noise prefix.",
+  "source_sha256": {
+    "calibrate_policy.py": "fcd583c5951e87ee3426f043aba1fc47b370cd016b6568d74c3b7b1f7cc88f7f",
+    "mcg.py": "8f58b7c412e54ca5fa308e61aa16c59c0fec30f05e482c505cb5cdea11099faf"
+  },
+  "split_geometry_receipt_sha256": "63074f66f3dcf9240005176cc257f7e0ee85076b716afe4a6741cb4b9bcc1334",
+  "input_sources": {
+    "B_FROZEN": {
+      "R2": {
+        "profile_sha256": "4b8b015ecf1f8a3c122652378599bee072d5b69283eb05dff373442ab5d2128d",
+        "trace_sha256": "46f0be0bf3023c02929aff03ce59eb2366dc46a5f0457fb985e583e75d818183",
+        "profile_config": "PROFILE_CONFIG_JSON_VERIFIED",
+        "historical_B_calibration_training_routes": null,
+        "same_prior_full_x_maxabs": 0.0,
+        "same_prior_full_P_maxabs": 0.0
+      },
+      "R4": {
+        "profile_sha256": "e64399af83737ef6dfa41ffb51a0eca5d02d5962da6a0c88a9f9dbaab91d106b",
+        "trace_sha256": "199e1f4eca9ed3014d9c55bb71e977c60750d8ab755c6a7f19821d4501b23205",
+        "profile_config": "PROFILE_CONFIG_JSON_VERIFIED",
+        "historical_B_calibration_training_routes": null,
+        "same_prior_full_x_maxabs": 0.0,
+        "same_prior_full_P_maxabs": 0.0
+      },
+      "R5": {
+        "profile_sha256": "94533cbf15f7ef04294d979c25981a5267097961ffc450f84f0a7f6b530005a2",
+        "trace_sha256": "be767d726603febb885450bbc678d1a56fcdaa3815dfb537a20ee23289ba2326",
+        "profile_config": "PROFILE_CONFIG_JSON_VERIFIED",
+        "historical_B_calibration_training_routes": null,
+        "same_prior_full_x_maxabs": 0.0,
+        "same_prior_full_P_maxabs": 0.0
+      }
+    }
+  },
+  "policies": {
+    "B_FROZEN": {
+      "R2": {
+        "selected_candidate": "OFF",
+        "mode": "OFF",
+        "config": {
+          "span_s": 5.0,
+          "minimum_s": 2.0,
+          "bounds": [
+            0.5,
+            0.5,
+            0.5235987755982988,
+            0.003490658503988659
+          ],
+          "motion_xy_m": 0.03,
+          "motion_yaw_rad": 0.017453292519943295,
+          "regularizer": 0.01,
+          "fit_slack_per_sample": 0.1,
+          "max_prediction_span_sigma": 2.0,
+          "linearity_rms_sigma": 0.5,
+          "max_history_cost_per_sample": 6.0,
+          "projected_gradient_per_sample_max": 0.05,
+          "max_refinements": 3,
+          "minimum_profile_candidates": 3,
+          "tau_r": 3.0,
+          "tau_s": 3.0,
+          "tau_joint": 4.242640687119286,
+          "beta_min": 0.25,
+          "max_history_gap_s": 0.3,
+          "enable_r": true,
+          "enable_s": true
+        },
+        "status": "UTILITY_NOT_DEMONSTRATED",
+        "training_routes": [
+          "R4",
+          "R5"
+        ],
+        "eligible_candidates": [],
+        "candidate_train_dev": {
+          "ACTIVE_R_tau1p5": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.9430606596225,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352157921676586,
+                  "net_saved_loss_sum": -0.03907998042041072,
+                  "net_saved_fraction": -3.0133287431151326e-05,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.031652537527837143,
+                  "beneficial_lost_gain_ratio": 0.0013280618603421824,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.4002331711451563,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805447372867502,
+                  "net_saved_loss_sum": -0.00030864289505627696,
+                  "net_saved_fraction": -0.00012860525046649,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0003778386373955228,
+                  "beneficial_lost_gain_ratio": 0.020573981397940144,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 2,
+              "actual_damping_n": 2,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.831310289862365,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427457037401634,
+                  "net_saved_loss_sum": -0.000722364389705632,
+                  "net_saved_fraction": -3.642677627211169e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 0.0014805969779116445,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6258012395926993,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.002343824867388387,
+                  "net_saved_loss_sum": 0.0001470605983583395,
+                  "net_saved_fraction": 0.00023494048679971227,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau2": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.920540481144,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352082350607866,
+                  "net_saved_loss_sum": -0.01655980194186668,
+                  "net_saved_fraction": -1.2768718570201427e-05,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.014488700026491719,
+                  "beneficial_lost_gain_ratio": 0.0006079098680224277,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.40008662279787,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805398195569755,
+                  "net_saved_loss_sum": -0.00016209454777005305,
+                  "net_saved_fraction": -6.754151885277991e-05,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0001705248666686969,
+                  "beneficial_lost_gain_ratio": 0.009285380285382021,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83128376052214,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427447101319154,
+                  "net_saved_loss_sum": -0.0006958350494805643,
+                  "net_saved_fraction": -3.5088977295864976e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 0.0014805969779116445,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.625830339367049,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023439338553072997,
+                  "net_saved_loss_sum": 0.00011796082400861163,
+                  "net_saved_fraction": 0.000188451384838982,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau3": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.8310997522385,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427378184358989,
+                  "net_saved_loss_sum": -0.0005118267658410502,
+                  "net_saved_fraction": -2.5809964271588833e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0005118267658408087,
+                  "beneficial_lost_gain_ratio": 0.0010890643742098695,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6258597945962777,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.002344044174517894,
+                  "net_saved_loss_sum": 8.850559477990849e-05,
+                  "net_saved_fraction": 0.000141394416684084,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau4": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.830780607991606,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427258654678504,
+                  "net_saved_loss_sum": -0.00019268251894644095,
+                  "net_saved_fraction": -9.716429975277618e-06,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.00019268251894641927,
+                  "beneficial_lost_gain_ratio": 0.00040998963110661205,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259137731251673,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023442463412927613,
+                  "net_saved_loss_sum": 3.4527065890355146e-05,
+                  "net_saved_fraction": 5.5159612830351134e-05,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau1p5": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83058792547266,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.0742718648894107,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259483001910576,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023443756561462832,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau2": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83058792547266,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.0742718648894107,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259483001910576,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023443756561462832,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau3": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83058792547266,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.0742718648894107,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259483001910576,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023443756561462832,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau4": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83058792547266,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.0742718648894107,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259483001910576,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023443756561462832,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau1p5": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.9430606596225,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352157921676586,
+                  "net_saved_loss_sum": -0.03907998042041072,
+                  "net_saved_fraction": -3.0133287431151326e-05,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.031652537527837143,
+                  "beneficial_lost_gain_ratio": 0.0013280618603421824,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.4002331711451563,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805447372867502,
+                  "net_saved_loss_sum": -0.00030864289505627696,
+                  "net_saved_fraction": -0.00012860525046649,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0003778386373955228,
+                  "beneficial_lost_gain_ratio": 0.020573981397940144,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 2,
+              "actual_damping_n": 2,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.831310289862365,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427457037401634,
+                  "net_saved_loss_sum": -0.000722364389705632,
+                  "net_saved_fraction": -3.642677627211169e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 0.0014805969779116445,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6258012395926993,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.002343824867388387,
+                  "net_saved_loss_sum": 0.0001470605983583395,
+                  "net_saved_fraction": 0.00023494048679971227,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau2": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.920540481144,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352082350607866,
+                  "net_saved_loss_sum": -0.01655980194186668,
+                  "net_saved_fraction": -1.2768718570201427e-05,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.014488700026491719,
+                  "beneficial_lost_gain_ratio": 0.0006079098680224277,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.40008662279787,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805398195569755,
+                  "net_saved_loss_sum": -0.00016209454777005305,
+                  "net_saved_fraction": -6.754151885277991e-05,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0001705248666686969,
+                  "beneficial_lost_gain_ratio": 0.009285380285382021,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.83128376052214,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427447101319154,
+                  "net_saved_loss_sum": -0.0006958350494805643,
+                  "net_saved_fraction": -3.5088977295864976e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 0.0014805969779116445,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.625830339367049,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023439338553072997,
+                  "net_saved_loss_sum": 0.00011796082400861163,
+                  "net_saved_fraction": 0.000188451384838982,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau3": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.8310997522385,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427378184358989,
+                  "net_saved_loss_sum": -0.0005118267658410502,
+                  "net_saved_fraction": -2.5809964271588833e-05,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.0005118267658408087,
+                  "beneficial_lost_gain_ratio": 0.0010890643742098695,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6258597945962777,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.002344044174517894,
+                  "net_saved_loss_sum": 8.850559477990849e-05,
+                  "net_saved_fraction": 0.000141394416684084,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau4": {
+            "train": {
+              "n": 298,
+              "legacy_accepted_n": 294,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1296.903980679202,
+                  "policy_loss_sum": 1296.903980679202,
+                  "baseline_mse": 4.352026780802691,
+                  "policy_mse": 4.352026780802691,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 23.833631906033123,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 2.3999245282501,
+                  "policy_loss_sum": 2.3999245282501,
+                  "baseline_mse": 0.00805343801426208,
+                  "policy_mse": 0.00805343801426208,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 172,
+                  "beneficial_gain_denominator": 0.01836487698163039,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 267,
+              "legacy_accepted_n": 263,
+              "legacy_rejected_n": 4,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 19.83058792547266,
+                  "policy_loss_sum": 19.830780607991606,
+                  "baseline_mse": 0.0742718648894107,
+                  "policy_mse": 0.07427258654678504,
+                  "net_saved_loss_sum": -0.00019268251894644095,
+                  "net_saved_fraction": -9.716429975277618e-06,
+                  "beneficial_full_update_n": 157,
+                  "beneficial_gain_denominator": 0.4699692487986724,
+                  "beneficial_lost_numerator": 0.00019268251894641927,
+                  "beneficial_lost_gain_ratio": 0.00040998963110661205,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 0.6259483001910576,
+                  "policy_loss_sum": 0.6259137731251673,
+                  "baseline_mse": 0.0023443756561462832,
+                  "policy_mse": 0.0023442463412927613,
+                  "net_saved_loss_sum": 3.4527065890355146e-05,
+                  "net_saved_fraction": 5.5159612830351134e-05,
+                  "beneficial_full_update_n": 155,
+                  "beneficial_gain_denominator": 0.006564182630653576,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          }
+        },
+        "all_requested_route_partitions_nonempty": false,
+        "selection_block_reason": "NOT_ESTIMABLE_EMPTY_REQUESTED_ROUTE_PARTITION",
+        "split_remaining_train_n": 298,
+        "split_remaining_dev_n": 267,
+        "diagnostic_only_candidate": "ACTIVE_RS_tau2",
+        "closed_loop_adoption_authorized_by_this_lock": false
+      },
+      "R4": {
+        "selected_candidate": "OFF",
+        "mode": "OFF",
+        "config": {
+          "span_s": 5.0,
+          "minimum_s": 2.0,
+          "bounds": [
+            0.5,
+            0.5,
+            0.5235987755982988,
+            0.003490658503988659
+          ],
+          "motion_xy_m": 0.03,
+          "motion_yaw_rad": 0.017453292519943295,
+          "regularizer": 0.01,
+          "fit_slack_per_sample": 0.1,
+          "max_prediction_span_sigma": 2.0,
+          "linearity_rms_sigma": 0.5,
+          "max_history_cost_per_sample": 6.0,
+          "projected_gradient_per_sample_max": 0.05,
+          "max_refinements": 3,
+          "minimum_profile_candidates": 3,
+          "tau_r": 3.0,
+          "tau_s": 3.0,
+          "tau_joint": 4.242640687119286,
+          "beta_min": 0.25,
+          "max_history_gap_s": 0.3,
+          "enable_r": true,
+          "enable_s": true
+        },
+        "status": "UTILITY_NOT_DEMONSTRATED",
+        "training_routes": [
+          "R2",
+          "R5"
+        ],
+        "eligible_candidates": [],
+        "candidate_train_dev": {
+          "ACTIVE_R_tau1p5": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.1540192970144,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6418030790328646,
+                  "net_saved_loss_sum": -0.03907998042041072,
+                  "net_saved_fraction": -2.7099074668022226e-05,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.031652537527837143,
+                  "beneficial_lost_gain_ratio": 0.000869720598186291,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.376612839077495,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.013577305149185594,
+                  "net_saved_loss_sum": -0.00030864289505672104,
+                  "net_saved_fraction": -5.7408004419816804e-05,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0003778386373955228,
+                  "beneficial_lost_gain_ratio": 0.0018237588757746268,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1895.947508994707,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.590671934611882,
+                  "net_saved_loss_sum": 0.2659577055428599,
+                  "net_saved_fraction": 0.00014025726017317757,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 1.5488651087989243e-05,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.167305186003997,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027039479869259073,
+                  "net_saved_loss_sum": 0.0014570775599693775,
+                  "net_saved_fraction": 0.00013046007476789304,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 8.32601574531429e-05,
+                  "beneficial_lost_gain_ratio": 0.000981255471898157,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": true,
+              "reasons": []
+            }
+          },
+          "ACTIVE_R_tau2": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.1314991185359,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417462098952926,
+                  "net_saved_loss_sum": -0.01655980194186668,
+                  "net_saved_fraction": -1.1482997291266e-05,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.014488700026491719,
+                  "beneficial_lost_gain_ratio": 0.0003981077612782206,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3764662907302085,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.013576935077601536,
+                  "net_saved_loss_sum": -0.00016209454777005305,
+                  "net_saved_fraction": -3.0149809582045563e-05,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0001705248666686969,
+                  "beneficial_lost_gain_ratio": 0.0008230927394589581,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.2141625352995,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591317584831233,
+                  "net_saved_loss_sum": -0.0006958350495551713,
+                  "net_saved_fraction": -3.669602931182893e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 1.5488651087989243e-05,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168644302739958,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027042722282663335,
+                  "net_saved_loss_sum": 0.00011796082400827856,
+                  "net_saved_fraction": 1.0561673820661764e-05,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau3": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.2139785270158,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591317139290595,
+                  "net_saved_loss_sum": -0.0005118267658872355,
+                  "net_saved_fraction": -2.6992043610886567e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0005118267658408087,
+                  "beneficial_lost_gain_ratio": 1.1392795173936008e-05,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168673757969186,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027042793602830958,
+                  "net_saved_loss_sum": 8.850559478013054e-05,
+                  "net_saved_fraction": 7.924387026202874e-06,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau4": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.213659382769,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591316366544235,
+                  "net_saved_loss_sum": -0.00019268251912762935,
+                  "net_saved_fraction": -1.0161436067793113e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.00019268251894641927,
+                  "beneficial_lost_gain_ratio": 4.288936449715411e-06,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168727736498077,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704292430144813,
+                  "net_saved_loss_sum": 3.452706588902288e-05,
+                  "net_saved_fraction": 3.0913959017339892e-06,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau1p5": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.21346670025,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591315900000605,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168762263563966,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704300790209193,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau2": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.21346670025,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591315900000605,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168762263563966,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704300790209193,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau3": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.21346670025,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591315900000605,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168762263563966,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704300790209193,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau4": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.21346670025,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591315900000605,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168762263563966,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704300790209193,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau1p5": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.1540192970144,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6418030790328646,
+                  "net_saved_loss_sum": -0.03907998042041072,
+                  "net_saved_fraction": -2.7099074668022226e-05,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.031652537527837143,
+                  "beneficial_lost_gain_ratio": 0.000869720598186291,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.376612839077495,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.013577305149185594,
+                  "net_saved_loss_sum": -0.00030864289505672104,
+                  "net_saved_fraction": -5.7408004419816804e-05,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0003778386373955228,
+                  "beneficial_lost_gain_ratio": 0.0018237588757746268,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 5,
+              "actual_damping_n": 5,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1895.947508994707,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.590671934611882,
+                  "net_saved_loss_sum": 0.2659577055428599,
+                  "net_saved_fraction": 0.00014025726017317757,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 1.5488651087989243e-05,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.167305186003997,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027039479869259073,
+                  "net_saved_loss_sum": 0.0014570775599693775,
+                  "net_saved_fraction": 0.00013046007476789304,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 8.32601574531429e-05,
+                  "beneficial_lost_gain_ratio": 0.000981255471898157,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": true,
+              "reasons": []
+            }
+          },
+          "ACTIVE_RS_tau2": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.1314991185359,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417462098952926,
+                  "net_saved_loss_sum": -0.01655980194186668,
+                  "net_saved_fraction": -1.1482997291266e-05,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.014488700026491719,
+                  "beneficial_lost_gain_ratio": 0.0003981077612782206,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3764662907302085,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.013576935077601536,
+                  "net_saved_loss_sum": -0.00016209454777005305,
+                  "net_saved_fraction": -3.0149809582045563e-05,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0001705248666686969,
+                  "beneficial_lost_gain_ratio": 0.0008230927394589581,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.2141625352995,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591317584831233,
+                  "net_saved_loss_sum": -0.0006958350495551713,
+                  "net_saved_fraction": -3.669602931182893e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0006958350494827201,
+                  "beneficial_lost_gain_ratio": 1.5488651087989243e-05,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168644302739958,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027042722282663335,
+                  "net_saved_loss_sum": 0.00011796082400827856,
+                  "net_saved_fraction": 1.0561673820661764e-05,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau3": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.2139785270158,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591317139290595,
+                  "net_saved_loss_sum": -0.0005118267658872355,
+                  "net_saved_fraction": -2.6992043610886567e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.0005118267658408087,
+                  "beneficial_lost_gain_ratio": 1.1392795173936008e-05,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168673757969186,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.027042793602830958,
+                  "net_saved_loss_sum": 8.850559478013054e-05,
+                  "net_saved_fraction": 7.924387026202874e-06,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau4": {
+            "train": {
+              "n": 396,
+              "legacy_accepted_n": 390,
+              "legacy_rejected_n": 6,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1442.114939316594,
+                  "policy_loss_sum": 1442.114939316594,
+                  "baseline_mse": 3.6417043922136214,
+                  "policy_mse": 3.6417043922136214,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 241,
+                  "beneficial_gain_denominator": 36.39391500424977,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 5.3763041961824385,
+                  "policy_loss_sum": 5.3763041961824385,
+                  "baseline_mse": 0.01357652574793545,
+                  "policy_mse": 0.01357652574793545,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 229,
+                  "beneficial_gain_denominator": 0.20717576342708072,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            },
+            "dev": {
+              "n": 413,
+              "legacy_accepted_n": 413,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 1,
+              "actual_damping_n": 1,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1896.21346670025,
+                  "policy_loss_sum": 1896.213659382769,
+                  "baseline_mse": 4.591315900000605,
+                  "policy_mse": 4.591316366544235,
+                  "net_saved_loss_sum": -0.00019268251912762935,
+                  "net_saved_fraction": -1.0161436067793113e-07,
+                  "beneficial_full_update_n": 269,
+                  "beneficial_gain_denominator": 44.92547772751554,
+                  "beneficial_lost_numerator": 0.00019268251894641927,
+                  "beneficial_lost_gain_ratio": 4.288936449715411e-06,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 11.168762263563966,
+                  "policy_loss_sum": 11.168727736498077,
+                  "baseline_mse": 0.02704300790209193,
+                  "policy_mse": 0.02704292430144813,
+                  "net_saved_loss_sum": 3.452706588902288e-05,
+                  "net_saved_fraction": 3.0913959017339892e-06,
+                  "beneficial_full_update_n": 225,
+                  "beneficial_gain_denominator": 0.08485064270987765,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "heading_deg2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          }
+        },
+        "all_requested_route_partitions_nonempty": true,
+        "selection_block_reason": null,
+        "split_remaining_train_n": 396,
+        "split_remaining_dev_n": 413,
+        "diagnostic_only_candidate": "ACTIVE_RS_tau2",
+        "closed_loop_adoption_authorized_by_this_lock": false
+      },
+      "R5": {
+        "selected_candidate": "OFF",
+        "mode": "OFF",
+        "config": {
+          "span_s": 5.0,
+          "minimum_s": 2.0,
+          "bounds": [
+            0.5,
+            0.5,
+            0.5235987755982988,
+            0.003490658503988659
+          ],
+          "motion_xy_m": 0.03,
+          "motion_yaw_rad": 0.017453292519943295,
+          "regularizer": 0.01,
+          "fit_slack_per_sample": 0.1,
+          "max_prediction_span_sigma": 2.0,
+          "linearity_rms_sigma": 0.5,
+          "max_history_cost_per_sample": 6.0,
+          "projected_gradient_per_sample_max": 0.05,
+          "max_refinements": 3,
+          "minimum_profile_candidates": 3,
+          "tau_r": 3.0,
+          "tau_s": 3.0,
+          "tau_joint": 4.242640687119286,
+          "beta_min": 0.25,
+          "max_history_gap_s": 0.3,
+          "enable_r": true,
+          "enable_s": true
+        },
+        "status": "UTILITY_NOT_DEMONSTRATED",
+        "training_routes": [
+          "R2",
+          "R4"
+        ],
+        "eligible_candidates": [],
+        "candidate_train_dev": {
+          "ACTIVE_R_tau1p5": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.6460709558867,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092109552912819,
+                  "net_saved_loss_sum": 0.2666535405921877,
+                  "net_saved_fraction": 0.00014072075043089046,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.799269716704671,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.0347243399250954,
+                  "net_saved_loss_sum": 0.001339116735961099,
+                  "net_saved_fraction": 0.00012398530088553452,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 8.32601574531429e-05,
+                  "beneficial_lost_gain_ratio": 0.0010024052919929405,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": true,
+              "reasons": []
+            }
+          },
+          "ACTIVE_R_tau2": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau3": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_R_tau4": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau1p5": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau2": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau3": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_S_tau4": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau1p5": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 4,
+              "actual_damping_n": 4,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.6460709558867,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092109552912819,
+                  "net_saved_loss_sum": 0.2666535405921877,
+                  "net_saved_fraction": 0.00014072075043089046,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.799269716704671,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.0347243399250954,
+                  "net_saved_loss_sum": 0.001339116735961099,
+                  "net_saved_fraction": 0.00012398530088553452,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 8.32601574531429e-05,
+                  "beneficial_lost_gain_ratio": 0.0010024052919929405,
+                  "net_positive": true,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": true,
+              "reasons": []
+            }
+          },
+          "ACTIVE_RS_tau2": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau3": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          },
+          "ACTIVE_RS_tau4": {
+            "train": {
+              "n": 0,
+              "legacy_accepted_n": 0,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                },
+                "xy_m2": {
+                  "status": "NOT_ESTIMABLE",
+                  "baseline_loss_sum": 0.0,
+                  "policy_loss_sum": 0.0,
+                  "baseline_mse": null,
+                  "policy_mse": null,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": null,
+                  "beneficial_full_update_n": 0,
+                  "beneficial_gain_denominator": 0.0,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": null,
+                  "net_positive": false,
+                  "good_gain_budget_pass": false
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NOT_ESTIMABLE_EMPTY_SPLIT",
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NOT_ESTIMABLE_DENOMINATOR",
+                "xy_m2:NOT_ESTIMABLE_DENOMINATOR"
+              ]
+            },
+            "dev": {
+              "n": 311,
+              "legacy_accepted_n": 311,
+              "legacy_rejected_n": 0,
+              "attempted_damping_n": 0,
+              "actual_damping_n": 0,
+              "axes": {
+                "heading_deg2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 1894.9127244964789,
+                  "policy_loss_sum": 1894.9127244964789,
+                  "baseline_mse": 6.092966959795752,
+                  "policy_mse": 6.092966959795752,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 203,
+                  "beneficial_gain_denominator": 44.89986711891967,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                },
+                "xy_m2": {
+                  "status": "ESTIMABLE",
+                  "baseline_loss_sum": 10.800608833440632,
+                  "policy_loss_sum": 10.800608833440632,
+                  "baseline_mse": 0.03472864576669014,
+                  "policy_mse": 0.03472864576669014,
+                  "net_saved_loss_sum": 0.0,
+                  "net_saved_fraction": 0.0,
+                  "beneficial_full_update_n": 181,
+                  "beneficial_gain_denominator": 0.08306037300302807,
+                  "beneficial_lost_numerator": 0.0,
+                  "beneficial_lost_gain_ratio": 0.0,
+                  "net_positive": false,
+                  "good_gain_budget_pass": true
+                }
+              },
+              "eligible": false,
+              "reasons": [
+                "NO_ACTUAL_ACCEPTED_UPDATE_ACTIVITY",
+                "heading_deg2:NO_POSITIVE_NET_GAIN",
+                "xy_m2:NO_POSITIVE_NET_GAIN"
+              ]
+            }
+          }
+        },
+        "all_requested_route_partitions_nonempty": false,
+        "selection_block_reason": "NOT_ESTIMABLE_EMPTY_REQUESTED_ROUTE_PARTITION",
+        "split_remaining_train_n": 0,
+        "split_remaining_dev_n": 311,
+        "diagnostic_only_candidate": "ACTIVE_RS_tau2",
+        "closed_loop_adoption_authorized_by_this_lock": false
+      }
+    }
+  }
+}
