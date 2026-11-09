@@ -11,7 +11,7 @@ permissions:
   contents: write
 concurrency:
   group: b-mcg-publish-42600632209
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   publish:
     runs-on: ubuntu-24.04
@@ -24,6 +24,12 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: true
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/b-mcg-publish-20261109.yml
+            /research/B_MCG_V1_20261109/**
       - name: Download SHA-locked traces and publish report and data
         shell: bash
         run: |
