@@ -1,0 +1,160 @@
+name: PALO three candidate pretests with source code and result audits
+on:
+  push:
+    branches: [analysis/palo-three-filter-audited-pretests-20261109]
+    paths:
+      - research/PALO_AUDITED_FIRST_TESTS_20261109/source_bundle/**
+      - research/PALO_AUDITED_FIRST_TESTS_20261109/bootstrap.py
+      - .github/workflows/palo-three-filter-audited-pretests-20261109.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+jobs:
+  audit_inputs_and_code:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fixed numerical stack
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Decode and verify immutable source
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          p='research/PALO_AUDITED_FIRST_TESTS_20261109/bootstrap.py'
+          with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p,timeout=90) as r:Path('bootstrap.py').write_bytes(r.read())
+          PY
+          python -B bootstrap.py
+          cp src/route_loader.py route_loader.py
+          mkdir -p unit
+          cp SOURCE_DECODE_RECEIPT.json unit/
+      - name: Audit all pinned input bytes and reused sources
+        run: |
+          set -o pipefail
+          python -B src/pipeline_io.py source --root . --out unit | tee unit/source.log
+      - name: Audit synthetic mathematics and negative controls
+        run: |
+          set -o pipefail
+          python -m py_compile src/*.py
+          python -B src/run_pretests.py --unit --out unit | tee unit/unit.log
+      - name: Preserve code and source audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pretest-unit
+          path: unit/
+          retention-days: 30
+  ordered_case:
+    needs: audit_inputs_and_code
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        case: [R2_aB_m0, R4_aA_m0, R5_aA_m0, R5_aB_m0]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install fixed numerical stack
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify frozen execution sources
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          p='research/PALO_AUDITED_FIRST_TESTS_20261109/bootstrap.py'
+          with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p,timeout=90) as r:Path('bootstrap.py').write_bytes(r.read())
+          PY
+          python -B bootstrap.py
+          mkdir -p results/${{ matrix.case }}
+      - name: Run stages 1 then 2 then 3 with separate numerical checks
+        run: |
+          set -o pipefail
+          python -B src/run_pretests.py --root . --case ${{ matrix.case }} --out results | tee results/${{ matrix.case }}/RUN.log
+      - name: Preserve arrays, code audit and result audit even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pretest-${{ matrix.case }}
+          path: results/${{ matrix.case }}/
+          retention-days: 30
+  verify_raw_and_publish:
+    needs: ordered_case
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      TARGET_BRANCH: analysis/palo-three-filter-audited-pretests-20261109
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install independent aggregate scorer
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3
+      - uses: actions/download-artifact@v4
+        with:
+          name: pretest-unit
+          path: results/unit
+      - uses: actions/download-artifact@v4
+        with:
+          name: pretest-R2_aB_m0
+          path: results/R2_aB_m0
+      - uses: actions/download-artifact@v4
+        with:
+          name: pretest-R4_aA_m0
+          path: results/R4_aA_m0
+      - uses: actions/download-artifact@v4
+        with:
+          name: pretest-R5_aA_m0
+          path: results/R5_aA_m0
+      - uses: actions/download-artifact@v4
+        with:
+          name: pretest-R5_aB_m0
+          path: results/R5_aB_m0
+      - name: Decode exact aggregate code
+        run: |
+          python - <<'PY'
+          import os,urllib.request
+          from pathlib import Path
+          p='research/PALO_AUDITED_FIRST_TESTS_20261109/bootstrap.py'
+          with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p,timeout=90) as r:Path('bootstrap.py').write_bytes(r.read())
+          PY
+          python -B bootstrap.py
+      - name: Recount every saved trajectory and publish audited evidence
+        run: |
+          set -o pipefail
+          python -B src/pipeline_io.py aggregate --root results --publish | tee aggregate.log
+      - name: Preserve deliverable and all failed-check evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-three-candidate-audited-${{ github.run_id }}
+          path: |
+            results/release/
+            aggregate.log
+          retention-days: 30
