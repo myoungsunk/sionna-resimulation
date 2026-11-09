@@ -1,0 +1,67 @@
+name: B-MCG v1 staged usefulness and numerical validation
+on:
+  push:
+    branches: [research/b-mcg-v1-precheck-20261109]
+    paths: [.github/workflows/b-mcg-v1-validation.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: b-mcg-v1-${{ github.sha }}
+  cancel-in-progress: false
+jobs:
+  precheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 80
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GIT_LFS_SKIP_SMUDGE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      CODE: research/B_MCG_V1_20261109
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/B_MCG_V1_20261109/**
+            /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
+            /research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/**
+            /research/FP_SC_RECOVERY_R0_R5_20261107/R45_RUN_001/*TRACE.npz
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - name: Install pinned numerics and run contract tests before science
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bmcg-results
+          python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0
+          python -m compileall -q "$CODE"
+          python "$CODE/test_contracts.py" 2>&1 | tee /tmp/bmcg-results/UNIT_TESTS.log
+      - name: Acquire eight exact SHA inputs without LFS
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          python -u research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/acquire_inputs.py --out /tmp/bmcg-assets 2>&1 | tee /tmp/bmcg-results/ACQUISITION.log
+      - name: P0 parity then P1 P2 P3 P4 preimplementation diagnostics
+        run: |
+          set -euo pipefail
+          git rev-parse HEAD > /tmp/bmcg-results/EXECUTION_COMMIT.txt
+          python -u "$CODE/precheck.py" --repo "$GITHUB_WORKSPACE" --assets /tmp/bmcg-assets --out /tmp/bmcg-results/PRECHECK 2>&1 | tee /tmp/bmcg-results/PRECHECK.log
+      - name: Preserve evidence including negative results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bmcg-v1-precheck-${{ github.run_id }}
+          path: |
+            /tmp/bmcg-results/
+            research/B_MCG_V1_20261109/*.py
+            /tmp/bmcg-assets/*RECEIPT.json
+            /tmp/bmcg-assets/*FAILURE.json
+          retention-days: 30
+          if-no-files-found: error
