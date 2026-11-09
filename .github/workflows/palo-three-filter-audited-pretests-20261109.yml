@@ -90,11 +90,11 @@ jobs:
           with urllib.request.urlopen('https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p,timeout=90) as r:Path('bootstrap.py').write_bytes(r.read())
           PY
           python -B bootstrap.py
-          mkdir -p results/${{ matrix.case }}
+          mkdir -p results
       - name: Run stages 1 then 2 then 3 with separate numerical checks
         run: |
           set -o pipefail
-          python -B src/run_pretests.py --root . --case ${{ matrix.case }} --out results | tee results/${{ matrix.case }}/RUN.log
+          python -B src/run_pretests.py --root . --case ${{ matrix.case }} --out results | tee results/${{ matrix.case }}.log
       - name: Preserve arrays, code audit and result audit even on failure
         if: always()
         uses: actions/upload-artifact@v4
