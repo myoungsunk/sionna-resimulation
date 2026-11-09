@@ -1,0 +1,84 @@
+{
+  "schema": "PALO_R2_SCALAR_COMMON_OFFSET_PROJECTION_PROXY_V1",
+  "state": "OFFLINE_DIAGNOSTIC_ONLY_NO_NEW_FILTER",
+  "input_zip_sha256": "46c6070a138f181d73f21796160fba1d52291faef1097f77d205963ddc12e140",
+  "input_artifact": "Actions #42466288321 single-metric-inputs",
+  "dataset": "R2_aB_m0 Full/LoS, B0, 5 Hz, t>=40",
+  "description": "eta=sum((g-mean(g))^2)/sum(g^2) with frozen LUT Hpsi at S4 prior or GT; single heading parameter only, assumes known positions, iid noise, no cross covariance or trajectory dynamics; NOT full-state conditional Fisher information",
+  "lag1_corr_full_minus_los": 0.8804570374113403,
+  "windows": {
+    "S4_prior_1s": {
+      "n": 155,
+      "median_eta": 0.0062341391615161,
+      "lt_0p1": 133
+    },
+    "S4_prior_2s": {
+      "n": 77,
+      "median_eta": 0.02168445861552879,
+      "lt_0p1": 60
+    },
+    "S4_prior_5s": {
+      "n": 31,
+      "median_eta": 0.07824374430140982,
+      "lt_0p1": 17
+    },
+    "GT_2s": {
+      "n": 77,
+      "median_eta": 0.02317233468063205,
+      "lt_0p1": 60
+    },
+    "GT_5s": {
+      "n": 31,
+      "median_eta": 0.07642279708591933,
+      "lt_0p1": 18
+    }
+  },
+  "examples": [
+    {
+      "k0": 525,
+      "k1": 549,
+      "time_s": "105.0-109.8",
+      "eta_S4": 0.799823890112136,
+      "eta_GT": 0.9532164131864692,
+      "mp_mean": 0.31686970618807986,
+      "mp_std": 0.23912876629045046,
+      "mp_rms": 0.3969747820294294,
+      "interpretation": "heading slope variation exists but common-bias assumption questionable"
+    },
+    {
+      "k0": 590,
+      "k1": 599,
+      "time_s": "118.0-119.8",
+      "eta_S4": 0.02651999,
+      "eta_GT": 0.04133702461963816,
+      "mp_mean": 0.19455649,
+      "mp_std": 0.01490738,
+      "mp_rms": 0.19512677,
+      "interpretation": "near common RF discrepancy but heading information almost projected out"
+    },
+    {
+      "k0": 750,
+      "k1": 774,
+      "time_s": "150.0-154.8",
+      "eta_S4": 0.9581409681574546,
+      "eta_GT": 0.9104791989182828,
+      "mp_mean": 0.00205046876853312,
+      "mp_std": 0.004070423004634565,
+      "mp_rms": 0.004557714954600388,
+      "interpretation": "high information proxy retention but little RF contamination"
+    },
+    {
+      "k0": 850,
+      "k1": 874,
+      "time_s": "170.0-174.8",
+      "eta_S4": 0.001459124050201367,
+      "eta_GT": 0.0019170262987473767,
+      "mp_mean": -0.030768744013525518,
+      "mp_std": 0.02734925134362684,
+      "mp_rms": 0.04116669961542627,
+      "interpretation": "severe heading-information loss risk"
+    }
+  ],
+  "no_truth_online": true,
+  "needs": "full-state trajectory Jacobian, position/bias nuisance Schur complement, temporal covariance and actual closed loop"
+}
