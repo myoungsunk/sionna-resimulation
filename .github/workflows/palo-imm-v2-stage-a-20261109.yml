@@ -1,0 +1,71 @@
+name: PALO IMM V2-A implement and adversarial evidence
+on:
+  push:
+    branches: [implement/palo-imm-v2-audit-20261109]
+    paths:
+      - .github/workflows/palo-imm-v2-stage-a-20261109.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  implement_and_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TARGET_BRANCH: implement/palo-imm-v2-audit-20261109
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install pinned numerical wheels
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Download pinned original input artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: inputs/
+      - name: Retrieve exact source from triggering commit
+        run: |
+          python - <<'PY'
+          import urllib.request,os,hashlib
+          from pathlib import Path
+          Path('source').mkdir()
+          for name in ['imm_model_a.py','calibrate.py','driver.py','audit_results.py','test_model.py','publish.py']:
+              path='research/PALO_IMM_V2_20261109/source/'+name
+              url='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+path
+              with urllib.request.urlopen(url,timeout=90) as r:b=r.read()
+              Path('source',name).write_bytes(b)
+              print(name,hashlib.sha256(b).hexdigest())
+          PY
+      - name: Run code tests and historical input parity before any new results
+        run: |
+          set -o pipefail
+          python -m unittest discover -s source -p test_model.py -v 2>&1 | tee TEST_A.log
+          python source/driver.py --phase prepare --data inputs --out prep 2>&1 | tee PREPARE_A.log
+      - name: Implemented IMM and identical collapsed control on Full/LoS and 4 bias levels
+        run: |
+          set -o pipefail
+          python source/driver.py --phase A --data inputs --out results_a 2>&1 | tee RUN_A.log
+      - name: Independent arithmetic recomputation and publish
+        run: |
+          set -o pipefail
+          python source/audit_results.py --out results_a 2>&1 | tee AUDIT_A.log
+          python source/publish.py --phase V2-A --result results_a 2>&1 | tee PUBLISH_A.log
+      - name: Preserve all evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-imm-v2a-${{ github.run_id }}
+          path: |
+            source/
+            prep/
+            results_a/
+            *.log
+          retention-days: 30
