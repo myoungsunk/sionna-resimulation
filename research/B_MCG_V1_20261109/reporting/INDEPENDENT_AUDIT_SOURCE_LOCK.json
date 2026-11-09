@@ -1,0 +1,28 @@
+{
+  "schema": "B_MCG_INDEPENDENT_AUDIT_SOURCE_COPY_V1",
+  "status": "EXACT_ORIGINAL_BYTES_PRESERVED",
+  "scripts": {
+    "check_final_policy.py": {
+      "sha256": "8e181ad531089d6be12efd8c2d357814f57e47febbf31c3f2def9e4773030cf5",
+      "bytes": 14594,
+      "preserved_original_location": "review/check_final_policy.py",
+      "packaged_location": "reporting/check_final_policy.py",
+      "evidence_path": "review/FINAL_POLICY_INDEPENDENT_CHECK.json",
+      "evidence_sha256": "fdbef63f6aed2d96e4e90288218c806190332e46a352c5349d06be80365a977c",
+      "evidence_status": "PASS_INDEPENDENT_FORMULA_AND_SPLIT_RECOMPUTATION",
+      "audit_code_hash_embedded_in_evidence": false
+    },
+    "audit_ci_remote.py": {
+      "sha256": "60165ddbfb993ac048c2ce8e82fab2c97090d5e89e0839e8ce2f1cd2cd68733f",
+      "bytes": 27031,
+      "preserved_original_location": "review/audit_ci_remote.py",
+      "packaged_location": "reporting/audit_ci_remote.py",
+      "evidence_path": "results/github_ci/CI_REMOTE_AUDIT.json",
+      "evidence_sha256": "743e5cd7c2848d6503af9dacd15b1639b4fc060cf62858d05c5b121202444980",
+      "evidence_status": "PASS_REMOTE_REPLAY_AND_LOCAL_RECONCILIATION",
+      "audit_code_hash_embedded_in_evidence": true
+    }
+  },
+  "execution_note": "Historical snapshot auditors. check_final_policy.py has a fixed workspace BASE and no CLI. audit_ci_remote.py resolves ROOT relative to review/ and pins run 42600632209. Copies are preserved for inspection; use the runbook path adapter or original workspace layout. No model parameters, comparisons or policies may be changed by a path adapter.",
+  "association_note": "The policy receipt did not embed the checker own-source hash. This copy manifest records the preserved checker bytes and the existing receipt hash; it does not retroactively add a source hash to that receipt."
+}

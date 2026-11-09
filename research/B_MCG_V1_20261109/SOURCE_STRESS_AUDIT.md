@@ -181,7 +181,11 @@ R2의 steady coherent wrong history와 현재 대조는 최종 guard와 legacy s
 
 ### 최종 판정의 범위 수정
 
-R5의 알려진 numerical 반례는 수정됐지만, 모든 profile coverage가 해결됐다는 주장은 반증됐다. 최종 구현은 연구용 bounded approximation으로 남으며, 회복 보호와 정책 채택에는 실패 또는 미검증 상태를 유지해야 한다.
+R5의 알려진 numerical 반례는 τ=3에서 수정됐지만, 모든 profile coverage가 해결됐다는 주장은 반증됐다. 최종 구현은 연구용 bounded approximation으로 남으며, U3/D14의 충분한 허용집합 coverage는 이 R4 반례에 대해 FAIL이다. 정책 채택은 별도 P4 및 폐루프 기준으로 판단한다.
+
+사전에 정한 P5의 회복시간·구간 이득 보존 예산은 별도로 판정한다. 두 선정 episode의 heading 회복 확인시간은 OFF와 τ=2/3 모두 R4 9.6초, R5 9.2초여서 guard/OFF 비율 1.0으로 1.1 이하를 통과했다. R4 τ=2의 clean 구간 좋은 이득 상실은 heading 0.3056%, XY 0.6371%이고, τ=3은 heading 0.04973%, XY 0%다. R5에서는 양 문턱·양 축 모두 0%다. 따라서 **선정 구간의 이들 수치 gate는 PASS**이며, 한 프레임의 큰 상대 손실을 이유로 구간 예산의 합격 기준을 바꾸지 않는다.
+
+두 episode 모두 XY와 joint는 OFF 자체가 9.8초의 관측 범위 안에 회복하지 않았다. 그 회복시간 비율은 **NOT_ESTIMABLE_BASELINE_CENSORED**다. 10초는 50개 clean sample의 명목 길이이며 첫 clean sample부터 마지막까지의 실제 경과시간은 9.8초다. 이 자료가 모든 정상 복귀의 보호, 실제 clean CIR 복귀율, 더 긴 시점의 회복을 입증하지는 않는다.
 
 원리적으로는 history로 정한 허용 집합을 고정한 뒤 현재 관측에 가장 가까운 feasible 예측을 찾는 연산이 설계서의 score 정의와 일치한다. 현재를 historical loss/허용집합의 정의에 추가하는 것과는 다르다. 그러나 평가용 최적화를 그대로 runtime에 넣어도 전역 negative certificate가 생기지 않으며, 계산 지연과 양쪽 오판을 다시 평가해야 한다. 이번 실험에서는 runtime을 변경하거나 결과를 보고 문턱을 재튜닝하지 않았다.
 

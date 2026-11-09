@@ -39,7 +39,7 @@
 분리했습니다. 검증 코드는 `precheck_*`, `audit_*`, `stress_source.py`,
 `synthetic_adversarial.py`, `test_mcg.py`, `test_calibration.py`입니다.
 
-현재 B0 데이터의 실제 gyro bias는 0인데, RF 혁신이 bias 추정치를 바꾸어
+현재 B0 데이터의 생성 설정과 배열 재생으로 확인한 gyro bias는 0인데, RF 혁신이 bias 추정치를 바꾸어
 운동 기준에도 오차가 전달되는 경로를 전수 항등식과 원본 SourceFFD 재귀로
 확인했습니다. 같은 noise seed와 초기오차를 공유하므로 세 route를 독립
 noise/scene 반복 실험으로 세지 않습니다. 독립 wheel heading은 archive에
@@ -52,6 +52,14 @@ noise/scene 반복 실험으로 세지 않습니다. 독립 wheel heading은 arc
 작은 innovation을 실제 위치·heading의 정확성으로 해석할 수 없습니다.
 
 ## 재현
+
+전체 재취득·기준선·사전검증·P4 lock·42개 재귀·회복·독립 평가·보고 순서와
+실제 CLI는 [RUNBOOK_KO.md](RUNBOOK_KO.md)에 있습니다. 로컬 최종 평가는
+두 strata × 7개 mode × 3개 route의 **42개 stream**입니다. 성공한 Actions
+`42600632209`는 두 strata × OFF/ACTIVE_RS × 3개 route의 **12개 stream**과
+원본 baseline 6개를 원격 실행했습니다. 원격 12개는 같은 로컬 결과와 전 행
+대조했으며, 이를 로컬 42개 전체의 원격 재실행이라고 해석하지 않습니다.
+두 strata 최종 lock은 `POLICY_LOCK_ALL_STRATA.json`에 별도 보존합니다.
 
 Python 3.12, NumPy 2.3.5, SciPy 1.17.0을 사용합니다. 원본은
 `c141839093d1a2e4a76f91eea632cb6467163e28`, 인과 감사 수리는

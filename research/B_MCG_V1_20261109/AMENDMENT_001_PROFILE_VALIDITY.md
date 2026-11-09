@@ -33,7 +33,12 @@ the sampled set was not evidence of absence in the admissible set.
 The minimum finite candidate count and gradient tolerance are numerical
 validity controls, not confidence probabilities or proof of global coverage.
 The nonlinear finite search still cannot certify all feasible nuisance modes.
-This limitation remains an adoption risk even after the known defect is fixed.
+This limitation remains an adoption risk even after the particular R5 k707
+regression no longer damps at tau=3. A later final-source recovery diagnostic at
+R4 k212 found another bounded, history-cost-feasible tau=3-compatible witness
+that the runtime candidates missed. The numerical repair therefore does not
+pass a claim of sufficient feasible-set coverage; see SOURCE_STRESS_AUDIT.md
+section 8. Failure to find a tau=2 witness is not a global infeasibility proof.
 
 ## Evidence handling
 

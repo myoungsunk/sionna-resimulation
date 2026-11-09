@@ -443,7 +443,12 @@ def main():
             for route in ROUTES:
                 q=lock.get("policies",{}).get(stratum,{}).get(route)
                 if q is None:folds.append({"stratum":stratum,"route":route,"status":"MISSING_SELECTION"});continue
-                entry={"stratum":stratum,"route":route,"selected_candidate":q["selected_candidate"],"selection_status":q.get("status"),"mode":q["mode"]}
+                entry={"stratum":stratum,"route":route,"selected_candidate":q["selected_candidate"],"selection_status":q.get("status"),"mode":q["mode"],
+                       "selection_block_reason":q.get("selection_block_reason"),
+                       "all_requested_route_partitions_nonempty":q.get("all_requested_route_partitions_nonempty"),
+                       "split_remaining_train_n":q.get("split_remaining_train_n"),
+                       "split_remaining_dev_n":q.get("split_remaining_dev_n"),
+                       "eligible_candidates":q.get("eligible_candidates")}
                 if q["mode"]=="OFF":
                     off=[r for r in evaluated if r["route"]==route and r["stratum"]==stratum and r["mode"]=="OFF" and r["status"]=="NUMERICALLY_EVALUATED"]
                     entry.update(status="LOCKED_OFF_NO_GUARD_UTILITY" if off else "LOCKED_OFF_REPLAY_MISSING",
@@ -457,6 +462,19 @@ def main():
                 folds.append(entry)
         selection={"policy_lock_path":str(policy),"policy_lock_sha256":sha(policy),"folds":folds,
                    "adoption_status":"NOT_READY" if any(f["status"]!="SELECTED_RECURSION_PRESENT" for f in folds) else "REQUIRES_ALL_PERFORMANCE_AND_RECOVERY_GATES"}
+    primary_snapshot=a.results/"policy_primary_precheck/POLICY_LOCK.json"
+    policy_lineage={"final_lock_path":str(policy),"final_lock_sha256":sha(policy) if policy.is_file() else None,
+                    "preserved_primary_lock_path":str(primary_snapshot) if primary_snapshot.is_file() else None,
+                    "preserved_primary_lock_sha256":sha(primary_snapshot) if primary_snapshot.is_file() else None,
+                    "primary_B_FROZEN_policy_exactly_matches_final":None,"trace_lock_reference_counts":{}}
+    if policy.is_file() and primary_snapshot.is_file():
+        final_primary=read_json(policy).get("policies",{}).get("B_FROZEN")
+        earlier_primary=read_json(primary_snapshot).get("policies",{}).get("B_FROZEN")
+        policy_lineage["primary_B_FROZEN_policy_exactly_matches_final"]=(earlier_primary is not None and earlier_primary==final_primary)
+    for record in evaluated:
+        digest=record.get("policy_lock_sha256") or "NOT_RECORDED"
+        policy_lineage["trace_lock_reference_counts"][digest]=policy_lineage["trace_lock_reference_counts"].get(digest,0)+1
+    policy_lineage["interpretation"]="Execution-time lock digests are preserved. A primary-only lock may have a different whole-file hash while its complete B_FROZEN policy objects exactly match the final two-stratum lock. Fixed diagnostic configuration is not a selected active policy; an OFF baseline need not have depended on a policy lock."
     units=evidence_matrix(a.results,a.repo,policy,groups)
     complete=all(g["status"]=="COMPLETE_EVALUATED" for g in groups)
     output={"status":"COMPLETED_NUMERICAL_DELIVERY_EVALUATION" if complete else "PARTIAL_DELIVERY_EVALUATION_MISSING_RESULTS",
@@ -467,7 +485,7 @@ def main():
             "requested_scope":{"modes":list(MODES),"strata":list(STRATA),"routes":list(ROUTES),
                                "expected_streams":len(MODES)*len(STRATA)*len(ROUTES),"expected_rows_per_mode_stratum":3136},
             "NAIVE_YAW_CLIP_label":"Historical code label for a negative control: threshold the magnitude of the hypothetical heading correction, then jointly attenuate both measurement rows; no posterior output clipping.",
-            "locked_policy_assessment":selection,"development_unit_matrix":units,
+            "locked_policy_assessment":selection,"policy_lock_execution_lineage":policy_lineage,"development_unit_matrix":units,
             "coverage_interpretation":"Empirical 95% coverage with original filter P; no independence/normality calibration guarantee.",
             "latency_interpretation":"Measured in this execution environment including guard processing; parallel host contention/hardware portability not certified.",
             "activity_interpretation":"At least one numerically altered, legacy-accepted update; no statistical significance threshold is implied."}
