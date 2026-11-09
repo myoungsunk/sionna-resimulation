@@ -1,0 +1,98 @@
+name: PALO IMM V2-B reviewed revision and frozen route controls
+on:
+  push:
+    branches: [implement/palo-imm-v2-audit-20261109]
+    paths:
+      - .github/workflows/palo-imm-v2-stage-b-20261109.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  revision_and_audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      TARGET_BRANCH: implement/palo-imm-v2-audit-20261109
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Pin original numerical wheels
+        run: |
+          python -m pip install --only-binary=:all: numpy==2.2.4 pandas==2.2.3 scipy==1.15.2
+      - name: Download original immutable PALO inputs
+        uses: actions/download-artifact@v4
+        with:
+          name: single-metric-inputs
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42466288321
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: inputs/
+      - name: Preserve completed Stage A first results and frozen fit
+        uses: actions/download-artifact@v4
+        with:
+          name: palo-imm-v2a-42560919706
+          repository: myoungsunk/sionna-resimulation
+          run-id: 42560919706
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: stage_a/
+      - name: Fetch exact revision source and pinned route loader
+        run: |
+          python - <<'PY'
+          import os,urllib.request,hashlib
+          from pathlib import Path
+          Path('source').mkdir()
+          names=['imm_model_a.py','imm_model_b.py','calibrate.py','calibrate_b.py','driver.py','numeric_patch.py','audit_results.py','audit_revision.py','test_model.py','test_model_b.py','campaign_b.py','publish.py']
+          for name in names:
+              p='research/PALO_IMM_V2_20261109/source/'+name
+              u='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+p
+              with urllib.request.urlopen(u,timeout=90) as r:b=r.read()
+              Path('source',name).write_bytes(b)
+              print(name,hashlib.sha256(b).hexdigest())
+          u='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/151d1af2f30070780f43d94327e50c50d60c4103/research/PALO_NIS_ROUTE_TRANSFER_20261108/validate_routes.py'
+          with urllib.request.urlopen(u,timeout=90) as r:b=r.read()
+          git=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+          assert git=='d0ae06abeeba856a3f333d2b6e0b4d94dda5a805'
+          Path('source/route_loader.py').write_bytes(b)
+          Path('cache').symlink_to(Path('inputs/cache').resolve(),target_is_directory=True)
+          PY
+      - name: Adversarial tests and strict historical replay gate
+        run: |
+          set -o pipefail
+          python -m unittest discover -s source -p 'test_model*.py' -v 2>&1 | tee TEST_B.log
+          python source/numeric_patch.py --phase prepare --data inputs --out prep_recheck 2>&1 | tee PARITY_B.log
+      - name: Fit only offset persistence using the unchanged development segment
+        run: |
+          set -o pipefail
+          mkdir -p prep
+          cp stage_a/prep/BASELINE_PARITY.json prep/
+          cp stage_a/prep/INPUT_AUDIT.json prep/
+          python source/calibrate_b.py --source stage_a/prep --out prep 2>&1 | tee CALIBRATE_B.log
+      - name: Execute A and revised B with identical controls and preserve failures
+        run: |
+          set -o pipefail
+          python source/campaign_b.py 2>&1 | tee CAMPAIGN_B.log
+      - name: Separate arithmetic and latent-cross-covariance audits
+        run: |
+          set -o pipefail
+          python source/audit_revision.py 2>&1 | tee ADVERSARIAL_B.log
+          python source/audit_results.py --out results_final 2>&1 | tee RESULTS_B.log
+      - name: Push raw trajectories, executed source, parameters and audit
+        run: |
+          set -o pipefail
+          python source/publish.py --phase V2-B --result results_final 2>&1 | tee PUBLISH_B.log
+      - name: Preserve all evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: palo-imm-v2b-${{ github.run_id }}
+          path: |
+            source/
+            prep/
+            prep_recheck/
+            results_final/
+            *.log
+          retention-days: 30
