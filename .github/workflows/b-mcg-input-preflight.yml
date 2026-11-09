@@ -25,8 +25,6 @@ jobs:
             /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
             /research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/**
             /research/FP_SC_RECOVERY_R0_R5_20261107/RUN_002/SUMMARY.json
-            /research/FP_SC_RECOVERY_R0_R5_20261107/r2.py
-            /research/FP_SC_RECOVERY_R0_R5_20261107/r45.py
       - name: Acquire original inputs without science or parameter changes
         run: |
           set -euo pipefail
@@ -47,8 +45,17 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: bmcg-pinned-inputs-${{ github.run_id }}
-          path: /tmp/bmcg-handoff/
+          name: bmcg-small-inputs-${{ github.run_id }}
+          path: |
+            /tmp/bmcg-handoff/
+            !/tmp/bmcg-handoff/assets/LP_*bank.npz
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: bmcg-ffd-banks-${{ github.run_id }}
+          path: /tmp/bmcg-handoff/assets/LP_*bank.npz
           compression-level: 0
           retention-days: 30
           if-no-files-found: error
