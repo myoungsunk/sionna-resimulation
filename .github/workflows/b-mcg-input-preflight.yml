@@ -1,0 +1,54 @@
+name: B-MCG input-only preflight and immutable handoff
+on:
+  push:
+    branches: [research/b-mcg-v1-precheck-20261109]
+    paths: [.github/workflows/b-mcg-input-preflight.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      GIT_LFS_SKIP_SMUDGE: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/**
+            /research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/**
+            /research/FP_SC_RECOVERY_R0_R5_20261107/RUN_002/SUMMARY.json
+            /research/FP_SC_RECOVERY_R0_R5_20261107/r2.py
+            /research/FP_SC_RECOVERY_R0_R5_20261107/r45.py
+      - name: Acquire original inputs without science or parameter changes
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/bmcg-handoff/assets /tmp/bmcg-handoff/source
+          python3 -u research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/acquire_inputs.py --out /tmp/bmcg-handoff/assets 2>&1 | tee /tmp/bmcg-handoff/ACQUISITION.log
+          cp -r research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/. /tmp/bmcg-handoff/source/
+          cp research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/RELEASE_INPUT_LOCK.json /tmp/bmcg-handoff/
+          cp research/FP_SC_RECOVERY_R0_R5_20261107/RUN_002/SUMMARY.json /tmp/bmcg-handoff/R0_SUMMARY.json
+          git rev-parse HEAD > /tmp/bmcg-handoff/COMMIT.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib,json
+          root=Path('/tmp/bmcg-handoff')
+          out={str(p.relative_to(root)):hashlib.file_digest(p.open('rb'),'sha256').hexdigest() for p in root.rglob('*') if p.is_file()}
+          (root/'SHA256.json').write_text(json.dumps(out,indent=2))
+          print('INPUT_ONLY_PASS',len(out),'NO_RF_REGENERATION_NO_EKF_RUN')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: bmcg-pinned-inputs-${{ github.run_id }}
+          path: /tmp/bmcg-handoff/
+          compression-level: 0
+          retention-days: 30
+          if-no-files-found: error
