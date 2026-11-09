@@ -1,0 +1,95 @@
+{
+  "status": "V1_FORENSIC_RECOMPUTED_FROM_PRIOR_LOCAL_EXECUTION_NOT_NEW_EXPERIMENT",
+  "source_archived_zip": "PALO_THREE_FILTER_PRECHECK_20261109_EXECUTED.zip",
+  "source_sha256": "60b727afcd505ed75ba46423e82e7adf62eb5b714720298f0e13cbbb750ec3b9",
+  "source_code_sha256": {
+    "model": "16d7153a7e986de571e443009fd36c8d115ef0ed9c6f015c41fd9dc5bf368538",
+    "experiment": "a52785d5317d2f464a4611a6e891da54c41f9fd22cfa7409e71ba274cee2468c"
+  },
+  "time_window": "t>=40s, R2 anchor B Full, B0 seed0",
+  "n_frames": 779,
+  "mode_counts": {
+    "both_OFF": 459,
+    "both_ON": 0,
+    "one_each": 320
+  },
+  "frame_fraction_both_OFF": 0.5892169448010269,
+  "pruned_probability_mass": {
+    "mean": 0.12037861545731617,
+    "max": 0.3181,
+    "n_pruned_gt_0p1": 334,
+    "n_pruned_gt_0p25": 226
+  },
+  "on_mode_probability_mean": 0.4044306597121748,
+  "representative_frames": [
+    {
+      "k": 3,
+      "modes": [
+        0,
+        0
+      ],
+      "weights": [
+        0.89054,
+        0.10946
+      ]
+    },
+    {
+      "k": 483,
+      "modes": [
+        1,
+        0
+      ],
+      "weights": [
+        0.95896631,
+        0.04103369
+      ]
+    },
+    {
+      "k": 750,
+      "modes": [
+        0,
+        0
+      ],
+      "weights": [
+        0.50003,
+        0.49997
+      ]
+    }
+  ],
+  "full_rmse": {
+    "B0": {
+      "S4_heading_deg": 1.539993,
+      "keep2_heading_deg": 3.314,
+      "S4_XY_m": 0.30752,
+      "keep2_XY_m": 0.338
+    },
+    "L2": {
+      "S4_heading_deg": 1.291942,
+      "keep2_heading_deg": 2.977,
+      "S4_XY_m": 0.308103,
+      "keep2_XY_m": 0.321
+    }
+  },
+  "off_revival_bound": {
+    "p_stay": 0.95,
+    "p_switch": 0.05,
+    "sampling_s": 0.2,
+    "expected_dwell_s": 4,
+    "Rs": 0.0081,
+    "uniform_outlier_pdf": 0.5,
+    "gaussian_max_pdf": 4.432692004460363,
+    "max_next_ON_vs_OFF_score_ratio": 0.4665991583642488
+  },
+  "unresolved": {
+    "historical_replay": "15/16 strict full recursive parity PASS; full B0 S4 unresolved mismatch despite zero gate mask mismatches",
+    "external_independent_audit": false,
+    "v2_filter_implemented": false,
+    "generalization": false
+  },
+  "notes": [
+    "Top 2 posterior histories are NOT two modes by construction.",
+    "Pruned probability mass is per step; do not multiply (1-mass) as a literal evidence probability across time.",
+    "ON probability is probability under the assumed emission/transition model, not heading correction benefit."
+  ],
+  "source_replay_recipe": "Download and extract the frozen prior-user ZIP (SHA256 above); load results/S2_full_B0_keep2.npz, then aggregate modes,weights,detail columns 1 over index 200: and score against results/S2_METRICS.csv."
+}
