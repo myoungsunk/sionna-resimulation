@@ -1,0 +1,75 @@
+name: FP distortion characterization - exact paired RF inputs
+on:
+  push:
+    branches: [analysis/fp-distortion-characterization-20261109]
+    paths:
+      - '.github/workflows/fp-distortion-characterization-20261109.yml'
+      - 'research/FP_DISTORTION_CHARACTERIZATION_20261109/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  paired-inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GIT_LFS_SKIP_SMUDGE: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      OMP_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/acquire_inputs.py
+            /research/FP_NATIVE_B_CAUSAL_ABLATION_20261108/RELEASE_INPUT_LOCK.json
+            /research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/src/qclean_uwb/drivesim/observation.py
+            /research/MBVAR_PRR_001_20261103/PHYSICAL_CAUSALITY_20261104/FP_SELECTIVE_CORRECTION_001/E1_02_PREPARATION_R1_20261105/INPUTS/*/EXPORT_RECEIPT.json
+            /research/FP_DISTORTION_CHARACTERIZATION_20261109/**
+      - name: Acquire six original paired Full and clean-LoS inputs with SHA and size verification
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/fp-distortion-inputs
+          python3 -u - <<'PY' 2>&1 | tee /tmp/fp-distortion-inputs/ACQUISITION.log
+          import sys,json,os,shutil,hashlib
+          from pathlib import Path
+          code=Path('research/FP_NATIVE_B_CAUSAL_ABLATION_20261108')
+          sys.path.insert(0,str(code))
+          from acquire_inputs import acquire,sha
+          lock=code/'RELEASE_INPUT_LOCK.json'
+          records=json.loads(lock.read_text())['files']
+          selected=[r for r in records if r['asset_name'].endswith(('__online.npz','__evaluator.npz'))]
+          assert len(selected)==6
+          out=Path('/tmp/fp-distortion-inputs')
+          done=[]
+          try:
+              for record in selected:
+                  p=acquire(record,out)
+                  done.append(dict(record,downloaded_sha256=sha(p)))
+                  print('VERIFIED',p.name,p.stat().st_size,flush=True)
+              for p in Path('research').rglob('EXPORT_RECEIPT.json'):
+                  if p.parent.name.endswith('B0_Full_10'):
+                      shutil.copyfile(p,out/(p.parent.name+'__EXPORT_RECEIPT.json'))
+              shutil.copyfile(lock,out/'RELEASE_INPUT_LOCK.json')
+              source=Path('research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources/src/qclean_uwb/drivesim/observation.py')
+              shutil.copyfile(source,out/'observation.py')
+              receipt={'status':'SIX_ORIGINAL_INPUTS_SHA_PASS','commit':os.environ['GITHUB_SHA'],'run_id':os.environ['GITHUB_RUN_ID'],'new_RF_calls':0,'new_EKF_runs':0,'files':done}
+              (out/'ACQUISITION_RECEIPT.json').write_text(json.dumps(receipt,indent=2))
+          except BaseException as e:
+              (out/'FAILURE.json').write_text(json.dumps({'error':repr(e),'verified':done},indent=2))
+              raise
+          PY
+      - name: Preserve exact paired inputs for local independent calculation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: fp-distortion-paired-inputs-${{ github.run_id }}
+          path: /tmp/fp-distortion-inputs/**
+          retention-days: 30
+          if-no-files-found: error
