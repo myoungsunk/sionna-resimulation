@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Transport-only bootstrap. No experiment code executes before all hashes match."""
-import os,json,base64,gzip,hashlib,urllib.request,time
+import os,json,base64,gzip,hashlib,urllib.request,time,runpy
 from pathlib import Path
 REPO='myoungsunk/sionna-resimulation'
 PREFIX='research/PALO_AUDITED_FIRST_TESTS_20261109'
@@ -29,5 +29,8 @@ route=get('151d1af2f30070780f43d94327e50c50d60c4103','research/PALO_NIS_ROUTE_TR
 blob=hashlib.sha1(b'blob '+str(len(route)).encode()+b'\0'+route).hexdigest()
 assert blob=='d0ae06abeeba856a3f333d2b6e0b4d94dda5a805',('ROUTE_LOADER_BLOB_MISMATCH',blob)
 Path('src/route_loader.py').write_bytes(route)
-Path('SOURCE_DECODE_RECEIPT.json').write_text(json.dumps({'source_commit':REF,'decoded_bundle_sha256':digest(b),'files':m['files'],'route_loader_git_blob':blob},indent=2))
-print('SOURCE_DECODE_PASS',REF,len(files),'FILES',flush=True)
+Path('repair_source.py').write_bytes(get(REF,PREFIX+'/repair_source.py'))
+runpy.run_path('repair_source.py',run_name='__main__')
+final={name:digest(Path('src',name).read_bytes()) for name in files}
+Path('SOURCE_DECODE_RECEIPT.json').write_text(json.dumps({'source_commit':REF,'decoded_bundle_sha256':digest(b),'original_files':m['files'],'executed_files':final,'route_loader_git_blob':blob,'repair_receipt':json.loads(Path('REPAIR_SOURCE_RECEIPT.json').read_text())},indent=2))
+print('SOURCE_DECODE_AND_REPAIR_PASS',REF,len(files),'FILES',flush=True)
