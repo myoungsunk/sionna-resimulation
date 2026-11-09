@@ -37,22 +37,22 @@ jobs:
           import urllib.request,os,hashlib
           from pathlib import Path
           Path('source').mkdir()
-          for name in ['imm_model_a.py','calibrate.py','driver.py','audit_results.py','test_model.py','publish.py']:
+          for name in ['imm_model_a.py','calibrate.py','driver.py','audit_results.py','test_model.py','publish.py','numeric_patch.py']:
               path='research/PALO_IMM_V2_20261109/source/'+name
               url='https://raw.githubusercontent.com/myoungsunk/sionna-resimulation/'+os.environ['GITHUB_SHA']+'/'+path
               with urllib.request.urlopen(url,timeout=90) as r:b=r.read()
               Path('source',name).write_bytes(b)
               print(name,hashlib.sha256(b).hexdigest())
           PY
-      - name: Run code tests and historical input parity before any new results
+      - name: Run tests and strict historical parity using validated numerical execution
         run: |
           set -o pipefail
           python -m unittest discover -s source -p test_model.py -v 2>&1 | tee TEST_A.log
-          python source/driver.py --phase prepare --data inputs --out prep 2>&1 | tee PREPARE_A.log
-      - name: Implemented IMM and identical collapsed control on Full/LoS and 4 bias levels
+          python source/numeric_patch.py --phase prepare --data inputs --out prep 2>&1 | tee PREPARE_A.log
+      - name: Implemented IMM and matched collapsed control on Full/LoS and four bias levels
         run: |
           set -o pipefail
-          python source/driver.py --phase A --data inputs --out results_a 2>&1 | tee RUN_A.log
+          python source/numeric_patch.py --phase A --data inputs --out results_a 2>&1 | tee RUN_A.log
       - name: Independent arithmetic recomputation and publish
         run: |
           set -o pipefail
