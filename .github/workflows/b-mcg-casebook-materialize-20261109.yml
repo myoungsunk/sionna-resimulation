@@ -1,0 +1,114 @@
+name: B-MCG 506-casebook source archive materialization
+on:
+  push:
+    branches:
+      - analysis/b-mcg-v1-20261109
+    paths:
+      - .github/workflows/b-mcg-casebook-materialize-20261109.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: b-mcg-casebook-materialize-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  materialize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      ROOT: research/B_MCG_V1_20261109/CASE_GALLERY_20261109
+      GIT_LFS_SKIP_SMUDGE: "1"
+      MPLBACKEND: Agg
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      OMP_NUM_THREADS: "1"
+    steps:
+      - name: Checkout source and locked data chunks
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 1
+          filter: blob:none
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/b-mcg-casebook-materialize-20261109.yml
+            /research/B_MCG_V1_20261109/CASE_GALLERY_20261109/**
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+      - name: Install plot dependencies and Korean font
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq fonts-nanum
+          python -m pip install --disable-pip-version-check numpy==2.3.5 pandas==2.3.3 matplotlib==3.10.7
+      - name: Reconstruct exact source code, research CSVs and interactive HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$ROOT/assemble_science_data.py" --extract
+          python "$ROOT/assemble_interactive_html.py"
+          python - <<'PY'
+          from pathlib import Path
+          import csv,hashlib
+          root=Path("research/B_MCG_V1_20261109/CASE_GALLERY_20261109")
+          expected={"R2":979,"R4":742,"R5":1415}
+          p=root/"FULL_ENRICHED_6272.csv"
+          with p.open(encoding="utf-8-sig",newline="") as f: rows=list(csv.DictReader(f))
+          assert len(rows)==6272, len(rows)
+          unique={(r["route"],r["stratum"],int(r["k"])) for r in rows}
+          assert len(unique)==6272
+          for route,n in expected.items():
+              for stratum in ("B_FROZEN","B_BIAS_COV"):
+                  assert sum(r["route"]==route and r["stratum"]==stratum for r in rows)==n
+          assert (root/"B_MCG_506_CASES_INTERACTIVE_20261109.html").stat().st_size==13488962
+          print("SCIENTIFIC_DATA_ROWS_AND_SOURCE_SHA_PASS",len(rows))
+          PY
+      - name: Reproduce and verify 48 case panels
+        shell: bash
+        run: |
+          set -euo pipefail
+          python "$ROOT/export_panels.py" --out "$ROOT/panels" --max 115
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("research/B_MCG_V1_20261109/CASE_GALLERY_20261109")
+          manifest=json.loads((root/"PANEL_MANIFEST.json").read_text())
+          n=len(manifest["panels"])
+          assert n==48,n
+          for row in manifest["panels"]:
+              p=root/row["file"];assert p.is_file() and p.stat().st_size>10000,p
+          print("PANEL_COUNT_AND_FILES_PASS",n)
+          PY
+      - name: Commit reconstructed exact CSVs, HTML and reproducible figures
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- "$ROOT/B_MCG_CASEBOOK_SCIENCE_DATA_20261109.zip"             "$ROOT/FULL_ENRICHED_6272.csv"             "$ROOT/PRIMARY_R2_RF_CIR_FEATURES.csv"             "$ROOT/PRIMARY_R4_RF_CIR_FEATURES.csv"             "$ROOT/PRIMARY_R5_RF_CIR_FEATURES.csv"             "$ROOT/B_MCG_506_CASES_INTERACTIVE_20261109.html"             "$ROOT/PANEL_MANIFEST.json"             "$ROOT/panels"
+          if git diff --cached --quiet; then
+            echo "ALREADY_PUBLISHED_NO_CHANGES"
+          else
+            git commit -m "artifacts(b-mcg): publish 6272 records, interactive 506-casebook and 48 figures [skip ci]"
+            git push origin "HEAD:refs/heads/${GITHUB_REF_NAME}"
+          fi
+          git status --short
+      - name: Preserve reproducibility output even on failure
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: b-mcg-506-casebook-materialized-${{ github.run_id }}
+          path: |
+            research/B_MCG_V1_20261109/CASE_GALLERY_20261109/B_MCG_CASEBOOK_SCIENCE_DATA_20261109.zip
+            research/B_MCG_V1_20261109/CASE_GALLERY_20261109/FULL_ENRICHED_6272.csv
+            research/B_MCG_V1_20261109/CASE_GALLERY_20261109/PRIMARY_*_RF_CIR_FEATURES.csv
+            research/B_MCG_V1_20261109/CASE_GALLERY_20261109/B_MCG_506_CASES_INTERACTIVE_20261109.html
+            research/B_MCG_V1_20261109/CASE_GALLERY_20261109/panels/**
+          retention-days: 30
+          if-no-files-found: warn
