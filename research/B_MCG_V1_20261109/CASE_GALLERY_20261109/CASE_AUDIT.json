@@ -1,0 +1,153 @@
+{
+  "source_actions": 42600632209,
+  "n_trajectory_rows": 3136,
+  "two_strata_trajectory_rows": 6272,
+  "case_count": 506,
+  "case_counts": "{('R2', 'B_BIAS_COV'): 76, ('R2', 'B_FROZEN'): 75, ('R4', 'B_BIAS_COV'): 88, ('R4', 'B_FROZEN'): 87, ('R5', 'B_BIAS_COV'): 88, ('R5', 'B_FROZEN'): 92}",
+  "guard_intervention_counts": {
+    "R2|B_FROZEN": {
+      "n": 979,
+      "damped": 1,
+      "status": {
+        "UNKNOWN": 835,
+        "COMPATIBLE": 133,
+        "WARMUP": 10,
+        "CONFLICT_R": 1
+      },
+      "damped_r": 1,
+      "damped_s": 0,
+      "good_heading_immediate": 1,
+      "bad_heading_immediate": 0,
+      "good_xy_immediate": 0,
+      "bad_xy_immediate": 1
+    },
+    "R2|B_BIAS_COV": {
+      "n": 979,
+      "damped": 0,
+      "status": {
+        "UNKNOWN": 835,
+        "COMPATIBLE": 134,
+        "WARMUP": 10
+      },
+      "damped_r": 0,
+      "damped_s": 0,
+      "good_heading_immediate": 0,
+      "bad_heading_immediate": 0,
+      "good_xy_immediate": 0,
+      "bad_xy_immediate": 0
+    },
+    "R4|B_FROZEN": {
+      "n": 742,
+      "damped": 2,
+      "status": {
+        "UNKNOWN": 587,
+        "COMPATIBLE": 143,
+        "WARMUP": 10,
+        "CONFLICT_R": 2
+      },
+      "damped_r": 2,
+      "damped_s": 0,
+      "good_heading_immediate": 0,
+      "bad_heading_immediate": 2,
+      "good_xy_immediate": 0,
+      "bad_xy_immediate": 2
+    },
+    "R4|B_BIAS_COV": {
+      "n": 742,
+      "damped": 0,
+      "status": {
+        "UNKNOWN": 603,
+        "COMPATIBLE": 129,
+        "WARMUP": 10
+      },
+      "damped_r": 0,
+      "damped_s": 0,
+      "good_heading_immediate": 0,
+      "bad_heading_immediate": 0,
+      "good_xy_immediate": 0,
+      "bad_xy_immediate": 0
+    },
+    "R5|B_FROZEN": {
+      "n": 1415,
+      "damped": 9,
+      "status": {
+        "UNKNOWN": 1134,
+        "COMPATIBLE": 262,
+        "WARMUP": 10,
+        "CONFLICT_R": 9
+      },
+      "damped_r": 9,
+      "damped_s": 0,
+      "good_heading_immediate": 3,
+      "bad_heading_immediate": 6,
+      "good_xy_immediate": 7,
+      "bad_xy_immediate": 2
+    },
+    "R5|B_BIAS_COV": {
+      "n": 1415,
+      "damped": 11,
+      "status": {
+        "UNKNOWN": 1169,
+        "COMPATIBLE": 225,
+        "CONFLICT_R": 11,
+        "WARMUP": 10
+      },
+      "damped_r": 11,
+      "damped_s": 0,
+      "good_heading_immediate": 9,
+      "bad_heading_immediate": 2,
+      "good_xy_immediate": 0,
+      "bad_xy_immediate": 11
+    }
+  },
+  "source_replay_archive_sha256": "c0555d6617e804dfbbe68c6623329cd7583a9b1e13852a5d78db7906bdce9b10",
+  "primary_csv_sha256": "59f0c0068e76215b8958f3cd62e0fbf8add183035d1d43fb0b3ce5303e4b859b",
+  "motion_reconstruction": {
+    "R2": {
+      "n": 979,
+      "reconstruction": "Original yaw transition gyro_angle = wrap(prior_yaw - previous_posterior_yaw)+bg_previous*dt; ds projected via sinc_half midpoint",
+      "gyro_stream_parity_max_rad": 1.3322676295501878e-15,
+      "odom_stream_parity_max_m": 3.1988300897012323e-15,
+      "position_forward_residual_max_m": 1.75619067899202e-15,
+      "t_step_median_s": 0.20000000000000284,
+      "gyro_rate_RMSE_vs_true_deg_s": 0.03296835807524248,
+      "original_gyro_explicitly_downloaded": false,
+      "gyro_derived_from_state_predictor_with_multi_arm_parity": true
+    },
+    "R4": {
+      "n": 742,
+      "reconstruction": "Original yaw transition gyro_angle = wrap(prior_yaw - previous_posterior_yaw)+bg_previous*dt; ds projected via sinc_half midpoint",
+      "gyro_stream_parity_max_rad": 8.881784197001252e-16,
+      "odom_stream_parity_max_m": 2.796374243274613e-15,
+      "position_forward_residual_max_m": 8.673617379884035e-16,
+      "t_step_median_s": 0.20000000000000284,
+      "gyro_rate_RMSE_vs_true_deg_s": 0.03316764228823206,
+      "original_gyro_explicitly_downloaded": false,
+      "gyro_derived_from_state_predictor_with_multi_arm_parity": true
+    },
+    "R5": {
+      "n": 1415,
+      "reconstruction": "Original yaw transition gyro_angle = wrap(prior_yaw - previous_posterior_yaw)+bg_previous*dt; ds projected via sinc_half midpoint",
+      "gyro_stream_parity_max_rad": 1.3322676295501878e-15,
+      "odom_stream_parity_max_m": 3.3306690738754696e-15,
+      "position_forward_residual_max_m": 1.7551064768195346e-15,
+      "t_step_median_s": 0.19999999999999996,
+      "gyro_rate_RMSE_vs_true_deg_s": 0.03286034389823068,
+      "original_gyro_explicitly_downloaded": false,
+      "gyro_derived_from_state_predictor_with_multi_arm_parity": true
+    }
+  },
+  "do_not_conflate": [
+    "COMPATIBLE with clean",
+    "UNKNOWN with clean",
+    "full B update harm with RF-only causation",
+    "model-ideal recovery stress with measured clean CIR",
+    "raw gyro integrated aligned to GT with online ground truth"
+  ],
+  "caveats": [
+    "The raw gy and ds come from inversion of the pinned predictor, not direct inspection of released online NPZ.",
+    "All 3136 rows originate from one exposed corridor B0 Full seed10; no independent noise scene evidence.",
+    "Online filter did not have access to evaluator true pose or clean s; these are retrospective plot layers.",
+    "B_MCG numerical trials in action are not policy adoption."
+  ]
+}
