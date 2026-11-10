@@ -59,5 +59,9 @@ jobs:
             echo 'NO_CHANGES_ALREADY_PUBLISHED'
           else
             git commit -m 'data(b-prior): publish reproduced 6272-row state and covariance audit'
+            # Branch may have received documentation updates while this run computed.
+            # Rebase new result files onto the latest branch tip; never force-push.
+            git fetch --no-tags origin analysis/b-prior-rootcause-20261110
+            git rebase FETCH_HEAD
             git push origin HEAD:analysis/b-prior-rootcause-20261110
           fi
