@@ -1,0 +1,63 @@
+name: B prior/bias root-cause replay
+on:
+  push:
+    branches:
+      - analysis/b-prior-rootcause-20261110
+    paths:
+      - research/B_PRIOR_ROOTCAUSE_20261110/audit_gha_replay.py
+      - .github/workflows/b-prior-rootcause-20261110.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  recompute-publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: false
+      - name: Acquire six frozen OFF traces by scoped Git LFS
+        shell: bash
+        run: |
+          set -euo pipefail
+          git lfs install --local
+          git lfs pull --include='research/B_MCG_V1_20261109/RUN_42600632209/**/OFF/*.npz'
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('research/B_MCG_V1_20261109/RUN_42600632209')
+          paths=list(p.glob('*/active/*/OFF/*_OFF.npz'))
+          assert len(paths)==6,(len(paths),paths)
+          for path in paths:
+            assert path.stat().st_size>10000,path
+          q=Path('research/B_MCG_V1_20261109/CASE_GALLERY_20261109')
+          for name in ['R2','R4','R5']:
+            assert (q/f'PRIMARY_{name}_RF_CIR_FEATURES.csv').is_file()
+          print('INPUTS_PRESENT',len(paths))
+          PY
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install numerical verification dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.2.4 pandas==2.2.3 matplotlib==3.10.1
+      - name: Recompute prior, gyro bias and stored source-model residuals
+        run: python research/B_PRIOR_ROOTCAUSE_20261110/audit_gha_replay.py
+      - name: Commit only newly generated audit files and figures
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add research/B_PRIOR_ROOTCAUSE_20261110/REPLAYED_PRIOR_SUMMARY.csv
+          git add research/B_PRIOR_ROOTCAUSE_20261110/REPLAYED_PRIOR_ROWS_6272.csv
+          git add research/B_PRIOR_ROOTCAUSE_20261110/REPLAY_RECEIPT.json
+          git add research/B_PRIOR_ROOTCAUSE_20261110/figures/
+          if git diff --cached --quiet; then
+            echo 'NO_CHANGES_ALREADY_PUBLISHED'
+          else
+            git commit -m 'data(b-prior): publish reproduced 6272-row state and covariance audit'
+            git push origin HEAD:analysis/b-prior-rootcause-20261110
+          fi
