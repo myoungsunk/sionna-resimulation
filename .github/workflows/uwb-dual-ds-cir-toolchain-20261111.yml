@@ -1,43 +1,58 @@
-name: UWB ESP32 3.3.7 toolchain (isolated build)
+name: UWB ESP32 3.3.7 toolchain (bounded transfer)
 on:
   push:
     branches: [build/uwb-dual-ds-cir-toolchain-20261111]
     paths: [.github/workflows/uwb-dual-ds-cir-toolchain-20261111.yml]
-  workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
-  toolchain:
+  split:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 15
     steps:
-      - name: Install pinned Arduino CLI and ESP32 core
-        shell: bash
+      - name: Repackage verified toolchain without reinstalling
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euxo pipefail
-          mkdir -p portable/bin portable/data portable/user portable/downloads evidence
-          curl -fL --retry 3 https://downloads.arduino.cc/arduino-cli/arduino-cli_1.3.1_Linux_64bit.tar.gz -o cli.tar.gz
-          tar -xzf cli.tar.gz -C portable/bin arduino-cli
-          export ARDUINO_DIRECTORIES_DATA="$PWD/portable/data"
-          export ARDUINO_DIRECTORIES_USER="$PWD/portable/user"
-          export ARDUINO_DIRECTORIES_DOWNLOADS="$PWD/portable/downloads"
-          portable/bin/arduino-cli version | tee evidence/cli-version.txt
-          portable/bin/arduino-cli core update-index --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json 2>&1 | tee evidence/index.log
-          portable/bin/arduino-cli core install esp32:esp32@3.3.7 --additional-urls https://espressif.github.io/arduino-esp32/package_esp32_index.json 2>&1 | tee evidence/core-install.log
-          portable/bin/arduino-cli core list | tee evidence/core-list.txt
-          # Keep install metadata, remove download caches and architectures not used by classic ESP32.
-          rm -rf portable/downloads portable/data/staging
-          find portable/data/packages/esp32 -type d \( -name 'esp32c2' -o -name 'esp32c3' -o -name 'esp32c5' -o -name 'esp32c6' -o -name 'esp32c61' -o -name 'esp32h2' -o -name 'esp32p4' -o -name 'esp32s2' -o -name 'esp32s3' \) -prune -exec rm -rf {} +
-          du -sh portable/* | tee evidence/sizes.txt
-          tar -I 'xz -T2 -1' -cf esp32-3.3.7-linux-toolchain.tar.xz portable
-          sha256sum esp32-3.3.7-linux-toolchain.tar.xz | tee evidence/SHA256SUMS
+          gh run download 42942741189 --repo myoungsunk/sionna-resimulation --name esp32-3.3.7-linux-toolchain --dir transfer
+          cd transfer
+          sha256sum -c evidence/SHA256SUMS
+          split -b 240M -d -a 2 esp32-3.3.7-linux-toolchain.tar.xz toolchain.part.
+          sha256sum toolchain.part.* > evidence/PART_SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
-          name: esp32-3.3.7-linux-toolchain
-          path: |
-            esp32-3.3.7-linux-toolchain.tar.xz
-            evidence/
+          name: toolchain-part-00
+          path: transfer/toolchain.part.00
           compression-level: 0
           retention-days: 3
-      - name: Report
-        run: echo 'Toolchain only. No user firmware, credentials, RF operations, flashing, or repository checkout.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-part-01
+          path: transfer/toolchain.part.01
+          compression-level: 0
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-part-02
+          path: transfer/toolchain.part.02
+          compression-level: 0
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-part-03
+          path: transfer/toolchain.part.03
+          compression-level: 0
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-part-04
+          path: transfer/toolchain.part.04
+          compression-level: 0
+          retention-days: 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: toolchain-evidence
+          path: transfer/evidence/
+          retention-days: 3
