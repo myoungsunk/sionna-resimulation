@@ -3,6 +3,7 @@
 | Files | Contents and origin |
 | --- | --- |
 | trackA/teach/ | TB3 Sweep TEACH capture, 2026-10-04. 18 stations, 158 NPZ scan files, teach.json with odom poses, and events.log. Pi source: /mnt/experiment/tb3_experiments/data/tb3_sweep_data/trackA/teach/ |
+| trackA/repeat_20261004_141119/ | Completed TB3 Sweep REPEAT, 2026-10-04, paired with trackA/teach/. Includes 18 stations (P001-P018), 167 NPZ scans, repeat.json with odom and scan-registration results, events.log, and summary.csv. Pi source: /mnt/experiment/tb3_experiments/data/tb3_sweep_data/trackA/repeat_20261004_141119/ |
 | corridor_5p07m/bag/ | 2026-11-11 straight corridor run, 5.06972 m along the odom start axis. ROS 2 SQLite bag with 680 /scan, 1,339 /odom, 2,138 /tf and 2 /tf_static messages. Pi source: /mnt/experiment/CORRIDOR_MAPS/full-corridor/partial_20261111T082144573916Z/bag/ |
 | corridor_5p07m/receipt.json | Run receipt from SLAM_bot/artifacts/CORRIDOR_MAP_FULL_CORRIDOR_PARTIAL_20261111T082144573916Z/. |
 | corridor_5p07m/replay.json | Offline wall-based replay from SLAM_bot/artifacts/CORRIDOR_WALL_GUIDANCE_REPLAY_20261111/. |
@@ -18,4 +19,4 @@ The LiDAR observations provide an onboard relative reference. These records do n
 
 ## Integrity
 
-SHA256SUMS.txt covers the 165 evidence files. The 162 files copied from the Pi were checked byte-for-byte by SHA-256. Git LFS stores the NPZ files.
+SHA256SUMS.txt covers the 335 evidence files. The 332 files copied from the Pi were checked byte-for-byte by SHA-256. Git LFS stores the NPZ files.

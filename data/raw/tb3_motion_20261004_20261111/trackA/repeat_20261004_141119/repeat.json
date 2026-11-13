@@ -1,0 +1,6528 @@
+{
+ "version": "r1.3.1",
+ "kind": "repeat",
+ "teach": "/home/ubuntu/tb3_sweep_data/trackA/teach",
+ "status": "COMPLETE",
+ "created": "2026-10-04 14:11:23",
+ "config": {
+  "topics": {
+   "scan": "/scan",
+   "odom": "/odom",
+   "cmd_vel": "/cmd_vel"
+  },
+  "robot": {
+   "odom_scale": 0.96756,
+   "laser_xy_m": [
+    -0.064,
+    0.0
+   ],
+   "laser_yaw_rad": 0.0314,
+   "self_filter_radius_m": 0.16,
+   "mask_sectors_deg": []
+  },
+  "track": {
+   "step_m": 0.45,
+   "points": 18,
+   "angles_deg": [
+    -60.0,
+    -30.0,
+    0.0,
+    30.0,
+    60.0
+   ]
+  },
+  "teach": {
+   "lidar_straighten": true,
+   "lat_tol_m": 0.004,
+   "yaw_tol_deg": 0.25,
+   "max_fix_m": 0.06,
+   "max_fix_yaw_deg": 4.0,
+   "max_iters": 2,
+   "wall_line": true,
+   "align_heading_to_wall": true,
+   "max_heading_align_deg": 8.0,
+   "warn_step_dir_deg": 1.0,
+   "along_source": "odom",
+   "along_tol_m": 0.004,
+   "wall_anchor_max_deg": 0.6
+  },
+  "walls": {
+   "max_range_m": 3.5,
+   "max_lateral_m": 2.5,
+   "search_deg": 12.0,
+   "inlier_m": 0.02,
+   "min_points": 30,
+   "min_extent_m": 2.0,
+   "max_rms_m": 0.012,
+   "min_coverage": 0.6,
+   "parallel_tol_deg": 0.3
+  },
+  "motion": {
+   "dt_s": 0.05,
+   "v_max": 0.08,
+   "v_min": 0.015,
+   "k_v": 1.2,
+   "w_max": 0.3,
+   "w_min": 0.06,
+   "k_w": 1.5,
+   "k_heading": 2.0,
+   "k_lateral": 4.0,
+   "max_lateral_angle_deg": 12.0,
+   "lin_tol_m": 0.003,
+   "yaw_tol_deg": 0.25,
+   "fine_passes": 3,
+   "approach_ccw": true,
+   "approach_overshoot_deg": 5.0,
+   "approach_min_deg": 3.0,
+   "settle_s": 0.6
+  },
+  "safety": {
+   "front_stop_m": 0.28,
+   "front_sector_deg": 22.0,
+   "rear_stop_m": 0.28,
+   "rear_sector_deg": 22.0,
+   "rotate_clear_m": 0.0,
+   "sensor_age_s": 0.6,
+   "sensor_recover_s": 5.0,
+   "blocked_wait_s": 15.0
+  },
+  "capture": {
+   "scans": 10,
+   "bin_deg": 1.0,
+   "min_support_frac": 0.5,
+   "max_range_m": 6.0
+  },
+  "icp": {
+   "corr_schedule_m": [
+    0.3,
+    0.15,
+    0.08,
+    0.05
+   ],
+   "iters_per_level": 12,
+   "normal_k": 6,
+   "max_line_curvature": 0.12,
+   "min_pairs": 40,
+   "min_inlier_frac": 0.45,
+   "max_rmse_m": 0.03,
+   "weak_ratio": 0.05,
+   "yaw_grid_first_deg": 12.0,
+   "yaw_grid_deg": 3.0,
+   "yaw_grid_step_deg": 1.5
+  },
+  "repeat": {
+   "xy_tol_m": 0.008,
+   "yaw_tol_deg": 0.4,
+   "max_corrections": 3,
+   "max_correction_m": 0.2,
+   "max_correction_yaw_deg": 15.0,
+   "start_max_m": 0.15,
+   "start_max_yaw_deg": 12.0,
+   "angle_trims": 2
+  },
+  "_sources": [
+   "/home/ubuntu/tb3_sweep/robot.json"
+  ]
+ },
+ "start_index": 0,
+ "stations": [
+  {
+   "station_id": "P001",
+   "index": 0,
+   "align": [
+    {
+     "label": "P001_align0",
+     "file": "scans/P001_align0.npz",
+     "odom": [
+      7.305570548873913,
+      2.635691664916979,
+      0.7238265573978425
+     ],
+     "n_scans": 10,
+     "n_points": 269,
+     "moved_during_capture_m": 2.5310686262899474e-05,
+     "yaw_change_during_capture_deg": 0.007697623194604371,
+     "icp": {
+      "pose": [
+       0.00025631561989131565,
+       -0.00018441859700013292,
+       -0.0003437714257930047
+      ],
+      "cost": 0.0003053153769822667,
+      "pairs": 240,
+      "inlier_frac": 0.8921933085501859,
+      "rmse_m": 0.00633437592566338,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9965356109772665,
+       -0.08316715730482915
+      ],
+      "weak_ratio": 0.4268770452889978,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.00025631561989131565,
+      -0.00018441859700013292,
+      -0.0003437714257930047
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.826105053383586,
+     "tries": [
+      {
+       "label": "P001_m060_t0",
+       "file": "scans/P001_m060_t0.npz",
+       "odom": [
+        7.305155098320786,
+        2.6350543241947086,
+        -0.3163878321647644
+       ],
+       "n_scans": 10,
+       "n_points": 280,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": -0.00047982078919339574,
+       "icp": {
+        "pose": [
+         0.00453922803365385,
+         0.0007939136640815996,
+         -0.0029498546591852914
+        ],
+        "cost": 0.0005886895045105908,
+        "pairs": 224,
+        "inlier_frac": 0.8,
+        "rmse_m": 0.010529096857672001,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.3687655523059296,
+         -0.929522440521208
+        ],
+        "weak_ratio": 0.3183688890066285,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.096566049311697,
+     "tries": [
+      {
+       "label": "P001_m030_t0",
+       "file": "scans/P001_m030_t0.npz",
+       "odom": [
+        7.304434417786008,
+        2.635264056306931,
+        0.1962231658399105
+       ],
+       "n_scans": 10,
+       "n_points": 262,
+       "moved_during_capture_m": 3.775358063327724e-09,
+       "yaw_change_during_capture_deg": 0.007910853162755705,
+       "icp": {
+        "pose": [
+         0.0012461600770427165,
+         -0.00036399648044514895,
+         -0.002764197115792566
+        ],
+        "cost": 0.0003732631197242516,
+        "pairs": 229,
+        "inlier_frac": 0.8740458015267175,
+        "rmse_m": 0.008172522224493635,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8091507816215465,
+         -0.5876010658612187
+        ],
+        "weak_ratio": 0.43432437235290355,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.12915887720494112,
+     "tries": [
+      {
+       "label": "P001_p000_t0",
+       "file": "scans/P001_p000_t0.npz",
+       "odom": [
+        7.305530342993111,
+        2.6357631424008665,
+        0.7185642421245575
+       ],
+       "n_scans": 10,
+       "n_points": 288,
+       "moved_during_capture_m": 2.5310686309342128e-05,
+       "yaw_change_during_capture_deg": 0.0006659434440762432,
+       "icp": {
+        "pose": [
+         -0.0017272024348954796,
+         -0.002408994540933778,
+         -0.009479489554436338
+        ],
+        "cost": 0.00035465828000667664,
+        "pairs": 255,
+        "inlier_frac": 0.8854166666666666,
+        "rmse_m": 0.008776435616193378,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9836615703124653,
+         -0.18002753981103806
+        ],
+        "weak_ratio": 0.47133921516313804,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P001_p000_t1",
+       "file": "scans/P001_p000_t1.npz",
+       "odom": [
+        7.3055301596980735,
+        2.6357633491610284,
+        0.7312060296535492
+       ],
+       "n_scans": 10,
+       "n_points": 285,
+       "moved_during_capture_m": 3.3740608861718493e-09,
+       "yaw_change_during_capture_deg": 0.004111773880347676,
+       "icp": {
+        "pose": [
+         -0.0008314767019984119,
+         -0.001975357143682056,
+         0.0024624123478411697
+        ],
+        "cost": 0.000417296829920335,
+        "pairs": 244,
+        "inlier_frac": 0.856140350877193,
+        "rmse_m": 0.008205754809712053,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9856353001156086,
+         -0.16888769986595928
+        ],
+        "weak_ratio": 0.47642642060033347,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.143561165895967,
+     "tries": [
+      {
+       "label": "P001_p030_t0",
+       "file": "scans/P001_p030_t0.npz",
+       "odom": [
+        7.30506864373991,
+        2.6348108977330633,
+        1.2485727965831757
+       ],
+       "n_scans": 10,
+       "n_points": 262,
+       "moved_during_capture_m": 2.531068631123823e-05,
+       "yaw_change_during_capture_deg": -0.003189698342395955,
+       "icp": {
+        "pose": [
+         -0.002320807073613491,
+         6.297592582222672e-05,
+         -0.0033537042135249884
+        ],
+        "cost": 0.00032469541169178804,
+        "pairs": 233,
+        "inlier_frac": 0.8893129770992366,
+        "rmse_m": 0.007345021923219047,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9228743882782409,
+         0.38510110810027864
+        ],
+        "weak_ratio": 0.4217493475551084,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.24579968731336,
+     "tries": [
+      {
+       "label": "P001_p060_t0",
+       "file": "scans/P001_p060_t0.npz",
+       "odom": [
+        7.30491936548235,
+        2.6351954595240987,
+        1.771628588438034
+       ],
+       "n_scans": 10,
+       "n_points": 283,
+       "moved_during_capture_m": 2.373081787122209e-09,
+       "yaw_change_during_capture_deg": -0.0028823398297453807,
+       "icp": {
+        "pose": [
+         -0.000259331874337821,
+         -0.00125370038318206,
+         -0.009120188590499456
+        ],
+        "cost": 0.0003467334014257057,
+        "pairs": 249,
+        "inlier_frac": 0.8798586572438163,
+        "rmse_m": 0.007260376206819941,
+        "weak_axis": false,
+        "weak_dir": [
+         0.596525643070985,
+         -0.8025940176445048
+        ],
+        "weak_ratio": 0.4194939736701696,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P001_p060_t1",
+       "file": "scans/P001_p060_t1.npz",
+       "odom": [
+        7.3049142318313525,
+        2.6352202436411765,
+        1.7769498527050018
+       ],
+       "n_scans": 10,
+       "n_points": 260,
+       "moved_during_capture_m": 2.53106863976691e-05,
+       "yaw_change_during_capture_deg": -0.0025886416954348326,
+       "icp": {
+        "pose": [
+         1.5883669792512306e-05,
+         -0.001643480876792535,
+         -0.005669226444234621
+        ],
+        "cost": 0.00033322605543197,
+        "pairs": 230,
+        "inlier_frac": 0.8846153846153846,
+        "rmse_m": 0.007113604361366535,
+        "weak_axis": false,
+        "weak_dir": [
+         0.6038977421166082,
+         -0.7970618025388386
+        ],
+        "weak_ratio": 0.4211992241630835,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P001_base_after",
+    "file": "scans/P001_base_after.npz",
+    "odom": [
+     7.305544887353067,
+     2.635749115852963,
+     0.7273472845554352
+    ],
+    "n_scans": 10,
+    "n_points": 279,
+    "moved_during_capture_m": 2.531068635047986e-05,
+    "yaw_change_during_capture_deg": 0.0003176037964055929,
+    "icp": {
+     "pose": [
+      0.004759406773217303,
+      -0.0024695810451043133,
+      -0.030173545632653287
+     ],
+     "cost": 0.00042779107230213825,
+     "pairs": 239,
+     "inlier_frac": 0.8566308243727598,
+     "rmse_m": 0.00899877006293595,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9963986353649716,
+      -0.08479244920877244
+     ],
+     "weak_ratio": 0.4459180477072553,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P002",
+   "index": 1,
+   "transit": {
+    "along_remaining_m": 0.0001764409829440039,
+    "lateral_m": -6.855572973607504e-05,
+    "reverse": false,
+    "final_yaw_err_rad": -0.002646295579364466
+   },
+   "align": [
+    {
+     "label": "P002_align0",
+     "file": "scans/P002_align0.npz",
+     "odom": [
+      7.643346891910949,
+      2.954979270126877,
+      0.7758459746837616
+     ],
+     "n_scans": 10,
+     "n_points": 228,
+     "moved_during_capture_m": 0.0,
+     "yaw_change_during_capture_deg": 0.0036609813951268347,
+     "icp": {
+      "pose": [
+       0.0009725040481628809,
+       -0.002530491894499705,
+       0.012111480588345547
+      ],
+      "cost": 0.00041676251539059223,
+      "pairs": 198,
+      "inlier_frac": 0.868421052631579,
+      "rmse_m": 0.010055867554217017,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9983528212474387,
+       -0.05737285340018851
+      ],
+      "weak_ratio": 0.26961858448403314,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0009725040481628809,
+      -0.002530491894499705,
+      0.012111480588345547
+     ],
+     "move": {
+      "final_yaw_err_rad": 0.002802257185549717
+     }
+    },
+    {
+     "label": "P002_align1",
+     "file": "scans/P002_align1.npz",
+     "odom": [
+      7.643402019315865,
+      2.955031491401478,
+      0.7610292136669158
+     ],
+     "n_scans": 10,
+     "n_points": 263,
+     "moved_during_capture_m": 0.0,
+     "yaw_change_during_capture_deg": 0.0007581509978714154,
+     "icp": {
+      "pose": [
+       -0.001492737444058247,
+       -0.004285546526685124,
+       -0.006304078670809954
+      ],
+      "cost": 0.00031130115045250315,
+      "pairs": 236,
+      "inlier_frac": 0.8973384030418251,
+      "rmse_m": 0.007803791605879885,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9991942223530733,
+       -0.04013609368433004
+      ],
+      "weak_ratio": 0.31989549685916396,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.001492737444058247,
+      -0.004285546526685124,
+      -0.006304078670809954
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -60.05766895681453,
+     "tries": [
+      {
+       "label": "P002_m060_t0",
+       "file": "scans/P002_m060_t0.npz",
+       "odom": [
+        7.6430201308263905,
+        2.9552543392973005,
+        -0.27852675318717957
+       ],
+       "n_scans": 10,
+       "n_points": 274,
+       "moved_during_capture_m": 4.4881369648089773e-11,
+       "yaw_change_during_capture_deg": 0.003935896509219848,
+       "icp": {
+        "pose": [
+         0.005131883450950526,
+         0.00033914530741255435,
+         -3.322339334133062e-05
+        ],
+        "cost": 0.0004325327241917478,
+        "pairs": 234,
+        "inlier_frac": 0.8540145985401459,
+        "rmse_m": 0.008894915100880703,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.479833585691562,
+         -0.8773595215431232
+        ],
+        "weak_ratio": 0.22941768149300096,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.428967450554122,
+     "tries": [
+      {
+       "label": "P002_m030_t0",
+       "file": "scans/P002_m030_t0.npz",
+       "odom": [
+        7.643673685171999,
+        2.955243494397239,
+        0.2340039759874344
+       ],
+       "n_scans": 10,
+       "n_points": 283,
+       "moved_during_capture_m": 1.0934772090087812e-09,
+       "yaw_change_during_capture_deg": 0.011061064474012524,
+       "icp": {
+        "pose": [
+         0.005812562020150038,
+         -0.0012905741547102015,
+         -0.0035887494656989816
+        ],
+        "cost": 0.00043643768819736874,
+        "pairs": 243,
+        "inlier_frac": 0.8586572438162544,
+        "rmse_m": 0.009836495779367353,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8770901991342344,
+         -0.48032570468658997
+        ],
+        "weak_ratio": 0.30464469086102763,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.41499204868621975,
+     "tries": [
+      {
+       "label": "P002_p000_t0",
+       "file": "scans/P002_p000_t0.npz",
+       "odom": [
+        7.64344104767771,
+        2.9551485516980396,
+        0.7642813622951509
+       ],
+       "n_scans": 10,
+       "n_points": 274,
+       "moved_during_capture_m": 1.8028160607073444e-10,
+       "yaw_change_during_capture_deg": -0.0029335662485204766,
+       "icp": {
+        "pose": [
+         -0.001996029718869811,
+         -0.0046631171537335194,
+         -0.005889328607692423
+        ],
+        "cost": 0.0003477373086758915,
+        "pairs": 242,
+        "inlier_frac": 0.8832116788321168,
+        "rmse_m": 0.007946105282587176,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9984985292826538,
+         -0.054778527000797904
+        ],
+        "weak_ratio": 0.2707937967991303,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.97950514467414,
+     "tries": [
+      {
+       "label": "P002_p030_t0",
+       "file": "scans/P002_p030_t0.npz",
+       "odom": [
+        7.643297769563142,
+        2.955171167668792,
+        1.2924600541591644
+       ],
+       "n_scans": 10,
+       "n_points": 275,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.005771509848660775,
+       "icp": {
+        "pose": [
+         -0.005529389564404755,
+         -0.0031934261045260055,
+         -0.00047774827886515325
+        ],
+        "cost": 0.000493684413125391,
+        "pairs": 229,
+        "inlier_frac": 0.8327272727272728,
+        "rmse_m": 0.009522029986470441,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8740532795927602,
+         0.4858300777361773
+        ],
+        "weak_ratio": 0.3108978991055282,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.034562426852375,
+     "tries": [
+      {
+       "label": "P002_p060_t0",
+       "file": "scans/P002_p060_t0.npz",
+       "odom": [
+        7.6433491683427865,
+        2.955396293537767,
+        1.817177265882492
+       ],
+       "n_scans": 10,
+       "n_points": 272,
+       "moved_during_capture_m": 1.137509665822519e-09,
+       "yaw_change_during_capture_deg": 0.00020490567510038252,
+       "icp": {
+        "pose": [
+         -0.0033283980863093162,
+         -0.0034913598817544827,
+         0.0017644092374391462
+        ],
+        "cost": 0.0003822821545635707,
+        "pairs": 237,
+        "inlier_frac": 0.8713235294117647,
+        "rmse_m": 0.008339005506201107,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5244898309561251,
+         -0.8514167118536112
+        ],
+        "weak_ratio": 0.3349309882237196,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P002_base_after",
+    "file": "scans/P002_base_after.npz",
+    "odom": [
+     7.643518649435373,
+     2.955116405190883,
+     0.769890159368515
+    ],
+    "n_scans": 10,
+    "n_points": 288,
+    "moved_during_capture_m": 0.0,
+    "yaw_change_during_capture_deg": 0.0025066794253946795,
+    "icp": {
+     "pose": [
+      0.0024144949433865513,
+      -0.0062153191304582574,
+      -0.021136263524386134
+     ],
+     "cost": 0.0003895226020627325,
+     "pairs": 253,
+     "inlier_frac": 0.8784722222222222,
+     "rmse_m": 0.009877212444219718,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9992580955361594,
+      -0.03851309524626195
+     ],
+     "weak_ratio": 0.3039320681012456,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P003",
+   "index": 2,
+   "transit": {
+    "along_remaining_m": 0.00029001129092554034,
+    "lateral_m": 0.0002595534263767907,
+    "reverse": false,
+    "final_yaw_err_rad": 0.002410878362725466
+   },
+   "align": [
+    {
+     "label": "P003_align0",
+     "file": "scans/P003_align0.npz",
+     "odom": [
+      7.9639839183147405,
+      3.294399540595438,
+      0.7954903542995452
+     ],
+     "n_scans": 10,
+     "n_points": 291,
+     "moved_during_capture_m": 5.0621372732694355e-05,
+     "yaw_change_during_capture_deg": -0.0009289057271217342,
+     "icp": {
+      "pose": [
+       0.000377432137318174,
+       -0.001247332548765313,
+       0.00457683618196203
+      ],
+      "cost": 0.00034935525429051186,
+      "pairs": 258,
+      "inlier_frac": 0.8865979381443299,
+      "rmse_m": 0.008618166093551597,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9998469111429131,
+       -0.01749726487126841
+      ],
+      "weak_ratio": 0.2551777792732641,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.000377432137318174,
+      -0.001247332548765313,
+      0.00457683618196203
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.74887247590026,
+     "tries": [
+      {
+       "label": "P003_m060_t0",
+       "file": "scans/P003_m060_t0.npz",
+       "odom": [
+        7.964767157746359,
+        3.2951312589688735,
+        -0.2557262182235718
+       ],
+       "n_scans": 10,
+       "n_points": 254,
+       "moved_during_capture_m": 2.5310686599271714e-05,
+       "yaw_change_during_capture_deg": 0.005032141871006895,
+       "icp": {
+        "pose": [
+         0.0013566197177208481,
+         0.0038494534790621663,
+         -0.0028573732902894555
+        ],
+        "cost": 0.0004004290662733986,
+        "pairs": 220,
+        "inlier_frac": 0.8661417322834646,
+        "rmse_m": 0.008714925241801934,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5035108221625368,
+         -0.8639889188902866
+        ],
+        "weak_ratio": 0.20482879101304657,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.04951607777065,
+     "tries": [
+      {
+       "label": "P003_m030_t0",
+       "file": "scans/P003_m030_t0.npz",
+       "odom": [
+        7.965195850227483,
+        3.295101670403886,
+        0.2628520652651787
+       ],
+       "n_scans": 10,
+       "n_points": 278,
+       "moved_during_capture_m": 2.5310686372449026e-05,
+       "yaw_change_during_capture_deg": -0.001406165195376375,
+       "icp": {
+        "pose": [
+         0.004096593253906232,
+         0.0011933454671810937,
+         -0.0033328814709485677
+        ],
+        "cost": 0.0003717089017658031,
+        "pairs": 241,
+        "inlier_frac": 0.8669064748201439,
+        "rmse_m": 0.006705133566513441,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8447886758406496,
+         -0.5351000777157501
+        ],
+        "weak_ratio": 0.20836152134536756,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.29320422625619175,
+     "tries": [
+      {
+       "label": "P003_p000_t0",
+       "file": "scans/P003_p000_t0.npz",
+       "odom": [
+        7.96401383550031,
+        3.294433090359723,
+        0.8002976477146149
+       ],
+       "n_scans": 10,
+       "n_points": 261,
+       "moved_during_capture_m": 7.135842563303723e-10,
+       "yaw_change_during_capture_deg": -0.0003790754989357077,
+       "icp": {
+        "pose": [
+         -0.000901922966563267,
+         -0.0014849455460340252,
+         0.00022073283439327795
+        ],
+        "cost": 0.0004053600776157265,
+        "pairs": 227,
+        "inlier_frac": 0.8697318007662835,
+        "rmse_m": 0.009572119080450718,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9995099737006206,
+         -0.03130195637631792
+        ],
+        "weak_ratio": 0.24439226341890694,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.156217719871414,
+     "tries": [
+      {
+       "label": "P003_p030_t0",
+       "file": "scans/P003_p030_t0.npz",
+       "odom": [
+        7.964561453138531,
+        3.295511117054195,
+        1.3148113191127777
+       ],
+       "n_scans": 10,
+       "n_points": 282,
+       "moved_during_capture_m": 2.531068636854476e-05,
+       "yaw_change_during_capture_deg": 0.0013523774556625247,
+       "icp": {
+        "pose": [
+         0.0010186114044028944,
+         -0.002409888165472792,
+         -0.003059896806931306
+        ],
+        "cost": 0.0005173142033154862,
+        "pairs": 229,
+        "inlier_frac": 0.8120567375886525,
+        "rmse_m": 0.00764456176682766,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.871765855786618,
+         0.48992274154669097
+        ],
+        "weak_ratio": 0.215915694300366,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.20277653917486,
+     "tries": [
+      {
+       "label": "P003_p060_t0",
+       "file": "scans/P003_p060_t0.npz",
+       "odom": [
+        7.964679440850776,
+        3.295339071925709,
+        1.8451978862285612
+       ],
+       "n_scans": 10,
+       "n_points": 262,
+       "moved_during_capture_m": 5.062137277553697e-05,
+       "yaw_change_during_capture_deg": 0.001304566131446991,
+       "icp": {
+        "pose": [
+         -0.0008907582952412602,
+         -0.0009854882395141065,
+         0.0033788569509112243
+        ],
+        "cost": 0.0003398945748651656,
+        "pairs": 234,
+        "inlier_frac": 0.8931297709923665,
+        "rmse_m": 0.00902332651687991,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5034172571107439,
+         -0.8640434394421931
+        ],
+        "weak_ratio": 0.2162715925986051,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P003_base_after",
+    "file": "scans/P003_base_after.npz",
+    "odom": [
+     7.963980783653674,
+     3.294403621149195,
+     0.7876963913440703
+    ],
+    "n_scans": 10,
+    "n_points": 288,
+    "moved_during_capture_m": 1.433203175986664e-10,
+    "yaw_change_during_capture_deg": -0.0014787359553077605,
+    "icp": {
+     "pose": [
+      1.787635948655725e-05,
+      -0.006322019281392667,
+      -0.024576984801974344
+     ],
+     "cost": 0.0004780051889023201,
+     "pairs": 241,
+     "inlier_frac": 0.8368055555555556,
+     "rmse_m": 0.009147363042891496,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9996944544328473,
+      -0.024718369206155156
+     ],
+     "weak_ratio": 0.24966111902614374,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P004",
+   "index": 3,
+   "transit": {
+    "along_remaining_m": -0.0005778781314502157,
+    "lateral_m": -0.0006099495691150314,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0012501045780544118
+   },
+   "align": [
+    {
+     "label": "P004_align0",
+     "file": "scans/P004_align0.npz",
+     "odom": [
+      8.277621152150807,
+      3.6380216940463144,
+      0.8348874747753143
+     ],
+     "n_scans": 10,
+     "n_points": 274,
+     "moved_during_capture_m": 2.574484903438781e-09,
+     "yaw_change_during_capture_deg": -0.005460736241425195,
+     "icp": {
+      "pose": [
+       0.007919150781410181,
+       0.00230613917605932,
+       0.010131650537039683
+      ],
+      "cost": 0.00041265994246743516,
+      "pairs": 241,
+      "inlier_frac": 0.8795620437956204,
+      "rmse_m": 0.011262397362043722,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9998915137001497,
+       0.01472959030059117
+      ],
+      "weak_ratio": 0.21414133721724596,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.007919150781410181,
+      0.00230613917605932,
+      0.010131650537039683
+     ],
+     "move": {
+      "along_remaining_m": 0.00029262287627835996,
+      "lateral_m": 4.682633364935362e-06,
+      "reverse": true,
+      "final_yaw_err_rad": -0.003369622796561167
+     }
+    },
+    {
+     "label": "P004_align1",
+     "file": "scans/P004_align1.npz",
+     "odom": [
+      8.27383998432126,
+      3.6304548996368853,
+      0.8282665908336639
+     ],
+     "n_scans": 10,
+     "n_points": 284,
+     "moved_during_capture_m": 2.531068637037879e-05,
+     "yaw_change_during_capture_deg": 0.0030565096535807063,
+     "icp": {
+      "pose": [
+       0.00045722148282609617,
+       -0.0008870601224280856,
+       -0.0024623159929593186
+      ],
+      "cost": 0.000350245699522991,
+      "pairs": 250,
+      "inlier_frac": 0.8802816901408451,
+      "rmse_m": 0.007607832454656041,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.999989759820251,
+       0.004525511533168995
+      ],
+      "weak_ratio": 0.18750047685466703,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.00045722148282609617,
+      -0.0008870601224280856,
+      -0.0024623159929593186
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.95915297626891,
+     "tries": [
+      {
+       "label": "P004_m060_t0",
+       "file": "scans/P004_m060_t0.npz",
+       "odom": [
+        8.274033714609699,
+        3.630328590121264,
+        -0.2118960618972778
+       ],
+       "n_scans": 10,
+       "n_points": 241,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.0013028585841799323,
+       "icp": {
+        "pose": [
+         -0.003367412246287919,
+         -0.008664651527852046,
+         0.011570258626468988
+        ],
+        "cost": 0.0005280420219920036,
+        "pairs": 197,
+        "inlier_frac": 0.8174273858921162,
+        "rmse_m": 0.009359738623859583,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.47109797022372735,
+         -0.8820808933715115
+        ],
+        "weak_ratio": 0.10912013862373626,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P004_m060_t1",
+       "file": "scans/P004_m060_t1.npz",
+       "odom": [
+        8.274009335518087,
+        3.6303355440037333,
+        -0.21983730792999268
+       ],
+       "n_scans": 10,
+       "n_points": 263,
+       "moved_during_capture_m": 2.531068629158525e-05,
+       "yaw_change_during_capture_deg": 0.010115510160788883,
+       "icp": {
+        "pose": [
+         -0.0033403170817982806,
+         -0.0069910831689550595,
+         0.002044842912915179
+        ],
+        "cost": 0.0005352904564194996,
+        "pairs": 215,
+        "inlier_frac": 0.8174904942965779,
+        "rmse_m": 0.009831461136842698,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.48736052587465245,
+         -0.8732008462084667
+        ],
+        "weak_ratio": 0.17124369528901337,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.059327110904846,
+     "tries": [
+      {
+       "label": "P004_m030_t0",
+       "file": "scans/P004_m030_t0.npz",
+       "odom": [
+        8.273665976066283,
+        3.6302555144274407,
+        0.30191175639629364
+       ],
+       "n_scans": 10,
+       "n_points": 220,
+       "moved_during_capture_m": 2.531068642489018e-05,
+       "yaw_change_during_capture_deg": 0.0036182927128142546,
+       "icp": {
+        "pose": [
+         -0.004532372582712142,
+         -0.009037763676204203,
+         -0.0019457764061376892
+        ],
+        "cost": 0.0004893607334849932,
+        "pairs": 183,
+        "inlier_frac": 0.8318181818181818,
+        "rmse_m": 0.009101540542962111,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8537567684144823,
+         -0.5206720468648762
+        ],
+        "weak_ratio": 0.17171273166732473,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.021525234447589404,
+     "tries": [
+      {
+       "label": "P004_p000_t0",
+       "file": "scans/P004_p000_t0.npz",
+       "odom": [
+        8.273834409860896,
+        3.6304992351485503,
+        0.833709329366684
+       ],
+       "n_scans": 10,
+       "n_points": 219,
+       "moved_during_capture_m": 2.531068636362768e-05,
+       "yaw_change_during_capture_deg": 5.464151336010201e-05,
+       "icp": {
+        "pose": [
+         -0.006701557418904461,
+         -0.003778305402985843,
+         0.005124388165221205
+        ],
+        "cost": 0.0004311711799257606,
+        "pairs": 186,
+        "inlier_frac": 0.8493150684931506,
+        "rmse_m": 0.008007553021770133,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9997238946700095,
+         -0.023497540846389383
+        ],
+        "weak_ratio": 0.16639593883338286,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.5684907206841,
+     "tries": [
+      {
+       "label": "P004_p030_t0",
+       "file": "scans/P004_p030_t0.npz",
+       "odom": [
+        8.273858969721662,
+        3.630431440048698,
+        1.3438967168331146
+       ],
+       "n_scans": 10,
+       "n_points": 205,
+       "moved_during_capture_m": 1.2446230455610177e-09,
+       "yaw_change_during_capture_deg": 0.005484641903520239,
+       "icp": {
+        "pose": [
+         -0.009695784440368381,
+         0.0013843517832170286,
+         -0.0027728376163156376
+        ],
+        "cost": 0.00046736657137642386,
+        "pairs": 172,
+        "inlier_frac": 0.8390243902439024,
+        "rmse_m": 0.008796850365318682,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8747207794246381,
+         0.48462723617513864
+        ],
+        "weak_ratio": 0.19650062264802742,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.626039314362096,
+     "tries": [
+      {
+       "label": "P004_p060_t0",
+       "file": "scans/P004_p060_t0.npz",
+       "odom": [
+        8.273990455678222,
+        3.62993162324748,
+        1.874170869588852
+       ],
+       "n_scans": 10,
+       "n_points": 261,
+       "moved_during_capture_m": 2.531068624508281e-05,
+       "yaw_change_during_capture_deg": 0.003210188909905993,
+       "icp": {
+        "pose": [
+         -0.008203109766722972,
+         0.004821120735370858,
+         0.0023834139269567345
+        ],
+        "cost": 0.00042561161143300986,
+        "pairs": 222,
+        "inlier_frac": 0.8505747126436781,
+        "rmse_m": 0.007822533455200287,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5008936072254981,
+         -0.8655088643339411
+        ],
+        "weak_ratio": 0.15261951217674635,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P004_base_after",
+    "file": "scans/P004_base_after.npz",
+    "odom": [
+     8.273757521621956,
+     3.6303497036483785,
+     0.827637106180191
+    ],
+    "n_scans": 10,
+    "n_points": 207,
+    "moved_during_capture_m": 2.5310686416129946e-05,
+    "yaw_change_during_capture_deg": 0.0076668873433393125,
+    "icp": {
+     "pose": [
+      -0.0044442971563717635,
+      -0.005621825718778569,
+      -0.019932611658919797
+     ],
+     "cost": 0.0004417098638762372,
+     "pairs": 175,
+     "inlier_frac": 0.8454106280193237,
+     "rmse_m": 0.008083118854353569,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9999919808255393,
+      0.004004782717456574
+     ],
+     "weak_ratio": 0.17926579892096958,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P005",
+   "index": 4,
+   "transit": {
+    "along_remaining_m": -0.00019925676302418038,
+    "lateral_m": 0.0005511418077879804,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0025980376317580323
+   },
+   "align": [
+    {
+     "label": "P005_align0",
+     "file": "scans/P005_align0.npz",
+     "odom": [
+      8.577196611730828,
+      3.9828751767078505,
+      0.8598720729351044
+     ],
+     "n_scans": 10,
+     "n_points": 226,
+     "moved_during_capture_m": 2.5310686353922454e-05,
+     "yaw_change_during_capture_deg": 0.004688924865213754,
+     "icp": {
+      "pose": [
+       -0.00396124479995158,
+       9.358413222313327e-05,
+       0.00529716417720838
+      ],
+      "cost": 0.0004883450500982787,
+      "pairs": 187,
+      "inlier_frac": 0.827433628318584,
+      "rmse_m": 0.008294699461475886,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9999136956257378,
+       0.013137781398677856
+      ],
+      "weak_ratio": 0.15478148564693087,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.00396124479995158,
+      9.358413222313327e-05,
+      0.00529716417720838
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.96439183808401,
+     "tries": [
+      {
+       "label": "P005_m060_t0",
+       "file": "scans/P005_m060_t0.npz",
+       "odom": [
+        8.577052671716656,
+        3.9823095770745995,
+        -0.18765166401863095
+       ],
+       "n_scans": 10,
+       "n_points": 238,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": -0.003153839849253388,
+       "icp": {
+        "pose": [
+         -0.001296373800817647,
+         -0.007422811015714318,
+         0.0066892906738535984
+        ],
+        "cost": 0.0005677581093615421,
+        "pairs": 188,
+        "inlier_frac": 0.7899159663865546,
+        "rmse_m": 0.0073392090521314695,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.49985308366129305,
+         -0.8661102093580796
+        ],
+        "weak_ratio": 0.10346073094096842,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.033089045929948,
+     "tries": [
+      {
+       "label": "P005_m030_t0",
+       "file": "scans/P005_m030_t0.npz",
+       "odom": [
+        8.576161832707864,
+        3.9823845069206536,
+        0.3335172235965729
+       ],
+       "n_scans": 10,
+       "n_points": 272,
+       "moved_during_capture_m": 9.798584179152405e-10,
+       "yaw_change_during_capture_deg": 0.003999929532688717,
+       "icp": {
+        "pose": [
+         -0.0041196996963040276,
+         -0.006416420082979133,
+         0.0005224356694673027
+        ],
+        "cost": 0.00041239172645964853,
+        "pairs": 233,
+        "inlier_frac": 0.8566176470588235,
+        "rmse_m": 0.00793496894613144,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8742706405211809,
+         -0.48543881913448583
+        ],
+        "weak_ratio": 0.13937877318689718,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.00910560265897903,
+     "tries": [
+      {
+       "label": "P005_p000_t0",
+       "file": "scans/P005_p000_t0.npz",
+       "odom": [
+        8.577272104256357,
+        3.983031505734208,
+        0.858658879995346
+       ],
+       "n_scans": 10,
+       "n_points": 242,
+       "moved_during_capture_m": 1.332880814923572e-09,
+       "yaw_change_during_capture_deg": 0.0007718113762114409,
+       "icp": {
+        "pose": [
+         -0.005829247946382909,
+         -0.0011882295305768007,
+         0.0018872035315511404
+        ],
+        "cost": 0.000415629783759788,
+        "pairs": 205,
+        "inlier_frac": 0.8471074380165289,
+        "rmse_m": 0.006279042831308625,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999864882711658,
+         0.0051983915879411586
+        ],
+        "weak_ratio": 0.13383394475801938,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.941552131333907,
+     "tries": [
+      {
+       "label": "P005_p030_t0",
+       "file": "scans/P005_p030_t0.npz",
+       "odom": [
+        8.57697318942267,
+        3.982092423689722,
+        1.3785447776317596
+       ],
+       "n_scans": 10,
+       "n_points": 247,
+       "moved_during_capture_m": 2.5310686589264863e-05,
+       "yaw_change_during_capture_deg": -0.0027252454788350877,
+       "icp": {
+        "pose": [
+         -0.0067424965767276974,
+         0.0029359337175475825,
+         0.005833942909641454
+        ],
+        "cost": 0.00044603520097673374,
+        "pairs": 209,
+        "inlier_frac": 0.8461538461538461,
+        "rmse_m": 0.008519803735989245,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8737373845231167,
+         0.4863979676013288
+        ],
+        "weak_ratio": 0.17865033038994854,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.585652299078106,
+     "tries": [
+      {
+       "label": "P005_p060_t0",
+       "file": "scans/P005_p060_t0.npz",
+       "odom": [
+        8.576743592449336,
+        3.982299916321673,
+        1.8986508548259735
+       ],
+       "n_scans": 10,
+       "n_points": 281,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.0004439622960508288,
+       "icp": {
+        "pose": [
+         -0.006217759957232202,
+         0.00876452529665978,
+         0.007858441568518781
+        ],
+        "cost": 0.0005175951564866032,
+        "pairs": 230,
+        "inlier_frac": 0.8185053380782918,
+        "rmse_m": 0.008832804215889839,
+        "weak_axis": false,
+        "weak_dir": [
+         0.506293153643427,
+         -0.8623614338395434
+        ],
+        "weak_ratio": 0.1527252167094504,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P005_p060_t1",
+       "file": "scans/P005_p060_t1.npz",
+       "odom": [
+        8.576743334092876,
+        3.982299830030393,
+        1.88773450255394
+       ],
+       "n_scans": 10,
+       "n_points": 287,
+       "moved_during_capture_m": 2.2176729139000456e-10,
+       "yaw_change_during_capture_deg": 0.007724943951284422,
+       "icp": {
+        "pose": [
+         -0.00709499423116024,
+         0.008932875584123675,
+         -0.007572549210984381
+        ],
+        "cost": 0.0005185764835057671,
+        "pairs": 236,
+        "inlier_frac": 0.8222996515679443,
+        "rmse_m": 0.009507234258522297,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5022091186327352,
+         -0.8647462062143616
+        ],
+        "weak_ratio": 0.13824978159721063,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P005_p060_t2",
+       "file": "scans/P005_p060_t2.npz",
+       "odom": [
+        8.576742638702992,
+        3.9822995971912487,
+        1.8983984887599945
+       ],
+       "n_scans": 10,
+       "n_points": 292,
+       "moved_during_capture_m": 4.79745579014274e-10,
+       "yaw_change_during_capture_deg": -0.003264830423266095,
+       "icp": {
+        "pose": [
+         -0.005816235004480141,
+         0.00746393085931236,
+         0.005994333392072448
+        ],
+        "cost": 0.000518472132518528,
+        "pairs": 238,
+        "inlier_frac": 0.815068493150685,
+        "rmse_m": 0.008299504565402393,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5023913254449838,
+         -0.8646403622996282
+        ],
+        "weak_ratio": 0.13962779960642832,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P005_base_after",
+    "file": "scans/P005_base_after.npz",
+    "odom": [
+     8.577290384870645,
+     3.982939652764799,
+     0.8579491674900054
+    ],
+    "n_scans": 10,
+    "n_points": 288,
+    "moved_during_capture_m": 0.0,
+    "yaw_change_during_capture_deg": 0.00029028303972554193,
+    "icp": {
+     "pose": [
+      -0.0021781557110945988,
+      -0.004724422025140357,
+      -0.01700205746069061
+     ],
+     "cost": 0.0004283699769873959,
+     "pairs": 245,
+     "inlier_frac": 0.8506944444444444,
+     "rmse_m": 0.00804846375818493,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9995381403315514,
+      0.03038924188826927
+     ],
+     "weak_ratio": 0.15543286287382896,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P006",
+   "index": 5,
+   "transit": {
+    "along_remaining_m": -0.00037466010355646784,
+    "lateral_m": 0.00036673252601937545,
+    "reverse": false,
+    "final_yaw_err_rad": 0.003310882741899057
+   },
+   "align": [
+    {
+     "label": "P006_align0",
+     "file": "scans/P006_align0.npz",
+     "odom": [
+      8.874662714295328,
+      4.347646174096608,
+      0.8715629279613495
+     ],
+     "n_scans": 10,
+     "n_points": 241,
+     "moved_during_capture_m": 2.2048686894006276e-09,
+     "yaw_change_during_capture_deg": 0.007236585425628509,
+     "icp": {
+      "pose": [
+       -0.0036037000123552753,
+       -0.0002623697593730765,
+       0.006521422700788815
+      ],
+      "cost": 0.000544586539916572,
+      "pairs": 194,
+      "inlier_frac": 0.8049792531120332,
+      "rmse_m": 0.00841738386516104,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9999951880888682,
+       0.0031022248643508693
+      ],
+      "weak_ratio": 0.14347288056048338,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0036037000123552753,
+      -0.0002623697593730765,
+      0.006521422700788815
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.591484213412244,
+     "tries": [
+      {
+       "label": "P006_m060_t0",
+       "file": "scans/P006_m060_t0.npz",
+       "odom": [
+        8.874117238562304,
+        4.347744563807758,
+        -0.17099225521087646
+       ],
+       "n_scans": 10,
+       "n_points": 270,
+       "moved_during_capture_m": 4.846488493448549e-10,
+       "yaw_change_during_capture_deg": -0.0005822736267435871,
+       "icp": {
+        "pose": [
+         -0.0024708348039820327,
+         -0.0006764661372198215,
+         -0.002116833511339511
+        ],
+        "cost": 0.0005710499615687293,
+        "pairs": 216,
+        "inlier_frac": 0.8,
+        "rmse_m": 0.009424035863732246,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.504697881524223,
+         -0.8632960375126029
+        ],
+        "weak_ratio": 0.057572206208294764,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.208371237851,
+     "tries": [
+      {
+       "label": "P006_m030_t0",
+       "file": "scans/P006_m030_t0.npz",
+       "odom": [
+        8.874717732068849,
+        4.347808128506881,
+        0.35874484479427343
+       ],
+       "n_scans": 10,
+       "n_points": 214,
+       "moved_during_capture_m": 2.6825402840689582e-09,
+       "yaw_change_during_capture_deg": -0.0011551557433784065,
+       "icp": {
+        "pose": [
+         -0.0053936328903750564,
+         -0.005006504552074337,
+         -0.003063451853367205
+        ],
+        "cost": 0.00046435691209630644,
+        "pairs": 180,
+        "inlier_frac": 0.8411214953271028,
+        "rmse_m": 0.008935689735427866,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8715394274271547,
+         -0.49032542911820026
+        ],
+        "weak_ratio": 0.11358146585737898,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.7656567354390247,
+     "tries": [
+      {
+       "label": "P006_p000_t0",
+       "file": "scans/P006_p000_t0.npz",
+       "odom": [
+        8.874664544912077,
+        4.347757399833848,
+        0.8817232549190521
+       ],
+       "n_scans": 10,
+       "n_points": 280,
+       "moved_during_capture_m": 2.760782836657881e-10,
+       "yaw_change_during_capture_deg": -0.004354245595883129,
+       "icp": {
+        "pose": [
+         0.0029804266454753225,
+         -0.000812187100787293,
+         -0.005572310313622708
+        ],
+        "cost": 0.0004800929675786922,
+        "pairs": 233,
+        "inlier_frac": 0.8321428571428572,
+        "rmse_m": 0.008523139652535665,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9996513056346042,
+         0.0264058164621235
+        ],
+        "weak_ratio": 0.13122738759534056,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.767591581017253,
+     "tries": [
+      {
+       "label": "P006_p030_t0",
+       "file": "scans/P006_p030_t0.npz",
+       "odom": [
+        8.87448048030842,
+        4.347398053098323,
+        1.3976734578609467
+       ],
+       "n_scans": 10,
+       "n_points": 285,
+       "moved_during_capture_m": 2.531068626957121e-05,
+       "yaw_change_during_capture_deg": -0.004849434310709053,
+       "icp": {
+        "pose": [
+         -0.006470442417199713,
+         -0.0005085027791047012,
+         -0.007278428022708283
+        ],
+        "cost": 0.0006745399205042342,
+        "pairs": 217,
+        "inlier_frac": 0.7614035087719299,
+        "rmse_m": 0.010124541826967861,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8588234105037975,
+         0.5122717536333871
+        ],
+        "weak_ratio": 0.142337195625647,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P006_p030_t1",
+       "file": "scans/P006_p030_t1.npz",
+       "odom": [
+        8.874484785504226,
+        4.34742299544801,
+        1.4088831841945648
+       ],
+       "n_scans": 10,
+       "n_points": 273,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": -0.00043713210688081606,
+       "icp": {
+        "pose": [
+         -0.006366421234055148,
+         0.0003491639434994076,
+         0.0017597238823818806
+        ],
+        "cost": 0.000697044606208662,
+        "pairs": 204,
+        "inlier_frac": 0.7472527472527473,
+        "rmse_m": 0.009339242919458215,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8682942612166737,
+         0.49604946924494403
+        ],
+        "weak_ratio": 0.1413909522846306,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.38411485998753,
+     "tries": [
+      {
+       "label": "P006_p060_t0",
+       "file": "scans/P006_p060_t0.npz",
+       "odom": [
+        8.874543643658432,
+        4.3477803491240214,
+        1.9232179820537565
+       ],
+       "n_scans": 10,
+       "n_points": 277,
+       "moved_during_capture_m": 1.4015221154278134e-09,
+       "yaw_change_during_capture_deg": 0.004070792745327599,
+       "icp": {
+        "pose": [
+         -0.0020366728156248626,
+         0.0023037446542348407,
+         0.0017964216401589184
+        ],
+        "cost": 0.0006172974186618897,
+        "pairs": 214,
+        "inlier_frac": 0.7725631768953068,
+        "rmse_m": 0.007940016057725052,
+        "weak_axis": false,
+        "weak_dir": [
+         0.49987277700378235,
+         -0.8660988435568582
+        ],
+        "weak_ratio": 0.1412976157015438,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P006_base_after",
+    "file": "scans/P006_base_after.npz",
+    "odom": [
+     8.874729356449476,
+     4.347770588667976,
+     0.8671610057353973
+    ],
+    "n_scans": 10,
+    "n_points": 268,
+    "moved_during_capture_m": 2.5310686327786006e-05,
+    "yaw_change_during_capture_deg": -0.004214226717897868,
+    "icp": {
+     "pose": [
+      -0.0005551471978335285,
+      -0.001499261781351757,
+      -0.02228578727137398
+     ],
+     "cost": 0.0005615085738576197,
+     "pairs": 213,
+     "inlier_frac": 0.7947761194029851,
+     "rmse_m": 0.0078076337370568474,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9999146325479078,
+      0.013066277839629735
+     ],
+     "weak_ratio": 0.13306551290913027,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P007",
+   "index": 6,
+   "transit": {
+    "along_remaining_m": 1.4264743523340062e-05,
+    "lateral_m": 0.00012416754240360262,
+    "reverse": false,
+    "final_yaw_err_rad": -0.0014631043242481212
+   },
+   "align": [
+    {
+     "label": "P007_align0",
+     "file": "scans/P007_align0.npz",
+     "odom": [
+      9.161523442374067,
+      4.718583738375313,
+      0.9097663462162018
+     ],
+     "n_scans": 10,
+     "n_points": 277,
+     "moved_during_capture_m": 1.386436044714925e-09,
+     "yaw_change_during_capture_deg": 0.0016426604953880665,
+     "icp": {
+      "pose": [
+       0.001027762939403883,
+       -0.006289439623270573,
+       0.008814476721144437
+      ],
+      "cost": 0.0005234905819516641,
+      "pairs": 225,
+      "inlier_frac": 0.8122743682310469,
+      "rmse_m": 0.00816684114115962,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9995520282871894,
+       0.02992896167536455
+      ],
+      "weak_ratio": 0.09552177666157294,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.001027762939403883,
+      -0.006289439623270573,
+      0.008814476721144437
+     ],
+     "move": {
+      "along_remaining_m": 0.0002850178050857856,
+      "lateral_m": -0.0005356928012324707,
+      "reverse": true,
+      "final_yaw_err_rad": -0.0033605325149066445
+     }
+    },
+    {
+     "label": "P007_align1",
+     "file": "scans/P007_align1.npz",
+     "odom": [
+      9.156435056590633,
+      4.72113944600488,
+      0.904312700033188
+     ],
+     "n_scans": 10,
+     "n_points": 276,
+     "moved_during_capture_m": 2.531068636147338e-05,
+     "yaw_change_during_capture_deg": 0.004624038068098632,
+     "icp": {
+      "pose": [
+       -0.0007858425112824128,
+       0.002992430276322552,
+       -0.012727271352514613
+      ],
+      "cost": 0.0005840323794417396,
+      "pairs": 218,
+      "inlier_frac": 0.7898550724637681,
+      "rmse_m": 0.008618557087221073,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9997636122252364,
+       0.02174211743017411
+      ],
+      "weak_ratio": 0.1130167083292001,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0007858425112824128,
+      0.002992430276322552,
+      -0.012727271352514613
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.003984798158898961
+     }
+    },
+    {
+     "label": "P007_align2",
+     "file": "scans/P007_align2.npz",
+     "odom": [
+      9.156435158452084,
+      4.721139368010841,
+      0.9211313426494597
+     ],
+     "n_scans": 10,
+     "n_points": 273,
+     "moved_during_capture_m": 8.101373449150938e-10,
+     "yaw_change_during_capture_deg": 0.0009493962946317724,
+     "icp": {
+      "pose": [
+       -0.0010283303409696568,
+       -0.0010840931828858399,
+       0.0059995822887541905
+      ],
+      "cost": 0.0005242516407207601,
+      "pairs": 222,
+      "inlier_frac": 0.8131868131868132,
+      "rmse_m": 0.008388295662980836,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9995840360872115,
+       0.02884015949332438
+      ],
+      "weak_ratio": 0.11562149712543181,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0010283303409696568,
+      -0.0010840931828858399,
+      0.0059995822887541905
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.38005058501262,
+     "tries": [
+      {
+       "label": "P007_m060_t0",
+       "file": "scans/P007_m060_t0.npz",
+       "odom": [
+        9.157105672256083,
+        4.722050479641017,
+        -0.11828756332397461
+       ],
+       "n_scans": 10,
+       "n_points": 265,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.005566604173560392,
+       "icp": {
+        "pose": [
+         -0.005607379177731622,
+         -0.002951512956794437,
+         -0.0004262206197971352
+        ],
+        "cost": 0.0005416908151067538,
+        "pairs": 215,
+        "inlier_frac": 0.8113207547169812,
+        "rmse_m": 0.009288168518814989,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.49494388031726033,
+         -0.8689249422916191
+        ],
+        "weak_ratio": 0.07546174926310163,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.356709286245337,
+     "tries": [
+      {
+       "label": "P007_m030_t0",
+       "file": "scans/P007_m030_t0.npz",
+       "odom": [
+        9.15758538151066,
+        4.722055213049606,
+        0.40695956349372864
+       ],
+       "n_scans": 10,
+       "n_points": 229,
+       "moved_during_capture_m": 2.5310686344733553e-05,
+       "yaw_change_during_capture_deg": -0.0004644528635608671,
+       "icp": {
+        "pose": [
+         -0.0012434900598234703,
+         -0.0010842583996724894,
+         0.010540956677392632
+        ],
+        "cost": 0.0004630410085975541,
+        "pairs": 193,
+        "inlier_frac": 0.8427947598253275,
+        "rmse_m": 0.009115377592115356,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8609889157846835,
+         -0.508623718377265
+        ],
+        "weak_ratio": 0.09204139090488357,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P007_m030_t1",
+       "file": "scans/P007_m030_t1.npz",
+       "odom": [
+        9.157515193242093,
+        4.722026237107133,
+        0.393984705209732
+       ],
+       "n_scans": 10,
+       "n_points": 272,
+       "moved_during_capture_m": 1.2284048055125943e-09,
+       "yaw_change_during_capture_deg": -0.001961971839086163,
+       "icp": {
+        "pose": [
+         -0.0015863679845737626,
+         0.0013567547837039728,
+         -0.006329200743118157
+        ],
+        "cost": 0.0004292174494718943,
+        "pairs": 229,
+        "inlier_frac": 0.8419117647058824,
+        "rmse_m": 0.006354569327483631,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8667161289887404,
+         -0.4988017158659072
+        ],
+        "weak_ratio": 0.09398385390798879,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.29848780446601975,
+     "tries": [
+      {
+       "label": "P007_p000_t0",
+       "file": "scans/P007_p000_t0.npz",
+       "odom": [
+        9.156431728821882,
+        4.721089582368663,
+        0.916065126657486
+       ],
+       "n_scans": 10,
+       "n_points": 271,
+       "moved_during_capture_m": 3.0640360421482437e-09,
+       "yaw_change_during_capture_deg": -0.006174491009691527,
+       "icp": {
+        "pose": [
+         -0.0025744131880540413,
+         0.0016050614888749647,
+         -0.0069301504603989095
+        ],
+        "cost": 0.0005824381006415103,
+        "pairs": 213,
+        "inlier_frac": 0.7859778597785978,
+        "rmse_m": 0.007764347698447742,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9996938371427652,
+         0.024743321902579368
+        ],
+        "weak_ratio": 0.08305753384334755,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.2765778193215,
+     "tries": [
+      {
+       "label": "P007_p030_t0",
+       "file": "scans/P007_p030_t0.npz",
+       "odom": [
+        9.156919954157047,
+        4.722355259313528,
+        1.4470513761043549
+       ],
+       "n_scans": 10,
+       "n_points": 287,
+       "moved_during_capture_m": 3.847016729897566e-10,
+       "yaw_change_during_capture_deg": -9.562264838017851e-05,
+       "icp": {
+        "pose": [
+         0.005831619064733754,
+         -0.0015024671195453417,
+         0.0032635038583253007
+        ],
+        "cost": 0.0006140780391262784,
+        "pairs": 224,
+        "inlier_frac": 0.7804878048780488,
+        "rmse_m": 0.00914672004767523,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8651771667711772,
+         0.501466320003446
+        ],
+        "weak_ratio": 0.11343205557655613,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.62730203783854,
+     "tries": [
+      {
+       "label": "P007_p060_t0",
+       "file": "scans/P007_p060_t0.npz",
+       "odom": [
+        9.157111129028518,
+        4.722081734911072,
+        1.9709263741970062
+       ],
+       "n_scans": 10,
+       "n_points": 245,
+       "moved_during_capture_m": 2.5676942791211296e-09,
+       "yaw_change_during_capture_deg": -0.001864641643413481,
+       "icp": {
+        "pose": [
+         0.000441392082584392,
+         0.008093602082565361,
+         -0.0017739405592736013
+        ],
+        "cost": 0.0005008662407342926,
+        "pairs": 199,
+        "inlier_frac": 0.8122448979591836,
+        "rmse_m": 0.006225344929961178,
+        "weak_axis": false,
+        "weak_dir": [
+         0.4900680886300254,
+         -0.871684156392964
+        ],
+        "weak_ratio": 0.09646342279302096,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P007_base_after",
+    "file": "scans/P007_base_after.npz",
+    "odom": [
+     9.156462912019247,
+     4.721103352793372,
+     0.9123615324497223
+    ],
+    "n_scans": 10,
+    "n_points": 212,
+    "moved_during_capture_m": 2.531068641575224e-05,
+    "yaw_change_during_capture_deg": -0.0035312078008965923,
+    "icp": {
+     "pose": [
+      -0.002296232820338385,
+      -0.002066227224633504,
+      -0.027428390579211204
+     ],
+     "cost": 0.0006443259481878172,
+     "pairs": 164,
+     "inlier_frac": 0.7735849056603774,
+     "rmse_m": 0.010059912298936805,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9995592944971013,
+      0.02968529576165165
+     ],
+     "weak_ratio": 0.1161642037496763,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P008",
+   "index": 7,
+   "transit": {
+    "along_remaining_m": 0.00015572342541608775,
+    "lateral_m": 0.000631468809469321,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0035546473879692897
+   },
+   "align": [
+    {
+     "label": "P008_align0",
+     "file": "scans/P008_align0.npz",
+     "odom": [
+      9.422682777856735,
+      5.103689680573932,
+      0.9638555943965912
+     ],
+     "n_scans": 10,
+     "n_points": 248,
+     "moved_during_capture_m": 2.531068682497786e-05,
+     "yaw_change_during_capture_deg": -0.00504067960746941,
+     "icp": {
+      "pose": [
+       0.0021111140792908177,
+       0.0032549383600815264,
+       0.013871034779364688
+      ],
+      "cost": 0.0006356614044454168,
+      "pairs": 190,
+      "inlier_frac": 0.7661290322580645,
+      "rmse_m": 0.008157666172465376,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9999990677026539,
+       0.0013655013082619655
+      ],
+      "weak_ratio": 0.09958832192679767,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0021111140792908177,
+      0.0032549383600815264,
+      0.013871034779364688
+     ],
+     "move": {
+      "along_remaining_m": -0.00021196522491200714,
+      "lateral_m": 8.816021916101496e-05,
+      "reverse": true,
+      "final_yaw_err_rad": 0.003663936457817485
+     }
+    },
+    {
+     "label": "P008_align1",
+     "file": "scans/P008_align1.npz",
+     "odom": [
+      9.424124769837025,
+      5.099972349209741,
+      0.9463705718517302
+     ],
+     "n_scans": 10,
+     "n_points": 249,
+     "moved_during_capture_m": 1.5840669842527e-10,
+     "yaw_change_during_capture_deg": 0.001673396346653124,
+     "icp": {
+      "pose": [
+       0.0011720431568748304,
+       0.0003450445824149267,
+       -0.01979987985423648
+      ],
+      "cost": 0.0005789067371377604,
+      "pairs": 194,
+      "inlier_frac": 0.7791164658634538,
+      "rmse_m": 0.005853793178249736,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9998916940985824,
+       0.01471733918433555
+      ],
+      "weak_ratio": 0.06437589697984157,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0011720431568748304,
+      0.0003450445824149267,
+      -0.01979987985423648
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.0023352586574212353
+     }
+    },
+    {
+     "label": "P008_align2",
+     "file": "scans/P008_align2.npz",
+     "odom": [
+      9.424051776482692,
+      5.099868968956467,
+      0.9685231149196626
+     ],
+     "n_scans": 10,
+     "n_points": 290,
+     "moved_during_capture_m": 1.12921235693876e-09,
+     "yaw_change_during_capture_deg": 0.0016153397387080157,
+     "icp": {
+      "pose": [
+       0.0015596313125349453,
+       -0.00045454991801416886,
+       0.0017472477738627035
+      ],
+      "cost": 0.0005323054124825551,
+      "pairs": 231,
+      "inlier_frac": 0.7965517241379311,
+      "rmse_m": 0.005452895342732343,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.999955097765299,
+       0.009476415629952776
+      ],
+      "weak_ratio": 0.07512958205643747,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0015596313125349453,
+      -0.00045454991801416886,
+      0.0017472477738627035
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.774181101539504,
+     "tries": [
+      {
+       "label": "P008_m060_t0",
+       "file": "scans/P008_m060_t0.npz",
+       "odom": [
+        9.424247018005591,
+        5.099979567249361,
+        -0.07237257063388824
+       ],
+       "n_scans": 10,
+       "n_points": 270,
+       "moved_during_capture_m": 3.3812332267255777e-10,
+       "yaw_change_during_capture_deg": 0.0024084954560757463,
+       "icp": {
+        "pose": [
+         -0.006727269142541152,
+         -0.013855025961588746,
+         0.009665022712219251
+        ],
+        "cost": 0.0005416734140841513,
+        "pairs": 217,
+        "inlier_frac": 0.8037037037037037,
+        "rmse_m": 0.007960681547693166,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5038443593387746,
+         -0.8637944556215325
+        ],
+        "weak_ratio": 0.10047687643661307,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P008_m060_t1",
+       "file": "scans/P008_m060_t1.npz",
+       "odom": [
+        9.424297507960853,
+        5.099975896936994,
+        -0.08616164326667786
+       ],
+       "n_scans": 10,
+       "n_points": 246,
+       "moved_during_capture_m": 2.5310686421255658e-05,
+       "yaw_change_during_capture_deg": 0.0002595471884604845,
+       "icp": {
+        "pose": [
+         -0.0012224717679730811,
+         -0.004634223218083501,
+         -0.00534958369017513
+        ],
+        "cost": 0.00052921768386543,
+        "pairs": 198,
+        "inlier_frac": 0.8048780487804879,
+        "rmse_m": 0.007173024041045243,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.505121206115451,
+         -0.8630484152887786
+        ],
+        "weak_ratio": 0.0931966872788254,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.73102200889543,
+     "tries": [
+      {
+       "label": "P008_m030_t0",
+       "file": "scans/P008_m030_t0.npz",
+       "odom": [
+        9.424149402768709,
+        5.0998464235207495,
+        0.45087981224060053
+       ],
+       "n_scans": 10,
+       "n_points": 290,
+       "moved_during_capture_m": 2.5284700500734785e-09,
+       "yaw_change_during_capture_deg": -0.003307519105578675,
+       "icp": {
+        "pose": [
+         0.0028593049097106185,
+         1.9905450557306565e-05,
+         0.0021672756358719347
+        ],
+        "cost": 0.0005211408702052849,
+        "pairs": 236,
+        "inlier_frac": 0.8137931034482758,
+        "rmse_m": 0.00826747055150809,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8736680105743723,
+         -0.48652256607378314
+        ],
+        "weak_ratio": 0.07732998726074429,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.20381199105953424,
+     "tries": [
+      {
+       "label": "P008_p000_t0",
+       "file": "scans/P008_p000_t0.npz",
+       "odom": [
+        9.424059830975555,
+        5.0998731536719495,
+        0.9730723202228546
+       ],
+       "n_scans": 10,
+       "n_points": 268,
+       "moved_during_capture_m": 2.531068637896932e-05,
+       "yaw_change_during_capture_deg": 0.007632736397489249,
+       "icp": {
+        "pose": [
+         -0.0008559664452597661,
+         -0.00019932125337780306,
+         0.007892487331389031
+        ],
+        "cost": 0.0004963755200574887,
+        "pairs": 219,
+        "inlier_frac": 0.8171641791044776,
+        "rmse_m": 0.006933684365698853,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.999959417075437,
+         -0.009009117723294996
+        ],
+        "weak_ratio": 0.09377502426605575,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P008_p000_t1",
+       "file": "scans/P008_p000_t1.npz",
+       "odom": [
+        9.424088306723256,
+        5.099915007450462,
+        0.9681654870510101
+       ],
+       "n_scans": 10,
+       "n_points": 240,
+       "moved_during_capture_m": 2.5310686366881025e-05,
+       "yaw_change_during_capture_deg": -0.005286566417589869,
+       "icp": {
+        "pose": [
+         -0.0026452809872048472,
+         -1.2967177749963707e-05,
+         0.0057220217133884255
+        ],
+        "cost": 0.0005068397351093064,
+        "pairs": 196,
+        "inlier_frac": 0.8166666666666667,
+        "rmse_m": 0.007706853703775321,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9998358475906992,
+         -0.018118440125692855
+        ],
+        "weak_ratio": 0.09185134570296931,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.185038343404518,
+     "tries": [
+      {
+       "label": "P008_p030_t0",
+       "file": "scans/P008_p030_t0.npz",
+       "odom": [
+        9.424209692086587,
+        5.100163189053998,
+        1.4979341924190521
+       ],
+       "n_scans": 10,
+       "n_points": 250,
+       "moved_during_capture_m": 9.745776941603837e-10,
+       "yaw_change_during_capture_deg": 2.7320756680051004e-05,
+       "icp": {
+        "pose": [
+         -0.00354232483238836,
+         0.0008004194404581118,
+         0.007580081585566223
+        ],
+        "cost": 0.0005300598889156244,
+        "pairs": 201,
+        "inlier_frac": 0.804,
+        "rmse_m": 0.007058734481627695,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8794506128026605,
+         0.47599014657976385
+        ],
+        "weak_ratio": 0.0819291579293135,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P008_p030_t1",
+       "file": "scans/P008_p030_t1.npz",
+       "odom": [
+        9.424211296802651,
+        5.100188451612553,
+        1.49320849776268
+       ],
+       "n_scans": 10,
+       "n_points": 252,
+       "moved_during_capture_m": 2.5310686388826314e-05,
+       "yaw_change_during_capture_deg": 0.001994415237643723,
+       "icp": {
+        "pose": [
+         -0.0020511310378241642,
+         0.00040367491672800793,
+         0.0003657604762397071
+        ],
+        "cost": 0.0005235470255448103,
+        "pairs": 203,
+        "inlier_frac": 0.8055555555555556,
+        "rmse_m": 0.006817049922204869,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8822190194754016,
+         0.47083925247993214
+        ],
+        "weak_ratio": 0.09076059165102862,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.82531360521351,
+     "tries": [
+      {
+       "label": "P008_p060_t0",
+       "file": "scans/P008_p060_t0.npz",
+       "odom": [
+        9.424391405119135,
+        5.099712185199484,
+        2.0147078931331635
+       ],
+       "n_scans": 10,
+       "n_points": 249,
+       "moved_during_capture_m": 2.531068636313255e-05,
+       "yaw_change_during_capture_deg": -0.0003210188909905993,
+       "icp": {
+        "pose": [
+         -0.0017060073336707653,
+         0.002289722378363228,
+         0.006168258899656998
+        ],
+        "cost": 0.0005474444983620458,
+        "pairs": 197,
+        "inlier_frac": 0.7911646586345381,
+        "rmse_m": 0.005661195767998217,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5067695277714824,
+         -0.8620815771852852
+        ],
+        "weak_ratio": 0.09996605478159945,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P008_base_after",
+    "file": "scans/P008_base_after.npz",
+    "odom": [
+     9.424121720789893,
+     5.099974348188433,
+     0.9690004885196685
+    ],
+    "n_scans": 10,
+    "n_points": 207,
+    "moved_during_capture_m": 1.3751203001285385e-09,
+    "yaw_change_during_capture_deg": -8.537736462515939e-05,
+    "icp": {
+     "pose": [
+      0.0013207132490957948,
+      0.00017672938198664767,
+      -0.013581653865889276
+     ],
+     "cost": 0.0007174976445905263,
+     "pairs": 156,
+     "inlier_frac": 0.7536231884057971,
+     "rmse_m": 0.011608466304272466,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9999373769087775,
+      0.011191168875197215
+     ],
+     "weak_ratio": 0.08584737880492291,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P009",
+   "index": 8,
+   "transit": {
+    "along_remaining_m": 0.00020466119001039118,
+    "lateral_m": -0.00021634234324915957,
+    "reverse": false,
+    "final_yaw_err_rad": 0.004180821579240934
+   },
+   "align": [
+    {
+     "label": "P009_align0",
+     "file": "scans/P009_align0.npz",
+     "odom": [
+      9.673997359066611,
+      5.490067453142505,
+      0.9868289530277252
+     ],
+     "n_scans": 10,
+     "n_points": 265,
+     "moved_during_capture_m": 1.265744381796631e-09,
+     "yaw_change_during_capture_deg": 0.006577472170722279,
+     "icp": {
+      "pose": [
+       -0.012358008727295795,
+       -0.0005036135472551365,
+       0.019928192134036404
+      ],
+      "cost": 0.0007885441233050045,
+      "pairs": 191,
+      "inlier_frac": 0.720754716981132,
+      "rmse_m": 0.011201204281698745,
+      "weak_axis": true,
+      "weak_dir": [
+       -0.9992900027238646,
+       -0.03767612581116591
+      ],
+      "weak_ratio": 0.04958070706002382,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      1.4186602857717973e-06,
+      -3.762735712093177e-05,
+      0.019928192134036404
+     ],
+     "move": {
+      "final_yaw_err_rad": 0.0038144836472131516
+     }
+    },
+    {
+     "label": "P009_align1",
+     "file": "scans/P009_align1.npz",
+     "odom": [
+      9.674026131225801,
+      5.4901091006738705,
+      0.9631349146366119
+     ],
+     "n_scans": 10,
+     "n_points": 283,
+     "moved_during_capture_m": 2.531068645095117e-05,
+     "yaw_change_during_capture_deg": 0.002274452993614246,
+     "icp": {
+      "pose": [
+       -0.005575277461687047,
+       -5.0642751783704876e-05,
+       -0.00642991685905292
+      ],
+      "cost": 0.0006899862785518142,
+      "pairs": 212,
+      "inlier_frac": 0.7491166077738516,
+      "rmse_m": 0.009154367147876962,
+      "weak_axis": true,
+      "weak_dir": [
+       -0.9994639649456837,
+       -0.03273809363804179
+      ],
+      "weak_ratio": 0.041812877448194966,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -4.318427917386104e-06,
+      0.00013183764260565927,
+      -0.00642991685905292
+     ]
+    }
+   ],
+   "align_status": "MATCHED_PARTIAL_AXIS",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.39820821603428,
+     "tries": [
+      {
+       "label": "P009_m060_t0",
+       "file": "scans/P009_m060_t0.npz",
+       "odom": [
+        9.673872758804128,
+        5.48939749397877,
+        -0.06339797377586365
+       ],
+       "n_scans": 10,
+       "n_points": 275,
+       "moved_during_capture_m": 1.0765994215264908e-09,
+       "yaw_change_during_capture_deg": 0.0039717550023624145,
+       "icp": {
+        "pose": [
+         -0.0016796764601987083,
+         -0.003647820180047524,
+         -0.005192078849388881
+        ],
+        "cost": 0.0005524781976343001,
+        "pairs": 221,
+        "inlier_frac": 0.8036363636363636,
+        "rmse_m": 0.008752893341783379,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5062121673081273,
+         -0.8624089758746767
+        ],
+        "weak_ratio": 0.11045074562607239,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.371760888741928,
+     "tries": [
+      {
+       "label": "P009_m030_t0",
+       "file": "scans/P009_m030_t0.npz",
+       "odom": [
+        9.672933244682762,
+        5.4893302926160725,
+        0.45401620864868164
+       ],
+       "n_scans": 10,
+       "n_points": 273,
+       "moved_during_capture_m": 1.3785148722069654e-09,
+       "yaw_change_during_capture_deg": 0.001318226509812461,
+       "icp": {
+        "pose": [
+         -0.002008294806131792,
+         -0.0009719992881076214,
+         -0.01441434356094895
+        ],
+        "cost": 0.0005190501354411826,
+        "pairs": 223,
+        "inlier_frac": 0.8168498168498168,
+        "rmse_m": 0.008653957070846187,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8591927480991195,
+         -0.5116520513140576
+        ],
+        "weak_ratio": 0.11350667382411393,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P009_m030_t1",
+       "file": "scans/P009_m030_t1.npz",
+       "odom": [
+        9.672865013333045,
+        5.489296970778337,
+        0.4718076288700104
+       ],
+       "n_scans": 10,
+       "n_points": 277,
+       "moved_during_capture_m": 2.5310686357730985e-05,
+       "yaw_change_during_capture_deg": 0.0014240944419476585,
+       "icp": {
+        "pose": [
+         -0.00948108252584817,
+         -0.00389816622136619,
+         0.005617262668163647
+        ],
+        "cost": 0.0004697819396086542,
+        "pairs": 229,
+        "inlier_frac": 0.8267148014440433,
+        "rmse_m": 0.006650868305788983,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8592657966418779,
+         -0.5115293644761744
+        ],
+        "weak_ratio": 0.1008887650381178,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.25068587178603924,
+     "tries": [
+      {
+       "label": "P009_p000_t0",
+       "file": "scans/P009_p000_t0.npz",
+       "odom": [
+        9.673933962183456,
+        5.490171130027354,
+        0.9724204838275909
+       ],
+       "n_scans": 10,
+       "n_points": 267,
+       "moved_during_capture_m": 2.572974657305887e-09,
+       "yaw_change_during_capture_deg": 1.7075472925031877e-05,
+       "icp": {
+        "pose": [
+         -0.0035652720164748397,
+         0.0006492869039269864,
+         -0.008873443857057683
+        ],
+        "cost": 0.0005061074704428857,
+        "pairs": 216,
+        "inlier_frac": 0.8089887640449438,
+        "rmse_m": 0.005943676459314663,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999334534234623,
+         -0.011536408653847509
+        ],
+        "weak_ratio": 0.09652504317103439,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P009_p000_t1",
+       "file": "scans/P009_p000_t1.npz",
+       "odom": [
+        9.673877532120814,
+        5.490087071770302,
+        0.9840715229511261
+       ],
+       "n_scans": 10,
+       "n_points": 245,
+       "moved_during_capture_m": 2.531068637994904e-05,
+       "yaw_change_during_capture_deg": 0.0050031135670343405,
+       "icp": {
+        "pose": [
+         -0.0011805897203155385,
+         0.000745469585562751,
+         -0.0009396407503174942
+        ],
+        "cost": 0.0004770695881392968,
+        "pairs": 202,
+        "inlier_frac": 0.8244897959183674,
+        "rmse_m": 0.006815114642813539,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999209014502075,
+         -0.012577394126144073
+        ],
+        "weak_ratio": 0.08833731072830016,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.67693661459779,
+     "tries": [
+      {
+       "label": "P009_p030_t0",
+       "file": "scans/P009_p030_t0.npz",
+       "odom": [
+        9.673727329486823,
+        5.4892938795410355,
+        1.5086444318294525
+       ],
+       "n_scans": 10,
+       "n_points": 263,
+       "moved_during_capture_m": 2.5310686279484213e-05,
+       "yaw_change_during_capture_deg": 0.0012567548072823461,
+       "icp": {
+        "pose": [
+         -0.006250569198669494,
+         0.0032621685086095756,
+         -0.008177858129017945
+        ],
+        "cost": 0.0005596465059608552,
+        "pairs": 209,
+        "inlier_frac": 0.7946768060836502,
+        "rmse_m": 0.007636174004957886,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8835680355064451,
+         0.46830281510074373
+        ],
+        "weak_ratio": 0.13945874796026064,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P009_p030_t1",
+       "file": "scans/P009_p030_t1.npz",
+       "odom": [
+        9.673726428121814,
+        5.489268580512352,
+        1.513901084661484
+       ],
+       "n_scans": 10,
+       "n_points": 274,
+       "moved_during_capture_m": 1.5689793666094357e-10,
+       "yaw_change_during_capture_deg": 0.0010586793213519764,
+       "icp": {
+        "pose": [
+         -0.004254054403615949,
+         0.0033009122818027604,
+         0.0031076832256853315
+        ],
+        "cost": 0.0004945087900872715,
+        "pairs": 225,
+        "inlier_frac": 0.8211678832116789,
+        "rmse_m": 0.007599827040111543,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8762676983310893,
+         0.4818245747795921
+        ],
+        "weak_ratio": 0.1229047360629251,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.61738161495592,
+     "tries": [
+      {
+       "label": "P009_p060_t0",
+       "file": "scans/P009_p060_t0.npz",
+       "odom": [
+        9.673538294664812,
+        5.489356190035448,
+        2.02450367808342
+       ],
+       "n_scans": 10,
+       "n_points": 241,
+       "moved_during_capture_m": 2.531068648966065e-05,
+       "yaw_change_during_capture_deg": 0.010914642293680376,
+       "icp": {
+        "pose": [
+         -0.0011669001221693966,
+         -0.0007190692712827605,
+         -0.01563551491536508
+        ],
+        "cost": 0.0005493552295848783,
+        "pairs": 194,
+        "inlier_frac": 0.8049792531120332,
+        "rmse_m": 0.008762211017031483,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5136930540048011,
+         -0.8579740358934066
+        ],
+        "weak_ratio": 0.06360023438059603,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P009_p060_t1",
+       "file": "scans/P009_p060_t1.npz",
+       "odom": [
+        9.673481779758673,
+        5.489469420079984,
+        2.043692797422409
+       ],
+       "n_scans": 10,
+       "n_points": 257,
+       "moved_during_capture_m": 2.5310686332343683e-05,
+       "yaw_change_during_capture_deg": -0.0030599247481657124,
+       "icp": {
+        "pose": [
+         -0.0016799233857106362,
+         0.0024572239404704495,
+         0.0036939659175581063
+        ],
+        "cost": 0.000539455046623312,
+        "pairs": 208,
+        "inlier_frac": 0.8093385214007782,
+        "rmse_m": 0.008808853441444131,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5124451005002701,
+         -0.8587199886885527
+        ],
+        "weak_ratio": 0.07896419931653002,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P009_base_after",
+    "file": "scans/P009_base_after.npz",
+    "odom": [
+     9.673951245556113,
+     5.490108963511188,
+     0.9671891629695891
+    ],
+    "n_scans": 10,
+    "n_points": 290,
+    "moved_during_capture_m": 6.381531788893287e-10,
+    "yaw_change_during_capture_deg": 0.0013318868881524865,
+    "icp": {
+     "pose": [
+      -0.009445388389318493,
+      -0.0013229773017861316,
+      -0.026872542358937324
+     ],
+     "cost": 0.0007650198891332796,
+     "pairs": 209,
+     "inlier_frac": 0.7206896551724138,
+     "rmse_m": 0.009623478031324377,
+     "weak_axis": true,
+     "weak_dir": [
+      -0.9995543065554637,
+      -0.02985277619294243
+     ],
+     "weak_ratio": 0.033426424924720116,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P010",
+   "index": 9,
+   "transit": {
+    "along_remaining_m": -3.731472640566835e-05,
+    "lateral_m": -0.00041257095523383747,
+    "reverse": false,
+    "final_yaw_err_rad": -0.0029869762655270193
+   },
+   "align": [
+    {
+     "label": "P010_align0",
+     "file": "scans/P010_align0.npz",
+     "odom": [
+      9.925708501877473,
+      5.881520742904027,
+      1.0181834399700165
+     ],
+     "n_scans": 10,
+     "n_points": 267,
+     "moved_during_capture_m": 2.5310686450581067e-05,
+     "yaw_change_during_capture_deg": 0.012731472612903768,
+     "icp": {
+      "pose": [
+       -0.01033740631796794,
+       -0.002816757851854429,
+       0.009620415225599643
+      ],
+      "cost": 0.0005276241164541794,
+      "pairs": 215,
+      "inlier_frac": 0.8052434456928839,
+      "rmse_m": 0.007112268827572202,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9997025949014363,
+       0.02438691754475725
+      ],
+      "weak_ratio": 0.0734529882979232,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.01033740631796794,
+      -0.002816757851854429,
+      0.009620415225599643
+     ],
+     "move": {
+      "along_remaining_m": 0.00010880230942587714,
+      "lateral_m": 4.8898202809313524e-05,
+      "reverse": false,
+      "final_yaw_err_rad": 0.004266632542039517
+     }
+    },
+    {
+     "label": "P010_align1",
+     "file": "scans/P010_align1.npz",
+     "odom": [
+      9.9290971732949,
+      5.8925536485621945,
+      1.0043277442455292
+     ],
+     "n_scans": 10,
+     "n_points": 277,
+     "moved_during_capture_m": 1.744737503480128e-09,
+     "yaw_change_during_capture_deg": 0.0011508868751471486,
+     "icp": {
+      "pose": [
+       0.016989609659325507,
+       -0.0005663620964298566,
+       -0.013093372597987152
+      ],
+      "cost": 0.0005597817531296094,
+      "pairs": 220,
+      "inlier_frac": 0.7942238267148014,
+      "rmse_m": 0.007555715962977292,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9996143805533945,
+       0.02776851077846089
+      ],
+      "weak_ratio": 0.0672324531666297,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.016989609659325507,
+      -0.0005663620964298566,
+      -0.013093372597987152
+     ],
+     "move": {
+      "along_remaining_m": 5.408516370460775e-05,
+      "lateral_m": -5.568256488468204e-05,
+      "reverse": true,
+      "final_yaw_err_rad": -0.0032822882983136736
+     }
+    },
+    {
+     "label": "P010_align2",
+     "file": "scans/P010_align2.npz",
+     "odom": [
+      9.919270422848058,
+      5.877871936898265,
+      1.0207380950450897
+     ],
+     "n_scans": 10,
+     "n_points": 279,
+     "moved_during_capture_m": 2.5310686316635105e-05,
+     "yaw_change_during_capture_deg": 0.0019329435351136085,
+     "icp": {
+      "pose": [
+       -0.007846775922639519,
+       0.0006541108828265266,
+       0.0028289825511973454
+      ],
+      "cost": 0.0005162382196254737,
+      "pairs": 225,
+      "inlier_frac": 0.8064516129032258,
+      "rmse_m": 0.00633524998209125,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9997188969356362,
+       0.023709219932227254
+      ],
+      "weak_ratio": 0.07536710546373973,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.007846775922639519,
+      0.0006541108828265266,
+      0.0028289825511973454
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.90590215345684,
+     "tries": [
+      {
+       "label": "P010_m060_t0",
+       "file": "scans/P010_m060_t0.npz",
+       "odom": [
+        9.918594326137947,
+        5.877398866155652,
+        -0.030098751187324524
+       ],
+       "n_scans": 10,
+       "n_points": 216,
+       "moved_during_capture_m": 2.3082119382360155e-10,
+       "yaw_change_during_capture_deg": -0.003111151166940808,
+       "icp": {
+        "pose": [
+         -0.006136182327215088,
+         -0.01046249186428332,
+         0.0012007438438499385
+        ],
+        "cost": 0.0006116902923373671,
+        "pairs": 172,
+        "inlier_frac": 0.7962962962962963,
+        "rmse_m": 0.01134170712942795,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.4922186122975506,
+         -0.8704716179795143
+        ],
+        "weak_ratio": 0.08697002331624448,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.21609435978692,
+     "tries": [
+      {
+       "label": "P010_m030_t0",
+       "file": "scans/P010_m030_t0.npz",
+       "odom": [
+        9.918977691964962,
+        5.877609696437099,
+        0.4865882992744446
+       ],
+       "n_scans": 10,
+       "n_points": 211,
+       "moved_during_capture_m": 8.531328055733868e-10,
+       "yaw_change_during_capture_deg": 0.00715120806100335,
+       "icp": {
+        "pose": [
+         -0.004983952041005044,
+         -0.0031230671344171057,
+         -0.005781722890220831
+        ],
+        "cost": 0.0006006345213005922,
+        "pairs": 168,
+        "inlier_frac": 0.7962085308056872,
+        "rmse_m": 0.010699878724953845,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8679915073696883,
+         -0.4965790401679238
+        ],
+        "weak_ratio": 0.056972585235657784,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.262735179255588,
+     "tries": [
+      {
+       "label": "P010_p000_t0",
+       "file": "scans/P010_p000_t0.npz",
+       "odom": [
+        9.919277312490546,
+        5.877987749538349,
+        1.0113738477230072
+       ],
+       "n_scans": 10,
+       "n_points": 276,
+       "moved_during_capture_m": 1.6353594550010497e-09,
+       "yaw_change_during_capture_deg": 0.012263604654757895,
+       "icp": {
+        "pose": [
+         -0.004222341319097514,
+         0.0027302543473469725,
+         -0.008078664640885691
+        ],
+        "cost": 0.000774929622045851,
+        "pairs": 200,
+        "inlier_frac": 0.7246376811594203,
+        "rmse_m": 0.01092716241406131,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999906115651638,
+         0.004333218380093863
+        ],
+        "weak_ratio": 0.061613311183443174,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P010_p000_t1",
+       "file": "scans/P010_p000_t1.npz",
+       "odom": [
+        9.919236870748929,
+        5.8779234809642675,
+        1.0231905281543732
+       ],
+       "n_scans": 10,
+       "n_points": 277,
+       "moved_during_capture_m": 4.240773662412244e-09,
+       "yaw_change_during_capture_deg": 0.012939793382589156,
+       "icp": {
+        "pose": [
+         -0.01296663392326087,
+         -0.0007016200396696212,
+         0.007079344944942889
+        ],
+        "cost": 0.0007389397560184867,
+        "pairs": 200,
+        "inlier_frac": 0.7220216606498195,
+        "rmse_m": 0.007805867157824553,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999958216135166,
+         -0.002890805338966154
+        ],
+        "weak_ratio": 0.05187329362791357,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P010_p000_t2",
+       "file": "scans/P010_p000_t2.npz",
+       "odom": [
+        9.91927713351192,
+        5.877987859757886,
+        1.012128382921219
+       ],
+       "n_scans": 10,
+       "n_points": 189,
+       "moved_during_capture_m": 8.387991131292216e-10,
+       "yaw_change_during_capture_deg": 0.0017416982383532515,
+       "icp": {
+        "pose": [
+         -0.015557903293130388,
+         0.0010753095884924538,
+         -0.001623686927270107
+        ],
+        "cost": 0.0007413457912252947,
+        "pairs": 137,
+        "inlier_frac": 0.7248677248677249,
+        "rmse_m": 0.008592287554138163,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9999232904781612,
+         0.012386006593193522
+        ],
+        "weak_ratio": 0.06008637845448662,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.113108767481467,
+     "tries": [
+      {
+       "label": "P010_p030_t0",
+       "file": "scans/P010_p030_t0.npz",
+       "odom": [
+        9.91897612732615,
+        5.87702822286168,
+        1.5396358668804169
+       ],
+       "n_scans": 10,
+       "n_points": 265,
+       "moved_during_capture_m": 2.806055595338233e-10,
+       "yaw_change_during_capture_deg": 0.005873962686210966,
+       "icp": {
+        "pose": [
+         -0.003347938983948535,
+         0.004458272030068188,
+         -0.006716567571797949
+        ],
+        "cost": 0.0005608194364379281,
+        "pairs": 211,
+        "inlier_frac": 0.7962264150943397,
+        "rmse_m": 0.008033446273761756,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8697355728258597,
+         0.49351801726104555
+        ],
+        "weak_ratio": 0.08005702717302249,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.70676798820512,
+     "tries": [
+      {
+       "label": "P010_p060_t0",
+       "file": "scans/P010_p060_t0.npz",
+       "odom": [
+        9.918756250169897,
+        5.877647295964536,
+        2.0558954179286957
+       ],
+       "n_scans": 10,
+       "n_points": 227,
+       "moved_during_capture_m": 5.714706358596998e-09,
+       "yaw_change_during_capture_deg": 0.0031760379640559293,
+       "icp": {
+        "pose": [
+         -0.0030044483570559233,
+         0.007452004267296992,
+         -0.00863403784180905
+        ],
+        "cost": 0.000716223783487497,
+        "pairs": 167,
+        "inlier_frac": 0.73568281938326,
+        "rmse_m": 0.008680213183335683,
+        "weak_axis": true,
+        "weak_dir": [
+         0.5212682684533465,
+         -0.8533928710175929
+        ],
+        "weak_ratio": 0.049942037893668925,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P010_p060_t1",
+       "file": "scans/P010_p060_t1.npz",
+       "odom": [
+        9.918803313489722,
+        5.8775576530547475,
+        2.0680536925792694
+       ],
+       "n_scans": 10,
+       "n_points": 235,
+       "moved_during_capture_m": 3.8666313702469e-09,
+       "yaw_change_during_capture_deg": 0.0010245283755019126,
+       "icp": {
+        "pose": [
+         -0.0029643372902777776,
+         0.005759448485762461,
+         0.003943407988372893
+        ],
+        "cost": 0.0007485044832426048,
+        "pairs": 171,
+        "inlier_frac": 0.7276595744680852,
+        "rmse_m": 0.009642302496741492,
+        "weak_axis": true,
+        "weak_dir": [
+         0.5342070147806002,
+         -0.8453536924620365
+        ],
+        "weak_ratio": 0.044653681159147175,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P010_base_after",
+    "file": "scans/P010_base_after.npz",
+    "odom": [
+     9.919200859479092,
+     5.877909145466484,
+     1.01455357670784
+    ],
+    "n_scans": 10,
+    "n_points": 199,
+    "moved_during_capture_m": 1.124690267338161e-09,
+    "yaw_change_during_capture_deg": -0.0051328871612645825,
+    "icp": {
+     "pose": [
+      -0.0029623873347971574,
+      0.0019874301845140465,
+      -0.03000859466001815
+     ],
+     "cost": 0.0006243640589129669,
+     "pairs": 157,
+     "inlier_frac": 0.7889447236180904,
+     "rmse_m": 0.011072559679578918,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9995430529223877,
+      0.030227228695220376
+     ],
+     "weak_ratio": 0.08319422996050675,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P011",
+   "index": 10,
+   "transit": {
+    "along_remaining_m": 0.00039440189326189756,
+    "lateral_m": -0.0006526083844575759,
+    "reverse": false,
+    "final_yaw_err_rad": -0.004077327330211489
+   },
+   "align": [
+    {
+     "label": "P011_align0",
+     "file": "scans/P011_align0.npz",
+     "odom": [
+      10.151757181479267,
+      6.2904355998408095,
+      1.067976027727127
+     ],
+     "n_scans": 10,
+     "n_points": 242,
+     "moved_during_capture_m": 2.2388135879859903e-09,
+     "yaw_change_during_capture_deg": -0.001181622726412206,
+     "icp": {
+      "pose": [
+       0.0016214199833809906,
+       -0.0012096948354769835,
+       0.0032354684378321785
+      ],
+      "cost": 0.0006380982416051336,
+      "pairs": 189,
+      "inlier_frac": 0.78099173553719,
+      "rmse_m": 0.010769291652201217,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9996970087184402,
+       0.024614848352222815
+      ],
+      "weak_ratio": 0.08240768783931321,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0016214199833809906,
+      -0.0012096948354769835,
+      0.0032354684378321785
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -60.59244971693808,
+     "tries": [
+      {
+       "label": "P011_m060_t0",
+       "file": "scans/P011_m060_t0.npz",
+       "odom": [
+        10.152243740671413,
+        6.291385406481383,
+        0.009938195347785951
+       ],
+       "n_scans": 10,
+       "n_points": 270,
+       "moved_during_capture_m": 1.2651778818191416e-09,
+       "yaw_change_during_capture_deg": -0.0036797644153443694,
+       "icp": {
+        "pose": [
+         0.00236186208186019,
+         0.0008741789323330545,
+         0.00495164823482197
+        ],
+        "cost": 0.0004960681005101335,
+        "pairs": 220,
+        "inlier_frac": 0.8148148148148148,
+        "rmse_m": 0.006374090715094566,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5109034343620691,
+         -0.8596381103447213
+        ],
+        "weak_ratio": 0.0756080936460269,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.599320052417056,
+     "tries": [
+      {
+       "label": "P011_m030_t0",
+       "file": "scans/P011_m030_t0.npz",
+       "odom": [
+        10.152596555065555,
+        6.291340442982236,
+        0.5347494184970857
+       ],
+       "n_scans": 10,
+       "n_points": 214,
+       "moved_during_capture_m": 1.380023784416174e-09,
+       "yaw_change_during_capture_deg": 0.00469746260167627,
+       "icp": {
+        "pose": [
+         -0.0008978673310014852,
+         -0.0014464690787660483,
+         0.003797241897922632
+        ],
+        "cost": 0.0005789011675141295,
+        "pairs": 173,
+        "inlier_frac": 0.8084112149532711,
+        "rmse_m": 0.011118086563456269,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.875250166203655,
+         -0.4836704937873243
+        ],
+        "weak_ratio": 0.1176235904349204,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.5352520431762805,
+     "tries": [
+      {
+       "label": "P011_p000_t0",
+       "file": "scans/P011_p000_t0.npz",
+       "odom": [
+        10.151791751644192,
+        6.290437907599928,
+        1.0582437217235565
+       ],
+       "n_scans": 10,
+       "n_points": 275,
+       "moved_during_capture_m": 3.2488446198181336e-09,
+       "yaw_change_during_capture_deg": 0.0013694529285875566,
+       "icp": {
+        "pose": [
+         -0.004111201539146233,
+         -0.0015967602669415813,
+         0.003622952165295068
+        ],
+        "cost": 0.0005915916947284743,
+        "pairs": 214,
+        "inlier_frac": 0.7781818181818182,
+        "rmse_m": 0.006899720992032883,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9996419543915772,
+         0.026757485311366475
+        ],
+        "weak_ratio": 0.07277546700744633,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.455309470216818,
+     "tries": [
+      {
+       "label": "P011_p030_t0",
+       "file": "scans/P011_p030_t0.npz",
+       "odom": [
+        10.152026953945159,
+        6.291727522983641,
+        1.580812305212021
+       ],
+       "n_scans": 10,
+       "n_points": 254,
+       "moved_during_capture_m": 2.5310686481780502e-05,
+       "yaw_change_during_capture_deg": 0.0039000380160772808,
+       "icp": {
+        "pose": [
+         0.0009617899854342674,
+         -0.0017542335483221336,
+         0.0059486205767118605
+        ],
+        "cost": 0.0005959484783687547,
+        "pairs": 196,
+        "inlier_frac": 0.7716535433070866,
+        "rmse_m": 0.005701285885059783,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8600089707087031,
+         0.510278914222954
+        ],
+        "weak_ratio": 0.06934825992621621,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.42422269903556,
+     "tries": [
+      {
+       "label": "P011_p060_t0",
+       "file": "scans/P011_p060_t0.npz",
+       "odom": [
+        10.152163804868346,
+        6.291480223334578,
+        2.098737448453903
+       ],
+       "n_scans": 10,
+       "n_points": 283,
+       "moved_during_capture_m": 1.5237240169607104e-09,
+       "yaw_change_during_capture_deg": 0.008510415705835888,
+       "icp": {
+        "pose": [
+         0.0005880902291955192,
+         -0.0014955410851454742,
+         0.002192550044657793
+        ],
+        "cost": 0.0005687939555544586,
+        "pairs": 223,
+        "inlier_frac": 0.7879858657243817,
+        "rmse_m": 0.007013340721818798,
+        "weak_axis": false,
+        "weak_dir": [
+         0.48171821943333804,
+         -0.8763261704787633
+        ],
+        "weak_ratio": 0.07675966736388083,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P011_base_after",
+    "file": "scans/P011_base_after.npz",
+    "odom": [
+     10.151665596989554,
+     6.290437311449247,
+     1.0676219165325165
+    ],
+    "n_scans": 10,
+    "n_points": 290,
+    "moved_during_capture_m": 2.5310686363408837e-05,
+    "yaw_change_during_capture_deg": 0.0055017173764452705,
+    "icp": {
+     "pose": [
+      0.004184277683620723,
+      -0.0007173723220204876,
+      -0.020188695015838753
+     ],
+     "cost": 0.0006392986771527934,
+     "pairs": 225,
+     "inlier_frac": 0.7758620689655172,
+     "rmse_m": 0.010087751951816527,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9991430513388827,
+      0.04139037280850292
+     ],
+     "weak_ratio": 0.08058819591572584,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P012",
+   "index": 11,
+   "transit": {
+    "along_remaining_m": 0.00015061743965261165,
+    "lateral_m": 0.0006535089183171694,
+    "reverse": false,
+    "final_yaw_err_rad": 0.002085661718684406
+   },
+   "align": [
+    {
+     "label": "P012_align0",
+     "file": "scans/P012_align0.npz",
+     "odom": [
+      10.36604939799121,
+      6.70193558883458,
+      1.1037403643131254
+     ],
+     "n_scans": 10,
+     "n_points": 205,
+     "moved_during_capture_m": 1.8699526427619014e-09,
+     "yaw_change_during_capture_deg": -0.001198698199337238,
+     "icp": {
+      "pose": [
+       0.003444378869887498,
+       0.0032868119663911734,
+       0.026031005061117884
+      ],
+      "cost": 0.0006560067165449336,
+      "pairs": 158,
+      "inlier_frac": 0.7707317073170732,
+      "rmse_m": 0.010367114783529795,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9996511802049262,
+       0.02641056445626269
+      ],
+      "weak_ratio": 0.05225145981850415,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.003444378869887498,
+      0.0032868119663911734,
+      0.026031005061117884
+     ],
+     "move": {
+      "along_remaining_m": 0.00012626182126791296,
+      "lateral_m": 0.00014650292538836182,
+      "reverse": true,
+      "final_yaw_err_rad": 0.004031968438179767
+     }
+    },
+    {
+     "label": "P012_align1",
+     "file": "scans/P012_align1.npz",
+     "odom": [
+      10.367282088495761,
+      6.696429669470262,
+      1.073600560426712
+     ],
+     "n_scans": 10,
+     "n_points": 225,
+     "moved_during_capture_m": 2.5310686752005012e-05,
+     "yaw_change_during_capture_deg": -0.007018019372188102,
+     "icp": {
+      "pose": [
+       -0.0029717033969018495,
+       0.0003523406627122315,
+       -0.017062632048711723
+      ],
+      "cost": 0.00051965739685418,
+      "pairs": 182,
+      "inlier_frac": 0.8088888888888889,
+      "rmse_m": 0.007195432881536382,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9998226586797843,
+       0.018832184963181765
+      ],
+      "weak_ratio": 0.05266310105110878,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0029717033969018495,
+      0.0003523406627122315,
+      -0.017062632048711723
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.0026797376030831543
+     }
+    },
+    {
+     "label": "P012_align2",
+     "file": "scans/P012_align2.npz",
+     "odom": [
+      10.367329206209721,
+      6.696519278694176,
+      1.0932513177394867
+     ],
+     "n_scans": 10,
+     "n_points": 263,
+     "moved_during_capture_m": 2.5310686409762386e-05,
+     "yaw_change_during_capture_deg": -0.010620944159369828,
+     "icp": {
+      "pose": [
+       -0.004420236695025021,
+       -0.0017059982275491937,
+       0.003736191043494319
+      ],
+      "cost": 0.0005132794995321413,
+      "pairs": 214,
+      "inlier_frac": 0.8136882129277566,
+      "rmse_m": 0.007640432407196585,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9997075036253796,
+       0.024184854663847483
+      ],
+      "weak_ratio": 0.056706287974117774,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.004420236695025021,
+      -0.0017059982275491937,
+      0.003736191043494319
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -60.38458230105885,
+     "tries": [
+      {
+       "label": "P012_m060_t0",
+       "file": "scans/P012_m060_t0.npz",
+       "odom": [
+        10.36766835090872,
+        6.6968023832976575,
+        0.03952734917402267
+       ],
+       "n_scans": 10,
+       "n_points": 237,
+       "moved_during_capture_m": 2.531068634654513e-05,
+       "yaw_change_during_capture_deg": 0.0034172290191220043,
+       "icp": {
+        "pose": [
+         -0.004364381322006863,
+         -0.006134071463628586,
+         0.006277949749538436
+        ],
+        "cost": 0.00043807681293733786,
+        "pairs": 199,
+        "inlier_frac": 0.8396624472573839,
+        "rmse_m": 0.006659034240475445,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.4946039797261548,
+         -0.8691184632943022
+        ],
+        "weak_ratio": 0.056664161596584106,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.97302756402003,
+     "tries": [
+      {
+       "label": "P012_m030_t0",
+       "file": "scans/P012_m030_t0.npz",
+       "odom": [
+        10.367688067376736,
+        6.696678337779989,
+        0.5649107098579407
+       ],
+       "n_scans": 10,
+       "n_points": 234,
+       "moved_during_capture_m": 3.077237155316584e-09,
+       "yaw_change_during_capture_deg": 0.001109905740127072,
+       "icp": {
+        "pose": [
+         -0.004656525693982356,
+         -0.002005763682225698,
+         -0.005619031465255997
+        ],
+        "cost": 0.000501564102183327,
+        "pairs": 193,
+        "inlier_frac": 0.8247863247863247,
+        "rmse_m": 0.00877644041021675,
+        "weak_axis": true,
+        "weak_dir": [
+         -0.8719185352872041,
+         -0.4896509653034666
+        ],
+        "weak_ratio": 0.04500070959111002,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.06273699507385962,
+     "tries": [
+      {
+       "label": "P012_p000_t0",
+       "file": "scans/P012_p000_t0.npz",
+       "odom": [
+        10.36735038375082,
+        6.696437036759519,
+        1.0868410170078278
+       ],
+       "n_scans": 10,
+       "n_points": 266,
+       "moved_during_capture_m": 1.5946285901110372e-09,
+       "yaw_change_during_capture_deg": -0.014640510485922333,
+       "icp": {
+        "pose": [
+         -0.005271882408140674,
+         0.0002905643470514051,
+         -0.005898721382678218
+        ],
+        "cost": 0.0005753560207329539,
+        "pairs": 208,
+        "inlier_frac": 0.7819548872180451,
+        "rmse_m": 0.006219039282009826,
+        "weak_axis": true,
+        "weak_dir": [
+         -0.9997750328903147,
+         0.021210459900016656
+        ],
+        "weak_ratio": 0.040161986677553725,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.049782668591693,
+     "tries": [
+      {
+       "label": "P012_p030_t0",
+       "file": "scans/P012_p030_t0.npz",
+       "odom": [
+        10.367498670541142,
+        6.697069338613099,
+        1.6103712022304535
+       ],
+       "n_scans": 10,
+       "n_points": 265,
+       "moved_during_capture_m": 2.5310686407059718e-05,
+       "yaw_change_during_capture_deg": 0.004719660716478811,
+       "icp": {
+        "pose": [
+         -0.001394374502075458,
+         0.0015270777735187848,
+         -0.00403001073986875
+        ],
+        "cost": 0.0004343285846549494,
+        "pairs": 224,
+        "inlier_frac": 0.8452830188679246,
+        "rmse_m": 0.007499129393982045,
+        "weak_axis": true,
+        "weak_dir": [
+         -0.8558962350808277,
+         0.5171475947681324
+        ],
+        "weak_ratio": 0.043458986291999846,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.086642619273725,
+     "tries": [
+      {
+       "label": "P012_p060_t0",
+       "file": "scans/P012_p060_t0.npz",
+       "odom": [
+        10.367794329758603,
+        6.696533111163116,
+        2.1347266137599945
+       ],
+       "n_scans": 10,
+       "n_points": 216,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.003729283286826962,
+       "icp": {
+        "pose": [
+         0.002966780948264348,
+         -0.006255854880582419,
+         -0.0060954544849862735
+        ],
+        "cost": 0.0006476293522652441,
+        "pairs": 163,
+        "inlier_frac": 0.7546296296296297,
+        "rmse_m": 0.006732368515157331,
+        "weak_axis": true,
+        "weak_dir": [
+         0.48828746652099897,
+         -0.8726828461924208
+        ],
+        "weak_ratio": 0.049023406735516556,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P012_base_after",
+    "file": "scans/P012_base_after.npz",
+    "odom": [
+     10.367295303552641,
+     6.696426898795119,
+     1.0923834145069122
+    ],
+    "n_scans": 10,
+    "n_points": 249,
+    "moved_during_capture_m": 3.803267582919561e-09,
+    "yaw_change_during_capture_deg": 0.007308302411913644,
+    "icp": {
+     "pose": [
+      0.0023170818550292413,
+      -0.003907158661962043,
+      -0.018648624286040416
+     ],
+     "cost": 0.0005690299908919649,
+     "pairs": 198,
+     "inlier_frac": 0.7951807228915663,
+     "rmse_m": 0.008465159652357132,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9998577783381923,
+      0.01686484795704426
+     ],
+     "weak_ratio": 0.0608294319473462,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P013",
+   "index": 12,
+   "transit": {
+    "along_remaining_m": 3.611069212922091e-05,
+    "lateral_m": -0.0002601583068531088,
+    "reverse": false,
+    "final_yaw_err_rad": -0.0036152532192446074
+   },
+   "align": [
+    {
+     "label": "P013_align0",
+     "file": "scans/P013_align0.npz",
+     "odom": [
+      10.568185082657662,
+      7.121182118260816,
+      1.126706391572952
+     ],
+     "n_scans": 10,
+     "n_points": 201,
+     "moved_during_capture_m": 1.0997947480136166e-09,
+     "yaw_change_during_capture_deg": 0.005645151349015539,
+     "icp": {
+      "pose": [
+       -0.0034112035645010607,
+       0.0025704775558876747,
+       0.01759099642562001
+      ],
+      "cost": 0.0005749594527854122,
+      "pairs": 161,
+      "inlier_frac": 0.8009950248756219,
+      "rmse_m": 0.009833031545665923,
+      "weak_axis": true,
+      "weak_dir": [
+       -0.9999930892464067,
+       0.0037177223441043432
+      ],
+      "weak_ratio": 0.036119908174522854,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      9.509107991489876e-06,
+      0.0025577602080659313,
+      0.01759099642562001
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.003154036205283539
+     }
+    },
+    {
+     "label": "P013_align1",
+     "file": "scans/P013_align1.npz",
+     "odom": [
+      10.568195011850861,
+      7.121205437285511,
+      1.1123066842556
+     ],
+     "n_scans": 10,
+     "n_points": 255,
+     "moved_during_capture_m": 1.903141306529713e-09,
+     "yaw_change_during_capture_deg": 0.0005225094715059754,
+     "icp": {
+      "pose": [
+       -0.00045379602990002274,
+       0.0021135121302010844,
+       0.0023806847395801967
+      ],
+      "cost": 0.00048793740059731707,
+      "pairs": 211,
+      "inlier_frac": 0.8274509803921568,
+      "rmse_m": 0.00826803275578816,
+      "weak_axis": true,
+      "weak_dir": [
+       -0.9998719382178045,
+       0.01600334854243179
+      ],
+      "weak_ratio": 0.045258911656963205,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      3.370271938535612e-05,
+      0.002105709518585922,
+      0.0023806847395801967
+     ]
+    }
+   ],
+   "align_status": "MATCHED_PARTIAL_AXIS",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.84230967718944,
+     "tries": [
+      {
+       "label": "P013_m060_t0",
+       "file": "scans/P013_m060_t0.npz",
+       "odom": [
+        10.568148533875583,
+        7.120579395780719,
+        0.06379619240760803
+       ],
+       "n_scans": 10,
+       "n_points": 200,
+       "moved_during_capture_m": 1.3537178217161536e-09,
+       "yaw_change_during_capture_deg": -0.0005058608854040694,
+       "icp": {
+        "pose": [
+         -0.0009985855955243284,
+         0.0007907098712742835,
+         -0.0006490753407542016
+        ],
+        "cost": 0.0005890580247559077,
+        "pairs": 158,
+        "inlier_frac": 0.79,
+        "rmse_m": 0.009004782467442459,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5183608043377007,
+         -0.8551620177056344
+        ],
+        "weak_ratio": 0.07576866621874988,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.21675944945735,
+     "tries": [
+      {
+       "label": "P013_m030_t0",
+       "file": "scans/P013_m030_t0.npz",
+       "odom": [
+        10.567255866727649,
+        7.120391715882407,
+        0.5868414044380188
+       ],
+       "n_scans": 10,
+       "n_points": 227,
+       "moved_during_capture_m": 1.7334209094761326e-09,
+       "yaw_change_during_capture_deg": -0.00021173586427039527,
+       "icp": {
+        "pose": [
+         -0.004915909641556154,
+         0.0006982250136821666,
+         0.001545130522331295
+        ],
+        "cost": 0.00039383929432990083,
+        "pairs": 198,
+        "inlier_frac": 0.8722466960352423,
+        "rmse_m": 0.009239113116322334,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8776513737206546,
+         -0.47929955790324685
+        ],
+        "weak_ratio": 0.06045947313073753,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.16836587058810681,
+     "tries": [
+      {
+       "label": "P013_p000_t0",
+       "file": "scans/P013_p000_t0.npz",
+       "odom": [
+        10.568131609731322,
+        7.121292651130882,
+        1.1102820336818695
+       ],
+       "n_scans": 10,
+       "n_points": 249,
+       "moved_during_capture_m": 2.531068639525774e-05,
+       "yaw_change_during_capture_deg": 0.0007923019437214791,
+       "icp": {
+        "pose": [
+         -0.003994412076128556,
+         0.00141901287943411,
+         0.00042909589833151074
+        ],
+        "cost": 0.0006360080229659274,
+        "pairs": 191,
+        "inlier_frac": 0.7670682730923695,
+        "rmse_m": 0.00836534790948231,
+        "weak_axis": true,
+        "weak_dir": [
+         -0.9999810190878303,
+         0.006161287533010835
+        ],
+        "weak_ratio": 0.0347723560108064,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.120748334068125,
+     "tries": [
+      {
+       "label": "P013_p030_t0",
+       "file": "scans/P013_p030_t0.npz",
+       "odom": [
+        10.568056666251332,
+        7.120443269389727,
+        1.6394674479961397
+       ],
+       "n_scans": 10,
+       "n_points": 236,
+       "moved_during_capture_m": 2.5310686428001787e-05,
+       "yaw_change_during_capture_deg": 0.0017621888058632898,
+       "icp": {
+        "pose": [
+         0.0035530432844326425,
+         -0.0002425157560203731,
+         0.00463975587729859
+        ],
+        "cost": 0.00045422347841465806,
+        "pairs": 198,
+        "inlier_frac": 0.8389830508474576,
+        "rmse_m": 0.007848547734756017,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8622104659891016,
+         0.5065502071254697
+        ],
+        "weak_ratio": 0.05199171690437309,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.20480147682036,
+     "tries": [
+      {
+       "label": "P013_p060_t0",
+       "file": "scans/P013_p060_t0.npz",
+       "odom": [
+        10.567786279806896,
+        7.120638052060509,
+        2.16496405005455
+       ],
+       "n_scans": 10,
+       "n_points": 226,
+       "moved_during_capture_m": 1.1163843207714124e-10,
+       "yaw_change_during_capture_deg": -0.0018851322109235192,
+       "icp": {
+        "pose": [
+         0.0007251202615771,
+         0.0011940056887478406,
+         0.005185798685995113
+        ],
+        "cost": 0.00039561393298111794,
+        "pairs": 194,
+        "inlier_frac": 0.8584070796460177,
+        "rmse_m": 0.006964101193378191,
+        "weak_axis": false,
+        "weak_dir": [
+         0.4724100707677387,
+         -0.881378877122217
+        ],
+        "weak_ratio": 0.07950400660081769,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P013_base_after",
+    "file": "scans/P013_base_after.npz",
+    "odom": [
+     10.568258997170378,
+     7.121362707157753,
+     1.1063461005687714
+    ],
+    "n_scans": 10,
+    "n_points": 225,
+    "moved_during_capture_m": 2.5310686365531546e-05,
+    "yaw_change_during_capture_deg": 0.007093151453058242,
+    "icp": {
+     "pose": [
+      -0.011153657920390858,
+      0.001774319806504376,
+      -0.03424160524026565
+     ],
+     "cost": 0.0006055820403094685,
+     "pairs": 178,
+     "inlier_frac": 0.7911111111111111,
+     "rmse_m": 0.010265016150545371,
+     "weak_axis": true,
+     "weak_dir": [
+      -0.9997892342122954,
+      0.020530152293448352
+     ],
+     "weak_ratio": 0.04122604083378079,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P014",
+   "index": 13,
+   "transit": {
+    "along_remaining_m": 0.0002417947013664823,
+    "lateral_m": -0.0003504655420532854,
+    "reverse": false,
+    "final_yaw_err_rad": -0.003750637895097775
+   },
+   "align": [
+    {
+     "label": "P014_align0",
+     "file": "scans/P014_align0.npz",
+     "odom": [
+      10.759167584938488,
+      7.544929204325334,
+      1.1483641564846039
+     ],
+     "n_scans": 10,
+     "n_points": 217,
+     "moved_during_capture_m": 2.5310686407608056e-05,
+     "yaw_change_during_capture_deg": -0.00027320756680051004,
+     "icp": {
+      "pose": [
+       0.006505221563918666,
+       -0.0008987451422894224,
+       0.00902708058412749
+      ],
+      "cost": 0.0006696812988787268,
+      "pairs": 165,
+      "inlier_frac": 0.7603686635944701,
+      "rmse_m": 0.009636056610990013,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9997918318688415,
+       0.020403257787574593
+      ],
+      "weak_ratio": 0.06333431326458569,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.006505221563918666,
+      -0.0008987451422894224,
+      0.00902708058412749
+     ],
+     "move": {
+      "along_remaining_m": 0.0002066636650666703,
+      "lateral_m": -9.398340024021398e-06,
+      "reverse": true,
+      "final_yaw_err_rad": -0.0024069118982144033
+     }
+    },
+    {
+     "label": "P014_align1",
+     "file": "scans/P014_align1.npz",
+     "odom": [
+      10.755626177493822,
+      7.539412890653277,
+      1.141672223806381
+     ],
+     "n_scans": 10,
+     "n_points": 253,
+     "moved_during_capture_m": 6.170311678446786e-10,
+     "yaw_change_during_capture_deg": -0.0017895095625433408,
+     "icp": {
+      "pose": [
+       -0.006269543117083162,
+       0.0008467731525216,
+       -0.002734404295368531
+      ],
+      "cost": 0.0004687166163602907,
+      "pairs": 211,
+      "inlier_frac": 0.83399209486166,
+      "rmse_m": 0.00802404677988894,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9999832142033453,
+       0.005794075555821274
+      ],
+      "weak_ratio": 0.0629145322198135,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.006269543117083162,
+      0.0008467731525216,
+      -0.002734404295368531
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.613150000346344,
+     "tries": [
+      {
+       "label": "P014_m060_t0",
+       "file": "scans/P014_m060_t0.npz",
+       "odom": [
+        10.755008184253999,
+        7.5387848259444805,
+        0.10810532420873642
+       ],
+       "n_scans": 10,
+       "n_points": 264,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.00213187279469023,
+       "icp": {
+        "pose": [
+         9.003512602464915e-06,
+         -0.0013486347283230141,
+         0.003297241698792419
+        ],
+        "cost": 0.0004025307145495089,
+        "pairs": 226,
+        "inlier_frac": 0.8560606060606061,
+        "rmse_m": 0.007061082621832619,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5255936088782015,
+         -0.8507357746717769
+        ],
+        "weak_ratio": 0.07967848742379066,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.591033866761432,
+     "tries": [
+      {
+       "label": "P014_m030_t0",
+       "file": "scans/P014_m030_t0.npz",
+       "odom": [
+        10.7552171409068,
+        7.539005174223426,
+        0.6251005828380585
+       ],
+       "n_scans": 10,
+       "n_points": 242,
+       "moved_during_capture_m": 1.5512545611587566e-09,
+       "yaw_change_during_capture_deg": 0.0019329435351136085,
+       "icp": {
+        "pose": [
+         -0.0025676429758980652,
+         -0.001500484772783954,
+         -0.0023407133690009907
+        ],
+        "cost": 0.00034839472605884583,
+        "pairs": 211,
+        "inlier_frac": 0.871900826446281,
+        "rmse_m": 0.005681734143127302,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8796592264298442,
+         -0.4756045051898144
+        ],
+        "weak_ratio": 0.09488502312045745,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.3600124409622021,
+     "tries": [
+      {
+       "label": "P014_p000_t0",
+       "file": "scans/P014_p000_t0.npz",
+       "odom": [
+        10.755574619060884,
+        7.5394280102176126,
+        1.153446763753891
+       ],
+       "n_scans": 10,
+       "n_points": 227,
+       "moved_during_capture_m": 2.531068643398829e-05,
+       "yaw_change_during_capture_deg": -0.003749773854337,
+       "icp": {
+        "pose": [
+         -0.007563164886233961,
+         -0.00021839238984409167,
+         -0.00018021831546777278
+        ],
+        "cost": 0.0004817574876262697,
+        "pairs": 190,
+        "inlier_frac": 0.8370044052863436,
+        "rmse_m": 0.009419730047300552,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9989247333492834,
+         0.046361375120495034
+        ],
+        "weak_ratio": 0.07146156138534436,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 30.01687481717057,
+     "tries": [
+      {
+       "label": "P014_p030_t0",
+       "file": "scans/P014_p030_t0.npz",
+       "odom": [
+        10.755441482122942,
+        7.538427287838634,
+        1.670858234167099
+       ],
+       "n_scans": 10,
+       "n_points": 213,
+       "moved_during_capture_m": 2.5310686524992284e-05,
+       "yaw_change_during_capture_deg": -0.0002663773776304973,
+       "icp": {
+        "pose": [
+         -0.005495835458319549,
+         0.0030819445149890103,
+         0.0014998811706750104
+        ],
+        "cost": 0.0004947641625533986,
+        "pairs": 175,
+        "inlier_frac": 0.8215962441314554,
+        "rmse_m": 0.007703344959496073,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8475581356101128,
+         0.5307025595954006
+        ],
+        "weak_ratio": 0.09213009667338802,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.36279058251192,
+     "tries": [
+      {
+       "label": "P014_p060_t0",
+       "file": "scans/P014_p060_t0.npz",
+       "odom": [
+        10.755087654509826,
+        7.539072020260762,
+        2.1964803636074066
+       ],
+       "n_scans": 10,
+       "n_points": 212,
+       "moved_during_capture_m": 1.3336334151025095e-09,
+       "yaw_change_during_capture_deg": 0.002964302099785534,
+       "icp": {
+        "pose": [
+         0.0003619516353577473,
+         -0.0013537157553042377,
+         -0.004471504171237317
+        ],
+        "cost": 0.0004366433393030511,
+        "pairs": 182,
+        "inlier_frac": 0.8584905660377359,
+        "rmse_m": 0.009824948041762569,
+        "weak_axis": false,
+        "weak_dir": [
+         0.4570646030520423,
+         -0.8894334987152659
+        ],
+        "weak_ratio": 0.08124465651000358,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P014_base_after",
+    "file": "scans/P014_base_after.npz",
+    "odom": [
+     10.755594267390052,
+     7.539440112845058,
+     1.1478889882564545
+    ],
+    "n_scans": 10,
+    "n_points": 274,
+    "moved_during_capture_m": 7.769459284645859e-10,
+    "yaw_change_during_capture_deg": -0.0068780004942028405,
+    "icp": {
+     "pose": [
+      -0.005060623716987754,
+      -0.0017949181732581925,
+      -0.02051144200627819
+     ],
+     "cost": 0.0005865315519561079,
+     "pairs": 216,
+     "inlier_frac": 0.7883211678832117,
+     "rmse_m": 0.008528179117222685,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9998078967553191,
+      0.019600244531767955
+     ],
+     "weak_ratio": 0.0652497484838698,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P015",
+   "index": 14,
+   "transit": {
+    "along_remaining_m": -0.00018013746422518295,
+    "lateral_m": 0.000920496087499445,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0025395269092749473
+   },
+   "align": [
+    {
+     "label": "P015_align0",
+     "file": "scans/P015_align0.npz",
+     "odom": [
+      10.932859193618894,
+      7.976771868886197,
+      1.1902881562709808
+     ],
+     "n_scans": 10,
+     "n_points": 259,
+     "moved_during_capture_m": 2.5310686403189173e-05,
+     "yaw_change_during_capture_deg": 0.0012567548072823461,
+     "icp": {
+      "pose": [
+       0.0024566405857056146,
+       0.0006720229942377658,
+       0.00564121527888739
+      ],
+      "cost": 0.0006023988376625683,
+      "pairs": 203,
+      "inlier_frac": 0.7837837837837838,
+      "rmse_m": 0.008883842352765717,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9986166696511759,
+       0.05258086243866694
+      ],
+      "weak_ratio": 0.15718633669672222,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0024566405857056146,
+      0.0006720229942377658,
+      0.00564121527888739
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.86262095223377,
+     "tries": [
+      {
+       "label": "P015_m060_t0",
+       "file": "scans/P015_m060_t0.npz",
+       "odom": [
+        10.93316363960804,
+        7.977722758516215,
+        0.14423595136031508
+       ],
+       "n_scans": 10,
+       "n_points": 270,
+       "moved_during_capture_m": 3.3340877830481503e-09,
+       "yaw_change_during_capture_deg": -0.0013150648792786856,
+       "icp": {
+        "pose": [
+         0.002575284706157487,
+         0.0019457339768806931,
+         0.006676190160438189
+        ],
+        "cost": 0.00044578439141868746,
+        "pairs": 232,
+        "inlier_frac": 0.8592592592592593,
+        "rmse_m": 0.01045552685125267,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5320020362450594,
+         -0.8467430740378751
+        ],
+        "weak_ratio": 0.13991069782869267,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -29.892421086530124,
+     "tries": [
+      {
+       "label": "P015_m030_t0",
+       "file": "scans/P015_m030_t0.npz",
+       "odom": [
+        10.933584762899471,
+        7.977818467736269,
+        0.6598764955997467
+       ],
+       "n_scans": 10,
+       "n_points": 251,
+       "moved_during_capture_m": 9.451572825431361e-10,
+       "yaw_change_during_capture_deg": 0.005334377741779958,
+       "icp": {
+        "pose": [
+         0.0024116858851608368,
+         0.0011427259136434693,
+         -0.0009156405089947306
+        ],
+        "cost": 0.00048814739565883103,
+        "pairs": 207,
+        "inlier_frac": 0.8247011952191236,
+        "rmse_m": 0.007778639248126599,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8717258594389918,
+         -0.4899939040287654
+        ],
+        "weak_ratio": 0.1418174545402752,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": 0.1552980111585799,
+     "tries": [
+      {
+       "label": "P015_p000_t0",
+       "file": "scans/P015_p000_t0.npz",
+       "odom": [
+        10.932920178538023,
+        7.97684444976426,
+        1.1894886195659637
+       ],
+       "n_scans": 10,
+       "n_points": 262,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.0009152453487817087,
+       "icp": {
+        "pose": [
+         0.0007824992855219064,
+         0.0010694805886098723,
+         0.008704807364933398
+        ],
+        "cost": 0.00045121757893716233,
+        "pairs": 221,
+        "inlier_frac": 0.8435114503816794,
+        "rmse_m": 0.008433666020236345,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9996698431625567,
+         0.02569444825928959
+        ],
+        "weak_ratio": 0.1508571646039668,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P015_p000_t1",
+       "file": "scans/P015_p000_t1.npz",
+       "odom": [
+        10.932901347897209,
+        7.9767974604154315,
+        1.1795513331890106
+       ],
+       "n_scans": 10,
+       "n_points": 258,
+       "moved_during_capture_m": 4.963421613598977e-10,
+       "yaw_change_during_capture_deg": -0.0022061511019141186,
+       "icp": {
+        "pose": [
+         0.003347464535580851,
+         0.0024579367050880595,
+         -0.003138462251481844
+        ],
+        "cost": 0.00042388145428049585,
+        "pairs": 221,
+        "inlier_frac": 0.8565891472868217,
+        "rmse_m": 0.008734757947410722,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.999710260455758,
+         0.024070628148855685
+        ],
+        "weak_ratio": 0.14889110184998036,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.772290865634293,
+     "tries": [
+      {
+       "label": "P015_p030_t0",
+       "file": "scans/P015_p030_t0.npz",
+       "odom": [
+        10.932969047343244,
+        7.978026584755341,
+        1.700530022382736
+       ],
+       "n_scans": 10,
+       "n_points": 255,
+       "moved_during_capture_m": 2.5310686478017196e-05,
+       "yaw_change_during_capture_deg": -0.002964302099785534,
+       "icp": {
+        "pose": [
+         0.0007751324211041151,
+         0.0009679435257733725,
+         0.0023490270284156622
+        ],
+        "cost": 0.0004888980431672018,
+        "pairs": 211,
+        "inlier_frac": 0.8274509803921568,
+        "rmse_m": 0.008337945297838439,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8538426870292875,
+         0.5205311381719698
+        ],
+        "weak_ratio": 0.09793757143260788,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.11106908329298,
+     "tries": [
+      {
+       "label": "P015_p060_t0",
+       "file": "scans/P015_p060_t0.npz",
+       "odom": [
+        10.933161815584786,
+        7.977756868640054,
+        2.2368317544460297
+       ],
+       "n_scans": 10,
+       "n_points": 274,
+       "moved_during_capture_m": 1.176734039214975e-09,
+       "yaw_change_during_capture_deg": -0.00245886810120459,
+       "icp": {
+        "pose": [
+         0.0010804883823337678,
+         -0.0019049948645051002,
+         0.010862804270307613
+        ],
+        "cost": 0.0005077025972077758,
+        "pairs": 225,
+        "inlier_frac": 0.8211678832116789,
+        "rmse_m": 0.008592118257755,
+        "weak_axis": false,
+        "weak_dir": [
+         0.46728850709264635,
+         -0.8841048869557988
+        ],
+        "weak_ratio": 0.10897587173003175,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P015_p060_t1",
+       "file": "scans/P015_p060_t1.npz",
+       "odom": [
+        10.93314606621529,
+        7.977776683812981,
+        2.229590505361557
+       ],
+       "n_scans": 10,
+       "n_points": 259,
+       "moved_during_capture_m": 2.413806162056308e-10,
+       "yaw_change_during_capture_deg": 0.007595170357054179,
+       "icp": {
+        "pose": [
+         0.002275727892717099,
+         -0.0023802552150920305,
+         0.0009326885524729711
+        ],
+        "cost": 0.0004540906176906538,
+        "pairs": 217,
+        "inlier_frac": 0.8378378378378378,
+        "rmse_m": 0.007622870627166793,
+        "weak_axis": false,
+        "weak_dir": [
+         0.46942730014296596,
+         -0.8829711263005634
+        ],
+        "weak_ratio": 0.10413594479943317,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P015_base_after",
+    "file": "scans/P015_base_after.npz",
+    "odom": [
+     10.932875815973098,
+     7.976853527488923,
+     1.1868240535259247
+    ],
+    "n_scans": 10,
+    "n_points": 225,
+    "moved_during_capture_m": 2.531068637365856e-05,
+    "yaw_change_during_capture_deg": 0.0009357359162917468,
+    "icp": {
+     "pose": [
+      0.0036053912714464377,
+      -0.0006202414519664308,
+      -0.01879161291952469
+     ],
+     "cost": 0.0005802821493304588,
+     "pairs": 180,
+     "inlier_frac": 0.8,
+     "rmse_m": 0.010017618812026813,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9990688508224163,
+      0.04314430804146216
+     ],
+     "weak_ratio": 0.14077589621172695,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P016",
+   "index": 15,
+   "transit": {
+    "along_remaining_m": -0.00019637136226552387,
+    "lateral_m": -0.0002936636112702562,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0014418430783518232
+   },
+   "align": [
+    {
+     "label": "P016_align0",
+     "file": "scans/P016_align0.npz",
+     "odom": [
+      11.089370595369116,
+      8.413038723255896,
+      1.2250871360301971
+     ],
+     "n_scans": 10,
+     "n_points": 227,
+     "moved_during_capture_m": 2.53106863560319e-05,
+     "yaw_change_during_capture_deg": -0.00020490567510038252,
+     "icp": {
+      "pose": [
+       0.0017798336568043704,
+       0.002193639642574209,
+       0.014920886613505324
+      ],
+      "cost": 0.0005705017544573079,
+      "pairs": 181,
+      "inlier_frac": 0.7973568281938326,
+      "rmse_m": 0.00895164982534667,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9993871612350366,
+       0.03500431342813146
+      ],
+      "weak_ratio": 0.1329790574740813,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0017798336568043704,
+      0.002193639642574209,
+      0.014920886613505324
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.002584274865763625
+     }
+    },
+    {
+     "label": "P016_align1",
+     "file": "scans/P016_align1.npz",
+     "odom": [
+      11.08940419440582,
+      8.413134242365727,
+      1.212783306837082
+     ],
+     "n_scans": 10,
+     "n_points": 202,
+     "moved_during_capture_m": 0.0,
+     "yaw_change_during_capture_deg": 0.00024588681012045906,
+     "icp": {
+      "pose": [
+       0.0004150672943745158,
+       0.003378624375690335,
+       -0.00021897926543212876
+      ],
+      "cost": 0.0004977837040066096,
+      "pairs": 166,
+      "inlier_frac": 0.8217821782178217,
+      "rmse_m": 0.007972961917818416,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9989142849289554,
+       0.04658595673455275
+      ],
+      "weak_ratio": 0.15241171866672978,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0004150672943745158,
+      0.003378624375690335,
+      -0.00021897926543212876
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -60.15829984140362,
+     "tries": [
+      {
+       "label": "P016_m060_t0",
+       "file": "scans/P016_m060_t0.npz",
+       "odom": [
+        11.089820087770407,
+        8.413573654521972,
+        0.16740182600915432
+       ],
+       "n_scans": 10,
+       "n_points": 195,
+       "moved_during_capture_m": 5.062137274427785e-05,
+       "yaw_change_during_capture_deg": -0.0017784105051420701,
+       "icp": {
+        "pose": [
+         0.0005393267780648408,
+         0.002371683184500974,
+         0.006924640248643588
+        ],
+        "cost": 0.00044126236463252854,
+        "pairs": 168,
+        "inlier_frac": 0.8615384615384616,
+        "rmse_m": 0.010506846153405297,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5260600852999375,
+         -0.8504474038141469
+        ],
+        "weak_ratio": 0.20664588410930537,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.411429659199644,
+     "tries": [
+      {
+       "label": "P016_m030_t0",
+       "file": "scans/P016_m030_t0.npz",
+       "odom": [
+        11.089807207079112,
+        8.413491996376187,
+        0.6856783330440521
+       ],
+       "n_scans": 10,
+       "n_points": 207,
+       "moved_during_capture_m": 2.5310686370024107e-05,
+       "yaw_change_during_capture_deg": 0.0015026416174028052,
+       "icp": {
+        "pose": [
+         0.0005486105772178947,
+         0.004994620677132453,
+         0.0037727383126990865
+        ],
+        "cost": 0.00048476607905474666,
+        "pairs": 172,
+        "inlier_frac": 0.8309178743961353,
+        "rmse_m": 0.00864230346001323,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8862956085486239,
+         -0.4631199566715136
+        ],
+        "weak_ratio": 0.21236161073636395,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.07052682582225916,
+     "tries": [
+      {
+       "label": "P016_p000_t0",
+       "file": "scans/P016_p000_t0.npz",
+       "odom": [
+        11.089363039059064,
+        8.413096217295573,
+        1.2084935605525973
+       ],
+       "n_scans": 10,
+       "n_points": 243,
+       "moved_during_capture_m": 2.531068634963749e-05,
+       "yaw_change_during_capture_deg": -0.0011133208347120784,
+       "icp": {
+        "pose": [
+         0.0028347618120138133,
+         0.00301218637151275,
+         0.0027953165175649275
+        ],
+        "cost": 0.0004474769367484123,
+        "pairs": 205,
+        "inlier_frac": 0.8436213991769548,
+        "rmse_m": 0.008185917601280086,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9997149282813806,
+         0.023875974772849574
+        ],
+        "weak_ratio": 0.20544787914790696,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.56719394523715,
+     "tries": [
+      {
+       "label": "P016_p030_t0",
+       "file": "scans/P016_p030_t0.npz",
+       "odom": [
+        11.089462602778926,
+        8.413766821413304,
+        1.726300686597824
+       ],
+       "n_scans": 10,
+       "n_points": 275,
+       "moved_during_capture_m": 2.0517407912137707e-09,
+       "yaw_change_during_capture_deg": -0.002247132236934195,
+       "icp": {
+        "pose": [
+         0.003369012712332293,
+         0.002371117073124521,
+         0.0013148846295121253
+        ],
+        "cost": 0.0005027445888483215,
+        "pairs": 226,
+        "inlier_frac": 0.8218181818181818,
+        "rmse_m": 0.008349331469525077,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8596572161997552,
+         0.510871285781152
+        ],
+        "weak_ratio": 0.1577116693085465,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.92334816414435,
+     "tries": [
+      {
+       "label": "P016_p060_t0",
+       "file": "scans/P016_p060_t0.npz",
+       "odom": [
+        11.08990425351504,
+        8.41322496195394,
+        2.254588693380356
+       ],
+       "n_scans": 10,
+       "n_points": 270,
+       "moved_during_capture_m": 7.241438454874214e-11,
+       "yaw_change_during_capture_deg": 0.0022949435611242844,
+       "icp": {
+        "pose": [
+         0.0012251761238712524,
+         -0.0005885852513999744,
+         0.0044378538658707
+        ],
+        "cost": 0.0005445439487185784,
+        "pairs": 218,
+        "inlier_frac": 0.8074074074074075,
+        "rmse_m": 0.00883769713300659,
+        "weak_axis": false,
+        "weak_dir": [
+         0.4900495682261889,
+         -0.8716945684592315
+        ],
+        "weak_ratio": 0.18776022846082607,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P016_base_after",
+    "file": "scans/P016_base_after.npz",
+    "odom": [
+     11.089351396789732,
+     8.413121176747408,
+     1.2154961526393888
+    ],
+    "n_scans": 10,
+    "n_points": 268,
+    "moved_during_capture_m": 1.9189836795274857e-09,
+    "yaw_change_during_capture_deg": -0.0022949435611242844,
+    "icp": {
+     "pose": [
+      0.00320536978332044,
+      0.0028419494806026808,
+      -0.014682669649954239
+     ],
+     "cost": 0.0005814992995417158,
+     "pairs": 213,
+     "inlier_frac": 0.7947761194029851,
+     "rmse_m": 0.009279644105704896,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9991092363028075,
+      0.04219874328011112
+     ],
+     "weak_ratio": 0.16476831378497492,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P017",
+   "index": 16,
+   "transit": {
+    "along_remaining_m": -0.00016717567189278304,
+    "lateral_m": -0.00020121683844612215,
+    "reverse": false,
+    "final_yaw_err_rad": 0.003394446518163008
+   },
+   "align": [
+    {
+     "label": "P017_align0",
+     "file": "scans/P017_align0.npz",
+     "odom": [
+      11.239442979529683,
+      8.853505970990202,
+      1.2513587176799774
+     ],
+     "n_scans": 10,
+     "n_points": 221,
+     "moved_during_capture_m": 2.32028284936133e-09,
+     "yaw_change_during_capture_deg": -0.0006898491061712879,
+     "icp": {
+      "pose": [
+       0.004243754765173285,
+       0.0021143008761117413,
+       0.020513373434372983
+      ],
+      "cost": 0.0005426565936968798,
+      "pairs": 180,
+      "inlier_frac": 0.8144796380090498,
+      "rmse_m": 0.009839576325288046,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9980543810609775,
+       0.06234943820908975
+      ],
+      "weak_ratio": 0.22930707335195238,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.004243754765173285,
+      0.0021143008761117413,
+      0.020513373434372983
+     ],
+     "move": {
+      "along_remaining_m": -6.842006780578055e-05,
+      "lateral_m": -7.917240904833987e-05,
+      "reverse": true,
+      "final_yaw_err_rad": 0.0032937945725244333
+     }
+    },
+    {
+     "label": "P017_align1",
+     "file": "scans/P017_align1.npz",
+     "odom": [
+      11.24003466059727,
+      8.849087208354051,
+      1.2275273501873016
+     ],
+     "n_scans": 10,
+     "n_points": 258,
+     "moved_during_capture_m": 2.531068634618852e-05,
+     "yaw_change_during_capture_deg": 0.002848188883895317,
+     "icp": {
+      "pose": [
+       -0.0013976817012557464,
+       0.0021474674070514435,
+       -0.015067250855738568
+      ],
+      "cost": 0.0005049271072036136,
+      "pairs": 214,
+      "inlier_frac": 0.8294573643410853,
+      "rmse_m": 0.009732687399266098,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9986103004690394,
+       0.052701686852839054
+      ],
+      "weak_ratio": 0.19561882273768852,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0013976817012557464,
+      0.0021474674070514435,
+      -0.015067250855738568
+     ],
+     "move": {
+      "final_yaw_err_rad": -0.00418230759305338
+     }
+    },
+    {
+     "label": "P017_align2",
+     "file": "scans/P017_align2.npz",
+     "odom": [
+      11.23998458441664,
+      8.848943839912998,
+      1.2468107640743256
+     ],
+     "n_scans": 10,
+     "n_points": 244,
+     "moved_during_capture_m": 0.0,
+     "yaw_change_during_capture_deg": 0.007171698628513389,
+     "icp": {
+      "pose": [
+       0.0003903727351438371,
+       -0.0001999580780255894,
+       0.005362383556379413
+      ],
+      "cost": 0.0004919901997277344,
+      "pairs": 201,
+      "inlier_frac": 0.8237704918032787,
+      "rmse_m": 0.007900377449754723,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9993527894233045,
+       0.03597224307518603
+      ],
+      "weak_ratio": 0.18757420760617358,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      0.0003903727351438371,
+      -0.0001999580780255894,
+      0.005362383556379413
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.690068175684445,
+     "tries": [
+      {
+       "label": "P017_m060_t0",
+       "file": "scans/P017_m060_t0.npz",
+       "odom": [
+        11.239877534905409,
+        8.84847716963826,
+        0.20305873081088066
+       ],
+       "n_scans": 10,
+       "n_points": 243,
+       "moved_during_capture_m": 2.5310686459370145e-05,
+       "yaw_change_during_capture_deg": -0.00039807196256480564,
+       "icp": {
+        "pose": [
+         -0.0021645908741419148,
+         -0.0016237518320158665,
+         0.009759453629673676
+        ],
+        "cost": 0.0005213571251245011,
+        "pairs": 197,
+        "inlier_frac": 0.8106995884773662,
+        "rmse_m": 0.007703180635610295,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5082145429718522,
+         -0.8612305024277248
+        ],
+        "weak_ratio": 0.22783804624084672,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P017_m060_t1",
+       "file": "scans/P017_m060_t1.npz",
+       "odom": [
+        11.240026529555493,
+        8.848506541477235,
+        0.18991509079933164
+       ],
+       "n_scans": 10,
+       "n_points": 234,
+       "moved_during_capture_m": 7.785034619718832e-10,
+       "yaw_change_during_capture_deg": 0.0015440496392460075,
+       "icp": {
+        "pose": [
+         -0.002473369757959695,
+         0.0005910748290625219,
+         -0.003843112747829558
+        ],
+        "cost": 0.0005193879332881536,
+        "pairs": 193,
+        "inlier_frac": 0.8247863247863247,
+        "rmse_m": 0.009931573243725362,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5121286790062688,
+         -0.8589087356287012
+        ],
+        "weak_ratio": 0.21866304035096285,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.068779772551025,
+     "tries": [
+      {
+       "label": "P017_m030_t0",
+       "file": "scans/P017_m030_t0.npz",
+       "odom": [
+        11.239336529096404,
+        8.848254731908014,
+        0.7135362923145293
+       ],
+       "n_scans": 10,
+       "n_points": 239,
+       "moved_during_capture_m": 1.3177922303064399e-09,
+       "yaw_change_during_capture_deg": -0.003626830449276771,
+       "icp": {
+        "pose": [
+         -0.000998084258282615,
+         -0.0018849199190053621,
+         -0.00044949187739096175
+        ],
+        "cost": 0.0005022428274170256,
+        "pairs": 196,
+        "inlier_frac": 0.8200836820083682,
+        "rmse_m": 0.007997459977083116,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8871612271936457,
+         -0.46145959407543446
+        ],
+        "weak_ratio": 0.23400327123736353,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.05962242881233381,
+     "tries": [
+      {
+       "label": "P017_p000_t0",
+       "file": "scans/P017_p000_t0.npz",
+       "odom": [
+        11.239904613771586,
+        8.849055819251372,
+        1.244249552488327
+       ],
+       "n_scans": 10,
+       "n_points": 278,
+       "moved_during_capture_m": 0.0,
+       "yaw_change_during_capture_deg": 0.005921774010401055,
+       "icp": {
+        "pose": [
+         -0.004885557914095127,
+         0.00015522430481097486,
+         0.008212706308717621
+        ],
+        "cost": 0.0005587688503706305,
+        "pairs": 221,
+        "inlier_frac": 0.7949640287769785,
+        "rmse_m": 0.007621635197951764,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9990665247588137,
+         0.04319813776479817
+        ],
+        "weak_ratio": 0.1969203205701553,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P017_p000_t1",
+       "file": "scans/P017_p000_t1.npz",
+       "odom": [
+        11.239929450649381,
+        8.84912757437577,
+        1.2326566874980929
+       ],
+       "n_scans": 10,
+       "n_points": 218,
+       "moved_during_capture_m": 2.5310686410639045e-05,
+       "yaw_change_during_capture_deg": 0.0037224530976823936,
+       "icp": {
+        "pose": [
+         -0.0025568830035103485,
+         0.0008644047449211956,
+         -0.005421846242180894
+        ],
+        "cost": 0.0006146905234028652,
+        "pairs": 169,
+        "inlier_frac": 0.7752293577981652,
+        "rmse_m": 0.00824998981596094,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9985904899079183,
+         0.05307573330123638
+        ],
+        "weak_ratio": 0.20407701507471107,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.948354359417003,
+     "tries": [
+      {
+       "label": "P017_p030_t0",
+       "file": "scans/P017_p030_t0.npz",
+       "odom": [
+        11.239915232559015,
+        8.848430260063578,
+        1.7668336331844332
+       ],
+       "n_scans": 10,
+       "n_points": 234,
+       "moved_during_capture_m": 2.5310686513214417e-05,
+       "yaw_change_during_capture_deg": -0.009350528973722011,
+       "icp": {
+        "pose": [
+         -0.0017936895391990626,
+         0.0014815056667905095,
+         0.008737772373716535
+        ],
+        "cost": 0.00035306213072763273,
+        "pairs": 205,
+        "inlier_frac": 0.8760683760683761,
+        "rmse_m": 0.007024882115239027,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8389863845146294,
+         0.5441524111855709
+        ],
+        "weak_ratio": 0.20868268371983967,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P017_p030_t1",
+       "file": "scans/P017_p030_t1.npz",
+       "odom": [
+        11.239901108694536,
+        8.848504865638466,
+        1.754076808691025
+       ],
+       "n_scans": 10,
+       "n_points": 249,
+       "moved_during_capture_m": 2.5310686419444908e-05,
+       "yaw_change_during_capture_deg": 0.003271660612461552,
+       "icp": {
+        "pose": [
+         -0.0008379087204493846,
+         -0.0005619012448314768,
+         -0.007469593250813311
+        ],
+        "cost": 0.00032969147638138325,
+        "pairs": 222,
+        "inlier_frac": 0.891566265060241,
+        "rmse_m": 0.00810771449421226,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8389601517364941,
+         0.5441928553355686
+        ],
+        "weak_ratio": 0.20308492524114427,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P017_p030_t2",
+       "file": "scans/P017_p030_t2.npz",
+       "odom": [
+        11.239906233781081,
+        8.848480076662087,
+        1.7651425302028658
+       ],
+       "n_scans": 10,
+       "n_points": 278,
+       "moved_during_capture_m": 3.0926996921374397e-10,
+       "yaw_change_during_capture_deg": -0.0013933585906826013,
+       "icp": {
+        "pose": [
+         -0.002065502218939476,
+         0.00011984596797567993,
+         0.005606520219524569
+        ],
+        "cost": 0.0003617669104068808,
+        "pairs": 245,
+        "inlier_frac": 0.8812949640287769,
+        "rmse_m": 0.00858836448118529,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8468250861127895,
+         0.5318714821552917
+        ],
+        "weak_ratio": 0.17017276386899277,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 60.326303711965714,
+     "tries": [
+      {
+       "label": "P017_p060_t0",
+       "file": "scans/P017_p060_t0.npz",
+       "odom": [
+        11.239738448963713,
+        8.848450967277188,
+        2.292849153280258
+       ],
+       "n_scans": 10,
+       "n_points": 227,
+       "moved_during_capture_m": 5.280228663578325e-10,
+       "yaw_change_during_capture_deg": 0.00039615097186073957,
+       "icp": {
+        "pose": [
+         -0.0012129015561432026,
+         0.00178490090220196,
+         0.0062161062798522515
+        ],
+        "cost": 0.00048350460260751244,
+        "pairs": 189,
+        "inlier_frac": 0.8325991189427313,
+        "rmse_m": 0.00883581719851857,
+        "weak_axis": false,
+        "weak_dir": [
+         0.48965902647590415,
+         -0.8719140082546385
+        ],
+        "weak_ratio": 0.1313730657166565,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P017_base_after",
+    "file": "scans/P017_base_after.npz",
+    "odom": [
+     11.239941742876107,
+     8.849114306961688,
+     1.24467608332634
+    ],
+    "n_scans": 10,
+    "n_points": 240,
+    "moved_during_capture_m": 1.5222119725722649e-09,
+    "yaw_change_during_capture_deg": 0.004084453123667625,
+    "icp": {
+     "pose": [
+      -0.0018798735106681796,
+      -0.001645378068423361,
+      -0.019756674287507714
+     ],
+     "cost": 0.0005405247043498315,
+     "pairs": 195,
+     "inlier_frac": 0.8125,
+     "rmse_m": 0.009398834909781691,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9991244144423205,
+      0.041837835332271554
+     ],
+     "weak_ratio": 0.17282955652831913,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  },
+  {
+   "station_id": "P018",
+   "index": 17,
+   "transit": {
+    "along_remaining_m": 0.00018588231353472429,
+    "lateral_m": -0.00036810416072124985,
+    "reverse": false,
+    "final_yaw_err_rad": -0.0037854234695569033
+   },
+   "align": [
+    {
+     "label": "P018_align0",
+     "file": "scans/P018_align0.npz",
+     "odom": [
+      11.374805401867194,
+      9.294399685593866,
+      1.2922055423259735
+     ],
+     "n_scans": 10,
+     "n_points": 248,
+     "moved_during_capture_m": 2.154329980725489e-09,
+     "yaw_change_during_capture_deg": 0.0002253962426104208,
+     "icp": {
+      "pose": [
+       -0.0016067453731680014,
+       -0.0004018965004584626,
+       0.02666844833887394
+      ],
+      "cost": 0.0003874936873602014,
+      "pairs": 215,
+      "inlier_frac": 0.8669354838709677,
+      "rmse_m": 0.007952894592340795,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9980092998664124,
+       0.06306692778432446
+      ],
+      "weak_ratio": 0.3296576872896996,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0016067453731680014,
+      -0.0004018965004584626,
+      0.02666844833887394
+     ],
+     "move": {
+      "final_yaw_err_rad": 0.0038292218347706353
+     }
+    },
+    {
+     "label": "P018_align1",
+     "file": "scans/P018_align1.npz",
+     "odom": [
+      11.374797972841012,
+      9.29437548523836,
+      1.261698454618454
+     ],
+     "n_scans": 10,
+     "n_points": 247,
+     "moved_during_capture_m": 1.1918198766407815e-09,
+     "yaw_change_during_capture_deg": -0.001618754833293022,
+     "icp": {
+      "pose": [
+       -0.0018071069072492431,
+       0.0001168383927573462,
+       -0.003628239927613297
+      ],
+      "cost": 0.00036006783831506244,
+      "pairs": 216,
+      "inlier_frac": 0.8744939271255061,
+      "rmse_m": 0.007276533841047487,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9980220584014101,
+       0.06286470348464555
+      ],
+      "weak_ratio": 0.3263011348834416,
+      "usable": true,
+      "reason": "OK"
+     },
+     "observed_correction": [
+      -0.0018071069072492431,
+      0.0001168383927573462,
+      -0.003628239927613297
+     ]
+    }
+   ],
+   "align_status": "MATCHED",
+   "angles": [
+    {
+     "angle_deg": -60.0,
+     "teach_rel_yaw_deg": -59.80112363649427,
+     "tries": [
+      {
+       "label": "P018_m060_t0",
+       "file": "scans/P018_m060_t0.npz",
+       "odom": [
+        11.374157080472687,
+        9.293631100145916,
+        0.22464001923799515
+       ],
+       "n_scans": 10,
+       "n_points": 272,
+       "moved_during_capture_m": 5.0621372723741765e-05,
+       "yaw_change_during_capture_deg": 0.002630049717278035,
+       "icp": {
+        "pose": [
+         -0.0013321394324018198,
+         -0.002299450588950504,
+         -0.0004718741252913716
+        ],
+        "cost": 0.00038898220231789677,
+        "pairs": 236,
+        "inlier_frac": 0.8676470588235294,
+        "rmse_m": 0.008183064112219487,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.5125169530437876,
+         -0.8586771062761088
+        ],
+        "weak_ratio": 0.26279655773915894,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": -30.0,
+     "teach_rel_yaw_deg": -30.283161534712008,
+     "tries": [
+      {
+       "label": "P018_m030_t0",
+       "file": "scans/P018_m030_t0.npz",
+       "odom": [
+        11.374299078045786,
+        9.293843586267224,
+        0.7402994930744171
+       ],
+       "n_scans": 10,
+       "n_points": 264,
+       "moved_during_capture_m": 2.531068639801611e-05,
+       "yaw_change_during_capture_deg": -0.000590811363206103,
+       "icp": {
+        "pose": [
+         -0.0016494965779078783,
+         -0.0007283801238217193,
+         0.0025420024179587664
+        ],
+        "cost": 0.00042854012527276453,
+        "pairs": 224,
+        "inlier_frac": 0.8484848484848485,
+        "rmse_m": 0.0076574523318352775,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8842296709708545,
+         -0.467052340722937
+        ],
+        "weak_ratio": 0.28517048195975153,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 0.0,
+     "teach_rel_yaw_deg": -0.17215491803017138,
+     "tries": [
+      {
+       "label": "P018_p000_t0",
+       "file": "scans/P018_p000_t0.npz",
+       "odom": [
+        11.374703601157934,
+        9.294418436005218,
+        1.2645218074321745
+       ],
+       "n_scans": 10,
+       "n_points": 241,
+       "moved_during_capture_m": 1.372860432795217e-10,
+       "yaw_change_during_capture_deg": -0.0015709435091029328,
+       "icp": {
+        "pose": [
+         -0.003265587175969068,
+         -0.0029780549871362347,
+         0.0031419859057839616
+        ],
+        "cost": 0.00043463189129955005,
+        "pairs": 208,
+        "inlier_frac": 0.8630705394190872,
+        "rmse_m": 0.010341822718009076,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.9988160518778799,
+         0.048646628979658116
+        ],
+        "weak_ratio": 0.3109567028072701,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 30.0,
+     "teach_rel_yaw_deg": 29.782213422951028,
+     "tries": [
+      {
+       "label": "P018_p030_t0",
+       "file": "scans/P018_p030_t0.npz",
+       "odom": [
+        11.374701537154786,
+        9.293211245320553,
+        1.7891174256801605
+       ],
+       "n_scans": 10,
+       "n_points": 209,
+       "moved_during_capture_m": 2.4817036696612636e-09,
+       "yaw_change_during_capture_deg": 0.006775547656652649,
+       "icp": {
+        "pose": [
+         0.0004470361814398333,
+         0.002489649896904485,
+         0.0038027071687483094
+        ],
+        "cost": 0.0003495546660387485,
+        "pairs": 185,
+        "inlier_frac": 0.8851674641148325,
+        "rmse_m": 0.008401069816719585,
+        "weak_axis": false,
+        "weak_dir": [
+         -0.8711427604768412,
+         0.4910298268626753
+        ],
+        "weak_ratio": 0.2522121255411952,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    },
+    {
+     "angle_deg": 60.0,
+     "teach_rel_yaw_deg": 59.895909586701116,
+     "tries": [
+      {
+       "label": "P018_p060_t0",
+       "file": "scans/P018_p060_t0.npz",
+       "odom": [
+        11.374243370565855,
+        9.293990411990377,
+        2.3078430593013763
+       ],
+       "n_scans": 10,
+       "n_points": 226,
+       "moved_during_capture_m": 1.5207043474298943e-09,
+       "yaw_change_during_capture_deg": -0.0034970568550465285,
+       "icp": {
+        "pose": [
+         4.046352595116329e-05,
+         0.004759419669463516,
+         -0.013046511022990703
+        ],
+        "cost": 0.0005499546076937641,
+        "pairs": 183,
+        "inlier_frac": 0.8097345132743363,
+        "rmse_m": 0.009578476936890849,
+        "weak_axis": false,
+        "weak_dir": [
+         0.5008579505638006,
+         -0.8655294988370006
+        ],
+        "weak_ratio": 0.2034840604088017,
+        "usable": true,
+        "reason": "OK"
+       }
+      },
+      {
+       "label": "P018_p060_t1",
+       "file": "scans/P018_p060_t1.npz",
+       "odom": [
+        11.37422605312827,
+        9.294008873848,
+        2.317469447851181
+       ],
+       "n_scans": 10,
+       "n_points": 217,
+       "moved_during_capture_m": 1.6232932243243881e-09,
+       "yaw_change_during_capture_deg": -0.003565358746746656,
+       "icp": {
+        "pose": [
+         0.000510303756874374,
+         0.0016547835436876285,
+         -0.0010981066648980686
+        ],
+        "cost": 0.00048356136635900664,
+        "pairs": 180,
+        "inlier_frac": 0.8294930875576036,
+        "rmse_m": 0.008310908661346646,
+        "weak_axis": false,
+        "weak_dir": [
+         0.48764848399254074,
+         -0.8730400655524218
+        ],
+        "weak_ratio": 0.22132906642820885,
+        "usable": true,
+        "reason": "OK"
+       }
+      }
+     ]
+    }
+   ],
+   "base_after": {
+    "label": "P018_base_after",
+    "file": "scans/P018_base_after.npz",
+    "odom": [
+     11.374717986986829,
+     9.294459752534737,
+     1.2696270644664764
+    ],
+    "n_scans": 10,
+    "n_points": 224,
+    "moved_during_capture_m": 3.2661951315770854e-09,
+    "yaw_change_during_capture_deg": -0.001994415237643723,
+    "icp": {
+     "pose": [
+      -0.0012292241029013022,
+      0.0012049271032373685,
+      -0.022108421057500216
+     ],
+     "cost": 0.000450947577007279,
+     "pairs": 188,
+     "inlier_frac": 0.8392857142857143,
+     "rmse_m": 0.007653485247532967,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9974330707907457,
+      0.07160495299169792
+     ],
+     "weak_ratio": 0.4114675932392679,
+     "usable": true,
+     "reason": "OK"
+    }
+   }
+  }
+ ]
+}
