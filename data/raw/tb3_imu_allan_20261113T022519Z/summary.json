@@ -1,0 +1,140 @@
+{
+  "question_id": "TB3-IMU-ALLAN-STATIC-20261113",
+  "counts": {
+    "/imu": 37164,
+    "/odom": 37164,
+    "/joint_states": 37167,
+    "/battery_state": 37167,
+    "/cmd_vel": 0
+  },
+  "imu_frame": "imu_link",
+  "first_header_ns": 1794536721558037649,
+  "last_header_ns": 1794538579690975142,
+  "header_span_s": 1858.132937493,
+  "receive_span_s": 1858.1301476830001,
+  "usable_duration_s": 1858.132937493,
+  "longest_contiguous_duration_s": 1858.132937493,
+  "median_period_s": 0.04999986100000001,
+  "median_rate_hz": 20.000055600154568,
+  "period_quantiles_s": {
+    "min": 0.049419323,
+    "p01": 0.0498596689,
+    "p50": 0.04999986100000001,
+    "p99": 0.05013631884,
+    "max": 0.050655738000000006
+  },
+  "segment_break_count": 0,
+  "break_interval_indices": [],
+  "gap_interval_s": [],
+  "segments_samples": [
+    37164
+  ],
+  "segments_duration_s": [
+    1858.132937493
+  ],
+  "timing_policy": "Split if interval outside 80–120% of median. Treat small within-segment jitter as nominal sampling. Do not interpolate or bridge gaps.",
+  "source": "turtlebot3_node /imu; header time at ROS publisher; angular_velocity and linear_acceleration",
+  "stationarity": {
+    "passed": true,
+    "odom_max_xy_from_start_m": 5.062142636341401e-05,
+    "odom_max_abs_forward_mps": 0.001015344498641147,
+    "wheel_span_left_right_rad": [
+      0.004601943000011488,
+      0.003067961999988711
+    ],
+    "cmd_vel_nonzero_count": 0,
+    "screen_thresholds": "odom XY < 0.01 m and speed < 0.02 m/s; each wheel span < 0.03 rad; no nonzero cmd_vel samples"
+  },
+  "battery_min_first_last_v": [
+    11.469999313354492,
+    11.619999885559082,
+    11.649999618530273
+  ],
+  "axes": {
+    "gyro_x": {
+      "unit": "rad/s",
+      "mean": 2.119007552003109e-05,
+      "std": 0.00030272879063532413,
+      "min": 0.0,
+      "max": 0.0063852001912891865,
+      "unique_values": 4,
+      "nonzero_fraction": 0.004897212356043483
+    },
+    "gyro_y": {
+      "unit": "rad/s",
+      "mean": -7.158809293074726e-07,
+      "std": 0.00010943464565374164,
+      "min": -0.005320999771356583,
+      "max": 0.004256799817085266,
+      "unique_values": 4,
+      "nonzero_fraction": 0.0006457862447529867
+    },
+    "gyro_z": {
+      "unit": "rad/s",
+      "mean": -1.7181142303379342e-06,
+      "std": 9.102799110188667e-05,
+      "min": -0.004256799817085266,
+      "max": 0.004256799817085266,
+      "unique_values": 3,
+      "nonzero_fraction": 0.00045743192336669897
+    },
+    "accel_x": {
+      "unit": "m/s^2",
+      "mean": -0.25441984177243593,
+      "std": 0.03285314389174193,
+      "min": -0.3645172119140625,
+      "max": -0.12689268589019775,
+      "unique_values": 363,
+      "nonzero_fraction": 1.0
+    },
+    "accel_y": {
+      "unit": "m/s^2",
+      "mean": -0.27816111766108237,
+      "std": 0.05162035450833009,
+      "min": -0.4668693244457245,
+      "max": -0.09876082092523575,
+      "unique_values": 552,
+      "nonzero_fraction": 1.0
+    },
+    "accel_z": {
+      "unit": "m/s^2",
+      "mean": 9.962881032110044,
+      "std": 0.1000567613426062,
+      "min": 9.64923095703125,
+      "max": 10.25975227355957,
+      "unique_values": 947,
+      "nonzero_fraction": 1.0
+    }
+  },
+  "valid_duration_at_least_30_min": true,
+  "stationary_run_accepted": true,
+  "algorithm": "Overlapping adjacent sample means, pooled squared differences within segments and divided by 2 times pair count. NIST SP 1065 Eq. (10).",
+  "tau_min_max_s": [
+    0.04999986100000001,
+    171.49952323000002
+  ],
+  "tau_count": 47,
+  "tau_max_disjoint_clusters": 10,
+  "min_disjoint_clusters_per_tau": 10,
+  "disjoint_clusters_are_support_counts_not_effective_degrees_of_freedom": true,
+  "allan_deviation_near_1s": {
+    "gyro_x": 6.980469279738467e-05,
+    "gyro_y": 2.511873600821684e-05,
+    "gyro_z": 2.089709699166877e-05,
+    "accel_x": 0.0076197477680079425,
+    "accel_y": 0.010481555410703511,
+    "accel_z": 0.019634882810714224
+  },
+  "allan_deviation_near_1s_tau_s": 0.9499973590000002,
+  "zero_deviation_at_all_tau": [],
+  "numpy_version": "1.21.5",
+  "python_version": "3.10.12",
+  "sha256": {
+    "bag/bag_0.db3": "b4f30a6728956ac4845c9c5a1a26988ef4fa8d7270fe7e62c9a116220043c3da",
+    "bag/metadata.yaml": "b75ca32f32f977ff0ff65f3ed5c94af7dc6ec7d0d42b23d7fe1d44dcdf1ca9c9",
+    "imu_samples.csv.gz": "4d348f7c78acc9b1d649b5c1d4cbe7ce0b80a91e946fff557a439bfa9e2bd212",
+    "allan_variance.csv": "a94d3788375cb242c9827375cf90d10bddc766dcd3cc92ac6d8e3320837e1cb4",
+    "allan_deviation.png": "ed1fbf3efe718a3f21c1e7dd3ab099edd0d2b7d5d260d09018bc49890fc6b737"
+  },
+  "analysis_script_sha256": "5cc8894bc47c2689aaf6e8d82b09eb4e874c5a62da5bf5d170f232fb50e390dd"
+}
