@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "audit_verdict": "ACCEPT",
+  "scope": "v3.4 S2′ §8 primary M1-R(J_joint)/E1, paired B0 and nominal sigma-beta sensitivity",
+  "run_id": "RUN4_20261113T105130Z",
+  "spec_commit": "06de4adf336ef4436626c2ad6103c2dcf197d041",
+  "method": "Independent read-only reaggregation from the saved NPZ, CSV and JSON, plus independent RNG and RF row reconstruction",
+  "checked": {
+    "sealed_gate_preflight_sha": true,
+    "dr_and_xy_rng_bitwise": true,
+    "snap_direct_counts_and_quantization": true,
+    "paired_physical_station_bootstrap_draws": 1000,
+    "all_independent_rf_draws_and_all_model_rf_case_pool_membership": true,
+    "exact_cell_markov_nominal_and_outer_replicates": [
+      0,
+      1,
+      223,
+      499,
+      999
+    ],
+    "all_n_1_to_50_primary_csv_and_bootstrap_ratio_quantiles": true,
+    "independent_section8_threshold_reaggregation": true,
+    "B0_paired_paths": 166,
+    "B0_all_model_reported_metrics": true,
+    "sigma_beta_shared_DR_denominators_and_crossing_calculations": true
+  },
+  "result": {
+    "coverage": "FULL_6",
+    "section8": "STOP",
+    "sole_primary_model_threshold_miss": "Markov 1–17 cumulative coverage",
+    "markov_coverage_count": 2869,
+    "markov_coverage_trials": 3400,
+    "markov_gate_reject_total": 6,
+    "markov_gate_reject_among_noncoverage": 5,
+    "r4_ab_markov_strict_same_lane_cycle_paths": 33,
+    "step3": "HELD"
+  },
+  "claim_boundary": "Audit verifies reaggregation, frozen draw selection, and consistency of supplied results for the simulated primary and comparisons. Wider §9 arms and actual TB3 deployment claims are outside this receipt."
+}

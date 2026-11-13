@@ -1,0 +1,11 @@
+LORO M1-R R2 {'cap_raw': 6.142047375679415, 'c_l': 158.84226617744304, 'r_bar': 151.01830431424113, 'flat_fraction': 0.06875, 'n_a': 1539, 'n_b': 1600, 'constant_r': None}
+LORO M1-R R4 {'cap_raw': 5.9696471234948, 'c_l': 139.69303590328084, 'r_bar': 122.07909036040333, 'flat_fraction': 0.06568627450980392, 'n_a': 1962, 'n_b': 2040, 'constant_r': None}
+Traceback (most recent call last):
+  File "/run/s2_code/s2_primary.py", line 374, in <module>
+    main()
+  File "/run/s2_code/s2_primary.py", line 359, in main
+    calibration(args, names, "M1-R")
+  File "/run/s2_code/s2_primary.py", line 164, in calibration
+    assert all(not name.startswith(route + "_") for name in detail["training_cases"])
+                                                            ~~~~~~^^^^^^^^^^^^^^^^^^
+KeyError: 'training_cases'

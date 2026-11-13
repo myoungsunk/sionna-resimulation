@@ -1,0 +1,121 @@
+{
+  "status": "CRITERION_NOT_MET",
+  "supports_partial_d1_observation_model_contribution": false,
+  "case_count": 5,
+  "cases_with_reduced_absolute_bias": 2,
+  "case_equal_mean_casewise_relative_reduction": 0.07350625959188244,
+  "case_equal_relative_reduction_of_mean_absolute_bias": -0.008838054256865435,
+  "case_equal_M0_mean_absolute_bias_deg": 0.9361573580952378,
+  "case_equal_M1_R_mean_absolute_bias_deg": 0.9444311676190473,
+  "minimum_improved_cases": 4,
+  "minimum_relative_reduction_both_definitions": 0.3,
+  "denominators": {
+    "mean_casewise_relative_reduction": "Each case uses its own absolute M0 mean signed error. Average over all five common cases.",
+    "relative_reduction_of_mean_absolute_bias": "Divide the difference of equal-case mean absolute biases by the equal-case M0 mean absolute bias.",
+    "zero_baseline": "A zero baseline denominator is undefined; do not drop the case or claim support.",
+    "negative_tail": "Within each case use the same paired valid sweeps as the mean signed errors."
+  },
+  "cases": {
+    "R2_aA_m0": {
+      "paired_sweeps": 420,
+      "M0": {
+        "mean_signed_error_deg": -2.365150523809524,
+        "fraction_below_minus_5_deg": 0.30714285714285716
+      },
+      "M1-R(J_joint)": {
+        "mean_signed_error_deg": -2.4419362380952387,
+        "fraction_below_minus_5_deg": 0.30952380952380953
+      },
+      "absolute_bias_decreased": false,
+      "relative_absolute_bias_reduction": -0.032465466156478155,
+      "physical_stations": 21,
+      "expected_sweeps": 420,
+      "direct_position_sweeps": 32,
+      "invalid_sweeps": 0
+    },
+    "R4_aA_m0": {
+      "paired_sweeps": 200,
+      "M0": {
+        "mean_signed_error_deg": -0.797609799999999,
+        "fraction_below_minus_5_deg": 0.2
+      },
+      "M1-R(J_joint)": {
+        "mean_signed_error_deg": -0.843859799999999,
+        "fraction_below_minus_5_deg": 0.2
+      },
+      "absolute_bias_decreased": false,
+      "relative_absolute_bias_reduction": -0.057985746915346414,
+      "physical_stations": 10,
+      "expected_sweeps": 200,
+      "direct_position_sweeps": 9,
+      "invalid_sweeps": 0
+    },
+    "R4_aB_m0": {
+      "paired_sweeps": 200,
+      "M0": {
+        "mean_signed_error_deg": -0.15385979999999905,
+        "fraction_below_minus_5_deg": 0.1
+      },
+      "M1-R(J_joint)": {
+        "mean_signed_error_deg": -0.13885979999999903,
+        "fraction_below_minus_5_deg": 0.1
+      },
+      "absolute_bias_decreased": true,
+      "relative_absolute_bias_reduction": 0.09749135251703243,
+      "physical_stations": 10,
+      "expected_sweeps": 200,
+      "direct_position_sweeps": 2,
+      "invalid_sweeps": 0
+    },
+    "R5_aA_m0": {
+      "paired_sweeps": 600,
+      "M0": {
+        "mean_signed_error_deg": 0.1945684,
+        "fraction_below_minus_5_deg": 0.145
+      },
+      "M1-R(J_joint)": {
+        "mean_signed_error_deg": 0.12373506666666666,
+        "fraction_below_minus_5_deg": 0.16166666666666665
+      },
+      "absolute_bias_decreased": true,
+      "relative_absolute_bias_reduction": 0.36405363529398066,
+      "physical_stations": 30,
+      "expected_sweeps": 600,
+      "direct_position_sweeps": 14,
+      "invalid_sweeps": 0
+    },
+    "R5_aB_m0": {
+      "paired_sweeps": 600,
+      "M0": {
+        "mean_signed_error_deg": -1.1695982666666667,
+        "fraction_below_minus_5_deg": 0.13166666666666665
+      },
+      "M1-R(J_joint)": {
+        "mean_signed_error_deg": -1.1737649333333333,
+        "fraction_below_minus_5_deg": 0.13333333333333333
+      },
+      "absolute_bias_decreased": false,
+      "relative_absolute_bias_reduction": -0.0035624767797763366,
+      "physical_stations": 30,
+      "expected_sweeps": 600,
+      "direct_position_sweeps": 29,
+      "invalid_sweeps": 0
+    }
+  },
+  "observation_arms": [
+    "M0",
+    "M1-R(J_joint)"
+  ],
+  "excluded_m0_parity": [
+    "R2_aB_m0"
+  ],
+  "xy_seed": 2026111336,
+  "rf_seed_range": [
+    0,
+    19
+  ],
+  "signed_error": "wrap180(estimated heading - true heading)",
+  "negative_tail_threshold_deg": -5.0,
+  "aligned_truth_centered_half_width_deg": 10.0,
+  "scope": "Offline paired comparison on the fixed RF bank. No causal filtering or held-out calibration is fit here."
+}
