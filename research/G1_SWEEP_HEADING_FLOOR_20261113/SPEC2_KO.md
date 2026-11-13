@@ -1,161 +1,248 @@
-# G1-MODEL-001 — 편파 관측·오차 모델 보강 후 Step 1–2 재판정 계산 사양서 (사양서 2)
+# G1-MODEL-001 — 편파 관측·오차 모델 보강 후 Step 1–2 재판정 계산 사양서 (사양서 2, v2)
 
-- 작성: 2026-11-13 KST. 상태: **SPEC_READY / NOT_RUN / scientific_PASS=false**
+- 작성: 2026-11-13 KST. 상태: **SPEC_READY (v2) / NOT_RUN / scientific_PASS=false**
 - 선행: G1-FLOOR-001(`SPEC_KO.md`, `PREREG_KO.md`), 결과 `RUN_20261113T052908Z`(커밋 `9924f1b`), 진단 `DIAG_PARITY_20261113T055513Z`, `DIAG_MARKOV_20261113`.
-- 원칙: Goal 1은 **multipath 완화 없이 편파 정보를 모델에 정직하게 넣어 정확도와 integrity를 확보하는 것**이다. 이 사양은 관측을 고르거나 고치지 않는다. 관측 모델과 오차 모델, 추정기 구조만 바꾼다. 관측을 감지·보정하는 방법은 Goal 2로 남긴다.
-- 판정 규칙(§7)은 결과를 보기 전에만 바꾼다. 변경은 §11에 기록한다.
+- v1(`a918d65`) 검토 판정 REDIRECT의 네 항목(거리 입력, E1·gate, XY-RW·J 재사용, 회귀·parity)과 근거 문구 두 곳을 반영했다(§12).
+- 원칙: Goal 1은 **multipath 완화 없이 편파 정보를 모델에 정직하게 넣어 정확도와 integrity를 확보하는 것**이다. 이 사양은 관측을 고르거나 고치지 않는다. 관측 모델, 오차 모델, 추정기 구조만 바꾼다. 관측을 감지·기각·보정하는 방법은 Goal 2로 남긴다.
+- 판정 규칙(§8)은 결과를 보기 전에만 바꾼다. 변경은 §12에 기록한다.
 
-## 0. G1-FLOOR-001이 멈춘 이유 (이 사양이 겨냥하는 결함)
+## 0. G1-FLOOR-001이 멈춘 이유
 
-| ID | 관찰 (G1-FLOOR-001) | 해석 | 이 사양의 대응 |
+| ID | 관찰 (G1-FLOOR-001) | 해석 | 대응 |
 |---|---|---|---|
-| D1 | Markov 95% 포함률 85.6% < 88% → STOP. 이탈 491개 중 418개가 음의 오차 쪽, 추가 이탈의 92%가 R4 두 case. gate 해제 86.4%, 순서 교란 86.4%, **같은 분산·상관의 Gaussian AR로 교체하면 93.9%** | 측정 오차가 **평균 0의 Gaussian이 아니다**(비대칭 꼬리, case별 편향). 필터 구조가 아니라 **측정 오차 모델의 오지정** | M-ERR (§3) |
-| D2 | R2_aB_m0 parity p90 0.0209 > 0.02. 원인: LUT 기준 거리 10 m 고정. 이산 first-path tap의 상대 위치가 거리에 따라 바뀌어 s가 거리에 의존. 거리를 맞추면 p90 0.0013 | **관측 모델에 거리(sub-tap) 축이 없다.** 6 case 모두 p90 0.014–0.021의 체계 오차를 갖고 있었다 | M-OBS (§2) |
-| D3 | G1 누적 RMSE 2.3–4.0° vs DR-nosweep(κ=0.1°/m) 0.46° | sweep을 heading 획득만을 위해 하면 회전 없는 DR에 진다 | 주장 축 분리 (§6) |
-| D4 | 짝 차이 SD: endpoint 정의 0.687° → σ_w 0.486°. 사양 값 0.34°는 재현되지 않음 | 측정 시점 정의와 DR 증분 정의가 어긋남 | §4 측정 시점 고정 |
-| D5 | σ_β가 판정을 지배(Fable: σ_β 0.45/0.32/0에서 R 0.39–0.43/0.49–0.53/0.89–0.91) | n=2로 정한 baseline knob | §4 σ_β 민감도와 σ_β\* |
+| D1 | Markov 95% 포함률 85.56% < 88% → STOP. 이탈 491개 중 418개가 음의 오차 쪽, 독립 모델 대비 추가 이탈 177개 중 163개가 R4 두 case. Gate 해제 86.35%, 순서 교란 86.36%. 같은 분산·상관의 Gaussian AR로 관측을 교체하면 93.85% | **측정 오차 모델 불일치**(평균 0이 아닌 편향, 비대칭 꼬리)를 뒷받침한다. 다만 Gaussian 교체는 편향·꼬리·의존 구조를 함께 바꾸므로 **필터 구조의 기여는 식별되지 않았다** | M-ERR(§3), 추정기(§4) |
+| D2 | R2_aB_m0 parity p90 0.0209 > 0.02. 원인 분해(1,303 pose): 실제 거리 − 10 m 직접 계산 p90 **0.0208**(원인), 10 m 직접 계산 − 고정 LUT p90 **0.00126**(LUT 보간 오차), 저장 LoS H − 실제 거리 직접 계산 p90 **6.8e-7**(구현 동일성) | LUT에 **거리(sub-tap) 의존이 없다.** 이산 first-path tap의 상대 위치가 거리에 따라 바뀌어 s가 변한다. 6 case 모두 p90 0.014–0.021의 체계 오차를 가졌다 | M-OBS(§2) |
+| D3 | G1 누적 RMSE 2.3–4.0° vs DR-nosweep(κ=0.1°/m) 0.46° | sweep을 heading 획득만을 위해 하면 회전 없는 DR에 진다 | 주장 축 분리(§7) |
+| D4 | 짝 차이 SD: endpoint 정의 0.687° → σ_w 0.486°. 사양 값 0.34°는 재현되지 않음 | 측정 시점과 DR 증분 정의가 어긋남 | §4.1 |
+| D5 | σ_β가 판정을 지배(σ_β 0.45/0.32/0에서 R 0.39–0.43/0.49–0.53/0.89–0.91, Gaussian 산술) | n=2로 정한 baseline 값 | §4.2 |
 | D6 | 0.45 m δs 상관 −0.14–0.52, 1/e 길이 0.08–0.40 m | 0.45 m에서 상관은 짧지만 0이 아님 | 기존 (b)/(c) 유지 |
-| D7 | 초기 정렬 축(E₀~N(0,5²)): 비율 0.446, 포함률 88.4% | A1 축은 현재 모델로도 경계선 통과 | §6 A1 별도 판정 |
+| D7 | 초기 정렬 축(E₀~N(0,5²)): 비율 0.446, 포함률 88.4% | A1 축은 현재 모델로도 경계선 통과 | §7 A1 |
 
 ## 1. 입력
 
 G1-FLOOR-001 §1과 같다(BLOCK_C @ `047cce2`, LUT·관측 소스 @ `f9a7691`, TB3 @ `3018bb5`/`14f8a76`/`1809fa7`). 추가 입력:
 
-- FFD bank: `LP_plus45_bank.npz`, `LP_minus45_bank.npz`(저장소 루트, Git LFS). SHA는 A23 `FFD_RESTORE_MANIFEST`의 값과 대조한다(`DIAG_PARITY`에서 일치 확인됨).
-- G1-FLOOR-001의 J 곡선은 **재사용하지 않는다**. 관측 모델이 바뀌므로 S1을 다시 계산한다. 단 M0 arm(아래)은 기존 J와 비트 단위로 같아야 한다(회귀 검사).
+| 입력 | 출처 | 용도 |
+|---|---|---|
+| `LP_plus45_bank.npz`, `LP_minus45_bank.npz` | 저장소 루트, Git LFS. A23 `FFD_RESTORE_MANIFEST` SHA와 대조(DIAG_PARITY에서 일치 확인) | M1 직접 계산 |
+| range offset μ_r = −0.5316 m, 방향 산포 σ_r,dir = 0.0183 m | `results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/INPUTS/hs_lut_meta.json` @ `f9a7691` (`mean_m`, `std_over_directions_m`) | M1-RI 보조 arm만 |
+
+관측 체인 사실(`observation.py` @ `f9a7691`, `first_path_batch`): range와 s는 **같은 tap index**에서 계산된다. range = index × Δ_tap, Δ_tap = c/(4N·Δf) ≈ 0.1496 m. 따라서 s를 바꾸는 sub-tap 위치는 range로 관측되지 않는다.
 
 ## 2. M-OBS: 거리 인지 관측 모델
 
-### 2.1 모델
+### 2.1 Arm
 
-s는 sub-tap 위치에 의존한다. 이산 first-path tap 간격 Δ_tap ≈ 0.149 m(관측 체인 기준)에서, 거리 d의 분수 위치 f = frac(d/Δ_tap)가 s를 바꾼다.
+| Arm | s 모델 | 거리 입력 | 용도 |
+|---|---|---|---|
+| **M0** | 기존 LUT(10 m 고정) | — | 회귀 기준, 비교 기준 |
+| **M1-T** | FFD bank 직접 계산 `los_h(…, dist_m=d)` → `observe` | 참 거리(비인과) | 상한, 구현 동일성 검사 |
+| **M1-R** (1차) | 같은 직접 계산, d를 적분 | **위치 prior 거리** d_geo (§2.2) | 1차 |
+| M1-RI | 같은 직접 계산, d를 관측 tap index 구간으로 조건화 | 관측 index (§2.3) | 보조 |
+| M2 | 4차원 LUT s[θ, φ_tx, φ_rx, f], f = frac(d/Δ_tap) 16 bin(주기 경계) | M1-R과 같음 | 온라인 필터용 근사. M1-R과의 일치만 검사 |
 
-| Arm | 관측 모델 s_model | 용도 |
-|---|---|---|
-| **M0** | 기존 LUT(10 m 고정) | 회귀 기준. G1-FLOOR-001 재현 |
-| **M1-T** | FFD bank 직접 계산 `los_h(..., dist_m=d_true)` → `observe` | 상한(참 거리 사용, 비인과) |
-| **M1-R** | 같은 직접 계산, d = 측정 range 기반 거리. 거리 불확도를 적분: s̄ = E_d[s(d)], d ~ N(d̂, σ_d²), 5점 Gauss–Hermite. 분산 Var_d[s(d)]를 측정 분산에 더한다 | **1차** |
-| M2 | 4차원 LUT s[θ, φ_tx, φ_rx, f], f 16 bin(주기 경계). M1-R과 같은 적분 | 온라인 필터용 근사. M1-R과의 parity만 검사 |
+직접 계산은 `hs_lut.build_lut`의 φ_rx 벡터화를 재사용한다. station마다 LoS 방향은 하나이고 yaw 후보 1,440개는 φ_rx만 바뀐다.
 
-- d̂: 같은 station에서 측정된 range의 평균에서 range offset(기존 `range_offset_m = −0.5316`)을 보정한 값. σ_d는 range 잡음 0.05 m/√n_range와 offset 불확도를 합친다. **참 거리는 M1-T에서만 쓴다.**
-- 직접 계산은 `hs_lut.build_lut`의 φ_rx 벡터화를 재사용한다. station마다 LoS 방향은 하나이고 yaw 후보 1,440개는 φ_rx만 바뀌므로 비용이 작다.
+### 2.2 M1-R 거리 입력 (1차)
 
-### 2.2 Gate
+- **range를 쓰지 않는다.** 같은 tap에서 range와 s가 나오므로 range를 거리 입력으로 쓰면 두 오차가 결정론적으로 묶인다.
+- d_geo = ‖anchor − (x̂, ŷ, z_rx)‖. (x̂, ŷ)는 그 station 시점의 필터 위치 prior(§4.3 XY-RW의 현재 값)이다. anchor 좌표와 z_rx는 CASES.json 값이다.
+- σ_d² = u^T Σ_xy u, u는 anchor 쪽 수평 단위벡터에 수평거리/거리 비를 곱한 투영 벡터, Σ_xy는 위치 prior 공분산(XY-RW에서 σ² = 0.1² + k·0.03², k = station 번호).
+- d 적분: 5점 Gauss–Hermite로 s̄_i(ψ) = E_d[s_i(d, ψ)], V_d,i(ψ) = Var_d[s_i(d, ψ)].
+- σ_d(≥ 0.1 m)가 tap 반주기(약 0.075 m)보다 크므로 sub-tap 효과는 사실상 평균되고, 남는 변동은 V_d로 들어간다.
+
+### 2.3 M1-RI (보조)
+
+- 같은 sweep pose의 관측 index k_i를 쓴다. noise-free LoS 모델에서 index가 k_i가 되는 거리 구간 C(k_i, ψ)를 구하고, d를 그 구간 안에서 d_geo prior로 가중해 적분한다.
+- 실측 index와 LoS 모델 index가 맞지 않으면(구간이 비면) 그 pose는 M1-R 값을 쓰고 비율을 보고한다.
+- μ_r, σ_r,dir는 index→거리 변환에만 쓴다.
+- **index는 조건화에만 쓰고, 같은 station에서 range를 독립 측정으로 다시 쓰지 않는다.** Step 2 필터는 heading만 갱신하므로 이중 계수는 없다.
+
+### 2.4 가중 비용
+
+- J_w(ψ) = Σ_i (s_obs,i − s̄_i(ψ))² / v_i(ψ), v_i(ψ) = σ_s0² + V_d,i(ψ).
+- σ_s0²: case별 열잡음 분산. LoS H에 N30 잡음 seed 0–19를 넣고 pose별 s 분산을 구한 뒤 pose 중앙값을 쓴다(multipath를 쓰지 않는다). N10, N0도 같은 방법이다(N0는 σ_s0² = 1e-8 하한).
+- M0에서는 V_d = 0으로 같은 J_w를 정의한다. 기존 J(비가중)는 R0 회귀(§6)에서만 쓴다.
+
+### 2.5 M-OBS gate
 
 | Gate | 조건 | 실패 시 |
 |---|---|---|
-| G-OBS-0 | M0 J 곡선이 G1-FLOOR-001과 동일(최대 절대차 < 1e-12) | 구현 오류로 중단 |
-| G-OBS-1 | M1-T: noise-free LoS H vs 모델, **p90 \|Δs\| ≤ 0.005, median ≤ 0.002**, 7 case 모두 | 해당 case 중단 |
-| G-OBS-2 | M2 vs M1-R: p90 ≤ 0.002 | M2 사용 금지(M1-R만) |
-| G-OBS-3 | 7 case 모두 G-OBS-1 통과(R2_aB_m0 포함) | `INCOMPLETE_PARITY_GATE` |
+| G-OBS-0 | R0 회귀(§6) 통과 | 전체 무효 |
+| G-OBS-1 (구현 동일성) | M1-T: noise-free 저장 LoS H vs 실제 거리 직접 계산, p90 \|Δs\| ≤ 1e-5 | 해당 case를 M1 계열에서 제외 |
+| G-OBS-2 (기능) | M1-R: noise-free LoS H로 만든 sweep의 heading 역산 오차 median ≤ 0.5°, bad5 = 0 | 해당 case를 M1 계열에서 제외 |
+| G-OBS-3 | M2 vs M1-R: p90 \|Δs̄\| ≤ 0.002 | M2 사용 금지(M1-R만) |
 
-### 2.3 M-OBS가 D1에 미치는 영향 검사 (사전 고정)
+- M1-R의 LoS 적합 잔차(\|s_LoS − s̄\|)는 판정이 아니라 **모델 오차 지표**로 보고한다.
+- M0 계열은 기존 parity 기준(p90 ≤ 0.02)을 유지하므로 R2_aB_m0는 M0 계열에서 계속 제외한다.
+- **mount-45(R2_aA_m45)는 민감도 전용이며, gate 실패가 6개 mount-0 1차 판정을 막지 않는다.**
 
-case별 평균 sweep 오차(bias)와 음의 꼬리 비율을 M0와 M1-R에서 비교한다. **편향의 일부가 거리 모델 오차에서 왔는지**를 판정한다: case별 |bias| 감소가 6 case 중 5개 이상이고 평균 감소가 30% 이상이면 "D1의 일부는 관측 모델 결함"으로 기록한다.
+### 2.6 M-OBS가 D1에 미치는 영향 검사 (사전 고정)
+
+- M0와 M1-R 모두 통과한 **5개 공통 mount-0 case**에서 case별 평균 sweep 오차(bias)와 음의 꼬리 비율(e < −5°)을 비교한다.
+- \|bias\| 감소가 5개 중 4개 이상이고 평균 감소가 30% 이상이면 "D1의 일부는 관측 모델 결함"으로 기록한다.
+- M1의 heading 정확도 효과는 작을 수 있다. M0로도 LoS sweep 오차가 0.1–0.3°였기 때문이다. M1의 1차 목적은 관측 모델 충실도와 parity 회복이며, 편향 감소는 이 검사로 별도 판정한다.
 
 ## 3. M-ERR: 정직한 측정 오차 모델
 
-G1-FLOOR-001의 측정 분산은 평가 route를 제외한 J 곡선의 ±10° 정렬 2차 모멘트(17–21 deg², σ ≈ 4.1–4.6°)였고, 분포 형태는 평균 0 Gaussian이었다. 다음 arm으로 바꾼다. 모든 파라미터는 **route 단위 홀드아웃(LORO: R2/R4/R5)**으로 정하며, 평가 route의 오차를 쓰지 않는다.
+모든 파라미터는 **route 단위 홀드아웃(LORO: R2/R4/R5)**으로 정한다. 평가 route의 오차를 쓰지 않는다. 학습에 쓰는 정렬 오차는 PREREG와 같이 참값 중심 ±10° 창의 J_w 최소에서 얻는다(학습 route에서만, 오프라인).
 
-| Arm | 측정 우도 | 파라미터 | 필터 갱신 |
-|---|---|---|---|
-| E0 | N(0, σ²) | σ² LORO 2차 모멘트 | 기존 KF (회귀 기준) |
-| **E1** | **Laplace 국소 분산**: R = 2σ_s² / J''(ψ̂). σ_s²는 sweep 잔차 분산(관측에서 직접), J''는 J 곡선의 최소점 곡률 | 스케일 계수 c_L 하나를 LORO로 보정 (R ← c_L·R) | KF, station마다 다른 R |
-| **E2** | 2성분 혼합: (1−π)·N(0, R_E1) + π·N(μ_o, σ_o²) | π, μ_o, σ_o LORO | Gaussian-sum 2성분, 갱신 후 moment matching |
-| E3 | Student-t(ν), scale R_E1 | ν LORO | IRLS 가중 KF |
-| E4 | E1 + margin 의존 스케일: R ← R·g(margin), g는 단조 증가 계단 3단 | g LORO | KF |
+### 3.1 Arm
 
-- **E1이 핵심이다.** 편파 관측 자체가 주는 정보량(J 곡선의 날카로움)으로 station마다 불확도를 정한다. 라벨 없이 관측과 모델만으로 계산되므로 Goal 1의 원칙("편파 정보를 모델에 정직하게 넣는다")에 해당한다.
-- E2 μ_o는 비대칭 꼬리(D1)를 표현한다. μ_o를 0으로 고정한 민감도도 보고한다.
-- E4의 margin 사용은 관측 품질을 **분산으로만** 반영한다(기각 없음). 기각·보정은 Goal 2의 영역이므로 쓰지 않는다. 경계 사례로 표기한다.
-- **case별 평균 편향을 학습해 빼는 방법은 Goal 2(보정)로 분류해 이 사양에서 제외한다.**
+| Arm | 측정 분산·우도 | LORO 파라미터 |
+|---|---|---|
+| E0 | 고정 σ²: 학습 route 정렬 오차의 2차 모멘트(G1-FLOOR-001 방식) | σ² |
+| **E1** (1차) | **Laplace 국소 분산**(§3.2) | c_L |
+| E2 | 2성분 혼합: (1−π)·N(0, R_E1) + π·N(μ_o, σ_o²) | π, μ_o, σ_o (μ_o = 0 고정 민감도 포함) |
+| E3 | Student-t(ν), scale R_E1 | ν |
+| E4 | R_E1 × g(margin), g는 margin 3분위 계단의 단조 증가 계수 | g |
+
+- E1은 편파 관측 자체의 정보량(J_w 곡선의 날카로움)으로 station마다 불확도를 정한다. 라벨 없이 관측과 모델만으로 계산된다.
+- E4는 관측 품질을 **분산으로만** 반영한다. 기각은 하지 않는다. Goal 1/Goal 2 경계 사례로 표기한다.
+- **case별 평균 편향을 학습해 빼는 방법은 Goal 2(보정)로 분류해 제외한다.**
+
+### 3.2 E1 정의
+
+1. 최소점 ψ̂: 창 안 J_w 전역 최소(후보 정의는 §4.4).
+2. 곡률: ψ̂ ± 2°(0.25° 격자 17점)에서 J_w(ψ) ≈ a(ψ − ψ̂)² + bψ + c를 최소제곱으로 맞추고 J_w''(ψ̂) = 2a [deg⁻²]로 둔다. 중앙차분은 쓰지 않는다.
+3. 잔차 분산 보정: χ²_red = J_w(ψ̂) / (n_valid − 1). n_valid는 유효 s 관측 수다.
+4. R_E1 = c_L · max(1, χ²_red) · 2 / J_w''(ψ̂) [deg²].
+5. **평탄·경계 처리:** a ≤ 0, 이차 fit R² < 0.5, 또는 ψ̂가 창 경계에서 0.5° 이내이면 R_E1 = R_cap으로 둔다. R_cap은 학습 route R_E1의 99 백분위다. 해당 후보는 버리지 않고 플래그를 기록한다.
+6. **c_L 적합(LORO):** 학습 route의 정렬 오차 e에 대해 \|e\|/√(R_E1/c_L)의 95 백분위 q95를 구하고 c_L = (q95/1.96)²로 둔다. §8의 판정 지표가 포함률이므로 2차 모멘트 대신 분위수를 맞춘다.
 
 ## 4. 추정기와 DR 과정
 
 ### 4.1 측정 시점과 DR 정의 (D4)
 
 - z_k는 **station k의 sweep 시작 직전 base 자세의 heading**에 대한 측정이다. sweep 상대각은 base 기준이다.
-- DR 증분 E_k − E_{k−1}은 **base(k−1) → base(k)**로 정의한다. 이 정의로 TEACH/REPEAT에서 재계산한 σ_w(endpoint) = **0.486°를 1차**로 쓰고, 0.34°는 민감도로 둔다.
-- β_DR-uncal은 같은 정의로 재계산한다(TEACH 2.278, REPEAT 1.813 → 2.046°/station).
+- DR 증분 E_k − E_{k−1}은 **base(k−1) → base(k)**로 정의한다.
+- 이 정의로 TEACH/REPEAT에서 재계산한 **σ_w = 0.486°**(짝 차이 SD 0.687°/√2)를 1차로 쓴다. 0.34°는 민감도다.
+- β_DR-uncal은 같은 정의의 평균 2.046°/station(TEACH 2.278, REPEAT 1.813)이다.
 
 ### 4.2 σ_β (D5)
 
 - 1차 σ_β = 0.45°/station(run 1회 보정). 민감도 {0, 0.32}.
-- **σ_β\***(G1/DR-cal 비율 = 0.8이 되는 σ_β)를 각 J 모델·E arm마다 보고한다.
-- run 안 β 변화(Fable 진단: 짝 차이 앞 10개 −0.27°, 뒤 7개 −0.72°): β를 run 내 random walk(σ_βw = 0.037°/station, 짝 차이 기울기에서)로 두는 민감도를 추가한다.
+- **σ_β\***(G1/DR-cal 비율 = 0.8이 되는 σ_β)를 각 J 모델 × E arm마다 보고한다.
+- run 안 β 변화 민감도: β를 run 내 random walk(σ_βw = 0.037°/station, 짝 차이 추세에서)로 둔다.
 
-### 4.3 위치 오차 지속성
+### 4.3 위치 오차 XY-RW
 
-- XY-P(station마다 독립 N(0, 0.1²) m)를 1차에서 **XY-RW**로 바꾼다. 위치 오차 δp_k = δp_{k−1} + η_k, η ~ N(0, 0.03²) m/station, δp_0 ~ N(0, 0.1²). 위치가 heading으로 새는 효과를 station 간에 지속시킨다.
-- XY-P는 민감도로 유지한다.
+- δp_k = δp_{k−1} + η_k, η ~ N(0, 0.03² I) m/station, δp_0 ~ N(0, 0.1² I) m. 경로마다 새로 뽑고 DR 난수와 같은 공통 난수 흐름에 둔다.
+- 필터의 위치 prior 공분산은 Σ_xy,k = (0.1² + k·0.03²) I로 둔다. M1-R의 σ_d(§2.2)도 이 값을 쓴다.
+- XY-P(station마다 독립 N(0, 0.1²))는 민감도다.
 
-### 4.4 Branch 다봉성
+### 4.4 측정 오차 구조, 다중 후보, gate
 
-- 창 안 J 곡선의 국소 최소를 최대 3개까지 가설로 둔다. 가중치는 exp(−(J_i − J_min)/(2σ_s²))로 하고, 가중치 0.05 미만은 버린다.
-- 갱신은 Gaussian-sum이며, station마다 moment matching으로 다시 하나의 Gaussian으로 합친다.
-- 단일 최소(G1-FLOOR-001 방식)는 민감도로 둔다.
-- 탐색창 중심과 폭은 PREREG(필터 예측 ψ_DR − Ê⁻, 반폭 min(180°, max(3√P⁻, 10°)))를 유지한다. window miss 최장 연속 길이를 지표로 추가한다.
+- **오차 분해:** n_k = a_k + ε_k.
+  - a_k: AR(1), 상관 ρ_case(S1-4의 0.45 m δs 상관, [0, 1]로 제한), 분산 σ_a² = ρ_case · R̄_train. R̄_train은 학습 route R_E1의 평균이다.
+  - ε_k: white, 분산 max(R_k − σ_a², 0.25 · R_k). R_k는 해당 후보의 E-arm 분산(E1이면 R_E1).
+  - ρ_case = 0이면 기존 white 필터와 같다.
+- **후보:** 창 안 J_w의 국소 최소를 J_w 값이 작은 순으로 최대 3개 둔다(서로 2° 이상 떨어진 것). 후보 i의 가중치는 w_i ∝ exp(−(J_w,i − J_w,min)/2)이며 0.05 미만은 버린다.
+- **후보별 gate:** NIS_i = (z_i − ẑ⁻)² / (P⁻_ψ + R_i)를 χ²₁(0.99) = 6.635로 검사한다. 통과한 후보끼리 가중치를 다시 정규화한다. 모두 탈락하면 그 station은 **gate 기각**이고 갱신하지 않는다.
+- **갱신:** 통과 후보마다 KF 갱신을 하고 Gaussian-sum으로 합친 뒤 moment matching으로 하나의 Gaussian으로 만든다.
+- **기각률 분모:** 유효 J_w(n_valid ≥ 3)가 있고 창 안에 후보가 1개 이상인 station 수. window miss(참값이 창 밖)와 무효 station은 따로 집계한다.
+- **탐색창:** PREREG를 유지한다(중심 ψ_DR − Ê⁻, 반폭 min(180°, max(3√P⁻, 10°))). window miss 최장 연속 길이를 지표로 추가한다.
+- 단일 최소(G1-FLOOR-001 방식)는 민감도다.
 
-## 5. 계산 절차
+## 5. J 곡선 저장과 재사용
 
-1. **S1′**: 6 mount-0 case + R2_aA_m0 m45(민감도). M0, M1-T, M1-R(필요 시 M2)로 J 곡선과 σ_s², J''(ψ̂), margin을 저장한다. 나머지 S1 조건(잡음 N30/N10/N0, seed 0–19, span 19점·90°/40°, k {0, 0.0085})은 G1-FLOOR-001 PREREG와 같다.
-2. **S1′-diag**: §2.3 편향 검사, E1 분산의 보정도(표준화 오차 분포, LORO).
-3. **S2′**: PREREG의 Markov/독립/셀 3 모델 × {M0, M1-R} × {E0, E1, E2, E3, E4}. DR과 bootstrap 난수 흐름은 PREREG와 같다.
+### 5.1 RF 실현과 위치 오차의 분리
 
-## 6. 주장 축과 판정 대상
+- **고정(재사용 단위):** RF 실현 = (case, station, 잡음 seed)의 관측 s 벡터, 관측 index, sweep 상대각(k arm 포함). 셀·Markov 재사용은 이 RF 실현을 재사용한다는 뜻이다.
+- **경로마다 변함:** 위치 오차 δp_k(XY-RW). J_w는 RF 실현을 현재 δp_k에서 평가한 값이다.
 
-| 축 | 판정 대상 | 이 사양에서의 판정 |
+### 5.2 δp 격자
+
+- S1에서 RF 실현마다 δp 격자 **7×7, ±0.30 m, 0.10 m 간격**의 J_w 곡선(1,440점)을 저장한다. M1-R의 d_geo와 σ_d도 격자점의 δp로 계산한다.
+- Step 2는 현재 δp_k로 J_w를 이중선형 보간한다. 격자 밖이면 경계값을 쓰고 비율을 보고한다.
+- 범위 근거: station 17에서 σ_δp = √(0.1² + 17·0.03²) ≈ 0.16 m이므로 ±0.30 m는 약 2σ다.
+- 국소 곡률(§3.2)은 보간된 J_w에서 계산한다.
+
+### 5.3 보간 검증 gate (G-INT)
+
+- 무작위 격자 밖 δp 100개(case별)에서 직접 계산한 ψ̂, R_E1과 보간값을 비교한다.
+- 기준: \|Δψ̂\|의 p95 ≤ 0.25°, R_E1 상대차 p95 ≤ 20%.
+- 실패하면 격자 간격을 0.05 m(13×13)로 줄이고 다시 검사한다.
+
+### 5.4 용량
+
+RF 실현 수 × 49 × 1,440 × 8 B. 실행 전에 G1-FLOOR-001 RF 실현 수로 총량을 계산해 manifest에 기록한다. 저장은 Git LFS로 하되, 용량이 2 GB를 넘으면 float32와 압축 npz로 저장하고 보간 검증(G-INT)을 그 형식으로 다시 수행한다.
+
+## 6. 회귀와 비교 조건
+
+| 조건 | 설정 | 기준 |
 |---|---|---|
-| A1 초기 절대 heading | E₀~N(0, 5²), Markov | 포함률 ≥ 0.88, NEES [0.5, 2.0], station 1–5 내 \|e\| < 5° 비율 ≥ 0.95 |
-| A2 sweep 운용 heading(DR-cal 대비) | E₀ = 0, §7 1차 | §7 |
-| A2′ DR-nosweep 대비 | κ_m ∈ {0, 0.1, 0.3}°/m | 판정 없이 손익분기 κ_m\*만 보고. **D3 때문에 sweep 경로로 이 축을 주장하지 않는다.** passive 경로는 새 RT(G1-RT-TB3-001)에서 판정 |
-| A3 절대 XY | — | 이 사양 범위 밖(6-state 폐루프 필요) |
+| **R0 회귀** | G1-FLOOR-001 그대로: M0, 비가중 J, E0, σ_w = 0.34°, XY-P, 단일 최소, 이전 5개 mount-0 case, PREREG 창·gate·난수 흐름 | J 곡선 비트 일치. 1–17 누적 비율·NEES·포함률이 `RUN_20261113T052908Z`와 \|차\| < 1e-9. 실패하면 전체 무효 |
+| **B0 새 기준선** | 새 설정(σ_w 0.486°, XY-RW, 다중 후보, J_w, §4.4 오차 분해)에서 M0 × E0 | 비교 조건(회귀 아님). 5개 공통 case |
+| **효과 비교** | M1-R × E-arm과 B0를 5개 공통 case에서 짝지어 비교 | 보고 |
+| **1차 판정** | M1-R × E1, G-OBS-1/2를 통과한 mount-0 case(R2_aB_m0 포함 최대 6개) | §8 |
+
+## 7. 주장 축과 판정 대상
+
+| 축 | 판정 대상 | 판정 |
+|---|---|---|
+| A1 초기 절대 heading | E₀~N(0, 5²), Markov | 포함률 ≥ 0.88, NEES ∈ [0.5, 2.0], station 1–5 안에서 \|e\| < 5° 비율 ≥ 0.95 |
+| A2 sweep 운용 heading(DR-cal 대비) | E₀ = 0 | §8 |
+| A2′ DR-nosweep 대비 | κ_m ∈ {0, 0.1, 0.3}°/m | 판정 없이 손익분기 κ_m\*만 보고. **sweep 경로로 이 축을 주장하지 않는다.** passive 경로는 G1-RT-TB3-001 데이터에서 판정 |
+| A3 절대 XY | — | 범위 밖(6-state 폐루프 필요) |
 | A4 장시간 유계 | N = 1…50 곡선 | 보고만 |
 
-## 7. 사전등록 판정 규칙
+## 8. 사전등록 판정 규칙
 
-**1차 조건:** N30, mount 0의 6 case(7번째 case 포함을 위해 G-OBS-3 필요), **M1-R**, **E1**, XY-RW, 19점·90°, k = 0.0085, E₀ = 0, σ_w = 0.486°, σ_β = 0.45°, Gaussian-sum branch, gate χ²₁(0.99).
+**1차 조건:** N30, §6 1차 판정 case, **M1-R**, **E1**, XY-RW, 19점·90°, k = 0.0085, E₀ = 0, σ_w = 0.486°, σ_β = 0.45°, 다중 후보 + 후보별 gate χ²₁(0.99), §4.4 오차 분해.
 
 | 판정 | 조건 (모델 (b) 독립과 (c) Markov 각각에서) |
 |---|---|
 | **INTEGRITY_PASS** | 평균 NEES ∈ [0.5, 2.0], 95% 포함률 ≥ 0.88(1–17 누적), station 17 끝점 포함률 ≥ 0.80 |
-| **ACCURACY_PASS** | INTEGRITY_PASS이고, RMSE 비율 ≤ 0.8, bootstrap CI 상한 < 1.0, **G1 절대 누적 RMSE ≤ 3.0°**, 3 route 모두 비율 < 1.0, gate 기각률 ≤ 20% |
+| **ACCURACY_PASS** | INTEGRITY_PASS이고, RMSE 비율 ≤ 0.8, bootstrap CI 상한 < 1.0, G1 절대 누적 RMSE ≤ 3.0°, 3 route 모두 비율 < 1.0, gate 기각률 ≤ 20% |
 | **PROCEED_A2** | (b)와 (c) 모두 ACCURACY_PASS. (a) 셀 비율 < 1.0이면 ROBUST, 아니면 CORRELATION_SENSITIVE |
-| **INTEGRITY_ONLY** | (b)와 (c) 모두 INTEGRITY_PASS이지만 ACCURACY_PASS가 아님 → "편파를 정직하게 쓰지만 정확도 이득은 σ_β에 의존"으로 기록, σ_β\* 보고 |
+| **INTEGRITY_ONLY** | (b)와 (c) 모두 INTEGRITY_PASS이지만 ACCURACY_PASS가 아님 → "편파를 정직하게 쓰지만 정확도 이득은 σ_β에 의존"으로 기록하고 σ_β\* 보고 |
 | **STOP** | (b) 또는 (c)에서 INTEGRITY_PASS 실패 |
+| **INCOMPLETE** | 1차 판정 case가 4개 미만이거나 3 route 중 하나가 빠짐 |
 
-- E1이 STOP이고 E2 또는 E3가 INTEGRITY_PASS이면, 그 arm을 다음 단계의 1차 오차 모델 **후보**로 기록한다. 이 사양 안에서 1차 판정을 바꾸지는 않는다.
-- M0 × E0는 G1-FLOOR-001의 수치를 재현해야 한다(회귀). 재현되지 않으면 전체를 무효로 한다.
+- E1이 STOP이고 E2 또는 E3가 INTEGRITY_PASS이면 그 arm을 다음 단계의 1차 오차 모델 **후보**로 기록한다. 이 사양 안에서 1차 판정을 바꾸지 않는다.
+- bootstrap, Monte Carlo 경로 수, 난수 흐름, 통계량 정의(누적 비율, NEES 1자유도, 포함률 ±1.96√P)는 PREREG와 같다.
 
-## 8. 한계
+## 9. 계산 절차
 
-- RT station 간격 2 m, sweep 90°, 복도 형상 1개, R4의 90° station 10개라는 G1-FLOOR-001의 한계가 그대로 남는다. **최종 판정은 새 RT(G1-RT-TB3-001)에서 반복한다.** 이 사양의 결과는 모델 선택용이다.
-- E1의 σ_s²와 J''는 multipath가 있을 때 편향될 수 있다(잘못된 최소에서 날카로운 곡률). c_L LORO 보정과 E2/E3 비교로 검사한다.
-- M1-R은 range를 쓰므로 range의 multipath 편향이 s 모델로 들어간다. M1-T와의 차이로 크기를 보고한다.
+1. **S1′**: 6개 mount-0 case + R2_aA_m45(민감도).
+   - M0, M1-T, M1-R, M1-RI(필요 시 M2)의 s̄, V_d, J_w를 δp 격자에서 저장한다.
+   - σ_s0², 관측 index, margin, 국소 곡률 입력을 저장한다.
+   - 잡음 N30/N10/N0, seed 0–19, span 19점·90°/40°, k {0, 0.0085}는 PREREG와 같다.
+2. **S1′-gate**: G-OBS-0…3, G-INT.
+3. **S1′-diag**: §2.6 편향 검사, E-arm LORO 파라미터와 보정도(표준화 오차 분포).
+4. **S2′**: (a)/(b)/(c) × {M0, M1-R, M1-RI} × {E0, E1, E2, E3, E4}. R0, B0 포함.
 
-## 9. 출력
+## 10. 출력
 
 `RUN2_<id>/` 아래:
 
 | 파일 | 내용 |
 |---|---|
-| `S1P_OBS_PARITY.json` | G-OBS-0…3 |
-| `S1P_J_<case>_<obs>.npy`, `S1P_J_INDEX_<case>_<obs>.csv` | J 곡선, σ_s², J'', margin |
-| `S1P_BIAS_CHECK.json` | §2.3 |
-| `S1P_ERR_MODEL_LORO.json` | E0–E4 파라미터와 LORO 보정도 |
+| `S1P_GATES.json` | R0, G-OBS-0…3, G-INT |
+| `S1P_J_<case>_<obs>.npz`, `S1P_J_INDEX_<case>_<obs>.csv` | δp 격자 J_w, σ_s0², 관측 index, margin |
+| `S1P_BIAS_CHECK.json` | §2.6 |
+| `S1P_ERR_MODEL_LORO.json` | E0–E4 파라미터, c_L, R_cap, 보정도 |
 | `S2P_CURVES.csv`, `S2P_BOOTSTRAP.npz` | N별 지표, arm별 |
 | `S2P_SIGMA_BETA_STAR.csv` | σ_β\* |
-| `S2P_VERDICT.json` | §7 |
-| `MANIFEST.json` | 입력·코드 SHA, 명령, 시각, 설정 snapshot |
+| `S2P_VERDICT.json` | §8 |
+| `MANIFEST.json` | 입력·코드 SHA, 명령, 시각, 설정 snapshot, J 저장 용량 |
 
-## 10. 다음 단계와의 연결
+## 11. 한계와 다음 단계
 
-- PROCEED_A2 또는 INTEGRITY_ONLY → 선택된 (M-OBS, M-ERR) 조합을 G1-RT-TB3-001 데이터에서 동일 규칙으로 재판정하고, passive 경로 arm을 추가한다.
-- STOP → 오차 모델 후보(E2/E3)와 실패 case를 정리하고 G1-RT-TB3-001에서 원인(형상 vs 모델)을 분리한다.
-- 어느 경우든 TB3 측정 두 가지를 병행한다: 다른 날 REPEAT ≥ 3회(σ_β), 왕복 직진(κ_m).
+- RT station 간격 2 m, sweep 90°, 복도 형상 1개, R4의 90° station 10개라는 한계가 남는다. **최종 판정은 G1-RT-TB3-001 데이터에서 같은 규칙으로 반복한다.** 이 사양의 결과는 모델 선택용이다.
+- E1의 곡률은 잘못된 최소에서 날카로울 수 있다. c_L LORO 보정과 E2/E3 비교로 검사한다.
+- M1-R은 위치 prior에 의존한다. 위치 prior 자체의 오차 모델(XY-RW)이 실제 6-state 필터와 다를 수 있다. A3 폐루프에서 다시 검사한다.
+- 다음 단계: PROCEED_A2 또는 INTEGRITY_ONLY이면 선택된 (M-OBS, M-ERR) 조합을 G1-RT-TB3-001에서 재판정하고 passive 경로 arm을 추가한다. STOP이면 E2/E3 후보와 실패 case를 정리하고 G1-RT-TB3-001에서 형상과 모델의 기여를 분리한다. TB3 측정(다른 날 REPEAT ≥ 3회, 왕복 직진)은 병행한다.
 
-## 11. 변경 기록
+## 12. 변경 기록
 
 | 날짜 | 변경 | 작성 |
 |---|---|---|
-| 2026-11-13 | 초판. G1-FLOOR-001 STOP 원인(D1–D7) 반영 | Claude (proposer 초안) |
+| 2026-11-13 | v1(`a918d65`). G1-FLOOR-001 STOP 원인(D1–D7) 반영 | Claude |
+| 2026-11-13 | **v2.** v1 검토 REDIRECT 반영: | Claude |
+| | (1) M1-R 거리 입력을 range에서 **위치 prior 거리 d_geo**로 변경. 근거: range와 s가 같은 tap index에서 나오며 range가 0.1496 m로 양자화되어 sub-tap 위치를 관측하지 못함. index 조건화는 보조 arm M1-RI로 분리. 거리 불확도는 Gauss–Hermite 적분과 가중 비용 J_w로 반영 | |
+| | (2) E1 정의 고정: 이차 fit 곡률, χ²_red 보정, 평탄·경계 처리(R_cap), c_L 분위수 LORO 적합. 오차 분해 n = AR + white, 후보별 χ² gate, 기각률 분모 정의 | |
+| | (3) RF 실현과 위치 오차 분리, δp 7×7 격자 저장과 이중선형 보간, 보간 검증 gate G-INT, 용량 규칙 | |
+| | (4) R0 회귀를 G1-FLOOR-001 설정 그대로로 정의, 새 설정 M0 × E0를 비교 조건 B0로 분리. M0 parity는 기존 기준 유지(R2_aB_m0 제외), M1은 구현 동일성 + 기능 gate로 분리. mount-45 실패는 1차 판정을 막지 않음. INCOMPLETE 규칙 추가 | |
+| | 근거 문구 정정: D2의 p90 값 세 가지를 원인·LUT 오차·구현 동일성으로 구분. D1을 "측정 오차 모델 불일치를 뒷받침, 필터 구조의 기여는 미식별"로 정정 | |
