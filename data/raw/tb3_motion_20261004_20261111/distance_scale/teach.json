@@ -1,0 +1,1429 @@
+{
+ "version": "r2.1.0",
+ "kind": "teach",
+ "name": "MODE6_TEACH_MAP_MOCK_20261111T063118Z",
+ "status": "COMPLETE",
+ "created": "2026-11-11 06:39:51",
+ "config": {
+  "topics": {
+   "scan": "/scan",
+   "odom": "/odom",
+   "cmd_vel": "/cmd_vel"
+  },
+  "robot": {
+   "laser_xy_m": [
+    -0.064,
+    0.0
+   ],
+   "laser_yaw_rad": 0.0314,
+   "odom_scale": 0.96756,
+   "rot_scale_cw": 1.0076,
+   "rot_scale_ccw": 0.9981,
+   "self_filter_radius_m": 0.16,
+   "mask_sectors_deg": []
+  },
+  "track": {
+   "step_m": null,
+   "points": 4,
+   "angles_deg": [
+    -45.0,
+    0.0,
+    45.0
+   ],
+   "positions_m": [
+    0.0,
+    0.3,
+    0.85,
+    1.1
+   ]
+  },
+  "teach": {
+   "lidar_straighten": true,
+   "lat_tol_m": 0.004,
+   "yaw_tol_deg": 0.25,
+   "max_fix_m": 0.06,
+   "max_fix_yaw_deg": 4.0,
+   "max_iters": 2,
+   "wall_line": true,
+   "align_heading_to_wall": true,
+   "max_heading_align_deg": 8.0,
+   "warn_step_dir_deg": 1.0,
+   "along_source": "odom",
+   "along_tol_m": 0.004,
+   "sweep_lidar_trim": true,
+   "sweep_trim_tol_deg": 0.3,
+   "sweep_max_trims": 3,
+   "trim_gain": 0.8,
+   "wall_lateral": true,
+   "wall_lat_gate_m": 0.12,
+   "rot_adapt": true,
+   "rot_adapt_gain": 0.5,
+   "rot_adapt_max": 0.02,
+   "wall_anchor_max_deg": 2.0,
+   "walls_agree_deg": 0.5,
+   "walls_lat_agree_m": 0.02
+  },
+  "walls": {
+   "max_range_m": 3.5,
+   "max_lateral_m": 2.5,
+   "search_deg": 12.0,
+   "inlier_m": 0.02,
+   "min_points": 30,
+   "min_extent_m": 2.0,
+   "max_rms_m": 0.012,
+   "min_coverage": 0.45,
+   "parallel_tol_deg": 0.3
+  },
+  "motion": {
+   "dt_s": 0.05,
+   "v_max": 0.08,
+   "v_min": 0.015,
+   "k_v": 1.2,
+   "w_max": 0.3,
+   "w_min": 0.06,
+   "k_w": 1.5,
+   "k_heading": 2.0,
+   "k_lateral": 4.0,
+   "max_lateral_angle_deg": 12.0,
+   "lin_tol_m": 0.003,
+   "yaw_tol_deg": 0.12,
+   "fine_passes": 4,
+   "rot_lag_s": 0.04,
+   "approach_ccw": true,
+   "approach_overshoot_deg": 5.0,
+   "approach_min_deg": 3.0,
+   "settle_s": 0.6
+  },
+  "safety": {
+   "front_stop_m": 0.5,
+   "front_sector_deg": 22.0,
+   "rear_stop_m": 0.28,
+   "rear_sector_deg": 22.0,
+   "rotate_clear_m": 0.0,
+   "sensor_age_s": 0.25,
+   "sensor_recover_s": 0.0,
+   "blocked_wait_s": 0.0
+  },
+  "rf_hold": {
+   "enabled": false,
+   "mode": "off",
+   "uwb_mode": 7,
+   "samples": 10,
+   "socket": "/tmp/tb3_rf_control.sock",
+   "stations": [],
+   "angles": [],
+   "timeout_s": 120.0,
+   "quality_gate": "warn"
+  },
+  "maprun": {
+   "step_m": 1.0,
+   "min_clear_m": 0.3,
+   "strip_extra_m": 0.35,
+   "plan_lookahead_m": 5.5,
+   "heading_gate_deg": 2.0,
+   "lat_gate_m": 0.12,
+   "walls_agree_deg": 0.5,
+   "walls_lat_agree_m": 0.02,
+   "warn_odom_only_steps": 3
+  },
+  "battery": {
+   "topic": "/battery_state",
+   "min_start_v": 11.5,
+   "pause_v": 11.1
+  },
+  "capture": {
+   "scans": 10,
+   "bin_deg": 1.0,
+   "min_support_frac": 0.5,
+   "max_range_m": 6.0
+  },
+  "icp": {
+   "corr_schedule_m": [
+    0.3,
+    0.15,
+    0.08,
+    0.05
+   ],
+   "iters_per_level": 12,
+   "normal_k": 6,
+   "max_line_curvature": 0.12,
+   "min_pairs": 40,
+   "min_inlier_frac": 0.45,
+   "max_rmse_m": 0.03,
+   "weak_ratio": 0.05,
+   "yaw_grid_first_deg": 12.0,
+   "yaw_grid_deg": 3.0,
+   "yaw_grid_step_deg": 1.5
+  },
+  "repeat": {
+   "xy_tol_m": 0.008,
+   "yaw_tol_deg": 0.4,
+   "max_corrections": 3,
+   "max_correction_m": 0.2,
+   "max_correction_yaw_deg": 15.0,
+   "start_max_m": 0.15,
+   "start_max_yaw_deg": 12.0,
+   "angle_trims": 3,
+   "new_angle_recenter_mm": 10.0,
+   "new_angle_recenter_max": 2
+  },
+  "_sources": [
+   "/home/ubuntu/tb3_sweep/robot.json"
+  ]
+ },
+ "step_m": null,
+ "points": 4,
+ "positions_m": [
+  0.0,
+  0.3,
+  0.85,
+  1.1
+ ],
+ "total_distance_m": 1.1,
+ "angles_deg": [
+  -45.0,
+  0.0,
+  45.0
+ ],
+ "rf_profile": {
+  "rf_mode": "off",
+  "uwb_mode": 7,
+  "rf_samples": 10,
+  "stations": [],
+  "angles": []
+ },
+ "stations": [
+  {
+   "station_id": "P001",
+   "index": 0,
+   "nominal_s_m": 0.0,
+   "base": {
+    "label": "P001_base0",
+    "file": "scans/P001_base0.npz",
+    "odom": [
+     4.211281277306453,
+     0.4408298478573724,
+     0.13984240569770368
+    ],
+    "n_scans": 10,
+    "n_points": 280,
+    "moved_during_capture_m": 6.362669362156306e-10,
+    "yaw_change_during_capture_deg": -0.0028724159063856,
+    "line_pose": [
+     0.0,
+     0.0,
+     0.0
+    ]
+   },
+   "wall": {
+    "ok": false,
+    "sides": {
+     "left": {
+      "ok": false,
+      "reason": "SHORT_OR_NOISY",
+      "dir_rad": 0.0020575317121433426,
+      "n": 31,
+      "extent_m": 4.204524795245355,
+      "rms_m": 0.011711561264628405,
+      "coverage": 0.38095238095238093,
+      "offset_m": 0.6261010986728929
+     },
+     "right": {
+      "ok": false,
+      "reason": "SHORT_OR_NOISY",
+      "dir_rad": 0.004092967491076679,
+      "n": 31,
+      "extent_m": 5.612281979550765,
+      "rms_m": 0.011328650893486584,
+      "coverage": 0.3392857142857143,
+      "offset_m": -1.063228994307239
+     }
+    }
+   },
+   "wall_vs_line_deg": null,
+   "wall_lat_m": null,
+   "wall_lats_m": null,
+   "angles": [
+    {
+     "label": "P001_m045",
+     "file": "scans/P001_m045.npz",
+     "odom": [
+      4.210598069540735,
+      0.441188665868324,
+      -0.6468913690835243
+     ],
+     "n_scans": 10,
+     "n_points": 271,
+     "moved_during_capture_m": 3.834195122985335e-09,
+     "yaw_change_during_capture_deg": -0.006221417141367666,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P001_m045.npz",
+       "odom_rel_deg": -45.0765248953602,
+       "lidar_rel_deg": -44.814155247122336,
+       "xy_m": [
+        0.004578446811481357,
+        0.014256605873173551
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": -45.0,
+     "order": 0,
+     "achieved_rel_deg": -45.0765248953602,
+     "rotate_final_err_deg": 0.07592426935665714
+    },
+    {
+     "label": "P001_p000",
+     "file": "scans/P001_p000.npz",
+     "odom": [
+      4.211274457690615,
+      0.44081032242328183,
+      0.1406732680618772
+     ],
+     "n_scans": 10,
+     "n_points": 238,
+     "moved_during_capture_m": 1.2180338690051326e-09,
+     "yaw_change_during_capture_deg": 0.0004397101617864164,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P001_p000.npz",
+       "odom_rel_deg": 0.047604906823403875,
+       "lidar_rel_deg": 0.2688046179215854,
+       "xy_m": [
+        0.0006948340627656436,
+        -0.0011409144224079127
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": 0.0,
+     "order": 1,
+     "achieved_rel_deg": 0.047604906823403875,
+     "rotate_final_err_deg": -0.04070077556222095
+    },
+    {
+     "label": "P001_p045",
+     "file": "scans/P001_p045.npz",
+     "odom": [
+      4.210763308785815,
+      0.44063233811255903,
+      0.9281714536145396
+     ],
+     "n_scans": 10,
+     "n_points": 271,
+     "moved_during_capture_m": 2.5310686319898188e-05,
+     "yaw_change_during_capture_deg": 0.0060707271173245335,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P001_p045.npz",
+       "odom_rel_deg": 45.16792731320114,
+       "lidar_rel_deg": 45.71238542809309,
+       "xy_m": [
+        0.009322624228370094,
+        -0.0114101261434797
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": 45.0,
+     "order": 2,
+     "achieved_rel_deg": 45.16792731320114,
+     "rotate_final_err_deg": -0.16648823844679075
+    }
+   ],
+   "base_after": {
+    "label": "P001_base_after",
+    "file": "scans/P001_base_after.npz",
+    "odom": [
+     4.2112404267206145,
+     0.4408140974161552,
+     0.13901804578826304
+    ],
+    "n_scans": 10,
+    "n_points": 278,
+    "moved_during_capture_m": 2.5310686612769892e-05,
+    "yaw_change_during_capture_deg": 0.003312312788461368,
+    "lidar_check": "UNUSABLE:LOW_OVERLAP",
+    "trims": 0,
+    "lidar_tries": [
+     {
+      "file": "scans/P001_base_after.npz",
+      "odom_rel_deg": -0.04723234361073488,
+      "lidar_rel_deg": 0.5731017384100298,
+      "xy_m": [
+       0.002118551824183886,
+       -0.001215079734953624
+      ],
+      "usable": false,
+      "reason": "LOW_OVERLAP"
+     }
+    ]
+   },
+   "rot_scale_after": [
+    1.0076,
+    0.9981
+   ]
+  },
+  {
+   "station_id": "P002",
+   "index": 1,
+   "nominal_s_m": 0.3,
+   "drive": {
+    "along_remaining_m": -5.294002008460197e-05,
+    "lateral_m": -0.00010318345242604082,
+    "reverse": false,
+    "final_yaw_err_rad": -0.0004493018962490325
+   },
+   "arrive": [
+    {
+     "label": "P002_arrive0",
+     "file": "scans/P002_arrive0.npz",
+     "odom": [
+      4.518429703930724,
+      0.4839602472792267,
+      0.1402963264890067
+     ],
+     "n_scans": 10,
+     "n_points": 228,
+     "moved_during_capture_m": 2.5310686542314206e-05,
+     "yaw_change_during_capture_deg": 0.004100552904066912,
+     "icp_prev": {
+      "pose": [
+       0.30728920282358657,
+       0.002724770458105363,
+       0.00889601261138706
+      ],
+      "cost": 0.0015673681715383107,
+      "pairs": 91,
+      "inlier_frac": 0.3991228070175439,
+      "rmse_m": 0.01277873538891632,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9993407889792673,
+       0.03630409732104275
+      ],
+      "weak_ratio": 0.9428129912952986,
+      "usable": false,
+      "reason": "LOW_OVERLAP"
+     },
+     "step_along_odom_m": 0.30010020503781515,
+     "chain_source": "odom",
+     "yaw_source": "chain",
+     "lat_source": "chain",
+     "line_pose": [
+      0.30010020503781515,
+      -9.981052781444361e-05,
+      0.00045392079130301966
+     ],
+     "along_err_m": 0.00010020503781515977
+    }
+   ],
+   "base": {
+    "label": "P002_arrive0",
+    "file": "scans/P002_arrive0.npz",
+    "odom": [
+     4.518429703930724,
+     0.4839602472792267,
+     0.1402963264890067
+    ],
+    "n_scans": 10,
+    "n_points": 228,
+    "moved_during_capture_m": 2.5310686542314206e-05,
+    "yaw_change_during_capture_deg": 0.004100552904066912,
+    "icp_prev": {
+     "pose": [
+      0.30728920282358657,
+      0.002724770458105363,
+      0.00889601261138706
+     ],
+     "cost": 0.0015673681715383107,
+     "pairs": 91,
+     "inlier_frac": 0.3991228070175439,
+     "rmse_m": 0.01277873538891632,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9993407889792673,
+      0.03630409732104275
+     ],
+     "weak_ratio": 0.9428129912952986,
+     "usable": false,
+     "reason": "LOW_OVERLAP"
+    },
+    "step_along_odom_m": 0.30010020503781515,
+    "chain_source": "odom",
+    "yaw_source": "chain",
+    "lat_source": "chain",
+    "line_pose": [
+     0.30010020503781515,
+     -9.981052781444361e-05,
+     0.00045392079130301966
+    ],
+    "along_err_m": 0.00010020503781515977
+   },
+   "wall": {
+    "ok": false,
+    "sides": {
+     "left": {
+      "ok": false,
+      "reason": "FEW_INLIERS",
+      "n": 27
+     },
+     "right": {
+      "ok": false,
+      "reason": "FEW_INLIERS",
+      "n": 21
+     }
+    }
+   },
+   "wall_vs_line_deg": null,
+   "wall_lat_m": null,
+   "wall_lats_m": null,
+   "angles": [
+    {
+     "label": "P002_m045",
+     "file": "scans/P002_m045.npz",
+     "odom": [
+      4.519166840609856,
+      0.48379464583276954,
+      -0.645354021995511
+     ],
+     "n_scans": 10,
+     "n_points": 273,
+     "moved_during_capture_m": 6.336274042245247e-10,
+     "yaw_change_during_capture_deg": 0.0025530458230586467,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P002_m045.npz",
+       "odom_rel_deg": -45.014449141145214,
+       "lidar_rel_deg": -44.89395637379072,
+       "xy_m": [
+        0.008048396688723973,
+        0.010135660424543693
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": -45.0,
+     "order": 0,
+     "achieved_rel_deg": -44.98844139557031,
+     "rotate_final_err_deg": -0.0057503399670863166
+    },
+    {
+     "label": "P002_p000",
+     "file": "scans/P002_p000.npz",
+     "odom": [
+      4.518548620013959,
+      0.48398538742565733,
+      0.1380367291919935
+     ],
+     "n_scans": 10,
+     "n_points": 226,
+     "moved_during_capture_m": 9.236614689933641e-10,
+     "yaw_change_during_capture_deg": 0.010286320470715706,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P002_p000.npz",
+       "odom_rel_deg": -0.12946538851802475,
+       "lidar_rel_deg": -0.020222301268308415,
+       "xy_m": [
+        0.001914252476997998,
+        -0.0010168918089322207
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": 0.0,
+     "order": 1,
+     "achieved_rel_deg": -0.10345764294312308,
+     "rotate_final_err_deg": 0.10872261221718803
+    },
+    {
+     "label": "P002_p045",
+     "file": "scans/P002_p045.npz",
+     "odom": [
+      4.5191454490898,
+      0.4840441942273932,
+      0.9259791064269898
+     ],
+     "n_scans": 10,
+     "n_points": 286,
+     "moved_during_capture_m": 2.5310686373907316e-05,
+     "yaw_change_during_capture_deg": -0.0009256422627077228,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P002_p045.npz",
+       "odom_rel_deg": 45.01630732655226,
+       "lidar_rel_deg": 45.62713192841642,
+       "xy_m": [
+        0.003311219161311187,
+        -0.019929270682742216
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": 45.0,
+     "order": 2,
+     "achieved_rel_deg": 45.04231507212716,
+     "rotate_final_err_deg": -0.03943330159364971
+    }
+   ],
+   "base_after": {
+    "label": "P002_base_after",
+    "file": "scans/P002_base_after.npz",
+    "odom": [
+     4.518525671086938,
+     0.4839470767243372,
+     0.13835843241364332
+    ],
+    "n_scans": 10,
+    "n_points": 288,
+    "moved_during_capture_m": 2.673677297381875e-09,
+    "yaw_change_during_capture_deg": -0.006090657267817366,
+    "lidar_check": "UNUSABLE:LOW_OVERLAP",
+    "trims": 0,
+    "lidar_tries": [
+     {
+      "file": "scans/P002_base_after.npz",
+      "odom_rel_deg": -0.11103315166172863,
+      "lidar_rel_deg": 0.578148879408886,
+      "xy_m": [
+       0.002890812550011017,
+       -0.004656486799016828
+      ],
+      "usable": false,
+      "reason": "LOW_OVERLAP"
+     }
+    ]
+   },
+   "rot_scale_after": [
+    1.0076,
+    0.9981
+   ]
+  },
+  {
+   "station_id": "P003",
+   "index": 2,
+   "nominal_s_m": 0.85,
+   "drive": {
+    "along_remaining_m": 0.00010282425782737192,
+    "lateral_m": -8.915709208601186e-05,
+    "reverse": false,
+    "final_yaw_err_rad": -0.00039061943740037464
+   },
+   "arrive": [
+    {
+     "label": "P003_arrive0",
+     "file": "scans/P003_arrive0.npz",
+     "odom": [
+      5.0811395361412455,
+      0.5631820725059506,
+      0.14025688518435153
+     ],
+     "n_scans": 10,
+     "n_points": 257,
+     "moved_during_capture_m": 2.5310686536179753e-05,
+     "yaw_change_during_capture_deg": 0.001704302952637254,
+     "icp_prev": {
+      "pose": [
+       0.5526104868028108,
+       -0.0064560135814822036,
+       0.0009790361113890533
+      ],
+      "cost": 0.0015943117356721536,
+      "pairs": 98,
+      "inlier_frac": 0.38132295719844356,
+      "rmse_m": 0.011174915453153807,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9974612714102975,
+       0.07121103872682155
+      ],
+      "weak_ratio": 0.5797510283103465,
+      "usable": false,
+      "reason": "LOW_OVERLAP"
+     },
+     "step_along_odom_m": 0.549824815600672,
+     "chain_source": "odom",
+     "yaw_source": "chain",
+     "lat_source": "chain",
+     "line_pose": [
+      0.8499250206384872,
+      -8.627401131037411e-05,
+      0.0004144794866478563
+     ],
+     "along_err_m": -7.497936151279472e-05
+    }
+   ],
+   "base": {
+    "label": "P003_arrive0",
+    "file": "scans/P003_arrive0.npz",
+    "odom": [
+     5.0811395361412455,
+     0.5631820725059506,
+     0.14025688518435153
+    ],
+    "n_scans": 10,
+    "n_points": 257,
+    "moved_during_capture_m": 2.5310686536179753e-05,
+    "yaw_change_during_capture_deg": 0.001704302952637254,
+    "icp_prev": {
+     "pose": [
+      0.5526104868028108,
+      -0.0064560135814822036,
+      0.0009790361113890533
+     ],
+     "cost": 0.0015943117356721536,
+     "pairs": 98,
+     "inlier_frac": 0.38132295719844356,
+     "rmse_m": 0.011174915453153807,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9974612714102975,
+      0.07121103872682155
+     ],
+     "weak_ratio": 0.5797510283103465,
+     "usable": false,
+     "reason": "LOW_OVERLAP"
+    },
+    "step_along_odom_m": 0.549824815600672,
+    "chain_source": "odom",
+    "yaw_source": "chain",
+    "lat_source": "chain",
+    "line_pose": [
+     0.8499250206384872,
+     -8.627401131037411e-05,
+     0.0004144794866478563
+    ],
+    "along_err_m": -7.497936151279472e-05
+   },
+   "wall": {
+    "ok": false,
+    "sides": {
+     "left": {
+      "ok": false,
+      "reason": "SHORT_OR_NOISY",
+      "dir_rad": -0.005174969432206569,
+      "n": 49,
+      "extent_m": 4.645605587582747,
+      "rms_m": 0.007946428024958723,
+      "coverage": 0.3695652173913043,
+      "offset_m": 0.6298272898519335
+     },
+     "right": {
+      "ok": false,
+      "reason": "FEW_INLIERS",
+      "n": 28
+     }
+    }
+   },
+   "wall_vs_line_deg": null,
+   "wall_lat_m": null,
+   "wall_lats_m": null,
+   "angles": [
+    {
+     "label": "P003_m045_t1",
+     "file": "scans/P003_m045_t1.npz",
+     "odom": [
+      5.081049832328234,
+      0.5636369349793342,
+      -0.6530641174435567
+     ],
+     "n_scans": 10,
+     "n_points": 253,
+     "moved_during_capture_m": 2.5310686361554248e-05,
+     "yaw_change_during_capture_deg": -0.0006331530719130392,
+     "lidar_rel_deg": -45.02478417053194,
+     "lidar_err_deg": -0.02478417053193707,
+     "first_lidar_err_deg": 0.45864627917635414,
+     "trims": 1,
+     "lidar_tries": [
+      {
+       "file": "scans/P003_m045.npz",
+       "odom_rel_deg": -44.99739670311836,
+       "lidar_rel_deg": -44.565101646103315,
+       "xy_m": [
+        0.003296316850511633,
+        0.013376743037774922
+       ],
+       "usable": true,
+       "reason": "OK"
+      },
+      {
+       "file": "scans/P003_m045_t1.npz",
+       "odom_rel_deg": -45.453945249666035,
+       "lidar_rel_deg": -45.04853209581161,
+       "xy_m": [
+        0.0077859105298478315,
+        0.014558077923650202
+       ],
+       "usable": true,
+       "reason": "OK"
+      }
+     ],
+     "angle_deg": -45.0,
+     "order": 0,
+     "achieved_rel_deg": -45.43019732438636,
+     "rotate_final_err_deg": -0.031729582223220934
+    },
+    {
+     "label": "P003_p000",
+     "file": "scans/P003_p000.npz",
+     "odom": [
+      5.081321569481355,
+      0.5632469500806594,
+      0.1387133612201823
+     ],
+     "n_scans": 10,
+     "n_points": 258,
+     "moved_during_capture_m": 5.0621372459357304e-05,
+     "yaw_change_during_capture_deg": -0.00788410123856066,
+     "lidar_rel_deg": 0.03623941755534164,
+     "lidar_err_deg": 0.03623941755534164,
+     "first_lidar_err_deg": 0.03623941755534164,
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P003_p000.npz",
+       "odom_rel_deg": -0.08843740872419929,
+       "lidar_rel_deg": 0.012491492275670514,
+       "xy_m": [
+        0.004584512384924605,
+        -0.0005311471454289431
+       ],
+       "usable": true,
+       "reason": "OK"
+      }
+     ],
+     "angle_deg": 0.0,
+     "order": 1,
+     "achieved_rel_deg": -0.06468948344452818,
+     "rotate_final_err_deg": 0.06039038346686917
+    },
+    {
+     "label": "P003_p045_t1",
+     "file": "scans/P003_p045_t1.npz",
+     "odom": [
+      5.081199508352775,
+      0.5636589529989081,
+      0.9182802895035609
+     ],
+     "n_scans": 10,
+     "n_points": 274,
+     "moved_during_capture_m": 4.028053540048623e-09,
+     "yaw_change_during_capture_deg": 0.006855482932019646,
+     "lidar_rel_deg": 45.15457076838516,
+     "lidar_err_deg": 0.1545707683851624,
+     "first_lidar_err_deg": 0.497210417712964,
+     "trims": 1,
+     "lidar_tries": [
+      {
+       "file": "scans/P003_p045.npz",
+       "odom_rel_deg": 44.89271603393225,
+       "lidar_rel_deg": 45.47346249243329,
+       "xy_m": [
+        0.009330408715703864,
+        -0.01578947989863876
+       ],
+       "usable": true,
+       "reason": "OK"
+      },
+      {
+       "file": "scans/P003_p045_t1.npz",
+       "odom_rel_deg": 44.57745742989112,
+       "lidar_rel_deg": 45.13082284310549,
+       "xy_m": [
+        0.010551376160506705,
+        -0.01458388323187644
+       ],
+       "usable": true,
+       "reason": "OK"
+      }
+     ],
+     "angle_deg": 45.0,
+     "order": 2,
+     "achieved_rel_deg": 44.60120535517079,
+     "rotate_final_err_deg": 0.07360753082356775
+    }
+   ],
+   "base_after": {
+    "label": "P003_base_after_t2",
+    "file": "scans/P003_base_after_t2.npz",
+    "odom": [
+     5.081292729439706,
+     0.5632170703161089,
+     0.13614103100941932
+    ],
+    "n_scans": 10,
+    "n_points": 219,
+    "moved_during_capture_m": 0.0,
+    "yaw_change_during_capture_deg": -0.002745608933874282,
+    "lidar_rel_deg": 0.14735608154481053,
+    "lidar_err_deg": 0.14735608154481053,
+    "first_lidar_err_deg": 0.864044351727729,
+    "trims": 2,
+    "lidar_tries": [
+     {
+      "file": "scans/P003_base_after.npz",
+      "odom_rel_deg": 0.09450916995305308,
+      "lidar_rel_deg": 0.8402964264480578,
+      "xy_m": [
+       0.0049929981013870335,
+       -0.004626912293247176
+      ],
+      "usable": true,
+      "reason": "OK"
+     },
+     {
+      "file": "scans/P003_base_after_t1.npz",
+      "odom_rel_deg": -0.6997904073062511,
+      "lidar_rel_deg": -0.47556435348024406,
+      "xy_m": [
+       0.003787083669352728,
+       -0.0007387689547987169
+      ],
+      "usable": true,
+      "reason": "OK"
+     },
+     {
+      "file": "scans/P003_base_after_t2.npz",
+      "odom_rel_deg": -0.23582107331491525,
+      "lidar_rel_deg": 0.12360815626513942,
+      "xy_m": [
+       0.006584149979936236,
+       -0.0018040587073298536
+      ],
+      "usable": true,
+      "reason": "OK"
+     }
+    ]
+   },
+   "rot_scale_after": [
+    1.0005910953170563,
+    1.000056017199389
+   ]
+  },
+  {
+   "station_id": "P004",
+   "index": 3,
+   "nominal_s_m": 1.1,
+   "drive": {
+    "along_remaining_m": -0.00042078657448513246,
+    "lateral_m": 9.737344967263029e-05,
+    "reverse": false,
+    "final_yaw_err_rad": 0.0006334285119584671
+   },
+   "arrive": [
+    {
+     "label": "P004_arrive0",
+     "file": "scans/P004_arrive0.npz",
+     "odom": [
+      5.337591824751306,
+      0.5994689283851129,
+      0.13927602904721947
+     ],
+     "n_scans": 10,
+     "n_points": 266,
+     "moved_during_capture_m": 2.5310686159719216e-05,
+     "yaw_change_during_capture_deg": -0.0007628705289205982,
+     "icp_prev": {
+      "pose": [
+       0.2519666926797836,
+       -0.003300511355972535,
+       0.007932056878125593
+      ],
+      "cost": 0.0013283721098145556,
+      "pairs": 130,
+      "inlier_frac": 0.48872180451127817,
+      "rmse_m": 0.010132575498654647,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9433916579824468,
+       -0.3316808400392314
+      ],
+      "weak_ratio": 0.7018380130027225,
+      "usable": true,
+      "reason": "OK"
+     },
+     "step_along_odom_m": 0.25060453538829,
+     "step_along_lidar_m": 0.2519680390309094,
+     "chain_source": "lidar",
+     "yaw_source": "chain",
+     "lat_source": "chain",
+     "line_pose": [
+      1.1005295560267772,
+      -0.0032823500613360663,
+      0.00834653636477345
+     ],
+     "step_dir_odom_minus_lidar_deg": 0.7679810329504032,
+     "along_err_m": 0.0005295560267770671,
+     "move": {
+      "final_yaw_err_rad": 0.001171300260812469
+     }
+    },
+    {
+     "label": "P004_arrive1",
+     "file": "scans/P004_arrive1.npz",
+     "odom": [
+      5.337641958830469,
+      0.5994759437466602,
+      0.12968216648868047
+     ],
+     "n_scans": 10,
+     "n_points": 222,
+     "moved_during_capture_m": 2.5310686547469462e-05,
+     "yaw_change_during_capture_deg": -0.002949822997028402,
+     "icp_prev": {
+      "pose": [
+       0.2528229687963508,
+       -0.002676824392170217,
+       -0.012526417710613913
+      ],
+      "cost": 0.001364198827414629,
+      "pairs": 108,
+      "inlier_frac": 0.4864864864864865,
+      "rmse_m": 0.01285681102317465,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9644222187606417,
+       -0.2643667603175579
+      ],
+      "weak_ratio": 0.7117596291115376,
+      "usable": true,
+      "reason": "OK"
+     },
+     "step_along_odom_m": 0.25065351571341166,
+     "step_along_lidar_m": 0.25282405656848017,
+     "chain_source": "lidar",
+     "yaw_source": "chain",
+     "lat_source": "chain",
+     "line_pose": [
+      1.1005785363518987,
+      -0.002658308242231289,
+      -0.012111938223966057
+     ],
+     "along_err_m": 0.0005785363518986397,
+     "move": {
+      "final_yaw_err_rad": -0.0018674076276847806
+     }
+    },
+    {
+     "label": "P004_arrive2",
+     "file": "scans/P004_arrive2.npz",
+     "odom": [
+      5.337541744915721,
+      0.5994615503267905,
+      0.14371107971098418
+     ],
+     "n_scans": 10,
+     "n_points": 283,
+     "moved_during_capture_m": 2.1886515161225285e-09,
+     "yaw_change_during_capture_deg": -0.01241608092637468,
+     "icp_prev": {
+      "pose": [
+       0.2530422715142005,
+       -0.0026285452167847533,
+       0.011814705515307722
+      ],
+      "cost": 0.0013340031151569966,
+      "pairs": 141,
+      "inlier_frac": 0.49823321554770317,
+      "rmse_m": 0.01263870044194439,
+      "weak_axis": false,
+      "weak_dir": [
+       -0.9754444003337038,
+       -0.2202458214305577
+      ],
+      "weak_ratio": 0.7137108483018446,
+      "usable": true,
+      "reason": "OK"
+     },
+     "step_along_odom_m": 0.2505555581195105,
+     "step_along_lidar_m": 0.25304333925676525,
+     "chain_source": "lidar",
+     "yaw_source": "chain",
+     "lat_source": "chain",
+     "line_pose": [
+      1.1004805787579979,
+      -0.0026099381745175315,
+      0.012229185001955578
+     ],
+     "along_err_m": 0.00048057875799778493
+    }
+   ],
+   "base": {
+    "label": "P004_arrive2",
+    "file": "scans/P004_arrive2.npz",
+    "odom": [
+     5.337541744915721,
+     0.5994615503267905,
+     0.14371107971098418
+    ],
+    "n_scans": 10,
+    "n_points": 283,
+    "moved_during_capture_m": 2.1886515161225285e-09,
+    "yaw_change_during_capture_deg": -0.01241608092637468,
+    "icp_prev": {
+     "pose": [
+      0.2530422715142005,
+      -0.0026285452167847533,
+      0.011814705515307722
+     ],
+     "cost": 0.0013340031151569966,
+     "pairs": 141,
+     "inlier_frac": 0.49823321554770317,
+     "rmse_m": 0.01263870044194439,
+     "weak_axis": false,
+     "weak_dir": [
+      -0.9754444003337038,
+      -0.2202458214305577
+     ],
+     "weak_ratio": 0.7137108483018446,
+     "usable": true,
+     "reason": "OK"
+    },
+    "step_along_odom_m": 0.2505555581195105,
+    "step_along_lidar_m": 0.25304333925676525,
+    "chain_source": "lidar",
+    "yaw_source": "chain",
+    "lat_source": "chain",
+    "line_pose": [
+     1.1004805787579979,
+     -0.0026099381745175315,
+     0.012229185001955578
+    ],
+    "along_err_m": 0.00048057875799778493
+   },
+   "wall": {
+    "ok": false,
+    "sides": {
+     "left": {
+      "ok": false,
+      "reason": "SHORT_OR_NOISY",
+      "dir_rad": -0.02714927876188421,
+      "n": 48,
+      "extent_m": 4.19176187594816,
+      "rms_m": 0.008541103867291497,
+      "coverage": 0.36585365853658536,
+      "offset_m": 0.6288340786612386
+     },
+     "right": {
+      "ok": false,
+      "reason": "SHORT_OR_NOISY",
+      "dir_rad": -0.011530393363077663,
+      "n": 34,
+      "extent_m": 3.932064427099105,
+      "rms_m": 0.007826879788850745,
+      "coverage": 0.38461538461538464,
+      "offset_m": -1.0584282568125145
+     }
+    }
+   },
+   "wall_vs_line_deg": null,
+   "wall_lat_m": null,
+   "wall_lats_m": null,
+   "angles": [
+    {
+     "label": "P004_m045_t1",
+     "file": "scans/P004_m045_t1.npz",
+     "odom": [
+      5.338361556161559,
+      0.5992666588881279,
+      -0.6483915959470972
+     ],
+     "n_scans": 10,
+     "n_points": 265,
+     "moved_during_capture_m": 2.5310686363619704e-05,
+     "yaw_change_during_capture_deg": 0.0032820897393761577,
+     "lidar_rel_deg": -45.132275239304484,
+     "lidar_err_deg": -0.13227523930448162,
+     "first_lidar_err_deg": -0.5745018283059539,
+     "trims": 1,
+     "lidar_tries": [
+      {
+       "file": "scans/P004_m045.npz",
+       "odom_rel_deg": -45.79796053382117,
+       "lidar_rel_deg": -46.27518251580269,
+       "xy_m": [
+        0.007958465600686328,
+        0.013438895176739038
+       ],
+       "usable": true,
+       "reason": "OK"
+      },
+      {
+       "file": "scans/P004_m045_t1.npz",
+       "odom_rel_deg": -45.38414025622799,
+       "lidar_rel_deg": -45.83295592680122,
+       "xy_m": [
+        0.005460812917892463,
+        0.012932566842295197
+       ],
+       "usable": true,
+       "reason": "OK"
+      }
+     ],
+     "angle_deg": -45.0,
+     "order": 0,
+     "achieved_rel_deg": -44.68345956873125,
+     "rotate_final_err_deg": 0.09684297660633753
+    },
+    {
+     "label": "P004_p000_t1",
+     "file": "scans/P004_p000_t1.npz",
+     "odom": [
+      5.337682105374585,
+      0.5995064668174741,
+      0.1358394083211758
+     ],
+     "n_scans": 10,
+     "n_points": 257,
+     "moved_during_capture_m": 1.7139970275471924e-09,
+     "yaw_change_during_capture_deg": 0.0018263241291763782,
+     "lidar_rel_deg": -0.2783142514068765,
+     "lidar_err_deg": -0.2783142514068765,
+     "first_lidar_err_deg": -0.5385718184555869,
+     "trims": 1,
+     "lidar_tries": [
+      {
+       "file": "scans/P004_p000.npz",
+       "odom_rel_deg": -0.8026567550458392,
+       "lidar_rel_deg": -1.239252505952327,
+       "xy_m": [
+        0.0011815012552875337,
+        -0.0005447467388471387
+       ],
+       "usable": true,
+       "reason": "OK"
+      },
+      {
+       "file": "scans/P004_p000_t1.npz",
+       "odom_rel_deg": -0.45101354834989904,
+       "lidar_rel_deg": -0.9789949389036166,
+       "xy_m": [
+        0.003632357989828263,
+        0.00170666026332477
+       ],
+       "usable": true,
+       "reason": "OK"
+      }
+     ],
+     "angle_deg": 0.0,
+     "order": 1,
+     "achieved_rel_deg": 0.24966713914684097,
+     "rotate_final_err_deg": 0.09490357414369821
+    },
+    {
+     "label": "P004_p045",
+     "file": "scans/P004_p045.npz",
+     "odom": [
+      5.338236341190472,
+      0.5996039655171699,
+      0.9209128273969753
+     ],
+     "n_scans": 10,
+     "n_points": 195,
+     "moved_during_capture_m": 2.5310686293061656e-05,
+     "yaw_change_during_capture_deg": -0.010033391567402137,
+     "lidar_check": "UNUSABLE:LOW_OVERLAP",
+     "trims": 0,
+     "lidar_tries": [
+      {
+       "file": "scans/P004_p045.npz",
+       "odom_rel_deg": 44.53037997259879,
+       "lidar_rel_deg": 44.160101985471606,
+       "xy_m": [
+        0.01809792352576401,
+        -0.016629591017088614
+       ],
+       "usable": false,
+       "reason": "LOW_OVERLAP"
+      }
+     ],
+     "angle_deg": 45.0,
+     "order": 2,
+     "achieved_rel_deg": 45.23106066009553,
+     "rotate_final_err_deg": -0.24462514599064367
+    }
+   ],
+   "base_after": {
+    "label": "P004_base_after_t1",
+    "file": "scans/P004_base_after_t1.npz",
+    "odom": [
+     5.33767747084775,
+     0.5994791729250913,
+     0.13893767111770128
+    ],
+    "n_scans": 10,
+    "n_points": 272,
+    "moved_during_capture_m": 1.4547006341988692e-09,
+    "yaw_change_during_capture_deg": 0.0012356489947250586,
+    "lidar_rel_deg": -0.1585173378833044,
+    "lidar_err_deg": -0.1585173378833044,
+    "first_lidar_err_deg": -0.7435741947931117,
+    "trims": 1,
+    "lidar_tries": [
+     {
+      "file": "scans/P004_base_after.npz",
+      "odom_rel_deg": -0.7761926085055368,
+      "lidar_rel_deg": -1.4442548822898518,
+      "xy_m": [
+       -0.0016911293132303563,
+       -0.0029305557184783467
+      ],
+      "usable": true,
+      "reason": "OK"
+     },
+     {
+      "file": "scans/P004_base_after_t1.npz",
+      "odom_rel_deg": -0.27349616628658957,
+      "lidar_rel_deg": -0.8591980253800444,
+      "xy_m": [
+       -0.001938446286049813,
+       -0.002110244141516066
+      ],
+      "usable": true,
+      "reason": "OK"
+     }
+    ]
+   },
+   "rot_scale_after": [
+    1.0058042539391268,
+    1.0001930763911508
+   ]
+  }
+ ],
+ "resumes": [],
+ "origin_odom": [
+  4.211306340673204,
+  0.4408333775151489,
+  0.139757894910872
+ ],
+ "p001_wall_initial": {
+  "ok": false,
+  "sides": {
+   "left": {
+    "ok": false,
+    "reason": "SHORT_OR_NOISY",
+    "dir_rad": 0.0020575317121433426,
+    "n": 31,
+    "extent_m": 4.204524795245355,
+    "rms_m": 0.011711561264628405,
+    "coverage": 0.38095238095238093,
+    "offset_m": 0.6261010986728929
+   },
+   "right": {
+    "ok": false,
+    "reason": "SHORT_OR_NOISY",
+    "dir_rad": 0.004092967491076679,
+    "n": 31,
+    "extent_m": 5.612281979550765,
+    "rms_m": 0.011328650893486584,
+    "coverage": 0.3392857142857143,
+    "offset_m": -1.063228994307239
+   }
+  }
+ },
+ "line": {
+  "phi_rad": 0.0,
+  "source": "p001_heading",
+  "p001_wall": {
+   "ok": false,
+   "sides": {
+    "left": {
+     "ok": false,
+     "reason": "SHORT_OR_NOISY",
+     "dir_rad": 0.0020575317121433426,
+     "n": 31,
+     "extent_m": 4.204524795245355,
+     "rms_m": 0.011711561264628405,
+     "coverage": 0.38095238095238093,
+     "offset_m": 0.6261010986728929
+    },
+    "right": {
+     "ok": false,
+     "reason": "SHORT_OR_NOISY",
+     "dir_rad": 0.004092967491076679,
+     "n": 31,
+     "extent_m": 5.612281979550765,
+     "rms_m": 0.011328650893486584,
+     "coverage": 0.3392857142857143,
+     "offset_m": -1.063228994307239
+    }
+   }
+  },
+  "from_wall": false,
+  "ref_side": null,
+  "ref_dist_m": null,
+  "dists_m": {
+   "left": null,
+   "right": null
+  },
+  "cal_m": {
+   "left": [],
+   "right": []
+  }
+ },
+ "rot_adapt": [
+  [
+   "P003_m045_t1",
+   -44.997,
+   -44.565,
+   1.00276,
+   0.9981
+  ],
+  [
+   "P003_p000",
+   45.366,
+   45.061,
+   1.00276,
+   0.99475
+  ],
+  [
+   "P003_p045_t1",
+   44.981,
+   45.461,
+   1.00276,
+   1.00006
+  ],
+  [
+   "P003_base_after_t2",
+   -44.483,
+   -44.291,
+   1.00059,
+   1.00006
+  ],
+  [
+   "P004_m045_t1",
+   -45.798,
+   -46.275,
+   1.0058,
+   1.00006
+  ],
+  [
+   "P004_p000_t1",
+   44.581,
+   44.594,
+   1.0058,
+   1.00019
+  ]
+ ]
+}
