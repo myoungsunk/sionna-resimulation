@@ -1,0 +1,42 @@
+{
+ "config_sha256": "641d3b8ec5ce993817bb67238c8d4ff497e46e9b83eb6955c33dcc951d8faa9e",
+ "config": {
+  "mount_deg": 0.0,
+  "bins": 257,
+  "layout": "[pose_id, bin, rx(+45,-45), tx(+45,-45)]",
+  "report": {
+   "n_pose": 332,
+   "n_positions": 6,
+   "missing": [],
+   "unusable": [],
+   "complete": true
+  }
+ },
+ "inputs": [
+  {
+   "path": "/pilot/output/rf_poses.json",
+   "sha256": "f7c93997d1a64fa124014c28de53ad2f2473374dfcfce7b59b517808d2bdc07b",
+   "bytes": 47104
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/pilot/output/H_full.npy",
+   "sha256": "8b098418dd59dcec70bdda60016b4f55fe9da6c187e92fc85c1b0334ea2e2862",
+   "bytes": 5460864
+  }
+ ],
+ "timestamp_utc": "2026-11-13T07:09:23Z",
+ "command": [
+  "/ref/scripts/drive_sim/rf_b_apply.py",
+  "--poses",
+  "/pilot/output/rf_poses.json",
+  "--traces",
+  "/pilot/output/trace",
+  "--mount",
+  "0",
+  "--out",
+  "/pilot/output/H_full.npy"
+ ],
+ "elapsed_s": 5.2
+}

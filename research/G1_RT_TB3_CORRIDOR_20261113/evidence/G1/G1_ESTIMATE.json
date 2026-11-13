@@ -1,0 +1,95 @@
+{
+  "question_id": "G1-RT-TB3-001",
+  "gate": "G1",
+  "status": "PASS",
+  "execution_exit_code": 0,
+  "scope": {
+    "geometry": "G-T1",
+    "anchor": "A",
+    "stations": [
+      "P001",
+      "P002",
+      "P003"
+    ],
+    "sets": [
+      "P-A_TEACH",
+      "P-A_REPEAT"
+    ],
+    "positions": 6,
+    "poses": 332,
+    "observations": 338
+  },
+  "reference": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "g0_totals": {
+    "cases": 9,
+    "positions": 24876,
+    "poses": 52218
+  },
+  "verification": {
+    "input_hashes": 15,
+    "output_hashes": 19,
+    "pose_coordinates_match_g0": true,
+    "finite_arrays": true,
+    "all_los_path_counts_one": true
+  },
+  "measured": {
+    "trace_wall_s": 39.89498375100084,
+    "trace_first_s": 18.25,
+    "trace_later_s": [
+      3.81,
+      3.86,
+      3.8,
+      3.8,
+      3.81
+    ],
+    "trace_later_mean_s": 3.816,
+    "trace_npz_bytes": 896838,
+    "trace_receipt_bytes": 12990,
+    "trace_file_bytes": 909828,
+    "trace_allocated_bytes": 937984,
+    "apply_wall_s": 5.3149163860070985,
+    "los_wall_s": 208.5908605529985,
+    "full_output_allocated_bytes": 14962688,
+    "home_free_bytes": 1001916100608
+  },
+  "production_estimate": {
+    "trace_worker_hours_nominal": 26.36856,
+    "trace_hours_32_workers_nominal": 0.8240175,
+    "trace_hours_32_workers_stress_analogue": 1.8771446875,
+    "apply_serial_hours_linear": 0.23220741620190652,
+    "apply_serial_hours_block_c_reference": 0.3022338833461243,
+    "los_serial_hours_linear": 9.113284434702539,
+    "los_hours_3_concurrent_cases_linear": 3.0377614782341795,
+    "planning_hours": [
+      4,
+      6
+    ],
+    "planning_assumptions": [
+      "32 trace workers with one thread each",
+      "three concurrent LoS cases, each with one thread",
+      "apply scheduled separately",
+      "throughput extrapolated from 6 trace positions and 332 poses; parallel throughput unmeasured"
+    ],
+    "h_full_and_los_exact_bytes": 1717765632,
+    "los_paths_estimated_bytes": 448088635,
+    "trace_and_receipts_estimated_bytes": 3772146888,
+    "trace_and_receipts_stress_analogue_bytes": 4651040844,
+    "core_output_estimated_bytes": 5938001155,
+    "core_output_stress_analogue_bytes": 6816895111,
+    "suggested_working_space_gib": 10,
+    "exclusions": [
+      "G2-G6 gate calculations",
+      "unrequested sensitivity arm",
+      "input FFD files already on Snowball"
+    ]
+  },
+  "evidence": {
+    "pilot_manifest_sha256": "2509998f914323cb244e86539c665d46349e79e023410e004ff5dd65cb0f7583",
+    "launch_command_sha256": "684a10ec00b27f9f3a260e875e17aaecb63b6b7571a588aca2fb8bb9c1282624",
+    "log_sha256": "fa2ac88ded48854c29f1858f1ba306c16a374a034edc0bb4679c94ddcbd946f4"
+  },
+  "notes": [
+    "One pilot geometry and anchor; new geometry path complexity and parallel performance can vary.",
+    "G1 is a feasibility and sizing gate."
+  ]
+}

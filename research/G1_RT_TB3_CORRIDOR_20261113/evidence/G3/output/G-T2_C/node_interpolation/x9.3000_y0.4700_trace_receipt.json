@@ -1,0 +1,129 @@
+{
+ "tag": "x9.3000_y0.4700",
+ "x": 9.3,
+ "y": 0.47,
+ "status": "OK",
+ "flagged_bins": [],
+ "dropped_audit": [],
+ "max_dropped_rel_amp": 0.0,
+ "screen_exceeded": false,
+ "n_nodes": 17,
+ "n_paths": 59,
+ "complex_paths": [],
+ "unmatched_paths": 2,
+ "pathsolver_calls": 17,
+ "elapsed_s": 5.32,
+ "versions": {
+  "sionna-rt": "2.0.1",
+  "mitsuba": "3.8.0",
+  "drjit": "1.3.1"
+ },
+ "solver": {
+  "max_depth": 3,
+  "samples_per_src": 100000,
+  "max_num_paths_per_src": 1000000,
+  "synthetic_array": true,
+  "los": true,
+  "specular_reflection": true,
+  "refraction": true,
+  "diffraction": false,
+  "edge_diffraction": false,
+  "diffuse_reflection": false,
+  "seed": 20260924
+ },
+ "materials": [
+  {
+   "object": "floor",
+   "ply": "G-T2/floor.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "72cf3ec7fe3af0151642dc4fd6b35c048a5ab3f9f92d62229e2552ed4cce75ed"
+  },
+  {
+   "object": "ceiling",
+   "ply": "G-T2/ceiling.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "4a1ad4e0416e795e5196c20a76c1ebd49861ab1708fb0344661b392ecef03f00"
+  },
+  {
+   "object": "end_x_min",
+   "ply": "G-T2/end_x_min.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "f48d0f37e190e9e9f0626b229c2dc03b9f2ab86d49fc6f4d56ecf615452919a8"
+  },
+  {
+   "object": "end_x_max",
+   "ply": "G-T2/end_x_max.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "8a1d3602308657750f0f6cb1f3db7ce8a78e39a3c0b279f91d7dbfc64e590a90"
+  },
+  {
+   "object": "recess_1_wood",
+   "ply": "G-T2/recess_1_wood.ply",
+   "itu_type": "wood",
+   "thickness_m": 0.04,
+   "ply_sha256": "c81e9453b794f67b0378c5ab09e3f20e50007fb4a6fba57a6cdcf75d1c1bb184"
+  },
+  {
+   "object": "recess_1_floor",
+   "ply": "G-T2/recess_1_floor.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "dcd861828e04dcb5bb35557681eb9b85ca990a2aa52bf9553961ec0a6512d232"
+  },
+  {
+   "object": "recess_1_soffit",
+   "ply": "G-T2/recess_1_soffit.ply",
+   "itu_type": "wood",
+   "thickness_m": 0.04,
+   "ply_sha256": "4d30737543d652290ab443ccadd34139eabf4fd4747c19e1cadfb42441358ad2"
+  },
+  {
+   "object": "recess_2_wood",
+   "ply": "G-T2/recess_2_wood.ply",
+   "itu_type": "wood",
+   "thickness_m": 0.04,
+   "ply_sha256": "98c7ca321c209e84a44a289513c5114e04c621deb7b3839668b5d79050429772"
+  },
+  {
+   "object": "recess_2_floor",
+   "ply": "G-T2/recess_2_floor.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "a9c8ac4348a792f81a6ff209e5428e3fa8a26eb1086bda6c2d2f321d3e1215d1"
+  },
+  {
+   "object": "recess_2_soffit",
+   "ply": "G-T2/recess_2_soffit.ply",
+   "itu_type": "wood",
+   "thickness_m": 0.04,
+   "ply_sha256": "6df0f17193181881d41179d677b1720b8021344a8f4c0e09e20acd1ff2912d17"
+  },
+  {
+   "object": "wall_y_pos",
+   "ply": "G-T2/wall_y_pos.ply",
+   "itu_type": "plasterboard",
+   "thickness_m": 0.0125,
+   "ply_sha256": "f3dfcea1b1c1f2721be8c5d58824937cdef82c87a89ce3787079a58de7342f73"
+  },
+  {
+   "object": "wall_y_neg",
+   "ply": "G-T2/wall_y_neg.ply",
+   "itu_type": "plasterboard",
+   "thickness_m": 0.0125,
+   "ply_sha256": "694b2cee1854235451a7dc552c57f0d0c5403171015290852dfd92f9a96a9da2"
+  },
+  {
+   "object": "protrusion",
+   "ply": "G-T2/protrusion.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "3a06d7f184f6c610567d99a41bcc41697ec0815311d8bd2d43fd7290831c8220"
+  }
+ ],
+ "runner_sha256": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+ "command": "/ref/scripts/drive_sim/rf_b_trace.py --tasks /input/cases/G-T2_C.json --out /run-g3/output/G-T2_C/node_interpolation --nodes 17 --threads 1 --anchor-x 3.0 --shard 2/4"
+}

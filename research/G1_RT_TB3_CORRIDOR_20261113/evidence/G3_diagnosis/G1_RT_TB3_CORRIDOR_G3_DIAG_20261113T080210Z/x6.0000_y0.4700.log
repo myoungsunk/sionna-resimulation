@@ -1,0 +1,21 @@
+jit_kernel_write(): could not link cache file "/tmp/.drjit/6e364df62086a639bebe8ba2131e5b67.llvm.bin" into file system: File exists
+jit_kernel_write(): could not link cache file "/tmp/.drjit/2e8a4f029a43ba10c04fa9b65ae37da4.llvm.bin" into file system: File exists
+jit_kernel_write(): could not link cache file "/tmp/.drjit/fd1ff2faadd576198e3d3b5afb460602.llvm.bin" into file system: File exists
+jit_kernel_write(): could not link cache file "/tmp/.drjit/2840cf86b1da730de7bac393a5ebed03.llvm.bin" into file system: File exists
+jit_kernel_write(): could not link cache file "/tmp/.drjit/f54258cc91c0965869ce66240a98c606.llvm.bin" into file system: File exists
+Traceback (most recent call last):
+  File "/diag/diagnose_tb3_g3.py", line 156, in <module>
+    main()
+  File "/diag/diagnose_tb3_g3.py", line 123, in main
+    rows = solve_window(trace, setup, scene, rt.PathSolver(), cfg, freqs, define, bins)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/diag/diagnose_tb3_g3.py", line 37, in solve_window
+    path = solver(scene, **cfg)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/path_solver.py", line 222, in __call__
+    paths_buffer = self._image_method(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/diag/diagnose_tb3_g3.py", line 26, in wrapped
+    stages[label] = int(dr.count(buffer.valid))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: int() argument must be a string, a bytes-like object or a real number, not 'UInt'

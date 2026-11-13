@@ -1,0 +1,80 @@
+{
+ "tag": "x16.0000_y0.3000",
+ "x": 16.0,
+ "y": 0.29999999999999993,
+ "status": "OK",
+ "flagged_bins": [],
+ "dropped_audit": [],
+ "max_dropped_rel_amp": 0.0,
+ "screen_exceeded": false,
+ "n_nodes": 257,
+ "n_paths": 63,
+ "complex_paths": [],
+ "unmatched_paths": 0,
+ "pathsolver_calls": 257,
+ "elapsed_s": 74.85,
+ "versions": {
+  "sionna-rt": "2.0.1",
+  "mitsuba": "3.8.0",
+  "drjit": "1.3.1"
+ },
+ "solver": {
+  "max_depth": 3,
+  "samples_per_src": 100000,
+  "max_num_paths_per_src": 1000000,
+  "synthetic_array": true,
+  "los": true,
+  "specular_reflection": true,
+  "refraction": true,
+  "diffraction": false,
+  "edge_diffraction": false,
+  "diffuse_reflection": false,
+  "seed": 20260924
+ },
+ "materials": [
+  {
+   "object": "floor",
+   "ply": "G-V/floor.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+  },
+  {
+   "object": "ceiling",
+   "ply": "G-V/ceiling.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "f47aa3c166ab757ee94e23613c3e5e333e68eb06bcd63429309e6f3d4c72bf8b"
+  },
+  {
+   "object": "end_x_min",
+   "ply": "G-V/end_x_min.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+  },
+  {
+   "object": "end_x_max",
+   "ply": "G-V/end_x_max.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "df5191235bd4f91fa9b2314c8de0d60bed628f026d7e0102c45bc455f28ac3d2"
+  },
+  {
+   "object": "wall_y_neg",
+   "ply": "G-V/wall_y_neg.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "312bcf72cdb5e26762cadcce18094023aacc87602c349439dee5bb51f0f0d69e"
+  },
+  {
+   "object": "wall_y_pos",
+   "ply": "G-V/wall_y_pos.ply",
+   "itu_type": "concrete",
+   "thickness_m": 0.2,
+   "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+  }
+ ],
+ "runner_sha256": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+ "command": "/ref/scripts/drive_sim/rf_b_trace.py --tasks /input/cases/G-V_B.json --out /run-g3/output/G-V_B/bin_by_bin --nodes all --threads 1 --anchor-x 9.8 --shard 2/4"
+}

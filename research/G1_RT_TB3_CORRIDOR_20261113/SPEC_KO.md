@@ -77,7 +77,7 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 
 ### P-B: 직진 5.07 m (Q3 대조)
 
-- `corridor_5p07m` odom 궤적(scale 0.96756 보정, replay.json의 벽 기준 lateral 보정 적용)을 x0 = 6.0에서 시작해 0.02 m로 다시 샘플링한다.
+- `corridor_5p07m` odom 궤적(scale 0.96756 보정, replay.json의 벽 기준 lateral 보정 적용)을 x0 = 6.0에서 시작해 along 방향 0.02 m 간격으로 양 끝점을 포함해 다시 샘플링한다. replay의 벽 기준 측방 관측값을 각 체크포인트와 종점에서 적용하고, 체크포인트 사이에서는 odom 대비 측방 보정량을 선형 보간한다.
 
 ### P-C: 자연 회전 경로 (Q3, ASSUMED 파라미터)
 
@@ -85,11 +85,19 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 |---|---|---|
 | **C1 네모** | x ∈ [6.0, 12.0], y ∈ [y_lane − 0.80, y_lane]의 직사각형 1바퀴(반시계) | 모서리마다 제자리 90°, 4회 |
 | **C2 직선** | x ∈ [3.0, 17.0] 왕복(14 m × 2) | 끝에서 제자리 180°, 1회 |
-| **C3 지그재그** | x ∈ [4.0, 16.0], y = y_lane − 0.40 ± 0.30 삼각파, 반주기 1.0 m | 꼭짓점마다 호 회전(±31°), 11회 |
+| **C3 지그재그** | x ∈ [4.0, 16.0], 중심선 y = y_lane − 0.40, 진폭 0.30 m, 반주기 1.0 m. 꼭짓점 x = 4.5, 5.5, …, 15.5 m | 꼭짓점 12개를 반경 0.40 m 원호로 연결 |
 | **C4 ㄹ자** | x ∈ [6.0, 12.0] 직진 3줄, 줄 간격 0.40 m(y = y_lane, y_lane − 0.40, y_lane − 0.80) | 줄 끝마다 제자리 90° → 0.40 m 횡이동 → 제자리 90°, 2회 반복 |
 
-- 주행 pose는 0.02 m 간격, 회전 구간은 2.5° 간격이다. 제자리 회전과 호 회전을 구분해 기록한다.
-- 경로는 G0에서 벽 여유(TB3 waffle_pi 몸체 약 0.28 × 0.31 m 기준 ≥ 0.05 m)를 검사한다. G-V는 폭이 넓어 같은 경로를 그대로 쓴다.
+- C3는 중심선에서 출발·도착한다. 출발 전 0° → +30.96°, 도착 후 +atan(0.6) → 0°로 제자리 회전한다. 각 꼭짓점의 원호 회전량은 약 61.93°이고 0.08 m/s에서 각속도는 0.20 rad/s이다. 원호 접점까지의 직선 길이는 0.24 m이며, 원호 사이에 직선 구간을 유지한다.
+- 주행과 제자리 회전은 각각 0.02 m, 2.5° 이하의 간격으로 양 끝점을 포함한다. C3 원호는 두 간격을 모두 충족한다. 제자리 회전과 호 회전을 구분해 기록한다.
+- G0에서 회전한 TB3 몸체 직사각형(길이 0.281 m × 폭 0.306 m)과 벽·돌출물의 최소 여유가 0.05 m 이상인지 검사한다. G-V는 동일한 경로 정의를 해당 형상의 lane에 적용한다.
+
+### RF pose와 관측 순서
+
+- 형상 × anchor별 RF pose 표에 모든 pose 집합을 합친다. XY 유클리드 거리 ≤ 1e-6 m, 원형 yaw 차이 ≤ 1e-6°를 동시에 만족할 때 같은 물리적 pose로 본다. 최초 좌표를 반올림 없이 보존하고 RF는 pose_id당 한 번 계산한다. TEACH의 achieved_rel_deg를 격자각에 맞추지 않는다.
+- 관측 순서 표는 관측마다 한 행을 유지한다. 열은 set, station_id, sequence_index, protocol (tb3_5pt, dense49, base, base_after, transit, route), planned_rel_deg, achieved_rel_deg, pose_id를 포함한다. TEACH는 기록 순서를 유지한다. REPEAT base는 마지막 정렬의 `observed_correction`을 TEACH `line_pose`에 합성한다. 각 sweep 관측 yaw는 해당 TEACH 목표 자세에 REPEAT ICP yaw 잔차를 더한다. 회전 중심은 station base XY로 고정한다. REPEAT 재시도 순서를 유지하고 목표각별 최종 관측을 표시한다. 조밀 격자는 별도 모의 sweep 순서를 갖는다.
+- 같은 pose_id를 참조하는 관측은 clean H를 공유한다. G1-MODEL-002에서 관측 행의 sequence_index를 포함한 seed로 열잡음을 따로 샘플링한다. 같은 pose의 반복 관측은 독립 공간 표본 수를 늘리지 않는다.
+- G0는 RF pose 표의 중복 0건, 관측 행의 pose_id 참조 무결성, set·station 내 sequence_index의 엄격 증가를 확인한다.
 
 ### 규모 (형상 1개, anchor 1개)
 
@@ -110,8 +118,8 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 
 | 단계 | 스크립트 | 설정 |
 |---|---|---|
-| 형상 | 신규 `scripts/drive_sim/build_tb3_scene.py` | §1. `CorridorSetup` 확장(오목부·돌출물 객체) |
-| Pose | 신규 `scripts/drive_sim/build_tb3_poses.py` | §3. 출력은 BLOCK_C와 같은 필드의 `rf_poses_<set>.json`, `rf_tasks_<set>.json`, `SAMPLES.json` + `TIMELINE.csv` |
+| 형상 | 신규 `scripts/drive_sim/build_tb3_scene.py` | §1. `CorridorSetup`의 좌표와 PLY 형식을 따르는 mesh 및 재질 manifest 생성. Sionna 연결은 G1 pilot에서 확인 |
+| Pose | 신규 `scripts/drive_sim/build_tb3_poses.py` | §3. 형상 × anchor별로 BLOCK_C 필드의 `rf_poses.json`, `rf_tasks.json`, 관측 `SAMPLES.json` + `TIMELINE.csv` |
 | Trace | `scripts/drive_sim/rf_b_trace.py` | Sionna RT 2.0.1, mitsuba 3.8.0, drjit 1.3.1. 생산은 17 node, parity는 bin-by-bin |
 | Apply | `scripts/drive_sim/rf_b_apply.py` | mount 0. 257 bins, 6.2504–6.7496 GHz |
 | LoS | 같은 trace, max_depth 0 | BLOCK_C `H_LoS_*`와 동일 방식 |
@@ -126,9 +134,9 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 
 ```text
 scene/<geom>/*.ply, SCENE_MANIFEST.json
-poses/<set>/rf_poses.json, SAMPLES.json, TIMELINE.csv (along, cum_abs_dtheta, pose 유형, station_id)
-H/<geom>_<anchor>_<set>/H_full.npy, H_LoS.npy  (pose, 257, rx(+45,-45), tx(+45,-45)), MANIFEST.json
-paths/<geom>_<anchor>_<set>/PATHS_LoS.npz, path 요약
+poses/<geom>_<anchor>/rf_poses.json, rf_tasks.json, SAMPLES.json, TIMELINE.csv
+H/<geom>_<anchor>/H_full.npy, H_LoS.npy  (pose, 257, rx(+45,-45), tx(+45,-45)), MANIFEST.json
+paths/<geom>_<anchor>/PATHS_LoS.npz, 집합별 path 요약
 gates/G0…G6.json
 CASES.json   (BLOCK_C 형식 + 혼동 방지용 los_H_sha256, full_H_sha256 필드)
 RUN_MANIFEST.json
@@ -138,7 +146,7 @@ RUN_MANIFEST.json
 
 | Gate | 내용 | 기준 |
 |---|---|---|
-| G0 | 형상·pose 검사: 벽 여유, anchor 여유, pose 중복, yaw 단위 | 위반 0건 |
+| G0 | 형상·pose 검사: 회전한 몸체와 벽·돌출물의 여유, anchor 여유, RF pose 중복, 관측 참조·순서, yaw 단위 | 위반 0건 |
 | G1 | Pilot: G-T1 × A × P-A 앞 3 station. 시간·저장량 측정, 전체 일정 확정 | 기록 |
 | G2 | **회귀**: BLOCK_C R2_aA_m0의 pose 50개를 BLOCK_C 형상에서 새 파이프라인으로 재계산해 기존 H와 비교 | 최대 상대 오차 < 1e-6. 실패 시 전체 중단 |
 | G3 | bin-by-bin vs 17 node parity(기존 `parity_gate.py`) | 기존 임계값 |
@@ -167,3 +175,4 @@ RUN_MANIFEST.json
 |---|---|---|
 | 2026-11-13 | 초판(SPEC_DRAFT, MISSING 항목 포함) | Claude |
 | 2026-11-13 | 사용자 결정 반영: 환경·anchor·tag 위치는 실측과 같을 필요 없음 → 모든 MISSING을 ASSUMED 고정값으로 확정, P-C 경로 파라미터 정의, anchor 좌표 확정, G5를 형상 구성 검사로 변경, 상태 SPEC_FINAL | Claude |
+| 2026-11-13 | 사용자 결정 반영: C3 꼭짓점 12개와 반경 0.40 m 고정, RF pose 표와 관측 순서 표 분리 및 G0 검사 명시 | Codex |

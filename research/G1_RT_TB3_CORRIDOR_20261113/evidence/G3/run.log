@@ -1,0 +1,88 @@
+72 shards on up to 36 workers; cases: {'G-T1_A': {'trace_positions': 21, 'poses': 562}, 'G-T1_B': {'trace_positions': 21, 'poses': 562}, 'G-T1_C': {'trace_positions': 20, 'poses': 561}, 'G-T2_A': {'trace_positions': 24, 'poses': 566}, 'G-T2_B': {'trace_positions': 24, 'poses': 566}, 'G-T2_C': {'trace_positions': 23, 'poses': 565}, 'G-V_A': {'trace_positions': 21, 'poses': 562}, 'G-V_B': {'trace_positions': 21, 'poses': 562}, 'G-V_C': {'trace_positions': 20, 'poses': 561}}
+G-V_C bin_by_bin shard 0/4 exit 0
+G-V_C bin_by_bin shard 1/4 exit 0
+G-V_A bin_by_bin shard 3/4 exit 0
+G-V_C bin_by_bin shard 2/4 exit 0
+G-V_C bin_by_bin shard 3/4 exit 0
+G-T1_C bin_by_bin shard 0/4 exit 0
+G-T1_A bin_by_bin shard 2/4 exit 0
+G-T1_B bin_by_bin shard 1/4 exit 0
+G-T1_C bin_by_bin shard 2/4 exit 0
+G-V_B bin_by_bin shard 2/4 exit 0
+G-T1_B bin_by_bin shard 3/4 exit 0
+G-V_B bin_by_bin shard 1/4 exit 0
+G-V_B bin_by_bin shard 3/4 exit 0
+G-T1_A bin_by_bin shard 3/4 exit 0
+G-T2_C bin_by_bin shard 3/4 exit 0
+G-V_A bin_by_bin shard 2/4 exit 0
+G-T1_A bin_by_bin shard 1/4 exit 0
+G-T1_C bin_by_bin shard 3/4 exit 0
+G-V_A bin_by_bin shard 1/4 exit 0
+G-T1_C bin_by_bin shard 1/4 exit 0
+G-T1_B bin_by_bin shard 2/4 exit 0
+G-T1_A node_interpolation shard 1/4 exit 0
+G-T1_A node_interpolation shard 2/4 exit 0
+G-T1_A node_interpolation shard 3/4 exit 0
+G-T1_B node_interpolation shard 1/4 exit 0
+G-T1_A node_interpolation shard 0/4 exit 0
+G-T1_C node_interpolation shard 1/4 exit 0
+G-T1_B node_interpolation shard 2/4 exit 0
+G-T1_C node_interpolation shard 0/4 exit 0
+G-T1_B node_interpolation shard 3/4 exit 0
+G-T1_C node_interpolation shard 3/4 exit 0
+G-T1_C node_interpolation shard 2/4 exit 0
+G-T1_B node_interpolation shard 0/4 exit 0
+G-T2_A node_interpolation shard 1/4 exit 0
+G-T2_A node_interpolation shard 0/4 exit 0
+G-T2_A node_interpolation shard 3/4 exit 0
+G-T2_A node_interpolation shard 2/4 exit 0
+G-T2_B node_interpolation shard 0/4 exit 0
+G-T2_C node_interpolation shard 0/4 exit 0
+G-T2_C node_interpolation shard 3/4 exit 0
+G-T2_B node_interpolation shard 3/4 exit 0
+G-T2_C node_interpolation shard 1/4 exit 0
+G-T2_B node_interpolation shard 1/4 exit 0
+G-T2_B node_interpolation shard 2/4 exit 0
+G-V_A node_interpolation shard 1/4 exit 0
+G-T2_C node_interpolation shard 2/4 exit 0
+G-V_A node_interpolation shard 2/4 exit 0
+G-V_B node_interpolation shard 1/4 exit 0
+G-V_A node_interpolation shard 0/4 exit 0
+G-V_A node_interpolation shard 3/4 exit 0
+G-V_B node_interpolation shard 3/4 exit 0
+G-V_B node_interpolation shard 2/4 exit 0
+G-V_C node_interpolation shard 0/4 exit 0
+G-V_B node_interpolation shard 0/4 exit 0
+G-V_C node_interpolation shard 1/4 exit 0
+G-V_C node_interpolation shard 2/4 exit 0
+G-V_C node_interpolation shard 3/4 exit 0
+G-V_B bin_by_bin shard 0/4 exit 0
+G-T1_A bin_by_bin shard 0/4 exit 0
+G-V_A bin_by_bin shard 0/4 exit 0
+G-T2_C bin_by_bin shard 2/4 exit 0
+G-T2_C bin_by_bin shard 1/4 exit 0
+G-T1_B bin_by_bin shard 0/4 exit 0
+G-T2_C bin_by_bin shard 0/4 exit 0
+G-T2_A bin_by_bin shard 0/4 exit 0
+G-T2_A bin_by_bin shard 1/4 exit 0
+G-T2_A bin_by_bin shard 3/4 exit 0
+G-T2_A bin_by_bin shard 2/4 exit 0
+G-T2_B bin_by_bin shard 0/4 exit 0
+G-T2_B bin_by_bin shard 1/4 exit 0
+G-T2_B bin_by_bin shard 3/4 exit 0
+G-T2_B bin_by_bin shard 2/4 exit 0
+Traceback (most recent call last):
+  File "/input/run_tb3_g3.py", line 294, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/input/run_tb3_g3.py", line 279, in main
+    result = evaluate(config)
+             ^^^^^^^^^^^^^^^^
+  File "/input/run_tb3_g3.py", line 171, in evaluate
+    import parity_gate as parity
+  File "/input/parity_gate.py", line 18, in <module>
+    ROOT = Path(__file__).resolve().parents[2]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^
+  File "/opt/rt-env/lib/python3.11/pathlib.py", line 445, in __getitem__
+    raise IndexError(idx)
+IndexError: 2
