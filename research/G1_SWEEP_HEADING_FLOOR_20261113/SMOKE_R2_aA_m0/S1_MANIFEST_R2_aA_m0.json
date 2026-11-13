@@ -1,0 +1,135 @@
+{
+ "spec": "G1-FLOOR-001",
+ "step": "S1-0..S1-2 reference",
+ "case": "R2_aA_m0",
+ "parity": {
+  "median_abs": 0.0034627350257888656,
+  "p90_abs": 0.018161549496973232,
+  "n": 1303,
+  "pass": true
+ },
+ "inventory": {
+  "case": "R2_aA_m0",
+  "n_pose": 1303,
+  "n_groups": 21,
+  "group_sizes": [
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19,
+   19
+  ],
+  "group_span_deg": [
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0,
+   90.0
+  ]
+ },
+ "inputs": {
+  "/tmp/bcdir/FULL_RF/H_R2_aA_m0.npy": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+  "/tmp/bcdir/H_LoS_R2_aA_m0.npy": "159da2d5234a5de84e4b011ec44b113bf5f2991b3d6021466f7a161334cfb9ce",
+  "/tmp/bcdir/R2_aA_m0/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+  "/tmp/bc/freqs.npy": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+  "/tmp/bc/lut.npy": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079"
+ },
+ "src_files": {
+  "/tmp/src/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+  "/tmp/src/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6"
+ },
+ "outputs": {
+  "/tmp/s1out/S1_SWEEP_ERRORS_R2_aA_m0.csv": "d76bfeb1416dde405efb686420de3330fad182cf83178cf197b444bdfbe36f3d"
+ },
+ "args": {
+  "case": "R2_aA_m0",
+  "block_c": "/tmp/bcdir",
+  "freqs": "/tmp/bc/freqs.npy",
+  "lut": "/tmp/bc/lut.npy",
+  "src": "/tmp/src/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src",
+  "out": "/tmp/s1out",
+  "snr_db": 30.0,
+  "seeds": [
+   0,
+   1
+  ],
+  "prior_sigma": [
+   2.0,
+   5.0
+  ],
+  "windows": [
+   180.0,
+   30.0,
+   10.0
+  ],
+  "imu_k": [
+   0.0,
+   0.0085
+  ],
+  "spans": [
+   90.0,
+   40.0
+  ]
+ },
+ "command": [
+  "/home/claude/sionna-resimulation/research/G1_SWEEP_HEADING_FLOOR_20261113/step1_reference.py",
+  "--case",
+  "R2_aA_m0",
+  "--block-c",
+  "/tmp/bcdir",
+  "--freqs",
+  "/tmp/bc/freqs.npy",
+  "--lut",
+  "/tmp/bc/lut.npy",
+  "--src",
+  "/tmp/src/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src",
+  "--out",
+  "/tmp/s1out",
+  "--snr-db",
+  "30",
+  "--seeds",
+  "0",
+  "1"
+ ],
+ "timestamp_utc": "2026-11-13T04:45:20.884907+00:00",
+ "note": "SMOKE ONLY: one case, XY-T, N30 seeds 0-1. Paths are the executor sandbox (/tmp); input SHA256 values are authoritative. Not a Step 1 result.",
+ "derived": {
+  "SMOKE_SUMMARY.csv": "ae67406f3a36d483ca54027bb41278a2cd8595afe577c050e4b9eeeb4be92a78"
+ },
+ "source_commits": {
+  "rt": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "lut_and_src": "f9a7691c14a0c1750790a998de7a91c5d9eb918b"
+ }
+}
