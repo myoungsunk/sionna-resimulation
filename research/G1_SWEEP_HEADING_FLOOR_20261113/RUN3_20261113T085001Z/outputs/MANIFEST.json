@@ -1,0 +1,374 @@
+{
+  "question_id": "G1-MODEL-001",
+  "role": "IMPLEMENTER",
+  "repository": "myoungsunk/sionna-resimulation",
+  "branch": "research/g1-sweep-heading-floor-spec-20261113",
+  "spec_commit": "cb5496afeebe8f48ffebc2d541a3af0733ca0d42",
+  "spec_git_blob": "16abddc79b2bd512118aa82b9308861a5cfe1852",
+  "inherited_run2_commit": "cd6290ca44ab16c966ce2a8551cfa71a6684cb4d",
+  "code_provenance": "RUN2 pinned source hashes plus local v3.3 execution additions",
+  "research_governance_sha256": {
+    "common": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "implementer": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "captured_utc": "2026-11-13T09:07:06.974055+00:00",
+  "stages": {
+    "verify": {
+      "started_utc": "2026-11-13T08:53:13Z",
+      "finished_utc": "2026-11-13T08:53:14Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-v33-20261113T085001Z-verify --rm --pull=never --network none --cpus 12 --user 1001:1001 --workdir /run/code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN3_20261113T085001Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f -c from\\ pathlib\\ import\\ Path\\;\\ from\\ run_step1\\ import\\ verify\\;\\ import\\ platform\\,sys\\,numpy\\,scipy\\;\\ verify\\(Path\\(\\\"/inputs\\\"\\)\\,\\ Path\\(\\\"/run/code/INPUTS_CHECK_1ce68f3.json\\\"\\)\\)\\;\\ print\\(sys.version\\)\\;\\ print\\(numpy.__version__\\,scipy.__version__\\)\\;\\ print\\(platform.platform\\(\\)\\)\\;\\ print\\(\\\"Frozen\\ input\\ hashes\\ passed\\\"\\)"
+    },
+    "prep": {
+      "started_utc": "2026-11-13T08:53:14Z",
+      "finished_utc": "2026-11-13T08:58:49Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-v33-20261113T085001Z-prep --rm --pull=never --network none --cpus 12 --user 1001:1001 --workdir /run/code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN3_20261113T085001Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/code/v33_run.py prep --inputs /inputs --banks /banks --out /run/outputs --grid /run/grid --workers 12"
+    },
+    "bias": {
+      "started_utc": "2026-11-13T08:59:01Z",
+      "finished_utc": "2026-11-13T09:00:18Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-v33-20261113T085001Z-bias --rm --pull=never --network none --cpus 6 --user 1001:1001 --workdir /run/code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN3_20261113T085001Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/code/v33_bias.py --inputs /inputs --banks /banks --out /run/outputs --workers 6"
+    },
+    "e2e": {
+      "started_utc": "2026-11-13T08:58:49Z",
+      "finished_utc": "2026-11-13T09:05:39Z",
+      "exit_code": 5,
+      "command": "docker run --name g1-v33-20261113T085001Z-e2e --rm --pull=never --network none --cpus 12 --user 1001:1001 --workdir /run/code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN3_20261113T085001Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/code/v33_run.py e2e --inputs /inputs --banks /banks --out /run/outputs --grid /run/grid --workers 12"
+    },
+    "primary": null
+  },
+  "exit_code": 5,
+  "status": {
+    "question_id": "G1-MODEL-001",
+    "spec_commit": "cb5496afeebe8f48ffebc2d541a3af0733ca0d42",
+    "R0": {
+      "reused_from": "cd6290ca44ab16c966ce2a8551cfa71a6684cb4d",
+      "passed": true
+    },
+    "eligible_m1_mount0_cases": [
+      "R2_aA_m0",
+      "R2_aB_m0",
+      "R4_aA_m0",
+      "R4_aB_m0",
+      "R5_aA_m0",
+      "R5_aB_m0"
+    ],
+    "G_OBS_1_and_2": {
+      "R2_aA_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 7.335473837966065e-07,
+          "median_abs": 1.2738588617278168e-07,
+          "n": 1303,
+          "n_expected": 1303
+        },
+        "M0": {
+          "passed": true,
+          "p90_abs": 0.018161549496973232,
+          "median_abs": 0.0034627350257888656
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04577000000000453,
+          "p95_deg": 0.10216900000000351,
+          "bad5": 0.0,
+          "n": 420,
+          "n_expected": 420,
+          "n_station": 21,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      },
+      "R2_aB_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 6.799102247212471e-07,
+          "median_abs": 1.3570773116367008e-07,
+          "n": 1303,
+          "n_expected": 1303
+        },
+        "M0": {
+          "passed": false,
+          "p90_abs": 0.020917558609143662,
+          "median_abs": 0.003991027156005522
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04577000000000453,
+          "p95_deg": 0.1478309999999965,
+          "bad5": 0.0,
+          "n": 420,
+          "n_expected": 420,
+          "n_station": 21,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      },
+      "R4_aA_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 1.1251068048556688e-06,
+          "median_abs": 3.6991246123857513e-07,
+          "n": 922,
+          "n_expected": 922
+        },
+        "M0": {
+          "passed": true,
+          "p90_abs": 0.014625952319372398,
+          "median_abs": 0.002817086054673845
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04063200000001643,
+          "p95_deg": 0.10513800000001083,
+          "bad5": 0.0,
+          "n": 200,
+          "n_expected": 200,
+          "n_station": 10,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      },
+      "R4_aB_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 1.0301841476920148e-06,
+          "median_abs": 3.6562140492968354e-07,
+          "n": 922,
+          "n_expected": 922
+        },
+        "M0": {
+          "passed": true,
+          "p90_abs": 0.015572770373523297,
+          "median_abs": 0.003586746291836085
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04063200000001643,
+          "p95_deg": 0.10513800000001083,
+          "bad5": 0.0,
+          "n": 200,
+          "n_expected": 200,
+          "n_station": 10,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      },
+      "R5_aA_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 7.178932573737029e-07,
+          "median_abs": 1.3155997635738714e-07,
+          "n": 1883,
+          "n_expected": 1883
+        },
+        "M0": {
+          "passed": true,
+          "p90_abs": 0.014339464572379244,
+          "median_abs": 0.0021615491333012438
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04577000000000453,
+          "p95_deg": 0.055137999999999465,
+          "bad5": 0.0,
+          "n": 600,
+          "n_expected": 600,
+          "n_station": 30,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      },
+      "R5_aB_m0": {
+        "G-OBS-1": {
+          "passed": true,
+          "p90_abs": 5.662707325937432e-07,
+          "median_abs": 1.4066139553126078e-07,
+          "n": 1883,
+          "n_expected": 1883
+        },
+        "M0": {
+          "passed": true,
+          "p90_abs": 0.01785442910184424,
+          "median_abs": 0.0024888138173443375
+        },
+        "G-OBS-2": {
+          "passed": true,
+          "median_deg": 0.04577000000000453,
+          "p95_deg": 0.055137999999999465,
+          "bad5": 0.0,
+          "n": 600,
+          "n_expected": 600,
+          "n_station": 30,
+          "seed_rule": "default_rng(seed).normal(0, 5), shared seed shift across stations"
+        }
+      }
+    },
+    "G_OBS_3": "NOT_APPLICABLE_M2_NOT_USED",
+    "G_SNAP": "PASS",
+    "G_E2E": "INCONCLUSIVE",
+    "step2_primary": "NOT_RUN",
+    "section_8_verdict": null,
+    "step3": "HELD"
+  },
+  "runtime": [
+    "3.11.15 | packaged by conda-forge | (main, Jun 11 2026, 03:34:02) [GCC 14.3.0]",
+    "2.4.6 1.17.1",
+    "Linux-4.18.0-553.134.1.el8_10.x86_64-x86_64-with-glibc2.28",
+    "Frozen input hashes passed"
+  ],
+  "input_sha256": {
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m0.npy": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m45.npy": "dd0264c1d004d78ff0f0d39f5f0c613b084ea89ad558ac448ecbfd0b3e177ea1",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aA_m0.npy": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aA_m0.npy": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy": "159da2d5234a5de84e4b011ec44b113bf5f2991b3d6021466f7a161334cfb9ce",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy": "c2b8e51ac2e2f55d1f557f2d45d58a3bed19ce8d435875a044f9c01fd1e8fe0a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy": "811bdfb1b152839f85c6378faafc0f94619601416084a0995f2d79caa997c467",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aA_m0.npy": "167852538d336a332a2b7c9d5702b26ab0df8f79bc66af3df2b16ddc2d8afec5",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy": "bebfb0a1e300a047a9ac52b21576a692c38cfa11ca9652b6fae1b53dc8d2ede2",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aA_m0.npy": "89d13cca088eef9806e0d085250aeb487d59340badd21bbc2ca30a7727d27ae4",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy": "eaf870120a16f14811198198046a6054037ebd5f44ec3a21e5800178cb951aad",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aA_m0/SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/freqs_hz.npy": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/INPUTS/hs_lut_2deg.npy": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/INPUTS/hs_lut_meta.json": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/__init__.py": "49f28fbbb78486ba843dcc1efe93088adb484252881f72e6cd010ff7f35594db",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/backend/__init__.py": "aede34ca84cfb6a20c3785f1389f1db0ea6b29ded5e2e0ddf4f15bb27cda74f2",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/calibration/__init__.py": "4f21e090199ee194addc69081b3b06b9a13109a215bb9eba96ceb8529f759f59",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/calibration/qclean.py": "c92fd4c096a8307cc120ec390b03098fa58e4a51e09e082f9fd422117f2241f3",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/data/__init__.py": "f3e150d64cab125605e29d7bfc60b259f6784fbef31a9b3314c52289968c0e2a",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/__init__.py": "bc585b2700651bf7ef3d6ec7fdc0d166aaba60e51d14e7227e344965971b79f5",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/analysis.py": "1ab7699e6795319f3c30a687df731ef066a0913e6a654d96ee394a47a9ebddda",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/config.py": "52571a40c6ad0d1bd80ac0a1b5ec091f535938ac40a775a52f216e3bceeae084",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/experiment.py": "28ec80b4c5d2aff049365f8dd8d3087b51dca3dc15fffcd9919591d589659ea9",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/filters.py": "b9adbfb5c5bcc3e0af1e4efe99b40f187f0f325258a6c8efb22701d85ac95d18",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/paths.py": "ecebab92b4d10fabaf3ae7f7d74a1c2f0f815e2a0d5426d8f897c4e10c85c778",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/rf_store.py": "f9c19d1025265c3a05b68ca528c215d7758ceb5c057e889399a29e6fa17c3a4b",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/routes.py": "a548ff6355f10dc428c4401e9cf59e5b60416de491cdd6d0812d191114681fc6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/sensors.py": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/steered_probe.py": "e4d00d609d56100987ac32d519588e97c908493855765aa0aa1f75cf4799c111",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/trajectory.py": "a1da56dc0292786373f897c98e269a02db13ece79e9533cbf4c4056e000c2bab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/__init__.py": "ea5398b264557aaddf98d2879bd4d131a0ebb36d543cc581cc919e7585cad093",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/angle_match.py": "a27dc969ae758296c6f038de65843abfd507ec5395bd7645afaf278095ab63e7",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/fp_power.py": "034b39c7dd2e50bf8d8fb5749ea77a38dabd0ebe0b3b7836e1c17e165b72783c",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/port_ratio.py": "dd890d765b889c352d7de00cd23eb7d7269b8ec41ec203b8885fc5e53c63a7d9",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/reflection_attribution.py": "fadc1f1eb3694c2139ec195929aef325bb21dab99c58712012da3669936d43b0",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/specular_model.py": "630824cc44eb3713a099312d99cc3ed006e50df9988e8034bd5e9f568c2cfa97",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/gating/__init__.py": "010c6bcbbe23ff9c510eae3e5cc0f97aa92e7538b1fb796dab889c04795ca6e6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/labels/__init__.py": "1b5475afe2bc23131bbe05e1604edebdf4bf9b5de1fb0f4c046d5894ef452374",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/labels/taxonomy.py": "eb0412ce1e57404a95ccf1330fb6d21514398675a28f282ad94bbb3fc8ff2ba3",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/models/__init__.py": "c2765f87d1a82770b67a8fec4370d528cb6c7126d482716fc972bda4078dcca4",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/__init__.py": "2a65662a6c51f1b16ae89de6af47b2637488c55c0b3311c01b7af860792dd883",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/checks.py": "a715c837621243a673c24ba470984e14f60ca9b68e9fe0df987baeecff52f860",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/claim_matrix.py": "27fa431fa781290898130e459724cade9a9ea13b28a53c2525f7001b463d075d",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/scenarios/__init__.py": "2c57f764aed02fac9648320a273d7fd1d1ccc6220d8e30c63967d99b1712c120",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/scenarios/corridor.py": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/utils/__init__.py": "6ecf55727856779dbfdb1dc01c9393c483ef43f90332c7a565f7feeb3f03b682",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/utils/experiment_registry.py": "f1f6eedf75925e42c0933e6a5133d7db127062e72a8ba1e90053893e068ce3b8",
+    "research/G1_SWEEP_HEADING_FLOOR_20261113/SPEC_KO.md": "a5268a2ec675e4b81b65ce6fa1496ca6115793a5d13401999075f37fa270b67e",
+    "research/G1_SWEEP_HEADING_FLOOR_20261113/step1_reference.py": "ebf474d0084a388acbb794f824a703f80d1fa6e3f45bfb632bdf6f7d9ca2474e",
+    "data/raw/tb3_motion_20261004_20261111/corridor_5p07m/receipt.json": "34a06dbf84d1a843fec559813dadb840c88cddbfc20491bdfe7aed0dec957e9e",
+    "data/raw/tb3_motion_20261004_20261111/corridor_5p07m/replay.json": "16bc3b08525683ba3c33ee5d8d1064bb6c169b8c7a802ead987fbee5e9d85352",
+    "data/raw/tb3_motion_20261004_20261111/trackA/teach/events.log": "12ee1f8fe65c0add652f66d1f9cb00908b406104027b13c63bbdf06d18e912e5",
+    "data/raw/tb3_motion_20261004_20261111/trackA/teach/teach.json": "029890d9172844e1ef469e134d85933e35d8bc4e7bd66ab1cdfc27eae5dbe0e3",
+    "data/raw/tb3_motion_20261004_20261111/SHA256SUMS.txt": "84a4fb3919137298274addbcea0fb0e18b6c8f3a59135924df2f764374c10d71",
+    "data/raw/tb3_motion_20261004_20261111/trackA/repeat_20261004_141119/events.log": "311a4c9d159064154f1dc35461d80881c4eacf6970f2e7e5d6d13eac05be0a5d",
+    "data/raw/tb3_motion_20261004_20261111/trackA/repeat_20261004_141119/repeat.json": "0bf2ba4ea102935b5ce8d9aac950166d11891850f9293184ffade6db948e3379",
+    "data/raw/tb3_imu_allan_20261113T022519Z/SHA256SUMS.txt": "1739420c0a2fac04d354d13ebe69872e9d469429ad207a83d4c9f66ecd558c14",
+    "data/raw/tb3_imu_allan_20261113T022519Z/allan_variance.csv": "a94d3788375cb242c9827375cf90d10bddc766dcd3cc92ac6d8e3320837e1cb4",
+    "data/raw/tb3_imu_allan_20261113T022519Z/imu_samples.csv.gz": "4d348f7c78acc9b1d649b5c1d4cbe7ce0b80a91e946fff557a439bfa9e2bd212",
+    "data/raw/tb3_imu_allan_20261113T022519Z/summary.json": "5a3069a667b8cacb8ba9af001cfe8b66908cbcb17e210847b0795ce904cef482"
+  },
+  "bank_sha256": {
+    "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "code_sha256": {
+    "INHERITED_SHA256.txt": "045cb8822c568c0ba80d8a86e8052c22615e5c5aac071438e5a3404da2b978be",
+    "INPUTS_CHECK_1ce68f3.json": "c9a8d4a9c5fcc922211ee2f4365eb5d97c45576207ab4247e02f29c0a4ad1c64",
+    "SPEC2_KO.md": "c9218a4484e4db3607e1c9814122ec0acb3a3992f6a72b383558c3f72bf7628d",
+    "bias.sh": "f16a89e77e7b2fe265a3755ff86c38fee5de03acbce9d0a976de98cd8838546e",
+    "launch.sh": "d4dd01d4b6f19a374772fdc9add158e6b342b659956fa185d2cf1169304099e3",
+    "reaggregate.py": "b9be63463ce4a64b2308cb824c433dd8acd2412705de1e98371cd6cb89bde4ca",
+    "run_step1.py": "dc94968ce4187eb8c451ef7e87669d37b59d5b9faf93f240d4dd7cbc6af46f62",
+    "run_step2.py": "287c0a655dae0f660854133697bac10825ea0fe832c8793dec801a83a80afe89",
+    "s1_analysis.py": "ef731cea0af12f409ccf962ee66b29d04a7905184cbdb246850fb0dec76c0edc",
+    "seal.py": "896e6c14c2a3f744507e4be41959523d7d6bea5a794de708ed7c1ecd7e417180",
+    "v32_filter.py": "8e96859156ffc110b02131619799d367a39f54f7e50c5a9b2998e9c6adb85b33",
+    "v32_observation.py": "592906c20bac232139776ce7ca706ff7017da6439ff932a86b98c5f58edbcd4d",
+    "v32_preflight.py": "4ceeadf71e2cd77127e7ed84bbf05563165ca56d0e030126d1dc28043c5b7270",
+    "v33_baseline.py": "a097dde87b1ab3322e96ae5627a2b38a5d7b54f4cc2387810c53798d2342b0ec",
+    "v33_bias.py": "987184429ffafe0f5fce59f05cffe5600e3b5037b5c5365acc4c435733c8a235",
+    "v33_equivalence.py": "5291e4691415e8173bcc21511f276e307b080c027cfa8cf008a69763eda337ad",
+    "v33_filter.py": "13b907a73367263c446c23578d83eb94e7b47dca736721c8b78999da70f6f701",
+    "v33_observation.py": "8848890ef3f8d4e02d000e0b04cc5610793fd2892f553c8012386e096a138f64",
+    "v33_run.py": "e4693af212422862b3ac944b24dfafb4d143a7d44ce1fa88757f57c76d37e65e",
+    "verify_local.py": "1efb02615b95d06e07a8b3552f8683a90bef4019c72a0c40e62a8c26943d6ef0"
+  },
+  "output_sha256": {
+    "outputs/BIAS_LAUNCH.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/COMMAND_bias.txt": "d6833b930b65ed79ccef06d25f09cc5aa8e9bd1ad98a7483576c389af55d332c",
+    "outputs/COMMAND_e2e.txt": "5e0eb5e40d2992d189cce5ce2778c4e87c2ba00b2a2763eca5b7ece3a616f90a",
+    "outputs/COMMAND_prep.txt": "29f381dcd7a5b79ccf3cdd82a46a7aa6d64e7edc3b44f249bd97960ed3afaa46",
+    "outputs/COMMAND_verify.txt": "5382c6f1dcca08c016a98e76ebb9a9c90ec6b93264e883e1f30555105ba1bf5a",
+    "outputs/EXIT_RUN.txt": "f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec582a06",
+    "outputs/EXIT_bias.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "outputs/EXIT_e2e.txt": "f0b5c2c2211c8d67ed15e75e656c7862d086e9245420892a7de62cd9ec582a06",
+    "outputs/EXIT_prep.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "outputs/EXIT_verify.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "outputs/FINISH_RUN_UTC.txt": "ea67e63146435c621d96d7be83743ea5e51412b0a052411a7b534fd4420f6442",
+    "outputs/FINISH_bias_UTC.txt": "c193ff2eb34c0c7f1fcdb8a601fd3dc7099a26a681aa7f1eb843b800fb922432",
+    "outputs/FINISH_e2e_UTC.txt": "ea67e63146435c621d96d7be83743ea5e51412b0a052411a7b534fd4420f6442",
+    "outputs/FINISH_prep_UTC.txt": "9d544630b24cc6f1e19d34a6489f8c84e05c7e936cf78950eb4ec0011c030119",
+    "outputs/FINISH_verify_UTC.txt": "d43f1d9dc3da837695a9d14c2e94f30b28ffe4fce559df5297ee8a1e89755e13",
+    "outputs/G_E2E_PILOT_CHECK.json": "8e78a3dc92036158c08fa3884df4685d7fc22c62b24e8610ddf6624621f4671b",
+    "outputs/INHERITED_CHECK.log": "48109d6b7dbffb6d8395217cd223ba74b2be7a498a218fbfd9d7ac9f99de3956",
+    "outputs/LAUNCH.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/LOCAL_CHECKS.json": "b2dfae9233b76d67e5718fdc6e5b82583f370c4b5a9a355d234ca91cf2fc659f",
+    "outputs/R0.json": "34716f5dd87687e49c2effd0c178cc25a4b3880cdeb8beba6525059894a3a7d2",
+    "outputs/REAGGREGATION.json": "11871ec67c8a7fe843858eb098edcbe1ee0f3f57964ecaa115707af3a6289e9b",
+    "outputs/REPORT_KO.md": "f33d207824a416210e5cda64fb79aa95970c576a9abe4229d757c58654311b10",
+    "outputs/S1P_BIAS_CHECK.json": "62ca3429bcc18c237a8ff323451356db3dc23d1d88c4cba8dfe8356ad28c7a41",
+    "outputs/S1P_ERR_MODEL_LORO.json": "f97b5ef5978917cfa1918307721596816fc0249202fddd71c4fc91b6cb45a18d",
+    "outputs/S1P_GATES.json": "5a80f086a134ca15f287a85b1da831681bf357aec09499030177db56dba4edda",
+    "outputs/S1P_G_E2E.json": "40c1e45345d8df770f154bdfccbb94cd6407948f64c87fc26925a4dd2a40fb14",
+    "outputs/S1P_G_E2E_PATHS.csv": "dfe6092b000a2bc8fe04a3a150f74540d169efb607a33bd8796988e6bedba0b8",
+    "outputs/S1P_J_SHA256.csv": "ca81df0bec5fe19e0cbce48500fdb288ce9c6c3e056011048d914684d852c250",
+    "outputs/S1P_OBS_PREFLIGHT.json": "868dd3e7267454481c89a45ca8b845f39359d24e72e44f10f49e4a5a56084538",
+    "outputs/S1P_R5_aA_m0_M1R_JOINT_INDEX.csv": "af511e44c5ec937b993bacdbcaac59c27bafb3ffef91a3ed87e848fb94be863e",
+    "outputs/S1P_SNAP.json": "5535b2933b24d42c0bc1f0d3e88332e30d77f244be1ce4f0b11d81b147a8cf5a",
+    "outputs/START_bias_UTC.txt": "ed45cc7f0264febb87b21d2095f37742bbd421a6a452054db21d6c942905e6aa",
+    "outputs/START_e2e_UTC.txt": "9d544630b24cc6f1e19d34a6489f8c84e05c7e936cf78950eb4ec0011c030119",
+    "outputs/START_prep_UTC.txt": "d43f1d9dc3da837695a9d14c2e94f30b28ffe4fce559df5297ee8a1e89755e13",
+    "outputs/START_verify_UTC.txt": "6681b6c5c3716dfe96f4de29674d3fb3308b0259d38c2d73761a2b0461dd401b",
+    "outputs/bias.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/e2e.log": "bcb8d1689a2003416da797bce51e37648c284e38604fcfea4914a5645ce0da8d",
+    "outputs/prep.log": "5b73cbe809e4e37f73639e22bc9f884b9f74c8e604966437f650af57ba393ffa",
+    "outputs/verify.log": "d00f4036e9318d1ce61af59d75df043af891080361d291b86532d395829b37e3"
+  },
+  "grid_files": {
+    "S1P_R5_aA_m0_M1R_JOINT_J.npy": {
+      "bytes": 584064128,
+      "sha256": "ce2dfcd37c28468b34df9d9f81e1696430f0ea30f3ecbd1cc4638692a594ff93"
+    },
+    "S1P_R5_aA_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 584064128,
+      "sha256": "2236e85fc0b17c5103f7bac22b0f92fe6c6be18008006748e99cd29298f64846"
+    },
+    "S1P_R5_aA_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 309946,
+      "sha256": "ae224c819add53dc6f377481d3ded9f2785d18a36e6387bdef09ce7b38762606"
+    }
+  }
+}

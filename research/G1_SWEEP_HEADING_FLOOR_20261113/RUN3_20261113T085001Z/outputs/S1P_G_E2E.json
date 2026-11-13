@@ -1,0 +1,219 @@
+{
+  "status": "INCONCLUSIVE",
+  "case": "R5_aA_m0",
+  "stations": 17,
+  "paths_per_model": 250,
+  "pilot_paths_per_model": 50,
+  "additional_paths_per_model": 200,
+  "bootstrap_replicates": 10000,
+  "bootstrap_seed": 2026111340,
+  "difference_direction": "snap - continuous",
+  "models": {
+    "independent": {
+      "status": "PASS",
+      "metrics": {
+        "coverage_1_to_17": {
+          "snap": 0.9774117647058823,
+          "continuous": 0.9771764705882352,
+          "difference": 0.00023529411764711128,
+          "ci95": [
+            -0.018833965611186224,
+            0.018833965611186224
+          ],
+          "margin": 0.02,
+          "ci_method": "sparse_clopper_pearson_disagreement_bound",
+          "status": "PASS",
+          "reason": null
+        },
+        "coverage_at_17": {
+          "snap": 0.996,
+          "continuous": 0.996,
+          "difference": 0.0,
+          "ci95": [
+            -0.017375382899879867,
+            0.017375382899879867
+          ],
+          "margin": 0.04,
+          "ci_method": "paired_bonferroni_clopper_pearson",
+          "status": "PASS",
+          "reason": null
+        },
+        "rmse_ratio_1_to_17": {
+          "snap": 0.5961026581839286,
+          "continuous": 0.5959199373891765,
+          "difference": 0.00018272079475212255,
+          "ci95": [
+            -0.0007200565383950419,
+            0.0010384802840417398
+          ],
+          "margin": 0.05,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "mean_nees_1_to_17": {
+          "snap": 0.7568558367644461,
+          "continuous": 0.7566395236251512,
+          "difference": 0.00021631313929493245,
+          "ci95": [
+            -0.0011810080176319986,
+            0.0015990360493097118
+          ],
+          "margin": 0.25,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "g1_rmse_1_to_17_deg": {
+          "snap": 2.840495353891292,
+          "continuous": 2.839624669016083,
+          "difference": 0.0008706848752089158,
+          "ci95": [
+            -0.0034034317429568637,
+            0.004985326834106784
+          ],
+          "margin": 0.15,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "gate_rejection_1_to_17": {
+          "snap": 0.0,
+          "continuous": 0.0,
+          "difference": 0.0,
+          "ci95": [
+            -0.0160235101176537,
+            0.0160235101176537
+          ],
+          "margin": 0.03,
+          "ci_method": "sparse_clopper_pearson_hoeffding_bound",
+          "status": "PASS",
+          "reason": null
+        }
+      },
+      "diagnostics": {
+        "coverage_discordant_paths": 1,
+        "gate_discordant_paths": 0,
+        "endpoint_snap_only": 0,
+        "endpoint_continuous_only": 0,
+        "gate_snap_eligible_expectation_lower": 0.9141061183306525
+      }
+    },
+    "markov": {
+      "status": "INCONCLUSIVE",
+      "metrics": {
+        "coverage_1_to_17": {
+          "snap": 0.9715294117647058,
+          "continuous": 0.9715294117647058,
+          "difference": 0.0,
+          "ci95": [
+            -0.02496768176927198,
+            0.02496768176927198
+          ],
+          "margin": 0.02,
+          "ci_method": "sparse_clopper_pearson_disagreement_bound",
+          "status": "INCONCLUSIVE",
+          "reason": "interval_crosses_margin"
+        },
+        "coverage_at_17": {
+          "snap": 0.996,
+          "continuous": 0.996,
+          "difference": 0.0,
+          "ci95": [
+            -0.017375382899879867,
+            0.017375382899879867
+          ],
+          "margin": 0.04,
+          "ci_method": "paired_bonferroni_clopper_pearson",
+          "status": "PASS",
+          "reason": null
+        },
+        "rmse_ratio_1_to_17": {
+          "snap": 0.6438375811746514,
+          "continuous": 0.6421517336726641,
+          "difference": 0.0016858475019873032,
+          "ci95": [
+            0.00012261344789140375,
+            0.0032558019268702303
+          ],
+          "margin": 0.05,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "mean_nees_1_to_17": {
+          "snap": 0.8005394940798661,
+          "continuous": 0.799712796493889,
+          "difference": 0.0008266975859770875,
+          "ci95": [
+            -0.0011958236492426223,
+            0.0027485038139635595
+          ],
+          "margin": 0.25,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "g1_rmse_1_to_17_deg": {
+          "snap": 3.06795756214011,
+          "continuous": 3.059924311606799,
+          "difference": 0.00803325053331072,
+          "ci95": [
+            0.0005847179207454701,
+            0.015584833177800716
+          ],
+          "margin": 0.15,
+          "ci_method": "paired_path_percentile_bootstrap",
+          "status": "PASS",
+          "reason": null
+        },
+        "gate_rejection_1_to_17": {
+          "snap": 0.0,
+          "continuous": 0.0,
+          "difference": 0.0,
+          "ci95": [
+            -0.0160235101176537,
+            0.0160235101176537
+          ],
+          "margin": 0.03,
+          "ci_method": "sparse_clopper_pearson_hoeffding_bound",
+          "status": "PASS",
+          "reason": null
+        }
+      },
+      "diagnostics": {
+        "coverage_discordant_paths": 2,
+        "gate_discordant_paths": 0,
+        "endpoint_snap_only": 0,
+        "endpoint_continuous_only": 0,
+        "gate_snap_eligible_expectation_lower": 0.9141061183306525
+      }
+    }
+  },
+  "rho": 0.5187741068843829,
+  "phase_sizes": [
+    50,
+    200
+  ],
+  "seeds": {
+    "calibration": 2026111336,
+    "xy": 2026111337,
+    "dr": 2026111338,
+    "rf": 2026111339,
+    "bootstrap": 2026111340
+  },
+  "snap_access": {
+    "requests": 8500,
+    "direct_requests": 242,
+    "direct_calculations": 234,
+    "direct_cache_bytes": 2695680,
+    "unique_nodes_accessed": 7106
+  },
+  "continuous_access": {
+    "requests": 8500,
+    "direct_requests": 8500,
+    "direct_calculations": 8203,
+    "direct_cache_bytes": 94498560,
+    "unique_nodes_accessed": 0
+  }
+}
