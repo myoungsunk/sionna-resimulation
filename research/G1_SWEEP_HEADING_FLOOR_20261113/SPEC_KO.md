@@ -1,6 +1,6 @@
 # G1-FLOOR-001 — 편파 sweep 절대 heading floor와 TB3 DR 대비 반해석 판정 (Step 1–2) 계산 사양서
 
-- 작성: 2026-11-13 KST. 상태: **SPEC_READY / SMOKE_ONE_CASE_DONE / FULL_STEP1_NOT_RUN / STEP2_NOT_RUN / scientific_PASS=false**
+- 작성 및 설계 변경일은 2026-11-13 KST다. 이 문서에는 사전 확정한 계산 규칙과 초판의 단일 case smoke를 기록한다.
 - 이 문서는 계산 사양이다. 아래 smoke 수치는 단일 case의 파이프라인 확인용이며 결과로 인용하지 않는다.
 - 실행자는 이 사양을 수정할 수 있다. 수정 시 §11 변경 기록에 날짜·이유·영향을 남기고, 사전등록 판정 규칙(§7)은 결과를 보기 전에만 바꾼다.
 
@@ -9,7 +9,7 @@
 **질문:** 회전이 많은 주행에서 Dual-LP 편파 sweep으로 얻는 절대 heading이 TB3 실측 DR(보정 포함)보다 **명확한 우위**를 보이는가?
 
 - Step 1: 기존 RT(7 case)의 station yaw sweep으로 **편파 sweep heading 오차의 분포, branch 실패율, 공간 상관**을 측정한다. LoS truth나 truth heading은 추정에 쓰지 않는다.
-- Step 2: Step 1 오차 모델과 TB3 실측 DR 오차 과정을 결합한 **station 단위 반해석 필터**로 heading 오차-station 곡선, 교차 station 수 N\*, integrity를 계산한다.
+- Step 2는 Step 1의 sweep 비용 곡선 J(ψ)과 TB3 실측 DR 오차 과정을 **station 단위 반해석 필터**로 결합한다. heading 오차, 교차 station 수 N\*, 필터 일관성을 계산한다.
 - **범위 밖:** 전체 6-state EKF, 새 RT 생성(Step 3), 실측 RF, multipath 완화 모델(Goal 2).
 - **주장 경계:** 7 case는 **하나의 복도 형상**이다. 결과는 `GENERALIZATION_NOT_PROVEN`. 같은 H를 seed만 바꿔 반복한 것은 독립 multipath 표본이 아니다.
 
@@ -69,7 +69,8 @@ git archive origin/codex/a23-results-20261010 results/DRIVE_SIM_20261007/CAUSE_C
 - 1,303 pose, 고유 XY 925개. **같은 XY 그룹(≥3 pose) 21개 = station yaw sweep.**
 - 그룹당 19 yaw, 5° 간격, span 90°. pose 순서는 nominal에서 한쪽으로 10개, 반대쪽으로 9개(두 반쪽 sweep).
 - Station 간격은 복도 방향 약 2 m, lane 2개(y ≈ +0.4, −0.5 m). **TB3 trackA의 0.45 m 간격과 ±60°(120°) span은 이 데이터에 없다.** → §8 RT_MISSING.
-- sweep 사이의 주행 pose는 약 0.04 m 간격이다. §4.4의 공간 상관 계산에 사용한다.
+- R4는 anchor당 23개 station 중 10개가 19점·90°를 충족한다. 나머지 13개는 16점·71.4°다. 같은 lane에서 90° station이 연속한 구간은 최대 2개다.
+- sweep 사이의 주행 pose는 약 0.04 m 간격이다. S1-4의 공간 상관 계산에 사용한다.
 
 ## 3. 관측과 잡음
 
@@ -89,18 +90,16 @@ case별로 SHA를 대조하고 다음을 기록한다: H shape, 그룹 수, 그�
 noise-free LoS H의 s와 `s_model(LUT)`을 전 pose에서 비교한다. **median |Δs| ≤ 0.005이고 p90 ≤ 0.02**이면 통과, 아니면 해당 case를 중단한다.
 (smoke R2_aA_m0: 0.0035 / 0.018, 통과)
 
-### S1-2 Sweep 절대 heading 역산 (non-oracle)
+### S1-2 Sweep 절대 heading 비용 곡선
 
-그룹마다 첫 pose의 절대 heading ψ0를 추정한다.
+그룹마다 첫 pose의 절대 heading ψ₀에 대한 비용을 계산한다.
 
-- 상대 yaw rel_i: 로봇이 믿는 sweep 상대각이다. 시뮬레이션은 참 상대각을 주므로, 이를 IMU 오차로 교란한다.
-  - `rel_bel = rel_true + k·|rel_true|`, k ∈ {0, 0.0085}. 0.0085는 TB3 trackA의 ~2.05°/station ÷ ~240° 회전에서 나온 값이다.
-- 비용 함수: J(ψ) = Σ_i (s_obs,i − s_model(x0, y0, ψ + rel_bel,i))². 0.25° 격자로 탐색한다.
-- Prior 중심 = ψ_true + e_prior, e_prior ~ N(0, σ_p²), σ_p ∈ {2°, 5°}. 탐색창 W ∈ {±180°(제약 없음), ±30°, ±10°}.
-  - ±10° 창에서는 |e_prior|가 크면 참값이 창 밖에 놓일 수 있다. 이 사례는 따로 집계한다.
-- 위치 arm: **XY-T**는 참 station XY(1차, 상한), **XY-P**는 XY에 N(0, 0.1²) m 교란(현실적인 위치 prior)이다.
-- Span arm: 전체 90°(19점)와 가운데 40°(약 9점). 기존 3점 probe(≈0/10/20°)는 비교 참조로만 둔다.
-- 기록: err = wrap(ψ̂0 − ψ0_true), J_min, margin(20° 이상 떨어진 두 번째 최소값과의 상대 차), n_valid, 수평거리, θ_geo.
+- 상대 yaw는 로봇이 믿는 sweep 상대각이다. `rel_bel = rel_true + k·|rel_true|`로 교란하며 k ∈ {0, 0.0085}다. 0.0085는 TB3 trackA의 ~2.05°/station ÷ ~240° 회전에 근거한다.
+- 비용 함수는 J(ψ) = Σᵢ (s_obs,ᵢ − s_model(x₀, y₀, ψ + rel_bel,ᵢ))²다. case·station·seed·arm마다 **[−180°, 180°)의 0.25° 격자 1,440점**에 J 전체를 저장한다. Step 2는 이 곡선에서 현재 창 안의 최솟값을 고른다.
+- **XY-P**는 x, y에 각각 독립 N(0, 0.1²) m 교란을 더하는 1차 위치 조건이다. **XY-T**는 참 station XY를 사용하는 민감도 조건이다.
+- 1차 span은 **19점·90°**를 모두 충족하는 station으로 제한한다. R4의 71.4° station은 가운데 40° 민감도에 포함한다. 3점 probe(≈0/10/20°)는 비교 참조로 둔다.
+- S1의 sweep 단독 오차 통계에는 독립 prior 중심 ψ_true + e_prior, e_prior ~ N(0, σ_p²), σ_p ∈ {2°, 5°}와 창 W ∈ {±180°, ±30°, ±10°}를 사용한다. 참값이 창 밖에 있는 비율을 따로 집계한다. 이 prior는 Step 2의 입력에서 제외한다.
+- 행 단위로 err = wrap(ψ̂₀ − ψ₀,true), J_min, margin(20° 이상 떨어진 두 번째 최소값과의 상대 차), n_valid, 수평거리, θ_geo, 실제 span, window miss를 기록한다.
 
 ### S1-3 통계
 
@@ -109,13 +108,15 @@ case × arm(잡음, span, k, σ_p, W, XY)마다 다음을 보고한다.
 - median |e|, RMS, P95, 평균 e(bias), bad5, bad10, **branch flip(|e|>45°)**
 - 수평거리 구간 [0,5), [5,10), [10,∞) m별
 - margin과 |e|의 관계: margin으로 실패를 미리 가를 수 있는지. 단 margin threshold는 train case에서만 정하고 leave-one-route-out으로 평가한다.
-- 불확도: **물리 station 단위 cluster bootstrap**(route×XY = 1 cluster, 1000회, seed 20261113)
+- case별로 19점·90°를 충족한 station 수와 parity 통과 여부를 보고한다.
+- 불확도는 **물리 station 단위 cluster bootstrap**으로 계산한다(route×XY = 1 cluster, 1000회, seed 20261113). 같은 station의 seed 반복은 동일 클러스터에 둔다.
 
 ### S1-4 공간 상관
 
 1. **Sweep 오차의 인접 상관:** 같은 lane에서 인접 station(약 2 m)의 e_k, e_{k+1}의 Pearson·Spearman 상관.
 2. **주행 pose의 multipath s 잔차:** δs = s_full − s_LoS(N0)를 복도 방향 lag에 따라 자기상관으로 계산한다(0.04 m 해상도). **lag 0.45 m와 2 m의 값을 보고**하고, 1/e 상관길이 ℓ을 구한다.
-3. **heading 등가 변환:** δψ_eq = δs / (∂s/∂ψ). ∂s/∂ψ는 `s_model(with_jac=True)`의 세 번째 성분이며, |∂s/∂ψ|가 작은 pose는 제외한다(기준은 실행 전에 기록). 이 값은 Step 2 AR(1)의 ρ(0.45 m) = exp(−0.45/ℓ) 근거로 쓴다.
+3. **Step 2의 Markov 재사용 확률**은 case별 주행 pose δs 자기상관의 0.45 m lag 값으로 정한다. 확률에는 [0, 1] 범위로 제한한 값을 쓰고, 원래 추정값도 함께 보고한다.
+4. **heading 등가 변환**은 δψ_eq = δs / (∂s/∂ψ)다. ∂s/∂ψ는 `s_model(with_jac=True)`의 세 번째 성분이며, |∂s/∂ψ|가 작은 pose를 제외하는 기준은 실행 전에 기록한다. 이 결과와 1/e 길이는 공간 상관의 보조 진단이다.
 
 ## 5. Step 2 반해석 판정
 
@@ -127,23 +128,35 @@ case × arm(잡음, span, k, σ_p, W, XY)마다 다음을 보고한다.
 | 파라미터 | 값 | 출처 |
 |---|---|---|
 | β, DR-uncal | 2.05°/station (TEACH 2.28, REPEAT 1.82의 평균) | teach/repeat |
-| β, DR-cal | N(0, 0.45²) (한 run으로 보정한 뒤 남는 run 간 차이) | REPEAT−TEACH 평균 차 |
+| β_res, DR-cal | run당 한 번 뽑아 고정하는 N(0, (0.45°/station)²) | REPEAT−TEACH 평균 차를 기준으로 고정한 모형 |
 | σ_w | 0.34°/station | 짝 차이 std 0.48 / √2 |
-| E_0 | {0°, N(0, 5²)} | 초기 heading을 아는 경우 / 모르는 경우 |
+| E₀ | 1차는 0°, 별도 초기 정렬 분석은 N(0, (5°)²) | 지속 heading 성능과 초기 절대 heading 정렬 효과를 분리 |
 | 정지 drift | 0.0005°/s (station당 정지 시간을 곱해서 더함) | Allan bag |
 
-- 측정: z_k = ψ_k + n_k. n_k는 Step 1의 **경험 오차를 그대로 resampling**한다(1차). 같은 lane에서 연속 station 블록 단위 bootstrap으로 상관을 보존한다. 2차 arm은 Gaussian AR(1)(σ_n, ρ)이다.
-- 공간 간격 불일치: RT station 간격은 2 m이고 TB3는 0.45 m이다. ρ(0.45 m)는 S1-4-2/3에서 얻고, 2 m 인접 상관(S1-4-1)과의 일관성을 확인한다.
+- G1은 DR-cal과 동일한 E₀, run별 β_res 및 wₖ 시퀀스를 공유한다. G1에만 편파 측정 갱신을 적용한다.
+- 측정 zₖ는 §5.2에 따라 선택한 J(ψ)의 창 내 최소점이다. Gaussian AR(1)(σ_n, ρ)는 민감도 조건이다.
 
-### 5.2 필터와 비교 arm
+### 5.2 인과적 탐색창, 필터와 비교 arm
 
-- G1: 상태 [E, β, (n의 AR 상태)]의 Kalman filter. 측정 잔차는 z − ψ_DR = −E + n이다.
-  - outlier gate: Mahalanobis 기준 χ²₁ 0.99. 1차는 gate 사용, 민감도로 gate 없음.
-  - S1에서 margin 기반 기권(abstain) 규칙이 train에서 정해졌다면 그 규칙을 그대로 쓴다.
-- 비교 대상: **DR-uncal**, **DR-cal**(β 보정됨), 그리고 **DR-nosweep**(공정성 arm, §6).
-- 출력: N = 1…50에서 heading RMSE와 P95, 교차 station 수 N\*(G1 RMSE < DR RMSE가 CI상 성립하는 첫 N), steady-state 오차, **NEES 평균과 95% 포함률**.
+- G1은 Kalman filter에서 [E, β_res, (n의 AR 상태)]를 추정한다. nₖ = wrap(zₖ − ψₖ)이고, 측정 잔차 zₖ − ψ_DR,k는 −Eₖ + nₖ에 해당한다.
+- 1차 창 중심은 **현재 sweep 직전 G1 필터가 예측한 heading** ψ̂⁻ₖ = ψ_DR,k − Ê⁻ₖ다. 반폭은 **max(3σ_prior, 10°)**이고 σ_prior = √P⁻_EE다. 원형 각도 거리로 창을 적용하며, 반폭이 180° 이상이면 전체 격자를 쓴다.
+- 해당 station의 저장된 J 곡선에 이 창을 적용해 argmin을 다시 고른다. 창 안에 참 heading이 없는 **window miss**는 따로 집계하며 그 자체로 측정을 제외하지 않는다. DR heading을 창 중심으로 사용하는 조건은 민감도다.
+- 1차는 Mahalanobis χ²₁ 0.99 gate를 적용한다. gate 없는 조건은 민감도다. S1의 margin 기반 기권은 sweep 단독 진단으로 보고한다.
+- 비교 대상은 **DR-uncal**, **DR-cal**, **DR-nosweep**(§6)이다. N = 1…50에서 heading RMSE, P95, NEES, 95% 포함률과 window miss를 보고한다. 교차 station 수 N*는 1…N 누적 RMSE 비율의 CI 상한이 1 미만이 되는 첫 N이다.
 
-### 5.3 반해석 확인
+### 5.3 0.45 m 격자의 J 곡선 상관 모델
+
+한 run의 모든 J 곡선은 단일 anchor의 **같은 case**에서 가져온다. 90° 1차 분석에는 적격 station만 사용한다. 약 2 m 간격의 RT에서 얻은 세 모델을 0.45 m 간격의 직접 RT가 확보되기 전까지 사용한다.
+
+| 모델 | 곡선 선택 | 용도 |
+|---|---|---|
+| **(a) 셀 재사용** | 같은 lane에서 각 TB3 station에 가장 가까운 RT station의 J를 사용한다. 같은 셀 안에서는 동일한 seed의 동일 곡선을 재사용한다. | 셀 내부에서 완전 재사용을 가정하는 비관적 조건 |
+| **(b) 독립** | TB3 station마다 같은 case의 적격 RT station과 seed를 독립적으로 뽑는다. | 상관 0의 낙관적 조건 |
+| **(c) Markov 재사용** | case별 ρ(0.45 m)의 확률로 직전 J를 재사용한다. 그 외에는 같은 lane에서 다음 적격 RT station으로 넘어가 새 곡선을 뽑는다. | S1-4의 주행 pose δs 상관을 이용한 조건 |
+
+case별 적격 station 수와 모형별 run 수를 보고한다. 1차 비교에서 case별 run 수는 균등하게 배정한다. 적격 station 수의 차이는 각 case의 RF 표본 불확도에 반영한다.
+
+### 5.4 반해석 확인
 
 Gaussian white 측정에서는 steady-state 분산 P = (−q + √(q² + 4qr))/2 (q = σ_w², r = σ_n²)과 Monte Carlo가 일치해야 한다. 이 식은 β 보정 후를 가정한다. 불일치하면 구현 오류로 보고 중단한다.
 
@@ -155,24 +168,32 @@ sweep을 **편파 정보를 얻으려고 일부러** 하면, DR만 쓰는 로봇
 - G1이 DR-cal만 이기고 DR-nosweep은 이기지 못하면, 주장은 **"임무상 회전이 원래 있는 경로"**로 한정한다. 이 경우 Step 3에 지그재그·ㄹ자 경로를 포함해야 한다.
 - sweep 1회의 시간 비용(TB3 실측 station 체류 시간)을 함께 보고한다.
 
-## 7. 사전등록 판정 규칙 (결과를 보기 전에만 변경)
+## 7. 사전등록 판정 규칙
 
-1차 조건: N30, mount 0의 6 case, XY-P, σ_p = 5°, W = ±30°, span 90°, k = 0.0085, gate 사용.
+**1차 조건**은 N30, mount 0의 6 case, full H, XY-P, 19점·90°, k = 0.0085, 인과적 필터 prior 창, χ²₁ 0.99 gate, E₀ = 0이다. E₀ ~ N(0, (5°)²)는 초기 절대 heading 정렬의 별도 분석이다. 아래 규칙은 새 S1 결과를 열기 전에 확정했다.
+
+**짝지은 통계량.** 각 run의 station 1–17에서 G1과 DR-cal의 평균 제곱 heading 오차를 각각 구한다. run별 MSE를 합산해 R = √(Σ MSE_G1) / √(Σ MSE_DR-cal)을 계산한다. 각 비교 쌍은 같은 E₀, β_res, wₖ를 사용한다.
+
+**95% 신뢰구간.** 바깥 bootstrap은 case 안에서 물리 station의 J 곡선 집합을 1,000회 재표집한다. 같은 station의 seed는 한 클러스터에 두고, 동일 route·XY를 공유하는 두 anchor의 클러스터는 짝지어 재표집한다. 각 바깥 표본마다 공통 난수를 사용하는 안쪽 경로 M = 200개를 실행하고 R을 구한다. 바깥 분포의 2.5·97.5 백분위를 사용한다.
+
+**DR-cal 통과 기준.** (b)와 (c) **각각** R ≤ 0.8, 95% CI 상한 < 1.0, 평균 heading NEES ∈ [0.5, 2.0], 95% 구간 포함률 ≥ 0.88을 모두 만족해야 한다. NEES는 posterior heading 오차 제곱을 P_EE로 나눈 1자유도 값이다. 포함률은 |heading 오차| ≤ 1.96√P_EE인 비율이다. 두 지표를 station 1–17에서 집계한다.
 
 | 판정 | 기준 |
 |---|---|
-| **PROCEED (Step 3로)** | N = 17에서 G1 heading RMSE ≤ 0.8 × DR-cal RMSE이고, station bootstrap 95% CI 상한 < 1.0 × DR-cal. 그리고 G1의 NEES 평균이 [0.5, 2.0] 범위, 95% 포함률 ≥ 0.88 |
-| **RESTRICT** | 위를 만족하지만 DR-nosweep(κ_m = 0.1)은 이기지 못함 → 주장을 회전이 원래 있는 경로로 한정 |
-| **STOP** | PROCEED 기준 미달. Step 3를 실행하지 않는다. "필요한 floor 역산"(PROCEED에 필요한 σ_n·ρ 조합)만 보고 |
+| **PROCEED (Step 3 후보)** | (b), (c) 모두 DR-cal 기준을 통과하고, 두 모델 모두 station 1–17에서 DR-nosweep(κ_m = 0.1°/m)보다 낮은 heading RMSE를 얻는다. |
+| **RESTRICT** | (b), (c) 모두 DR-cal 기준을 통과하고, 둘 중 하나라도 DR-nosweep보다 낮은 RMSE를 얻지 못한다. 주장을 임무상 회전이 원래 있는 경로로 한정한다. |
+| **STOP** | (b), (c) 중 하나라도 DR-cal 기준에 미달한다. Step 3를 진행하지 않고 필요한 σ_n·ρ 조합을 보고한다. |
 
-보조 지표(판정에는 쓰지 않음): N\*, steady-state, bad5, branch flip, 거리 구간별 결과.
+(b), (c)가 모두 DR-cal 기준을 통과하면 (a)의 R < 1.0일 때 **ROBUST**, R ≥ 1.0일 때 **CORRELATION_SENSITIVE**를 병기한다. 후자는 Step 3에서 0.45 m 간격 RT로 확인한다. §4 S1-1의 parity gate로 1차 case가 빠지면 통과 case의 분석에 표본 범위를 표시한다.
+
+N = 17 끝점 오차, N*, 후기 오차, bad5, branch flip, 거리 구간별 결과와 window miss는 보조 지표로 보고한다.
 
 ## 8. 알려진 한계와 RT_MISSING
 
 | 항목 | 현재 | 필요 | 처리 |
 |---|---|---|---|
 | sweep span | 90° | TB3 ±60°(120°) | 90° 결과는 120°의 근사로 표기 |
-| station 간격 | 약 2 m | 0.45 m | S1-4의 주행 pose 상관으로 보간 |
+| station 간격 | 약 2 m | 0.45 m | §5.3의 (a)–(c)로 민감도를 비교하고 (c)의 재사용 확률에 S1-4를 사용 |
 | 형상 | 복도 1개 | TB3 복도, 두 번째 형상 | `GENERALIZATION_NOT_PROVEN` |
 | sweep 중 회전 오차 | 시뮬레이션은 정확 | IMU 교란 | k arm으로 근사 |
 | 탭 정의 | B tap(현재 observe) | — | K1/K2·FP 재선택 금지(기존 연구 고정 조건) |
@@ -187,16 +208,17 @@ sweep을 **편파 정보를 얻으려고 일부러** 하면, DR만 쓰는 로봇
 | `S1_INVENTORY.json` | S1-0 |
 | `S1_PARITY.json` | S1-1, case별 통과 여부 |
 | `S1_SWEEP_ERRORS_<case>.csv` | S1-2 행 단위 기록 |
+| `S1_J_<case>.npy`, `S1_J_INDEX_<case>.csv`, `S1_J_GRID.json` | 전체 J 곡선, station·seed·arm 인덱스, 0.25° 격자 |
 | `S1_SUMMARY.csv` | S1-3 집계와 bootstrap CI |
 | `S1_SPATIAL_CORR.csv` | S1-4: lag별 자기상관, ℓ, ρ(0.45 m) |
 | `S2_PARAMS.json` | §5.1 TB3 값의 재계산 결과와 출처 SHA |
 | `S2_CURVES.csv` | N별 RMSE/P95/NEES/포함률, arm별 |
-| `S2_VERDICT.json` | §7 판정과 근거 수치 |
+| `S2_VERDICT.json` | §7 판정, (a)–(c)의 R, 바깥 bootstrap CI, NEES, 포함률 및 강건성 표기 |
 | `MANIFEST.json` | 입력·코드 SHA, 명령, 시각, 설정 snapshot(AGENTS.md 규칙) |
 
 ## 10. 참조 구현과 smoke
 
-- `step1_reference.py`: S1-0(hash gate), S1-1, S1-2의 참조 구현이다. **S1-3, S1-4, Step 2는 구현되어 있지 않다.** XY-P arm과 N10은 추가가 필요하다.
+- `step1_reference.py`는 초판 S1-0(hash gate), S1-1, S1-2의 참조 구현이다. 아래 smoke에 쓰인 스크립트의 범위는 독립 prior를 사용하는 일부 sweep 역산까지다.
 - Smoke(`SMOKE_R2_aA_m0/`): R2_aA_m0, N30, seed {0, 1}, XY-T, 21 station. **파이프라인 확인용이며 결과가 아니다.**
 
 | 채널 | 조건 | median \|e\| | RMS | bad5 | flip |
@@ -215,3 +237,4 @@ sweep을 **편파 정보를 얻으려고 일부러** 하면, DR만 쓰는 로봇
 | 날짜 | 변경 | 작성 |
 |---|---|---|
 | 2026-11-13 | 초판. smoke 1 case 실행 | Claude (proposer 초안) |
+| 2026-11-13 | 새 S1 결과를 열기 전에 확정한 설계 변경 세 가지를 반영. 인과적 탐색창과 전체 J 저장, (a)–(c) 재사용 모델과 90° 표본 제한, E₀ = 0의 짝지은 1–17 RMSE 비율과 station-cluster 바깥 bootstrap을 명시. | 사용자 결정 반영 |
