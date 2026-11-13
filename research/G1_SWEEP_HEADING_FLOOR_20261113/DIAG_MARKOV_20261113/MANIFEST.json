@@ -1,0 +1,50 @@
+{
+  "question_id": "G1-FLOOR-001",
+  "source_run": "D:\\codex\\raytracing_modules\\rt_cp_uwb\\research\\G1_SWEEP_HEADING_FLOOR_20261113\\RUN_20261113T052908Z",
+  "started_utc": "2026-11-13T05:56:36.566822+00:00",
+  "ended_utc": "2026-11-13T05:56:37.594891+00:00",
+  "command": [
+    "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+    "D:\\codex\\raytracing_modules\\rt_cp_uwb\\research\\G1_SWEEP_HEADING_FLOOR_20261113\\diagnose_markov.py",
+    "--run",
+    "D:\\codex\\raytracing_modules\\rt_cp_uwb\\research\\G1_SWEEP_HEADING_FLOOR_20261113\\RUN_20261113T052908Z",
+    "--out",
+    "D:\\codex\\raytracing_modules\\rt_cp_uwb\\research\\G1_SWEEP_HEADING_FLOOR_20261113\\DIAG_MARKOV_20261113"
+  ],
+  "exit_code": 0,
+  "environment": {
+    "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+    "numpy": "2.2.4"
+  },
+  "inputs": {
+    "S2_VERDICT.json": "f7e75d2639d20690f4023281f9d7ab4d509ab342b82c72ad4aed40fb8e10c54e",
+    "S1_RHO.json": "f3a30c223e435086e70805bffcb893f904ba6f2bb1ecc7dfb3a7d7fbddfeee05",
+    "S1_INVENTORY.json": "39d16e26a913db556ac72b1a7a26c9f2e70dd97d3030ac9b59111801a9158173",
+    "S1_PARITY.json": "34eca231b863dec20a4be98cfce33e445bcf1401a6387f34272024e1b288dfa8",
+    "S1_J_R2_aA_m0.npy": "c6e71c1f3ec290dd6f0d9f73ee5db6deb0da4b7fb25d33c164e045ac5ccf9d44",
+    "S1_J_INDEX_R2_aA_m0.csv": "fd703dc2b350a070e1469454fee72ec9b463bae9af4de87c94e2334bc04b2752",
+    "S1_J_R4_aA_m0.npy": "8d733de4cca7f0b0514098f1ee22bea876981c9d271f48dcfed59ae60880296d",
+    "S1_J_INDEX_R4_aA_m0.csv": "78febcd5ec0cbfb236360ceeab10c5b4c1bb9f4ef2f789879fec19648010b4cd",
+    "S1_J_R4_aB_m0.npy": "d35676dd6cc35a280ecb9732b95e94a1ca06d58ae8dc76a6af58143de6a547ed",
+    "S1_J_INDEX_R4_aB_m0.csv": "78febcd5ec0cbfb236360ceeab10c5b4c1bb9f4ef2f789879fec19648010b4cd",
+    "S1_J_R5_aA_m0.npy": "76615289f142680b2e1d8258cc309561b4a53ffc1a5318585f195714870dd114",
+    "S1_J_INDEX_R5_aA_m0.csv": "f1797139dc6bfcf8e77d83680610b35016167b3301f6893923ee103da317b900",
+    "S1_J_R5_aB_m0.npy": "30dc7491db50d023dff09a91fd2fd5d8fad3619370d7fbc15fdda1a423d855c8",
+    "S1_J_INDEX_R5_aB_m0.csv": "f1797139dc6bfcf8e77d83680610b35016167b3301f6893923ee103da317b900"
+  },
+  "code": {
+    "diagnose_markov.py": "e7d72a05fba55f02a4c2334b7c446135fb78e3ab40b4aab55a7dd49fa9084124",
+    "run_step2.py": "287c0a655dae0f660854133697bac10825ea0fe832c8793dec801a83a80afe89",
+    "run_step1.py": "dc94968ce4187eb8c451ef7e87669d37b59d5b9faf93f240d4dd7cbc6af46f62"
+  },
+  "outputs": {
+    "MARKOV_TRACE.csv": "e4d080fbdecd359f4c139d7913e73dd8cced2673fed9fec9a412ba07ab0b1dca",
+    "MARKOV_DIAGNOSTIC.json": "eb28f590e9e2445d6f75237e8044dcadc1bf1b71fc9fe61219824680a175a9c2"
+  },
+  "checks": [
+    "traced production filter exactly matches untraced filter",
+    "independent posterior covariance/heading update recomputation within 1e-11",
+    "innovation gate decisions exactly reproduced",
+    "frozen point metrics within 1e-12"
+  ]
+}
