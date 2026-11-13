@@ -1,0 +1,60 @@
+++ id -u
+++ id -g
++ docker run --rm --pull=never --name g1-model-v32-gint-20261113t072631z --network none --cpus 24 --user 1001:1001 --workdir /run/code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 --mount type=bind,src=/home/KMS/RUN2_20261113T072631Z,dst=/run --mount type=bind,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source,dst=/banks,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/code/v32_sparse_grid.py --inputs /run/inputs --banks /banks --out /run/outputs --workers 6
+exact E1 training R4_aB_m0: 200 sweeps
+exact E1 training R4_aA_m0: 200 sweeps
+exact E1 training R2_aB_m0: 420 sweeps
+exact E1 training R2_aA_m0: 420 sweeps
+exact E1 training R5_aA_m0: 600 sweeps
+exact E1 training R5_aB_m0: 600 sweeps
+G-INT-a R4_aB_m0 {'yaw_p95': 0.2624999999999993, 'variance_rel_p95': 1.3948447988120927, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.3214219380892478, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.3503959562098873, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 1.3920471867601865, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.3507813775319333, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.3070096713873693, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R4_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 1.3948693152055416, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R4_aB_m0 174.0s
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.668008129098399, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.44970596266245727, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.4359331463569544, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.34702177835549636, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.43199264412873545, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.40529908755256655, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R4_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.31850206715467005, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R4_aA_m0 180.6s
+G-INT-a R2_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 0.4681991032661759, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.3606433888329495, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.3519908359840694, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 0.4307429349092339, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.332292478284143, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.37369924358526446, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R2_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 0.4852480425890592, 'candidate_count_agreement': 0.98, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R2_aB_m0 201.0s
+G-INT-a R2_aA_m0 {'yaw_p95': 0.2624999999999993, 'variance_rel_p95': 0.3876853050094247, 'candidate_count_agreement': 0.97, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.26461088621393497, 'candidate_count_agreement': 0.97, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.4261819244417823, 'candidate_count_agreement': 0.98, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.75, 'variance_rel_p95': 0.5276141846314103, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.355593856333834, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.2864181011010519, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R2_aA_m0 {'yaw_p95': 0.5124999999999993, 'variance_rel_p95': 0.517274893214313, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R2_aA_m0 209.0s
+G-INT-a R5_aA_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 1.67073455104506, 'candidate_count_agreement': 0.97, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.6790981211138243, 'candidate_count_agreement': 0.98, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.044381243203344, 'candidate_count_agreement': 0.96, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.5124999999999993, 'variance_rel_p95': 0.6906638422683143, 'candidate_count_agreement': 0.98, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.5441487000310835, 'candidate_count_agreement': 0.95, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 1.0366354581596968, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R5_aA_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 0.7031488589999222, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R5_aA_m0 214.3s
+G-INT-a R5_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.5500203103798598, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.015, 'sigma_interval': [0.0, 0.03], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.45824101066595024, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.045, 'sigma_interval': [0.03, 0.06], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.36453214975959525, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.075, 'sigma_interval': [0.06, 0.09], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.5, 'variance_rel_p95': 0.5305161385945703, 'candidate_count_agreement': 1.0, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.105, 'sigma_interval': [0.09, 0.12], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.5891990452610336, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.14, 'sigma_interval': [0.12, 0.16], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.25, 'variance_rel_p95': 0.4889103607943114, 'candidate_count_agreement': 0.98, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.17799183097660382, 'sigma_interval': [0.16, 0.19598366195320763], 'passed': False}
+G-INT-a R5_aB_m0 {'yaw_p95': 0.5124999999999993, 'variance_rel_p95': 0.5319763143230934, 'candidate_count_agreement': 0.99, 'paired': 100, 'expected_valid': 100, 'samples': 100, 'sigma_mid': 0.21397549292981144, 'sigma_interval': [0.19598366195320763, 0.23196732390641525], 'passed': False}
+sparse G-INT-a R5_aB_m0 231.3s
+G-INT-a failed
++ rc=1
++ set +x

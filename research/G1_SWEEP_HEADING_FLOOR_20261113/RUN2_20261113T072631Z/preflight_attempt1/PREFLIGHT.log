@@ -1,0 +1,42 @@
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/process.py", line 261, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/process.py", line 210, in _process_chunk
+    return [fn(*args) for args in chunk]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/process.py", line 210, in <listcomp>
+    return [fn(*args) for args in chunk]
+            ^^^^^^^^^
+  File "/run/code/v32_preflight.py", line 20, in run_case
+    spatial = spatial_inputs(case)
+              ^^^^^^^^^^^^^^^^^^^^
+  File "/run/code/v32_preflight.py", line 31, in spatial_inputs
+    source = case.root / BLOCK / "BLOCK_C"
+             ^^^^^^^^^
+AttributeError: 'ObservationCase' object has no attribute 'root'
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/run/code/v32_preflight.py", line 71, in <module>
+    main()
+  File "/run/code/v32_preflight.py", line 58, in main
+    for name, gates, low, high, spatial, rho, n in executor.map(
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/process.py", line 620, in _chain_from_iterable_of_lists
+    for element in iterable:
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+AttributeError: 'ObservationCase' object has no attribute 'root'
