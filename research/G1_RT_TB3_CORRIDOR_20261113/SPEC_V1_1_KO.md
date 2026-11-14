@@ -44,3 +44,5 @@ Snowball에서 2026-11-13 14:46:00–14:51:58 UTC에 9개 위치를 추적했다
 | [G2b](evidence/G2b/G1_RT_TB3_G2B_COMPARE_20261114T081259Z_Q3OXWb/output/G2B.json) | COMPLETE. BLOCK_C 50/50 비교에서 &#124;Δs&#124; 중앙값 4.9373e-9, 95백분위 2.6012e-7, 최대 6.7941e-6이다. 최대는 pose 1089다. | 계산 약 64초, 비교 모듈 경로 복구 포함 2분 57초 |
 
 이 결정은 동결한 복도 형상과 검증 표본에 근거한다. 투과를 켠 대조 추적 144회에서 수신기에 도달한 투과 경로는 관측되지 않았다. [G1-RT-TB3-002](SPEC_DIAG_KO.md)의 `PATHS_NEAR` 출력은 같은 F1 full trace의 경로로 생성한다. 본 생성은 해당 출력의 G8 파일럿 확인 이후 별도로 실행한다.
+
+2026-11-14 Snowball G8 파일럿에서 같은 F1 trace의 `H_full`과 `PATHS_NEAR`를 함께 저장했다. 같은 trace의 LoS 재합성 최대 상대 오차는 6.86 × 10⁻¹⁵였고, 동결 G1 `H_LoS` 기준 오차는 3.42 × 10⁻⁵여서 G8은 FAIL이다. F1 생산 설정은 §3의 판정에 따라 확정했고 본 생성은 보류했다. [G8 파일럿 결과](evidence/G8/G1_RT_TB3_G8_20261114T082240Z_qOhMGz/RESULT_KO.md).

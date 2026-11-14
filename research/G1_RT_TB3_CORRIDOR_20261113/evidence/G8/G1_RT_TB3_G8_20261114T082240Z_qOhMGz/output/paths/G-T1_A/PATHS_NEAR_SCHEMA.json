@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "question_id": "G1-RT-TB3-002",
+  "frequency_source": "frozen Method B LP FFD bank",
+  "near_interval_s": "[tau_LoS, tau_LoS + 2 * tap_seconds], both endpoints included",
+  "tap_seconds": 4.9885263893046e-10,
+  "near_width_m": 0.2991045176094982,
+  "propagation_speed_m_s": 299792458.0,
+  "coefficient_axes": [
+    "pose_path_row",
+    "frequency_bin",
+    "rx_port",
+    "tx_port"
+  ],
+  "rx_ports_deg": [
+    45,
+    -45
+  ],
+  "tx_ports_deg": [
+    45,
+    -45
+  ],
+  "channel_reconstruction": "sum_p coefficients[p] * exp(-2*pi*j*frequencies_hz*tau_s[p])",
+  "fields": {
+    "pose_id": "Physical pose identifier from the case pose table",
+    "path_index": "Zero-based path index in the canonical trace for the pose's XY",
+    "tau_s": "Float64 propagation delay in seconds used to reconstruct phase",
+    "delay_m": "Propagation path length in meters, tau_s times c",
+    "coefficients": "Complex end-to-end LP port coefficients at each H bin, before propagation phase",
+    "interaction_count": "Number of non-padding events",
+    "interactions": "Ordered solver interaction codes, padded to max_depth with NONE",
+    "objects": "Ordered solver object IDs; entries with interaction NONE are padding",
+    "aod_az_el_rad": "World-frame departure azimuth and elevation in radians",
+    "aoa_az_el_rad": "World-frame arrival azimuth and elevation in radians",
+    "is_los": "True for the unique path without interactions",
+    "frequencies_hz": "Strictly increasing frequency grid in H bin order"
+  },
+  "interaction_codes": {
+    "NONE": 0,
+    "SPECULAR": 1,
+    "DIFFUSE": 2,
+    "REFRACTION": 4,
+    "DIFFRACTION": 8
+  },
+  "object_ids": {
+    "1": "floor",
+    "2": "ceiling",
+    "3": "end_x_min",
+    "4": "end_x_max",
+    "5": "wall_y_neg",
+    "6": "wall_y_pos"
+  }
+}
