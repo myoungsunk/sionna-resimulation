@@ -1,0 +1,56 @@
+/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/paths_buffer.py:266: RuntimeWarning: dr.print(): symbolic print statement only captured 2 of 3 available outputs. The above is a nondeterministic sample, in which entries are in the right order but not necessarily contiguous. Specify `limit=..` to capture more information and/or add the special format field `{thread_id}` show the thread ID/array index associated with each entry of the captured output.
+  return dr.gather(dtype, tensor.array, ind, valid)
+Traceback (most recent call last):
+  File "/code/diagnose_tb3_g6_boundary.py", line 57, in write
+    raise ValueError(f"Unexpected Dr.Jit capture: {line!r}")
+ValueError: Unexpected Dr.Jit capture: 'g6 backtrack [3, 2] [4, 11] [0, 7] [4, 11] [0, 2] [1, 0] [1, 1] [0, 0] [1, 1] [1087415255, 1101004801] [1032805417, 1059522038] [1055286886, 1066487502] [0, 1065353216] [0, 2147483648] [0, 2147483648] [1111962419, 3239890125] [1073238506, 1073238506] [1076468122, 1076468122] [3212836864, 0] [0, 3212836863] [0, 0] [1087415255, 1101004735] [1032805417, 1059522038] [1055286886, 1066487502] [1065316004, 3212799654] [1026594220, 1026593573] [1028636454, 1028636374] [1111962340, 3239890125] [1073238506, 1073237966] [1076468122, 1076468122] [1101004801, 1095394562] [1059522038, 1064849901] [1066487502, 1069621694] [1065353216, 2147483648] [2147483648, 1065353215] [2147483648, 2147483648] [1096296658, 1089190604] [1110278313, 1106177393] [1163788941, 679477248]'
+
+The above exception was the direct cause of the following exception:
+
+RuntimeError: drjit.print(): encountered an exception (see above).
+
+The above exception was the direct cause of the following exception:
+
+RuntimeError: drjit.print(): encountered an exception (see above).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/code/diagnose_tb3_g6_boundary.py", line 280, in <module>
+    main()
+  File "/code/diagnose_tb3_g6_boundary.py", line 267, in main
+    cases = [run_case(core, module, freq, f1, row, original) for row in cases]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 267, in <listcomp>
+    cases = [run_case(core, module, freq, f1, row, original) for row in cases]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 233, in run_case
+    variant, _ = capture_trace(core, scene, solver, f1["solver"], frequency, [0], task, setup)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/production/code/run_tb3_g8_pilot.py", line 52, in capture_trace
+    jones, (tau, angles), status, counts, details = core.trace_position(
+                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "/ref/scripts/drive_sim/rf_b_trace.py", line 105, in trace_position
+    raw = {fi: _solve(scene, solver, cfg, freq, fi) for fi in bins}
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ref/scripts/drive_sim/rf_b_trace.py", line 105, in <dictcomp>
+    raw = {fi: _solve(scene, solver, cfg, freq, fi) for fi in bins}
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/production/code/run_tb3_g8_pilot.py", line 38, in solve
+    result = solver(scene, **config)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/path_solver.py", line 222, in __call__
+    paths_buffer = self._image_method(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 230, in capture_variant
+    return image(**kwargs)
+           ^^^^^^^^^^^^^^^
+  File "/run/instrumented_image_method.py", line 137, in __call__
+  File "/run/instrumented_image_method.py", line 666, in _backtrack
+  File "/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/paths_buffer.py", line 155, in get_vertex
+    vx = self._gather_depth(mi.Float, self._vertices_x, depth, active)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/paths_buffer.py", line 266, in _gather_depth
+    return dr.gather(dtype, tensor.array, ind, valid)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+SystemError: <nanobind.nb_func object at 0x7f79904ea020> returned a result with an exception set

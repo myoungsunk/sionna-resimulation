@@ -1,0 +1,40 @@
+Traceback (most recent call last):
+  File "/code/diagnose_tb3_g6_boundary.py", line 264, in <module>
+    main()
+  File "/code/diagnose_tb3_g6_boundary.py", line 251, in main
+    cases = [run_case(core, module, freq, f1, row, original) for row in cases]
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 251, in <listcomp>
+    cases = [run_case(core, module, freq, f1, row, original) for row in cases]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 199, in run_case
+    trace, hits, nodes = trace_hits(core, scene, solver, f1["solver"], frequency, bins, task, setup, faces)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/revalidation/tb3_g6_revalidate.py", line 71, in trace_hits
+    trace, nodes = capture_trace(core, scene, solve, settings, frequencies, bins, task, setup)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/production/code/run_tb3_g8_pilot.py", line 52, in capture_trace
+    jones, (tau, angles), status, counts, details = core.trace_position(
+                                                    ^^^^^^^^^^^^^^^^^^^^
+  File "/ref/scripts/drive_sim/rf_b_trace.py", line 105, in trace_position
+    raw = {fi: _solve(scene, solver, cfg, freq, fi) for fi in bins}
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ref/scripts/drive_sim/rf_b_trace.py", line 105, in <dictcomp>
+    raw = {fi: _solve(scene, solver, cfg, freq, fi) for fi in bins}
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/production/code/run_tb3_g8_pilot.py", line 38, in solve
+    result = solver(scene, **config)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/revalidation/tb3_g6_revalidate.py", line 54, in solve
+    native = solver(scene, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/site-packages/sionna/rt/path_solvers/path_solver.py", line 222, in __call__
+    paths_buffer = self._image_method(
+                   ^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 194, in capture_lane
+    baseline_lanes.append(candidate_lane(solved, prior))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/code/diagnose_tb3_g6_boundary.py", line 128, in candidate_lane
+    match = np.flatnonzero(np.asarray(buf.valid) & np.all(points == target, axis=(1, 2)))
+                                                          ^^^^^^^^^^^^^^^^
+ValueError: operands could not be broadcast together with shapes (295,2,3) (3,3)
