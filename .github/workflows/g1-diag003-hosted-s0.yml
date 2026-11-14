@@ -1,0 +1,160 @@
+name: G1-DIAG-003 hosted S0
+on:
+  push:
+    branches: ['scratch/g1-diag003-hosted-s0-20261114']
+    paths: ['.github/workflows/g1-diag003-hosted-s0.yml']
+permissions:
+  contents: read
+  actions: read
+env:
+  OPENBLAS_NUM_THREADS: '1'
+  OMP_NUM_THREADS: '1'
+  MKL_NUM_THREADS: '1'
+  PYTHONHASHSEED: '0'
+  PYTHONUNBUFFERED: '1'
+jobs:
+  r2:
+    name: R2 S0 exact parity on hosted Actions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          path: launcher
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/diag003-s0/**
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: 81cdffbdedf43b318ebf8eddb4fcbac1fd30d878
+          path: frozen-r2
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/EKF4_RANGE_S_STAGED_20261014/**
+            /research/EKF3_INDEPENDENT_20261013/P0_INPUT_MANIFEST.json
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/source/src/qclean_uwb/**
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_2deg.npy
+            /results/DRIVE_SIM_HEADING_SENSOR_V2_20261010/RUN_01a124ff/LUT/hs_lut_meta.json
+            /.github/workflows/ekf4-r2-bias-l012.yml
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.11'
+      - name: Install original pinned dependencies
+        run: python -m pip install --disable-pip-version-check numpy==1.26.4 scipy==1.13.1 pytest==8.3.5
+      - name: Restore verified R2 ZIP from encrypted staging
+        env:
+          R2_INPUT_KEY: ${{ secrets.G1_DIAG003_R2_INPUT_20261114 }}
+        run: |
+          set -euo pipefail
+          test -n "$R2_INPUT_KEY"
+          python -m venv "$RUNNER_TEMP/rf-decoder"
+          "$RUNNER_TEMP/rf-decoder/bin/python" -m pip install --disable-pip-version-check cryptography==46.0.3
+          h="$GITHUB_WORKSPACE/launcher/.github/diag003-s0"
+          "$RUNNER_TEMP/rf-decoder/bin/python" "$h/decrypt_input.py" "$h/r2-input.aes" "$RUNNER_TEMP/original_RF_R2.zip"
+      - name: Require exact frozen B0 x and P, then compare both replays
+        shell: bash
+        run: |
+          bash "$GITHUB_WORKSPACE/launcher/.github/diag003-s0/replay_r2.sh" \
+            "$GITHUB_WORKSPACE/frozen-r2" "$GITHUB_WORKSPACE/launcher/.github/diag003-s0" \
+            "$RUNNER_TEMP/original_RF_R2.zip" "$RUNNER_TEMP/s0-r2"
+      - name: Preserve diagnostic logs, hashes and score comparisons
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: g1-diag003-hosted-r2-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/s0-r2/**/*.json
+            ${{ runner.temp }}/s0-r2/**/*.csv
+            ${{ runner.temp }}/s0-r2/**/*.xml
+            ${{ runner.temp }}/s0-r2/**/*.log
+          if-no-files-found: warn
+          retention-days: 7
+  anchor-b:
+    name: Anchor B S0 ${{ matrix.case }}
+    needs: r2
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - case: R4_aB_m0
+            reference-id: 12243228864
+            reference-sha: dbb0703583d0a0d15012a79ed8b39956938d0213229d67bca580f6478f1bc4fc
+          - case: R5_aB_m0
+            reference-id: 12243741168
+            reference-sha: 57f05c9d4e4b5eacb330659328ebf4115b089ac5568d73948afec40ce4a16390
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          path: launcher
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/diag003-s0/verify_anchor.py
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          ref: 5dd61292538c3e95858c9050a60c4d4ddb03a214
+          path: frozen-anchor
+          persist-credentials: false
+          lfs: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /research/PJ_SEPARATE_RS_20261020/**
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.17'
+      - name: Install original Anchor B dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.3 scipy==1.16.2 pandas==2.3.2 scikit-learn==1.7.2 tabulate==0.9.0
+      - name: Verify staged inputs and replay the original Anchor B workflow
+        working-directory: frozen-anchor
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANCHOR_CASE: ${{ matrix.case }}
+          REF_ID: ${{ matrix.reference-id }}
+          REF_SHA: ${{ matrix.reference-sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = 5dd61292538c3e95858c9050a60c4d4ddb03a214
+          export PJ_SOURCE_ROOT="$RUNNER_TEMP/anchor/pj_src"
+          export PJ_OUT="$RUNNER_TEMP/anchor/pj_out"
+          export PJ_BANK_DOWNLOAD="$RUNNER_TEMP/anchor/pj_bank"
+          mkdir -p "$PJ_SOURCE_ROOT" "$PJ_OUT" "$PJ_BANK_DOWNLOAD"
+          archive() {
+            gh api "repos/myoungsunk/sionna-resimulation/actions/artifacts/$1/zip" > "$3"
+            printf '%s  %s\n' "$2" "$3" | sha256sum -c
+          }
+          exec > >(tee "$PJ_OUT/ANCHOR_S0.log") 2>&1
+          printf '%s %s\n' "$ImageOS" "$ImageVersion"
+          lscpu
+          python -VV
+          python -m pip freeze
+          archive 12187054720 9691d5b96141331734ac726b3b82c1b33f2d55e60721b64dd61080e399e8f36d "$RUNNER_TEMP/anchor/rf.zip"
+          archive 12034154094 cad003e294edc59a4eecdbce39c02bec43d91524ecef37c93978a356ba519e8e "$RUNNER_TEMP/anchor/bank.zip"
+          archive 12243540879 613fce6e8aa67453c74d8e19171109c49c47c5f9fd94debe4096f1ec622d1895 "$RUNNER_TEMP/anchor/prepared.zip"
+          archive "$REF_ID" "$REF_SHA" "$RUNNER_TEMP/anchor/reference.zip"
+          unzip -q "$RUNNER_TEMP/anchor/rf.zip" -d "$PJ_SOURCE_ROOT"
+          unzip -q "$RUNNER_TEMP/anchor/bank.zip" -d "$PJ_BANK_DOWNLOAD"
+          unzip -q "$RUNNER_TEMP/anchor/prepared.zip" -d "$PJ_OUT"
+          python research/PJ_SEPARATE_RS_20261020/initialize.py
+          python -u research/PJ_SEPARATE_RS_20261020/replay_rounding_checked.py --phase replay --case "$ANCHOR_CASE"
+          python "$GITHUB_WORKSPACE/launcher/.github/diag003-s0/verify_anchor.py" "$PJ_OUT" "$ANCHOR_CASE" "$RUNNER_TEMP/anchor/reference.zip"
+      - name: Preserve Anchor B comparison evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: g1-diag003-hosted-anchor-${{ matrix.case }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/anchor/pj_out/*_ANCHOR_S0.json
+            ${{ runner.temp }}/anchor/pj_out/ANCHOR_S0.log
+            ${{ runner.temp }}/anchor/pj_out/STAGED_INPUT_QA.json
+            ${{ runner.temp }}/anchor/pj_out/*_full_B0_SCORES.csv
+            ${{ runner.temp }}/anchor/pj_out/*_POSE_QUANTIZATION_QA.json
+          if-no-files-found: warn
+          retention-days: 7
