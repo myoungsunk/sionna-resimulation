@@ -212,3 +212,4 @@ characterization/CHARACTERIZATION_PLAN.json, CHARACTERIZATION.json, REPORT_KO.md
 | 날짜 | 변경 | 작성 |
 |---|---|---|
 | 2026-11-14 | 초판. P-D/P-E/P-F, near-delay 경로 export, G7–G9, 특성화(G-T1)·확인(G-T2, G-V) 분리와 봉인, 특성화 추정 C1–C10, 구조 결정 규칙 | Claude |
+| 2026-11-14 | §5 특성화(C1–C10), §6 구조 결정 규칙, §7은 [G1-MODEL-003](../G1_PACKET_EKF_20261114/SPEC_B_NEW_RT_KO.md) S2·S3로 대체. C5의 BLOCK_C 하한 0.81 폐기. pose 집합·경로 export·G7–G9·봉인은 유지 | Claude |

@@ -1,5 +1,7 @@
 # G1-MODEL-002 사양서 초안
 
+> **SUPERSEDED (2026-11-14):** 이 초안은 sweep 맞춤 추정기를 전제로 한다. 원래 접근(packet 단위 재귀 EKF)과 달라 [G1-MODEL-003](../../G1_PACKET_EKF_20261114/SPEC_B_NEW_RT_KO.md)으로 대체한다. 기록으로만 보존한다.
+
 - 상태 **DRAFT · PROPOSER**. 질문 ID `G1-MODEL-002`. 2026-11-14.
 - S2′ `STOP` (FULL_6) 유지. Step 3 `HELD`. K0–K10은 `DIAGNOSTIC_ONLY`, K10은 `EXPLORATORY`. 이 문서는 후속 실험 제안이다.
 - 대상 저장소 `myoungsunk/sionna-resimulation`, 브랜치 `research/g1-sweep-heading-floor-spec-20261113`. 근거를 확인한 기준 커밋 `d9701160ffc498af7c73a3d02c2600613d82629b`.
