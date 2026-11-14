@@ -263,13 +263,15 @@ def _paired_path(records, dr, r4, scope, level):
     return result
 
 
-def summarize(folds, *, snr=30, futility=None, logs=None, partial=False):
+def summarize(folds, *, snr=30, futility=None, logs=None, partial=False, stop_after_b0=False):
     """Return complete §4 selection or a non-adopting, B0-only status snapshot."""
     _check(snr in (20, 30), "Expected 20 or 30 dB SNR")
     _check(partial or futility is not None, "Complete summaries require frozen S2-F scope")
     scope = _scope(futility) if futility is not None else None
     identity = {}
-    levels = ("B0",) if partial else LEVELS
+    if stop_after_b0:
+        _check(not partial and snr == 30, "B0 closure requires a terminal 30 dB summary")
+    levels = ("B0",) if partial or stop_after_b0 else LEVELS
     arms = ("DR", *CANDIDATES) if partial else (*BASELINES, *CANDIDATES)
     findings = {arm: {} for arm in arms}
     receipt_shas = {}
@@ -329,7 +331,13 @@ def summarize(folds, *, snr=30, futility=None, logs=None, partial=False):
     complete = complete and all(v["status"] in ("PASS", "FAIL", "NUMERICAL_FAIL")
                                 for arm in (*CANDIDATES, "J4", "J4+K") for v in findings[arm].values())
     selection = None
-    if complete and snr == 30:
+    if stop_after_b0:
+        if complete and len(b0_excluded) == len(CANDIDATES):
+            selection = dict(status="DEV_FAIL", selected_arm=None, eligible_arms=[],
+                             reason="Every candidate failed a necessary B0 condition",
+                             b0_status_by_arm=b0_completion, not_evaluated_levels=list(LEVELS[1:]))
+        complete = selection is not None
+    elif complete and snr == 30:
         numerical_ineligible = {arm: [level for level in LEVELS if findings[arm][level]["status"] == "NUMERICAL_FAIL"]
                                 for arm in CANDIDATES}
         candidates = {arm: dict(
@@ -355,13 +363,14 @@ def main():
     parser.add_argument("--futility", type=Path)
     parser.add_argument("--snr", type=int, choices=(20, 30), default=30)
     parser.add_argument("--partial", action="store_true", help="Read B0 only and never select or close S3")
+    parser.add_argument("--stop-after-b0", action="store_true", help="Close S3 only if every candidate fails the complete B0 wave")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     if not args.partial and (args.futility is None or args.out is None):
         parser.error("Complete summaries require --futility and --out")
     raw = args.futility.read_bytes() if args.futility else None
     report = summarize(args.folds, snr=args.snr, futility=json.loads(raw) if raw else None,
-                       logs=args.logs, partial=args.partial)
+                       logs=args.logs, partial=args.partial, stop_after_b0=args.stop_after_b0)
     if raw:
         report["futility_sha256"] = _digest(raw)
     if args.out is not None:
