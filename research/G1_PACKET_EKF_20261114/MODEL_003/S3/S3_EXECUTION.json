@@ -1,0 +1,301 @@
+{
+  "question_id": "G1-MODEL-003",
+  "stage": "S3",
+  "status": "DEV_FAIL",
+  "computed_utc": "2026-11-14T17:26:09.619047+00:00",
+  "archive": "/home/KMS/G1_MODEL003_S3_QH7zq5Jn",
+  "actor": "KMS",
+  "execution": {
+    "BASELINE": {
+      "started_utc": "2026-11-14T16:56:04Z",
+      "finished_utc": "2026-11-14T16:58:27Z",
+      "exit_code": 0,
+      "command": "docker run --rm --pull=never --network none --name G1_MODEL003_S3_QH7zq5Jn --cpus 54 --user 1001:1001 -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/CASES.json:/results/CASES.json:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_A:/results/H/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_A:/results/poses/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_B:/results/H/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_B:/results/poses/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_C:/results/H/G-T1_C:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_C:/results/poses/G-T1_C:ro -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/code:/code:ro -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/output:/output -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/frozen:/frozen:ro -v /home/KMS/RUN2_20261113T072631Z/inputs/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source:/model:ro -v /home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source:/banks:ro --entrypoint /bin/bash sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /code/launch_tb3_model003_s3.sh container baseline",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "JOINT_B0": {
+      "started_utc": "2026-11-14T17:03:47Z",
+      "finished_utc": "2026-11-14T17:25:26Z",
+      "exit_code": 0,
+      "command": "docker run --rm --pull=never --network none --name G1_MODEL003_S3_QH7zq5Jn --cpus 54 --user 1001:1001 -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/CASES.json:/results/CASES.json:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_A:/results/H/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_A:/results/poses/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_B:/results/H/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_B:/results/poses/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_C:/results/H/G-T1_C:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_C:/results/poses/G-T1_C:ro -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/code_joint:/code:ro -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/output:/output -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/frozen:/frozen:ro -v /home/KMS/RUN2_20261113T072631Z/inputs/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source:/model:ro -v /home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source:/banks:ro --entrypoint /bin/bash sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /code/launch_tb3_model003_s3.sh container joint-b0",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "git": {
+    "baseline": "db399f78649929182bce4ed584ff176301f352d5",
+    "joint": "fe0abbc087f1222bb9e3b5f14a23d4dfcd44b94c",
+    "gate": "8772cbfc48dbeb4c83a18116c7bb695c509558ec",
+    "evaluation": "54b892d8fa93d3eb9868ae2b00feae4b1dc9dcba"
+  },
+  "hashes": {
+    "code.tar": "8f35692e1cc2f341b030902dfd4cad43053ad93931b06272f9d321ee25e29578",
+    "joint_code.tar": "f9e4469b7201a0061d0f5a18ac1eea3a89dc8b49f5e6ccee5719d0d1df46ea4d",
+    "gate_code.tar": "d362c3b4c1cddd9800254fd1136f54d3d6108bca2faba8586c3755c11068ad01",
+    "launch_joint.sh": "bda794f257f7df501ed17758b72859490c3c4ea5b4a6a1984b3da95ebff1d00c",
+    "close_tb3_model003_s3.sh": "9247c31f62bd051c1d0a5dfc3e551d07ae8c38fadd41b2b8e6fffa697dae6f50",
+    "code_gate/summarize_tb3_model003_s3.py": "2dc7113cead386ea199b19f6af54ea55ed5a5fb327bd5d29df8c942c23c99331",
+    "code_gate/tb3_model003_integrity.py": "0eb5c4f55a984d8722147c8caa016c6c84fd0d87c8cf39e582bc7534579dad72",
+    "output/B0_STATUS.json": "144b5142a8c78d574a738a1fffce3646ae85fe41b7f632cf225d13f83e1218ef",
+    "output/LOAO_RESULTS.json": "27e55af01e63d677ebd06b123b5e3316adbe45a5710278d2645313cdff1b6d71",
+    "frozen/CHARACTERIZATION_003.json": "e91ce4d87dc097e325b7c802779e1b75d695c2dd13f018f0f3456e25e5f6a73d",
+    "frozen/FUTILITY.json": "08c758ad3114390e534ca338c271b431d67db08fb9e0422932359c375ab19491",
+    "frozen/PARITY.json": "23ad7847d38fe2f929c30db0d21dd214127aca1553e4855032d271e24920d4d5",
+    "frozen/RANGING_RULE_SELECTION.json": "72094efa86ffbbd5a8d0e87be45ac61f9f15aa7536cb3693a03cc5bc966e7d59",
+    "frozen/TIMELINE_PACKETS.csv": "4d591aa6b0bd2955b3e61cbda8fcba8eab8aafe431caed1a94f3c7c85f3d4cfd"
+  },
+  "fold_status_counts": [
+    {
+      "snr_db": 20,
+      "level": "B0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "B0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L1",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L1",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L2",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "L2",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "TB3_r1.3.1",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "TB3_r1.3.1",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "TB3_r2.1.0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 20,
+      "level": "TB3_r2.1.0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-C",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-C+K",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-CI",
+      "status": "NUMERICAL_FAIL",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-CI+K",
+      "status": "NUMERICAL_FAIL",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-CS",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-CS+K",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-V",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J-V+K",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "J4+K",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "B0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L1",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L1",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L2",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "L2",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "TB3_r1.3.1",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "TB3_r1.3.1",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "TB3_r2.1.0",
+      "arm": "DR",
+      "status": "PASS",
+      "count": 18
+    },
+    {
+      "snr_db": 30,
+      "level": "TB3_r2.1.0",
+      "arm": "R4",
+      "status": "PASS",
+      "count": 18
+    }
+  ],
+  "selected_evaluation_raw_receipts_verified": 216,
+  "seal": {
+    "status": "SEALED",
+    "metadata_sha256": {
+      "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/SEAL_MANIFEST.json": "4d755c9a016275f2ba51fee02e9908fe8cb2a27f32c187192f00bc957c45ee4a",
+      "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/ACCESS_LOG.jsonl": "8f418d4fb6e073c0eb0edd5668d01b625eba11e61fa9d7f1865d2488ef5d9539",
+      "/home/KMS/G1_MODEL003_G6_REGEN_okSskppe/results/seal/ACCESS_LOG.jsonl": "63d535964a68a0ccf74ff7d3eaeff2c02a4f929122532eb05b1526a265187f33"
+    }
+  },
+  "first_baseline_attempt": {
+    "archive": "/home/KMS/G1_MODEL003_S3_bncHhS0M",
+    "exit_code": 123,
+    "reason": "108 DR reports could not serialize numpy checkpoint-order integers; no successful receipts were consumed. This defect was fixed by native integer conversion and atomic write."
+  },
+  "finished_gate_utc": "2026-11-14T17:25:56Z"
+}
