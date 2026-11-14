@@ -25,7 +25,10 @@ def tap_seconds(frequencies_hz):
     return 1.0 / (4 * len(frequencies) * steps[0])
 
 
-def h_and_near_for_poses(trace, banks, poses, *, mount_deg=0.0, none_event=0, export_pose_ids=None):
+def h_and_near_for_poses(
+    trace, banks, poses, *, mount_deg=0.0, none_event=0, export_pose_ids=None,
+    direct_coefficients=None,
+):
     """Return conventional full H and near-path rows for one already-traced XY.
 
     The trace's interaction and object arrays are indexed by the canonical
@@ -67,6 +70,11 @@ def h_and_near_for_poses(trace, banks, poses, *, mount_deg=0.0, none_event=0, ex
     pose_ids = np.array([pose["pose_id"] for pose in poses], dtype=np.int64)
     if len(pose_ids) == 0 or len(np.unique(pose_ids)) != len(pose_ids):
         raise ValueError("Expected unique pose IDs at the traced XY")
+    if direct_coefficients is not None and (
+        direct_coefficients.shape != (len(poses), len(freqs), 2, 2)
+        or not np.isfinite(direct_coefficients).all()
+    ):
+        raise ValueError("Invalid native LoS port coefficients")
     selected_ids = set(pose_ids.tolist()) if export_pose_ids is None else set(export_pose_ids)
     if not selected_ids.issubset(pose_ids.tolist()):
         raise ValueError("An export pose ID does not belong to the traced XY")
@@ -74,15 +82,26 @@ def h_and_near_for_poses(trace, banks, poses, *, mount_deg=0.0, none_event=0, ex
     full = []
     coefficients = []
     exported = []
-    for pose in poses:
+    phase = np.exp(-2j * np.pi * freqs[:, None] * tau[None, :])
+    for index, pose in enumerate(poses):
         rotation = rot_z(float(pose["yaw_body_deg"] + mount_deg))
         rx_fields = np.stack([pattern_apply.field_world(bank, rotation, theta_r, phi_r) for bank in banks])
-        full.append(pattern_apply.channel_from_jones(jones, tau, freqs, rx_fields, tx_fields))
+        if direct_coefficients is None:
+            full.append(pattern_apply.channel_from_jones(jones, tau, freqs, rx_fields, tx_fields))
+        else:
+            # The LoS port evaluation and all reflected Method B contributions
+            # are combined before the same array is used for H and export.
+            per_path = np.einsum("rbni,bnij,tbnj->brtn", rx_fields, jones, tx_fields)
+            per_path[..., los[0]] = direct_coefficients[index]
+            full.append(np.einsum("brtn,bn->brt", per_path, phase))
         if pose["pose_id"] not in selected_ids:
             continue
         # Same contraction (and axis order) as channel_from_jones, before
         # applying the explicitly stored propagation phase for each path.
-        path_coefficients = np.einsum("rbni,bnij,tbnj->brtn", rx_fields[:, :, near, :], jones_near, tx_near)
+        if direct_coefficients is None:
+            path_coefficients = np.einsum("rbni,bnij,tbnj->brtn", rx_fields[:, :, near, :], jones_near, tx_near)
+        else:
+            path_coefficients = per_path[..., near]
         coefficients.append(np.moveaxis(path_coefficients, -1, 0))
         exported.append(pose["pose_id"])
     full = np.stack(full)
@@ -108,7 +127,8 @@ def h_and_near_for_poses(trace, banks, poses, *, mount_deg=0.0, none_event=0, ex
     return full, rows
 
 
-def write_paths_near(directory, packs, frequencies_hz, interaction_codes, *, object_ids=None):
+def write_paths_near(directory, packs, frequencies_hz, interaction_codes, *, object_ids=None,
+                     native_direct=False):
     """Write case-level PATHS_NEAR.npz and its schema from per-XY row packs."""
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
@@ -127,6 +147,10 @@ def write_paths_near(directory, packs, frequencies_hz, interaction_codes, *, obj
         schema_version=1,
         question_id="G1-RT-TB3-002",
         frequency_source="frozen Method B LP FFD bank",
+        direct_coefficient_source=(
+            "native Sionna LP field operations on the LoS segment found by F1"
+            if native_direct else "frozen Method B path Jones and LP fields"
+        ),
         near_interval_s="[tau_LoS, tau_LoS + 2 * tap_seconds], both endpoints included",
         tap_seconds=tap_s,
         near_width_m=2 * tap_s * C_M_S,

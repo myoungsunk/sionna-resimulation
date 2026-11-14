@@ -1,6 +1,6 @@
 # G1-RT-TB3-002 — 새 RT 데이터의 검증·진단 추가 사양서 (G1-RT-TB3-001 부속)
 
-- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / NOT_RUN**
+- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / G8_PILOT_REVALIDATED**
 - 상위 사양: `SPEC_KO.md`(G1-RT-TB3-001, SPEC_FINAL). 형상, anchor, pose 집합 P-A/P-A′/P-B/P-C, RT 설정, Gate G0–G6는 **바꾸지 않는다**.
 - RT 설정: 상위 [RT v1.1](SPEC_V1_1_KO.md)에서 확정한 F1을 적용한다. 이 사양의 추가 pose는 본 생성과 같은 trace 설정과 manifest 형식으로 별도 batch에서 만든다.
 - 목적: G1-MODEL-002가 쓸 데이터를 세 가지로 보강한다.
@@ -69,6 +69,7 @@
 - 대상: P-A, P-D, P-E, P-F의 모든 pose(full trace).
 - 범위: LoS 지연 τ₀부터 τ₀ + 2·Δτ_tap(거리 0.299 m)까지 도착하는 모든 경로.
 - **H를 만든 trace 실행에서 같이 저장한다.** 별도 trace를 돌리지 않는다(확률 샘플링 차이로 H와 경로 목록이 어긋나는 것을 막는다).
+- F1 trace에서 확인된 단일 LoS 경로에 동결 Sionna RT 2.0.1의 `FieldCalculator`와 LP FFD를 적용한다. 같은 LoS 포트 계수를 `H_full` 합성 및 `PATHS_NEAR` 저장에 사용한다. 정반사는 RT v1.1의 Method B로 처리한다.
 - 필드: pose_id, 경로 index, 지연(m), 포트 쌍별 복소 계수(+45/−45 × +45/−45), 상호작용 수, 상호작용 유형 순서(반사/회절/산란), 상호작용 객체 id, AoD·AoA(방위·고각).
 - 파일: `paths/<geom>_<anchor>/PATHS_NEAR.npz` + `PATHS_NEAR_SCHEMA.json`.
 - 파생 지표(본 생성 후 계산, 특성화·확인 공통): G1-DIAG-002 K8과 같은 정의의 첫 tap 오염도 c_p와 Δs = s_full,clean − s_LoS,clean.
@@ -82,7 +83,9 @@
 | G9 | 봉인 무결성(§4): 확인 형상 H의 SHA, 접근 로그, 허용 스크립트 목록 | 위반 0건 |
 | G3·G4 | 추가 batch에도 G1-RT-TB3-001의 G3(진행 중 G3a 포함, 통과한 설정 그대로)과 G4를 적용 | 기존 기준 |
 
-G8 파일럿은 G1과 같은 G-T1 × A에서 P001–P003의 TEACH·REPEAT 332개 RF pose를 사용한다. 저장 후 다시 읽은 `PATHS_NEAR`의 단일 LoS 경로에서 257 bin의 복소 채널을 재합성한다. G1에서 `max_depth=0`으로 계산한 `H_LoS`를 기준으로 복소 원소별 오차 `|H_reconstructed - H_LoS| / |H_LoS|`의 최댓값을 사용한다. 기준이 정확히 0인 원소는 재합성 값도 0이어야 한다. 같은 F1 trace의 LoS를 Method B로 적용한 결과와의 비교도 기록해 export 자체의 일관성을 확인한다.
+G8 파일럿은 G1과 같은 G-T1 × A에서 P001–P003의 TEACH·REPEAT 332개 RF pose를 사용한다. 저장 후 다시 읽은 `PATHS_NEAR`의 단일 LoS 경로에서 257 bin의 복소 채널을 재합성한다. G8 기준 `H_LoS`는 `max_depth=0`으로 생성한 동결 G1 `PATHS_LoS.npz`의 원래 계수 `a`, 지연 `tau`, 주파수 `freqs_hz`로 `a * exp(-2j * pi * f * tau)`를 계산하되 위상 연산에 float64를 쓴다. 복소 원소별 오차 `|H_reconstructed - H_LoS| / |H_LoS|`의 최댓값이 1e-6 미만이어야 한다. 기준이 정확히 0인 원소는 재합성 값도 0이어야 한다. 같은 F1 trace의 LoS 합성과도 비교한다.
+
+Snowball 재검증에서 341,296개 복소 원소의 최대 상대 오차는 확정 기준과 같은 trace 기준 모두 0이었다. 기존 단정밀도 G1 `H_LoS.npy`는 원본 그대로 보존했고, 그 파일을 기준으로 한 초기 파일럿과 재검증은 각각 3.42 × 10⁻⁵와 3.00 × 10⁻⁵로 FAIL을 기록한다. [재검증 및 원인 대조](evidence/G8/G1_RT_TB3_G8_REVALIDATE_20261114_QG7Pn5/RESULT_KO.md).
 
 ## 4. 특성화·확인 분리와 봉인
 

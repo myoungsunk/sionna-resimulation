@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 
 from run_tb3_g1_pilot import geometry_adapter, load_runtime, prepare, read, sha, write
+from tb3_native_los import native_direct_coefficients
 from tb3_paths_near import check_g8, h_and_near_for_poses, write_paths_near
 
 
@@ -17,6 +18,7 @@ LEGACY_PILOT_SHA = {
     "G1.json": "2509998f914323cb244e86539c665d46349e79e023410e004ff5dd65cb0f7583",
     "H_LoS.npy": "c35abb947e396b9bbc14456c2eac4bd03b56b37d8d5a952f9babc7dd9f2c2ce8",
     "rf_poses.json": "f7c93997d1a64fa124014c28de53ad2f2473374dfcfce7b59b517808d2bdc07b",
+    "PATHS_LoS.npz": "f4f26e56a588684602c72f3bc96ee899274e000c188a7909a552df6c8b1db634",
 }
 
 
@@ -86,7 +88,8 @@ def capture_trace(core, scene, solver, config, frequencies, bins, task, setup):
                 node_freq_hz=frequencies[node_ids], interactions=interactions, objects=objects), node_ids
 
 
-def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, export_pose_ids, case_id):
+def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, export_pose_ids, case_id,
+                  *, native_direct=False):
     """Generate one case; the caller supplies the approved pose table and export IDs."""
     from qclean_uwb.drivesim.rf_store import h_for_antenna_yaws, load_banks
 
@@ -113,9 +116,11 @@ def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, 
     solver = rt.PathSolver()
     banks = load_banks()
     freq = banks[0].freqs_hz
+    native_banks = core.C.load_banks()
     if (len(freq) != production["channel_bins"]
-            or not np.array_equal(freq, core.C.load_banks()[0]["freqs_hz"])):
+            or not np.array_equal(freq, native_banks[0]["freqs_hz"])):
         raise ValueError("Inconsistent frozen frequency grid")
+    ports = core.C.make_ports(native_banks) if native_direct else None
     bins = core.node_bins(len(freq), str(production["base_nodes"]))
     config = production["solver"]
     mount = production["mount_deg"]
@@ -136,15 +141,6 @@ def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, 
         yaws = [p["yaw_body_deg"] + mount for p in task_poses]
         chosen = [i for i, p in enumerate(task_poses) if p["pose_id"] in export_pose_ids]
         normal_h = h_for_antenna_yaws(trace, banks, yaws)
-        if chosen:
-            full, near = h_and_near_for_poses(trace, banks, [task_poses[i] for i in chosen],
-                                             mount_deg=mount, none_event=none)
-            peak_difference = max(peak_difference, float(np.max(np.abs(full - normal_h[chosen]))))
-            if not np.array_equal(full, normal_h[chosen]):
-                raise ValueError(f"H with export differs from frozen Method B at {task['tag']}")
-            packs.append(near)
-        h_full[list(rows)] = normal_h
-
         # Extract the same recorded direct path through the frozen channel
         # synthesis independently of the PATHS_NEAR coefficient serializer.
         direct = np.flatnonzero((trace["interactions"] == none).all(axis=1))
@@ -152,7 +148,35 @@ def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, 
             raise ValueError(f"Expected exactly one LoS path at every node at {task['tag']}")
         los_trace = trace | dict(tau=trace["tau"][direct], ang=trace["ang"][:, direct],
                                  jones=trace["jones"][:, direct], present=trace["present"][:, direct])
-        h_los_from_full_trace[list(rows)] = h_for_antenna_yaws(los_trace, banks, yaws)
+        original_los = h_for_antenna_yaws(los_trace, banks, yaws)
+        direct_los = original_los
+        coefficients = None
+        if native_direct:
+            # The F1 trace must already contain exactly one direct path.
+            tx = np.asarray(scene.transmitters["tx"].position).reshape(3)
+            rx = np.asarray(scene.receivers["rx"].position).reshape(3)
+            coefficients, native_delay = native_direct_coefficients(
+                core, tx, rx, task_poses, mount, native_banks, ports)
+            if abs(native_delay - trace["tau"][direct[0]]) > 2e-13:
+                raise ValueError(f"Native endpoint delay and traced LoS disagree at {task['tag']}")
+            phase = np.exp(-2j * np.pi * freq * trace["tau"][direct[0]])
+            direct_los = coefficients * phase[None, :, None, None]
+        full, near = h_and_near_for_poses(
+            trace, banks, task_poses, mount_deg=mount, none_event=none,
+            export_pose_ids={task_poses[i]["pose_id"] for i in chosen},
+            direct_coefficients=coefficients,
+        )
+        if chosen:
+            packs.append(near)
+        expected_h = normal_h if coefficients is None else normal_h + (direct_los - original_los)
+        peak_difference = max(peak_difference, float(np.max(np.abs(full - expected_h))))
+        synthesis_ok = np.array_equal(full, expected_h) if coefficients is None else np.allclose(
+            full, expected_h, rtol=0.0, atol=1e-15,
+        )
+        if not synthesis_ok:
+            raise ValueError(f"H differs outside the expected direct contribution at {task['tag']}")
+        h_full[list(rows)] = full
+        h_los_from_full_trace[list(rows)] = direct_los
         receipts.append(dict(tag=task["tag"], task_id=task["task_id"], pose_ids=task["pose_ids"],
                              node_bins=node_ids.tolist(), solver_calls=len(node_ids),
                              n_full_paths=len(trace["tau"]), wall_s=time.monotonic()-started))
@@ -160,7 +184,8 @@ def generate_case(core, scene_entry, scene_root, poses, tasks, production, out, 
     if not np.isfinite(h_full).all() or not np.isfinite(h_los_from_full_trace).all():
         raise ValueError("Nonfinite generated channel")
 
-    path_file = write_paths_near(out / "paths" / case_id, packs, freq, interaction_codes, object_ids=object_ids)
+    path_file = write_paths_near(out / "paths" / case_id, packs, freq, interaction_codes,
+                                 object_ids=object_ids, native_direct=native_direct)
     np.save(out / "H_full.npy", h_full)
     np.save(out / "H_LoS_from_full_trace.npy", h_los_from_full_trace)
     write(out / "TRACE_RECEIPTS.json", receipts)
@@ -173,6 +198,12 @@ def main():
         parser.add_argument("--" + flag, type=Path, required=True)
     parser.add_argument("--code-commit", required=True)
     parser.add_argument("--diagnostic-spec-sha", required=True)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--native-direct-revalidation", dest="native_direct", action="store_true",
+                      help="explicitly select the adopted G8 reference and direct-field computation")
+    mode.add_argument("--legacy-g8", dest="native_direct", action="store_false",
+                      help="reproduce the historical G8 calculation with the uncorrected G1 reference")
+    parser.set_defaults(native_direct=True)
     args = parser.parse_args()
     started = datetime.now(timezone.utc)
     t0 = time.monotonic()
@@ -194,11 +225,28 @@ def main():
     if len(poses) != 332 or len(tasks) != 6:
         raise ValueError("Unexpected G8 pilot scope")
     trace, _, versions = load_runtime(args.source)
-    near_path, receipts, peak = generate_case(trace, entry, args.inputs / "scene", poses, tasks, prod,
-                                               args.out, {p["pose_id"] for p in poses}, "G-T1_A")
+    native_direct = args.native_direct
+    near_path, receipts, peak = generate_case(
+        trace, entry, args.inputs / "scene", poses, tasks, prod, args.out,
+        {p["pose_id"] for p in poses}, "G-T1_A", native_direct=native_direct,
+    )
     ids = [p["pose_id"] for p in poses]
     legacy_h_los = np.load(args.legacy_output / "H_LoS.npy", allow_pickle=False)
-    np.save(args.out / "H_LoS.npy", legacy_h_los)
+    np.save(args.out / "H_LoS_original_g1.npy", legacy_h_los)
+    h_los_reference = legacy_h_los
+    if native_direct:
+        # Repair the numerical phase evaluation of the independent G1 LoS.
+        # Its 257-bin native coefficients, delays, poses and geometry are frozen.
+        with np.load(args.legacy_output / "PATHS_LoS.npz", allow_pickle=False) as legacy_paths:
+            coeff, tau, freq = (legacy_paths[k] for k in ("a", "tau", "freqs_hz"))
+        with np.load(near_path, allow_pickle=False) as near:
+            if not np.array_equal(freq, near["frequencies_hz"]):
+                raise ValueError("Frequency grid differs from frozen native G1 LoS")
+        if (coeff.shape != legacy_h_los.shape or tau.shape != coeff.shape[:2]
+                or coeff.dtype != np.complex128 or tau.dtype != np.float64):
+            raise ValueError("Frozen native paths have unexpected dimensions or precision")
+        h_los_reference = coeff * np.exp(-2j * np.pi * freq[None, :] * tau)[..., None, None]
+    np.save(args.out / "H_LoS.npy", h_los_reference)
     same = check_g8(near_path, np.load(args.out / "H_LoS_from_full_trace.npy", allow_pickle=False), ids)
     gate = check_g8(near_path, np.load(args.out / "H_LoS.npy", allow_pickle=False), ids)
     status = "PASS" if same["status"] == gate["status"] == "PASS" else "FAIL"
@@ -206,7 +254,11 @@ def main():
                   geometry="G-T1", anchor="A", stations=["P001", "P002", "P003"],
                   observations=len(selected), trace_positions=len(tasks), poses=len(poses),
                   solver_calls=sum(r["solver_calls"] for r in receipts), extra_export_solves=0,
-                  max_abs_difference_from_frozen_method_b_H=peak, legacy_h_los_check=gate,
+                  max_abs_H_difference_beyond_intended_direct_term=peak,
+                  independent_g1_h_los_check=gate,
+                  original_g1_h_los_check=check_g8(near_path, legacy_h_los, ids),
+                  phase_repair="float64 frequency and delay" if native_direct else "none",
+                  direct_coefficient_method="native field on F1 segment" if native_direct else "Method B Jones",
                   same_trace_h_los_check=same, near_export_bytes=near_path.stat().st_size,
                   wall_s=time.monotonic()-t0)
     write(args.out / "G8.json", result)
@@ -219,6 +271,7 @@ def main():
         source_sha256=reference["method_b_sha256"], g0_manifest_sha256=sha(args.inputs / "RUN_MANIFEST.json"),
         input_sha256=original["input_sha256"],
         driver_sha256=sha(Path(__file__)), helper_sha256=sha(Path(__file__).with_name("tb3_paths_near.py")),
+        direct_helper_sha256=sha(Path(__file__).with_name("tb3_native_los.py")),
         started_utc=started.isoformat(), finished_utc=datetime.now(timezone.utc).isoformat(),
         command=[sys.executable, *sys.argv],
         output_sha256={p.relative_to(args.out).as_posix(): sha(p) for p in sorted(args.out.rglob("*")) if p.is_file()}))
