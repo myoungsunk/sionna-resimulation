@@ -14,7 +14,7 @@ from validate_tb3_g4 import load_model
 
 CASES = ("G-T1_A", "G-T1_B", "G-T1_C")
 PA = {"P-A_TEACH", "P-A_REPEAT"}
-ROUTES = PA | {"P-A_dense", "P-Aprime", "P-B", "P-C"}
+ROUTES = PA | {"P-A_PRIME", "P-B", "C1", "C2", "C3", "C4"}
 SNRS = (20, 30)
 BATCH = 64
 SEED = 20261115
@@ -82,8 +82,7 @@ def range_scores(obs, df, cases):
     sums = {(rule, snr): np.zeros(4) for rule in RULES for snr in SNRS}
     sizes = {}
     for anchor, (case, data) in enumerate(cases.items()):
-        ids = sorted(set().union(*(ii for name, ii in data["by_set"].items() if name in ROUTES
-                                   or name.startswith(("P-A", "P-C")))))
+        ids = sorted(set().union(*(data["by_set"][name] for name in ROUTES)))
         if not ids:
             raise ValueError(f"Original G-T1 pose coverage empty: {case}")
         sizes[case] = len(ids)
