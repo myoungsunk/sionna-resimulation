@@ -221,7 +221,7 @@ def _path_descriptives(rows):
         ordered_groups = defaultdict(list)
         for row in group:
             if "checkpoint_order" in row:
-                ordered_groups[(row["seed"], row["site_id"], row.get("sign"))].append(row)
+                ordered_groups[(row["seed"], row.get("sign"))].append(row)
         if ordered_groups:
             run_max = 0
             for sequence in ordered_groups.values():
