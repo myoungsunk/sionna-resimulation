@@ -1,8 +1,9 @@
 # G1-MODEL-003 새 RT 사양 검토
 
 - 검토일 2026-11-14 KST
-- 대상은 `research/g1-sweep-heading-floor-spec-20261113`의 `8f7fdd75ea3ac5ffa9e3284cd1f5470977cf41d1`에 있는 [새 RT 사양서](SPEC_B_NEW_RT_KO.md)다.
-- 판정은 **REDIRECT**다. 아래 두 항목은 관련 단계의 실행 계약을 동결하기 전에 해소해야 한다. 사양 문서 대조만 수행했다.
+- 대상은 `research/g1-sweep-heading-floor-spec-20261113`의 `8f7fdd75ea3ac5ffa9e3284cd1f5470977cf41d1`에 있는 [검토 당시 새 RT 사양서](https://github.com/myoungsunk/sionna-resimulation/blob/8f7fdd75ea3ac5ffa9e3284cd1f5470977cf41d1/research/G1_PACKET_EKF_20261114/SPEC_B_NEW_RT_KO.md)다.
+- 최초 판정은 사양 문서 대조에 따른 **REDIRECT**였다.
+- 연구자 결정으로 두 사양 쟁점을 해소했다. [개정 사양](SPEC_B_NEW_RT_KO.md)에 S1의 OR 고정, O30의 보고용 대조, checkpoint별 heading 환산과 0 기준 RMS, 같은 유효 checkpoint의 DR 비교, 합성 검산을 반영했다. 실험 상태는 `NOT_RUN`이다.
 
 ## 확인한 연구자 결정
 
