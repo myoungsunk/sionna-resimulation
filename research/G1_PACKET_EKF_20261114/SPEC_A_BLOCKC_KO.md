@@ -1,4 +1,4 @@
-# G1-DIAG-003 — 기존 RT(BLOCK_C 연속 주행)에서 packet 단위 EKF의 integrity 실패 기전 분리 사양서
+# G1-DIAG-003 — 기존 RT(BLOCK_C 연속 주행)에서 packet 단위 EKF의 구조 사전 시험과 integrity 실패 기전 분리 사양서
 
 - 작성: 2026-11-14 KST. 상태: **SPEC_DRAFT / NOT_RUN / DIAGNOSTIC_ONLY**. **S2′ STOP (FULL_6) · Step 3 보류**
 - 갈래: **기존 데이터 갈래.** 새 RT 갈래는 [SPEC_B_NEW_RT_KO.md](SPEC_B_NEW_RT_KO.md)(G1-MODEL-003)다.
@@ -7,7 +7,28 @@
 
 실행 전 현황과 근거는 [G1-DIAG-003 계획](DIAG003_PLAN_KO.md)에 기록한다.
 
-## 0. 질문
+## 0. 이 검증의 목적
+
+**목적: 새 RT에서 확인하기 전에, 기존 데이터로 "integrity와 정확도를 함께 얻을 수 있는 구조"의 후보를 하나로 좁힌다.** 결과는 BLOCK_C 안에서 모수를 맞춘 in-sample 결과라서 Goal 1의 판정이 아니다. 판정은 G1-MODEL-003이 새 RT의 봉인 데이터에서 한다.
+
+원래 J4(백색 R)는 Full RF·mount 0에서 heading 7.5°, 95% 포함률 16%였다. 같은 조건의 DR은 B0 0.48°, L0 1.69°, L1 6.59°, L2 24.97°다. 아래 세 가설을 시험한다.
+
+| 가설 | 내용 | 시험 | 기각되면 |
+|---|---|---|---|
+| H1 (integrity) | 실패 원인은 s 오차를 packet마다 독립인 백색 잡음으로 둔 것이다. 실제 s 오차는 이동거리와 yaw를 따라 상관되고, 오래 지속되는 성분을 가진다 | D4로 구조를 재고, D7(J-C)에서 포함률이 회복되는지 본다. D1–D3로 원인을 분해한다 | 상관 모형으로도 회복되지 않는다. 지속 평균 성분이 지배하면 Goal 1 범위에서는 분산을 키우는 것 외에 방법이 없다 |
+| H2 (정보원) | s 평균은 편향되어 있어도, 회전 중 s가 변하는 모양(차분 정보)은 공통 편향의 영향을 덜 받는다. 상관 모형은 이 정보를 살리고 절대 수준의 정보는 덜 믿게 만든다 | D7에서 직진 구간과 회전 구간의 heading 갱신 기여를 나눠 본다. D4의 yaw 상관길이 ℓ_ψ를 잰다 | ℓ_ψ가 회전 폭보다 짧으면 편향이 yaw마다 달라 차분 정보도 오염된다. 정확도 바닥이 생긴다 |
+| H3 (DR 대비) | integrity를 맞춘 구조가 DR보다 정확한 조건이 있으며, gyro bias 수준과 horizon으로 표현된다 | D7을 B0/L0/L1/L2 × 부호 ±로 실행하고 DR과 짝 비교한다 | 어떤 수준에서도 우위가 없으면 BLOCK_C 기준 Goal 1 정확도는 불성립이다 |
+
+### 0.1 예상 결과와 그 의미 (사전 기록)
+
+| 결과 | 의미 | G1-MODEL-003으로 넘기는 것 |
+|---|---|---|
+| J-C에서 integrity 회복 + L1 이상에서 DR 우위 | 상관 오차 모델이 1차 구조 | J-C(또는 J-CS)를 1차 후보로, ℓ_d·ℓ_ψ·σ_b(ρ)를 S2 특성화 필수 항목으로 |
+| J-C에서 integrity 회복 + 모든 수준에서 DR 대비 우위 없음 | 정직한 모델에서는 편파 정보가 약하다 | 정확도 주장 범위를 사전에 좁히고 S2-F를 엄격히 적용 |
+| J-C에서도 미회복, D3 큰 창에서만 회복 | 지속 평균 성분이 지배 | Goal 1의 한계로 기록. +K(consider) arm 필수, 정확도는 DR 수렴 예상 |
+| J-V(분산만)로 회복 | 상관보다 크기 문제 | J-V를 1차 후보로 |
+
+### 0.2 세부 질문
 
 | Q | 질문 |
 |---|---|
@@ -15,6 +36,7 @@
 | QA2 | s 오차 e_MP = s_full − s_LoS의 공간 구조는 어떤가? 이동거리 상관길이, 회전(yaw) 상관, 장거리(≥ 5 m) 평균 성분의 몫은? |
 | QA3 | range만 쓰는 4-state(R4) 대비 J4의 차이, 즉 편파의 순수 기여는 얼마인가? |
 | QA4 | 분산만 키우는 Goal 1 처리(거리 의존 편파 분산, MB_VAR의 분산 부분)로 integrity가 회복되는가? |
+| QA5 | 오차 상관을 상태로 표현한 구조(J-C)에서 integrity가 회복되는가? 회복된다면 DR 대비 정확도는 어느 bias 수준부터 앞서고, 그 정보는 직진과 회전 중 어디에서 오는가? |
 
 ## 1. Goal 1 경계 (연구자 확정, 2026-11-14)
 
@@ -33,7 +55,7 @@
 | R2 EKF4 코드 | 실행 커밋 `81cdffbdedf43b318ebf8eddb4fcbac1fd30d878`의 `research/EKF4_RANGE_S_STAGED_20261014/` | S0는 원본 코드와 환경을 쓴다. D1–D6 arm은 회귀 확인 후 flag로 추가한다. |
 | R2_aA 연속 주행 RF | Actions artifact `11782748118`의 PC·Snowball 보관본, SHA-256 `88b0e89e752b482a54e882c25c72908ed115088a3f5783321945b627467ecd63` | 실제 사용본의 ZIP 해시를 실행 전에 확인한다. |
 | R2 결과 기준 | run `38664617622`의 원본 보고서. 결과 ZIP `11940333419` 만료 | §4 S0의 `REPORT_LEVEL_PASS`를 적용한다. |
-| Anchor B JOINT4 | 실행 커밋 `5dd61292538c3e95858c9050a60c4d4ddb03a214`의 `research/PJ_SEPARATE_RS_20261020/experiment.py`, Actions run `39376076166` | 원본 매니페스트의 RF로 R4-B·R5-B를 재현한다. |
+| Anchor B JOINT4 | 실행 커밋 `5dd61292538c3e95858c9050a60c4d4ddb03a214`의 `research/PJ_SEPARATE_RS_20261020/experiment.py`, Actions run `39376076166` | 원본 매니페스트의 RF로 R4-B·R5-B를 재현한다. 결과 artifact `12243278686`(case별 `12243228864`, `12243741168`)은 아직 만료 전이므로 **즉시 내려받아 Snowball·LFS에 보관한다** |
 | mount | **0°만** (연구자 결정). 원래 자료의 mount 45 행은 회귀 대조로만 재현하고 해석에 쓰지 않는다 | |
 
 실행에 필요한 고정 RF, 코드, 관측 설정 또는 Anchor B 원본 입력·증거를 확보하지 못하면 `INPUT_MISSING`으로 중단한다. R2 기준 결과 ZIP의 만료에는 §4 S0의 보고서 수준 비교를 적용한다. 원본 생성 코드로 RF를 다시 만드는 것은 별도 승인 항목이다.
@@ -43,7 +65,7 @@
 - 추정기: 원래 4-state [x, y, ψ, b_g] 재귀 EKF, Joseph 갱신, heading wrap. gate는 원래 값(S: χ²₁ 99%, J: χ²₂ 99%).
 - DR 시나리오: Sensor-v2 B0/L0/L1/L2 = 0, +0.01, +0.05, +0.20 °/s.
   - S0 회귀는 원래대로 sensor seed 0, 양의 부호만 쓴다.
-  - D1–D6은 sensor seed 0–19와 부호 ±를 쓴다. 단, L 수준 정의는 바꾸지 않는다.
+  - D1–D7은 sensor seed 0–19와 부호 ±를 쓴다. 단, L 수준 정의는 바꾸지 않는다. 같은 RF에 대한 조건부 반복임을 결과에 표시한다.
 - 평가: t ≥ 30 s. frame 지표와 함께, 고정 checkpoint(§3.1)에서의 ensemble 지표를 낸다.
 - 지표: heading(1 dof), XY(2 dof), b_g(1 dof)를 따로 낸다. 각각 RMSE, 평균 NEES, 명목 95% 포함률, gate 기각률을 낸다.
 
@@ -106,6 +128,11 @@ R2는 모든 적용 가능한 항목이 원본 보고 자릿수까지 일치하�
 - 이동거리 variogram과 지수 적합 상관길이 $\ell_d$, 회전 구간의 yaw 변화 대비 상관, 유효 표본쌍 수를 낸다.
 - D3의 5 m 창과 같은 끝 처리·pose 중복 제거로 $\bar e_{5m}$을 계산한다. 같은 유효 평가 pose와 가중치로 $e_\mathrm{MP}$ 및 $\bar e_{5m}$의 signed 평균·중심화 분산·0 기준 제곱평균을 기록한다. 중심화 분산비 $V_\mathrm{long}=\operatorname{var}(\bar e_{5m})/\operatorname{var}(e_\mathrm{MP})$와 0 기준 제곱평균비를 모두 보고한다. 분모가 0인 비율은 미정의로 기록한다.
 - heading 환산 바닥은 $\sigma_{\psi,\mathrm{floor}}=\sqrt{\operatorname{mean}(\bar e_{5m}^2)}/\operatorname{median}|\partial s/\partial\psi|$로 계산한다. 동일 평가 pose의 LoS 관측 Jacobian을 쓰며, 각도 단위 변환 및 기울기 분포를 기록한다. 분모가 0이면 미정의로 보고한다. 이 환산값은 D4 진단 지표로 사용한다.
+- D7 입력용으로 다음을 추가로 낸다.
+  - yaw 상관길이 ℓ_ψ: 회전 구간에서 yaw 변화량 대비 e_MP 상관의 지수 적합
+  - 거리 의존 크기 σ_b(ρ): 수평거리 절점 0, 1.5, 3, 6, 10 m에서 e_MP의 RMS, 구간 선형
+  - range 잔차의 이동거리 상관길이와 분산
+  - 직진·회전 구간별 |∂s/∂ψ| 분포
 - R2_aA, R2_aB, R4_aB, R5_aB별로 낸다. RF가 없는 case는 미평가로 표시한다.
 
 ### D5. range-only arm (QA3)
@@ -120,6 +147,21 @@ R2는 모든 적용 가능한 항목이 원본 보고 자릿수까지 일치하�
 - 원래 표는 BLOCK_C mount 0/B0에서 in-sample로 정한 값이다. 그래서 이 결과는 "in-sample 분산으로도 회복되는가"의 상한 진단이다.
 - 출력은 D5와 같은 표다.
 
+### D7. 상관 오차 상태 J-C (QA5, 구조 시험의 핵심)
+
+- 상태를 [x, y, ψ, b_g, c_s, c_r]로 확장한다.
+  - c_s: 편파 오차 상태. packet 사이 전이 φ = exp(−Δd/ℓ_d − |Δψ|/ℓ_ψ), 정상 분산 σ_b(ρ)², 과정잡음 σ_b(ρ)²(1 − φ²)
+  - c_r: range 오차 상태. 같은 형식이며 상관길이와 분산은 D4의 range 잔차 값
+  - 관측: s = h_s(x, y, ψ) + c_s + ε_s, r = h_r(x, y) + c_r + ε_r. ε는 원래 열잡음 분산
+- 모수(ℓ_d, ℓ_ψ, σ_b(ρ), range 상관)는 D4 값을 그대로 쓴다. in-sample이며 BLOCK_C 안에서만 해석한다.
+- 변형 J-C+K: D4의 0 기준 제곱평균(ē_5m²)을 분산으로 하는 consider bias를 추가한다. 추정하지 않고 교차공분산만 유지한다.
+- 수치 검산: ℓ_d, ℓ_ψ → 0이면 J-V(D6, D4의 σ_b(ρ) 사용)와, σ_b → 0이면 J4와 같은 결과가 나오는지 확인한다.
+- 출력:
+  - §3 지표 전체를 bias 수준 × 부호 × seed로 낸다
+  - DR, R4, J4, J-V와 같은 checkpoint에서 짝 비교(heading·XY RMSE 차이와 CI)
+  - heading 갱신량 Σ|K_ψ ν|를 직진 구간과 회전 구간으로 나눠 낸다
+  - D1과 같은 오차 분해를 J-C에도 적용한다
+
 ## 5. 해석 규칙 → G1-MODEL-003에 주는 영향 (사전 고정)
 
 | 결과 | G1-MODEL-003 영향 |
@@ -131,6 +173,12 @@ R2는 모든 적용 가능한 항목이 원본 보고 자릿수까지 일치하�
 | D6에서도 < 0.80 | J-V는 대조군으로만 둔다 |
 | D5에서 J4 − R4가 0을 포함 | 편파의 순수 기여가 BLOCK_C에서 확인되지 않음. G1-MODEL-003 정확도 판정에서 J − R4를 필수 항목으로 둔다 |
 | D4의 0 기준 heading 환산 바닥이 같은 평가 조건의 DR RMSE보다 큼 | 해당 bias 수준을 G1-MODEL-003 S2-F의 우선 검토 항목으로 기록한다. |
+| D7(J-C)의 pooled heading 포함률 ≥ 0.90, heading·XY·b_g 평균 NEES ∈ [0.5, 2.0] | H1 지지. J-C를 1차 구조 후보로 |
+| D7 미회복, J-C+K에서 회복 | 지속 평균 성분 표현이 필요. +K를 1차 후보에 포함 |
+| D7·J-C+K 모두 미회복 | Goal 1 범위의 구조로 integrity를 얻지 못함. G1-MODEL-003 착수 전 구조 재검토 |
+| D7 heading 갱신량의 70% 이상이 회전 구간 | H2 지지. MODEL-003에서 직진·회전 기여 보고를 필수로 |
+| ℓ_ψ가 회전 구간 yaw 폭의 절반보다 짧음 | H2 약화. 회전 구간에도 정확도 바닥이 생길 수 있음 |
+| D7이 integrity를 만족한 bias 수준에서 DR 대비 paired heading RMSE CI가 0 아래 | H3 지지(그 수준). MODEL-003 정확도 판정의 우선 수준 |
 
 ## 6. 출력
 
@@ -139,15 +187,15 @@ R2는 모든 적용 가능한 항목이 원본 보고 자릿수까지 일치하�
 ```text
 code/          (복사 코드, CODE_SHA256.txt)
 out/S0_REGRESSION.json  (판정 수준, 보고서 대조, 두 재실행 바이트 비교, 적용/N/A 항목)
-out/D1_AUTOCORR.json  …  out/D6_DISTVAR.json
+out/D1_AUTOCORR.json  …  out/D6_DISTVAR.json  out/D7_JC.json
 out/checkpoint_rows.csv  (case, bias, sign, seed, arm, checkpoint, site, 오차·P·포함 여부)
-REPORT_KO.md   (§5 표 채움, 첫 줄 DIAGNOSTIC_ONLY)
+REPORT_KO.md   (§0.1과 §5 표 채움, 첫 줄 DIAGNOSTIC_ONLY)
 MANIFEST.json  (입력 SHA, 명령, seed, 시각, 패키지)
 ```
 
 ## 7. 실행 순서
 
-S0 전체 통과 → D4(필터 없이 관측만) → D5 → D1 → D2 → D6 → D3. D3 창·중복 처리와 D4의 0 기준 RMS를 D4 시작 전에 적용한다.
+S0 전체 통과 → D4(필터 없이 관측만) → D5 → D6 → D7 → D1 → D2 → D3. D3 창·중복 처리와 D4의 0 기준 RMS를 D4 시작 전에 적용한다.
 
 ## 8. 변경 기록
 
@@ -155,3 +203,4 @@ S0 전체 통과 → D4(필터 없이 관측만) → D5 → D1 → D2 → D6 →
 |---|---|---|
 | 2026-11-14 | 초판. 추정기 불일치 확인 후 packet 단위 EKF 기준으로 기존 데이터 진단을 재정의. Fable 2026-11-14 답변의 C1–C3를 D1–D3로 반영 | Claude |
 | 2026-11-14 | 실행 전 개정. S0 REPORT_LEVEL_PASS, D1 60% 분해, D2 전 위상과 range-only gate, D3 최소 2 m 창과 반복 pose 처리, D4 0 기준 RMS, 기전 판정 유보를 반영. | Codex |
+| 2026-11-14 | 목적과 가설 H1–H3·예상 결과(§0), QA5, 구조 시험 D7(J-C, J-C+K)과 해석 규칙 추가. D4에 D7 입력(ℓ_ψ, σ_b(ρ), range 상관) 추가. Anchor B artifact 즉시 보관 명시 | Claude |
