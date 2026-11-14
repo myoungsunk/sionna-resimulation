@@ -176,3 +176,4 @@ RUN_MANIFEST.json
 | 2026-11-13 | 초판(SPEC_DRAFT, MISSING 항목 포함) | Claude |
 | 2026-11-13 | 사용자 결정 반영: 환경·anchor·tag 위치는 실측과 같을 필요 없음 → 모든 MISSING을 ASSUMED 고정값으로 확정, P-C 경로 파라미터 정의, anchor 좌표 확정, G5를 형상 구성 검사로 변경, 상태 SPEC_FINAL | Claude |
 | 2026-11-13 | 사용자 결정 반영: C3 꼭짓점 12개와 반경 0.40 m 고정, RF pose 표와 관측 순서 표 분리 및 G0 검사 명시 | Codex |
+| 2026-11-14 | 부속 사양 `SPEC_DIAG_KO.md`(G1-RT-TB3-002) 추가: P-D/P-E/P-F pose, near-delay 경로 export, G7–G9, 특성화(G-T1)·확인(G-T2, G-V) 분리. 이 문서의 기존 항목은 변경 없음 | Claude |
