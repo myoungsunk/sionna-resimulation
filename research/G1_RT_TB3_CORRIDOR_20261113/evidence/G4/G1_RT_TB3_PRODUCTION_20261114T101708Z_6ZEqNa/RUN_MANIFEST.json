@@ -1,0 +1,180 @@
+{
+  "status": "PLANNED",
+  "started_utc": "2026-11-14T10:27:31.129334+00:00",
+  "role": "IMPLEMENTER",
+  "question_ids": [
+    "G1-RT-TB3-001",
+    "G1-RT-TB3-002"
+  ],
+  "execution_site": "Snowball/KMS",
+  "code_base_commit": "f654dff1bd529a95ddf61fe98d2ea58ceb062dff",
+  "source_state": "production scripts hashed below",
+  "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+  "f1": {
+    "question_id": "G1-RT-TB3-001",
+    "spec_revision": "v1.1",
+    "status": "ADOPTED",
+    "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+    "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+    "base_nodes": 17,
+    "channel_bins": 257,
+    "mount_deg": 0,
+    "solver": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": false,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    }
+  },
+  "workers": 64,
+  "source_sha256": {
+    "merge_tb3_production.py": "9b90749604a345d106146d0f16dad53a5379356db8d26f1842f82ab4a4714f86",
+    "run_tb3_g1_pilot.py": "93c4985c31da7fb49e6131a005bfaf00313896183feba76e4e23d256b3c704d7",
+    "run_tb3_g8_pilot.py": "d34430f3befd4aa1f7a1b45906146c9d288556d2d8ac37de9419abf5bab08d74",
+    "run_tb3_production.py": "737bf19e890f93a18ee41fedb363e5aa2eb9b0454381675c06c50e853d1821de",
+    "run_tb3_production_batch.py": "0d877b1b949e065afd33d99d5f4d1a6849e05ff94aa49b3b1032b133ac69e08a",
+    "seal_tb3_production.py": "836ffe1077c066812458b063c8a91a7c2a35b7dd47847fa7bdd945b835406abd",
+    "tb3_native_los.py": "2c23394a409cff375e4309bfdb2b75f6ee7675cf08a5ab30be555b025420efa9",
+    "tb3_paths_near.py": "2789f3ac3377c262d8f84f24099504218d6e72b852ac20c814a2cef07aa851e3"
+  },
+  "input_sha256": {
+    "g0/RUN_MANIFEST.json": "48ebdcdde68f3d62ec1b00c3061440f9363313ef35577f409eb5b5c0b75c13b6",
+    "g7/RUN_MANIFEST.json": "a1542122461b919f55ad2ce43314ba0a3732e0611a574fd51fa692e6b03e9830",
+    "canary01/CANARY.json": "6731ce6777372c43dc0463435bdf496fc236bc5ea0668edf8d4a5bac261f9853",
+    "config/FFD_RESTORE_MANIFEST.json": "0017f2171da5d3729e4ad91d0d44384937d83213640c347ff12dda53e763a96e",
+    "config/G1_ESTIMATE.json": "e8cceed1fd47f80226960909a2c218417e8cbf2936b658530b401fdbaec19d64",
+    "config/G8_PILOT_NEAR_BYTES.txt": "e238e43c95f83ec0db1f20be9c49cc59ca23106ca8762353fe2b7e24027e48f5",
+    "config/PRODUCTION_F1.json": "fcd3ee9448640bcd29e0f031d06243a7cd5d8c6d7f80b1db49485ed7904017d8",
+    "config/REFERENCE.json": "1f0b9082a8b5fbf8aa43ebdb585808f3b288b49efe2db25dd56944e471199252",
+    "config/SPEC_DIAG_KO.md": "d8f6552845c3fb4b3f1b66e961347d85abe438cb4716e59d1d8e803d7361f2dd",
+    "config/SPEC_KO.md": "013763c09cd6014d45c9030efe6769a4ecee375a91d9ae7cafde3bd38f190299",
+    "config/SPEC_V1_1_KO.md": "7b258fc3a51e02d35b583fd7700a3a7aaa2dbb08c97843e0500b0b9dcfb075d4"
+  },
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "command": [
+    "/opt/rt-env/bin/python",
+    "/run/code/run_tb3_production_batch.py",
+    "--root",
+    "/run",
+    "--source",
+    "/ref",
+    "--workers",
+    "64",
+    "--code-commit",
+    "f654dff1bd529a95ddf61fe98d2ea58ceb062dff",
+    "--driver",
+    "canary01"
+  ],
+  "storage_estimate": {
+    "g1_pilot_sha256": "e8cceed1fd47f80226960909a2c218417e8cbf2936b658530b401fdbaec19d64",
+    "g1_pilot_pose_count": 332,
+    "g8_pilot_near_bytes": 8329747,
+    "h_bytes": 2039288832,
+    "near_path_estimate_bytes": 697741759,
+    "los_path_estimate_bytes": 531960448,
+    "near_pose_count": 27810,
+    "scratch_reserved_for_planning_bytes": 10737418240,
+    "home_free_bytes_prelaunch": 988067725312
+  },
+  "cases": {
+    "G-T1_A": {
+      "positions": 3172,
+      "poses": 7872,
+      "main_poses": 5802,
+      "diagnostic_poses": 2070,
+      "near_pose_count": 4074,
+      "shards": 18
+    },
+    "G-T1_B": {
+      "positions": 3172,
+      "poses": 7872,
+      "main_poses": 5802,
+      "diagnostic_poses": 2070,
+      "near_pose_count": 4074,
+      "shards": 18
+    },
+    "G-T1_C": {
+      "positions": 3172,
+      "poses": 7872,
+      "main_poses": 5802,
+      "diagnostic_poses": 2070,
+      "near_pose_count": 4074,
+      "shards": 18
+    },
+    "G-T2_A": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-T2_B": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-T2_C": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-V_A": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-V_B": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-V_C": {
+      "positions": 2818,
+      "poses": 6072,
+      "main_poses": 5802,
+      "diagnostic_poses": 270,
+      "near_pose_count": 2274,
+      "shards": 18
+    },
+    "G-T1_A_P-F": {
+      "positions": 18,
+      "poses": 972,
+      "main_poses": 0,
+      "diagnostic_poses": 972,
+      "near_pose_count": 972,
+      "shards": 1
+    },
+    "G-T1_B_P-F": {
+      "positions": 18,
+      "poses": 972,
+      "main_poses": 0,
+      "diagnostic_poses": 972,
+      "near_pose_count": 972,
+      "shards": 1
+    }
+  }
+}
