@@ -10,7 +10,6 @@ from time import monotonic
 import numpy as np
 
 from diagnose_tb3_g6_image import G6_SHA256, STRICT_TOL_S
-from diagnose_tb3_g6_observation import GENERATION_SHA
 from run_tb3_g1_pilot import load_runtime, read, sha, write
 from run_tb3_g8_pilot import capture_trace
 from run_tb3_production import case_inputs, frozen_settings, utc_now, verify
@@ -21,6 +20,8 @@ from validate_tb3_production_g3 import scene_runtime
 
 
 def production_receipts(root, case, tasks, inputs):
+    from diagnose_tb3_g6_observation import GENERATION_SHA
+
     results = root / "results"
     generation_path = results / "GENERATION_RESULT.json"
     case_index = results / "CASES.json"
