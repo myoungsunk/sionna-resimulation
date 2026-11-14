@@ -52,12 +52,13 @@ class SymbolicCapture:
 
     def write(self, output):
         for line in output.splitlines():
-            fields = re.fullmatch(r"g6 (\w+) ((?:\[\d+\] ?)+)", line.strip())
+            fields = re.fullmatch(r"g6 (\w+) ((?:\[[\d, ]+\] ?)+)", line.strip())
             if not fields:
                 raise ValueError(f"Unexpected Dr.Jit capture: {line!r}")
             label, bits = fields.groups()
-            values = [int(x) for x in re.findall(r"\d+", bits)]
-            self.rows.setdefault(label, []).append(values)
+            columns = [[int(x) for x in re.findall(r"\d+", col)]
+                       for col in re.findall(r"\[[^\]]+\]", bits)]
+            self.rows.setdefault(label, []).extend(list(row) for row in zip(*columns, strict=True))
 
 
 def instrument(module, lane, side_scale, origin_scale, fallback, sink):
@@ -77,12 +78,12 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
     ray = """            ray = spawn_ray_to(vertex_offset,
                                offset_p(ray_target_offset, k, normal_image),
                                normal)"""
-    source = replace_once(source, ray, """            g6_target = g6_offset(ray_target_offset, k, normal_image, g6_side_scale)
+    source = replace_once(source, ray, """            g6_target = g6_offset(ray_target_offset, k, normal_image, g6_side_scale, depth)
             if g6_origin_scale == 1:
                 ray = spawn_ray_to(vertex_offset, g6_target, normal)
             else:
                 ray = spawn_ray_to(g6_offset(vertex_offset, g6_target - vertex_offset,
-                                             normal, g6_origin_scale), g6_target)""")
+                                             normal, g6_origin_scale, depth), g6_target)""")
     marker = "            # Refractions don't affect path geometry, so they are always valid"
     source = replace_once(source, marker, """            g6_gap_sq = dr.squared_norm(exp_img_img - new_img_img)
             g6_dump("backtrack", valid_inter & (dr.arange(mi.UInt, paths.buffer_size) == g6_lane),
@@ -101,12 +102,14 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
         float_bits = [dr.reinterpret_array(mi.UInt, x) for vec in vecs for x in (vec.x, vec.y, vec.z)]
         float_bits += [dr.reinterpret_array(mi.UInt, x) for x in floats]
         fmt = "g6 " + label + " " + " ".join(["{}"] * (len(values) + len(float_bits)))
-        dr.print(fmt, *values, *float_bits, active=mask, limit=2, file=sink)
+        dr.print(fmt, *values, *float_bits, active=mask, limit=8, file=sink)
 
-    def g6_offset(point, direction, normal, scale):
+    def g6_offset(point, direction, normal, scale, depth):
+        shifted = module.offset_p(point, direction, normal)
         if scale == 1:
-            return module.offset_p(point, direction, normal)
-        return dr.fma(scale, module.offset_p(point, direction, normal) - point, point)
+            return shifted
+        sidewall = dr.fma(scale, shifted - point, point)
+        return dr.select(depth == 2, sidewall, shifted)
 
     filename = str(RUN / "instrumented_image_method.py")
     linecache.cache[filename] = (len(source), None, source.splitlines(keepends=True), filename)
@@ -156,7 +159,7 @@ def decode(rows, shape_names):
             for key, value in zip(scalar, values[3*len(vector):], strict=True):
                 data[key] = float(value) if np.isfinite(value) else None
             entries.append(data)
-        result[label] = entries
+        result[label] = sorted(entries, key=lambda row: row["depth"], reverse=label=="backtrack")
     return result
 
 
@@ -212,7 +215,8 @@ def run_case(core, module, frequency, f1, prior, original):
     variants = [
         ("instrumented_f1", 1., 1., True), ("no_primitive_fallback", 1., 1., False),
         ("quarter_target_offset", .25, 1., True), ("quarter_origin_offset", 1., .25, True),
-        ("quarter_both_offsets", .25, .25, True), ("zero_target_offset", 0., 1., True),
+        ("target_65_percent", .65, 1., True), ("target_85_percent", .85, 1., True),
+        ("zero_target_offset", 0., 1., True),
         ("zero_origin_offset", 1., 0., True),
     ]
     results = {}
