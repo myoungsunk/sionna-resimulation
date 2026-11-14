@@ -123,3 +123,5 @@ B1–B4의 시나리오·공통 난수·원시 sweep은 일치시킨다. 모델 
 ## 9. Goal 1 tap 추출 진단
 
 고정된 6개 BLOCK_C case에서 동일한 full H와 복소 잡음을 사용해 기존 검출 tap, LoS 기준 oracle tap, 위치 prior 기반 분수 지연 추출을 비교한다. K8의 상관 분석을 보완해 세 추출법 각각의 heading 오차를 직접 계산한다. R4_aB와 R2_aA는 별도로 보고한다. 이 비교는 DIAGNOSTIC_ONLY이며 S2′ STOP과 Step 3 보류를 적용한다. [실험 사양](TAP_DIAG_20261114/SPEC_KO.md) · [진단 결과](TAP_DIAG_20261114/REPORT_KO.md)
+
+후속 직접 읽기 arm(PRIOR_DIRECT)은 모의 위치 prior와 고정 anchor 기하로 만든 단일 LoS 템플릿에 oracle과 같은 정수 30% leading-edge 규칙을 적용한다. 이 규칙으로 예측한 한 tap에서 동일한 noisy full H의 두 편파를 읽고, heading 예측에도 그 tap을 고정한다. 측정 에너지를 사용한 지연 탐색은 없다. 새 arm의 6개 case와 R4_aB·R2_aA 별도 평가는 추가 사양에 따른다. [직접 읽기 추가 사양](TAP_DIRECT_20261114/SPEC_KO.md) · [직접 읽기 진단 결과](TAP_DIRECT_20261114/REPORT_KO.md)
