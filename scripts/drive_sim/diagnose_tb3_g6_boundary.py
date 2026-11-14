@@ -87,9 +87,9 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
     source = replace_once(source, marker, """            g6_gap_sq = dr.squared_norm(exp_img_img - new_img_img)
             g6_dump("backtrack", valid_inter & (dr.arange(mi.UInt, paths.buffer_size) == g6_lane),
                     depth, expected_shape, expected_prim_ind, si_shape, si_scene.prim_index,
-                    mi.UInt(hit_expected_prim), mi.UInt(valid_specular), mi.UInt(first_segment),
+                    mi.UInt(hit_expected_prim), mi.UInt(valid_specular), mi.UInt(first_segment), mi.UInt(si_scene.is_valid()),
                     vecs=(vertex, normal, ray_target, normal_image, ray.o, ray.d, g6_target,
-                          si_scene.p, si_scene.n), floats=(si_scene.t, g6_gap_sq))
+                          si_scene.p, si_scene.n), floats=(si_scene.t, ray.maxt, g6_gap_sq))
 """ + marker)
     if not fallback:
         source = replace_once(source,
@@ -118,7 +118,7 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
 
 def candidate_rows(buf):
     def axis_reader(axis):
-        return np.asarray(getattr(buf, "vertices_" + axis))[:, 1:4]
+        return np.asarray(getattr(buf, "vertices_" + axis))[:, :3]
     return np.stack([axis_reader(axis) for axis in "xyz"], axis=-1)
 
 
@@ -136,9 +136,9 @@ def decode(rows, shape_names):
         "images": (("depth", "sampled_shape", "sampled_primitive"),
                    ("sampled_hit_m", "normal", "source_image_in_m", "source_image_out_m"), ()),
         "backtrack": (("depth", "expected_shape", "expected_primitive", "hit_shape", "hit_primitive",
-                       "hit_expected", "valid_specular", "first_segment"),
+                       "hit_expected", "valid_specular", "first_segment", "hit_scene_valid"),
                       ("vertex_m", "normal", "target_m", "target_normal", "ray_o_m", "ray_d",
-                       "offset_target_m", "hit_m", "hit_normal"), ("ray_hit_t_m", "fallback_gap_sq_m2")),
+                       "offset_target_m", "hit_m", "hit_normal"), ("ray_hit_t_m", "ray_maxt_m", "fallback_gap_sq_m2")),
     }
     result = {}
     for label, (integer, vector, scalar) in layouts.items():
@@ -152,9 +152,9 @@ def decode(rows, shape_names):
                     data[key] = shape_names.get(data[key], data[key])
             values = np.asarray(raw[len(integer):], dtype=np.uint32).view(np.float32).astype(float)
             for i, key in enumerate(vector):
-                data[key] = values[i*3:(i+1)*3].tolist()
+                data[key] = [float(x) if np.isfinite(x) else None for x in values[i*3:(i+1)*3]]
             for key, value in zip(scalar, values[3*len(vector):], strict=True):
-                data[key] = float(value)
+                data[key] = float(value) if np.isfinite(value) else None
             entries.append(data)
         result[label] = entries
     return result
@@ -187,11 +187,15 @@ def run_case(core, module, frequency, f1, prior, original):
     shape_names = dict(zip(np.asarray(dr.reinterpret_array(core.mi.UInt, core.mi.ShapePtr(shapes))).tolist(),
                            [shape.id() for shape in shapes], strict=True))
     baseline_lanes = []
+    sampled = []
     original_image = solver._image_method
 
     def capture_lane(**kwargs):
+        before = candidate_rows(kwargs["paths"])
         solved = original_image(**kwargs)
-        baseline_lanes.append(candidate_lane(solved, prior))
+        lane = candidate_lane(solved, prior)
+        baseline_lanes.append(lane)
+        sampled.append(before[lane].copy())
         return solved
 
     solver._image_method = capture_lane
@@ -214,8 +218,18 @@ def run_case(core, module, frequency, f1, prior, original):
     results = {}
     for name, target_scale, origin_scale, fallback in variants:
         sink = SymbolicCapture()
-        image = instrument(module, lane, target_scale, origin_scale, fallback, sink)
-        solver._image_method = image
+        active_lanes = []
+
+        def capture_variant(**kwargs):
+            candidates = candidate_rows(kwargs["paths"])
+            same = np.flatnonzero(np.all(candidates == sampled[0], axis=(1, 2)))
+            if len(same) != 1:
+                raise ValueError(f"Instrumented run did not reproduce the sampled candidate: {same}")
+            active_lanes.append(int(same[0]))
+            image = instrument(module, int(same[0]), target_scale, origin_scale, fallback, sink)
+            return image(**kwargs)
+
+        solver._image_method = capture_variant
         variant, _ = capture_trace(core, scene, solver, f1["solver"], frequency, [0], task, setup)
         if name == "instrumented_f1":
             for key in ("tau", "ang", "interactions", "objects", "present"):
@@ -228,7 +242,7 @@ def run_case(core, module, frequency, f1, prior, original):
             captured = [s["hit_m"] for s in data["backtrack"] if s["depth"] > 0]
             if captured != [v["native_point_m"] for v in reversed(prior["vertices"])]:
                 raise ValueError("Instrumented candidate hits differ from archived mismatch")
-        results[name] = data | {"path_count": len(variant["tau"])}
+        results[name] = data | {"path_count": len(variant["tau"]), "lane": active_lanes[0]}
     return dict(case=case, task_id=index, path_index=prior["path_index"], canonical_delays_verified=len(trace["tau"]),
                 nodes=nodes, lane=lane, lane_by_node=baseline_lanes, prior=prior, variants=results)
 
@@ -238,7 +252,9 @@ def main():
     previous = load_hashed(INPUT/"G6_REVALIDATION.json", REVALIDATION_SHA)
     if original["status"] != "FAIL" or previous["status"] != "FAIL" or previous["strict_tolerance_s"] != 5e-14:
         raise ValueError("Unexpected frozen G6 contract")
-    cases = json.loads((INPUT/"FINITE_FACE_DIAGNOSTICS.json").read_text())["cases"]
+    evidence = load_hashed(INPUT/"FINITE_FACE_DIAGNOSTICS.json",
+                           "0097d6682c68d11b19f3852e84c931396713ac7c09fa8be113bcea20c24d9f7c")
+    cases = evidence["cases"]
     expected = {(case, f["task_id"], f["path_index"])
                 for case, c in previous["cases"].items() for f in c["failures"]}
     if len(cases) != 4 or {(r["case"], r["task_id"], r["path_index"]) for r in cases} != expected:
