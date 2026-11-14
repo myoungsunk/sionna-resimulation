@@ -482,7 +482,7 @@ def main():
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
     report = run(args)
-    print(f"G6 regenerated release {report['status']}; S1 eligible={report['s1_eligible']}")
+    print(f"G6 regenerated release {report['status']}; S1 eligibility={report['s1_eligibility']}")
     return 0 if report["status"] == "PASS" else 2
 
 
