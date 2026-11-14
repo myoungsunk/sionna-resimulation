@@ -32,11 +32,11 @@ if [[ ${1-} == container ]]; then
   for snr in 30 20; do
     for level in "${levels[@]}"; do
       for arm in DR "${arms[@]}"; do
-      for path in "${paths[@]}"; do
+        for path in "${paths[@]}"; do
           for case in "${cases[@]}"; do
             printf '%s\n' "$case $path $level $arm $snr"
           done
-      done
+        done
       done
     done > "/output/jobs_$snr.txt"
   done

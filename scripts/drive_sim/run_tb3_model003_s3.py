@@ -203,7 +203,7 @@ def fit_path(case, path, arm, level, data, inp, z, dr, model, obs, banks, rule, 
         repeat_tag = rows[i]["phase"]
         for run, (seed, sign) in enumerate((s,d) for s in DEFAULT_SEEDS for d in SIGNS):
             evidence.append(dict(case=case, arm=arm, level=level, sign=sign, seed=seed, site_id=site,
-                                 checkpoint_id=int(rows[i]["sequence"]), checkpoint_order=i, phase=repeat_tag,
+                                 checkpoint_id=int(rows[i]["sequence"]), checkpoint_order=int(i), phase=repeat_tag,
                                  path=path, heading_included=bool(head[run] <= HEADING_BOUND),
                                  xy_included=bool(xy[run] <= XY_BOUND), nees_heading=float(head[run]),
                                  nees_xy_normalized=float(xy[run]/2), nees_bg=float(bias[run]),
@@ -297,7 +297,9 @@ def run_fold(args):
             report["error_by_packet"] = {str(int(i)): [r["heading_error_rad"] for r in evidence
                                                         if r["checkpoint_order"] == int(i)] for i in inputs["cp"]}
     report["finished_utc"] = utc_now()
-    write(args.out, report)
+    temporary = args.out.with_suffix(".json.pending")
+    write(temporary, report)
+    temporary.replace(args.out)
 
 
 def main():
