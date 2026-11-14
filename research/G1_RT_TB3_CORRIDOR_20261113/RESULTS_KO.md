@@ -40,3 +40,9 @@ G3에서 비교 가능한 4,879개 pose의 최대 |Δs|는 1.257 × 10⁻⁶, �
 생성 설정, 동결 G0·G7과 FFD, 이미지 및 코드 SHA-256은 [생성 manifest](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/RUN_MANIFEST.json)에 기록했다. 추가 G3는 [사전 고정 표본](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/SAMPLE_MANIFEST.json)과 단계별 실행 기록 [G3a](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/G3A_RUN.json) · [G3b](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/G3B_RUN.json) · [G3c](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/G3C_RUN.json)을 보관한다. 본 G3의 후속 F1 결과와 표본은 [RT v1.1](SPEC_V1_1_KO.md#생산-설정-확정-근거), 추가 G3의 표본 선정 규칙은 [002 사양](SPEC_DIAG_KO.md#3-추가-gate)에 기록했다.
 
 G-T2·G-V의 6개 조합, 파일 18개는 생산 직후 봉인했다. G4 및 추가 G3 종료 후의 읽기 전용 상태와 SHA-256 재검증이 모두 완료됐다. [봉인 기록](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/SEAL_MANIFEST.json) · [G4 후 저장 확인](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/SEAL_STORAGE_CHECK.json) · [추가 G3 후 확인](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/DIAG_G3_RESULT.json).
+
+## G5 형상 구성 검사
+
+2026-11-14 Snowball에서 **PASS**였다. G-T2 × 앵커 A·B·C의 P-A TEACH·REPEAT station base 108개에서 좌우 벽 거리 216개를 모두 비교했다. 높이 0.45 m의 RF 중심에서 전역 ±y 방향으로 생산 mesh와 처음 만나는 점까지의 거리와 §1.2의 사양값을 대조했다. 오목부 입구의 경계 x = 6.0 m에서는 해당 방향의 첫 벽 접점인 일반 측벽 모서리를 적용했다. 최대 절대 차이는 0 m로 허용치 0.01 m 이내였다. 검사 0.443초, 컨테이너 실행 포함 3초였다. [판정](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/G5.json) · [실행 명령](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/G5_COMMAND.txt).
+
+G5 컨테이너에는 형상·pose 및 G4까지의 실행 증거를 읽기 전용으로 연결했다. G-T2·G-V 봉인 명세 및 접근 로그의 SHA-256을 실행 전후 대조했고, 봉인 해제 기록은 없었다. [봉인 확인](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/SEAL_AFTER.sha256).
