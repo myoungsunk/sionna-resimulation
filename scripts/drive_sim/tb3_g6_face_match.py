@@ -58,17 +58,36 @@ class Face:
     primitives: tuple
 
 
+def shares_edge_segment(first, second):
+    p, q = first
+    a, b = second
+    direction = tuple(y - x for x, y in zip(p, q, strict=True))
+    axis = max(range(3), key=lambda j: abs(direction[j]))
+    lo, hi = sorted((p[axis], q[axis]))
+    other_lo, other_hi = sorted((a[axis], b[axis]))
+    if min(hi, other_hi) - max(lo, other_lo) <= EXACT_HIT_TOL_M:
+        return False
+    for point in second:
+        fraction = (point[axis] - p[axis]) / direction[axis]
+        if any(abs(point[j] - (p[j] + fraction * direction[j])) > EXACT_HIT_TOL_M for j in range(3)):
+            return False
+    return True
+
+
 def connected_faces(name, raw_triangles):
-    """Join coplanar triangles only when they share a full mesh edge."""
+    """Join coplanar triangles with shared segments, including a tessellation T-junction."""
     triangles = tuple(Triangle.from_vertices(t) for t in raw_triangles)
-    by_edge = defaultdict(list)
+    by_plane = defaultdict(list)
     for i, t in enumerate(triangles):
         for p, q in zip(t.vertices, t.vertices[1:] + t.vertices[:1], strict=True):
-            by_edge[t.axis, t.plane_m, *sorted((p, q))].append(i)
+            by_plane[t.axis, t.plane_m].append((i, (p, q)))
     neighbors = [set() for _ in triangles]
-    for ids in by_edge.values():
-        for i in ids:
-            neighbors[i].update(ids)
+    for edges in by_plane.values():
+        for index, (i, edge) in enumerate(edges):
+            for j, other in edges[index+1:]:
+                if i != j and shares_edge_segment(edge, other):
+                    neighbors[i].add(j)
+                    neighbors[j].add(i)
     assigned = {}
     for i, triangle in enumerate(triangles):
         if i in assigned:
@@ -154,6 +173,14 @@ def check_geometry():
                                        + [(p[0], p[2], p[3]) for p in (square, other)])
     if faces[0] != faces[2] or faces[0] == faces[1]:
         raise ValueError("Face identity crossed a gap or split a triangulation")
+    t_junction = (square[1], (0., 3., 1.), (0., 2., 1.))
+    _, joined = connected_faces("wall", [(square[0], square[1], square[2]), t_junction])
+    if joined[0] != joined[1]:
+        raise ValueError("A partial edge shared by coplanar triangles was split")
+    corner_only = (square[2], (0., 3., 2.), (0., 3., 3.))
+    _, separated = connected_faces("wall", [(square[0], square[1], square[2]), corner_only])
+    if separated[0] == separated[1]:
+        raise ValueError("Contact at one vertex incorrectly joined two faces")
     tx, rx = (1., .5, .5), (1., 1.5, 1.5)
     result = match_path(tx, rx, tx, rx, [(0, triangles[0], faces[0], (0., 1., 1.))])
     if result[-1] or abs(result[2] - dist(tx, (-1., 1.5, 1.5)) / C_M_S) > 1e-22:
