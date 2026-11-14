@@ -1,0 +1,88 @@
+{
+  "question_id": "G1-DIAG-002",
+  "classification": "DIAGNOSTIC_ONLY",
+  "role": "IMPLEMENTER",
+  "run_id": "G1_DIAG_002_K910_20261114T082316Z_jzAdpI",
+  "branch": "research/g1-sweep-heading-floor-spec-20261113",
+  "spec_commit": "2068954c07770cffee1a8745e53e0383c5ef8c96",
+  "prior_publication": "b070c8685e03133cfe4b846b530181acf66260b8",
+  "prior_manifest_sha256": "f38a8ccb0e71ec97ba235e83905fd99bb5d8108a247f2c1a1b1936a92cce0733",
+  "s2_prime_verdict": "STOP",
+  "step3": "HELD",
+  "k10_analysis_status": "EXPLORATORY",
+  "stages": {
+    "k9": {
+      "started_utc": "2026-11-14T08:23:31Z",
+      "finished_utc": "2026-11-14T08:26:18Z",
+      "exit": 0,
+      "command": "docker run --rm --pull=never --network none --cpus 4 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run\\,readonly --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --mount type=bind\\,src=/home/KMS/G1_DIAG_002_20261114T073741Z_Nr6pdY\\,dst=/prior\\,readonly --mount type=bind\\,src=/home/KMS/G1_DIAG_002_K910_20261114T082316Z_jzAdpI\\,dst=/diag --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /diag/k9.py --code /run/s2_code --inputs /inputs --banks /banks --grid /run/grid --entry /entry --frozen /run/s2_out --prior /prior --out /diag/out"
+    },
+    "k10": {
+      "started_utc": "2026-11-14T08:26:18Z",
+      "finished_utc": "2026-11-14T08:26:19Z",
+      "exit": 0,
+      "command": "docker run --rm --pull=never --network none --cpus 4 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run\\,readonly --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --mount type=bind\\,src=/home/KMS/G1_DIAG_002_20261114T073741Z_Nr6pdY\\,dst=/prior\\,readonly --mount type=bind\\,src=/home/KMS/G1_DIAG_002_K910_20261114T082316Z_jzAdpI\\,dst=/diag --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /diag/k10.py --q1 /prior/q1_sweep_rows.csv --k4 /prior/out/K4_ORACLE_SCALE.json --out /diag/out/K10_KAPPA_CONVERGENCE.json"
+    }
+  },
+  "cases": {
+    "R2_aA_m0": 21,
+    "R2_aB_m0": 21,
+    "R4_aA_m0": 10,
+    "R4_aB_m0": 10,
+    "R5_aA_m0": 30,
+    "R5_aB_m0": 30
+  },
+  "k9_inputs": {
+    "frozen_k0": "23962c097694b0084474d8682e94e59507c13c022eaaa9c068240a9b7ee8c007",
+    "frozen_k3": "1f8ca024f0853059c60ae77c749f32aacc464476fad5c821cdb188531c5325fa",
+    "frozen_k4": "2c8a7607fc16a2eab5160e046334f94f635f70617d8646f9de7cad71ebeb2c1a",
+    "frozen_k3_driver": "a7e49380b26d2152623401e40b433eb6171424dbbe01b2c0da1d91d7bddbe853",
+    "frozen_q1": "ede1a041dc275a57ca49751257d5c264f861a147e58b42166e0d737902111c3e",
+    "frozen_s2_manifest": "3ecd384152e2c4b8af209ed7e54ff71a3acfd49eebeb539ef9fdfaab0a1877ce",
+    "S1P_ERR_MODEL_LORO.json": "7fa8575f4690109f14196ab08319d66c33c5d40ecd7b6d34e7b997847e33fd65",
+    "S2P_DRAWS.npz": "da31de4e960527d752fa343ce9271e38dde962cf9ff696edb32d8a7015294c38"
+  },
+  "k10_inputs": {
+    "q1_sweep_rows_sha256": "ede1a041dc275a57ca49751257d5c264f861a147e58b42166e0d737902111c3e",
+    "k4_oracle_scale_sha256": "2c8a7607fc16a2eab5160e046334f94f635f70617d8646f9de7cad71ebeb2c1a"
+  },
+  "environment": {
+    "python": "3.11.15",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "docker": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f"
+  },
+  "frozen_runner_sha256": {
+    "s2_primary_final.py": "2581ddfbf41364278a1130c68a81e6eb32b775e11da1aa9ccbd63b6c1e39c932",
+    "run_step2.py": "287c0a655dae0f660854133697bac10825ea0fe832c8793dec801a83a80afe89",
+    "v33_filter.py": "13b907a73367263c446c23578d83eb94e7b47dca736721c8b78999da70f6f701",
+    "v33_observation.py": "8848890ef3f8d4e02d000e0b04cc5610793fd2892f553c8012386e096a138f64",
+    "v32_filter.py": "8e96859156ffc110b02131619799d367a39f54f7e50c5a9b2998e9c6adb85b33"
+  },
+  "governance_sha256": {
+    "common": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "implementer": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "files_sha256": {
+    "code/k10.py": "ed3705b085e901a375b2ed321f2931406a244807cbf5ad9e253909595f1293b9",
+    "code/k9.py": "bcfc0271c2d731d67ec20a70b594be08c36e733de6e19e6e614893d98bc389a9",
+    "code/report_k910.py": "856973931768c36167553290fd656d9c359b1706b2397cdd80cfa8bfd754bafb",
+    "code/run_k910.sh": "0d0a7027fde8a901f20748c614d873302662e5d13a964ef030c35808a2050416",
+    "out/K10_KAPPA_CONVERGENCE.json": "21a6a46e8a587b05e628751f76812d663da49255acc04d539c369c2db45a58d9",
+    "out/K9_horizon.csv": "ac86605cf536616b50c701774fe9a4e2627068891de2dcac2ecfe0ed7dee1c23",
+    "out/K9_HORIZON.json": "aff4815eb1228a38384737a7a05e5d6fa10dc4f6c0429b1e0517d719b0ad4e9c",
+    "records/k9_k10/CODE_HASH_CHECK.log": "11a63d41a006757c2bed2ce36baf36e9cbfce227eba04df5cf86679d9a7c8f97",
+    "records/k9_k10/COMMAND_k10.txt": "3f0be9fc2c2afd4f4b3c0f973998451d6e743d3ccdb40bf5e881b3c16627a08e",
+    "records/k9_k10/COMMAND_k9.txt": "4c1b1a4d2fe7e2eedc6d70abe0720c4192bd649ec510ae4152ffa74db13f61a2",
+    "records/k9_k10/EXECUTION_RECORD_KO.md": "7e77b7ec49a204541cfb5f153caca904c89a884edd3620fda18a5acc93b6d658",
+    "records/k9_k10/EXIT_k10.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "records/k9_k10/EXIT_k9.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "records/k9_k10/FINISH_k10.txt": "a63ec3d75c4a24fc4de9fff8de27532700a889e71713c9c84f7d4743ac37d3de",
+    "records/k9_k10/FINISH_k9.txt": "0fcf58c1b49b52bfe18f868a403ab18af5439254903e9253f2c59695351a6636",
+    "records/k9_k10/k10.log": "c7a54c9bc7d4c327513a6d13fe755325b8bf83b63e14eef0270c44917f9b036b",
+    "records/k9_k10/k9.log": "1de033758df661140c354500a0f3e7467e9b0c3e12c96897ccb16918f3a7282a",
+    "records/k9_k10/START_k10.txt": "0fcf58c1b49b52bfe18f868a403ab18af5439254903e9253f2c59695351a6636",
+    "records/k9_k10/START_k9.txt": "e5cce9258d7d938a379d0f608b63d9486c937c2e95819c502c6884f5196a66b5",
+    "REPORT_K9_K10_KO.md": "1d1dcfed3d9e9ea2bffbefbcd20c5d6d86889a23fbe22c552eb899b6de1d3479"
+  }
+}
