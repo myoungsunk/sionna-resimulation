@@ -11,6 +11,7 @@ import hashlib
 import json
 import math
 import platform
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -44,7 +45,10 @@ def file_sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def git_identity():
+def git_identity(archive_commit):
+    if archive_commit is not None:
+        require(re.fullmatch(r"[0-9a-f]{40}", archive_commit), "Invalid archived source revision")
+        return dict(head=archive_commit, source="git archive")
     repo = Path(__file__).resolve().parents[2]
     def git(*args):
         result = subprocess.run(["git", "-C", str(repo), *args], check=True,
@@ -449,7 +453,7 @@ def run(args):
         g1_model_source_sha256=source_hashes, ffd_bank_sha256=bank_hashes,
         execution=dict(host=platform.node(), python=sys.version.split()[0], numpy=np.__version__,
                        started_utc=started, finished_utc=finished, command=[sys.executable, *sys.argv],
-                       git=git_identity()),
+                       git=git_identity(args.archive_commit)),
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("x", encoding="utf-8") as stream:
@@ -460,6 +464,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--archive-commit")
     parser.add_argument("--old-results-root", type=Path, required=True,
                         help="Original results tree; metadata only, no old H/path payloads")
     parser.add_argument("--old-seal-root", type=Path, required=True,

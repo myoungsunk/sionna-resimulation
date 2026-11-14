@@ -5,6 +5,8 @@ umask 077
 run=$(pwd -P)
 test "$(id -un)" = KMS
 test ! -e STARTED_UTC.txt
+revision=$(cat receipt_commit.txt)
+[[ "$revision" =~ ^[0-9a-f]{40}$ ]]
 new=/home/KMS/G1_MODEL003_G6_REGEN_okSskppe
 banks=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source
 model=/home/KMS/RUN2_20261113T072631Z/inputs/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source
@@ -25,7 +27,8 @@ cmd=(docker run --rm --pull=never --network none
   --new-results-root /new/results --new-seal-root /new/results
   --g6 /old/G6_REVALIDATION.json --g9 /old/G9.json
   --supplemental-g3 /g3/G-T2_B_1708.json /g3/G-T2_C_1025.json /g3/G-T2_C_1840.json /g3/G-T2_C_2477.json
-  --model-source /model --banks-dir /banks --out /output/REGENERATED_RELEASE.json)
+  --model-source /model --banks-dir /banks --archive-commit "$revision"
+  --out /output/REGENERATED_RELEASE.json)
 printf '%q ' "${cmd[@]}" > COMMAND.txt
 printf '\n' >> COMMAND.txt
 date -u +%FT%TZ > STARTED_UTC.txt
