@@ -241,7 +241,7 @@ def run_case(core, module, frequency, f1, prior, original):
                     raise ValueError(f"Instrumentation changed baseline {key}")
         data = decode(sink.rows, shape_names)
         if [s["depth"] for s in data["images"]] != [1, 2, 3]:
-            raise ValueError(f"Incomplete candidate image evidence: {name}")
+            raise ValueError(f"Incomplete candidate image evidence: {case}/{index}/{name} {data}")
         if name == "instrumented_f1":
             captured = [s["hit_m"] for s in data["backtrack"] if s["depth"] > 0]
             if captured != [v["native_point_m"] for v in reversed(prior["vertices"])]:
