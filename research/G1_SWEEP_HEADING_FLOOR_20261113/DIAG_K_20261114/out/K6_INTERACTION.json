@@ -1,0 +1,3098 @@
+{
+  "classification": "DIAGNOSTIC_ONLY",
+  "s2_prime_verdict": "STOP",
+  "step3": "HELD",
+  "visits": 10,
+  "frozen_nominal_replay": "all three base models match visits 1\u201310 exactly",
+  "case_pass": "coverage >= .88 and mean heading NEES in [0.5, 2.0]",
+  "cluster_draws": "first 200 unchanged outer draws and rotated path case assignments from S2P_DRAWS",
+  "frozen_rho_by_case": {
+    "R2_aA_m0": 0.0,
+    "R2_aB_m0": 0.286741922797523,
+    "R4_aA_m0": 0.25606615545725403,
+    "R4_aB_m0": 0.0,
+    "R5_aA_m0": 0.5187741068843829,
+    "R5_aB_m0": 0.2903719534191963
+  },
+  "q1_sha256": "ede1a041dc275a57ca49751257d5c264f861a147e58b42166e0d737902111c3e",
+  "calibration_sha256": "7fa8575f4690109f14196ab08319d66c33c5d40ecd7b6d34e7b997847e33fd65",
+  "oracle_scale_definition": "mean_station((mean_seed(error_deg)/mean_seed(sqrt(R_E1)))**2)",
+  "oracle_scale_scope": "Candidate R_E1 is multiplied by kappa via c_L, with frozen R_cap,raw and r_bar. Frozen AR variance sigma_a2=rho*r_bar, AR process, and initial covariance are reused. White variance is max(kappa*R_E1-sigma_a2, 0.25*kappa*R_E1).",
+  "oracle_bias_definition": "mean_station(mean_seed(aligned_wrapped_candidate_error_deg))",
+  "oracle_bias_scope": "Subtract mu from candidate yaw in measurement update after unadjusted window and J selection.",
+  "oracle_parameters": [
+    {
+      "case": "R2_aA_m0",
+      "mu_deg": -2.441936238095238,
+      "kappa": 0.4600101651773655,
+      "sites": 21,
+      "sweeps": 420,
+      "fable_rounded_kappa": 0.46,
+      "kappa_abs_diff_from_fable": 1.0165177365462075e-05,
+      "kappa_abs_diff_exceeds_001": false
+    },
+    {
+      "case": "R2_aB_m0",
+      "mu_deg": -0.2949124285714287,
+      "kappa": 0.39880473367806557,
+      "sites": 21,
+      "sweeps": 420,
+      "fable_rounded_kappa": 0.4,
+      "kappa_abs_diff_from_fable": 0.0011952663219344517,
+      "kappa_abs_diff_exceeds_001": false
+    },
+    {
+      "case": "R4_aA_m0",
+      "mu_deg": -0.8438597999999992,
+      "kappa": 0.14107217162086244,
+      "sites": 10,
+      "sweeps": 200,
+      "fable_rounded_kappa": 0.14,
+      "kappa_abs_diff_from_fable": 0.0010721716208624277,
+      "kappa_abs_diff_exceeds_001": false
+    },
+    {
+      "case": "R4_aB_m0",
+      "mu_deg": -0.13885979999999903,
+      "kappa": 1.7948024526520459,
+      "sites": 10,
+      "sweeps": 200,
+      "fable_rounded_kappa": 1.8,
+      "kappa_abs_diff_from_fable": 0.00519754734795419,
+      "kappa_abs_diff_exceeds_001": false
+    },
+    {
+      "case": "R5_aA_m0",
+      "mu_deg": 0.12373506666666678,
+      "kappa": 0.4611418373402875,
+      "sites": 30,
+      "sweeps": 600,
+      "fable_rounded_kappa": 0.46,
+      "kappa_abs_diff_from_fable": 0.0011418373402874993,
+      "kappa_abs_diff_exceeds_001": false
+    },
+    {
+      "case": "R5_aB_m0",
+      "mu_deg": -1.1737649333333333,
+      "kappa": 0.44313727414621823,
+      "sites": 30,
+      "sweeps": 600,
+      "fable_rounded_kappa": 0.44,
+      "kappa_abs_diff_from_fable": 0.0031372741462182274,
+      "kappa_abs_diff_exceeds_001": false
+    }
+  ],
+  "arms": {
+    "K6-00": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 295,
+        "not_covered": 45,
+        "coverage": 0.8676470588235294,
+        "nees": 1.7034749476119644,
+        "rms_z": 1.305172382335745,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": -1.2320037861792699,
+        "heading_rmse_deg": 2.33203712892663,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.6982083317278006,
+        "mean_95_halfwidth_deg": 2.9635752106240494,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.8823529411764706,
+          0.8529411764705882,
+          0.9117647058823529,
+          0.9117647058823529,
+          0.8529411764705882,
+          0.7941176470588235,
+          0.8529411764705882,
+          0.8823529411764706,
+          0.8823529411764706,
+          0.8529411764705882
+        ],
+        "nees_by_visit": [
+          1.2417846977851437,
+          1.3589443318824972,
+          1.6014619233587315,
+          1.4958809459243478,
+          1.948646369811235,
+          2.3487470521366216,
+          1.8426242176211567,
+          1.7266227617706287,
+          1.5664392802539222,
+          1.9035978955753567
+        ],
+        "window_misses": 0,
+        "updates": 336,
+        "gated": 4,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.8263970588235293,
+            0.9735851158645277
+          ],
+          "nees": [
+            0.9073769680506709,
+            2.0932779960370174
+          ],
+          "mean_heading_error_deg": [
+            -1.455236036113248,
+            0.12932432207024053
+          ],
+          "heading_rmse_deg": [
+            1.275279222765908,
+            2.5381683592680306
+          ],
+          "rmse_ratio": [
+            0.44462566475705234,
+            0.92386941546862
+          ],
+          "mean_95_halfwidth_deg": [
+            2.424206878542658,
+            3.4860775453593194
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 337,
+        "not_covered": 3,
+        "coverage": 0.9911764705882353,
+        "nees": 0.7197316063849485,
+        "rms_z": 0.8483699702281714,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.2955874848013395,
+        "heading_rmse_deg": 1.9980914401149237,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.750421438334146,
+        "mean_95_halfwidth_deg": 4.48873081390171,
+        "distinct_station_p25_p50_p75": [
+          6.25,
+          7.5,
+          9.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9285603858089579,
+          0.8802065875353657,
+          0.9193330003559816,
+          0.7705589518297549,
+          0.6911281096748606,
+          0.6452667892512758,
+          0.6140118748076226,
+          0.5991508866861998,
+          0.5913115764321208,
+          0.5577879014673446
+        ],
+        "window_misses": 0,
+        "updates": 340,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9205882352941176,
+            0.9911764705882353
+          ],
+          "nees": [
+            0.6536043591655588,
+            1.1365232950718707
+          ],
+          "mean_heading_error_deg": [
+            -0.6801347258278645,
+            0.5351448250532824
+          ],
+          "heading_rmse_deg": [
+            1.849012361704688,
+            2.606818121470412
+          ],
+          "rmse_ratio": [
+            0.6644867434435763,
+            0.8049646354672874
+          ],
+          "mean_95_halfwidth_deg": [
+            4.418160641576475,
+            4.6095141807603035
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 321,
+        "not_covered": 9,
+        "coverage": 0.9727272727272728,
+        "nees": 0.8579240564546043,
+        "rms_z": 0.9262418995352155,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.23417683795035615,
+        "heading_rmse_deg": 2.089980910972348,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.6529431567227527,
+        "mean_95_halfwidth_deg": 4.4049581249566145,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9565556851360207,
+          1.0700432122932124,
+          0.9104351703279372,
+          1.0497532731864143,
+          0.9778931278365941,
+          0.8855497968914936,
+          0.8459427966036154,
+          0.7096519594438829,
+          0.6533565170939194,
+          0.520059025732953
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9242245989304813,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6080982909680713,
+            1.099974284235222
+          ],
+          "mean_heading_error_deg": [
+            -0.542124024994199,
+            0.5640371093471322
+          ],
+          "heading_rmse_deg": [
+            1.6583925921181102,
+            2.8117263922041262
+          ],
+          "rmse_ratio": [
+            0.5903415937655734,
+            0.8984393425199935
+          ],
+          "mean_95_halfwidth_deg": [
+            4.186302089782568,
+            4.770568421303766
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 134,
+        "not_covered": 196,
+        "coverage": 0.40606060606060607,
+        "nees": 6.081300212576483,
+        "rms_z": 2.4660292400084156,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 1.2167055561379163,
+        "heading_rmse_deg": 2.416961851564401,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 0.9048013634374695,
+        "mean_95_halfwidth_deg": 1.9481542289531217,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.8787878787878788,
+          0.8181818181818182,
+          0.6060606060606061,
+          0.5151515151515151,
+          0.3333333333333333,
+          0.3333333333333333,
+          0.18181818181818182,
+          0.15151515151515152,
+          0.12121212121212122,
+          0.12121212121212122
+        ],
+        "nees_by_visit": [
+          1.7331607069089856,
+          2.291261659466942,
+          3.5134610697264823,
+          4.550212352328833,
+          6.6785360539220795,
+          6.883682010257755,
+          7.736118451711145,
+          8.9095089008774,
+          8.58270209023147,
+          9.934358830333736
+        ],
+        "window_misses": 0,
+        "updates": 329,
+        "gated": 1,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.3,
+            0.67
+          ],
+          "nees": [
+            3.6265336360241194,
+            7.610222954056825
+          ],
+          "mean_heading_error_deg": [
+            -0.7830601156358927,
+            1.6153415521303718
+          ],
+          "heading_rmse_deg": [
+            1.840054168670155,
+            2.919234185525519
+          ],
+          "rmse_ratio": [
+            0.5997758517713105,
+            0.9964649288909344
+          ],
+          "mean_95_halfwidth_deg": [
+            1.5391875260128212,
+            2.5164066853218516
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 307,
+        "not_covered": 23,
+        "coverage": 0.9303030303030303,
+        "nees": 1.0260309611447598,
+        "rms_z": 1.0129318640188785,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.611522902674991,
+        "heading_rmse_deg": 2.596469638356729,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8406005196327042,
+        "mean_95_halfwidth_deg": 4.882559179896448,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          7.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          1.4006803459261568,
+          1.1559065293985553,
+          1.178521717641211,
+          1.161793139070866,
+          0.9690875309455884,
+          0.9201758218387319,
+          0.9195509527334385,
+          0.8332487327190425,
+          0.8624288120355498,
+          0.8589160291384572
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9116978609625668,
+            0.9878787878787879
+          ],
+          "nees": [
+            0.7162516716284719,
+            1.2408891789614889
+          ],
+          "mean_heading_error_deg": [
+            -0.5542194808239644,
+            0.6907488706123962
+          ],
+          "heading_rmse_deg": [
+            2.1699210423876925,
+            2.912430247377975
+          ],
+          "rmse_ratio": [
+            0.7960483477556801,
+            0.8967951604187757
+          ],
+          "mean_95_halfwidth_deg": [
+            4.802013696939436,
+            4.910646496634225
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 313,
+        "not_covered": 17,
+        "coverage": 0.9484848484848485,
+        "nees": 0.7728670092822267,
+        "rms_z": 0.8791285510562302,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.007438472029259267,
+        "heading_rmse_deg": 2.3015019047203067,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.7878115063011982,
+        "mean_95_halfwidth_deg": 4.482648807880255,
+        "distinct_station_p25_p50_p75": [
+          7.0,
+          8.0,
+          8.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          0.668949913669664,
+          0.7172633255761972,
+          0.6934024673914538,
+          0.7252063237900701,
+          0.8015497709030747,
+          0.7954777587071309,
+          0.8499257801576844,
+          0.9050705641520733,
+          0.836486956512544,
+          0.7353372319623755
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9147058823529411,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6829491236664456,
+            1.218715726186479
+          ],
+          "mean_heading_error_deg": [
+            -0.9653444197304448,
+            0.18352717779098857
+          ],
+          "heading_rmse_deg": [
+            1.9077280800462693,
+            2.6173196491348873
+          ],
+          "rmse_ratio": [
+            0.6648236440203632,
+            0.850623156137276
+          ],
+          "mean_95_halfwidth_deg": [
+            4.330014425751948,
+            4.532813739520956
+          ]
+        }
+      }
+    },
+    "K6-10": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 258,
+        "not_covered": 82,
+        "coverage": 0.7588235294117647,
+        "nees": 2.682471869601177,
+        "rms_z": 1.6378253477099372,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": -1.4276666055732183,
+        "heading_rmse_deg": 2.452440655480402,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.7342569625006505,
+        "mean_95_halfwidth_deg": 2.546969910944526,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.8529411764705882,
+          0.9117647058823529,
+          0.7941176470588235,
+          0.9117647058823529,
+          0.7941176470588235,
+          0.6470588235294118,
+          0.6764705882352942,
+          0.5882352941176471,
+          0.7058823529411765,
+          0.7058823529411765
+        ],
+        "nees_by_visit": [
+          1.3774140088630094,
+          1.5293873361241759,
+          2.0998040382121803,
+          1.9397532592838913,
+          3.022916778140239,
+          4.318569631647292,
+          3.0549919775338608,
+          3.16205024009923,
+          3.1030948726245664,
+          3.2167365534833294
+        ],
+        "window_misses": 1,
+        "updates": 329,
+        "gated": 11,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.6674710338680927,
+            0.9206795900178253
+          ],
+          "nees": [
+            1.3736106847052336,
+            4.025900056749864
+          ],
+          "mean_heading_error_deg": [
+            -1.8262912397066577,
+            0.024066473697272495
+          ],
+          "heading_rmse_deg": [
+            1.277636986907698,
+            2.93394031095012
+          ],
+          "rmse_ratio": [
+            0.45938354074426796,
+            1.04192757949002
+          ],
+          "mean_95_halfwidth_deg": [
+            2.058530374419406,
+            2.8932028633065907
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 338,
+        "not_covered": 2,
+        "coverage": 0.9941176470588236,
+        "nees": 0.7190404018926965,
+        "rms_z": 0.8479625002868325,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.3109282554859899,
+        "heading_rmse_deg": 1.9508742798281624,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.7326881311265403,
+        "mean_95_halfwidth_deg": 4.41916377148489,
+        "distinct_station_p25_p50_p75": [
+          6.25,
+          7.5,
+          9.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9219052100768849,
+          0.8740392403073705,
+          0.9169291948948931,
+          0.770802307022504,
+          0.7004024979563559,
+          0.6445906459555787,
+          0.6049176114981094,
+          0.5869137381229294,
+          0.5905032011906373,
+          0.5794003719017019
+        ],
+        "window_misses": 0,
+        "updates": 340,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9234714795008914,
+            0.9911764705882353
+          ],
+          "nees": [
+            0.6499198022079888,
+            1.133700106664897
+          ],
+          "mean_heading_error_deg": [
+            -0.7192606282756048,
+            0.49609082354588224
+          ],
+          "heading_rmse_deg": [
+            1.8118744627591976,
+            2.547117831469288
+          ],
+          "rmse_ratio": [
+            0.65422573856787,
+            0.7862917084243571
+          ],
+          "mean_95_halfwidth_deg": [
+            4.368447078128849,
+            4.502838174024984
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 321,
+        "not_covered": 9,
+        "coverage": 0.9727272727272728,
+        "nees": 0.8550898631899593,
+        "rms_z": 0.9247106916165506,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.3472502820195447,
+        "heading_rmse_deg": 2.0024919546204747,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.6256102203122502,
+        "mean_95_halfwidth_deg": 4.229517518344451,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9710781362754037,
+          1.0947097906815293,
+          0.916215346715642,
+          1.0747500103264052,
+          0.9623118655671588,
+          0.8345196761696934,
+          0.8164516020511768,
+          0.681434581941291,
+          0.6864510772015937,
+          0.5129765449697
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9205280748663102,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6068306804969865,
+            1.1740641695185499
+          ],
+          "mean_heading_error_deg": [
+            -0.8267387295592596,
+            0.554384982955727
+          ],
+          "heading_rmse_deg": [
+            1.6126875562375538,
+            2.75573451877194
+          ],
+          "rmse_ratio": [
+            0.580166558818399,
+            0.8775763442417183
+          ],
+          "mean_95_halfwidth_deg": [
+            4.1153955576264565,
+            4.4167766715321495
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 192,
+        "not_covered": 138,
+        "coverage": 0.5818181818181818,
+        "nees": 3.7949621615973186,
+        "rms_z": 1.9480662621166966,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 1.1371778523577658,
+        "heading_rmse_deg": 2.29217071866062,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 0.8580851990415919,
+        "mean_95_halfwidth_deg": 2.2837993218433708,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9090909090909091,
+          0.8484848484848485,
+          0.7272727272727273,
+          0.5757575757575758,
+          0.5151515151515151,
+          0.3939393939393939,
+          0.36363636363636365,
+          0.30303030303030304,
+          0.2727272727272727
+        ],
+        "nees_by_visit": [
+          1.2188769526939225,
+          1.472450790744211,
+          2.0566872025671303,
+          2.5950853190032803,
+          3.8728524662308934,
+          4.256589344553139,
+          4.861297435154075,
+          5.465280835429301,
+          5.674456405743736,
+          6.476044863853497
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.4470588235294118,
+            0.818409090909091
+          ],
+          "nees": [
+            2.200422317168335,
+            4.8248331638522775
+          ],
+          "mean_heading_error_deg": [
+            -0.7449662731865528,
+            1.4549630209759328
+          ],
+          "heading_rmse_deg": [
+            1.7374736901441297,
+            2.714799982339788
+          ],
+          "rmse_ratio": [
+            0.5738077739095018,
+            0.9435405520809379
+          ],
+          "mean_95_halfwidth_deg": [
+            1.7759360673164608,
+            2.910800533839206
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 307,
+        "not_covered": 23,
+        "coverage": 0.9303030303030303,
+        "nees": 1.0246112446462419,
+        "rms_z": 1.0122308257735693,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.6226985173695612,
+        "heading_rmse_deg": 2.5803759857020307,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8353902400344072,
+        "mean_95_halfwidth_deg": 4.847390683388255,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          7.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          1.3981609161611408,
+          1.154887147121554,
+          1.1733219718441446,
+          1.1591758212497558,
+          0.9693462045327838,
+          0.9240336987696258,
+          0.9248975798351587,
+          0.8339140430008103,
+          0.8584585779446052,
+          0.8499164860028396
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9116978609625668,
+            0.9878787878787879
+          ],
+          "nees": [
+            0.7146875147843039,
+            1.231826585372572
+          ],
+          "mean_heading_error_deg": [
+            -0.5452497550028471,
+            0.6962334108947023
+          ],
+          "heading_rmse_deg": [
+            2.15115949932022,
+            2.865726855865731
+          ],
+          "rmse_ratio": [
+            0.7938406804611077,
+            0.8908796553195181
+          ],
+          "mean_95_halfwidth_deg": [
+            4.786271199277976,
+            4.8681484800761945
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 312,
+        "not_covered": 18,
+        "coverage": 0.9454545454545454,
+        "nees": 0.8033639282234569,
+        "rms_z": 0.8963057113638498,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.008918229550407159,
+        "heading_rmse_deg": 2.2801508416997924,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.7805029687393459,
+        "mean_95_halfwidth_deg": 4.391482357751032,
+        "distinct_station_p25_p50_p75": [
+          7.0,
+          8.0,
+          8.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          0.6697817302189084,
+          0.732306422883336,
+          0.7095047499321097,
+          0.7448858713522982,
+          0.8178405258141208,
+          0.8175107896136172,
+          0.8833939375406288,
+          0.9551315991624577,
+          0.929387702314068,
+          0.7738959534030235
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9121122994652406,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6811721988377738,
+            1.2345992175397271
+          ],
+          "mean_heading_error_deg": [
+            -0.9760084840390731,
+            0.21423728824506774
+          ],
+          "heading_rmse_deg": [
+            1.8734516604066838,
+            2.609114478714283
+          ],
+          "rmse_ratio": [
+            0.6538577025188423,
+            0.8620005898065509
+          ],
+          "mean_95_halfwidth_deg": [
+            4.28479310843862,
+            4.43143724100997
+          ]
+        }
+      }
+    },
+    "K6-01": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 297,
+        "not_covered": 43,
+        "coverage": 0.8735294117647059,
+        "nees": 1.4951727655849494,
+        "rms_z": 1.2227725731242705,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": -0.9800325517877875,
+        "heading_rmse_deg": 1.9958525853544564,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.5975551961457624,
+        "mean_95_halfwidth_deg": 2.8659946363500053,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9117647058823529,
+          0.8529411764705882,
+          0.8823529411764706,
+          0.8235294117647058,
+          0.8529411764705882,
+          0.8823529411764706,
+          0.8823529411764706,
+          0.9411764705882353,
+          0.8235294117647058,
+          0.8823529411764706
+        ],
+        "nees_by_visit": [
+          1.144166031519576,
+          1.5567049656992393,
+          1.376566509388114,
+          1.4326525083019221,
+          1.732659164044284,
+          1.7708812527376139,
+          1.5272471715696216,
+          1.3931077741488207,
+          1.5415250101425364,
+          1.476217268297764
+        ],
+        "window_misses": 0,
+        "updates": 336,
+        "gated": 4,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.7999264705882353,
+            0.9382352941176471
+          ],
+          "nees": [
+            1.0595096318687456,
+            1.9893389965716402
+          ],
+          "mean_heading_error_deg": [
+            -1.4235503555613442,
+            -0.5914764135155492
+          ],
+          "heading_rmse_deg": [
+            1.5947027537404668,
+            2.415978385718613
+          ],
+          "rmse_ratio": [
+            0.500235656283702,
+            0.7429487732060484
+          ],
+          "mean_95_halfwidth_deg": [
+            2.6654600609319257,
+            3.059676255659544
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 335,
+        "not_covered": 5,
+        "coverage": 0.9852941176470589,
+        "nees": 0.7035465740871132,
+        "rms_z": 0.8387768321115654,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.26614221264643245,
+        "heading_rmse_deg": 1.9031395613312436,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.714760445038824,
+        "mean_95_halfwidth_deg": 4.475169455170716,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          0.9705882352941176,
+          0.9705882352941176,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9642863851844493,
+          0.9093797970820616,
+          0.913089922376231,
+          0.7672977199815925,
+          0.7005533290644868,
+          0.618955973811779,
+          0.6179968811729258,
+          0.5834148180979432,
+          0.51667186093755,
+          0.44381905316211334
+        ],
+        "window_misses": 0,
+        "updates": 340,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9558823529411765,
+            1.0
+          ],
+          "nees": [
+            0.48842859206167866,
+            0.9623878857701001
+          ],
+          "mean_heading_error_deg": [
+            -0.705536709471101,
+            0.35088378659886305
+          ],
+          "heading_rmse_deg": [
+            1.5259657855763704,
+            2.2603229901979898
+          ],
+          "rmse_ratio": [
+            0.6819980453941171,
+            0.7395837372539702
+          ],
+          "mean_95_halfwidth_deg": [
+            4.458192734890552,
+            4.496105808199665
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 321,
+        "not_covered": 9,
+        "coverage": 0.9727272727272728,
+        "nees": 0.8518627524652771,
+        "rms_z": 0.9229641122304144,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.15727717648131925,
+        "heading_rmse_deg": 2.0707292724989514,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.6469286397810374,
+        "mean_95_halfwidth_deg": 4.318918916607054,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9649862791270224,
+          1.0912354468039114,
+          0.9117777117963999,
+          1.004143366091751,
+          0.9746183335816204,
+          0.8646932774702848,
+          0.8092869779523773,
+          0.7120573552212296,
+          0.6318157006556833,
+          0.5540130759524906
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9363636363636364,
+            1.0
+          ],
+          "nees": [
+            0.4703854388520462,
+            1.249994277209373
+          ],
+          "mean_heading_error_deg": [
+            -0.7331757359288439,
+            0.4023307694440591
+          ],
+          "heading_rmse_deg": [
+            1.5023530697905179,
+            2.548866216156126
+          ],
+          "rmse_ratio": [
+            0.6277038242485089,
+            0.6673791099730931
+          ],
+          "mean_95_halfwidth_deg": [
+            4.304133697940975,
+            4.338876490826024
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 252,
+        "not_covered": 78,
+        "coverage": 0.7636363636363637,
+        "nees": 2.6516148001970103,
+        "rms_z": 1.6283779660131152,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": -0.09685345292862278,
+        "heading_rmse_deg": 1.6320008824603944,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 0.6109474266735123,
+        "mean_95_halfwidth_deg": 1.8944828122064372,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.8787878787878788,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.7272727272727273,
+          0.696969696969697,
+          0.7272727272727273,
+          0.7272727272727273,
+          0.696969696969697,
+          0.696969696969697,
+          0.6363636363636364
+        ],
+        "nees_by_visit": [
+          1.5507490301943923,
+          1.6043621653798976,
+          1.3680607728006435,
+          3.0439637626467984,
+          2.5488234431591175,
+          3.4921762190916854,
+          2.751577113412597,
+          3.2945809159907395,
+          3.3210243725599047,
+          3.5408302067343267
+        ],
+        "window_misses": 0,
+        "updates": 310,
+        "gated": 20,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.6817424242424241,
+            0.839469696969697
+          ],
+          "nees": [
+            2.0179493047815513,
+            3.3828859801269
+          ],
+          "mean_heading_error_deg": [
+            -0.5100715515965426,
+            0.22384177636498492
+          ],
+          "heading_rmse_deg": [
+            1.3192667363805917,
+            1.968976280128821
+          ],
+          "rmse_ratio": [
+            0.4506417510414037,
+            0.8088861859369875
+          ],
+          "mean_95_halfwidth_deg": [
+            1.8078878701688799,
+            1.9968704877081842
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 306,
+        "not_covered": 24,
+        "coverage": 0.9272727272727272,
+        "nees": 1.015015949944264,
+        "rms_z": 1.0074799997738237,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.575689568762033,
+        "heading_rmse_deg": 2.53429118268005,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8204704008823632,
+        "mean_95_halfwidth_deg": 4.816772763488623,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9090909090909091
+        ],
+        "nees_by_visit": [
+          1.4246931935490932,
+          1.1661962831066957,
+          1.1749110990172331,
+          1.1302163109603667,
+          1.0001212805871496,
+          0.8891078254294528,
+          0.921132147735598,
+          0.8013325854674127,
+          0.7919239822111973,
+          0.8505247913784391
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.8423484848484848,
+            0.996969696969697
+          ],
+          "nees": [
+            0.5903573147517537,
+            1.5120769189746914
+          ],
+          "mean_heading_error_deg": [
+            -0.2315922280057854,
+            1.325659124984214
+          ],
+          "heading_rmse_deg": [
+            1.8572270306291676,
+            3.1114318578682125
+          ],
+          "rmse_ratio": [
+            0.7905275074156998,
+            0.842363318462264
+          ],
+          "mean_95_halfwidth_deg": [
+            4.804315439214285,
+            4.830578054614293
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 316,
+        "not_covered": 14,
+        "coverage": 0.9575757575757575,
+        "nees": 0.7019149805054817,
+        "rms_z": 0.8378036646526928,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.12312734012303739,
+        "heading_rmse_deg": 2.0175444658076356,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.6906119614229558,
+        "mean_95_halfwidth_deg": 4.378948773058853,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9696969696969697
+        ],
+        "nees_by_visit": [
+          0.659383462366704,
+          0.6843945978984011,
+          0.663846999013085,
+          0.6870361648904965,
+          0.7387548411805376,
+          0.7779069390121263,
+          0.7889709621441001,
+          0.7654229622390053,
+          0.6559314679797718,
+          0.5975014083305896
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9090909090909091,
+            0.9939393939393939
+          ],
+          "nees": [
+            0.41612080786236105,
+            1.024790386396203
+          ],
+          "mean_heading_error_deg": [
+            -0.7233739345978419,
+            0.47740046217896326
+          ],
+          "heading_rmse_deg": [
+            1.5438181894699232,
+            2.439487301813807
+          ],
+          "rmse_ratio": [
+            0.6410393811661566,
+            0.7589465656155986
+          ],
+          "mean_95_halfwidth_deg": [
+            4.354022806437484,
+            4.404172708731758
+          ]
+        }
+      }
+    },
+    "K6-11": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 270,
+        "not_covered": 70,
+        "coverage": 0.7941176470588235,
+        "nees": 2.2278820658044727,
+        "rms_z": 1.4926091470322942,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": -0.9382918035527007,
+        "heading_rmse_deg": 1.9577466543344875,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.5861463389726207,
+        "mean_95_halfwidth_deg": 2.3584395116016164,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.8823529411764706,
+          0.7647058823529411,
+          0.7941176470588235,
+          0.8529411764705882,
+          0.7941176470588235,
+          0.8235294117647058,
+          0.7647058823529411,
+          0.8235294117647058,
+          0.7352941176470589,
+          0.7058823529411765
+        ],
+        "nees_by_visit": [
+          1.219431545294984,
+          1.9721541625917651,
+          1.932594162066169,
+          2.077355320159487,
+          3.0849450757332786,
+          2.7705877556343044,
+          2.1824154363463255,
+          1.9871901144225557,
+          2.5133574044023286,
+          2.5387896813935322
+        ],
+        "window_misses": 0,
+        "updates": 328,
+        "gated": 12,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.7234558823529411,
+            0.8588970588235294
+          ],
+          "nees": [
+            1.6812481148728713,
+            2.8914922315202807
+          ],
+          "mean_heading_error_deg": [
+            -1.3445108917646844,
+            -0.5895598181414631
+          ],
+          "heading_rmse_deg": [
+            1.6426710208729443,
+            2.3110993557934654
+          ],
+          "rmse_ratio": [
+            0.46074499970506516,
+            0.8337921079339299
+          ],
+          "mean_95_halfwidth_deg": [
+            2.1995974241142133,
+            2.523310374109733
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 335,
+        "not_covered": 5,
+        "coverage": 0.9852941176470589,
+        "nees": 0.7117721480506575,
+        "rms_z": 0.8436658983570792,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.2923238550499527,
+        "heading_rmse_deg": 1.897480035166985,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.7126349017933014,
+        "mean_95_halfwidth_deg": 4.415711602569511,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          0.9705882352941176,
+          0.9705882352941176,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9636464799038051,
+          0.9071004647852142,
+          0.9099868451806276,
+          0.7852322134666992,
+          0.7105716116818394,
+          0.6256074747881142,
+          0.6227415031909196,
+          0.588362856456544,
+          0.5378840629985446,
+          0.46658796805426767
+        ],
+        "window_misses": 0,
+        "updates": 340,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9558823529411765,
+            1.0
+          ],
+          "nees": [
+            0.4885506347602095,
+            0.9748631892934254
+          ],
+          "mean_heading_error_deg": [
+            -0.7253537579955831,
+            0.3069863286638654
+          ],
+          "heading_rmse_deg": [
+            1.5312271972040676,
+            2.243389996355517
+          ],
+          "rmse_ratio": [
+            0.6762133804063252,
+            0.748895653192536
+          ],
+          "mean_95_halfwidth_deg": [
+            4.4036154781559755,
+            4.42734514591458
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 320,
+        "not_covered": 10,
+        "coverage": 0.9696969696969697,
+        "nees": 0.8685822932700913,
+        "rms_z": 0.9319776248763117,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.23001356868388875,
+        "heading_rmse_deg": 2.041000548509137,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.6376409152925788,
+        "mean_95_halfwidth_deg": 4.200172246619199,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          1.0,
+          1.0,
+          1.0,
+          0.9696969696969697
+        ],
+        "nees_by_visit": [
+          0.9746506685550619,
+          1.0948737990161763,
+          0.9069375137714928,
+          1.0043138379734913,
+          0.9761113966327652,
+          0.9043707752102058,
+          0.8514705667811423,
+          0.7347706787942723,
+          0.6218923103734838,
+          0.6164313855928194
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9272727272727272,
+            1.0
+          ],
+          "nees": [
+            0.4901956836565981,
+            1.2551215592411926
+          ],
+          "mean_heading_error_deg": [
+            -0.7922865344342518,
+            0.31641201212827247
+          ],
+          "heading_rmse_deg": [
+            1.5000282210323874,
+            2.4842992664562544
+          ],
+          "rmse_ratio": [
+            0.61366298762389,
+            0.6677466413920653
+          ],
+          "mean_95_halfwidth_deg": [
+            4.188324275961977,
+            4.213789233964784
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 299,
+        "not_covered": 31,
+        "coverage": 0.906060606060606,
+        "nees": 1.3393576727215901,
+        "rms_z": 1.1573062138956958,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.18817151474255722,
+        "heading_rmse_deg": 1.1775408450866982,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 0.4408181128089127,
+        "mean_95_halfwidth_deg": 2.126927025423517,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9090909090909091,
+          0.8787878787878788,
+          0.8787878787878788,
+          0.9090909090909091,
+          0.9090909090909091,
+          0.8787878787878788,
+          0.8484848484848485
+        ],
+        "nees_by_visit": [
+          1.0705871806554548,
+          0.995462953747103,
+          0.724144623988667,
+          1.4856337949356977,
+          1.2493199848672059,
+          1.7606436944429336,
+          1.4501188363333692,
+          1.5649879069545911,
+          1.4291766423557488,
+          1.6635011089351297
+        ],
+        "window_misses": 0,
+        "updates": 326,
+        "gated": 4,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.8636363636363636,
+            0.9424242424242424
+          ],
+          "nees": [
+            1.0343180437008863,
+            1.6878597629005574
+          ],
+          "mean_heading_error_deg": [
+            -0.4285915454641255,
+            0.0251328762505868
+          ],
+          "heading_rmse_deg": [
+            1.063696837259245,
+            1.2878529816923934
+          ],
+          "rmse_ratio": [
+            0.37173120729460846,
+            0.572828488954977
+          ],
+          "mean_95_halfwidth_deg": [
+            2.026426821368387,
+            2.232639540967235
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 306,
+        "not_covered": 24,
+        "coverage": 0.9272727272727272,
+        "nees": 1.0120046934388913,
+        "rms_z": 1.0059844399586364,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.5770397450739337,
+        "heading_rmse_deg": 2.5179352286298795,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8151752018665323,
+        "mean_95_halfwidth_deg": 4.799373490318904,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9090909090909091
+        ],
+        "nees_by_visit": [
+          1.4267852652225335,
+          1.1621782324182703,
+          1.166517057787401,
+          1.1274604848670151,
+          0.9977195715596615,
+          0.8849596729277767,
+          0.9190527997492939,
+          0.8002499637510879,
+          0.7879761513876391,
+          0.8471477347182348
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.8423484848484848,
+            0.996969696969697
+          ],
+          "nees": [
+            0.5890662822220143,
+            1.5118044293970998
+          ],
+          "mean_heading_error_deg": [
+            -0.22014925207825775,
+            1.31615743702464
+          ],
+          "heading_rmse_deg": [
+            1.8479105804311928,
+            3.0830183830777145
+          ],
+          "rmse_ratio": [
+            0.784959846129757,
+            0.8362995259478727
+          ],
+          "mean_95_halfwidth_deg": [
+            4.789965678179693,
+            4.8096160116263675
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 315,
+        "not_covered": 15,
+        "coverage": 0.9545454545454546,
+        "nees": 0.7107274899439796,
+        "rms_z": 0.8430465526552965,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.14741931580076723,
+        "heading_rmse_deg": 2.009052423760764,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.6877051081099962,
+        "mean_95_halfwidth_deg": 4.324245299128552,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697
+        ],
+        "nees_by_visit": [
+          0.6598162054227517,
+          0.681197694402007,
+          0.6601781362755287,
+          0.6902000760074495,
+          0.7340944446420232,
+          0.8041270439822537,
+          0.8054876791869313,
+          0.7943013259609346,
+          0.6660480756188281,
+          0.6118242179410884
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "FIXED_STATION_BANK_PATH_PERCENTILE",
+        "station_cluster_interval": null,
+        "interval_scope": "Descriptive path-resampling interval conditional on the observed physical stations and realized paths. The frozen station-cluster procedure can leave fewer than ten eligible physical stations, especially for R4.",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9059848484848484,
+            0.990909090909091
+          ],
+          "nees": [
+            0.42309800313719165,
+            1.0303339048898785
+          ],
+          "mean_heading_error_deg": [
+            -0.7509236643147598,
+            0.4392246774270372
+          ],
+          "heading_rmse_deg": [
+            1.5255517611373692,
+            2.420834093845505
+          ],
+          "rmse_ratio": [
+            0.63011690328837,
+            0.7628838011785638
+          ],
+          "mean_95_halfwidth_deg": [
+            4.30580055689124,
+            4.344117150999574
+          ]
+        }
+      }
+    },
+    "K6-OB": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 223,
+        "not_covered": 117,
+        "coverage": 0.6558823529411765,
+        "nees": 6.946265258598214,
+        "rms_z": 2.635576836026264,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 0.7119587639136391,
+        "heading_rmse_deg": 2.468927717110321,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.7391931634096891,
+        "mean_95_halfwidth_deg": 2.6269683608830845,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9117647058823529,
+          0.8235294117647058,
+          0.7647058823529411,
+          0.7352941176470589,
+          0.6470588235294118,
+          0.5588235294117647,
+          0.5882352941176471,
+          0.5588235294117647,
+          0.4117647058823529,
+          0.5588235294117647
+        ],
+        "nees_by_visit": [
+          1.3471193872899665,
+          2.5023547914947444,
+          4.2915528323974925,
+          3.3785567827463217,
+          13.66438741392433,
+          17.113918466778262,
+          7.946968138523509,
+          6.526226087525253,
+          6.957002240800923,
+          5.73456644450135
+        ],
+        "window_misses": 0,
+        "updates": 322,
+        "gated": 18,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.46060606060606063,
+            0.876764705882353
+          ],
+          "nees": [
+            1.9818489085836886,
+            11.919570618538422
+          ],
+          "mean_heading_error_deg": [
+            0.04509893081437382,
+            2.1048848639008297
+          ],
+          "heading_rmse_deg": [
+            1.7053767779038773,
+            3.240267557651355
+          ],
+          "rmse_ratio": [
+            0.5904752139159661,
+            1.0927317426001633
+          ],
+          "mean_95_halfwidth_deg": [
+            2.1423522460361495,
+            2.942993959505046
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 338,
+        "not_covered": 2,
+        "coverage": 0.9941176470588236,
+        "nees": 0.7104029986940238,
+        "rms_z": 0.8428540791228478,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.22354758552313192,
+        "heading_rmse_deg": 1.9314511120028965,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.7253933891323484,
+        "mean_95_halfwidth_deg": 4.41916377148489,
+        "distinct_station_p25_p50_p75": [
+          6.25,
+          7.5,
+          9.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9213616656967428,
+          0.8729238666284949,
+          0.9150547538872273,
+          0.7681422203057143,
+          0.695779340590252,
+          0.6378462547100854,
+          0.5957839764726626,
+          0.5696930532470849,
+          0.5707803301763845,
+          0.556664525225588
+        ],
+        "window_misses": 0,
+        "updates": 340,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9205882352941176,
+            0.9911764705882353
+          ],
+          "nees": [
+            0.6527905123308894,
+            1.1187239085144873
+          ],
+          "mean_heading_error_deg": [
+            -0.6336406284009233,
+            0.5843487667466774
+          ],
+          "heading_rmse_deg": [
+            1.8094820850606335,
+            2.522253812543602
+          ],
+          "rmse_ratio": [
+            0.6525781884654319,
+            0.7827925702383125
+          ],
+          "mean_95_halfwidth_deg": [
+            4.369913960281092,
+            4.5048493983246845
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 321,
+        "not_covered": 9,
+        "coverage": 0.9727272727272728,
+        "nees": 0.8415642414603632,
+        "rms_z": 0.9173681057570964,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.04061968571570405,
+        "heading_rmse_deg": 1.9724688622442876,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.6162305304750038,
+        "mean_95_halfwidth_deg": 4.229819906353622,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9647785055506943,
+          1.092117829411458,
+          0.9109744408612908,
+          1.0656121506084693,
+          0.9662812923533887,
+          0.8230324178433844,
+          0.7996846839401283,
+          0.6613224049552493,
+          0.6497894839124959,
+          0.482049205167074
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9212121212121213,
+            0.9911764705882353
+          ],
+          "nees": [
+            0.6191834397724845,
+            1.160604761986654
+          ],
+          "mean_heading_error_deg": [
+            -0.5333300543649803,
+            0.8777193512354535
+          ],
+          "heading_rmse_deg": [
+            1.6248601398052247,
+            2.768977560636515
+          ],
+          "rmse_ratio": [
+            0.5875574028675108,
+            0.8825428150789043
+          ],
+          "mean_95_halfwidth_deg": [
+            4.1153955576264565,
+            4.414806462434191
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 187,
+        "not_covered": 143,
+        "coverage": 0.5666666666666667,
+        "nees": 3.9436036740661904,
+        "rms_z": 1.9858508690398156,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 1.2570482647667764,
+        "heading_rmse_deg": 2.3636884061900303,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 0.8848581914016581,
+        "mean_95_halfwidth_deg": 2.2837993218433708,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9393939393939394,
+          0.9090909090909091,
+          0.8181818181818182,
+          0.6666666666666666,
+          0.5757575757575758,
+          0.45454545454545453,
+          0.36363636363636365,
+          0.36363636363636365,
+          0.2727272727272727,
+          0.30303030303030304
+        ],
+        "nees_by_visit": [
+          1.191708034135525,
+          1.4652787851081448,
+          2.0590277984040193,
+          2.6837992117220457,
+          4.014118343589439,
+          4.394328869850769,
+          5.024565495713566,
+          5.839102952349532,
+          5.9955678997561535,
+          6.76853935003271
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.4411764705882353,
+            0.8304545454545456
+          ],
+          "nees": [
+            2.1488675465283475,
+            4.955207891382687
+          ],
+          "mean_heading_error_deg": [
+            -0.6284974886228125,
+            1.5659220524298738
+          ],
+          "heading_rmse_deg": [
+            1.7595658812042458,
+            2.7846397477740013
+          ],
+          "rmse_ratio": [
+            0.5733275194002959,
+            0.95514177055156
+          ],
+          "mean_95_halfwidth_deg": [
+            1.7758606350665853,
+            2.910803230833505
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 307,
+        "not_covered": 23,
+        "coverage": 0.9303030303030303,
+        "nees": 1.0215483178328795,
+        "rms_z": 1.0107167347149644,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.6030258235207449,
+        "heading_rmse_deg": 2.5741482924118837,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8333740399839711,
+        "mean_95_halfwidth_deg": 4.847390683388255,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          7.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          1.3974700021003879,
+          1.1543178895620967,
+          1.1721439182987012,
+          1.1572153387701027,
+          0.9669563357155375,
+          0.9206821560727897,
+          0.9207796220106401,
+          0.8288967515518619,
+          0.852748154269426,
+          0.8442730099772517
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9117647058823529,
+            0.9878787878787879
+          ],
+          "nees": [
+            0.71423548884369,
+            1.2335452472870083
+          ],
+          "mean_heading_error_deg": [
+            -0.565358511662719,
+            0.6751665681418051
+          ],
+          "heading_rmse_deg": [
+            2.153145598836048,
+            2.8687860602500783
+          ],
+          "rmse_ratio": [
+            0.7935046969462476,
+            0.8899615622587854
+          ],
+          "mean_95_halfwidth_deg": [
+            4.786271199277976,
+            4.8681484800761945
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 311,
+        "not_covered": 19,
+        "coverage": 0.9424242424242424,
+        "nees": 0.8078212596356025,
+        "rms_z": 0.8987887736479592,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.3818616582072948,
+        "heading_rmse_deg": 2.3087602578074793,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.7902960639142698,
+        "mean_95_halfwidth_deg": 4.3951402727416164,
+        "distinct_station_p25_p50_p75": [
+          7.0,
+          8.0,
+          8.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9090909090909091,
+          0.8787878787878788,
+          0.9696969696969697
+        ],
+        "nees_by_visit": [
+          0.6674718870645489,
+          0.7307945121340557,
+          0.7046497760634373,
+          0.7367303760212948,
+          0.8222660540198011,
+          0.8085835982872007,
+          0.8751917654330034,
+          0.9603319418556046,
+          0.94126040303599,
+          0.8309322824410881
+        ],
+        "window_misses": 0,
+        "updates": 330,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9090151515151514,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6519773114845365,
+            1.1617784588551145
+          ],
+          "mean_heading_error_deg": [
+            -0.5919973708352189,
+            0.5944065798830459
+          ],
+          "heading_rmse_deg": [
+            1.7705276304445614,
+            2.599212063205686
+          ],
+          "rmse_ratio": [
+            0.6424918401990541,
+            0.8291890056741371
+          ],
+          "mean_95_halfwidth_deg": [
+            4.28479310843862,
+            4.432647339417019
+          ]
+        }
+      }
+    },
+    "K6-SKIP": {
+      "R2_aA_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 223,
+        "not_covered": 117,
+        "coverage": 0.6558823529411765,
+        "nees": 6.946265258598214,
+        "rms_z": 2.635576836026264,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 0.7119587639136391,
+        "heading_rmse_deg": 2.468927717110321,
+        "dr_rmse_deg": 3.340030508022904,
+        "rmse_ratio": 0.7391931634096891,
+        "mean_95_halfwidth_deg": 2.6269683608830845,
+        "distinct_station_p25_p50_p75": [
+          10.0,
+          10.0,
+          10.0
+        ],
+        "coverage_by_visit": [
+          0.9117647058823529,
+          0.8235294117647058,
+          0.7647058823529411,
+          0.7352941176470589,
+          0.6470588235294118,
+          0.5588235294117647,
+          0.5882352941176471,
+          0.5588235294117647,
+          0.4117647058823529,
+          0.5588235294117647
+        ],
+        "nees_by_visit": [
+          1.3471193872899665,
+          2.5023547914947444,
+          4.2915528323974925,
+          3.3785567827463217,
+          13.66438741392433,
+          17.113918466778262,
+          7.946968138523509,
+          6.526226087525253,
+          6.957002240800923,
+          5.73456644450135
+        ],
+        "window_misses": 0,
+        "updates": 322,
+        "gated": 18,
+        "invalid": 0,
+        "intentional_revisit_skips": 0,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.5181060606060606,
+            0.9005882352941178
+          ],
+          "nees": [
+            1.3888124761005147,
+            8.836600760119785
+          ],
+          "mean_heading_error_deg": [
+            0.011905289520487257,
+            2.296391085944844
+          ],
+          "heading_rmse_deg": [
+            1.9493061819508701,
+            3.670541187227612
+          ],
+          "rmse_ratio": [
+            0.6814873454045418,
+            1.3027193244082669
+          ],
+          "mean_95_halfwidth_deg": [
+            2.490713028407182,
+            3.690272390756769
+          ]
+        }
+      },
+      "R2_aB_m0": {
+        "paths": 34,
+        "visits": 340,
+        "included": 338,
+        "not_covered": 2,
+        "coverage": 0.9941176470588236,
+        "nees": 0.7275975601818842,
+        "rms_z": 0.8529932943358255,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.2285311373034721,
+        "heading_rmse_deg": 2.0245516974296316,
+        "dr_rmse_deg": 2.662625743409556,
+        "rmse_ratio": 0.7603590938158454,
+        "mean_95_halfwidth_deg": 4.554289697886254,
+        "distinct_station_p25_p50_p75": [
+          6.25,
+          7.5,
+          9.0
+        ],
+        "coverage_by_visit": [
+          0.9705882352941176,
+          1.0,
+          0.9705882352941176,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9213616656967428,
+          0.895610553657503,
+          0.9162685919252089,
+          0.771760562893476,
+          0.7259143117744761,
+          0.6671372591775151,
+          0.6351765763415923,
+          0.5978178884075274,
+          0.5771848661146978,
+          0.567743325830102
+        ],
+        "window_misses": 0,
+        "updates": 254,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 86,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9176470588235294,
+            0.990909090909091
+          ],
+          "nees": [
+            0.6876919986059687,
+            1.1675060405176394
+          ],
+          "mean_heading_error_deg": [
+            -0.5897101606141546,
+            0.6192024854017321
+          ],
+          "heading_rmse_deg": [
+            1.9568537097368777,
+            2.7206140990161893
+          ],
+          "rmse_ratio": [
+            0.7200124744545742,
+            0.8377746903888401
+          ],
+          "mean_95_halfwidth_deg": [
+            4.561349727458173,
+            4.802095476728199
+          ]
+        }
+      },
+      "R4_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 316,
+        "not_covered": 14,
+        "coverage": 0.9575757575757575,
+        "nees": 0.9481497820113556,
+        "rms_z": 0.9737298300921851,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": -0.04890781960321929,
+        "heading_rmse_deg": 2.490148161013994,
+        "dr_rmse_deg": 3.200861957819367,
+        "rmse_ratio": 0.7779617471259033,
+        "mean_95_halfwidth_deg": 4.7267312007094064,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9696969696969697,
+          0.9696969696969697,
+          1.0
+        ],
+        "nees_by_visit": [
+          0.9647785055506943,
+          1.1004231053103255,
+          0.9282026334591323,
+          1.0558946295532252,
+          1.018753052284574,
+          0.9522205702767685,
+          0.9325590204235075,
+          0.8448415764925702,
+          0.8651330507873407,
+          0.818691675975418
+        ],
+        "window_misses": 0,
+        "updates": 165,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 165,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9121212121212121,
+            0.9883088235294119
+          ],
+          "nees": [
+            0.7318465395285448,
+            1.2014620937701233
+          ],
+          "mean_heading_error_deg": [
+            -0.39866199898727644,
+            0.8516326386928527
+          ],
+          "heading_rmse_deg": [
+            2.214669269709427,
+            3.1071688784527813
+          ],
+          "rmse_ratio": [
+            0.7620228120149908,
+            0.972575689195606
+          ],
+          "mean_95_halfwidth_deg": [
+            4.7428731219117095,
+            5.189791692169887
+          ]
+        }
+      },
+      "R4_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 236,
+        "not_covered": 94,
+        "coverage": 0.7151515151515152,
+        "nees": 2.740769632755983,
+        "rms_z": 1.65552699547787,
+        "case_integrity_pass": false,
+        "mean_heading_error_deg": 1.3243087172960668,
+        "heading_rmse_deg": 3.064092537692231,
+        "dr_rmse_deg": 2.6712623888872336,
+        "rmse_ratio": 1.1470578668869136,
+        "mean_95_halfwidth_deg": 3.26926293495807,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          5.0
+        ],
+        "coverage_by_visit": [
+          0.9393939393939394,
+          0.9090909090909091,
+          0.8181818181818182,
+          0.6666666666666666,
+          0.5757575757575758,
+          0.5757575757575758,
+          0.5757575757575758,
+          0.6666666666666666,
+          0.696969696969697,
+          0.7272727272727273
+        ],
+        "nees_by_visit": [
+          1.191708034135525,
+          1.4652787851081448,
+          2.0590277984040193,
+          2.6837992117220457,
+          4.014118343589439,
+          3.8322267787879736,
+          3.453717281726646,
+          3.009482627772888,
+          2.939293744805296,
+          2.7590437215078523
+        ],
+        "window_misses": 0,
+        "updates": 165,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 165,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.7029545454545454,
+            0.9606350267379679
+          ],
+          "nees": [
+            0.9949325761153237,
+            2.792957773477387
+          ],
+          "mean_heading_error_deg": [
+            -1.0805005823642655,
+            1.7989290528062374
+          ],
+          "heading_rmse_deg": [
+            2.2873205373448964,
+            3.6028729991675976
+          ],
+          "rmse_ratio": [
+            0.7478220764963637,
+            1.2198562734174012
+          ],
+          "mean_95_halfwidth_deg": [
+            3.1793279469988196,
+            4.696081326303945
+          ]
+        }
+      },
+      "R5_aA_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 304,
+        "not_covered": 26,
+        "coverage": 0.9212121212121213,
+        "nees": 1.0425971670036047,
+        "rms_z": 1.0210764746107928,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.625207898179773,
+        "heading_rmse_deg": 2.669849196320102,
+        "dr_rmse_deg": 3.088827067929059,
+        "rmse_ratio": 0.8643569670962947,
+        "mean_95_halfwidth_deg": 4.982957267035654,
+        "distinct_station_p25_p50_p75": [
+          5.0,
+          5.0,
+          7.0
+        ],
+        "coverage_by_visit": [
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.8787878787878788,
+          0.9090909090909091,
+          0.9090909090909091,
+          0.9090909090909091,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          1.3974700021003879,
+          1.1623055956811847,
+          1.1854871523036548,
+          1.2004043084596618,
+          1.00805974302359,
+          0.9367549516850384,
+          0.9404911407576426,
+          0.8595362260627691,
+          0.8699199770515071,
+          0.8655425729106115
+        ],
+        "window_misses": 0,
+        "updates": 179,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 151,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9116911764705882,
+            0.9848484848484849
+          ],
+          "nees": [
+            0.7368378022118519,
+            1.2515328702814144
+          ],
+          "mean_heading_error_deg": [
+            -0.5571823462295779,
+            0.6900171200186678
+          ],
+          "heading_rmse_deg": [
+            2.2866032705684165,
+            2.98973142519719
+          ],
+          "rmse_ratio": [
+            0.8312695702690823,
+            0.9223620748801298
+          ],
+          "mean_95_halfwidth_deg": [
+            4.940090290641137,
+            5.032006125817923
+          ]
+        }
+      },
+      "R5_aB_m0": {
+        "paths": 33,
+        "visits": 330,
+        "included": 314,
+        "not_covered": 16,
+        "coverage": 0.9515151515151515,
+        "nees": 0.7677335526149882,
+        "rms_z": 0.8762040587756874,
+        "case_integrity_pass": true,
+        "mean_heading_error_deg": 0.32977683023657356,
+        "heading_rmse_deg": 2.2938317828221524,
+        "dr_rmse_deg": 2.921386507193753,
+        "rmse_ratio": 0.7851859988993988,
+        "mean_95_halfwidth_deg": 4.516305246791009,
+        "distinct_station_p25_p50_p75": [
+          7.0,
+          8.0,
+          8.0
+        ],
+        "coverage_by_visit": [
+          1.0,
+          0.9696969696969697,
+          0.9696969696969697,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394,
+          0.9393939393939394
+        ],
+        "nees_by_visit": [
+          0.6674718870645489,
+          0.7018111687193841,
+          0.685123043420289,
+          0.7170488696641305,
+          0.7951505204543236,
+          0.7701452443785584,
+          0.831786030036642,
+          0.8925853584665822,
+          0.852507194652279,
+          0.7637062092931451
+        ],
+        "window_misses": 0,
+        "updates": 247,
+        "gated": 0,
+        "invalid": 0,
+        "intentional_revisit_skips": 83,
+        "interval_type": "S2_STATION_CLUSTER_PERCENTILE",
+        "bootstrap_replicates": 200,
+        "ci95": {
+          "coverage": [
+            0.9151403743315508,
+            0.9883021390374332
+          ],
+          "nees": [
+            0.6817164546365124,
+            1.1555687441240905
+          ],
+          "mean_heading_error_deg": [
+            -0.5641413357725715,
+            0.642091333048234
+          ],
+          "heading_rmse_deg": [
+            1.9056610609988132,
+            2.6307002550370413
+          ],
+          "rmse_ratio": [
+            0.6869075167290586,
+            0.873736222436182
+          ],
+          "mean_95_halfwidth_deg": [
+            4.454699057570419,
+            4.6729268557203785
+          ]
+        }
+      }
+    }
+  },
+  "paired_contrasts": {
+    "R2_aA_m0": {
+      "skip_minus_ob": {
+        "coverage": 0.0,
+        "nees": 0.0,
+        "heading_rmse_deg": 0.0,
+        "rmse_ratio": 0.0
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          -0.003101604278074775,
+          0.11218582887700536
+        ],
+        "nees": [
+          -4.1032111128081175,
+          0.004890690778796618
+        ],
+        "heading_rmse_deg": [
+          0.07369223175000392,
+          0.6581233026382741
+        ],
+        "rmse_ratio": [
+          0.024990424471481896,
+          0.23144752029598495
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": 0.02941176470588236,
+        "nees": -0.2462876217696892,
+        "heading_rmse_deg": -0.15850945757374113,
+        "rmse_ratio": -0.04745748794599158
+      },
+      "scale_interaction_station_cluster_ci95": null
+    },
+    "R2_aB_m0": {
+      "skip_minus_ob": {
+        "coverage": 0.0,
+        "nees": 0.01719456148786036,
+        "heading_rmse_deg": 0.09310058542673505,
+        "rmse_ratio": 0.03496570468349702
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          -0.018257575757575764,
+          0.0060606060606061
+        ],
+        "nees": [
+          -0.021364274464760045,
+          0.07278219245292016
+        ],
+        "heading_rmse_deg": [
+          0.07851242258870732,
+          0.36068329668396565
+        ],
+        "rmse_ratio": [
+          0.028222685781832332,
+          0.12332716642905912
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": -0.002941176470588225,
+        "nees": 0.008916778455796304,
+        "heading_rmse_deg": 0.041557634122502574,
+        "rmse_ratio": 0.015607763962083077
+      },
+      "scale_interaction_station_cluster_ci95": null
+    },
+    "R4_aA_m0": {
+      "skip_minus_ob": {
+        "coverage": -0.015151515151515249,
+        "nees": 0.10658554055099234,
+        "heading_rmse_deg": 0.5176792987697065,
+        "rmse_ratio": 0.1617312166508995
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          -0.039393939393939315,
+          0.011773618538324489
+        ],
+        "nees": [
+          -0.09307657773668324,
+          0.18549402874808416
+        ],
+        "heading_rmse_deg": [
+          0.14306446274270745,
+          0.9469427426537624
+        ],
+        "rmse_ratio": [
+          0.04561085378143437,
+          0.31773510711633296
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": -0.00303030303030305,
+        "nees": 0.01955373406945926,
+        "heading_rmse_deg": 0.05776023236205896,
+        "rmse_ratio": 0.01804521192204389
+      },
+      "scale_interaction_station_cluster_ci95": null
+    },
+    "R4_aB_m0": {
+      "skip_minus_ob": {
+        "coverage": 0.14848484848484855,
+        "nees": -1.2028340413102074,
+        "heading_rmse_deg": 0.7004041315022009,
+        "rmse_ratio": 0.26219967548525547
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          0.08787878787878789,
+          0.335548128342246
+        ],
+        "nees": [
+          -2.7233010672858895,
+          -0.8255246283180959
+        ],
+        "heading_rmse_deg": [
+          0.2271104400831557,
+          1.179889970125667
+        ],
+        "rmse_ratio": [
+          0.08529566749863056,
+          0.3904044048990167
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": -0.03333333333333338,
+        "nees": 0.9740809235037444,
+        "heading_rmse_deg": -0.32966890446991526,
+        "rmse_ratio": -0.12341314946872195
+      },
+      "scale_interaction_station_cluster_ci95": null
+    },
+    "R5_aA_m0": {
+      "skip_minus_ob": {
+        "coverage": -0.009090909090909038,
+        "nees": 0.021048849170725248,
+        "heading_rmse_deg": 0.0957009039082184,
+        "rmse_ratio": 0.030982927112323644
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          -0.01522727272727282,
+          0.005886809269162189
+        ],
+        "nees": [
+          -0.014874238855563432,
+          0.0518958535717037
+        ],
+        "heading_rmse_deg": [
+          0.05150803336048906,
+          0.21558165537211327
+        ],
+        "rmse_ratio": [
+          0.01770186412173247,
+          0.07378452639982448
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": 0.0,
+        "nees": -0.0015915400068546859,
+        "heading_rmse_deg": -0.0002623013954718978,
+        "rmse_ratio": -8.491941753396848e-05
+      },
+      "scale_interaction_station_cluster_ci95": null
+    },
+    "R5_aB_m0": {
+      "skip_minus_ob": {
+        "coverage": 0.00909090909090915,
+        "nees": -0.04008770702061426,
+        "heading_rmse_deg": -0.0149284749853269,
+        "rmse_ratio": -0.00511006501487099
+      },
+      "skip_minus_ob_station_cluster_ci95": {
+        "coverage": [
+          -0.015151515151515138,
+          0.015151515151515138
+        ],
+        "nees": [
+          -0.0416330832054423,
+          0.05817525716188718
+        ],
+        "heading_rmse_deg": [
+          0.011680985402793017,
+          0.2548294458693147
+        ],
+        "rmse_ratio": [
+          0.0037774345259317943,
+          0.08440878405244041
+        ]
+      },
+      "scale_interaction_nr_minus_markov": {
+        "coverage": 1.1102230246251565e-16,
+        "nees": -0.021684409502732316,
+        "heading_rmse_deg": 0.012859020973642554,
+        "rmse_ratio": 0.0044016842488927566
+      },
+      "scale_interaction_station_cluster_ci95": null
+    }
+  },
+  "comparison": "All conditions use first ten visits. OB and SKIP share paths, RF, DR, XY, scale and bias.",
+  "skip_rule": "Suppress RF update on all repeats of a physical group, including nonconsecutive revisits.",
+  "boundary": "A skip contrast tests that intervention under oracle conditions; it cannot quantify a site-bias filter."
+}
