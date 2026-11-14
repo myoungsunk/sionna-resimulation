@@ -1,0 +1,400 @@
+{
+  "question_id": "G1-MODEL-001",
+  "role": "IMPLEMENTER",
+  "run_id": "RUN4_20261113T105130Z",
+  "repository": "myoungsunk/sionna-resimulation",
+  "branch": "research/g1-sweep-heading-floor-spec-20261113",
+  "spec_commit": "06de4adf336ef4436626c2ad6103c2dcf197d041",
+  "spec_git_blob": "ab6813c1f8a0436e617b54ddb6bc75fb87baa24f",
+  "research_governance_sha256": {
+    "common": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "implementer": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "entry_run": "RUN4_20261113T094312Z",
+  "entry_manifest_sha256": "18d1a312da1e870746b4569658da8a98ffa46601af4dc9040be5d084eac7e299",
+  "prior_evidence": {
+    "RUN2": "cd6290ca44ab16c966ce2a8551cfa71a6684cb4d",
+    "RUN3": "b6de9ffaffc7b1a40b9caebbef197d879e447e19",
+    "run3_manifest_sha256": "5f9732bf406fde2e0f6bb7f80ad3b04979ec4e84c3d4731ed980e7af7a235ef3"
+  },
+  "gate_status": "PASS",
+  "sealed_utc": "2026-11-13T11:55:16.783884+00:00",
+  "stages": {
+    "calibrate": {
+      "started_utc": "2026-11-13T10:59:40Z",
+      "finished_utc": "2026-11-13T11:02:43Z",
+      "exit_code": 1,
+      "command": "docker run --name g1-s2-20261113T105130Z-calibrate --rm --pull=never --network none --cpus 8 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/s2_code/s2_primary.py calibrate --inputs /inputs --banks /banks --grid /run/grid --entry /entry --out /run/s2_out --workers 8",
+      "code_hash_list": "s2_out/CODE_calibrate_SHA256.txt"
+    },
+    "calibrate_retry": {
+      "started_utc": "2026-11-13T11:03:41Z",
+      "finished_utc": "2026-11-13T11:08:47Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-s2-20261113T105130Z-calibrate_retry --rm --pull=never --network none --cpus 8 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/s2_code/s2_primary_final.py calibrate --inputs /inputs --banks /banks --grid /run/grid --entry /entry --out /run/s2_out --workers 8",
+      "code_hash_list": "s2_out/CODE_calibrate_retry_SHA256.txt"
+    },
+    "primary": {
+      "started_utc": "2026-11-13T11:12:45Z",
+      "finished_utc": "2026-11-13T11:50:45Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-s2-20261113T105130Z-primary --rm --pull=never --network none --cpus 24 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/s2_code/s2_primary_final.py primary --inputs /inputs --banks /banks --grid /run/grid --entry /entry --out /run/s2_out --workers 24",
+      "code_hash_list": "s2_out/CODE_primary_SHA256.txt"
+    },
+    "b0": {
+      "started_utc": "2026-11-13T11:50:45Z",
+      "finished_utc": "2026-11-13T11:52:13Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-s2-20261113T105130Z-b0 --rm --pull=never --network none --cpus 16 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/s2_code/s2_primary_final.py b0 --inputs /inputs --banks /banks --grid /run/grid --entry /entry --out /run/s2_out --workers 16",
+      "code_hash_list": "s2_out/CODE_b0_SHA256.txt"
+    },
+    "sensitivity": {
+      "started_utc": "2026-11-13T11:50:54Z",
+      "finished_utc": "2026-11-13T11:53:27Z",
+      "exit_code": 0,
+      "command": "docker run --name g1-s2-20261113T105130Z-sensitivity --rm --pull=never --network none --cpus 12 --user 1001:1001 --workdir /run/s2_code -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 --mount type=bind\\,src=/home/KMS/RUN4_20261113T105130Z\\,dst=/run --mount type=bind\\,src=/home/KMS/RUN4_20261113T094312Z\\,dst=/entry\\,readonly --mount type=bind\\,src=/home/KMS/RUN2_20261113T072631Z/inputs\\,dst=/inputs\\,readonly --mount type=bind\\,src=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source\\,dst=/banks\\,readonly --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f /run/s2_code/s2_sigma.py sensitivity --inputs /inputs --banks /banks --grid /run/grid --entry /entry --out /run/s2_out --workers 12",
+      "code_hash_list": "s2_out/CODE_sensitivity_SHA256.txt"
+    }
+  },
+  "input_sha256": {
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m0.npy": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aA_m45.npy": "dd0264c1d004d78ff0f0d39f5f0c613b084ea89ad558ac448ecbfd0b3e177ea1",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R2_aB_m0.npy": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aA_m0.npy": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R4_aB_m0.npy": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aA_m0.npy": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/FULL_RF/H_R5_aB_m0.npy": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m0.npy": "159da2d5234a5de84e4b011ec44b113bf5f2991b3d6021466f7a161334cfb9ce",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aA_m45.npy": "c2b8e51ac2e2f55d1f557f2d45d58a3bed19ce8d435875a044f9c01fd1e8fe0a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R2_aB_m0.npy": "811bdfb1b152839f85c6378faafc0f94619601416084a0995f2d79caa997c467",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aA_m0.npy": "167852538d336a332a2b7c9d5702b26ab0df8f79bc66af3df2b16ddc2d8afec5",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R4_aB_m0.npy": "bebfb0a1e300a047a9ac52b21576a692c38cfa11ca9652b6fae1b53dc8d2ede2",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aA_m0.npy": "89d13cca088eef9806e0d085250aeb487d59340badd21bbc2ca30a7727d27ae4",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/H_LoS_R5_aB_m0.npy": "eaf870120a16f14811198198046a6054037ebd5f44ec3a21e5800178cb951aad",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m0/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aA_m45/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R2_aB_m0/SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aA_m0/SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R4_aB_m0/SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aA_m0/SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/BLOCK_C/R5_aB_m0/SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "results/DRIVE_SIM_20261007/POST_A23_RESULTS_20261010/SUPPLEMENT_01a12449/freqs_hz.npy": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/INPUTS/hs_lut_2deg.npy": "711e12ee48a30cb666db4ada749b983de49bd565ea351b906269ec8da375a079",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/INPUTS/hs_lut_meta.json": "8773e79fbb39d07fd80605339a0752e6e4e5eb0658572f091e67395ab0fd5856",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/__init__.py": "49f28fbbb78486ba843dcc1efe93088adb484252881f72e6cd010ff7f35594db",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/backend/__init__.py": "aede34ca84cfb6a20c3785f1389f1db0ea6b29ded5e2e0ddf4f15bb27cda74f2",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/calibration/__init__.py": "4f21e090199ee194addc69081b3b06b9a13109a215bb9eba96ceb8529f759f59",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/calibration/qclean.py": "c92fd4c096a8307cc120ec390b03098fa58e4a51e09e082f9fd422117f2241f3",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/data/__init__.py": "f3e150d64cab125605e29d7bfc60b259f6784fbef31a9b3314c52289968c0e2a",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/__init__.py": "bc585b2700651bf7ef3d6ec7fdc0d166aaba60e51d14e7227e344965971b79f5",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/analysis.py": "1ab7699e6795319f3c30a687df731ef066a0913e6a654d96ee394a47a9ebddda",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/config.py": "52571a40c6ad0d1bd80ac0a1b5ec091f535938ac40a775a52f216e3bceeae084",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/experiment.py": "28ec80b4c5d2aff049365f8dd8d3087b51dca3dc15fffcd9919591d589659ea9",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/filters.py": "b9adbfb5c5bcc3e0af1e4efe99b40f187f0f325258a6c8efb22701d85ac95d18",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/paths.py": "ecebab92b4d10fabaf3ae7f7d74a1c2f0f815e2a0d5426d8f897c4e10c85c778",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/rf_store.py": "f9c19d1025265c3a05b68ca528c215d7758ceb5c057e889399a29e6fa17c3a4b",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/routes.py": "a548ff6355f10dc428c4401e9cf59e5b60416de491cdd6d0812d191114681fc6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/sensors.py": "024977bec22eb5b48c48fb67a536fa9178fdd79a92936bbe7db9efd3667ab9ab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/steered_probe.py": "e4d00d609d56100987ac32d519588e97c908493855765aa0aa1f75cf4799c111",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/drivesim/trajectory.py": "a1da56dc0292786373f897c98e269a02db13ece79e9533cbf4c4056e000c2bab",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/__init__.py": "ea5398b264557aaddf98d2879bd4d131a0ebb36d543cc581cc919e7585cad093",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/angle_match.py": "a27dc969ae758296c6f038de65843abfd507ec5395bd7645afaf278095ab63e7",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/fp_power.py": "034b39c7dd2e50bf8d8fb5749ea77a38dabd0ebe0b3b7836e1c17e165b72783c",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/port_ratio.py": "dd890d765b889c352d7de00cd23eb7d7269b8ec41ec203b8885fc5e53c63a7d9",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/reflection_attribution.py": "fadc1f1eb3694c2139ec195929aef325bb21dab99c58712012da3669936d43b0",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/features/specular_model.py": "630824cc44eb3713a099312d99cc3ed006e50df9988e8034bd5e9f568c2cfa97",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/gating/__init__.py": "010c6bcbbe23ff9c510eae3e5cc0f97aa92e7538b1fb796dab889c04795ca6e6",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/labels/__init__.py": "1b5475afe2bc23131bbe05e1604edebdf4bf9b5de1fb0f4c046d5894ef452374",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/labels/taxonomy.py": "eb0412ce1e57404a95ccf1330fb6d21514398675a28f282ad94bbb3fc8ff2ba3",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/models/__init__.py": "c2765f87d1a82770b67a8fec4370d528cb6c7126d482716fc972bda4078dcca4",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/__init__.py": "2a65662a6c51f1b16ae89de6af47b2637488c55c0b3311c01b7af860792dd883",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/checks.py": "a715c837621243a673c24ba470984e14f60ca9b68e9fe0df987baeecff52f860",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/reports/claim_matrix.py": "27fa431fa781290898130e459724cade9a9ea13b28a53c2525f7001b463d075d",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/scenarios/__init__.py": "2c57f764aed02fac9648320a273d7fd1d1ccc6220d8e30c63967d99b1712c120",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/scenarios/corridor.py": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/utils/__init__.py": "6ecf55727856779dbfdb1dc01c9393c483ef43f90332c7a565f7feeb3f03b682",
+    "results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source/src/qclean_uwb/utils/experiment_registry.py": "f1f6eedf75925e42c0933e6a5133d7db127062e72a8ba1e90053893e068ce3b8",
+    "research/G1_SWEEP_HEADING_FLOOR_20261113/SPEC_KO.md": "a5268a2ec675e4b81b65ce6fa1496ca6115793a5d13401999075f37fa270b67e",
+    "research/G1_SWEEP_HEADING_FLOOR_20261113/step1_reference.py": "ebf474d0084a388acbb794f824a703f80d1fa6e3f45bfb632bdf6f7d9ca2474e",
+    "data/raw/tb3_motion_20261004_20261111/corridor_5p07m/receipt.json": "34a06dbf84d1a843fec559813dadb840c88cddbfc20491bdfe7aed0dec957e9e",
+    "data/raw/tb3_motion_20261004_20261111/corridor_5p07m/replay.json": "16bc3b08525683ba3c33ee5d8d1064bb6c169b8c7a802ead987fbee5e9d85352",
+    "data/raw/tb3_motion_20261004_20261111/trackA/teach/events.log": "12ee1f8fe65c0add652f66d1f9cb00908b406104027b13c63bbdf06d18e912e5",
+    "data/raw/tb3_motion_20261004_20261111/trackA/teach/teach.json": "029890d9172844e1ef469e134d85933e35d8bc4e7bd66ab1cdfc27eae5dbe0e3",
+    "data/raw/tb3_motion_20261004_20261111/SHA256SUMS.txt": "84a4fb3919137298274addbcea0fb0e18b6c8f3a59135924df2f764374c10d71",
+    "data/raw/tb3_motion_20261004_20261111/trackA/repeat_20261004_141119/events.log": "311a4c9d159064154f1dc35461d80881c4eacf6970f2e7e5d6d13eac05be0a5d",
+    "data/raw/tb3_motion_20261004_20261111/trackA/repeat_20261004_141119/repeat.json": "0bf2ba4ea102935b5ce8d9aac950166d11891850f9293184ffade6db948e3379",
+    "data/raw/tb3_imu_allan_20261113T022519Z/SHA256SUMS.txt": "1739420c0a2fac04d354d13ebe69872e9d469429ad207a83d4c9f66ecd558c14",
+    "data/raw/tb3_imu_allan_20261113T022519Z/allan_variance.csv": "a94d3788375cb242c9827375cf90d10bddc766dcd3cc92ac6d8e3320837e1cb4",
+    "data/raw/tb3_imu_allan_20261113T022519Z/imu_samples.csv.gz": "4d348f7c78acc9b1d649b5c1d4cbe7ce0b80a91e946fff557a439bfa9e2bd212",
+    "data/raw/tb3_imu_allan_20261113T022519Z/summary.json": "5a3069a667b8cacb8ba9af001cfe8b66908cbcb17e210847b0795ce904cef482"
+  },
+  "bank_sha256": {
+    "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "grid_files": {
+    "S1P_R2_aA_m0_M0_J.npy": {
+      "bytes": 408844928,
+      "sha256": "5437f77a121cc1c18e963ee70d54dc8237d4c3711300deea5208dddf172fe37e"
+    },
+    "S1P_R2_aA_m0_M0_INDEX.json": {
+      "bytes": 110246,
+      "sha256": "1989a809d49249236a94afc29e61dc848449ddbeeed7d2121bad18a04639c551"
+    },
+    "S1P_R2_aA_m0_M1R_JOINT_J.npy": {
+      "bytes": 408844928,
+      "sha256": "b75ea7e97f76dc776e254aecdf1e488cfdf2592bd012478a6c7bc35a3a6a7a9e"
+    },
+    "S1P_R2_aA_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 408844928,
+      "sha256": "574c4988584746dc625ccd2a86547bdbf2808ae69015d87de7357559e76d16cb"
+    },
+    "S1P_R2_aA_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 217240,
+      "sha256": "595ef2004a5c62b2b7798a4a42fff38a15d4145e75174ef5a3ebce5b08fd60fe"
+    },
+    "S1P_R2_aB_m0_M1R_JOINT_J.npy": {
+      "bytes": 408844928,
+      "sha256": "418a92b2e10080cc48d0dd4d3f397a37f3df184e286edfa4726485627717ee14"
+    },
+    "S1P_R2_aB_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 408844928,
+      "sha256": "8e9e918d34d30573a270b8e14fad74c7991866185cc31eef1c1d90e23505b8a9"
+    },
+    "S1P_R2_aB_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 217376,
+      "sha256": "cdc5f5e559755d796b650cf0dd6644ea4d6b041b1051f9629946259c1885dd5e"
+    },
+    "S1P_R4_aA_m0_M0_J.npy": {
+      "bytes": 194688128,
+      "sha256": "1b423c4df64220f8f75aef57482e9e947635c3aab07ac48fa010f97da002457a"
+    },
+    "S1P_R4_aA_m0_M0_INDEX.json": {
+      "bytes": 52982,
+      "sha256": "51b70146524d8b21e743eaa60f608c13aef0c65e43d94600de1ff265d37b2cfe"
+    },
+    "S1P_R4_aA_m0_M1R_JOINT_J.npy": {
+      "bytes": 194688128,
+      "sha256": "b2710ce3771e7c201a5521579148393c22a1bf65e6897c9affbb2874935ca069"
+    },
+    "S1P_R4_aA_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 194688128,
+      "sha256": "dd4a369262a3ac1653ef3bc6ddf3f1a795d7f21f7fc6955a29a41aa3513bdca5"
+    },
+    "S1P_R4_aA_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 104069,
+      "sha256": "4e5b28f99ae10b423162e432d137649b6adaaf67d63b630cb2c17657fcf2bbda"
+    },
+    "S1P_R4_aB_m0_M0_J.npy": {
+      "bytes": 194688128,
+      "sha256": "87b2a9643a2742da9acdbb5d5f283deea1e238b9e4afc5b9f30bad082edf4e5e"
+    },
+    "S1P_R4_aB_m0_M0_INDEX.json": {
+      "bytes": 52982,
+      "sha256": "d55f473e10bf1f9cff17f6352c9afd4972ebafc357b7cb0a164c9f3f1e4da8bd"
+    },
+    "S1P_R4_aB_m0_M1R_JOINT_J.npy": {
+      "bytes": 194688128,
+      "sha256": "facce33a8dbc6154354dd79bc607b372f9347146ca270d440364c9343b3ea87b"
+    },
+    "S1P_R4_aB_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 194688128,
+      "sha256": "0b95965d6445f8a98d1015ada2acccc2bd7e3e62aa83fda26235e9e5beb2b1c6"
+    },
+    "S1P_R4_aB_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 104140,
+      "sha256": "06ebb1ebd5118a54dd799edd5a328241ee59aed50d30e0a5e63e09f0a72f51e5"
+    },
+    "S1P_R5_aA_m0_M0_J.npy": {
+      "bytes": 584064128,
+      "sha256": "b574369a989b6642d842772cd3ec53ac46ad37981ad73609d63e0951f2fc1dd3"
+    },
+    "S1P_R5_aA_m0_M0_INDEX.json": {
+      "bytes": 157086,
+      "sha256": "566bcbd658289cab18fbbe87fe6345bdeafc62bd9eadd3f8c1db17e915e6c2e3"
+    },
+    "S1P_R5_aA_m0_M1R_JOINT_J.npy": {
+      "bytes": 584064128,
+      "sha256": "ce2dfcd37c28468b34df9d9f81e1696430f0ea30f3ecbd1cc4638692a594ff93"
+    },
+    "S1P_R5_aA_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 584064128,
+      "sha256": "2236e85fc0b17c5103f7bac22b0f92fe6c6be18008006748e99cd29298f64846"
+    },
+    "S1P_R5_aA_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 309946,
+      "sha256": "ae224c819add53dc6f377481d3ded9f2785d18a36e6387bdef09ce7b38762606"
+    },
+    "S1P_R5_aB_m0_M0_J.npy": {
+      "bytes": 584064128,
+      "sha256": "6109d17b16413e729162859507d64b3d0200f501440ed7ff9ba9d8c92fb68bff"
+    },
+    "S1P_R5_aB_m0_M0_INDEX.json": {
+      "bytes": 157087,
+      "sha256": "20f23f70c9b9cc9141f324aaa26fc0ff242609b1604080bfaa39b4b0a634b5b9"
+    },
+    "S1P_R5_aB_m0_M1R_JOINT_J.npy": {
+      "bytes": 584064128,
+      "sha256": "d4ed337ba598b129680bbc5457f44fe6e112547399a8bcd72c6a8c87be224d0f"
+    },
+    "S1P_R5_aB_m0_M1R_JOINT_MIN_CHI2.npy": {
+      "bytes": 584064128,
+      "sha256": "567eca696a2a16d98a18ffc25644a5eeccea398c70e1f96c5b11c9a938091b33"
+    },
+    "S1P_R5_aB_m0_M1R_JOINT_INDEX.json": {
+      "bytes": 310186,
+      "sha256": "1a0367c5922bd070e96268d0f9146e18a8456b50897daae40ac7c51a0a0a4d6d"
+    }
+  },
+  "grid_rf_realizations": {
+    "M0": 2020,
+    "M1-R(J_joint)": 2440
+  },
+  "grid_payload_bytes": 6716738176,
+  "code_sha256": {
+    "s2_code/INPUTS_CHECK_1ce68f3.json": "c9a8d4a9c5fcc922211ee2f4365eb5d97c45576207ab4247e02f29c0a4ad1c64",
+    "s2_code/diagnose_coverage.py": "2ecf8859d31e642766e324a160b92ad0b39676e7b3af523987b20b542f68a30b",
+    "s2_code/record_bias.py": "fec8cc24c51e7969d5b575dc2d47bf99bed79617e7137cb2ed70694af6bdc5b0",
+    "s2_code/record_gates.py": "923356bc6337aa7e1fa5e4df9f94eb42fdca0afd35c2423518b2328ebcb39708",
+    "s2_code/report_s2.py": "9e845631876f2fe871413f7cf19c355cd24ed68656bbe716ee675eea28a0cdc3",
+    "s2_code/run_step1.py": "dc94968ce4187eb8c451ef7e87669d37b59d5b9faf93f240d4dd7cbc6af46f62",
+    "s2_code/run_step2.py": "287c0a655dae0f660854133697bac10825ea0fe832c8793dec801a83a80afe89",
+    "s2_code/s1_analysis.py": "ef731cea0af12f409ccf962ee66b29d04a7905184cbdb246850fb0dec76c0edc",
+    "s2_code/s2_primary.py": "2b9d06419204f26e200e8bc17f2d62f6bb6ff5d1be999bf8fb0f9d44e77d7227",
+    "s2_code/s2_primary_batch.py": "0643af5f4477075b570ec4e1f7141d24b27ff81481b0c75b373da73dcce1d56b",
+    "s2_code/s2_primary_final.py": "2581ddfbf41364278a1130c68a81e6eb32b775e11da1aa9ccbd63b6c1e39c932",
+    "s2_code/s2_sigma.py": "1948c68ed058965c4f28c8a3618fad30da18fbca1538834e261aa507412c59a1",
+    "s2_code/seal_s2.py": "ddadec094bfdc854c8765dc03f0b734ca2ec4649289231ed00ba1bff81493951",
+    "s2_code/v32_filter.py": "8e96859156ffc110b02131619799d367a39f54f7e50c5a9b2998e9c6adb85b33",
+    "s2_code/v32_observation.py": "592906c20bac232139776ce7ca706ff7017da6439ff932a86b98c5f58edbcd4d",
+    "s2_code/v32_preflight.py": "4ceeadf71e2cd77127e7ed84bbf05563165ca56d0e030126d1dc28043c5b7270",
+    "s2_code/v33_baseline.py": "a097dde87b1ab3322e96ae5627a2b38a5d7b54f4cc2387810c53798d2342b0ec",
+    "s2_code/v33_filter.py": "13b907a73367263c446c23578d83eb94e7b47dca736721c8b78999da70f6f701",
+    "s2_code/v33_observation.py": "8848890ef3f8d4e02d000e0b04cc5610793fd2892f553c8012386e096a138f64"
+  },
+  "output_sha256": {
+    "s2_out/B0_COMPARISON.json": "ea7d12d2f0439d26c78487f7b6011eb5c3e24538cc72817c396e587e175755de",
+    "s2_out/B0_ERR_MODEL_LORO.json": "84d5be949eb9b4ac6ab423b50687a7c920b84894f9296e7ffabac9844f955194",
+    "s2_out/B0_NOMINAL.npz": "4466e9b51a83933355588db9908280406c7a9b8aabd3cedee2c78a950061e499",
+    "s2_out/CODE_b0_SHA256.txt": "ad464ba06488f02c465abfe2a055f3d98aafe7a1642740a2fee7914d8224b095",
+    "s2_out/CODE_calibrate_SHA256.txt": "d4afbce8b1ca2a7a5315b7b7f14d7281bcd1e0cdd5ce85dea4e5d4a99ca19afc",
+    "s2_out/CODE_calibrate_retry_SHA256.txt": "a7e3e16edd1ddb613e89b17d752fbabca5a8ccaf852df261ba1eb440900758f9",
+    "s2_out/CODE_primary_SHA256.txt": "7cc5c422f98f75a638e3cde73b54f12ca5c7259abd526efc62850c04e0aeacfd",
+    "s2_out/CODE_sensitivity_SHA256.txt": "2ca90ef276c04dec44d050f5ade49bcd68f23d9193c858457c207bd9b5087d25",
+    "s2_out/COMMAND_b0.txt": "5dfb2f465fc9240d267d6ae8f8d8e5d70f29330d452f6924de8b016b1782570a",
+    "s2_out/COMMAND_calibrate.txt": "aff686938be2f55079b4edc0eb57054890c59d1902b9333a5a24f4d042a1643c",
+    "s2_out/COMMAND_calibrate_retry.txt": "5e2ca496f7e8dcabb5fcf3fb2b1e8f353c94c48c58f1aee9abb64290a0211d76",
+    "s2_out/COMMAND_primary.txt": "e414099f902cee46ae2ee102da6155d450e22a9d94b76f1ef03ae3a2704ebfb5",
+    "s2_out/COMMAND_sensitivity.txt": "044b3644462fe4e4d05067c330b91ea11fd90f81c7c42419d3eaa95563a93e8b",
+    "s2_out/EXIT_b0.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "s2_out/EXIT_calibrate.txt": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+    "s2_out/EXIT_calibrate_retry.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "s2_out/EXIT_primary.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "s2_out/EXIT_sensitivity.txt": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+    "s2_out/FINISH_b0_UTC.txt": "d3e5e729eadee237094779da938879dffbc6bd35d65240a92fe945fc35640091",
+    "s2_out/FINISH_calibrate_UTC.txt": "326a84818bcb561b18695b3721502353dcf7aa3803b030576a42d894cca5b008",
+    "s2_out/FINISH_calibrate_retry_UTC.txt": "38235802a690047d4ea1edc35a1096e9e79e704704f98e787de9237254514e8d",
+    "s2_out/FINISH_primary_UTC.txt": "482a18467529cc219cf060eca9caa45b2c5b958f844fc2cc6a7462b6bf311b9d",
+    "s2_out/FINISH_sensitivity_UTC.txt": "fbb6c2e685eff5c962b8d1f40bcfff6a991ae340844e517d659392c690907002",
+    "s2_out/INDEPENDENT_CHECK.json": "110831c9b96185f4c0b322a2982f4b3cb4e13ed2b4cd8a06f201fd98042c8c81",
+    "s2_out/INHERITED_CODE_CHECK.log": "62fd81b25bc16aef717cbed29894e45de21fb6c98feede2cdd0e1b2d1c3b4165",
+    "s2_out/LOOKUP_REGRESSION.json": "7a1b92e7596856a846a9df8420620e13ad6087b3c3f1e149a1a04cd5902976bd",
+    "s2_out/MARKOV_COVERAGE_DIAGNOSTIC.json": "9a0c77b3240003381236cd59fda5ef8622aad1f6384df8befe4eb591e4dd3a05",
+    "s2_out/REPORT_KO.md": "19efa434c31739be888c07f8572fa21e1ce82da51e5ec6578edb7cdc06c53cdf",
+    "s2_out/RESOURCES_b0.txt": "938601d745db916bb31bb40c4fcc9f15286364e6c91804e8f91b4afeb828cb77",
+    "s2_out/RESOURCES_calibrate.txt": "f79c8fb8fc61062fa7d5cb6899b7e2d5db26d80ade587651953e96b8078b787b",
+    "s2_out/RESOURCES_calibrate_retry.txt": "d1bcc41d71022677de317844a958a6f20af8b2a621a588d91050a6546419823c",
+    "s2_out/RESOURCES_primary.txt": "8942e7d8e905230e797d7da13189ac4f4665c605c80310503d4997a640391c9a",
+    "s2_out/RESOURCES_sensitivity.txt": "dc5724361fe906dcdee331f3a10f336bdef80d80e6189896fea0b8919128269d",
+    "s2_out/S1P_BIAS_CHECK.json": "62ca3429bcc18c237a8ff323451356db3dc23d1d88c4cba8dfe8356ad28c7a41",
+    "s2_out/S1P_ERR_MODEL_LORO.json": "7fa8575f4690109f14196ab08319d66c33c5d40ecd7b6d34e7b997847e33fd65",
+    "s2_out/S1P_GATES.json": "43f16939f6dea00ef409c4da16800ccbd114609e1c17a6d0d96493a86c396304",
+    "s2_out/S2P_BOOTSTRAP.npz": "0c4a0bb1d7d5d26b113ad6da945e4d40319c9aadedebbc2f91def0e4be3f8ae9",
+    "s2_out/S2P_CURVES.csv": "413d33ac1628aec04f34a3b0698836f16278333a31c88dfa18b762a5b719c2d6",
+    "s2_out/S2P_DRAWS.npz": "da31de4e960527d752fa343ce9271e38dde962cf9ff696edb32d8a7015294c38",
+    "s2_out/S2P_G_SNAP.json": "ee39259c7060d1006d3c57e5687ab2e24c1ddbc662dfcc030dd2d4a5a97cb154",
+    "s2_out/S2P_NOMINAL.npz": "6d9c508e6f5cd1c451927c057c457b97a3819b76bd711b2707a97b7dad3a5c0b",
+    "s2_out/S2P_SIGMA_BETA.json": "b5c9218033bacb501f2f6c00fa87be519b5512dd38299a866cbd575bf4457caa",
+    "s2_out/S2P_SIGMA_BETA_STAR.csv": "439ba3a89ccb8d1fb07a426621df5020174a0722d6fdac83b69473164a141c04",
+    "s2_out/S2P_VERDICT.json": "9ad02d9e4f11ffeff4fff2214a469c6f97526190fd50b17b2784b8e75145f8cd",
+    "s2_out/START_b0_UTC.txt": "482a18467529cc219cf060eca9caa45b2c5b958f844fc2cc6a7462b6bf311b9d",
+    "s2_out/START_calibrate_UTC.txt": "c04b98d2f84279d4e4ae5e2bfa78695f7650ab6e6b81d0269ebfa2670cd4179d",
+    "s2_out/START_calibrate_retry_UTC.txt": "231c40e3c7c0a31cb3fd9df2365366c15e950ca4272acef634c44fa991cbce71",
+    "s2_out/START_primary_UTC.txt": "53bbf73ed10cbc2408b339acf297c2c3e40927fc39df8eb201317febd8641801",
+    "s2_out/START_sensitivity_UTC.txt": "f632f755af842a2c8d5f5594d5378b8aeb50a413f53f3899134c7cdfd987f7dc",
+    "s2_out/VERIFY_INPUTS.log": "6e041fc4d06047acab7475c2037410f3d50b279dd4d486b02f32560361dae6e8",
+    "s2_out/b0.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "s2_out/b0_HASH_CHECK.log": "0d1ba2edfc745840777b9aaded84866e357afe361075440a07182e3ec2267d92",
+    "s2_out/calibrate.log": "8b747296e0fe3fa39ec55ecc4b60860c965f6bc0c816e88d1b4538a12005c7e3",
+    "s2_out/calibrate_HASH_CHECK.log": "0d1ba2edfc745840777b9aaded84866e357afe361075440a07182e3ec2267d92",
+    "s2_out/calibrate_retry.log": "94375b3eca0ad0e8238c75896d15f17c283c83356cd3147439f4756f1840e141",
+    "s2_out/calibrate_retry_HASH_CHECK.log": "0d1ba2edfc745840777b9aaded84866e357afe361075440a07182e3ec2267d92",
+    "s2_out/primary.log": "fe7b00ecc4972ecc143811bdecd3d1c9e86e6a42a6ba70012f31f3d44ec7fd33",
+    "s2_out/primary_HASH_CHECK.log": "0d1ba2edfc745840777b9aaded84866e357afe361075440a07182e3ec2267d92",
+    "s2_out/sensitivity.log": "40b10b0aaa3dd8cefd2c3c17c64505405a6aed890477a166b315c679cc1e2b99",
+    "s2_out/sensitivity_HASH_CHECK.log": "0d1ba2edfc745840777b9aaded84866e357afe361075440a07182e3ec2267d92"
+  },
+  "root_sha256": {
+    "B0_DRIVER.log": "b30c53ed743733156b99b9336d005534ea2c605cf723723e6a210348326b4483",
+    "CALIBRATE_DRIVER.log": "b30c53ed743733156b99b9336d005534ea2c605cf723723e6a210348326b4483",
+    "CALIBRATE_RETRY_DRIVER.log": "b30c53ed743733156b99b9336d005534ea2c605cf723723e6a210348326b4483",
+    "GRID_BUILD.log": "bbbe7766fcae5a8d2311be673edec07d6b6ed3f01fa2cbbbb109a03433a5686f",
+    "GRID_CODE_CHECK.log": "fdb45d96e0249a975cbbd5d9b6f410d332b44fbfc1175e526616d44387a2a6b4",
+    "GRID_COMMAND.txt": "258288591ea1b297beceb7e545ca02d8c9e11bf3d190f8d31c8d53c66fc58e3f",
+    "GRID_DRIVER.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "GRID_FINISH_UTC.txt": "f6399f6807159ff334977ea5688a0b3592d604b1a7c3fff45c943cffbaac1a4a",
+    "GRID_INHERITED_CHECK.log": "1b7b3ea042d31244b122da582c956a0c63310efe58a9f12e6a4cdee45fe80e0b",
+    "GRID_RESOURCES.txt": "8adb0f7121bcb4823476122b439c0f805f74362ad2218c10fb63c5d332fab70a",
+    "GRID_SHA256.txt": "ca6d5db38125fd39cb6d7bcc90281c8bc6ea25b43cc6f352a4d85faf469c7438",
+    "GRID_STAGE_CONFIG.json": "5e0fa235ece60342067eaa056d2e95e7bd8986d2e77fd7946131a2ab6fa7e216",
+    "GRID_STAGE_RECEIPT.json": "80e1b2bc829ec29fc18fbc8d1d21d96c80f31513a70bb8431666bdec96f5ab78",
+    "GRID_STAGE_SHA256.txt": "38271c2fcc7bef7a628f596b97dc6cc9b5db419168b26e6e4a26da4ff0ffdc05",
+    "GRID_START_UTC.txt": "7c76f946e570b4739df65219e994b12e910c3553dda9194103bc8e447371ee92",
+    "M0_CODE_CHECK.log": "61fecb931a25833b8c3e847cbfbe392f3b876977e7b178b912666e9c9233b54e",
+    "M0_FINISH_UTC.txt": "5810f5a153d300ccb7fc627e7bf08e30dece4e615334ed0a91442059b5b1f02a",
+    "M0_GRID_BUILD.log": "4d14433b701f74195858b96e46202ffe3d187b83b926d85c496e8ab6dbc92a24",
+    "M0_GRID_COMMAND.txt": "8bbf574b6c0d8e6973548fd8f40a59aebae0ff4e5c01faa889e36d085ecbf007",
+    "M0_GRID_SHA256.txt": "d0ba5383c0c409de798c586e2606f73444f313204ea3ecdc1e8d17accfa8a88b",
+    "M0_GRID_STAGE_CONFIG.json": "f40a22fd254522d31a8b92a5284a1350429a944281eadfcee3e57e85c8311d4c",
+    "M0_GRID_STAGE_RECEIPT.json": "d96b50a4fa5f811334223e04ba909d4c62cb88663fea41dd64fe341bce3ea56e",
+    "M0_GRID_STAGE_SHA256.txt": "2843c61b093bba037e87f4ef4aa672023422ac8fb79f2f11dedbe1c806480d0d",
+    "M0_INHERITED_CHECK.log": "1b7b3ea042d31244b122da582c956a0c63310efe58a9f12e6a4cdee45fe80e0b",
+    "M0_RESOURCES.txt": "8053dd6c294e475f3606f6d04a2aa1e86366e15b1e89d995fbdb42c775cfecf7",
+    "M0_START_UTC.txt": "cbe55502a78a373f5de0322619db1dfe649ce13738d71fb726f2875046fb39e2",
+    "PRIMARY_DRIVER.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "PRIMARY_READY_DRIVER.log": "b30c53ed743733156b99b9336d005534ea2c605cf723723e6a210348326b4483",
+    "SIGMA_DRIVER.log": "b30c53ed743733156b99b9336d005534ea2c605cf723723e6a210348326b4483",
+    "grid_launch.sh": "77a5f5dbe0975513bc4af36665a4b8da73d54725434f69d0665a799a1fe5c8df",
+    "m0_launch.sh": "1f00d76e1e3913e5580178e57925270f75a31a1e1384f2c90e77ee79693c9c9e",
+    "orchestrate.sh": "9549b65cb262372f773fb6f9b56961b2b61d9edfc963df43d82662a05c93ec00",
+    "queue_sigma.sh": "8663648f65f0fd1627e18043a17e8f31c3f1ecb7dc5c4ef1ee067ee1f7889383",
+    "run_s2.sh": "d62e16bb920a5af4408f93fe408ce55a28719a70e7564d47ddf5caf8c69e8b14",
+    "run_s2_batch.sh": "9cbfa707ea58c1528ade9d0f6e5beee498877b9bd8c6ae168c3c20b8aca13a4a",
+    "run_s2_final.sh": "26ee90dda34cdcd63f07b4f960194f7ac7d9c8781721ebf96a466860cdecc799",
+    "run_s2_sigma.sh": "f3c68670c20d192d424b198b0dde43ed3b860f3674bae939005aa3b4de845eef"
+  },
+  "verdict": "STOP",
+  "coverage": "FULL_6",
+  "correlation": null,
+  "bootstrap": {
+    "reps": 1000,
+    "paths": 200,
+    "seeds": {
+      "dr_rf": 2026111303,
+      "xy": 2026111322,
+      "outer_station": 20261113,
+      "calibration": 2026111336
+    }
+  },
+  "scope": {
+    "primary_A2": "COMPLETE",
+    "B0": "COMPLETE",
+    "sigma_beta": "COMPLETE",
+    "E2_E3_E4_and_M1_RI": "NOT_RUN_PENDING_SPECIFICATION",
+    "step3": "HELD"
+  }
+}
