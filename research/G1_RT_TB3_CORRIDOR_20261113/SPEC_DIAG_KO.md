@@ -1,6 +1,6 @@
 # G1-RT-TB3-002 — 새 RT 데이터의 검증·진단 추가 사양서 (G1-RT-TB3-001 부속)
 
-- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / G7_PASS / G8_PILOT_REVALIDATED**
+- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / G7_PASS / G8_PILOT_REVALIDATED / F1_GENERATED / G4_PASS / DIAG_G3_PASS**
 - 상위 사양: `SPEC_KO.md`(G1-RT-TB3-001, SPEC_FINAL). 형상, anchor, pose 집합 P-A/P-A′/P-B/P-C, RT 설정, Gate G0–G6는 **바꾸지 않는다**.
 - RT 설정: 상위 [RT v1.1](SPEC_V1_1_KO.md)에서 확정한 F1을 적용한다. 이 사양의 추가 pose는 본 생성과 같은 trace 설정과 manifest 형식으로 별도 batch에서 만든다.
 - 목적: G1-MODEL-002가 쓸 데이터를 세 가지로 보강한다.
@@ -89,6 +89,22 @@ G8 파일럿은 G1과 같은 G-T1 × A에서 P001–P003의 TEACH·REPEAT 332개
 
 Snowball 재검증에서 341,296개 복소 원소의 최대 상대 오차는 확정 기준과 같은 trace 기준 모두 0이었다. 기존 단정밀도 G1 `H_LoS.npy`는 원본 그대로 보존했고, 그 파일을 기준으로 한 초기 파일럿과 재검증은 각각 3.42 × 10⁻⁵와 3.00 × 10⁻⁵로 FAIL을 기록한다. [재검증 및 원인 대조](evidence/G8/G1_RT_TB3_G8_REVALIDATE_20261114_QG7Pn5/RESULT_KO.md).
 
+### 추가 G3a~G3c 실행 결과
+
+002는 v1.1의 판정 기준을 적용한다. 추가 pose의 표본 선정 방식은 이 실행에서 trace 전에 정했다. G7 pose에서 본 G3와 같은 규모인 195개 XY를 고정했다. P-D는 G-T1의 세 앵커에서 각각 위치 어긋남 크기 5종 × 방향 4종의 모든 조합을 18 station에 순환 배치해 60곳을 선정했다. P-E는 9개 조합에서 각각 P001·P009·P018과 순환 배치한 8 station을 포함해 99곳을 선정했고 재배치 반복 3종을 고르게 배정했다. P-F는 두 앵커의 18 station을 모두 포함해 36곳을 선정했다. 각 XY에서 해당 항목의 전체 yaw를 비교했다. [동결 표본](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/SAMPLE_MANIFEST.json).
+
+| 검증 | 판정 | 결과 | Snowball 소요 시간 |
+|---|---|---|---:|
+| G3a | PASS | 195 × 257 = 50,115개 위치·bin. 경로 집합 불일치와 무효 각각 0건. | 966.36초 |
+| G3b | PASS | 17 node 직접 추적 3,315회. 비교 2,739/2,739 완료. 최대 &#124;Δs&#124; = 6.4926 × 10⁻⁷, 첫 경로 index 일치율 100%, 최대 거리 차이 0 m. | 49.80초 |
+| G3c | PASS | 50,115개 위치·bin과 yaw 2,739개 비교. 두 광선 수 사이에서 추가·누락 경로 0건, 추가 경로 최대 에너지 비율 0%, 최대 &#124;Δs&#124; = 2.3789 × 10⁻⁵. | 1,770.36초 |
+
+G3b와 G3c는 G3a의 F1 100,000 광선 257-bin trace를 SHA-256 확인 후 재사용했다. G3c는 광선 수만 400,000으로 바꿨다. 세 단계 모두 각 항목에서 통과했으며, 결과의 적용 범위는 동결한 XY·yaw 표본이다. 두 광선 수에서 모두 누락된 경로는 이 비교의 관측 범위 밖이다. [추가 G3 집계](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/DIAG_G3_RESULT.json).
+
+### 추가 생성과 G4
+
+P-D 5,400개, P-E 2,430개, P-F 1,944개를 본 생성과 함께 생산했다. P-A·P-D·P-E·P-F의 27,810 RF pose에 대해 H와 `PATHS_NEAR`를 같은 F1 trace에서 저장했고 경로 export에 쓰인 추가 솔버 호출은 0회다. G4는 P-D·P-E·P-F를 포함한 11개 조합에서 통과했다. [생성 결과](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/GENERATION_RESULT.json) · [G4 결과](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/G4.json).
+
 ## 4. 특성화·확인 분리와 봉인
 
 ### 4.1 역할
@@ -109,6 +125,8 @@ Snowball 재검증에서 341,296개 복소 원소의 최대 상대 오차는 확
   - 저장량·형식 검사
 - 금지: 확인 데이터에서 heading 오차, E1 분산, z, 포함률, 오염도 c_p를 계산하는 모든 스크립트.
 - 해제: `UNSEAL.json`에 G1-MODEL-002 동결 커밋 hash, `CHARACTERIZATION.json` SHA, 해제 시각을 기록한다. 확인 분석 커밋은 그 동결 커밋의 후손이어야 한다.
+
+생성 직후 G-T2·G-V의 6개 조합에서 파일 18개를 봉인했다. G4 후 읽기 전용 상태와 SHA-256을 재확인했다. 추가 G3 작업은 별도 경로에서 동결 형상·pose 입력을 사용했고, 종료 후 같은 18개 파일과 봉인 기록의 SHA-256을 다시 확인했다. [봉인 명세](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/SEAL_MANIFEST.json) · [G4 후 저장 확인](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/SEAL_STORAGE_CHECK.json) · [추가 G3 후 확인](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/DIAG_G3_RESULT.json).
 
 ## 5. 특성화 추정 (G-T1, 한 번만 실행)
 

@@ -43,8 +43,16 @@ Snowball에서 2026-11-13 14:46:00–14:51:58 UTC에 9개 위치를 추적했다
 | [G3c](evidence/G3c/G1_RT_TB3_G3C_20261114T073923Z_hfLYcu/G3C.json) | PASS. 50,115개 위치·bin에서 양쪽 경로 집합이 일치했고 400,000 광선 전용 경로의 최대 에너지 비율은 0%다. 5,067/5,067 비교에서 최대 &#124;Δs&#124; = 2.5488e-5다. | 전체 21분 10초, 추적 20분 39초 |
 | [G2b](evidence/G2b/G1_RT_TB3_G2B_COMPARE_20261114T081259Z_Q3OXWb/output/G2B.json) | COMPLETE. BLOCK_C 50/50 비교에서 &#124;Δs&#124; 중앙값 4.9373e-9, 95백분위 2.6012e-7, 최대 6.7941e-6이다. 최대는 pose 1089다. | 계산 약 64초, 비교 모듈 경로 복구 포함 2분 57초 |
 
-이 결정은 동결한 복도 형상과 검증 표본에 근거한다. 투과를 켠 대조 추적 144회에서 수신기에 도달한 투과 경로는 관측되지 않았다. [G1-RT-TB3-002](SPEC_DIAG_KO.md)의 `PATHS_NEAR` 출력은 같은 F1 full trace의 경로로 생성한다. 본 생성은 해당 출력의 G8 파일럿 확인 이후 별도로 실행한다.
+이 결정은 동결한 복도 형상과 검증 표본에 근거한다. 투과를 켠 대조 추적 144회에서 수신기에 도달한 투과 경로는 관측되지 않았다. [G1-RT-TB3-002](SPEC_DIAG_KO.md)의 `PATHS_NEAR` 출력은 같은 F1 full trace의 경로로 생성한다. 본 생성은 해당 출력의 G8 파일럿 확인 이후 실행했다.
 
 2026-11-14 Snowball 초기 G8은 단정밀도 위상이 포함된 G1 `H_LoS.npy` 원본에서 최대 상대 오차 3.42 × 10⁻⁵로 FAIL이었다. 그 결과와 원본을 보관했다. [초기 G8 파일럿](evidence/G8/G1_RT_TB3_G8_20261114T082240Z_qOhMGz/RESULT_KO.md).
 
 G8 기준은 동결 G1 경로의 계수·지연·주파수에 배정밀도 위상 계산을 적용한 `H_LoS`로 확정한다. 복소 원소별 최대 상대 오차 < 1e-6 기준을 적용한다. 동일 332 pose·257 bin 재검증에서 확정 기준과 같은 F1 trace 모두 최대 상대 오차 0으로 PASS였다. 원본 단정밀도 G1 파일과의 비교는 최대 상대 오차 3.00 × 10⁻⁵로 FAIL을 보존했다. 재검증은 272.52초였고 추가 경로 탐색은 없었다. [G8 재검증](evidence/G8/G1_RT_TB3_G8_REVALIDATE_20261114_QG7Pn5/RESULT_KO.md).
+
+## Snowball 본 생성과 G4 실행 결과
+
+2026-11-14에 동결 G0·G7 입력과 F1 설정으로 본 생성 52,218 pose와 002 추가 생성 9,774 pose를 완료했다. 11개 조합의 총 61,992 RF pose에 대해 서로 다른 XY 26,460개에서 17 node를 직접 추적했다. 솔버 호출은 449,820회였고, 사양 대상 27,810 pose의 `PATHS_NEAR`는 H를 합성한 trace에서 추가 호출 없이 저장했다. 생성·조립의 경과 시간은 52분 36초였다. [생성 결과](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/GENERATION_RESULT.json) · [실행 입력·설정](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/RUN_MANIFEST.json).
+
+G4는 11개 조합의 23개 조합·항목에서 통과했다. noise-free `H_LoS`의 관측값과 M1-T의 참 거리 직접 계산값을 비교했다. 조합·항목별 p90 |Δs| 최댓값은 G-T1 × C의 P-D에서 1.0374 × 10⁻⁶으로 기준 0.005 이내였고, 전체 관측의 최대 |Δs|는 2.8996 × 10⁻⁶이었다. G4와 후속 봉인 저장 상태 확인에는 61초가 걸렸다. [G4 결과](evidence/Production/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/G4.json).
+
+002의 P-D·P-E·P-F에서 별도로 고정한 195개 XY와 yaw 2,739개에 같은 G3a~G3c 판정 기준을 적용했다. 세 단계 모두 통과했다. 표본 선정과 상세 결과는 [002 사양 §3](SPEC_DIAG_KO.md#3-추가-gate)과 [추가 G3 집계](evidence/G3_diag/G1_RT_TB3_DIAG_G3_20261114T112524Z_QzP8yY/DIAG_G3_RESULT.json)에 기록했다.
