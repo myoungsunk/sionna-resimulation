@@ -19,6 +19,10 @@ class ImageGeometryError(ValueError):
     """The recorded surface sequence does not produce a finite-face image."""
 
 
+class ImageHitOutsideFace(ImageGeometryError):
+    """An exact image intersects the plane outside its connected mesh face."""
+
+
 @dataclass(frozen=True)
 class Triangle:
     vertices: tuple
@@ -142,7 +146,7 @@ def fold_images(tx, rx, faces):
     return unfolded_m / C_M_S, points[1:-1]
 
 
-def match_path(tx, rx, recorded_tx, recorded_rx, hits):
+def match_path(tx, rx, recorded_tx, recorded_rx, hits, *, raise_unmatched=False):
     """Return the timing and face sequence tied to the recorded primitives."""
     faces = [face for _, _, face, _ in hits]
     signature = ">".join(f.label for f in faces) if faces else "LOS"
@@ -157,9 +161,11 @@ def match_path(tx, rx, recorded_tx, recorded_rx, hits):
                 raise ImageGeometryError(f"Native hit outside its recorded primitive {face.label}/{primitive}")
             if not triangle.contains(point, EXACT_HIT_TOL_M):
                 if not any(t.contains(point, EXACT_HIT_TOL_M) for _, t in face.primitives):
-                    raise ImageGeometryError(f"Image hit outside the connected finite face {face.label}")
+                    raise ImageHitOutsideFace(f"Image hit outside the connected finite face {face.label}")
                 switches += 1
     except ImageGeometryError as error:
+        if raise_unmatched:
+            raise
         return signature, delay_s, None, 0, max_plane_offset_m, str(error)
     return signature, delay_s, image_s, switches, max_plane_offset_m, None
 

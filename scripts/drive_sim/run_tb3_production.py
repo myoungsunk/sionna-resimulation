@@ -129,7 +129,7 @@ def check_canary(g1, path_los):
 
 
 def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_ids, production, out,
-                   field_batch_xy):
+                   field_batch_xy, *, finite_face_repair=False):
     from run_tb3_g8_pilot import capture_trace
     from tb3_native_los import native_direct_fields
     from tb3_paths_near import h_and_near_for_poses, write_paths_near
@@ -171,6 +171,12 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
     los_tau = np.empty(len(ids), np.float64)
     los_angles = np.empty((len(ids), 4), np.float64)
     tx = np.asarray(scene.transmitters["tx"].position).reshape(3)
+    if finite_face_repair:
+        from tb3_g6_face_match import load_faces
+        from tb3_g6_revalidate import finite_face_trace
+
+        faces = load_faces(scene, scene_entry, scene_root)
+        recorded_tx = tuple(tx.astype(float))
     packs, receipts = [], []
     timings = dict(trace_s=0.0, native_field_s=0.0, apply_s=0.0, save_s=0.0)
     for offset in range(0, len(tasks), field_batch_xy):
@@ -180,7 +186,13 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
         print(f"Tracing F1 XY {offset+1}–{last}/{len(tasks)}", flush=True)
         for task in tasks[offset:last]:
             started = time.monotonic()
-            trace, nodes = capture_trace(core, scene, solver, solver_config, freq, bins, task, setup)
+            geometry = None
+            if finite_face_repair:
+                rx = task["x"], task["y"], scene_entry["rx_z_m"]
+                trace, nodes, geometry = finite_face_trace(core, scene, solver, solver_config, freq,
+                                                           bins, task, setup, faces, anchor, rx, recorded_tx)
+            else:
+                trace, nodes = capture_trace(core, scene, solver, solver_config, freq, bins, task, setup)
             elapsed = time.monotonic() - started
             timings["trace_s"] += elapsed
             direct = np.flatnonzero((trace["interactions"] == none).all(axis=1))
@@ -193,8 +205,10 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
             receiver_positions.extend([receiver] * len(task_poses))
             batch.append((task, trace, int(direct[0]), slice(start, len(batch_poses))))
             receipts.append(dict(tag=task["tag"], task_id=task["task_id"], pose_ids=task["pose_ids"],
-                                 node_bins=nodes.tolist(), solver_calls=len(nodes),
+                                 node_bins=list(map(int, nodes)), solver_calls=len(nodes),
                                  n_full_paths=len(trace["tau"]), n_near_paths=None, trace_s=elapsed))
+            if geometry is not None:
+                receipts[-1]["finite_face"] = geometry
 
         started = time.monotonic()
         print(f"Applying native LoS field at {last-offset} XY positions and {len(batch_poses)} poses", flush=True)
@@ -255,7 +269,11 @@ def main():
     parser.add_argument("--field-batch-xy", type=int, default=FIELD_BATCH_XY)
     parser.add_argument("--code-commit", required=True)
     parser.add_argument("--g8-canary", type=Path, metavar="G1_OUTPUT")
+    parser.add_argument("--g6-regenerate", action="store_true",
+                        help="Regenerate G-T2 B/C under the strict finite-face G6 rule")
     args = parser.parse_args()
+    if args.g6_regenerate and (args.g8_canary or args.case not in ("G-T2_B", "G-T2_C")):
+        parser.error("--g6-regenerate applies only to the two affected production cases")
     started_utc, started = utc_now(), time.monotonic()
     scene, anchor, poses, tasks, base, diagnostic, main_count = case_inputs(
         args.inputs, args.g7, args.case)
@@ -272,7 +290,7 @@ def main():
     core, _, versions = load_runtime(args.source)
     ids, receipts, timings = generate_shard(core, scene, anchor, args.inputs / "scene",
                                              poses, tasks, near_ids, production, args.out,
-                                             args.field_batch_xy)
+                                             args.field_batch_xy, finite_face_repair=args.g6_regenerate)
     if args.g8_canary:
         from tb3_paths_near import check_g8
 
@@ -281,15 +299,18 @@ def main():
         if gate["status"] != "PASS":
             raise ValueError("Batched G8 canary failed same-trace reconstruction")
         write(args.out / "CANARY.json", gate | {"native_g1_coefficient_delay_exact": True})
+    source_names = ["run_tb3_production.py", "run_tb3_g1_pilot.py", "run_tb3_g8_pilot.py",
+                    "tb3_native_los.py", "tb3_paths_near.py"]
+    if args.g6_regenerate:
+        source_names += ["tb3_g6_face_match.py", "tb3_g6_revalidate.py", "validate_tb3_g5.py",
+                         "diagnose_tb3_g6_image.py"]
     write(args.out / "MANIFEST.json", dict(
         status="PASS", case=args.case, role="IMPLEMENTER", code_commit=args.code_commit,
         question_ids=["G1-RT-TB3-001", "G1-RT-TB3-002"], engine=production,
         scope="G8_CANARY" if args.g8_canary else "PRODUCTION",
         g0_manifest_sha256=G0_SHA, g7_manifest_sha256=G7_SHA, production_sha256=F1_SHA,
         reference_sha256=REFERENCE_SHA, ffd_manifest_sha256=FFD_SHA, governance=reference["governance"],
-        source_sha256={name: sha(Path(__file__).with_name(name)) for name in
-                       ("run_tb3_production.py", "run_tb3_g1_pilot.py", "run_tb3_g8_pilot.py",
-                        "tb3_native_los.py", "tb3_paths_near.py")},
+        source_sha256={name: sha(Path(__file__).with_name(name)) for name in source_names},
         shard_index=args.shard_index, shard_count=args.shard_count, trace_positions=len(tasks),
         poses=len(ids), main_poses=sum(i < main_count for i in ids),
         diagnostic_poses=sum(i >= main_count for i in ids), near_pose_count=len(near_ids.intersection(ids)),

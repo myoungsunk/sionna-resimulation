@@ -111,6 +111,32 @@ def trace_hits(core, scene, solver, settings, frequencies, bins, task, setup, me
     return trace, hits, nodes.tolist()
 
 
+def finite_face_trace(core, scene, solver, settings, frequencies, bins, task, setup, mesh_faces,
+                      tx, rx, recorded_tx):
+    """Apply the locked G6 geometry test before composing regenerated channels."""
+    from tb3_g6_face_match import ImageHitOutsideFace
+
+    trace, hits, nodes = trace_hits(core, scene, solver, settings, frequencies, bins, task, setup, mesh_faces)
+    recorded_rx = tuple(np.asarray(scene.receivers["rx"].position).reshape(3).astype(float))
+    keep = np.ones(len(hits), dtype=bool)
+    rejected, maximum = [], 0.0
+    for i, path in enumerate(hits):
+        try:
+            _, segments, image, *_ = match_path(tx, rx, recorded_tx, recorded_rx, path, raise_unmatched=True)
+        except ImageHitOutsideFace as error:
+            keep[i] = False
+            rejected.append(dict(canonical_index=i, native_tau_s=float(trace["tau"][i]), reason=str(error)))
+            continue
+        maximum = max(maximum, abs(segments - image))
+    if maximum > STRICT_TOL_S:
+        raise ValueError(f"Retained delay residual exceeds {STRICT_TOL_S:g} s at {task['tag']}: {maximum:g}")
+    if rejected:
+        trace = trace | dict(tau=trace["tau"][keep], ang=trace["ang"][:, keep],
+                             jones=trace["jones"][:, keep], present=trace["present"][:, keep],
+                             interactions=trace["interactions"][keep], objects=trace["objects"][keep])
+    return trace, nodes, dict(native_paths=len(hits), rejected=rejected, max_retained_delay_residual_s=maximum)
+
+
 def run(args):
     start, tick = utc_now(), monotonic()
     check_geometry()
