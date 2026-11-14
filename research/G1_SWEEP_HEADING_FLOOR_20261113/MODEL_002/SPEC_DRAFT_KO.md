@@ -119,3 +119,7 @@ B1–B4의 시나리오·공통 난수·원시 sweep은 일치시킨다. 모델 
 예정 산출물은 `CHARACTERIZATION_PLAN.json`, `CHARACTERIZATION.json`, `SEAL_MANIFEST.json`·`UNSEAL.json`, `RUN_MANIFEST.json`, 방문별 기록, 조합·평가층별 지표/CI, 교차점 표와 독립 검증 기록이다. 로그와 manifest는 명령·시각·종료 상태, 소스 및 입력·출력 SHA, 난수·sample 그룹을 담는다.
 
 확인 결과가 나오면 해당 RT 형상·프로토콜·DR 설정에서 integrity와 정확도를 각각 판정한다. `RT_ONLY`, `ENV_ASSUMED`, `GENERALIZATION_NOT_PROVEN`의 범위를 적용한다. S2′ **STOP**과 기존 **Step 3 보류**는 이 초안 및 후속 특성화와 별개인 기록이다.
+
+## 9. Goal 1 tap 추출 진단
+
+고정된 6개 BLOCK_C case에서 동일한 full H와 복소 잡음을 사용해 기존 검출 tap, LoS 기준 oracle tap, 위치 prior 기반 분수 지연 추출을 비교한다. K8의 상관 분석을 보완해 세 추출법 각각의 heading 오차를 직접 계산한다. R4_aB와 R2_aA는 별도로 보고한다. 이 비교는 DIAGNOSTIC_ONLY이며 S2′ STOP과 Step 3 보류를 적용한다. [실험 사양](TAP_DIAG_20261114/SPEC_KO.md) · [진단 결과](TAP_DIAG_20261114/REPORT_KO.md)
