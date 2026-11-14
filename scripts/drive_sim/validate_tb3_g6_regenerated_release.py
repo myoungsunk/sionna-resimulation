@@ -307,7 +307,8 @@ def load_supplemental_g3(paths):
         require(item.get("g3a_bins") == 257, f"G3a did not cover all 257 bins: {case}/{task_id}")
         b, c, energy = item.get("g3b_by_pose", []), item.get("g3c_by_pose", []), item.get("g3c_energy_by_bin", [])
         thresholds = item.get("thresholds", {})
-        require(len(b) == len(c) == 5 and len(energy) == 257,
+        pose_ids = item.get("pose_ids", [])
+        require(0 < len(b) == len(c) == len(pose_ids) == len(set(pose_ids)) and len(energy) == 257,
                 f"Supplemental G3 pose/bin coverage incomplete: {case}/{task_id}")
         require(all(row.get("abs_ds", math.inf) <= thresholds.get("abs_ds_max", -1)
                     and row.get("fp_index_match", -1) >= thresholds.get("fp_index_match_min", 2)
@@ -321,7 +322,10 @@ def load_supplemental_g3(paths):
             rejected = receipt.get("rejected", [])
             require(len(rejected) == 1 and int(rejected[0].get("canonical_index", -1)) == TARGETS[case][task_id],
                     f"Supplemental G3 {name} trace rejection differs from G6: {case}/{task_id}")
-        reports[(case, task_id)] = dict(path=str(path.resolve()), sha256=file_sha(path), status="PASS")
+        reports[(case, task_id)] = dict(path=str(path.resolve()), sha256=file_sha(path), status="PASS",
+                                       pose_ids=pose_ids, max_abs_ds_g3b=max(row["abs_ds"] for row in b),
+                                       max_abs_ds_g3c=max(row["abs_ds"] for row in c),
+                                       max_added_energy_fraction=max(float(row[2]) for row in energy))
     expected = {(case, task) for case, tasks in TARGETS.items() for task in tasks}
     require(set(reports) == expected, f"Supplemental G3 report coverage differs: {set(reports)}")
     return reports
@@ -378,6 +382,10 @@ def run(args):
     for case in sorted(REPLACED):
         (pose_hashes, old_manifest_path, old_manifest, new_manifest_path, new_manifest,
          task_map) = verify_case_lineage(old_root, new_root, case)
+        for (report_case, task_id), row in supplemental.items():
+            if report_case == case:
+                require(row["pose_ids"] == task_map[task_id]["pose_ids"],
+                        f"Supplemental G3 pose IDs differ from production: {case}/{task_id}")
         row_checks, max_residual = compare_trace_receipts(old_root, new_root, case, task_map, g6)
         output_hashes = verify_new_case_outputs(new_root, case, new_manifest)
         new_seals[case] = verify_seal_marker(args.new_seal_root, new_root, case, new_manifest_path, new_manifest)
