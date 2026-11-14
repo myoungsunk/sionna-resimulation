@@ -1,6 +1,6 @@
 # G1-RT-TB3-002 — 새 RT 데이터의 검증·진단 추가 사양서 (G1-RT-TB3-001 부속)
 
-- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / G8_PILOT_REVALIDATED**
+- 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / G7_PASS / G8_PILOT_REVALIDATED**
 - 상위 사양: `SPEC_KO.md`(G1-RT-TB3-001, SPEC_FINAL). 형상, anchor, pose 집합 P-A/P-A′/P-B/P-C, RT 설정, Gate G0–G6는 **바꾸지 않는다**.
 - RT 설정: 상위 [RT v1.1](SPEC_V1_1_KO.md)에서 확정한 F1을 적용한다. 이 사양의 추가 pose는 본 생성과 같은 trace 설정과 manifest 형식으로 별도 batch에서 만든다.
 - 목적: G1-MODEL-002가 쓸 데이터를 세 가지로 보강한다.
@@ -44,12 +44,12 @@
 | 형상·anchor | **9 조합 전부** |
 | station | 18개 |
 | 재배치 수 | station당 K = 3 (기존 P-A REPEAT 1개와 합쳐 두 번째 방문 4개) |
-| XY 어긋남 | REPEAT 10/04, 11/13 `repeat.json`의 정렬 후 station base XY 잔차(TEACH 대비)를 모은 경험분포에서 크기를 뽑고, 방향은 균일. seed 2026111402 |
-| yaw 어긋남 | 같은 두 run의 마지막 ICP yaw 잔차 경험분포에서 뽑는다 |
+| XY 어긋남 | REPEAT 10/04, 11/13 `repeat.json`의 마지막 station base 정렬의 `observed_correction[:2]`에서 얻은 XY 잔차 크기를 복원추출한다. 방향은 월드 XY에서 균일하다. seed 2026111402 |
+| yaw 어긋남 | 같은 두 run의 마지막 station base 정렬에서 `icp.pose[2]`의 경험분포를 XY 크기와 독립적으로 복원추출한다 |
 | sweep | TB3 5점 |
 | 규모 | 18 × 3 × 5 = 270 pose / 조합 |
 
-- 경험분포의 표본 값과 출처 파일 SHA를 `POSE_MANIFEST.json`에 기록한다. Fable이 인용한 범위(0.3–7.9 mm)와 다르면 파일 값을 쓰고 차이를 기록한다.
+- 경험분포의 표본 값과 출처 파일 SHA를 `POSE_MANIFEST.json`에 기록한다. Fable이 인용한 범위(0.3–7.9 mm)와 다르면 파일 값을 쓰고 차이를 기록한다. 두 run의 36개 잔차에서 확인한 XY 범위는 0.132–7.874 mm였다. 같은 seed로 뽑은 54개 재배치를 9개 조합에 공통 적용한다.
 
 ### P-F: anchor standoff 대조 (Q9, 민감도 arm)
 
@@ -82,6 +82,8 @@
 | G8 | 경로 export 일관성: LoS 경로 1개로 H_LoS를 재합성해 비교. near 경로 수 분포 기록 | H_LoS 최대 상대 오차 < 1e-6 |
 | G9 | 봉인 무결성(§4): 확인 형상 H의 SHA, 접근 로그, 허용 스크립트 목록 | 위반 0건 |
 | G3·G4 | 추가 batch에도 G1-RT-TB3-001의 G3(진행 중 G3a 포함, 통과한 설정 그대로)과 G4를 적용 | 기존 기준 |
+
+G7에서 P-D 5,400개, P-E 2,430개, P-F 1,944개를 검증했다. 11개 조합에서 위반 0건으로 통과했다. 추가 RF pose는 9,774개이며 최소 몸체–벽 여유는 0.176836 m였다. [G7 검증 결과](evidence/G7/G1_RT_TB3_G7_20261114T091332Z/RESULT_KO.md).
 
 G8 파일럿은 G1과 같은 G-T1 × A에서 P001–P003의 TEACH·REPEAT 332개 RF pose를 사용한다. 저장 후 다시 읽은 `PATHS_NEAR`의 단일 LoS 경로에서 257 bin의 복소 채널을 재합성한다. G8 기준 `H_LoS`는 `max_depth=0`으로 생성한 동결 G1 `PATHS_LoS.npz`의 원래 계수 `a`, 지연 `tau`, 주파수 `freqs_hz`로 `a * exp(-2j * pi * f * tau)`를 계산하되 위상 연산에 float64를 쓴다. 복소 원소별 오차 `|H_reconstructed - H_LoS| / |H_LoS|`의 최댓값이 1e-6 미만이어야 한다. 기준이 정확히 0인 원소는 재합성 값도 0이어야 한다. 같은 F1 trace의 LoS 합성과도 비교한다.
 
@@ -161,7 +163,9 @@ Snowball 재검증에서 341,296개 복소 원소의 최대 상대 오차는 확
 `results/G1_RT_TB3_CORRIDOR_<date>/` 아래, G1-RT-TB3-001 §5에 추가:
 
 ```text
-poses/<geom>_<anchor>/  (P-D, P-E, P-F 행 추가, POSE_MANIFEST.json)
+poses/<geom>_<anchor>/  (P-D, P-E 관측 및 RF pose)
+poses/<geom>_<anchor>_P-F/  (0.30 m standoff용 관측 및 RF pose)
+POSE_MANIFEST.json
 paths/<geom>_<anchor>/PATHS_NEAR.npz, PATHS_NEAR_SCHEMA.json
 gates/G7.json, G8.json, G9.json
 seal/SEAL_MANIFEST.json, ACCESS_LOG.jsonl, UNSEAL.json(해제 시)
