@@ -62,6 +62,7 @@ for case_id in "${cases[@]}"; do
 done
 trace+=(--entrypoint /usr/bin/nice "$img" -n 12 /bin/bash /run/code/drive_tb3_g6_revalidation.sh)
 assess=("${common[@]}" --name "$(basename "$r")_assess" --cpus 1
+  -v "$p/code:/production/code:ro"
   --entrypoint /opt/rt-env/bin/python "$img" -u /run/code/assess_tb3_g6_revalidation.py
   --original /original --traces /run/traces --out /run/G6_REVALIDATION.json --code-commit "$code_commit")
 
