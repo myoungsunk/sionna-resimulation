@@ -100,6 +100,13 @@ def _load_receipt(file, key):
     _check(all(runs == expected_runs for runs in slots.values()), "Incomplete checkpoint seed/sign grid")
     _check(len({slot[4] for slot in slots}) == len({slot[5] for slot in slots}) == len(slots),
            "Checkpoint identities and chronological order must be one-to-one")
+    # The packet that reaches a distance boundary closes the preceding
+    # evaluation segment. Its Schmidt memory uses the packet's physical cell,
+    # which can already be the next cell. Bootstrap the segment that ended.
+    if path != "TEACH_REPEAT":
+        boundaries = {slot[5]: segment for segment, slot in enumerate(sorted(slots, key=lambda key: key[5]))}
+        for row in normalized.values():
+            row["site_id"] = f"{path}/{boundaries[row['checkpoint_order']]}"
     s_counts = list(s_totals.values())
     _check(len(set(s_counts)) == 1 and (s_counts[0] == 0 if arm in ("DR", "R4") else s_counts[0] > 0),
            "s packet counts incomplete across runs or inconsistent with arm")
@@ -350,6 +357,7 @@ def summarize(folds, *, snr=30, futility=None, logs=None, partial=False, stop_af
     return dict(question_id="G1-MODEL-003", stage="S3", status=status, snr_db=snr,
                 or_rule="O30", o30_shares_or=True, source=identity.get("source"), runner_sha256=identity.get("runner_sha256"),
                 receipt_sha256=receipt_shas, design=dict(cases=CASES, paths=PATHS, levels=levels, candidates=CANDIDATES),
+                site_assignment="TEACH/REPEAT station; P-B/P-C ending checkpoint index of each frozen distance segment",
                 early_b0=dict(status_by_arm=b0_completion, permanently_ineligible=b0_excluded,
                               all_candidates_ineligible=len(b0_excluded) == len(CANDIDATES)),
                 findings=findings, primary_selection=selection, s2_accuracy_scope=scope,
