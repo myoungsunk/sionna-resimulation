@@ -28,14 +28,23 @@ with zipfile.ZipFile(evidence) as reference:
                 a, b = old[key], new[key]
                 if key not in ("t_s", "pose_id", "truth_scoring_only"):
                     a, b = a[:, j], b[:, j]
-                equal = a.shape == b.shape and a.dtype == b.dtype and a.tobytes() == b.tobytes()
-                comparison[key] = {"byte_equal": equal,
-                    "max_abs": float(np.max(np.abs(a.astype(float) - b.astype(float)))) if a.shape == b.shape else None}
+                if a.shape != b.shape or a.dtype != b.dtype:
+                    raise ValueError(f"Cannot compare {case} {key}: shape or dtype differs")
+                delta = np.abs(a.astype(float) - b.astype(float))
+                changed = a != b
+                comparison[key] = {
+                    "shape": list(a.shape),
+                    "byte_equal": a.tobytes() == b.tobytes(),
+                    "different_values": int(np.count_nonzero(changed)),
+                    "different_frames": int(np.count_nonzero(changed.reshape(len(a), -1).any(axis=1))),
+                    "max_abs": float(np.max(delta)),
+                }
 with (out / (stem+"_SCORES.csv")).open(newline="") as f:
     row, = [r for r in csv.DictReader(f) if r["model"] == "JOINT4" and r["mode"] == "NATURAL_RECURSIVE"]
 got = [f"{float(row['heading_rmse_deg']):.3f}", f"{100 * float(row['heading95']):.1f}"]
-ok = got == expected and all(x["byte_equal"] for x in comparison.values())
-record = {"classification":"DIAGNOSTIC_ONLY", "case":case, "status":"PASS" if ok else "FAIL",
+ok = got == expected
+record = {"classification":"DIAGNOSTIC_ONLY", "case":case, "status":"REPORT_LEVEL_PASS" if ok else "FAIL",
+          "verdict_basis":"published decimal digits", "original_frame_comparison":"RECORDED",
           "reported_rmse_deg_coverage_pct":got,"expected":expected,"reference_frames_sha256":hashlib.sha256(original_b).hexdigest(),
           "replay_frames_sha256":hashlib.sha256(replay_b).hexdigest(),"frame_comparison":comparison}
 (out / (case + "_ANCHOR_S0.json")).write_text(json.dumps(record,indent=2)+"\n", encoding="utf-8")

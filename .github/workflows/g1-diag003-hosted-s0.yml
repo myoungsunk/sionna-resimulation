@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         include:
           - case: R4_aB_m0
@@ -155,6 +155,7 @@ jobs:
             ${{ runner.temp }}/anchor/pj_out/ANCHOR_S0.log
             ${{ runner.temp }}/anchor/pj_out/STAGED_INPUT_QA.json
             ${{ runner.temp }}/anchor/pj_out/*_full_B0_SCORES.csv
+            ${{ runner.temp }}/anchor/pj_out/*_full_B0_TRACE.npz
             ${{ runner.temp }}/anchor/pj_out/*_POSE_QUANTIZATION_QA.json
           if-no-files-found: warn
           retention-days: 7
