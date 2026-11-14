@@ -6,6 +6,14 @@ import numpy as np
 
 def native_direct_coefficients(core, tx_xyz, rx_xyz, poses, mount_deg, banks, ports):
     """Apply pinned Sionna field operations to known LoS segments without PathSolver."""
+    coefficients, delays = native_direct_fields(core, tx_xyz, rx_xyz, poses, mount_deg, banks, ports)
+    if not np.all(delays == delays[0]):
+        raise ValueError("Native direct path delay disagrees across yaws at one position")
+    return coefficients, float(delays[0])
+
+
+def native_direct_fields(core, tx_xyz, rx_xyz, poses, mount_deg, banks, ports):
+    """Compute the same native field for a single XY or one RX position per pose."""
     import drjit as dr
     from qclean_uwb.scenarios.corridor import rot_z
     from sionna.rt.path_solvers.field_calculator import FieldCalculator
@@ -14,7 +22,13 @@ def native_direct_coefficients(core, tx_xyz, rx_xyz, poses, mount_deg, banks, po
     C, mi = core.C, core.mi
     tx = mi.Point3f(*map(float, tx_xyz))
     count = len(poses)
-    rx = mi.Point3f(*(dr.full(mi.Float, float(coordinate), count) for coordinate in rx_xyz))
+    rx_xyz = np.asarray(rx_xyz)
+    if rx_xyz.shape == (3,):
+        rx = mi.Point3f(*(dr.full(mi.Float, float(coordinate), count) for coordinate in rx_xyz))
+    elif rx_xyz.shape == (count, 3):
+        rx = mi.Point3f(*(mi.Float(axis) for axis in rx_xyz.T))
+    else:
+        raise ValueError("Expected one RX position or exactly one per pose")
     tx_orientation = mi.Point3f(*C.euler(C.ANCHOR_ROTATION))
     rotations = np.array([C.euler(rot_z(p["yaw_body_deg"] + mount_deg))
                           for p in poses])
@@ -53,6 +67,6 @@ def native_direct_coefficients(core, tx_xyz, rx_xyz, poses, mount_deg, banks, po
                     np.asarray(coefficient.real) + 1j * np.asarray(coefficient.imag)
                 )
     delays = np.asarray(paths.tau)
-    if delays.shape != (count,) or not np.all(delays == delays[0]):
-        raise ValueError("Native direct path delay disagrees across yaws at one position")
-    return coefficients, float(delays[0])
+    if delays.shape != (count,) or not np.isfinite(delays).all():
+        raise ValueError("Native direct field produced invalid delays")
+    return coefficients, delays
