@@ -8,3 +8,5 @@
 | 새 RT | [G1-MODEL-003](SPEC_B_NEW_RT_KO.md) | G1-RT-TB3 생산(`6242fb9`) | 관측 체인 → G-T1 특성화 → 개발 → 봉인 해제 확인 |
 
 G1-DIAG-003 결과는 G1-MODEL-003의 arm 우선순위 해석에만 쓰고, 모수로 옮기지 않는다.
+
+새 RT 사양의 실행 전 검토는 [G1-MODEL-003 검토](REVIEW_B_NEW_RT_KO.md)에 기록했다.
