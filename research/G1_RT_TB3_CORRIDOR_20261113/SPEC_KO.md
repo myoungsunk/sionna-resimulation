@@ -114,7 +114,7 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 
 ## 4. RT 실행
 
-기존 Method B 파이프라인(`codex/post-a23-evidence-20261010` @ `047cce2`)을 그대로 쓴다.
+기존 Method B 파이프라인(`codex/post-a23-evidence-20261010` @ `047cce2`)을 사용한다. 생산용 full trace에는 [RT v1.1의 F1 설정](SPEC_V1_1_KO.md)을 적용한다.
 
 | 단계 | 스크립트 | 설정 |
 |---|---|---|
@@ -123,7 +123,7 @@ Mesh는 BLOCK_C `scene/*.ply` 형식을 따른다. G-T2의 오목부와 돌출�
 | Trace | `scripts/drive_sim/rf_b_trace.py` | Sionna RT 2.0.1, mitsuba 3.8.0, drjit 1.3.1. 생산은 17 node, parity는 bin-by-bin |
 | Apply | `scripts/drive_sim/rf_b_apply.py` | mount 0. 257 bins, 6.2504–6.7496 GHz |
 | LoS | 같은 trace, max_depth 0 | BLOCK_C `H_LoS_*`와 동일 방식 |
-| Full max_depth | BLOCK_C full H 생산 설정과 동일 | 실행 전에 BLOCK_C trace 설정에서 읽어 manifest에 고정 |
+| Full solver | [PRODUCTION_F1.json](PRODUCTION_F1.json) | 100,000 광선, 최대 깊이 3, seed 20260924, `refraction=false`. 실행 manifest에 고정 |
 | 연속성 | `scripts/drive_sim/path_continuity.py` | 경로별 |
 
 모든 단계는 manifest(config hash, 입력·출력 SHA, 명령, 시각, 패키지 버전)를 쓴다. 실행 위치는 Snowball/KMS이며 `run_rf_snowball.sh`의 단계 구조를 따른다.

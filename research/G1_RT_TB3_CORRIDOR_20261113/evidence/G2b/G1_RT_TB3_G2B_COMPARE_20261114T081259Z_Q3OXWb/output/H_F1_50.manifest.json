@@ -1,0 +1,42 @@
+{
+ "config_sha256": "efe1492d11dd8880c40ca48c4da0ab3d0727b9025b5fef6fc012724841e422b7",
+ "config": {
+  "mount_deg": 0.0,
+  "bins": 257,
+  "layout": "[pose_id, bin, rx(+45,-45), tx(+45,-45)]",
+  "report": {
+   "n_pose": 50,
+   "n_positions": 50,
+   "missing": [],
+   "unusable": [],
+   "complete": true
+  }
+ },
+ "inputs": [
+  {
+   "path": "/run-g2/output/rf_poses.json",
+   "sha256": "4d1aff71ef44e38390b1b46f2c915356e4ce1e9ec4d379615dbcb3c11d683de4",
+   "bytes": 6167
+  }
+ ],
+ "outputs": [
+  {
+   "path": "/run-g2/output/H_F1_50.npy",
+   "sha256": "cad6f017799ea15549d3a1f522d672fe2934591f9c83379f97944143b1904ae7",
+   "bytes": 822528
+  }
+ ],
+ "timestamp_utc": "2026-11-14T08:11:07Z",
+ "command": [
+  "/ref/scripts/drive_sim/rf_b_apply.py",
+  "--poses",
+  "/run-g2/output/rf_poses.json",
+  "--traces",
+  "/run-g2/output/trace",
+  "--mount",
+  "0",
+  "--out",
+  "/run-g2/output/H_F1_50.npy"
+ ],
+ "elapsed_s": 3.83
+}

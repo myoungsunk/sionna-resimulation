@@ -1,0 +1,30 @@
+Tracing 50 original BLOCK_C locations with F1
+{
+ "out": "/run-g2/output/H_F1_50.npy",
+ "shape": [
+  50,
+  257,
+  2,
+  2
+ ],
+ "n_pose": 50,
+ "n_positions": 50,
+ "missing": 0,
+ "unusable": 0,
+ "complete": true
+}
+Traceback (most recent call last):
+  File "/run-g2/run_g2b.py", line 187, in <module>
+    main()
+  File "/run-g2/run_g2b.py", line 166, in main
+    rows, stats = compare(h_f1, h_ref, poses, freqs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/run-g2/run_g2b.py", line 110, in compare
+    s_ref, _, index_ref, _ = signed_s_single_tx(reference, freqs, tx=0)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ref/src/qclean_uwb/features/fp_power.py", line 60, in signed_s_single_tx
+    power, index, delay = first_path_power_single_tx(h, frequencies, tx)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/ref/src/qclean_uwb/features/fp_power.py", line 43, in first_path_power_single_tx
+    from rt_cp_uwb_py.features import extract_first_path
+ModuleNotFoundError: No module named 'rt_cp_uwb_py'

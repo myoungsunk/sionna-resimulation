@@ -2,7 +2,7 @@
 
 - 작성: 2026-11-14 KST. 상태: **SPEC_FINAL / NOT_RUN**
 - 상위 사양: `SPEC_KO.md`(G1-RT-TB3-001, SPEC_FINAL). 형상, anchor, pose 집합 P-A/P-A′/P-B/P-C, RT 설정, Gate G0–G6는 **바꾸지 않는다**.
-- 현재 상태: G3 원인(주파수별 반사·투과 확률 샘플링) 해결 후 G3a 진행 중. **진행 중인 G3a와 본 생성의 설정은 이 사양 때문에 바꾸지 않는다.** 이 사양의 추가 pose는 본 생성과 같은 trace 설정·manifest로 별도 batch로 만든다.
+- RT 설정: 상위 [RT v1.1](SPEC_V1_1_KO.md)에서 확정한 F1을 적용한다. 이 사양의 추가 pose는 본 생성과 같은 trace 설정과 manifest 형식으로 별도 batch에서 만든다.
 - 목적: G1-MODEL-002가 쓸 데이터를 세 가지로 보강한다.
   1. site bias의 재방문 상관과 공간 상관을 직접 잰다(P-D, P-E).
   2. station 오차가 관측 모델 오차인지, multipath(첫 tap 오염)인지 분리한다(경로 export, P-F).
