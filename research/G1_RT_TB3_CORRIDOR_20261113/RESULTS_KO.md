@@ -46,3 +46,9 @@ G-T2·G-V의 6개 조합, 파일 18개는 생산 직후 봉인했다. G4 및 추
 2026-11-14 Snowball에서 **PASS**였다. G-T2 × 앵커 A·B·C의 P-A TEACH·REPEAT station base 108개에서 좌우 벽 거리 216개를 모두 비교했다. 높이 0.45 m의 RF 중심에서 전역 ±y 방향으로 생산 mesh와 처음 만나는 점까지의 거리와 §1.2의 사양값을 대조했다. 오목부 입구의 경계 x = 6.0 m에서는 해당 방향의 첫 벽 접점인 일반 측벽 모서리를 적용했다. 최대 절대 차이는 0 m로 허용치 0.01 m 이내였다. 검사 0.443초, 컨테이너 실행 포함 3초였다. [판정](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/G5.json) · [실행 명령](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/G5_COMMAND.txt).
 
 G5 컨테이너에는 형상·pose 및 G4까지의 실행 증거를 읽기 전용으로 연결했다. G-T2·G-V 봉인 명세 및 접근 로그의 SHA-256을 실행 전후 대조했고, 봉인 해제 기록은 없었다. [봉인 확인](evidence/G5/G1_RT_TB3_G5_20261114T122910Z_94D6ow/SEAL_AFTER.sha256).
+
+## G6 경로 연속성 및 재조사
+
+Snowball에서 G6는 **FAIL**이었다. 24,876개 위치의 경로 1,523,943개 중 612개가 0.05 ps를 초과했고 총 소요 시간은 1시간 3분 50초였다. 동일한 반사 순서의 이미지 지연으로 비교하자 G-T2의 600건 중 599건과 전체 612건 중 610건에서 기존 이미지 클래스 대표값이 초과를 유발한 것으로 확인됐다. 남은 두 건은 G-T1과 G-T2에서 재현된 동일한 3차 반사의 솔버 지연 정밀도 차이였다. [원래 판정](evidence/G6/G1_RT_TB3_G6_20261114T124634Z_9ElGTD/RESULT_KO.md) · [원인 재조사](evidence/G6/REINVESTIGATION_KO.md).
+
+초과 경로의 지연만 이미지법 값으로 바꾼 714개 생산 pose 비교에서 최대 |Δs|는 1.14425 × 10⁻⁴였고, 첫 경로 index 변경은 0건이었다. 0.05 ps 기준과 FAIL 판정은 유지한다. G-T2·G-V의 봉인 파일 18개를 확인했다. [민감도 집계](evidence/G6/G1_RT_TB3_G6_OBSERVATION_20261114T231100KST_nKAcNg/G6_OBSERVATION_DIAGNOSTIC.json) · [봉인 확인](evidence/G6/G1_RT_TB3_G6_OBSERVATION_20261114T231100KST_nKAcNg/SEAL_STORAGE_CHECK.json).
