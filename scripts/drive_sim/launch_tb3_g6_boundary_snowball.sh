@@ -15,7 +15,7 @@ runtime=/home/KMS/COOL_DIJKSTRA_20261007_01a11582/runtime_packages
 image=sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f
 seal="$p/results/seal"
 test ! -e "$seal/UNSEAL.json"
-mkdir -p cache scratch out
+mkdir -p out/cache out/scratch
 inputs=(code/*.py code/*.sh "$old/G6.json" "$prior/G6_REVALIDATION.json" \
   "$prior/diagnostics/FINITE_FACE_DIAGNOSTICS.json" "$p/config/PRODUCTION_F1.json" \
   "$p/g0/RUN_MANIFEST.json" "$p/g7/RUN_MANIFEST.json" "$ref/LP_plus45_bank.npz" \
@@ -27,7 +27,7 @@ cmd=(docker run --rm --pull=never --network none --cpus 2 --cpu-shares 128
   -e HOME=/run/cache -e TMPDIR=/run/scratch -e PYTHONDONTWRITEBYTECODE=1
   -e PYTHONPATH=/code:/revalidation:/original/code:/production/code:/runtime_packages:/ref:/ref/src
   -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1
-  -v "$r/out:/run" -v "$r/cache:/run/cache" -v "$r/scratch:/run/scratch"
+  -v "$r/out:/run"
   -v "$r/code:/code:ro" -v "$ref:/ref:ro" -v "$runtime:/runtime_packages:ro"
   -v "$prior/code:/revalidation:ro" -v "$old/code:/original/code:ro"
   -v "$old/G6.json:/original/G6.json:ro" -v "$old/traces:/original/traces:ro"

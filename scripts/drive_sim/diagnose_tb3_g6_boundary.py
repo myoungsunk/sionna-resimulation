@@ -67,14 +67,6 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
     if hashlib.sha256(payload).hexdigest() != IMAGE_SHA:
         raise ValueError("Unexpected Sionna image method source")
     source = payload.decode()
-    header = "            # Compute the image of the current vertex with respect to the"
-    source = replace_once(source, header, """            g6_image_input = source_images
-""" + header)
-    marker = "            # Use path vertices as a buffer to store the source images"
-    source = replace_once(source, marker, """            g6_dump("images", specular & (dr.arange(mi.UInt, paths.buffer_size) == g6_lane),
-                    depth, paths.get_shape(depth, specular), paths.get_primitive(depth, specular),
-                    vecs=(vertex, normal, g6_image_input, source_images))
-""" + marker)
     ray = """            ray = spawn_ray_to(vertex_offset,
                                offset_p(ray_target_offset, k, normal_image),
                                normal)"""
@@ -116,7 +108,27 @@ def instrument(module, lane, side_scale, origin_scale, fallback, sink):
     namespace = dict(vars(module), g6_dump=g6_dump, g6_lane=lane, g6_side_scale=side_scale,
                      g6_origin_scale=origin_scale, g6_offset=g6_offset)
     exec(compile(source, filename, "exec"), namespace)
-    return namespace["ImageMethod"]()
+    image = namespace["ImageMethod"]()
+    original_compute = image._compute_images
+
+    def capture_images(paths, *args, **kwargs):
+        def selected(array):
+            return np.asarray(array)[lane, :3].tolist()
+
+        points = candidate_rows(paths)[lane].tolist()
+        shapes = selected(paths.shapes)
+        primitives = selected(paths.primitives)
+        start = np.asarray(args[1]).reshape(3, -1)[:, lane].astype(float).tolist()
+        images = original_compute(paths, *args, **kwargs)
+        outgoing = candidate_rows(paths)[lane].tolist()
+        sink.images = [dict(depth=depth, sampled_shape=shape, sampled_primitive=primitive,
+                            sampled_hit_m=point, source_image_in_m=incoming, source_image_out_m=out)
+                       for depth, (shape, primitive, point, incoming, out) in enumerate(
+                           zip(shapes, primitives, points, [start, *outgoing[:-1]], outgoing, strict=True), 1)]
+        return images
+
+    image._compute_images = capture_images
+    return image
 
 
 def candidate_rows(buf):
@@ -136,8 +148,6 @@ def candidate_lane(buf, prior):
 
 def decode(rows, shape_names):
     layouts = {
-        "images": (("depth", "sampled_shape", "sampled_primitive"),
-                   ("sampled_hit_m", "normal", "source_image_in_m", "source_image_out_m"), ()),
         "backtrack": (("depth", "expected_shape", "expected_primitive", "hit_shape", "hit_primitive",
                        "hit_expected", "valid_specular", "first_segment", "hit_scene_valid"),
                       ("vertex_m", "normal", "target_m", "target_normal", "ray_o_m", "ray_d",
@@ -240,8 +250,9 @@ def run_case(core, module, frequency, f1, prior, original):
                 if not np.array_equal(variant[key], trace[key] if key != "present" else trace[key][:1]):
                     raise ValueError(f"Instrumentation changed baseline {key}")
         data = decode(sink.rows, shape_names)
-        if [s["depth"] for s in data["images"]] != [1, 2, 3]:
-            raise ValueError(f"Incomplete candidate image evidence: {case}/{index}/{name} {data}")
+        data["images"] = [r | {"sampled_shape": shape_names[r["sampled_shape"]]} for r in sink.images]
+        if [r["depth"] for r in data["backtrack"]][:2] != [3, 2]:
+            raise ValueError(f"Incomplete backtracking evidence: {case}/{index}/{name} {data}")
         if name == "instrumented_f1":
             captured = [s["hit_m"] for s in data["backtrack"] if s["depth"] > 0]
             if captured != [v["native_point_m"] for v in reversed(prior["vertices"])]:
