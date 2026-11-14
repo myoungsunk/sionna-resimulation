@@ -24,7 +24,7 @@ M-f를 따로 두는 이유: 모델 오차라면 Goal 1 범위에서 관측 모�
 | 항목 | 위치 | 고정값 |
 |---|---|---|
 | 실행 코드 | `RUN4_20261113T105130Z/s2_code/` | `d7a3529`. 수정 없이 복사 후 flag로만 arm 추가. 복사본 SHA를 `CODE_SHA256.txt`에 기록 |
-| S2′ 결과 | `RUN4_20261113T105130Z/s2_out/` | `S2P_DRAWS.npz`, `S2P_BOOTSTRAP.npz`, `B0_NOMINAL.npz`(LFS), `MARKOV_COVERAGE_DIAGNOSTIC.json`, `S1P_ERR_MODEL_LORO.json` |
+| S2′ 결과 | `RUN4_20261113T105130Z/s2_out/` | `S2P_NOMINAL.npz`(K0의 세 arm 원정밀도 기준), `S2P_DRAWS.npz`, `S2P_BOOTSTRAP.npz`, `B0_NOMINAL.npz`(LFS, M0 비교용), `MARKOV_COVERAGE_DIAGNOSTIC.json`, `S1P_ERR_MODEL_LORO.json` |
 | Q1 진단 | `DIAG_Q1_20261114/` | `42fe9c7`. `q1_sweep_rows.csv`, `q1_case_table.csv`, `q1_diag.py` |
 | BLOCK_C | `codex/post-a23-evidence-20261010` | `047cce2`. `FULL_RF/H_<case>.npy`, `H_LoS_<case>.npy`, `<case>/SAMPLES.json`, `CASES.json` |
 | LUT 소스 | `codex/a23-results-20261010` | `f9a7691` |
@@ -43,9 +43,9 @@ M-f를 따로 두는 이유: 모델 오차라면 Goal 1 범위에서 관측 모�
 
 | 비교 | 기준 |
 |---|---|
-| arm별 전체 미포함 수 (독립 361, Markov 531, 셀은 S2′ 값) | 정확히 일치 |
-| case별 미포함 수 (`MARKOV_COVERAGE_DIAGNOSTIC.json`) | 정확히 일치 |
-| case별 RMSE, 평균 반폭 | 상대 차이 ≤ 1e-9 |
+| arm별 전체 미포함 수 (독립 361, Markov 531, 셀 568) | 정확히 일치 |
+| 세 arm의 case별 미포함 수 (`S2P_NOMINAL.npz`) | 정확히 일치 |
+| 세 arm의 case별 RMSE, 평균 반폭 (`S2P_NOMINAL.npz` 원정밀도 배열에서 재집계) | 상대 차이 ≤ 1e-9 |
 
 ### 2.2 집계 지표 (모든 arm 공통)
 
@@ -115,23 +115,23 @@ case별, arm별로 다음을 낸다. 통합값은 참고로만 내고 해석의 
 
 ### K7. LoS-only 대체 실행 (M-f: 모델 오차 vs multipath)
 
-- `_train_group`을 `H_full` 대신 `H_LoS`로 돌린다. 열잡음 seed, XY offset, snap, 후보 절차는 Q1과 완전히 같게 둔다. `ObservationCase`의 LoS 입력 경로를 쓰고, 코드 수정은 입력 배열 선택 flag 하나로 제한한다.
-- sweep별로 e_LoS, √R_E1,LoS를 얻고 e_mp = e_full − e_LoS로 둔다.
+- 각 case·station·sweep seed에 `_train_group`의 관측 생성 입력을 `H_full`과 `H_LoS`로 각각 바꿔 평가한다. Q1의 full 관측에 사용한 **같은 복소 열잡음 실현**을 두 H에 더한다. `n_v`, 텐서 형태·원소 순서, 주 관측 잡음 생성 직전의 RNG 상태를 동일하게 둔다. 같은 RNG에서 full 다음에 생성한 기존 LoS 잡음 실현은 분산 보정용으로 유지한다. XY offset, snap, IMU 잡음, 동결 c_L·후보 절차는 Q1과 동일하다.
+- sweep별 유효/무효 짝의 수를 기록한다. 양쪽이 유효한 짝에서 e_LoS, √R_E1,LoS와 e_mp = wrap₁₈₀(e_full − e_LoS)를 구한다. 두 arm의 station 평균은 같은 짝에서 계산한다.
 - case별 지표:
-  - RMS e_LoS, station 평균 e_LoS의 분포
-  - 분산 비 V_model = var(station 평균 e_LoS) / var(station 평균 e_full)
+  - e_LoS와 e_mp의 station 평균 분포, 평균·RMS, station 평균 두 성분의 짝 공분산
+  - 분산 비 V_model = var(station 평균 e_LoS) / var(station 평균 e_full). §4의 수치 기준은 그대로 적용하고, 잔류 LoS 편향과 짝 공분산을 함께 보고한다.
   - √R_E1,full / √R_E1,LoS의 station별 비(multipath가 J를 날카롭게 만드는지)
   - R4_aB에서 |e_full| ≥ 2°인 station 각각의 (e_LoS, e_mp, √R_E1,full, √R_E1,LoS)
 - 출력: `K7_LOS_ATTRIBUTION.json`, `K7_station_rows.csv`
 
 ### K8. 첫 tap 오염과 near-delay 경로 (M-f, oracle)
 
-- noise-free H에서 관측 체인과 같은 IFFT·창으로 CIR을 만들고, LoS H의 첫 경로 tap index k₀를 쓴다.
-  - 오염도 c_p = |h_full,p[k₀] − h_LoS,p[k₀]| / |h_LoS,p[k₀]|, p ∈ {+45, −45}
-  - clean s 차이 Δs = s_full,clean − s_LoS,clean(`ObservationCase.full_clean`, `los_clean`)
-  - station sweep의 모든 yaw에서 계산하고 station별 최대·평균을 낸다.
+- noise-free H에서 관측 체인과 같은 IFFT·창으로 두 CIR을 만든다. 매 sweep yaw에서 LoS H에 기존 첫 경로 검출기를 적용해 k₀를 구하고, **동일한 k₀에서** full과 LoS의 두 RX 편파를 읽는다. TX 포트는 기존 관측과 같은 0을 쓴다.
+  - 오염도 c_p = |h_full,p[k₀] − h_LoS,p[k₀]| / |h_LoS,p[k₀]|, p ∈ {+45, −45}. 분모가 0인 항은 미정의로 집계하고, 유효 분모의 분포도 기록한다.
+  - 고정 tap 차이 Δs_fixed = s_full(k₀) − s_LoS(k₀). 보조 지표로 각 채널의 검출 tap을 쓴 Δs_adaptive = s_full(k_full) − s_LoS(k₀), 동일 yaw에서 k_full ≠ k₀인 비율을 기록한다.
+  - station sweep의 모든 yaw에서 계산하고 station별 최대·평균을 낸다. k₀의 복소 차이는 그 tap의 비-LoS 합성 성분을 나타낸다. 이 값으로 개별 반사면이나 지연 구간별 기여를 식별할 수 없다.
 - 기하 후보: `CASES.json`의 anchor·robot 높이와 BLOCK_C 형상으로 천장·바닥·측벽 1차 영상의 초과 지연을 해석적으로 계산하고, Δ_tap(0.1496 m) 안에 드는 경로를 station별로 표시한다. 특히 anchor 천장 standoff에 따른 천장 반사의 초과 지연을 기록한다.
-- 상관: station 수준 Spearman(|e_full|, max c), (|e_full|, |Δs|), (√R_E1, max c). 6 case 각각과 pooled.
+- 상관: station 수준 Spearman(|e_full|, max c), (|e_full|, |Δs_fixed|), (√R_E1, max c). |Δs_adaptive|의 상관도 보조로 낸다. 6 case 각각과 pooled. 천장 초과 경로가 Δ_tap 이내인 집단과 그 밖의 집단이 모두 있는지 먼저 확인하고, 한 집단만 관측되면 해당 대조는 추정 불가로 기록한다.
 - 출력: `K8_TAP_CONTAMINATION.json`, `K8_station_rows.csv`
 
 ### K9. 정확도 horizon 예비 계산 (r2.1.0 DR)
@@ -204,3 +204,5 @@ MANIFEST.json         (입력 SHA, 명령, seed, 시각, 패키지 버전)
 | 날짜 | 변경 | 작성 |
 |---|---|---|
 | 2026-11-14 | 초판. Fable 답변(Q1 기전 분해, K1–K6)에 M-f(모델 오차 vs multipath), K7–K10, 사전 고정 해석 규칙 추가 | Claude |
+| 2026-11-14 | 실행 전 개정. K7 full/LoS 동일 복소 잡음 및 짝 지표, K8 LoS 기준 고정 tap 및 검출 tap 변화, K0 세 arm 원정밀도 기준 명시 | Codex |
+
