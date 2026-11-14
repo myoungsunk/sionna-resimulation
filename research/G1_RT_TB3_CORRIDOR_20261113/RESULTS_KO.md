@@ -52,3 +52,7 @@ G5 컨테이너에는 형상·pose 및 G4까지의 실행 증거를 읽기 전�
 Snowball에서 G6는 **FAIL**이었다. 24,876개 위치의 경로 1,523,943개 중 612개가 0.05 ps를 초과했고 총 소요 시간은 1시간 3분 50초였다. 동일한 반사 순서의 이미지 지연으로 비교하자 G-T2의 600건 중 599건과 전체 612건 중 610건에서 기존 이미지 클래스 대표값이 초과를 유발한 것으로 확인됐다. 남은 두 건은 G-T1과 G-T2에서 재현된 동일한 3차 반사의 솔버 지연 정밀도 차이였다. [원래 판정](evidence/G6/G1_RT_TB3_G6_20261114T124634Z_9ElGTD/RESULT_KO.md) · [원인 재조사](evidence/G6/REINVESTIGATION_KO.md).
 
 초과 경로의 지연만 이미지법 값으로 바꾼 714개 생산 pose 비교에서 최대 |Δs|는 1.14425 × 10⁻⁴였고, 첫 경로 index 변경은 0건이었다. 0.05 ps 기준과 FAIL 판정은 유지한다. G-T2·G-V의 봉인 파일 18개를 확인했다. [민감도 집계](evidence/G6/G1_RT_TB3_G6_OBSERVATION_20261114T231100KST_nKAcNg/G6_OBSERVATION_DIAGNOSTIC.json) · [봉인 확인](evidence/G6/G1_RT_TB3_G6_OBSERVATION_20261114T231100KST_nKAcNg/SEAL_STORAGE_CHECK.json).
+
+### 실제 반사면으로 전체 G6 재검증
+
+2026-11-15 KST Snowball에서 원래 G6와 같은 9개 조합·24,876개 XY·17 node를 추적했다. 같은 0.05 ps 기준으로 다시 판정한 결과는 **FAIL**이다. 전체 1,523,943개 경로 중 지연 기준 초과는 0건이었고, 매칭된 경로의 최대 잔차는 0.0270728 ps였다. 원래 초과 612건은 모두 기준 이내였다. G-T2 × B 1건과 × C 3건은 실제 벽 반사면에서 이미지 교점을 만들 수 없었다. 전체 소요 시간은 55분 58초였다. G-T2·G-V 봉인 18개 파일을 실행 전후 확인했다. [재검증 기록](evidence/G6/G1_RT_TB3_G6_REVALIDATION_20261114T144337Z_gPzl3x/RESULT_KO.md) · [전체 판정](evidence/G6/G1_RT_TB3_G6_REVALIDATION_20261114T144337Z_gPzl3x/G6_REVALIDATION.json).
