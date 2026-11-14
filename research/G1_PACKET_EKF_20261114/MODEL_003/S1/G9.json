@@ -1,0 +1,40 @@
+{
+  "question_id": "G1-RT-TB3-002",
+  "consumed_by": "G1-MODEL-003",
+  "stage": "G9",
+  "role": "IMPLEMENTER",
+  "status": "PASS",
+  "violations": 0,
+  "seal_status": "SEALED",
+  "files": 18,
+  "bytes": 1852743092,
+  "checks": [
+    "fixed SHA-256 and read-only flags",
+    "17-entry access log with one authorized storage-check append",
+    "paired G4 and G6 observations with exact script and result SHA-256",
+    "no UNSEAL entry"
+  ],
+  "allowed_gate_scripts": {
+    "G4": {
+      "script": "validate_tb3_g4.py",
+      "sha256": "cbfba1647bb479314823eb36d6a25c57dda951a0ebb050699eb8dd760ed0ee96",
+      "receipt_sha256": "eebc54523655cc7eeacbd3e8a48c2a0700fb12a67653b6c801da35737d43cdb0"
+    },
+    "G6_OBSERVATION": {
+      "script": "diagnose_tb3_g6_observation.py",
+      "sha256": "fe97c4b3e1adb6ab7590f94744691a9d9e98c4d4633e5a21819da3884bf929ea",
+      "receipt_sha256": "c3acf38a770effa7720a5b23ef525a5624e53e4a0be994fb32e393056489b546"
+    }
+  },
+  "source_commit": "8d56c1b41532ebe6bb18df7a359d7da52ca02b0e",
+  "verification_site": "Snowball/KMS",
+  "remote_run": "/home/KMS/G1_MODEL003_G9_20261114T155023Z_mUzz6C",
+  "input_sha256": {
+    "SEAL_MANIFEST.json": "4d755c9a016275f2ba51fee02e9908fe8cb2a27f32c187192f00bc957c45ee4a",
+    "ACCESS_BEFORE.jsonl": "a7d4edfde9db44d14e36a55a6d08fa08e1e548b564c0a6f0803a081f838b2eb9",
+    "ACCESS_AFTER.jsonl": "8f418d4fb6e073c0eb0edd5668d01b625eba11e61fa9d7f1865d2488ef5d9539",
+    "SEAL_STORAGE_CHECK.json": "200caa7b0874e1ccc9f3d0decd88eeb14aa875b76a245799bbb2cb52b0a6c0aa",
+    "COMMAND.txt": "80864195e77f26229451d8932049a46235818332ae690de2a096da2ad5425554"
+  },
+  "checked_utc": "2026-11-14T15:50:26.667262+00:00"
+}
