@@ -112,11 +112,17 @@ def fit_path(case, path, arm, level, data, inp, z, dr, model, obs, banks, rule, 
     use_k = arm.endswith("+K")
     active = md + 2*colored
     n = active + len(inp["site_index"])*schmidt + use_k
-    runs = len(DEFAULT_SEEDS)*len(SIGNS)
-    gyro = np.array(inp["motion"]["gyro_increment_rad"][level]).reshape(len(rows), runs)
-    wheel = np.repeat(np.asarray(inp["wheel"]), len(SIGNS), axis=1)
+    signs = SIGNS[:1] if level == "B0" else SIGNS
+    paired_runs = len(DEFAULT_SEEDS)*len(SIGNS)
+    draw_columns = np.arange(paired_runs).reshape(len(DEFAULT_SEEDS), len(SIGNS))[:, :len(signs)].ravel()
+    runs = len(draw_columns)
+    gyro_by_sign = np.asarray(inp["motion"]["gyro_increment_rad"][level]).reshape(len(rows), paired_runs)
+    if level == "B0" and not np.array_equal(gyro_by_sign[:, ::2], gyro_by_sign[:, 1::2]):
+        raise ValueError("B0 may share work across signs only for identical gyro draws")
+    gyro = gyro_by_sign[:, draw_columns]
+    wheel = np.repeat(np.asarray(inp["wheel"]), len(signs), axis=1)
     mean = np.zeros((runs, n))
-    mean[:, :3] = inp["initial"]
+    mean[:, :3] = inp["initial"][draw_columns]
     variance = np.zeros((n, n))
     variance[:md, :md] = initial_covariance(.0085 if tb3 else None)
     if colored:
@@ -128,9 +134,9 @@ def fit_path(case, path, arm, level, data, inp, z, dr, model, obs, banks, rule, 
     if use_k:
         variance[-1, -1] = k_variance
     cov = np.broadcast_to(variance, (runs,n,n)).copy()
-    observed = (None if z is None else np.repeat(z, len(SIGNS), axis=1))
+    observed = (None if z is None else np.repeat(z, len(signs), axis=1))
     anchor = data["anchor"]
-    bg = math.radians(TB3_BG_DPS if tb3 else BIAS_DEG_PER_S[level])*np.tile(SIGNS, len(DEFAULT_SEEDS))
+    bg = math.radians(TB3_BG_DPS if tb3 else BIAS_DEG_PER_S[level])*np.tile(signs, len(DEFAULT_SEEDS))
     intervals = np.searchsorted(cp, np.arange(len(rows))).clip(max=len(cp)-1)
     rejects, attempt, nondetect = (np.zeros((len(cp),runs), dtype=int) for _ in range(3))
     scored = {}
@@ -201,7 +207,8 @@ def fit_path(case, path, arm, level, data, inp, z, dr, model, obs, banks, rule, 
         e, xy, head, bias = scored[i]
         site = f"{path}/{inp['packet_sites'][i]}"
         repeat_tag = rows[i]["phase"]
-        for run, (seed, sign) in enumerate((s,d) for s in DEFAULT_SEEDS for d in SIGNS):
+        for paired_run, (seed, sign) in enumerate((s,d) for s in DEFAULT_SEEDS for d in SIGNS):
+            run = paired_run//2 if level == "B0" else paired_run
             evidence.append(dict(case=case, arm=arm, level=level, sign=sign, seed=seed, site_id=site,
                                  checkpoint_id=int(rows[i]["sequence"]), checkpoint_order=int(i), phase=repeat_tag,
                                  path=path, heading_included=bool(head[run] <= HEADING_BOUND),
@@ -210,8 +217,9 @@ def fit_path(case, path, arm, level, data, inp, z, dr, model, obs, banks, rule, 
                                  s_rejected=int(rejects[block,run]), s_total=int(attempt[block,run]),
                                  s_unavailable=int(nondetect[block,run]), heading_error_rad=float(e[run,2]),
                                  xy_error_m=float(np.linalg.norm(e[run,:2])),
-                                 dr_heading_error_rad=float(dr[i][run]) if dr is not None else float(e[run,2])))
-    return evidence, {k: v.tolist() for k,v in contributions.items()}
+                                 dr_heading_error_rad=float(dr[i][paired_run]) if dr is not None else float(e[run,2])))
+    repeat_factor = len(SIGNS)//len(signs)
+    return evidence, {k: (v*repeat_factor).tolist() for k,v in contributions.items()}
 
 
 def case_data(args, case):

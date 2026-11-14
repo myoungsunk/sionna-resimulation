@@ -40,9 +40,10 @@ def _row_key(row):
 
 
 def _source_identity(receipt):
-    keys = ("s1_sha256", "parity_sha256", "s2_sha256", "timeline_sha256", "source_file_sha256")
+    keys = ("s1_sha256", "parity_sha256", "s2_sha256", "timeline_sha256")
     identity = {key: receipt[key] for key in keys}
-    _check(all(isinstance(digest, str) and HASH.fullmatch(digest) for digest in identity.values()), "Invalid source SHA")
+    digests = (*identity.values(), receipt["source_file_sha256"])
+    _check(all(isinstance(digest, str) and HASH.fullmatch(digest) for digest in digests), "Invalid source SHA")
     for key in ("source_sha256", "banks_sha256"):
         digests = receipt[key]
         _check(bool(digests) and all(isinstance(digest, str) and HASH.fullmatch(digest)
@@ -59,7 +60,8 @@ def _load_receipt(file, key):
                     question_id="G1-MODEL-003", or_rule="O30", train_anchors="".join(a for a in "ABC" if a != case[-1]))
     _check(all(receipt[k] == v for k, v in expected.items()), "Unexpected fold identity")
     identity = _source_identity(receipt)
-    record = dict(identity=identity, sha256=_digest(raw), paired_dr_sha256=receipt["paired_dr_sha256"],
+    record = dict(identity=identity, runner_sha256=receipt["source_file_sha256"],
+                  sha256=_digest(raw), paired_dr_sha256=receipt["paired_dr_sha256"],
                   status=receipt["status"])
     if receipt["status"] == "NUMERICAL_FAIL":
         _check(isinstance(receipt["reason"], str) and bool(receipt["reason"]), "Missing numerical failure reason")
@@ -135,6 +137,10 @@ def _load_group(root, logs, snr, level, arm, identity, dr=None):
         try:
             record = _load_receipt(file, (case, path, level, arm, snr))
             _check(record["identity"] == identity.setdefault("source", record["identity"]), "Fold source/frozen input SHA differs")
+            group = "baseline" if arm in ("DR", "R4") else "joint"
+            runners = identity.setdefault("runner_sha256", {})
+            _check(record["runner_sha256"] == runners.setdefault(group, record["runner_sha256"]),
+                   "Fold runner differs within its execution group")
             if dr is None:
                 _check(record["paired_dr_sha256"] is None, "DR receipt is itself paired to a DR receipt")
             elif (case, path) not in dr:
@@ -334,7 +340,7 @@ def summarize(folds, *, snr=30, futility=None, logs=None, partial=False):
         selection["numerically_ineligible"] = {arm: levels for arm, levels in numerical_ineligible.items() if levels}
     status = "PARTIAL" if partial else (selection["status"] if selection else ("SENSITIVITY_COMPLETE" if complete else "INCOMPLETE"))
     return dict(question_id="G1-MODEL-003", stage="S3", status=status, snr_db=snr,
-                or_rule="O30", o30_shares_or=True, source=identity.get("source"),
+                or_rule="O30", o30_shares_or=True, source=identity.get("source"), runner_sha256=identity.get("runner_sha256"),
                 receipt_sha256=receipt_shas, design=dict(cases=CASES, paths=PATHS, levels=levels, candidates=CANDIDATES),
                 early_b0=dict(status_by_arm=b0_completion, permanently_ineligible=b0_excluded,
                               all_candidates_ineligible=len(b0_excluded) == len(CANDIDATES)),

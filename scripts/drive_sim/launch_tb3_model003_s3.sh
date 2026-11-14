@@ -49,8 +49,11 @@ if [[ ${1-} == container ]]; then
         awk -v arm="$arm" '$4==arm' "/output/jobs_$snr.txt" |
           xargs -P 36 -n 5 bash -c 'eval "common=($(cat /output/common_args.txt))"; run_fold "$@"' _
       done
-    else
-      awk '$4!="DR" && $4!="R4"' "/output/jobs_$snr.txt" |
+    elif [[ "$mode" == joint-b0 && "$snr" == 30 ]]; then
+      awk '$3=="B0" && $4!="DR" && $4!="R4"' "/output/jobs_$snr.txt" |
+        xargs -P 54 -n 5 bash -c 'eval "common=($(cat /output/common_args.txt))"; run_fold "$@"' _
+    elif [[ "$mode" == joint ]]; then
+      awk -v snr="$snr" '$4!="DR" && $4!="R4" && (snr==20 || $3!="B0")' "/output/jobs_$snr.txt" |
         xargs -P 54 -n 5 bash -c 'eval "common=($(cat /output/common_args.txt))"; run_fold "$@"' _
     fi
   done
@@ -60,7 +63,8 @@ test "$(id -un)" = KMS
 mode=$1
 case "$mode" in
   baseline) start=S3_BASELINE ;;
-  joint) start=S3_JOINT; test "$(cat S3_BASELINE_EXIT_CODE.txt)" = 0 ;;
+  joint-b0) start=S3_JOINT_B0; test "$(cat S3_BASELINE_EXIT_CODE.txt)" = 0 ;;
+  joint) start=S3_JOINT; test "$(cat S3_JOINT_B0_EXIT_CODE.txt)" = 0 ;;
   *) exit 2 ;;
 esac
 test ! -e "${start}_STARTED_UTC.txt"
