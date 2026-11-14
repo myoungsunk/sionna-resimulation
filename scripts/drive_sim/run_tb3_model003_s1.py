@@ -42,13 +42,14 @@ def open_case(root, indexed, case):
         raise ValueError(f"Invalid case channel arrays at {case}")
     if [p["pose_id"] for p in poses] != list(range(len(poses))):
         raise ValueError(f"Unexpected pose ordering at {case}")
-    anchor = np.asarray(scene["anchors_xyz_m"][case[-1]], dtype=float)
+    anchor = np.asarray(scene["anchors_xyz_m"][case.split("_")[1]], dtype=float)
     delta = np.array([[p["x"], p["y"], scene["rx_z_m"]] for p in poses]) - anchor
     d = np.linalg.norm(delta, axis=1)
     yaw = np.array([p["yaw_body_deg"] for p in poses])
     by_set = {name: sorted({r["pose_id"] for r in samples if r["set"] == name})
               for name in sorted({r["set"] for r in samples})}
     return dict(los=los, full=full, direction=delta / d[:, None], d=d, yaw=yaw, by_set=by_set,
+                anchor=anchor, rx_z=scene["rx_z_m"], samples=samples,
                 input_sha256={"manifest": indexed["manifest_sha256"], **hashes})
 
 

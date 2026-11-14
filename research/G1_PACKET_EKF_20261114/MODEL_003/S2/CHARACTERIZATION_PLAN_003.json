@@ -1,0 +1,44 @@
+{
+  "question_id": "G1-MODEL-003",
+  "stage": "S2",
+  "timeline_sha256": "4d591aa6b0bd2955b3e61cbda8fcba8eab8aafe431caed1a94f3c7c85f3d4cfd",
+  "spec_sha256": "ae039215408cc40bd196a13e4d5c3368899240d51b6414192c31c9573adf5a36",
+  "futility_synthetic_sha256": "88e1c3c8bfaed0542e427f59b4983b46f6f8880a847e89fa886286140aebdcee",
+  "allowed_cases": ["G-T1_A", "G-T1_B", "G-T1_C"],
+  "observation_chains": ["OR", "O30"],
+  "fit_sets": ["A", "B", "C", "AB", "AC", "BC", "ABC"],
+  "rf_thermal_seed": 20261116,
+  "thermal_draws_per_pose": 20,
+  "thermal_snr_db": [20, 30],
+  "estimates": {
+    "C1": "P-A TEACH/REPEAT five-point unique RF poses. Estimate within-pose sample variances from detected draws and pool by degrees of freedom for each SNR.",
+    "C2": "P-A, P-A_PRIME, C1–C4, unique RF poses. e_MP is noise-free full s minus noise-free LoS s. Range residual is full reported range minus the S1 chain offset and true slant range. Fit piecewise-linear nonnegative standard deviation knots 0, 1.5, 3, 6, 10 m to within-bin population variances in fixed 0.5 m distance bins with at least two poses, weighted by count. At distances above 10 m hold the last knot. Report observed distance support and unresolved endpoints.",
+    "C3": "Standardize residuals by sequence (P-A_PRIME and C1–C4) or by station sweep (dense49). Bin within-sequence products at 18 logarithmic midpoints between 0.04 and 5 m and yaw midpoints every 2.5 degrees from 2.5 to 60. Fit exp(-lag/ell) by pair-count least squares. Also fit range kernels.",
+    "C4": "At each P-D offset pair target residual with its source_pose_id. Pair TEACH/REPEAT selected five-point poses on station and nominal angle. Report P-E same source pairing as a separate correlation.",
+    "C5": "Per path and anchor report 5 m residual-window mean and population variance, checkpoint residual variance, and their ratio V_long wherever the denominator is positive. Evaluate TEACH/REPEAT and C1–C4, with P-B separately.",
+    "C6": "Summarize corrected clean range residual by integer tap on all available original and diagnostic pose sets. Report mean and variance by distance in fixed bins with boundaries 0, 1.5, 3, 6, 10 m.",
+    "C7": "Per fit set, standardize clean e_MP over the union of unique pose IDs. Report sample excess kurtosis and maximum-likelihood Student-t df with location fixed at zero and free scale.",
+    "C8": "Report |ds/dpsi| quantiles at every P-A and P-C straight and sweep/turn checkpoint with mount 0."
+  },
+  "futility": {
+    "g_min_s_per_rad": 0.01,
+    "derivative_step_rad": 0.0017453292519943296,
+    "derivative": "Symmetric 0.1 degree difference of the selected chain LoS M1-R at the timeline truth pose and nominal true distance as the zero-width prior. Keep fixed geometry and signed sensitivity.",
+    "sensitivity_threshold_reason": "Below 0.01 s/rad a residual of 0.001 already linearizes to over 0.1 rad. Count low-sensitivity checkpoints separately.",
+    "window": "Exactly the prior 5 m accumulated from frozen distance_increment_m; distance-weighted left hold between packet positions. Zero-distance holds contribute no extra weight. Start at TEACH then carry distance history and DR elapsed time into nominal REPEAT. Each P-C route has a fresh origin.",
+    "checkpoints": "Each TEACH/REPEAT station last sweep or hold packet and the nearest measured packet to each transit midpoint. Use the first packet meeting each full-distance multiple of max(1 m, 2 ell_d) on P-B and P-C. ell_d is the pooled G-T1 C3 estimate for the evaluated RF chain.",
+    "dr": "20 common seeds numbered 0–19 and signs [-1,1] per path. B0/L0/L1/L2 0/.01/.05/.20 deg/s, Sensor-v2 white gyro density .015 deg/sqrt(s) and zero bias random walk. TB3 uses signed .0085/.0020 times absolute angular travel plus signed .0005 deg/s Allan bag stationary drift during recorded holds. Same gyro noise draw for each scenario and sign. Equivalent bias is scale times sum of absolute angular increments / elapsed time. r2.1.0 is PRELIMINARY.",
+    "sources": {
+      "sensor_v2": "DRIVE_SIM_SENSOR_V2_20261008_01a11a01/checkout/src/qclean_uwb/drivesim/sensor_v2.py",
+      "tb3_stationary_drift": "research/G1_SWEEP_HEADING_FLOOR_20261113/SPEC_KO.md §5.1",
+      "tb3_rotation": "SPEC_B_NEW_RT_KO.md §2.3 and research/TB3_DR_RUN_VARIABILITY_20261113/REPORT_KO.md"
+    }
+  },
+  "bootstrap": {
+    "ci_level": 0.95,
+    "replicates": 2000,
+    "seed": 20261117,
+    "unit": "Equal checkpoint weight for the S2-F point gate. Report non-gating percentile intervals on the pooled RMS using sites within anchors then common matched sensor seed IDs.",
+    "site": "TEACH/REPEAT uses the common station ID for revisits and a distinct midpoint segment ID; P-C uses nonoverlapping consecutive L_seg segments."
+  }
+}
