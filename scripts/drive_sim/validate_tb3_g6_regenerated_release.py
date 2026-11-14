@@ -376,6 +376,7 @@ def run(args):
     per_case, new_seals, access = {}, {}, {}
     model, observation, banks, frequencies, source_hashes, bank_hashes = load_model(
         SimpleNamespace(model_source=args.model_source, banks_dir=args.banks_dir))
+    from run_tb3_production import NEAR_SETS
     from tb3_paths_near import check_g8
 
     g4_started = dt.datetime.now(dt.timezone.utc).isoformat()
@@ -397,10 +398,12 @@ def run(args):
         new_g4 = evaluate_case(new_root, case, model, observation, banks, frequencies)
         require(new_g4["status"] == "PASS", f"G4 fails on regenerated case {case}")
         new_g4.pop("_delta_by_pose", None)
-        poses = read_json(new_root / "poses" / case / "rf_poses.json")
-        pose_ids = [int(row["pose_id"]) for row in poses]
+        samples = read_json(new_root / "poses" / case / "SAMPLES.json")
+        pose_ids = sorted({int(row["pose_id"]) for row in samples if row["set"] in NEAR_SETS})
+        require(len(pose_ids) == new_manifest["near_poses"], f"G8 export pose count differs: {case}")
+        h_los = np.load(new_root / "H" / case / "H_LoS.npy", mmap_mode="r", allow_pickle=False)
         new_g8 = check_g8(new_root / "paths" / case / "PATHS_NEAR.npz",
-                          np.load(new_root / "H" / case / "H_LoS.npy", allow_pickle=False), pose_ids)
+                          h_los[pose_ids], pose_ids)
         require(new_g8["status"] == "PASS", f"G8 fails on regenerated case {case}")
         access[case] = dict(g4_h_los=f"H/{case}/H_LoS.npy", g4_paths_los=f"paths/{case}/PATHS_LoS.npz",
                             g8_h_los=f"H/{case}/H_LoS.npy", g8_paths_near=f"paths/{case}/PATHS_NEAR.npz")
