@@ -44,7 +44,7 @@
 - D7에서 ℓ가 식별되지 않았던 이유가 이 척도 차이인지 의견을 바란다.
 - 또 TEACH/REPEAT 동일 실현값을 어떻게 다룰지 의견을 바란다. REPEAT 주행이 TEACH 지도를 쓰면 이중 계수가 된다.
 
-**Q5. mount.** 사용자는 우선 mount 0 기준으로 진행하기로 했다. mount 45 결과(R2_aA)는 참고로만 둔다.
+**Q5. mount.** 사용자는 우선 mount 0 기준으로 진행하기로 했다. 참고로 REPORT §7의 결과는 다음과 같다. mount 45는 복도축/앵커 방향 heading에서 낫고, mount 0은 비스듬한 heading에서 낫다. 경로 우열은 heading 분포가 정하며, R1/R2_aA/R5는 45, R4는 0이 낫다. mount 0에서 heading 관측성이 약한 복도축 주행 구간을 integrity 모형에서 어떻게 다룰지 의견을 바란다(예: g_ψ에 따른 정보량 표시).
 
 **Q5-1. 검출기.** FP-SC 결과를 근거로 O30(native) 검출기를 유지하고 tap 재선택은 Goal 1 후보에서 빼려 한다. prior 기반 tap 재선택이 같은 tap의 s를 바꾸므로 Goal 2 성격이라는 해석에 동의하는지 의견을 바란다. 또 native O30 + MB_VAR의 Pose95 88.8%를 Goal 1의 출발점(baseline arm)으로 삼는 것이 타당한지도 의견을 바란다.
 
