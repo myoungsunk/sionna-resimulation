@@ -19,3 +19,4 @@ G1-DIAG-003 결과는 G1-MODEL-003의 arm 우선순위 해석에만 쓰고, 모�
 모형을 먼저 정하지 않고 실내 다중경로 오차를 먼저 특성화했다: [G1-CHAR-001 사양](CHAR_001/SPEC_KO.md), [결과](CHAR_001/REPORT_KO.md), [Fable 논의 요청](CHAR_001/FABLE_DISCUSSION_KO.md). G-T1과 BLOCK_C만 썼고 G-T2/G-V는 봉인 상태다.
 
 heading 조건부 학습(TEACH/REPEAT) → R2/R4/R5 궤적 평가: [G1-CHAR-002 사양](CHAR_002/SPEC_KO.md), [결과](CHAR_002/REPORT_KO.md).
+2단계 EKF 사양: [G1-CHAR-002 S2](CHAR_002/SPEC_S2_EKF_KO.md).
