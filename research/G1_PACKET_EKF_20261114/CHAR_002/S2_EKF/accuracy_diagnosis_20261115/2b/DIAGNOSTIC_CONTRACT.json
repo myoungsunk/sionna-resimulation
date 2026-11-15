@@ -1,0 +1,84 @@
+{
+  "question_id": "G1-CHAR-002-S2-ACCURACY-DIAG",
+  "role": "IMPLEMENTER",
+  "started_utc": "2026-11-15T08:59:56.087218+00:00",
+  "command": [
+    "C:\\Users\\Myoungsun Kim\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+    "D:/SLAM_bot/g1_char002_s2_ekf_20261115/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/diagnose_s2_drop.py",
+    "D:/SLAM_bot/g1_char002_s2_ekf_20261115/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/run_20261115_a",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_INPUTS_20261115/source_minimal/research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_INPUTS_20261115/source_minimal/research/G1_PACKET_EKF_20261114/CHAR_002/out/FIT.json",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_ACCURACY_DIAG_20261115_b/2b",
+    "C:/Users/Myoungsun Kim/.codex/research-governance",
+    "--stage",
+    "2b"
+  ],
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4",
+  "workspace_head": "6c175a53fbbbb19f990881f7dfcf82a3760dab70",
+  "script_sha256": "14cb115fefd175f6f720278121039885fb26e3e7a9f4a5c6dcc7a816b0c483cc",
+  "s2_run_contract_sha256": "f4870df1afe81e57cd99083229738d9f184b56dff697a02ff6a56cf0078906bf",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "spec_commit": "6c175a53fbbbb19f990881f7dfcf82a3760dab70",
+  "native_commit": "beb845665661ad8c68d07c88f6d268da4832e493",
+  "frozen_fit_sha256": "8af665f155bb9d2d399ec1f3d617c6c0b1ae270dfc29b23b0e1bb81fc59e135c",
+  "stages": [
+    "2b"
+  ],
+  "routes": [
+    "R2",
+    "R4",
+    "R5"
+  ],
+  "seals": [
+    "S2\u2032 STOP",
+    "Step 3 HOLD",
+    "G-T2/G-V SEALED"
+  ],
+  "controls": "same packets, initialization, motion, Q, observer and archived E0 gate",
+  "factor_bits": {
+    "0": "range_mean",
+    "1": "range_variance",
+    "2": "polarization_mean",
+    "3": "polarization_variance"
+  },
+  "factor_direction": "0=native E0, 1=E1, including zero polarization mean",
+  "extras": {
+    "R2_S1": [
+      "R2",
+      "S1",
+      null
+    ],
+    "R1_S2": [
+      "R1",
+      "S2",
+      null
+    ],
+    "E2": [
+      "R2",
+      "S2",
+      null
+    ],
+    "S3_GAUSS": [
+      "R2",
+      "S3",
+      null
+    ],
+    "S3_FIXED_BASE_T": [
+      "R2",
+      "S3",
+      "fixed_base"
+    ],
+    "E3": [
+      "R2",
+      "S3",
+      "cumulative"
+    ]
+  },
+  "diagnostic_only": true,
+  "parity_limit": 1e-10,
+  "claim_boundary": "Post-hoc performance on frozen seed10 cases with frozen E0 gate only."
+}
