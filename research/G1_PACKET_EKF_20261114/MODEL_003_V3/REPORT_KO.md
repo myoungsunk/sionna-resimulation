@@ -27,6 +27,15 @@ mount 0의 G-T1 A/B/C에서 거리 모델을 개발한 결과, S3-R은 `DEV_FAIL
 
 ## S-V·S-C 진단
 
-`DEV_FAIL_RANGE` 뒤 G-T1에서 `DIAGNOSTIC_ONLY` 실행을 시작했다. 진행 중인 S-V·S-C 진단은 개발 판정과 분리한다.
+`DEV_FAIL_RANGE` 뒤 G-T1의 편파 단독 진단을 O10·30 dB에서 252개 모두 완료했다. S-V와 S-C 모두 여섯 bias·TB3 수준에서 integrity 기준에 미달했다. [편파 단독 집계](S3/LOAO_RESULTS_V3.json)
+
+| B0 arm | heading 포함률 | XY 포함률 | 평균 NEES heading / XY / b_g | 전체 s 미사용률 |
+|---|---:|---:|---:|---:|
+| S-V | 29.3% | 7.3% | 755.80 / 3,377.78 / 219.11 | 7.35% |
+| S-C | 47.9% | 10.0% | 233.16 / 1,162.31 / 69.21 | 4.99% |
+
+- S-C의 B0 heading 포함률은 직진 P-B에서 98.2%, TEACH→REPEAT에서 앵커별 23.5–43.8%였다. 두 arm의 s 미사용률은 모든 수준에서 20% 이하였다. 높은 s 사용률과 심한 undercoverage가 함께 나왔다. M1-R 거리 노드 절단은 1차 체인의 두 진단 arm에서 모두 0건이었다. [경로와 구간별 집계](S3/LOAO_RESULTS_V3.json) · [전체 packet 집계](S3/PRIMARY_DIAGNOSTIC_PACKET_COUNTS.json)
+- S2-T의 채널별 사전 예측을 B0의 조합·경로별 개발 결과와 대조했다. S3의 공식 gate는 pooled 포함률과 조합별 CI에 적용했다. [전이 사전 지표와 B0 결과](S3/TRANSFER_COMPARISON_V3.json)
+- S3-R의 `DEV_FAIL_RANGE` 판정에 따라 선정 arm 없이 개발을 종료했다. S4 확인 실행은 0회다. O30·30 dB와 O10·20 dB의 편파 단독 보고용 계산은 Snowball에서 이어지고 있다. [1차 arm 판정](S3/PRIMARY_ARM_V3.json) · [실행과 봉인 검증](S3/PRIMARY_DIAGNOSTIC_EXECUTION.json)
 
 - 기존 RT의 P-B 직진 구간에서 스윕 없이 실행한 패킷 편파 진단을 추가했다. DR 짝 비교, 감도가 낮은 구간, 오차가 증가한 구간과 재현 기록을 포함한다. **DIAGNOSTIC_ONLY · S2′ STOP (FULL_6) · Step 3 보류.** [P-B 진단 보고서](PB_STRAIGHT_DIAG/REPORT_KO.md)
