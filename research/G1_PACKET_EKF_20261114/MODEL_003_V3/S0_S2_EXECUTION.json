@@ -1,0 +1,110 @@
+{
+  "question_id": "G1-MODEL-003",
+  "version": 3,
+  "role": "IMPLEMENTER",
+  "stages": {
+    "S0_S1_chain": {
+      "directory": "/home/KMS/G1_MODEL003_V3_LhtdjZWY",
+      "files": {
+        "CHAIN_STARTED_UTC.txt": {
+          "sha256": "c2b1b4b6c1714c159092742675e934f7ee8b09aa4a4f73d75b8644eaa39e2a82",
+          "content": "2026-11-15T04:54:03Z"
+        },
+        "CHAIN_FINISHED_UTC.txt": {
+          "sha256": "9b2b184eb35852e0bbdf336784d19ebbe11845caceff919bf9f157b86cf4d14e",
+          "content": "2026-11-15T05:07:12Z"
+        },
+        "CHAIN_EXIT_CODE.txt": {
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "content": "0"
+        },
+        "CHAIN_PID.txt": {
+          "sha256": "586138a59fd231585aeb8adbd8156a9567bd5b5698cee97257243b91b981cb7b",
+          "content": "1019333"
+        }
+      },
+      "logs": {
+        "S0.log": "e6903c9ad8551abc5ef26f9e01056496484b9a250ec4db75eeaa02c3181db778",
+        "CHAIN.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "S1": {
+      "directory": "/home/KMS/G1_MODEL003_V3_LhtdjZWY/s1",
+      "files": {
+        "S1_STARTED_UTC.txt": {
+          "sha256": "98a799289c695836a32ec1c4863185fe1b533d9cc1547e1df546089f95426343",
+          "content": "2026-11-15T05:05:03Z"
+        },
+        "S1_FINISHED_UTC.txt": {
+          "sha256": "9b2b184eb35852e0bbdf336784d19ebbe11845caceff919bf9f157b86cf4d14e",
+          "content": "2026-11-15T05:07:12Z"
+        },
+        "S1_EXIT_CODE.txt": {
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "content": "0"
+        },
+        "S1_COMMAND.txt": {
+          "sha256": "c6ce4b52961434601fd4af92ac94af56125dcba74c3e11ca97b9a8203e076cfa",
+          "content": "docker run --rm --pull=never --network none --name s1 --cpus 6 --user 1001:1001 -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/CASES.json:/results/CASES.json:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_A:/results/H/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_A:/results/poses/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_B:/results/H/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_B:/results/poses/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_C:/results/H/G-T1_C:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_C:/results/poses/G-T1_C:ro -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/code:/code:ro -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/output:/output -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/REGRESSION_V3.json:/s0.json:ro -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/DELAY_ORIGIN.json:/origin.json:ro -v /home/KMS/RUN2_20261113T072631Z/inputs/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source:/model:ro -v /home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source:/banks:ro --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f -u /code/run_tb3_model003_v3_s1.py --results-root /results --model-source /model --banks-dir /banks --s0-report /s0.json --s0-sha256 011a918abe2b15da976a20c298e16911298b6854d25e6b75ad0c401ff9bed38e --delay-origin /origin.json --delay-origin-sha256 161eb3f1219139a3693e9d7aa7b74573b603dcf04877b5d706fa166aa2ee4c73 --code-commit 51ee1b564577d2dbc7cb500a78f099f7141f64a6 --out /output/S1"
+        },
+        "S1_SEAL_AFTER.txt": {
+          "sha256": "3f5c1e3f079d77d957a0bcd74f822a5bf5f1488f03d50b2601e77ddf0189cb9a",
+          "content": "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/SEAL_MANIFEST.json: OK\n/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/ACCESS_LOG.jsonl: OK\n/home/KMS/G1_MODEL003_G6_REGEN_okSskppe/results/seal/ACCESS_LOG.jsonl: OK"
+        },
+        "S1_SEAL_BEFORE.txt": {
+          "sha256": "3f5c1e3f079d77d957a0bcd74f822a5bf5f1488f03d50b2601e77ddf0189cb9a",
+          "content": "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/SEAL_MANIFEST.json: OK\n/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/ACCESS_LOG.jsonl: OK\n/home/KMS/G1_MODEL003_G6_REGEN_okSskppe/results/seal/ACCESS_LOG.jsonl: OK"
+        }
+      },
+      "logs": {
+        "S1.log": "e4f8130be36d25fd2cd01e344b25aec1e44b8cc5738aa9837c9e73953d86851f"
+      }
+    },
+    "S2": {
+      "directory": "/home/KMS/G1_MODEL003_V3_S2_6SebmTUx",
+      "files": {
+        "S2_STARTED_UTC.txt": {
+          "sha256": "020148edf64553a311de7e8f0d079be09a4f7657155a63923f29df31eb7b4749",
+          "content": "2026-11-15T05:07:26Z"
+        },
+        "S2_FINISHED_UTC.txt": {
+          "sha256": "d16014ad6811913b0390d2651816125c9cb0b14c806eef30a6ee34090ed3ffcc",
+          "content": "2026-11-15T05:08:42Z"
+        },
+        "S2_EXIT_CODE.txt": {
+          "sha256": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa",
+          "content": "0"
+        },
+        "S2_COMMAND.txt": {
+          "sha256": "9887149816a3b375ee7e4181adc629266ff24a700eb83fb676df1fd1c86478d3",
+          "content": "docker run --rm --pull=never --network none --name G1_MODEL003_V3_S2_6SebmTUx --cpus 8 --user 1001:1001 -e HOME=/tmp -e PYTHONDONTWRITEBYTECODE=1 -e OMP_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/CASES.json:/results/CASES.json:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_A:/results/H/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_A:/results/poses/G-T1_A:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_B:/results/H/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_B:/results/poses/G-T1_B:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/H/G-T1_C:/results/H/G-T1_C:ro -v /home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/poses/G-T1_C:/results/poses/G-T1_C:ro -v /home/KMS/RUN2_20261113T072631Z/inputs/results/DRIVE_SIM_20261007/CAUSE_CHECK_A23_EXECUTION_20261010/retrieved/source:/model:ro -v /home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source:/banks:ro -v /home/KMS/G1_MODEL003_V3_S2_6SebmTUx/code:/code:ro -v /home/KMS/G1_MODEL003_V3_S2_6SebmTUx/plan:/plan:ro -v /home/KMS/G1_MODEL003_V3_S2_6SebmTUx/output:/output -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/output/S1:/s1:ro -v /home/KMS/G1_MODEL003_S3_QH7zq5Jn/frozen/TIMELINE_PACKETS.csv:/timeline.csv:ro -v /home/KMS/G1_MODEL003_V3_LhtdjZWY/s1/REGRESSION_V3.json:/s0.json:ro --entrypoint /opt/rt-env/bin/python sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f -u /code/run_tb3_model003_v3_s2.py --results-root /results --s0-report /s0.json --s1-dir /s1 --model-source /model --banks-dir /banks --plan /plan/CHARACTERIZATION_PLAN_003_V3.json --synthetic-receipt /plan/SYNTHETIC_V3.json --timeline /timeline.csv --out /output/S2 --plan-commit e6a9b09aae22d248f63cb74bcd1c3d5f2ae763cb --plan-sha256 6019f1aa2d4b6538a527c05948930967ee48948e5b9b1a26223010a013e3e4f5 --s0-sha256 011a918abe2b15da976a20c298e16911298b6854d25e6b75ad0c401ff9bed38e --selection-sha256 411a19ff9e87a10825c434f21532982bc702dcefb42883b26b55758226b5d223 --parity-sha256 402b021ed009122300df45d1e4497d2a34d09432975b4969545f95b43d7c891c"
+        },
+        "S2_SEAL_AFTER.txt": {
+          "sha256": "3f5c1e3f079d77d957a0bcd74f822a5bf5f1488f03d50b2601e77ddf0189cb9a",
+          "content": "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/SEAL_MANIFEST.json: OK\n/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/ACCESS_LOG.jsonl: OK\n/home/KMS/G1_MODEL003_G6_REGEN_okSskppe/results/seal/ACCESS_LOG.jsonl: OK"
+        },
+        "S2_SEAL_BEFORE.txt": {
+          "sha256": "3f5c1e3f079d77d957a0bcd74f822a5bf5f1488f03d50b2601e77ddf0189cb9a",
+          "content": "/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/SEAL_MANIFEST.json: OK\n/home/KMS/G1_RT_TB3_PRODUCTION_20261114T101708Z_6ZEqNa/results/seal/ACCESS_LOG.jsonl: OK\n/home/KMS/G1_MODEL003_G6_REGEN_okSskppe/results/seal/ACCESS_LOG.jsonl: OK"
+        },
+        "CHAIN_PID.txt": {
+          "sha256": "be8a767a9cf37a057c96ff7e6bb4a625cac2b9b2bf664ad95a7f85f75f0db3bd",
+          "content": "1027209"
+        }
+      },
+      "logs": {
+        "S2.log": "1e6766e714d4630bec20c6b08494099c4ee28b3032c644b38ccac6fac039de57"
+      }
+    }
+  },
+  "remote_seal_snapshot": {
+    "original": {
+      "access_log_sha256": "8f418d4fb6e073c0eb0edd5668d01b625eba11e61fa9d7f1865d2488ef5d9539",
+      "unseal_present": false
+    },
+    "regenerated": {
+      "access_log_sha256": "63d535964a68a0ccf74ff7d3eaeff2c02a4f929122532eb05b1526a265187f33",
+      "unseal_present": false
+    }
+  }
+}
