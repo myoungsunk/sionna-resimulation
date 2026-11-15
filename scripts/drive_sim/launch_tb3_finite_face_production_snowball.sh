@@ -94,7 +94,4 @@ printf '%s\n' "$rc" > CANARY_EXIT.txt
 ((rc == 0)) || exit "$rc"
 
 bash launch_tb3_production.sh "$workers" "$code_commit" canary01 --finite-face-guard
-python3 code/verify_tb3_finite_face_production.py --run "$run" --previous "$old" \
-  --code-commit "$code_commit" --out GENERATION_CHECK.json
-bash launch_tb3_g4_snowball.sh
-test ! -e results/seal/UNSEAL.json
+bash code/finish_tb3_finite_face_production_snowball.sh "$run" "$code_commit"
