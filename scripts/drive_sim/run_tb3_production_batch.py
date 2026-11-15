@@ -30,6 +30,19 @@ def batch(args):
     canary = root / args.driver / "CANARY.json"
     if not read(canary).get("native_g1_coefficient_delay_exact"):
         raise ValueError("The native field canary did not reproduce the frozen G1 inputs")
+    guarded = {}
+    if args.finite_face_guard:
+        canary_manifest = read(canary.with_name("MANIFEST.json"))
+        if (canary_manifest["code_commit"] != args.code_commit
+                or canary_manifest["engine"].get("finite_face_guard", {}).get("stage") != "PRE_FIELD"):
+            raise ValueError("The production canary did not use this guarded implementation")
+        g6 = read(config / "G6_FINITE_FACE.json")
+        if (g6["stage"] != "G6_FINITE_FACE_REVALIDATION" or g6["status"] != "PASS"
+                or g6["strict_tolerance_s"] != 5e-14 or g6["strict_failures"] != 0
+                or g6["source_sha256"]["tb3_finite_face_guard.py"] != sha(root / "code/tb3_finite_face_guard.py")
+                or g6["source_sha256"]["tb3_g6_face_match.py"] != sha(root / "code/tb3_g6_face_match.py")):
+            raise ValueError("The pre-field filter must match the passing G6 implementation")
+        guarded = dict(finite_face_guard=True, g6_result_sha256=sha(config / "G6_FINITE_FACE.json"))
     out.mkdir(mode=0o700)
     shards.mkdir(mode=0o700)
     plan = {}
@@ -67,7 +80,7 @@ def batch(args):
             g0 / "RUN_MANIFEST.json", g7 / "RUN_MANIFEST.json", canary,
             *sorted(p for p in config.iterdir() if p.is_file()),
         ]}, governance=read(g0 / "RUN_MANIFEST.json")["governance"],
-        command=[sys.executable, *sys.argv], storage_estimate=estimate, cases=plan,
+        command=[sys.executable, *sys.argv], storage_estimate=estimate, cases=plan, **guarded,
     ))
     shutil.copytree(g0 / "scene", out / "scene")
     (out / "gates").mkdir()
@@ -78,6 +91,8 @@ def batch(args):
                 "--reference", root / "frozen/REFERENCE.json", "--ffd-manifest",
                 root / "frozen/FFD_RESTORE_MANIFEST.json", "--production", config / "PRODUCTION_F1.json",
                 "--code-commit", args.code_commit)
+    if guarded:
+        job_args += ("--finite-face-guard",)
     for case in CASES:
         (shards / case).mkdir(mode=0o700)
 
@@ -152,7 +167,7 @@ def batch(args):
             "solver_batch_calls", "extra_export_solver_calls", "payload_bytes", "h_bytes",
             "near_path_bytes", "los_path_bytes",
         )},
-        cases_sha256=sha(out / "CASES.json"),
+        cases_sha256=sha(out / "CASES.json"), **guarded,
     ))
     return int(status != "PASS")
 
@@ -164,6 +179,7 @@ def main():
     parser.add_argument("--workers", type=int, required=True)
     parser.add_argument("--code-commit", required=True)
     parser.add_argument("--driver", default="canary01")
+    parser.add_argument("--finite-face-guard", action="store_true")
     args = parser.parse_args()
     if args.workers < 1:
         parser.error("worker count must be positive")

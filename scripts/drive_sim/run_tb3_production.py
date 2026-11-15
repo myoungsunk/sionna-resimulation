@@ -24,6 +24,17 @@ CASES = tuple(f"{g}_{a}" for g in GEOMETRIES for a in ANCHORS) + ("G-T1_A_P-F", 
 NEAR_SETS = {"P-A_TEACH", "P-A_REPEAT", "P-D", "P-E", "P-F"}
 POSE_FILES = ("rf_poses.json", "rf_tasks.json", "SAMPLES.json", "TIMELINE.csv")
 FIELD_BATCH_XY = 64
+FINITE_FACE_G6_SHA = "e97a4d41378d4de96f58c377622861f4c72d649c8ae12c33571c3928bdf9f8df"
+FINITE_FACE_SOURCE_SHA = {
+    "tb3_finite_face_guard.py": "7de7679e4ba735f3eeab8b96b72400cdb62baacd3664565d8112cb7db6c622ee",
+    "tb3_g6_face_match.py": "be58e95fd438add0aa9b8e11fd8cd0adb85d007d6523c8dda7271e61e0cdc135",
+}
+FINITE_FACE_RUNTIME_SHA = {
+    "field_calculator.py": "e12807588d19bd2ab404623fa99568f838178bb5d5cc2067b1e2e4007e58defe",
+    "paths.py": "c81f15e7ae6eddd89cd82ff10025db70e79fbbc19eec3a8cd2ce8d1ef1f852da",
+    "path_solver.py": "751c4b7dad2f4e97cfdacf297ae7b5ea39b0e4633ee334246d9af6b9b5e61a1a",
+    "image_method.py": "f1983dc1b5a6038f95788f331855f798552e216caa04c6361443ec0cc5015d2a",
+}
 
 
 def utc_now():
@@ -129,7 +140,7 @@ def check_canary(g1, path_los):
 
 
 def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_ids, production, out,
-                   field_batch_xy):
+                   field_batch_xy, *, finite_face_guard=False):
     from run_tb3_g8_pilot import capture_trace
     from tb3_native_los import native_direct_fields
     from tb3_paths_near import h_and_near_for_poses, write_paths_near
@@ -151,6 +162,20 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
         setattr(scene, field, rt.AntennaArray(core.Ports([core.IsoPort(0), core.IsoPort(1)]),
                                              mi.Point3f(0, 0, 0)))
     solver = rt.PathSolver()
+    guard = None
+    observe_bin = None
+    rejections = {}
+    if finite_face_guard:
+        from tb3_finite_face_guard import FiniteFaceGuard
+        from tb3_g6_face_match import load_faces
+
+        faces = load_faces(scene, scene_entry, scene_root)
+        guard = FiniteFaceGuard(solver, mi, scene, faces, anchor, anchor,
+                                rt.constants.InteractionType)
+
+        def observe_bin(bin_index):
+            rejections[bin_index] = len(guard.rejected)
+
     print("Loading verified FFD banks", flush=True)
     native_banks = core.C.load_banks()
     banks = [core.P.Bank(bank) for bank in native_banks]
@@ -180,7 +205,11 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
         print(f"Tracing F1 XY {offset+1}–{last}/{len(tasks)}", flush=True)
         for task in tasks[offset:last]:
             started = time.monotonic()
-            trace, nodes = capture_trace(core, scene, solver, solver_config, freq, bins, task, setup)
+            if guard is not None:
+                guard.set_receiver((task["x"], task["y"], scene_entry["rx_z_m"]))
+                rejections.clear()
+            trace, nodes = capture_trace(core, scene, solver, solver_config, freq, bins, task, setup,
+                                         observe_bin=observe_bin)
             elapsed = time.monotonic() - started
             timings["trace_s"] += elapsed
             direct = np.flatnonzero((trace["interactions"] == none).all(axis=1))
@@ -195,6 +224,14 @@ def generate_shard(core, scene_entry, anchor_id, scene_root, poses, tasks, near_
             receipts.append(dict(tag=task["tag"], task_id=task["task_id"], pose_ids=task["pose_ids"],
                                  node_bins=nodes.tolist(), solver_calls=len(nodes),
                                  n_full_paths=len(trace["tau"]), n_near_paths=None, trace_s=elapsed))
+            if guard is not None:
+                if (nodes.tolist() != list(bins) or rejections.keys() != set(nodes)
+                        or not trace["present"].all()):
+                    raise ValueError(f"Incomplete guarded F1 path/node coverage: {task['tag']}")
+                receipts[-1]["pre_field_rejections"] = sum(rejections.values())
+                receipts[-1]["pre_field_rejections_by_node"] = [
+                    dict(bin=node, count=count) for node, count in sorted(rejections.items()) if count
+                ]
 
         started = time.monotonic()
         print(f"Applying native LoS field at {last-offset} XY positions and {len(batch_poses)} poses", flush=True)
@@ -255,6 +292,8 @@ def main():
     parser.add_argument("--field-batch-xy", type=int, default=FIELD_BATCH_XY)
     parser.add_argument("--code-commit", required=True)
     parser.add_argument("--g8-canary", type=Path, metavar="G1_OUTPUT")
+    parser.add_argument("--finite-face-guard", action="store_true",
+                        help="Apply the G6-validated finite-face check before field calculation")
     args = parser.parse_args()
     started_utc, started = utc_now(), time.monotonic()
     scene, anchor, poses, tasks, base, diagnostic, main_count = case_inputs(
@@ -270,9 +309,22 @@ def main():
     production, reference = frozen_settings(args)
     args.out.mkdir(parents=True, mode=0o700, exist_ok=False)
     core, _, versions = load_runtime(args.source)
+    engine = production
+    guard_source = {}
+    if args.finite_face_guard:
+        for name, digest in FINITE_FACE_SOURCE_SHA.items():
+            verify(Path(__file__).with_name(name), digest)
+        rt_path_solvers = Path(core.rt.__file__).parent / "path_solvers"
+        for name, digest in FINITE_FACE_RUNTIME_SHA.items():
+            verify(rt_path_solvers / name, digest)
+        guard_source = FINITE_FACE_SOURCE_SHA
+        engine = production | {"finite_face_guard": {
+            "stage": "PRE_FIELD", "g6_result_sha256": FINITE_FACE_G6_SHA,
+            "runtime_sha256": FINITE_FACE_RUNTIME_SHA,
+        }}
     ids, receipts, timings = generate_shard(core, scene, anchor, args.inputs / "scene",
                                              poses, tasks, near_ids, production, args.out,
-                                             args.field_batch_xy)
+                                             args.field_batch_xy, finite_face_guard=args.finite_face_guard)
     if args.g8_canary:
         from tb3_paths_near import check_g8
 
@@ -283,13 +335,13 @@ def main():
         write(args.out / "CANARY.json", gate | {"native_g1_coefficient_delay_exact": True})
     write(args.out / "MANIFEST.json", dict(
         status="PASS", case=args.case, role="IMPLEMENTER", code_commit=args.code_commit,
-        question_ids=["G1-RT-TB3-001", "G1-RT-TB3-002"], engine=production,
+        question_ids=["G1-RT-TB3-001", "G1-RT-TB3-002"], engine=engine,
         scope="G8_CANARY" if args.g8_canary else "PRODUCTION",
         g0_manifest_sha256=G0_SHA, g7_manifest_sha256=G7_SHA, production_sha256=F1_SHA,
         reference_sha256=REFERENCE_SHA, ffd_manifest_sha256=FFD_SHA, governance=reference["governance"],
         source_sha256={name: sha(Path(__file__).with_name(name)) for name in
                        ("run_tb3_production.py", "run_tb3_g1_pilot.py", "run_tb3_g8_pilot.py",
-                        "tb3_native_los.py", "tb3_paths_near.py")},
+                        "tb3_native_los.py", "tb3_paths_near.py")} | guard_source,
         shard_index=args.shard_index, shard_count=args.shard_count, trace_positions=len(tasks),
         poses=len(ids), main_poses=sum(i < main_count for i in ids),
         diagnostic_poses=sum(i >= main_count for i in ids), near_pose_count=len(near_ids.intersection(ids)),

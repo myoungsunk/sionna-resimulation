@@ -6,6 +6,13 @@ run=$(pwd -P)
 ref=/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source
 runtime=/home/KMS/COOL_DIJKSTRA_20261007_01a11582/runtime_packages
 image=sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f
+profile=()
+if (($# == 4)) && [[ "$4" == --finite-face-guard ]]; then
+  profile+=("$4")
+elif (($# != 3)); then
+  printf 'Usage: %s WORKERS CODE_COMMIT CANARY_DIR [--finite-face-guard]\n' "$0" >&2
+  exit 3
+fi
 workers=$1
 code_ref=$2
 driver=$3
@@ -19,9 +26,11 @@ cmd=(docker run --rm --pull=never --network none --name "production_$(basename "
   -e PYTHONPATH=/run/code:/runtime_packages:/ref:/ref/src
   -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1 -e OPENBLAS_NUM_THREADS=1
   -v "$run:/run" -v "$ref:/ref:ro" -v "$runtime:/runtime_packages:ro"
+  -v "$run/code:/run/code:ro" -v "$run/g0:/run/g0:ro" -v "$run/g7:/run/g7:ro"
+  -v "$run/config:/run/config:ro" -v "$run/frozen:/run/frozen:ro"
   --entrypoint /usr/bin/nice "$image" -n 15 /opt/rt-env/bin/python -u
   /run/code/run_tb3_production_batch.py --root /run --source /ref
-  --workers "$workers" --code-commit "$code_ref" --driver "$driver")
+  --workers "$workers" --code-commit "$code_ref" --driver "$driver" "${profile[@]}")
 mkdir -p cache scratch
 printf '%q ' "${cmd[@]}" > PRODUCTION_COMMAND.txt
 printf '\n' >> PRODUCTION_COMMAND.txt

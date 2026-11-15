@@ -27,7 +27,7 @@ def require_sha(path, expected):
         raise ValueError(f"Input digest mismatch: {path}")
 
 
-def capture_trace(core, scene, solver, config, frequencies, bins, task, setup):
+def capture_trace(core, scene, solver, config, frequencies, bins, task, setup, *, observe_bin=None):
     """Call the frozen tracer and capture interactions/objects alongside its ISO Jones."""
     original = core._solve
     depth = config["max_depth"]
@@ -45,6 +45,8 @@ def capture_trace(core, scene, solver, config, frequencies, bins, task, setup):
         if bin_index in captured:
             raise ValueError(f"Unexpected second solve at bin {bin_index}")
         captured[bin_index] = tau, ang, events, objects
+        if observe_bin is not None:
+            observe_bin(int(bin_index))
         return iso, tau, ang
 
     core._solve = solve
