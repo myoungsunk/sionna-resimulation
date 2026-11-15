@@ -1,0 +1,4207 @@
+{
+  "status": "PASS",
+  "stage": "G6_FINITE_FACE_PILOT",
+  "question_id": "G1-RT-TB3-001",
+  "role": "IMPLEMENTER",
+  "historical_g6_status": "FAIL",
+  "strict_tolerance_s": 5e-14,
+  "exact_hit_tolerance_m": 1e-09,
+  "trace_code_commit": "d37d324f111e4b32be097f42f5282ba505fec7e4",
+  "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "f1_solver": {
+    "max_depth": 3,
+    "samples_per_src": 100000,
+    "max_num_paths_per_src": 1000000,
+    "synthetic_array": true,
+    "los": true,
+    "specular_reflection": true,
+    "refraction": false,
+    "diffraction": false,
+    "edge_diffraction": false,
+    "diffuse_reflection": false,
+    "seed": 20260924
+  },
+  "runtime": {
+    "sionna-rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1",
+    "numpy": "2.4.6",
+    "mitsuba_variant": "llvm_ad_mono_polarized"
+  },
+  "engine_sha256": {
+    "path_solver.py": "751c4b7dad2f4e97cfdacf297ae7b5ea39b0e4633ee334246d9af6b9b5e61a1a",
+    "image_method.py": "f1983dc1b5a6038f95788f331855f798552e216caa04c6361443ec0cc5015d2a",
+    "field_calculator.py": "e12807588d19bd2ab404623fa99568f838178bb5d5cc2067b1e2e4007e58defe",
+    "paths_buffer.py": "916e86fd287486c30086a8fbf34237c2d43aea9191d92bccc73bc56c7f956aad"
+  },
+  "source_sha256": {
+    "tb3_finite_face_guard.py": "1809210b8535a633ecc80536976b240a60de835af9caf48bde91bf03e94da553",
+    "pilot_tb3_finite_face_guard.py": "d4224a86878dfd11c173fb4104ec721d32b7736d743380a2a67ae92dbaf47d3e"
+  },
+  "input_sha256": {
+    "G6.json": "b0da8458aacdcffc9800f413d65ed6da25a0a911190d818d862280c81e12fdef",
+    "G6_REVALIDATION.json": "e17723bbd0b5cb835a396b89fa72def3c590359f86e6f427d08180e64affb767",
+    "BOUNDARY_STAGES.json": "f678574ea2818f0ba10d0467f737b1af272027928ce1bc28aef134d83c2f4a2c"
+  },
+  "nodes": [
+    0,
+    16,
+    32,
+    48,
+    64,
+    80,
+    96,
+    112,
+    128,
+    144,
+    160,
+    176,
+    192,
+    208,
+    224,
+    240,
+    256
+  ],
+  "positions": 9,
+  "solver_calls": 306,
+  "target_path_nodes_removed": 68,
+  "control_path_nodes_retained": 85,
+  "retained_path_nodes_bitwise": 8551,
+  "max_retained_delay_residual_s": 1.3988341687822251e-14,
+  "started_utc": "2026-11-15T07:29:11.382323+00:00",
+  "finished_utc": "2026-11-15T07:53:49.058061+00:00",
+  "pilot_wall_s": 1477.6757915290073,
+  "cases": [
+    {
+      "case": "G-T2_B",
+      "task_id": 1708,
+      "path_index": 52,
+      "role": "suspect",
+      "paired_task_id": null,
+      "rx_xyz_m": [
+        6.52,
+        0.06999999999999995,
+        0.45
+      ],
+      "face_sequence": "end_x_min[x=0;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_max[x=20;patch=0]",
+      "geometry_key": [
+        [
+          [
+            3,
+            1
+          ],
+          [
+            11,
+            2
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.4233991801738739,
+            2.1518497467041016
+          ],
+          [
+            12.649660110473633,
+            0.9700000882148743,
+            1.5088422298431396
+          ],
+          [
+            20.000001907348633,
+            0.6524347066879272,
+            1.1352174282073975
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.21000005812292e-14,
+      "max_control_delay_residual_s": null,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 56,
+          "after": 55,
+          "pre_field_rejected": [
+            {
+              "lane": 116,
+              "chain": [
+                [
+                  3,
+                  1
+                ],
+                [
+                  11,
+                  2
+                ],
+                [
+                  4,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  0.0,
+                  0.4233991801738739,
+                  2.1518497467041016
+                ],
+                [
+                  12.649660110473633,
+                  0.9700000882148743,
+                  1.5088422298431396
+                ],
+                [
+                  20.000001907348633,
+                  0.6524347066879272,
+                  1.1352174282073975
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 55
+        }
+      ]
+    },
+    {
+      "case": "G-T2_B",
+      "task_id": 1714,
+      "path_index": 52,
+      "role": "control",
+      "paired_task_id": 1708,
+      "rx_xyz_m": [
+        6.54,
+        0.06999999999999995,
+        0.45
+      ],
+      "face_sequence": "end_x_min[x=0;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_max[x=20;patch=0]",
+      "geometry_key": [
+        [
+          [
+            3,
+            1
+          ],
+          [
+            11,
+            2
+          ],
+          [
+            4,
+            0
+          ]
+        ],
+        [
+          [
+            0.0,
+            0.4235949218273163,
+            2.1516194343566895
+          ],
+          [
+            12.639283180236816,
+            0.9700000286102295,
+            1.5088423490524292
+          ],
+          [
+            20.000001907348633,
+            0.6518392562866211,
+            1.1345171928405762
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.3484885354832343e-14,
+      "max_control_delay_residual_s": 1.3484885354832343e-14,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        }
+      ]
+    },
+    {
+      "case": "G-T2_B",
+      "task_id": 1731,
+      "path_index": 23,
+      "role": "control",
+      "paired_task_id": null,
+      "rx_xyz_m": [
+        6.594220049357879,
+        0.292268729149086,
+        0.45
+      ],
+      "face_sequence": "ceiling[z=2.7;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            2,
+            1
+          ],
+          [
+            11,
+            5
+          ],
+          [
+            3,
+            0
+          ]
+        ],
+        [
+          [
+            9.444045066833496,
+            0.035775281488895416,
+            2.700000047683716
+          ],
+          [
+            0.14891403913497925,
+            0.9700000286102295,
+            1.3960182666778564
+          ],
+          [
+            0.0,
+            0.9550355672836304,
+            1.3751286268234253
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 1,
+      "max_retained_delay_residual_s": 1.2092247609253643e-14,
+      "max_control_delay_residual_s": 1.0398362145997697e-15,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 56,
+          "after": 56,
+          "pre_field_rejected": [],
+          "retained_bitwise": 56
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 1840,
+      "path_index": 55,
+      "role": "suspect",
+      "paired_task_id": null,
+      "rx_xyz_m": [
+        6.924348134843974,
+        0.11539111909361544,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            9
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.7061710357666016,
+            1.7985397577285767
+          ],
+          [
+            13.650903701782227,
+            0.9700000286102295,
+            1.4805352687835693
+          ],
+          [
+            0.0,
+            0.4030285179615021,
+            0.7968153953552246
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.8117913212393888e-15,
+      "max_control_delay_residual_s": null,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 59,
+          "after": 58,
+          "pre_field_rejected": [
+            {
+              "lane": 137,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  9
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.7061710357666016,
+                  1.7985397577285767
+                ],
+                [
+                  13.650903701782227,
+                  0.9700000286102295,
+                  1.4805352687835693
+                ],
+                [
+                  0.0,
+                  0.4030285179615021,
+                  0.7968153953552246
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 58
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 1025,
+      "path_index": 46,
+      "role": "suspect",
+      "paired_task_id": null,
+      "rx_xyz_m": [
+        14.610933597711135,
+        0.2878332769967709,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            7
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.5441967844963074,
+            1.9253525733947754
+          ],
+          [
+            6.7000651359558105,
+            0.9700000882148743,
+            1.3584176301956177
+          ],
+          [
+            0.0,
+            0.7555595636367798,
+            1.0728174448013306
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.3617367329657775e-14,
+      "max_control_delay_residual_s": null,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 50,
+          "after": 49,
+          "pre_field_rejected": [
+            {
+              "lane": 113,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5441967844963074,
+                  1.9253525733947754
+                ],
+                [
+                  6.7000651359558105,
+                  0.9700000882148743,
+                  1.3584176301956177
+                ],
+                [
+                  0.0,
+                  0.7555595636367798,
+                  1.0728174448013306
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 49
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 2477,
+      "path_index": 56,
+      "role": "suspect",
+      "paired_task_id": null,
+      "rx_xyz_m": [
+        8.92,
+        0.47,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            7
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.5442008972167969,
+            1.835545539855957
+          ],
+          [
+            6.700301170349121,
+            0.9699999690055847,
+            1.1983606815338135
+          ],
+          [
+            0.0,
+            0.7555502653121948,
+            0.8773539662361145
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.2464487699339112e-14,
+      "max_control_delay_residual_s": null,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 61,
+          "after": 60,
+          "pre_field_rejected": [
+            {
+              "lane": 115,
+              "chain": [
+                [
+                  17,
+                  0
+                ],
+                [
+                  24,
+                  7
+                ],
+                [
+                  16,
+                  0
+                ]
+              ],
+              "reason": "Image hit outside the connected finite face wall_y_pos[y=0.97;patch=0]",
+              "vertices_m": [
+                [
+                  20.0,
+                  0.5442008972167969,
+                  1.835545539855957
+                ],
+                [
+                  6.700301170349121,
+                  0.9699999690055847,
+                  1.1983606815338135
+                ],
+                [
+                  0.0,
+                  0.7555502653121948,
+                  0.8773539662361145
+                ]
+              ]
+            }
+          ],
+          "retained_bitwise": 60
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 1027,
+      "path_index": 45,
+      "role": "control",
+      "paired_task_id": 1025,
+      "rx_xyz_m": [
+        14.627439827855824,
+        0.2826796083265277,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            7
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.5457196235656738,
+            1.925584077835083
+          ],
+          [
+            6.784636974334717,
+            0.9700000286102295,
+            1.3624343872070312
+          ],
+          [
+            0.0,
+            0.7522449493408203,
+            1.0733217000961304
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.3688035460500769e-14,
+      "max_control_delay_residual_s": 1.0746159829840723e-15,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 49,
+          "after": 49,
+          "pre_field_rejected": [],
+          "retained_bitwise": 49
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 1846,
+      "path_index": 55,
+      "role": "control",
+      "paired_task_id": 1840,
+      "rx_xyz_m": [
+        6.941159660434202,
+        0.10530420373947866,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            9
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.7098029851913452,
+            1.798865556716919
+          ],
+          [
+            13.770401000976562,
+            0.9699999690055847,
+            1.4869656562805176
+          ],
+          [
+            0.0,
+            0.39512312412261963,
+            0.7975243926048279
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.2513521444038929e-14,
+      "max_control_delay_residual_s": 2.278051701201894e-16,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 59,
+          "after": 59,
+          "pre_field_rejected": [],
+          "retained_bitwise": 59
+        }
+      ]
+    },
+    {
+      "case": "G-T2_C",
+      "task_id": 2471,
+      "path_index": 56,
+      "role": "control",
+      "paired_task_id": 2477,
+      "rx_xyz_m": [
+        8.899999999999999,
+        0.47,
+        0.45
+      ],
+      "face_sequence": "end_x_max[x=20;patch=0]>wall_y_pos[y=0.97;patch=0]>end_x_min[x=0;patch=0]",
+      "geometry_key": [
+        [
+          [
+            17,
+            0
+          ],
+          [
+            24,
+            7
+          ],
+          [
+            16,
+            0
+          ]
+        ],
+        [
+          [
+            20.0,
+            0.5444381833076477,
+            1.8351905345916748
+          ],
+          [
+            6.713511943817139,
+            0.9700000882148743,
+            1.1983611583709717
+          ],
+          [
+            0.0,
+            0.7550337314605713,
+            0.8765815496444702
+          ]
+        ]
+      ],
+      "seam_switches_at_zero": 0,
+      "max_retained_delay_residual_s": 1.3988341687822251e-14,
+      "max_control_delay_residual_s": 1.2335558657150498e-15,
+      "nodes": [
+        {
+          "bin": 0,
+          "frequency_hz": 6250400000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 16,
+          "frequency_hz": 6281600000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 32,
+          "frequency_hz": 6312800000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 48,
+          "frequency_hz": 6344000000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 64,
+          "frequency_hz": 6375200000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 80,
+          "frequency_hz": 6406400000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 96,
+          "frequency_hz": 6437600000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 112,
+          "frequency_hz": 6468800000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 128,
+          "frequency_hz": 6500000000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 144,
+          "frequency_hz": 6531200000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 160,
+          "frequency_hz": 6562400000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 176,
+          "frequency_hz": 6593600000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 192,
+          "frequency_hz": 6624800000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 208,
+          "frequency_hz": 6656000000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 224,
+          "frequency_hz": 6687200000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 240,
+          "frequency_hz": 6718400000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        },
+        {
+          "bin": 256,
+          "frequency_hz": 6749600000.0,
+          "before": 61,
+          "after": 61,
+          "pre_field_rejected": [],
+          "retained_bitwise": 61
+        }
+      ]
+    }
+  ]
+}
