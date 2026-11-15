@@ -45,14 +45,16 @@ mounts=(-v "$origin/CASES.json:/results/CASES.json:ro")
 for case in G-T1_A G-T1_B G-T1_C; do
     mounts+=(-v "$origin/H/$case:/results/H/$case:ro" -v "$origin/poses/$case:/results/poses/$case:ro")
 done
-mkdir -p output
+mkdir -p output s0_code
+# Keep the preserved v2 imports separate from the current repository snapshot.
+cp code/launch_tb3_model003_v3_s0.sh code/run_tb3_model003_v3_s0.py code/tb3_model003_v3_filter.py s0_code/
 command=(docker run --rm --pull=never --network none --name "$(basename "$PWD")-$mode" --cpus 36
     --user "$(id -u):$(id -g)" -e HOME=/tmp -e OPENBLAS_NUM_THREADS=1 -e OMP_NUM_THREADS=1 -e MKL_NUM_THREADS=1
     "${mounts[@]}" -v "$old/code:/v2_r4:ro" -v "$old/code_joint:/v2_j4:ro" -v "$old/frozen:/frozen:ro"
     -v "$old/output/folds/30:/folds/30:ro" -v "$old/output/LOAO_RESULTS.json:/provenance/LOAO_RESULTS.json:ro"
     -v "$PWD/provenance/TIMELINE_READBACK.json:/provenance/TIMELINE_READBACK.json:ro"
     -v "$PWD/provenance/REPORT_KO.md:/provenance/REPORT_KO.md:ro"
-    -v "$model:/model:ro" -v "$banks:/banks:ro" -v "$PWD/code:/v3:ro" -v "$PWD/output:/work"
+    -v "$model:/model:ro" -v "$banks:/banks:ro" -v "$PWD/s0_code:/v3:ro" -v "$PWD/output:/work"
     --entrypoint /bin/bash "$image" /v3/launch_tb3_model003_v3_s0.sh container "$mode")
 printf '%q ' "${command[@]}"
 printf '\n'
