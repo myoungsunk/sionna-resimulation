@@ -12,3 +12,8 @@ G1-DIAG-003 결과는 G1-MODEL-003의 arm 우선순위 해석에만 쓰고, 모�
 기존 데이터 갈래의 재개 조건과 판정 검토안은 [G1-DIAG-003 계획](DIAG003_PLAN_KO.md)에 기록했다.
 
 새 RT 사양의 실행 전 검토는 [G1-MODEL-003 검토](REVIEW_B_NEW_RT_KO.md)에 기록했다.
+
+
+## 다중경로 특성화 (2026-11-15)
+
+모형을 먼저 정하지 않고 실내 다중경로 오차를 먼저 특성화했다: [G1-CHAR-001 사양](CHAR_001/SPEC_KO.md), [결과](CHAR_001/REPORT_KO.md), [Fable 논의 요청](CHAR_001/FABLE_DISCUSSION_KO.md). G-T1과 BLOCK_C만 썼고 G-T2/G-V는 봉인 상태다.
