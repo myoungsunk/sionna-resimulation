@@ -60,3 +60,16 @@ Snowball에서 G6는 **FAIL**이었다. 24,876개 위치의 경로 1,523,943개 
 ### G-T2 오목부 경계 4건 재추적
 
 2026-11-15 KST Snowball에서 네 경로의 후보와 역추적 교점을 계측했다. 양의 y 측벽으로 향할 때 목표점 오프셋을 적용한 광선은 복도 벽을 먼저 맞혔고, 같은 평면의 대체 삼각형을 허용하는 분기가 교점을 채택했다. 이 목표점 오프셋만 뺀 대조에서는 네 광선 모두 개구부를 지나 수직 목재 옆면을 맞혔고 후보가 기각됐다. 기존 두 G6 FAIL 기록과 0.05 ps 기준을 보존했다. [원인 조사](evidence/G6/G1_RT_TB3_G6_BOUNDARY_20261114T155612Z_kgdRjU/RESULT_KO.md).
+
+## RX mount +45° F1 생성 및 검증
+
+2026-11-15 Snowball에서 0°와 같은 F1 설정, 형상·pose·FFD를 사용하고 RX 회전에 `body yaw + 45°`를 적용했다. G-T1·G-T2·G-V × 앵커 A·B·C 및 G-T1의 P-F × 앵커 A·B에서 61,992 pose를 생성했다. 26,460 XY × 17 node에 솔버를 449,820회 호출했고, 11개 케이스의 pose ID·노드·경로 수를 0° 실행 기록과 대조했다. 본 생성은 48개 워커로 2시간 42분 40초 걸렸다. [실행 요약](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/MOUNT45_RESULT.json) · [조합별 산출물과 SHA-256](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/CASES.json).
+
+| 검증 | 판정 | 범위·결과 |
+|---|---|---|
+| LoS·G8 파일럿 | PASS | G-T1 × A의 P-A 앞 3개 station, 332 pose × 257 bin의 LoS 계수·지연이 독립 기준과 비트 단위로 일치했다. `PATHS_NEAR` LoS 재합성 최대 상대 오차는 0이었다. [파일럿](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/canary01/CANARY.json) |
+| G3b | PASS | 동결 trace의 17 node와 257 bin을 +45°로 재합성했다. 9개 조합·5,067 pose의 최대 &#124;Δs&#124;는 1.384 × 10⁻⁶, 첫 경로 index 일치율은 100%였다. [G3b](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/g3_mount45/b/G3B_MOUNT45.json) |
+| G3c | PASS | 동결 trace의 100k·400k 광선 결과를 +45°로 재합성했다. 50,115 bin·5,067 pose에서 최대 &#124;Δs&#124;는 8.379 × 10⁻⁵, 추가 경로 최대 에너지 비율은 0%였다. [G3c](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/g3_mount45/c/G3C_MOUNT45.json) |
+| G4·봉인 검사 | PASS | 11개 케이스의 조합·항목별 p90 &#124;Δs&#124; 최댓값은 1.117 × 10⁻⁶(기준 0.005)였다. G-T2·G-V의 +45° 봉인 18개와 0° 봉인 기록의 SHA-256을 확인했다. [G4](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/gates/G4.json) · [봉인 검사](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/gates/SEAL_STORAGE_CHECK.json) |
+
+기존 F1의 G6 판정은 FAIL이며 유한 반사면 필터는 별도 파일럿 단계다. +45° 원본 배열과 trace는 Snowball의 `/home/KMS/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5`에 보관한다. 최종 산출물은 3,951,944,324 B다. 저장소의 실행 코드와 검증 기록을 [전송 파일 체크섬](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/SNOWBALL_FILES.sha256)으로 대조할 수 있다.

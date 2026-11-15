@@ -1,0 +1,121 @@
+{
+  "status": "PASS",
+  "case": "G-T1_A",
+  "role": "IMPLEMENTER",
+  "code_commit": "6242fb99f67df17c4b686eca14380ebd471491b6",
+  "question_ids": [
+    "G1-RT-TB3-001",
+    "G1-RT-TB3-002"
+  ],
+  "engine": {
+    "question_id": "G1-RT-TB3-001",
+    "spec_revision": "v1.1",
+    "status": "ADOPTED",
+    "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+    "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+    "base_nodes": 17,
+    "channel_bins": 257,
+    "mount_deg": 45,
+    "solver": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": false,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    }
+  },
+  "scope": "G8_CANARY",
+  "g0_manifest_sha256": "48ebdcdde68f3d62ec1b00c3061440f9363313ef35577f409eb5b5c0b75c13b6",
+  "g7_manifest_sha256": "a1542122461b919f55ad2ce43314ba0a3732e0611a574fd51fa692e6b03e9830",
+  "production_sha256": "0a74cafea16e141fccdfc10930bfa0f3ddea4c92ea4631285525b905573fb1e9",
+  "reference_sha256": "1f0b9082a8b5fbf8aa43ebdb585808f3b288b49efe2db25dd56944e471199252",
+  "ffd_manifest_sha256": "0017f2171da5d3729e4ad91d0d44384937d83213640c347ff12dda53e763a96e",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "source_sha256": {
+    "run_tb3_production.py": "5328f7d532640fcfcc76321e188f8f4526a78c8a778fd65adee15ce8b853ffea",
+    "run_tb3_g1_pilot.py": "93c4985c31da7fb49e6131a005bfaf00313896183feba76e4e23d256b3c704d7",
+    "run_tb3_g8_pilot.py": "d34430f3befd4aa1f7a1b45906146c9d288556d2d8ac37de9419abf5bab08d74",
+    "tb3_native_los.py": "2c23394a409cff375e4309bfdb2b75f6ee7675cf08a5ab30be555b025420efa9",
+    "tb3_paths_near.py": "2789f3ac3377c262d8f84f24099504218d6e72b852ac20c814a2cef07aa851e3"
+  },
+  "shard_index": 0,
+  "shard_count": 1,
+  "trace_positions": 6,
+  "poses": 332,
+  "main_poses": 332,
+  "diagnostic_poses": 0,
+  "near_pose_count": 332,
+  "solver_calls": 102,
+  "extra_export_solver_calls": 0,
+  "native_field_batch_positions": 64,
+  "started_utc": "2026-11-15T08:02:50.991005+00:00",
+  "finished_utc": "2026-11-15T08:10:18.534076+00:00",
+  "wall_s": 447.5430553960032,
+  "timings": {
+    "trace_s": 75.29557492700405,
+    "native_field_s": 355.59377413100447,
+    "apply_s": 4.280524392001098,
+    "save_s": 1.6859245189989451
+  },
+  "command": [
+    "/opt/rt-env/bin/python",
+    "/run/code/run_tb3_production.py",
+    "--inputs",
+    "/run/g0",
+    "--g7",
+    "/run/g7",
+    "--source",
+    "/ref",
+    "--production",
+    "/run/config/PRODUCTION_F1.json",
+    "--reference",
+    "/run/frozen/REFERENCE.json",
+    "--ffd-manifest",
+    "/run/frozen/FFD_RESTORE_MANIFEST.json",
+    "--case",
+    "G-T1_A",
+    "--g8-canary",
+    "/legacy",
+    "--canary-los-reference",
+    "/run/los_reference",
+    "--code-commit",
+    "6242fb99f67df17c4b686eca14380ebd471491b6",
+    "--out",
+    "/run/canary01"
+  ],
+  "runtime_versions": {
+    "sionna-rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1",
+    "numpy": "2.4.6"
+  },
+  "output_sha256": {
+    "CANARY.json": "6990010309f20abb51aa22003fbe912bda3e4ae0e5ee4dea735f29ee4f820610",
+    "H_LoS.npy": "c95135e2ce12ac9f08034d18b43ba4bf812dfeb4e2e1163b949f22d5c829df0a",
+    "H_full.npy": "fb9822f258ff9197982c0537d304cae06e9e027c347eeb844e6d3e1f29045a5e",
+    "PATHS_LoS.npz": "14b9517f755976db2570ec10c1229e2f5da75b000ebf54d8d21f520975ed65a3",
+    "PATHS_NEAR.npz": "3cd11864b0d1b9cf3a34bf40de13c9c0a0356ac0ceb8350434d95e489253df9d",
+    "PATHS_NEAR_SCHEMA.json": "e198c5cc85a6b5d7478715c70ffb3da2765390cb862b50f03b048f65114da4c4",
+    "POSE_IDS.npy": "8c7a06d6f5df58ea1305d0b214d1f162fd0941913f640cf34fcc83e3de731e7f",
+    "TRACE_RECEIPTS.json": "7481af623502d613c9363b055b92865fffdfcc149ea911c569283d65500a364c"
+  },
+  "output_bytes": {
+    "CANARY.json": 583,
+    "H_LoS.npy": 5460864,
+    "H_full.npy": 5460864,
+    "PATHS_LoS.npz": 2855343,
+    "PATHS_NEAR.npz": 8339784,
+    "PATHS_NEAR_SCHEMA.json": 1906,
+    "POSE_IDS.npy": 2784,
+    "TRACE_RECEIPTS.json": 6053
+  }
+}
