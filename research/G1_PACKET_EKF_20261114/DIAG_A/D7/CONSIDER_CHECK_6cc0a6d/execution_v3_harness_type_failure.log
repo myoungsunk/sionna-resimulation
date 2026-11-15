@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<audit>\check_consider_v3.py", line 196, in <module>
+    main()
+    ~~~~^^
+  File "<audit>\check_consider_v3.py", line 181, in main
+    results["/".join(name)] = run(configure(arm), gate)
+                              ~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "<audit>\check_consider_v3.py", line 133, in run
+    mean, cov = joint.initialize_joint(np.zeros((N, model.motion_dim)), covariance(model), model)
+                ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<v3-checkout>\scripts\drive_sim\tb3_model003_v3_joint.py", line 128, in initialize_joint
+    state, prior = np.zeros(prefix + (model.state_dim,)), np.zeros(prefix + (model.state_dim,) * 2)
+                   ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'float' object cannot be interpreted as an integer
