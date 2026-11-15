@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/d7/check_d7_limits.py", line 89, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/d7/check_d7_limits.py", line 67, in main
+    data = load_case(args.case)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/diag/diag003_work/code/diag_inputs.py", line 134, in load_case
+    ffd_model = SourceFFD()
+                ^^^^^^^^^^^
+  File "/diag/diag003_work/rf/research/FFD_P0P3_20261016/source_model.py", line 19, in __init__
+    self.banks=load_banks() if banks is None else banks
+               ^^^^^^^^^^^^
+  File "/diag/diag003_work/rf/research/FFD_P0P3_20261016/p0_initial.py", line 29, in load_banks
+    (OUT/'BANK_AUDIT.json').write_text(json.dumps(records,indent=2));print('BANKS',records,flush=True)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/pathlib.py", line 1078, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/rt-env/lib/python3.11/pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: [Errno 30] Read-only file system: '/diag/diag003_work/prepared/R5_aB_m0/BANK_AUDIT.json'
