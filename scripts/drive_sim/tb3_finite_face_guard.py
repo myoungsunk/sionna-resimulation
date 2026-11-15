@@ -13,7 +13,8 @@ class FiniteFaceGuard:
     def __init__(self, solver, mi, scene, mesh_faces, tx, rx, interaction_type):
         self._calculate = solver._field_calculator
         self._mi = mi
-        self._tx, self._rx = tuple(tx), tuple(rx)
+        self._tx = tuple(tx)
+        self.set_receiver(rx)
         self._none, self._specular = interaction_type.NONE, interaction_type.SPECULAR
         shapes = scene.mi_scene.shapes()
         pointers = np.asarray(dr.reinterpret_array(mi.UInt, mi.ShapePtr(shapes)))
@@ -24,6 +25,22 @@ class FiniteFaceGuard:
         self._mesh_faces = mesh_faces
         self.rejected = []
         solver._field_calculator = self
+
+    def set_receiver(self, rx):
+        """Start validation for a new frozen receiver position."""
+        self._rx = tuple(rx)
+        self._decisions = {}
+
+    def _check_chain(self, chain):
+        faces = [self._mesh_faces[obj][1][primitive] for obj, primitive in chain]
+        try:
+            _, points = fold_images(self._tx, self._rx, faces)
+            for face, point in zip(faces, points, strict=True):
+                if not any(triangle.contains(point, EXACT_HIT_TOL_M) for _, triangle in face.primitives):
+                    raise ImageGeometryError(f"Image hit outside the connected finite face {face.label}")
+        except ImageGeometryError as error:
+            return str(error), ">".join(face.label for face in faces)
+        return None
 
     def __call__(self, **kwargs):
         paths = kwargs["paths"]
@@ -42,17 +59,16 @@ class FiniteFaceGuard:
                     continue
                 if not active[:count].all() or np.any(row_events[:count] != self._specular):
                     raise ValueError("Finite-face guard requires ordered F1 specular interactions")
-                chain = [(self._objects[int(shape)], int(primitive))
-                         for shape, primitive in zip(row_shapes[:count], row_primitives[:count], strict=True)]
-                faces = [self._mesh_faces[obj][1][primitive] for obj, primitive in chain]
-                try:
-                    _, points = fold_images(self._tx, self._rx, faces)
-                    for face, point in zip(faces, points, strict=True):
-                        if not any(triangle.contains(point, EXACT_HIT_TOL_M) for _, triangle in face.primitives):
-                            raise ImageGeometryError(f"Image hit outside the connected finite face {face.label}")
-                except ImageGeometryError as error:
+                chain = tuple((self._objects[int(shape)], int(primitive))
+                              for shape, primitive in zip(row_shapes[:count], row_primitives[:count], strict=True))
+                if chain not in self._decisions:
+                    self._decisions[chain] = self._check_chain(chain)
+                failure = self._decisions[chain]
+                if failure is not None:
+                    reason, face_sequence = failure
                     valid[row] = False
-                    self.rejected.append(dict(lane=int(row), chain=chain, reason=str(error)))
+                    self.rejected.append(dict(lane=int(row), chain=list(chain), reason=reason,
+                                              face_sequence=face_sequence))
 
         if self.rejected:
             vertices = np.stack([np.asarray(getattr(paths, "vertices_" + axis)) for axis in "xyz"], axis=-1)

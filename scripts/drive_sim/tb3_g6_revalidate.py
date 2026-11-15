@@ -44,7 +44,7 @@ def production_receipts(root, case, tasks, inputs):
     return rows
 
 
-def trace_hits(core, scene, solver, settings, frequencies, bins, task, setup, mesh_faces):
+def trace_hits(core, scene, solver, settings, frequencies, bins, task, setup, mesh_faces, observe=None):
     """Keep node-zero vertices and prove the ordered face identity across nodes."""
     metadata = []
     depth = settings["max_depth"]
@@ -52,6 +52,8 @@ def trace_hits(core, scene, solver, settings, frequencies, bins, task, setup, me
 
     def solve(scene, **kwargs):
         native = solver(scene, **kwargs)
+        if observe is not None:
+            observe()
         delay = np.asarray(native.tau).ravel().astype(float)
         ang = np.stack([np.asarray(getattr(native, prop)).ravel().astype(float)
                         for prop in ("theta_t", "phi_t", "theta_r", "phi_r")])
@@ -158,21 +160,50 @@ def run(args):
     bins = core.node_bins(len(frequencies), str(production["base_nodes"]))
     tx = tuple(entry["anchors_xyz_m"][anchor_id])
     tx_native = tuple(np.asarray(scene.transmitters["tx"].position).reshape(3).astype(float))
+    guard = None
+    code_paths = [Path(__file__), Path(__file__).with_name("tb3_g6_face_match.py")]
+    if args.finite_face_prior:
+        from tb3_finite_face_guard import FiniteFaceGuard
+        from tb3_g6_guard_replay import INPUT_HASHES, archived_rows, load_prior, verify_rejections
+
+        prior, boundary = load_prior(args.finite_face_prior, STRICT_TOL_S)
+        prior_rows, prior_hashes = archived_rows(args.finite_face_prior, prior["cases"][args.case],
+                                                args.case, index, count, chosen, bool(args.task_id))
+        targets = boundary[args.case]
+        inputs.update({str(args.finite_face_prior / name): digest for name, digest in INPUT_HASHES.items()})
+        inputs.update(prior_hashes)
+        guard = FiniteFaceGuard(solver, core.mi, scene, geometry, tx, tx, core.rt.constants.InteractionType)
+        code_paths.extend(Path(__file__).with_name(name)
+                          for name in ("tb3_finite_face_guard.py", "tb3_g6_guard_replay.py"))
+
     totals = Counter()
     with args.out.open("x", encoding="utf-8", newline="\n") as stream:
         for k, task in enumerate(chosen, start=1):
             task_id = task["task_id"]
             old, receipt = archived[task_id], receipts[task_id]
+            rx = task["x"], task["y"], entry["rx_z_m"]
+            target = None
+            removed = []
+            observed = []
+            observe = None
+            if guard is not None:
+                target = targets.get(task_id)
+                removed = [] if target is None else [target["path_index"]]
+                guard.set_receiver(rx)
+
+                def observe():
+                    observed.append(guard.rejected)
+
             trace, hits, nodes = trace_hits(core, scene, solver, production["solver"], frequencies,
-                                           bins, task, setup, geometry)
+                                           bins, task, setup, geometry, observe=observe)
+            expected_tau = np.delete(old["tau_s"], removed) if removed else old["tau_s"]
             if (old["case"] != args.case or old["tag"] != task["tag"] or old["pose_ids"] != task["pose_ids"]
                     or [old["x"], old["y"]] != [task["x"], task["y"]] or old["status"] != "OK"
                     or nodes != old["node_bins"] or nodes != receipt["node_bins"]
-                    or not np.array_equal(trace["tau"], old["tau_s"])
-                    or len(hits) != receipt["n_full_paths"]
+                    or not np.array_equal(trace["tau"], expected_tau)
+                    or len(hits) + len(removed) != receipt["n_full_paths"]
                     or old["absent_at_some_node_paths"]):
                 raise ValueError(f"Native tau or coverage differs from original/production at {args.case}/{task_id}")
-            rx = task["x"], task["y"], entry["rx_z_m"]
             rx_native = tuple(np.asarray(scene.receivers["rx"].position).reshape(3).astype(float))
             if list(tx_native) != old["tx_xyz_m"] or list(rx_native) != old["rx_xyz_m"]:
                 raise ValueError(f"Native endpoints differ at {args.case}/{task_id}")
@@ -185,9 +216,23 @@ def run(args):
                 totals["delay_exceeded"] += int(residual is not None and residual > STRICT_TOL_S)
                 totals["primitive_seam_crossings"] += switches
             totals.update(positions=1, solver_calls=len(nodes), examined_paths=len(rows))
-            stream.write(json.dumps(dict(case=args.case, task_id=task_id, tag=task["tag"],
-                                         xy=[task["x"], task["y"]], node_bins=nodes, paths=rows),
-                                    separators=(",", ":"), allow_nan=False) + "\n")
+            record = dict(case=args.case, task_id=task_id, tag=task["tag"],
+                          xy=[task["x"], task["y"]], node_bins=nodes, paths=rows)
+            if guard is not None:
+                entries = [dict(bin=node, paths=paths) for node, paths in zip(nodes, observed, strict=True) if paths]
+                if len(observed) != len(nodes):
+                    raise ValueError(f"Incomplete pre-field observations at {args.case}/{task_id}")
+                pre_field, matched = verify_rejections(entries, nodes, target)
+                archived_row = prior_rows[task_id]
+                baseline = archived_row["paths"]
+                if (any(record[k] != archived_row[k] for k in ("case", "task_id", "tag", "xy", "node_bins"))
+                        or len(baseline) != receipt["n_full_paths"]
+                        or rows != [row for i, row in enumerate(baseline) if i not in removed]):
+                    raise ValueError(f"Retained geometry differs from archived corrected trace: {args.case}/{task_id}")
+                if pre_field or removed:
+                    record["guard"] = dict(removed_baseline_indices=removed, rejections=entries)
+                totals.update(removed_paths=len(removed), removed_path_nodes=matched, pre_field_rejections=pre_field)
+            stream.write(json.dumps(record, separators=(",", ":"), allow_nan=False) + "\n")
             if k == 1 or k % 100 == 0 or k == len(chosen):
                 print(f"{args.case}/{index}: {k}/{len(chosen)} positions", flush=True)
     package = Path(core.rt.__file__).parent / "path_solvers"
@@ -197,15 +242,16 @@ def run(args):
         solver=production["solver"], method_b_commit=reference["method_b_commit"],
         started_utc=start, finished_utc=utc_now(), wall_s=monotonic()-tick,
         input_sha256=inputs | archived_hashes, output_sha256=sha(args.out),
-        code_sha256={p.name: sha(p) for p in (
-            Path(__file__), Path(__file__).with_name("tb3_g6_face_match.py"),
-            package / "field_calculator.py", package / "paths.py")}))
+        finite_face_guard=guard is not None,
+        code_sha256={p.name: sha(p) for p in (*code_paths, package / "field_calculator.py", package / "paths.py",
+                                             package / "path_solver.py", package / "image_method.py")}))
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for option in ("production", "source", "original", "out"):
         parser.add_argument("--" + option, type=Path, required=True)
+    parser.add_argument("--finite-face-prior", type=Path, help="Frozen prior replay records for the guard")
     parser.add_argument("--case", choices=CASES, required=True)
     parser.add_argument("--shard", required=True)
     parser.add_argument("--task-id", action="append", type=int, help="Explicit task IDs for a bounded smoke")
