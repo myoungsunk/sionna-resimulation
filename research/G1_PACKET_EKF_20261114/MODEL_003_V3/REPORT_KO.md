@@ -28,3 +28,5 @@ mount 0의 G-T1 A/B/C에서 거리 모델을 개발한 결과, S3-R은 `DEV_FAIL
 ## S-V·S-C 진단
 
 `DEV_FAIL_RANGE` 뒤 G-T1에서 `DIAGNOSTIC_ONLY` 실행을 시작했다. 진행 중인 S-V·S-C 진단은 개발 판정과 분리한다.
+
+- 기존 RT의 P-B 직진 구간에서 스윕 없이 실행한 패킷 편파 진단을 추가했다. DR 짝 비교, 감도가 낮은 구간, 오차가 증가한 구간과 재현 기록을 포함한다. **DIAGNOSTIC_ONLY · S2′ STOP (FULL_6) · Step 3 보류.** [P-B 진단 보고서](PB_STRAIGHT_DIAG/REPORT_KO.md)
