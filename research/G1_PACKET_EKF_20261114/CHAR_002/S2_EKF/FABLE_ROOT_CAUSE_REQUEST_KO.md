@@ -1,5 +1,7 @@
 # Fable 요청: E0 integrity의 근본 원인 분석 → 원인에 따른 다음 구조 설계 (2026-11-15)
 
+> 갱신(2026-11-15): 사용자 결정 1–5(편파 bias 보정 허용, 기본 CIR 특징 허용, 공간 치수 없는 온라인 기하만 사용, 목표는 E0 integrity 개선)를 반영한 최종 전달본은 [FABLE_PROMPT_E0_INTEGRITY_KO.md](FABLE_PROMPT_E0_INTEGRITY_KO.md)다.
+
 이 문서는 [FABLE_INVESTIGATION_REQUEST_KO.md](FABLE_INVESTIGATION_REQUEST_KO.md)를 대체한다. 그 문서의 조사 항목 I1–I5는 Part B에 흡수했다. 요청은 두 단계다.
 
 - **Part A.** 근본 원인 분석과, 원인을 확정하는 데 필요한 사전 등록 진단
