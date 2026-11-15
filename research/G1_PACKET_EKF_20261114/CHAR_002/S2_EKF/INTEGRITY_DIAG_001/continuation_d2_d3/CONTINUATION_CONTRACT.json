@@ -1,0 +1,197 @@
+{
+  "study": "G1-INT-DIAG-001",
+  "role": "IMPLEMENTER",
+  "classification": "DIAGNOSTIC_ONLY",
+  "ordered_stages": [
+    "D2",
+    "D3"
+  ],
+  "frozen_utc": "2026-11-15T12:40:58.513566+00:00",
+  "prior_publication_commit": "2c05da52684ac95fdabe5239c29b4c7a0a27c9b9",
+  "base_contract": {
+    "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\RUN_CONTRACT.json",
+    "sha256": "c5582baf48948a5a20a9c555c10ad708fd18326a27a5ad463f830f9c7b5333cc"
+  },
+  "prerequisites": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\RESULTS.json",
+      "sha256": "228895a86758314f6c0df4e30d565a600abe53b7eca4222f86a4a466abd78834"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\VERIFICATION.json",
+      "sha256": "81334f3709e8040e6d0cd92fb31c0af0d7a00333cf0469e39e3c85f809f1ba95"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\RETRY_RECEIPT.json",
+      "sha256": "94a837e30643c7c781a7bfb3c4bf08a0180bfd2fffdb683faf87eb3415499eee"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\d0\\EXECUTION.json",
+      "sha256": "a5502e614e1fb78155c2813b885a4483eef911b9bce1450b497826fe4c5286e8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\d5\\EXECUTION.json",
+      "sha256": "8316d271c753edcf8dabfc2bf3f1cd166425e02943d12ecec8c364649f4d9f51"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\attempt_02\\d5\\FOLDS.json",
+      "sha256": "68c6efab6604396db3dde9e3919de35b221f13cb68b1601a0e38815d17650d64"
+    }
+  ],
+  "governance": [
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "sources": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d2_d3\\d2.py",
+      "sha256": "1f5200c76410caf419df0989d759dc6fc5a41351355ee1b053a0af3e27171d22"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d2_d3\\d3.py",
+      "sha256": "b67715c55240600b73e901d01e14e4334fd3b6cad94a5656b40b54062a23deb7"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d2_d3\\m3.py",
+      "sha256": "26cf8a6d58db9d0f8174e4b1af935a44e0fe87e08c81c511ecbf1b5e42e3b3bf"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d2_d3\\run_d2_d3.py",
+      "sha256": "139245fce3d4a034596a5396bb6fe3c2c9ebf28a5f123cb6b882f27239e3825b"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\d0_d5.py",
+      "sha256": "f78de504a8e60dc1e940ad2a50ea18bb6363d560bb7bf26b999e33d72587d993"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\d1_shuffle.py",
+      "sha256": "ff1e46e8b86aad3c7b11481291094cbc671e4bf5582fd808b5cb6fb142a37fc6"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\e0_batch.py",
+      "sha256": "1778f6ec40a4d00cc571a9b7f3b3c4dd9e6b01898786f9bce5d2e5ae3976c0df"
+    }
+  ],
+  "scope": {
+    "rf": "Full",
+    "data_seed": 10,
+    "mount_deg": 0,
+    "robot_z_m": 0.45,
+    "n_expected": 12,
+    "grid_packets_per_route": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    },
+    "same_rf_B0_L2": "paired controls sensitivity; B z differs at most original S2 tolerance"
+  },
+  "claim_scope": "fixed corridor/seed; B/B0 determines hypothesis and priority; L2 paired, A descriptive; no SC/KI execution or adoption",
+  "D2": {
+    "execution_config": {
+      "window_seconds": 20.0,
+      "min_accepted": 30,
+      "lag_cap_seconds": 5.0,
+      "min_windows": 10,
+      "min_windows_per_route": 2,
+      "h2_supported": 0.7,
+      "h2_rejected": 0.5,
+      "h7_gain": 0.03,
+      "d1_min_valid": 90,
+      "transfer_zero_m": 1e-12,
+      "parity_tolerance": 1e-10
+    },
+    "window_s": 20.0,
+    "min_accepted": 30,
+    "windows_total_min": 10,
+    "windows_per_trajectory_min": 2,
+    "H2_spearman_support": 0.7,
+    "H2_spearman_reject_below": 0.5,
+    "sensitivity_acf_cap_seconds": 5.0,
+    "lag_pair_rule": "accepted order; (1,2),(3,4),... up to floor(n/2), stop at first nonpositive pair; |Δt|≤5s pair filter for sensitivity",
+    "truth_z2": "all packets primary, accepted-only sensitivity; centered reference residual variance over accepted",
+    "H7": {
+      "d1_xy_gain_min": 0.03,
+      "d1_min_valid": 90,
+      "numerical_transfer_tol_m": 1e-12,
+      "interpretation": "fixed-trajectory first-order XY response; D1 provides nonlinear replay evidence"
+    }
+  },
+  "D3": {
+    "half_seconds": 5.0,
+    "half_distance_m": 0.25,
+    "half_yaw_deg": 5.0,
+    "min_window_packets": 10,
+    "target_heading95": 0.9,
+    "target_cell": "B_B0_R4",
+    "oracle_baseline": "original E0 hand sigma table and frozen per-case mask",
+    "route_mean": "mean of all finite pre-gate residuals; slow centered across supported packets; all edits preserve unsupported packets",
+    "physical_sensitivity": "retain oracle subtraction for the primary analysis; if any accepted B/B0 R4 s-arm observation is outside bounds, replay the three s arms on their common legal support with those edits reverted. A changed branch is inconclusive",
+    "block_bootstrap_s": [
+      5,
+      10
+    ],
+    "block_bootstrap_reps": 1500,
+    "block_bootstrap_seed": 20261115
+  },
+  "M3": {
+    "diagnostics": [
+      "D2",
+      "D3"
+    ],
+    "proximity_m": 0.05,
+    "wrapped_yaw_diff_max_deg": 10,
+    "revisit_min_arc_m": 0.5,
+    "min_pairs": 20,
+    "mean_covariance_residual_min": 0.2,
+    "status": "RUN_IN_D2_D3",
+    "split": "B B0 two other donor routes per held-out route; do not use held-out samples in M1 fit or M3 registration",
+    "reference": "refilter each donor using the target fold D5 sigma table and original donor mask; prior endpoints from these predictions",
+    "motion": "sum of absolute encoder distance and wrapped pre-update E0 yaw increments; cumulative angle rad",
+    "variance_comparison": "D3 window recomputed on matched R_ref donor-motion support; q compared in same knot-distance bins"
+  },
+  "M1": {
+    "joint": [
+      "distance_knotted_q",
+      "ell_d",
+      "ell_psi"
+    ],
+    "q_knots_m": [
+      0,
+      1.5,
+      3,
+      6,
+      10
+    ],
+    "q_bounds": [
+      0,
+      1
+    ],
+    "ell_d_m": [
+      0.1,
+      0.25,
+      0.5,
+      1,
+      2,
+      4
+    ],
+    "ell_psi_deg": [
+      5,
+      10,
+      20,
+      45,
+      90,
+      180
+    ],
+    "nugget": "1-q",
+    "white_floor_fraction": 0.05,
+    "D3_role": "diagnostic comparator only",
+    "implemented_in_this_run": "joint fit required for M3 diagnostics and D3 matched-scale comparison only",
+    "KI_first_10s_separate": true
+  }
+}
