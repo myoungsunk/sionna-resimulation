@@ -22,7 +22,7 @@ mount 0의 G-T1 A/B/C에서 거리 모델을 개발한 결과, S3-R은 `DEV_FAIL
 - 거리 arm 세 개가 B0/L0/L1/L2와 TB3 두 점에서 모두 실패했다. R-MC는 R4보다 B0 포함률과 NEES가 개선됐지만 세 NEES 모두 허용 범위 [0.5, 2.0]을 벗어났다. B0 초기 heading 오차를 0으로 둔 R-MC의 heading·XY 포함률도 63.3%·53.3%였다. [1차 판정과 전 수준 집계](S3/RANGE_STAGE.json)
 - R-MC의 B0 heading 포함률은 A/B/C의 TEACH→REPEAT에서 각각 9.5%·28.8%·49.9%였고, 직진 대조 P-B에서는 99.5%·97.5%·99.5%였다. R-MC는 TEACH→REPEAT에서 R4 대비 수용된 정지 packet당 절대 heading 갱신량을 0.0696°에서 0.00775°로 줄였다. 두 arm의 포함률과 갱신량이 보여 주는 차이는 경로별 개발 결과다. [경로별 집계](S3/RANGE_STAGE.json)
 - C6 보정용 O10/30 dB 관측 중 45,544/1,261,200개(3.61%)가 두 학습 앵커의 거리 지원 구간 밖이었다. 기존 갱신 집계의 `range_mean_outside_support`는 실제로 바깥쪽 두 절점 사이를 벗어나 상수값이 적용된 packet을 세며, 이 경우는 318,090개(25.22%)다. 두 수치를 분리해 보고한다. [C6 지원 구간과 절점 집계](S3/RANGE_C6_SUPPORT_COUNTS.json)
-- S2-T의 A/TEACH→REPEAT 거리 Z는 최대 절댓값 5.48이었고 해당 B0 heading 포함률은 9.5%였다. B/TEACH→REPEAT는 거리 |Z|가 2를 넘지 않았지만 B0 heading 포함률이 28.8%였다. 두 학습 앵커의 평균 보정 이후 남는 편향이 일부 실패와 함께 관측됐으며, 이 지표 하나로 전이 실패를 설명하기는 어렵다. [S2-T](S2/TRANSFER_PRECHECK.json) · [S3-R](S3/RANGE_STAGE.json)
+- A/TEACH→REPEAT의 S2-T 거리 |Z|는 정의된 세 구간에서 최대 5.48이었고 R-MC의 B0 heading 포함률은 9.5%였다. B/TEACH→REPEAT는 정의된 두 구간에서 최대 1.93이었고 B0 heading 포함률은 28.8%였다. 비교는 희소한 거리 구간의 사전 지표와 전체 경로의 사후 포함률을 함께 기술한 것이다. [S2-T](S2/TRANSFER_PRECHECK.json) · [S3-R](S3/RANGE_STAGE.json)
 - O30 30 dB와 O10 20 dB는 보고용 대조로 보존했다. [O30](S3/RANGE_REPORT_O30_30.json) · [20 dB](S3/RANGE_REPORT_OR_20.json)
 
 ## S-V·S-C 진단

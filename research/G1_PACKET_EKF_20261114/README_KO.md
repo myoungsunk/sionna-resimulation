@@ -12,3 +12,5 @@ G1-DIAG-003 결과는 G1-MODEL-003의 arm 우선순위 해석에만 쓰고, 모�
 기존 데이터 갈래의 재개 조건과 판정 검토안은 [G1-DIAG-003 계획](DIAG003_PLAN_KO.md)에 기록했다.
 
 새 RT 사양의 실행 전 검토는 [G1-MODEL-003 검토](REVIEW_B_NEW_RT_KO.md)에 기록했다.
+
+새 RT 갈래의 v3는 [개정 사양서](SPEC_B_NEW_RT_V3_KO.md)와 [변경 기록](AMENDMENTS_V3_KO.md)을 적용한다. 단계별 실행 및 판정은 [v3 개발 결과](MODEL_003_V3/REPORT_KO.md)에 기록한다.
