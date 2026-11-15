@@ -40,12 +40,14 @@ def joint_settings(data, fitted, snr, level, arm, range_arm, offset, site_count,
     fits = (axes["distance_m"], axes["yaw_deg"])
     nugget = np.average([x["nugget"] for x in fits], weights=[x["pair_count"] for x in fits])
     c4 = fitted["C4"]["TEACH_REPEAT"]["rho"]
+    has_site_memory = arm.startswith("J-CS")
     return JointModel(
         arm, 5 if level.startswith("TB3") else 4, data["anchor"][:2], data["rx_z"] - data["anchor"][2],
         fitted["C1"][str(snr)]["sigma_s"]**2, fitted["C2_by_snr"][str(snr)]["s"],
         range_options=r_model, length_m=fits[0]["length"], length_rad=np.deg2rad(fits[1]["length"]),
         nugget=float(nugget), c3_white=any(x["mode"] == "WHITE" for x in fits),
-        site_corr=float(np.clip(0. if c4 is None else c4, 0., 1.)), site_count=site_count,
+        site_corr=float(np.clip(c4, 0., 1.)) if has_site_memory and c4 is not None else 0.,
+        site_count=site_count if has_site_memory else 0,
         consider_s_variance=k_s if "+K" in arm else 0., tail_df=fitted["C7"]["nu_use"] if "+T" in arm else None,
     )
 
