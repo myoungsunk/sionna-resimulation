@@ -39,8 +39,10 @@ f.tight_layout(); f.savefig(fig / "F1_sigma_s_vs_distance.png", dpi=150); plt.cl
 f, ax = plt.subplots(1, 2, figsize=(9, 3.2), sharey=True)
 for a, cases, title in ((ax[0], ("G-T1_A", "G-T1_B", "G-T1_C"), "New RT G-T1"),
                         (ax[1], ("R2_aA_m0", "R2_aB_m0", "R4_aA_m0", "R4_aB_m0", "R5_aA_m0", "R5_aB_m0"), "BLOCK_C m0")):
-    e = np.concatenate([np.load(out / f"ERRORS_{c}.npz")["e_s"] for c in cases])
-    dt = np.concatenate([np.load(out / f"ERRORS_{c}.npz")["dtap"] for c in cases])
+    zs = [np.load(out / f"ERRORS_{c}.npz") for c in cases]
+    ms = [~np.isin(z["set"], ["P-A_REPEAT", "P-D", "P-E"]) for z in zs]
+    e = np.concatenate([z["e_s"][m] for z, m in zip(zs, ms)])
+    dt = np.concatenate([z["dtap"][m] for z, m in zip(zs, ms)])
     groups = [("Δtap=0", dt == 0), ("Δtap=−1", dt == -1), ("Δtap=+1", dt == 1), ("Δtap≥+2", dt >= 2)]
     bins = np.linspace(-1.2, 1.2, 97)
     for i, (lab, m) in enumerate(groups):

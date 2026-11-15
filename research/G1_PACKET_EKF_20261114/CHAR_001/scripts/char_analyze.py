@@ -40,6 +40,16 @@ def load(errors):
     return data
 
 
+REVISIT_SETS = ("P-A_REPEAT", "P-D", "P-E")
+
+
+def primary(z):
+    """Drop revisit duplicates (REPEAT, P-D, P-E) so all-pose statistics are not weighted toward P-A stations."""
+    m = ~np.isin(z["set"], REVISIT_SETS)
+    n = len(z["e_s"])
+    return {k: (v[m] if isinstance(v, np.ndarray) and v.shape[:1] == (n,) else v) for k, v in z.items()}
+
+
 def thin(z, dist=0.25, turn=20.0):
     """Keep one pose per `dist` m of travel or `turn` deg of rotation, within each fit set, in pose order."""
     keep = []
@@ -177,6 +187,7 @@ def classes(z, case):
 def c2_causes(data):
     res = {}
     for case, z in data.items():
+        z = primary(z)
         keep = thin(z)
         c = classes(z, case)
         e = z["e_s"]
@@ -188,6 +199,15 @@ def c2_causes(data):
                                       var_e_s_when_dtap0=float(e[z["dtap"] == 0].var()),
                                       var_e_s_when_dtap_ne0=float(e[z["dtap"] != 0].var())))
         row["by_class_e_s"] = {k: cls_stats(e, v) for k, v in c.items()}
+        same, shift = z["e_s_same"], e - z["e_s_same"]
+        big, huge, mv = np.abs(e) > 0.05, np.abs(e) > 0.3, z["dtap"] != 0
+        row["mechanism_split"] = dict(
+            frac_same_tap=float(np.mean(~mv)), n_abs_gt_0p05=int(big.sum()),
+            frac_abs_gt_0p05_at_same_tap=float(np.mean(~mv[big])), n_abs_gt_0p3=int(huge.sum()),
+            frac_abs_gt_0p3_at_same_tap=float(np.mean(~mv[huge])) if huge.any() else None,
+            frac_abs_gt_0p3_dtap_ge2=float(np.mean(z["dtap"][huge] >= 2)) if huge.any() else None,
+            waveform_term_rms=float(np.sqrt(np.mean(same ** 2))), tap_term_rms=float(np.sqrt(np.mean(shift ** 2))),
+            frac_opposite_sign_when_shifted=float(np.mean(np.sign(same[mv]) != np.sign(shift[mv]))))
         row["dtap_pmf"] = {str(k): float(np.mean(z["dtap"] == k)) for k in np.unique(z["dtap"])}
         row["by_class_e_r_abs"] = {k: cls_stats(z["e_r_abs"], v) for k, v in c.items() if k in ("dtap", "d_bin", "near_dom",
                                                                                         "motion", "elev_bin")}
@@ -322,9 +342,10 @@ def c4_geometry(data):
             row[var] = dict(by_distance=bins, loglog_slope=float(slope[0]), loglog_intercept=float(slope[1]),
                             by_elev=cls_stats(v, classes(z, case)["elev_bin"][keep]),
                             by_rel_bearing=cls_stats(v, classes(z, case)["rel_bearing_bin"][keep]))
-        db = np.floor(z["d"]).astype(int)
-        row["dtap_by_distance_all_poses"] = {f"{k}": dict(n=int((db == k).sum()), p_dtap_ne0=float(np.mean(z["dtap"][db == k] != 0)),
-                                                          p_dtap_ge2=float(np.mean(z["dtap"][db == k] >= 2)))
+        zp = primary(z)
+        db = np.floor(zp["d"]).astype(int)
+        row["dtap_by_distance_all_poses"] = {f"{k}": dict(n=int((db == k).sum()), p_dtap_ne0=float(np.mean(zp["dtap"][db == k] != 0)),
+                                                          p_dtap_ge2=float(np.mean(zp["dtap"][db == k] >= 2)))
                                              for k in np.unique(db) if (db == k).sum() >= 20}
         # GMM wide-component weight by distance (standardized by pooled scale only, so the weight can move with d)
         v, d = z["e_s"][keep], z["d"][keep]
@@ -520,10 +541,11 @@ def c7_compare(data, blockc_root):
            for k, t in sorted(table.items())}
     rt = {}
     for group, cases in (("NEW_G-T1", NEW), ("OLD_m0", tuple(c for c in OLD if c.endswith("m0")))):
-        rt[group] = {c: dict(e_s_std=float(data[c]["e_s"].std()), e_s_mean=float(data[c]["e_s"].mean()),
-                             e_r_std=float(data[c]["e_r"].std()), frac_dtap0=float(np.mean(data[c]["dtap"] == 0)),
-                             g_abs_median=float(np.median(np.abs(data[c]["g_psi"]))),
-                             d_range=[float(data[c]["d"].min()), float(data[c]["d"].max())]) for c in cases}
+        pz = {c: primary(data[c]) for c in cases}
+        rt[group] = {c: dict(e_s_std=float(pz[c]["e_s"].std()), e_s_mean=float(pz[c]["e_s"].mean()),
+                             e_r_std=float(pz[c]["e_r"].std()), frac_dtap0=float(np.mean(pz[c]["dtap"] == 0)),
+                             g_abs_median=float(np.median(np.abs(pz[c]["g_psi"]))),
+                             d_range=[float(pz[c]["d"].min()), float(pz[c]["d"].max())]) for c in cases}
     return dict(mount_R2_aA_pose_level=pose, mount_R2_aA_prior_pipeline_ekf=ekf, rt_compare=rt)
 
 
