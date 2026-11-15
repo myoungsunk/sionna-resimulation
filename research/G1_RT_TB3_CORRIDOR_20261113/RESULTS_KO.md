@@ -65,6 +65,10 @@ Snowball에서 G6는 **FAIL**이었다. 24,876개 위치의 경로 1,523,943개 
 
 2026-11-15 KST Snowball에서 전계 계산 전 유한 반사면 검사를 적용해 **PASS**를 기록했다. 기존 9개 조합·24,876개 XY·17개 노드를 다시 추적했다. G-T2의 문제 경로 4개는 모두 17개 노드 전부에서 제외됐고, 남은 경로 1,523,939개에서 면 매칭 실패와 0.05 ps 초과는 각각 0건이었다. 최대 지연 잔차는 0.0270728 ps, 전체 소요 시간은 53분 6초였다. 기존 두 FAIL 기록을 보존했고 G-T2·G-V 봉인 파일 18개의 실행 전후 해시가 일치했다. [실행 기록](evidence/G6/G1_RT_TB3_G6_FINITE_FACE_REVALIDATION_20261115T111337Z_a465Ta/RESULT_KO.md) · [전체 판정](evidence/G6/G1_RT_TB3_G6_FINITE_FACE_REVALIDATION_20261115T111337Z_a465Ta/G6_FINITE_FACE.json).
 
+### 유한 반사면 검사를 적용한 재생성·G4
+
+Snowball에서 G6를 통과한 유한 반사면 검사를 0° F1에 적용해 본 데이터 52,218 pose와 P-D·P-E·P-F 9,774 pose를 다시 생성했다. PATHS_NEAR 대상 27,810 pose에 H와 같은 추적을 사용했다. G6의 문제 경로 4개는 각각 17개 노드에서 제외됐다. G4는 11개 조합·71,136관측에서 **PASS**였고, 조합·항목별 p90 |Δs|의 최댓값은 1.0374 × 10⁻⁶(기준 0.005)이었다. 재생성은 1시간 5분 26초, G4와 봉인 확인은 2분 27초였다. G-T2·G-V 새 봉인 파일 18개를 확인하고 기존 생산과 두 G6 FAIL 기록을 보존했다. [실행 기록](evidence/Production/G1_RT_TB3_FINITE_FACE_PRODUCTION_20261115T122037Z_HS1vMs/RESULT_KO.md) · [G4 판정](evidence/Production/G1_RT_TB3_FINITE_FACE_PRODUCTION_20261115T122037Z_HS1vMs/results/gates/G4.json).
+
 ## RX mount +45° F1 생성 및 검증
 
 2026-11-15 Snowball에서 0°와 같은 F1 설정, 형상·pose·FFD를 사용하고 RX 회전에 `body yaw + 45°`를 적용했다. G-T1·G-T2·G-V × 앵커 A·B·C 및 G-T1의 P-F × 앵커 A·B에서 61,992 pose를 생성했다. 26,460 XY × 17 node에 솔버를 449,820회 호출했고, 11개 케이스의 pose ID·노드·경로 수를 0° 실행 기록과 대조했다. 본 생성은 48개 워커로 2시간 42분 40초 걸렸다. [실행 요약](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/MOUNT45_RESULT.json) · [조합별 산출물과 SHA-256](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/CASES.json).
