@@ -1,5 +1,7 @@
 # Fable 요청: E0 integrity의 원인과 Goal 1 경계 안에서 E0 수준 integrity를 재현하는 조사 설계 (2026-11-15)
 
+> 대체됨: 근본 원인 분석을 포함한 [FABLE_ROOT_CAUSE_REQUEST_KO.md](FABLE_ROOT_CAUSE_REQUEST_KO.md)를 쓴다.
+
 ## 상황
 
 - **목표.** Goal 1은 편파(dual-LP s)를 heading/편파 자체의 다중경로 완화 없이 써서, packet EKF의 integrity(Pose95, heading 95% coverage)를 먼저 확보하는 것이다.
