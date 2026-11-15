@@ -1,0 +1,134 @@
+{
+  "question_id": "G1-MODEL-003",
+  "version": 3,
+  "status": "PASS",
+  "characterization": {
+    "status": "PASS",
+    "seed": 3003,
+    "checks": {
+      "c2_knot_accuracy": true,
+      "c2_support": true,
+      "c3_parameter_recovery": true,
+      "c3_upper": true,
+      "c7_student_t": true,
+      "c7_heteroscedastic_kurtosis": true,
+      "c3_lower": true,
+      "c2_active_floor": true
+    },
+    "c2": {
+      "truth_sigma": [
+        0.04,
+        0.12649110640673517,
+        0.4
+      ],
+      "fitted_sigma": [
+        0.03985421874111348,
+        0.12191481572161067,
+        0.37621357663114985
+      ],
+      "floor_sigma": 0.038911809092104094,
+      "relative_error": [
+        0.0036445314721630373,
+        0.03617875450001462,
+        0.05946605842212538
+      ],
+      "discarded_knots_m": [
+        0.0,
+        12.0
+      ]
+    },
+    "c3": {
+      "length": 0.10000000000731346,
+      "nugget": 0.30000000003555893,
+      "boundary": "INTERIOR",
+      "mode": "COLORED",
+      "requires_consider": false,
+      "weighted_sse": 4.2256289484133485e-23,
+      "pair_count": 4770,
+      "lag_count": 60,
+      "bounds": [
+        0.016,
+        0.333
+      ]
+    },
+    "c3_upper": {
+      "length": 0.333,
+      "nugget": 0.0,
+      "boundary": "UPPER",
+      "mode": "COLORED",
+      "requires_consider": true,
+      "weighted_sse": 0.04656513555818705,
+      "pair_count": 4770,
+      "lag_count": 60,
+      "bounds": [
+        0.016,
+        0.333
+      ]
+    },
+    "c3_lower": {
+      "length": 0.016,
+      "nugget": 0.9194441389346814,
+      "boundary": "LOWER",
+      "mode": "WHITE",
+      "requires_consider": false,
+      "weighted_sse": 2.3142053332239542e-06,
+      "pair_count": 4770,
+      "lag_count": 60,
+      "bounds": [
+        0.016,
+        0.333
+      ]
+    },
+    "c7": {
+      "nu_hat": 4.0626600161361175,
+      "nu_use": 4.0626600161361175,
+      "loc": 0.0,
+      "scale": 1.0120479590027482,
+      "status": "OK",
+      "n_sites": 20000,
+      "out_of_support": 0,
+      "excess_kurtosis_before": 6.543899240558034,
+      "excess_kurtosis_after": 6.543899240558037
+    },
+    "gaussian_mixture_excess_kurtosis": {
+      "raw": 10.541270425893096,
+      "normalized": 0.031163900264596478,
+      "counts": [
+        32000,
+        8000
+      ]
+    }
+  },
+  "futility": {
+    "status": "PASS",
+    "required_cases": {
+      "constant_bias": {
+        "heading_error_rad": [
+          0.19999999999999998,
+          0.09999999999999999
+        ],
+        "rms_rad": 0.15811388300841894
+      },
+      "zero_mean_variation": {
+        "heading_error_rad": [
+          0.19999999999999998,
+          -0.19999999999999998
+        ],
+        "rms_rad": 0.19999999999999998
+      },
+      "zero_error": {
+        "heading_error_rad": [
+          0.0,
+          0.0
+        ],
+        "rms_rad": 0.0
+      }
+    },
+    "distance_windows": "PASS",
+    "paired_weighting": "PASS"
+  },
+  "python": "3.13.15",
+  "numpy": "2.2.4",
+  "scipy": "1.15.2",
+  "math_source_sha256": "e1495f9243d12918299bc556234b0454dbfcdea2d842a017d0a6cae029ef96a4"
+}

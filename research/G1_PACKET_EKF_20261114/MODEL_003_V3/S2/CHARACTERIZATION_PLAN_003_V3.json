@@ -1,0 +1,115 @@
+{
+  "question_id": "G1-MODEL-003",
+  "version": 3,
+  "stage": "S2",
+  "timeline_sha256": "4d591aa6b0bd2955b3e61cbda8fcba8eab8aafe431caed1a94f3c7c85f3d4cfd",
+  "spec_sha256": "e3ed352672108f99869b149a7524ad65120b85dea8d96190cd40666a77a59221",
+  "amendments_sha256": "cd802e852d7414a8f3bfa134f443e4f986792234f23bfab2eb859dd653f7f80a",
+  "synthetic_sha256": "210132078b7c488f4b3ea62a8ec89b7b267890ff9499078ba594eb9ef25712bd",
+  "allowed_cases": [
+    "G-T1_A",
+    "G-T1_B",
+    "G-T1_C"
+  ],
+  "observation_chains": [
+    "OR",
+    "O30"
+  ],
+  "rf_thermal_seed": 20261116,
+  "thermal_draws_per_pose": 20,
+  "thermal_snr_db": [
+    20,
+    30
+  ],
+  "sensor_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39
+  ],
+  "futility": {
+    "g_min_s_per_rad": 0.01,
+    "derivative_step_rad": 0.0017453292519943296,
+    "derivative": "Symmetric 0.1 degree difference of the selected chain LoS M1-R at the timeline truth pose and nominal true distance as the zero-width prior. Keep fixed geometry and signed sensitivity.",
+    "sensitivity_threshold_reason": "Below 0.01 s/rad a residual of 0.001 already linearizes to over 0.1 rad. Count low-sensitivity checkpoints separately.",
+    "window": "Exactly the prior 5 m accumulated from frozen distance_increment_m; distance-weighted left hold between packet positions. Zero-distance holds contribute no extra weight. Start at TEACH then carry distance history and DR elapsed time into nominal REPEAT. Each P-C route has a fresh origin.",
+    "checkpoints": "Each TEACH/REPEAT station last sweep or hold packet and the nearest measured packet to each transit midpoint. Use the first packet meeting each full-distance multiple of max(1 m, 2 ell_d) on P-B and P-C. ell_d is the pooled G-T1 C3 estimate for the evaluated RF chain.",
+    "dr": "40 common seeds numbered 0–39 and signs [-1,1] per path. B0/L0/L1/L2 0/.01/.05/.20 deg/s, Sensor-v2 white gyro density .015 deg/sqrt(s) and zero bias random walk. TB3 uses signed .0085/.0020 times absolute angular travel plus signed .0005 deg/s Allan bag stationary drift during recorded holds. Same gyro noise draw for each scenario and sign. Equivalent bias is scale times sum of absolute angular increments / elapsed time. r2.1.0 is PRELIMINARY.",
+    "sources": {
+      "sensor_v2": "DRIVE_SIM_SENSOR_V2_20261008_01a11a01/checkout/src/qclean_uwb/drivesim/sensor_v2.py",
+      "tb3_stationary_drift": "research/G1_SWEEP_HEADING_FLOOR_20261113/SPEC_KO.md §5.1",
+      "tb3_rotation": "SPEC_B_NEW_RT_KO.md §2.3 and research/TB3_DR_RUN_VARIABILITY_20261113/REPORT_KO.md"
+    }
+  },
+  "bootstrap": {
+    "ci_level": 0.95,
+    "replicates": 2000,
+    "seed": 20261117,
+    "unit": "Equal checkpoint weight for the S2-F point gate. Report non-gating percentile intervals on the pooled RMS using sites within anchors then common matched sensor seed IDs.",
+    "site": "TEACH/REPEAT uses the common station ID for revisits and a distinct midpoint segment ID; P-C uses nonoverlapping consecutive L_seg segments."
+  },
+  "c2": {
+    "knots_m": [
+      0.0,
+      1.5,
+      3.0,
+      6.0,
+      10.0
+    ],
+    "min_samples": 200,
+    "min_sites": 10,
+    "penalties": [
+      0.1,
+      1.0,
+      10.0
+    ]
+  },
+  "estimates": {
+    "C1": "P-A TEACH/REPEAT five-point unique RF poses. Estimate within-pose sample variances from detected draws and pool by degrees of freedom for each SNR.",
+    "C2": "Unique position plus wrapped-yaw pose, fixed S2 spatial fit sets. Merge neighboring bins below 200 poses or 10 sites. Estimate centered-at-zero q95(abs(e))/1.96 for each bin and fit log variance with second differences, discarding knots outside empirical support. C2-w is the pooled unmodeled residual q95 variance without using fitted knots. Penalty selection uses reciprocal inner leave-one-anchor-out among the outer fold training donors only, pooling Gaussian likelihood on supported points. Smaller penalty breaks ties.",
+    "C2_range_conditional": "Retain the offset-only C2 and pooled white estimate for R4/R-M. For R-MC separately characterize within-donor deviations after b_r and subtraction of empirical donor bin mean, leaving the between-donor component to K_r. Donor means are used for offline variance pooling only. Signed s is never corrected by subtracting donor means.",
+    "C3": "Use v2 sequence lag pairs, weighted by count, with nugget plus exponential kernel. Fit pooled spatial C3 using the shortest contributing reference path length/3 as upper bound; include each length in results. Bounds 0.016 m to path cap and 2.5 to 60 degrees. At the lower bound switch that channel to white; at upper bound require the matching consider state for selection.",
+    "C4": "At each P-D offset pair target residual with its source_pose_id. Pair TEACH/REPEAT selected five-point poses on station and nominal angle. Report P-E same source pairing as a separate correlation.",
+    "C5": "Per path and anchor report 5 m residual-window mean and population variance, checkpoint residual variance, and their ratio V_long wherever the denominator is positive. Evaluate TEACH/REPEAT and C1–C4, with P-B separately.",
+    "C6": "r_tilde = noiseless measured range minus S1 prime offset. Estimate donor-common mean slant-range residual by r_tilde bin in supported interval. Between-support knots linear, outside hold endpoint. After b_r, K_r uses squared paired donor bin-mean difference/2 pooled over bins with both donors.",
+    "C7": "Normalize by fitted supported sigma_b(rho), use first ordered pose per site and fit Student-t location 0, free scale. Use nu=max(nu_hat,3). Site reuses physical station (shared across TEACH/REPEAT); paths use disjoint max(1 m,2 ell_d) distance segments.",
+    "C8": "Report |ds/dpsi| quantiles at every P-A and P-C straight and sweep/turn checkpoint with mount 0.",
+    "S2-T": "Compute signed residual-to-consider standard-deviation ratios in excluded-anchor supported windows/bins using training donors only. Retain numerators, denominators and non-finite cases explicitly. Threshold strictly abs(Z)>2. This does not select an arm."
+  }
+}
