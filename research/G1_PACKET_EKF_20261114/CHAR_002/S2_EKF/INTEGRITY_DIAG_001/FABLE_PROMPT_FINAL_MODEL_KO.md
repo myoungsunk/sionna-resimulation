@@ -45,9 +45,28 @@
 | 4 | `gm_theta_m6/gm_replay.py` (GM-θ, G2, G3, KI 구현 본체, 212줄) | `22a4227` |
 | 5 | `PLAN_M6_GM_THETA_STAGED_KO.md` (수정 M6 계획) | `ff6f421` |
 | 6 | `FABLE_PROMPT_STRUCTURE_CHARACTERIZATION_KO.md` (직전 프롬프트, F1–F11 사실 목록) | `39d3a53` |
+| 7 | `section33_distance_ablation_d1/REPORT_KO.md`, `README.md` (§3.3 재생 코드·trace와 검증) | `0c6f570c` |
 | 참고 | M5 `hfki_m5/attempt_02/stage2·3/REPORT_KO.md`, R5 진단 `continuation_checks_c1_c8/r2_r5_failure/R5_DIAGNOSTIC_DATA_KO.md` | `eee3795`, `f4cd09e` |
 
 외부 논리 검토문은 저장소에 없다. 핵심을 §2와 §5에 옮겼다. 직전 프롬프트 §3.3의 거리별 팽창 제외 재생은 [D1 게시 묶음](section33_distance_ablation_d1/README.md)에 코드·결과·trace를 올렸다. 원래 인라인 실행 코드를 복구하고 같은 코드로 trace를 저장했다. 세 재생의 결과 JSON은 원래 출력과 정확히 일치한다.
+
+**§6 D1 게시 자료와 확인 범위.**
+
+- 게시 커밋은 `0c6f570c36be7da8dcb6958d5bc8f727a0f70853`이다. 아래 파일은 모두 `section33_distance_ablation_d1/` 아래에 있다.
+- 원래 실행은 Windows Python 표준 입력에서 이뤄졌다. 당시 trace는 메모리에만 있었으며, 이번에 복구한 원본 코드에 저장 래퍼를 적용해 trace 18개를 생성했다. 원래 결과 JSON 3개와 입력 NPZ 6개도 함께 게시했다.
+- 범위는 mount 0, 앵커 B, B0, Full RF, R5, seed 10이다. 1,415 packet 중 고정 gate 수용은 1,384개다. E0-LORO prior 수평거리 ρ < 3 m인 근거리는 448개, 원거리는 967개다. 3 m는 사후 진단 경계다. HF-KI 스케줄은 4°, M1-I 스케줄은 0.5 m다.
+- HF-KI 4°에서 근거리 팽창을 제외하면 XY RMSE는 14.53 → 5.00 cm, heading95는 71.7 → 93.4%, MIRROR_FAIL은 1 → 0이다. XY RMSE 짝 차이의 10 s 블록 95% 구간은 [−12.87, −5.67] cm다.
+- M1-I 0.5 m에서 같은 근거리 팽창 제외를 적용하면 XY RMSE는 7.19 → 8.75 cm, heading95는 100 → 67.5%다. 이 대조를 근거리 결합 갱신 주장의 조건을 검토할 때 함께 읽어 주기 바란다.
+- 기준선·전체 팽창 재생의 상태, 공분산, 관측, gain parity 최대 차이는 0이다. 보고된 14개 조건의 점수를 별도 계산으로 확인했고, 원래 6자리 반올림 출력과의 최대 차이는 4.78e−7이다. 원격에서 NPZ 24개를 다시 받아 파일 해시·trace·점수 검증을 통과했다.
+
+| 자료 | 파일 |
+|---|---|
+| 전체 결과표·방향별 복원 및 약화 대조 | [REPORT_KO.md](section33_distance_ablation_d1/REPORT_KO.md) |
+| 복구한 원본 코드 | [original_main.py](section33_distance_ablation_d1/original_main.py), [original_directional_weaken.py](section33_distance_ablation_d1/original_directional_weaken.py) |
+| trace 저장 실행·파일 및 수치 검증 코드 | [run_replay.py](section33_distance_ablation_d1/run_replay.py), [verify_archive.py](section33_distance_ablation_d1/verify_archive.py) |
+| 동결 계약·실행 기록·수치 검산 | [RUN_CONTRACT.json](section33_distance_ablation_d1/RUN_CONTRACT.json), [EXECUTION.json](section33_distance_ablation_d1/runs/EXECUTION.json), [VERIFICATION.json](section33_distance_ablation_d1/VERIFICATION.json) |
+| M1-I·HF-KI·방향 약화 trace와 점수 | [runs/A1](section33_distance_ablation_d1/runs/A1/), [runs/A2_4](section33_distance_ablation_d1/runs/A2_4/), [runs/A2_4_weak](section33_distance_ablation_d1/runs/A2_4_weak/) |
+| 원래 출력·코드 출처 | [original_results](section33_distance_ablation_d1/original_results/), [SOURCE_PROVENANCE.json](section33_distance_ablation_d1/SOURCE_PROVENANCE.json) |
 
 **공통 조건.**
 - 앵커 B (10, 0, 2.65), mount 0, B0, Full RF
