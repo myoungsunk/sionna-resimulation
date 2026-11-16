@@ -1,0 +1,310 @@
+{
+  "status": "PASS",
+  "utc": "2026-11-16T03:05:51.560139+00:00",
+  "contract_sha256": "00ae740057888859394da1795c8b6bfd45d0517046a45d274b3aa523af28c94b",
+  "model_lock_sha256": "7122a132e7e7020e5b4bb15f9899b6d8a58099e4e20cc881efd3501df4a68faf",
+  "source_sha256": "74d9673551651999a02ec6c3ce1664fbd18ce14201c36308aa361dc64c17b606",
+  "runtime": {
+    "python": "3.13.15",
+    "numpy": "2.2.4",
+    "pandas": "2.2.3",
+    "scipy": "1.15.2",
+    "sklearn": "1.7.2"
+  },
+  "hgb": {
+    "feature_columns": [
+      "log_fp_power",
+      "abs_s_fp",
+      "early4",
+      "early8",
+      "early16",
+      "delay_rms_ns",
+      "peak_diff_ns",
+      "eta_fp_win80",
+      "s_diff4",
+      "s_diff8",
+      "s_diff16",
+      "tap_pol_var80",
+      "jones_diversity",
+      "freq_s_var",
+      "detector_s_span",
+      "detector_delay_span_ns",
+      "ds_-8",
+      "ds_-4",
+      "ds_-2",
+      "ds_-1",
+      "ds_+1",
+      "ds_+2",
+      "ds_+4",
+      "ds_+8"
+    ],
+    "max_iter": 200,
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 15,
+    "l2_regularization": 1.0,
+    "random_state": 0
+  },
+  "routes": {
+    "R2": {
+      "m0": {
+        "muBASE": {
+          "max_abs": 1.249000902703301e-16,
+          "max_normalized": 1.249000902703301e-16
+        },
+        "R": {
+          "max_abs": 9.194034422677078e-17,
+          "max_normalized": 9.194034422677078e-17
+        },
+        "muMB": {
+          "max_abs": 1.1102230246251565e-16,
+          "max_normalized": 1.1102230246251565e-16
+        },
+        "D": {
+          "max_abs": 6.522560269672795e-16,
+          "max_normalized": 6.522560269672795e-16
+        },
+        "z": {
+          "max_abs": 1.7763568394002505e-15,
+          "max_normalized": 2.1210417080925917e-16
+        },
+        "MR_range_mu": {
+          "max_abs": 8.326672684688674e-17,
+          "max_normalized": 8.326672684688674e-17
+        }
+      },
+      "donor_cases_hgb": {
+        "R4_aA_m0": 922,
+        "R4_aB_m0": 922,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      },
+      "donor_cases_power": {
+        "R4_aA_m0": 921,
+        "R4_aB_m0": 921,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      },
+      "power_model": {
+        "features": [
+          "log_fp_power"
+        ],
+        "bins": [
+          {
+            "bin": 0,
+            "n_train": 1869,
+            "n_test": 560,
+            "rho": 0.24097653477447054,
+            "Vr": 0.03297780899747752,
+            "Vs": 0.05552332917965937,
+            "mu_r_residual": -0.009853219395719497,
+            "mu_s_residual": -0.00012766294744427086
+          },
+          {
+            "bin": 1,
+            "n_train": 1869,
+            "n_test": 784,
+            "rho": 0.36207337398110667,
+            "Vr": 0.013768211598145686,
+            "Vs": 0.01163293909740913,
+            "mu_r_residual": 0.016855972692322453,
+            "mu_s_residual": -0.0034267717401233614
+          },
+          {
+            "bin": 2,
+            "n_train": 1870,
+            "n_test": 614,
+            "rho": 0.13885984355218922,
+            "Vr": 0.003673922430249092,
+            "Vs": 0.0022531264684588774,
+            "mu_r_residual": -0.0071559583260606486,
+            "mu_s_residual": 0.0035673180654113047
+          }
+        ],
+        "bin_feature": "log_fp_power",
+        "cutpoints_train": [
+          -4.4681981509961695,
+          -3.4490846059465645
+        ],
+        "cond_on_same_measurement": false,
+        "research_only": false
+      }
+    },
+    "R4": {
+      "m0": {
+        "muBASE": {
+          "max_abs": 1.1102230246251565e-16,
+          "max_normalized": 1.1102230246251565e-16
+        },
+        "R": {
+          "max_abs": 5.898059818321144e-17,
+          "max_normalized": 5.898059818321144e-17
+        },
+        "muMB": {
+          "max_abs": 1.3877787807814457e-16,
+          "max_normalized": 1.3877787807814457e-16
+        },
+        "D": {
+          "max_abs": 9.575673587391975e-16,
+          "max_normalized": 9.575673587391975e-16
+        },
+        "z": {
+          "max_abs": 1.7763568394002505e-15,
+          "max_normalized": 2.0838304500558798e-16
+        },
+        "MR_range_mu": {
+          "max_abs": 1.3877787807814457e-16,
+          "max_normalized": 1.3877787807814457e-16
+        }
+      },
+      "donor_cases_hgb": {
+        "R2_aA_m0": 1303,
+        "R2_aA_m45": 1303,
+        "R2_aB_m0": 1303,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      },
+      "donor_cases_power": {
+        "R2_aA_m0": 1302,
+        "R2_aA_m45": 1302,
+        "R2_aB_m0": 1302,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      },
+      "power_model": {
+        "features": [
+          "log_fp_power"
+        ],
+        "bins": [
+          {
+            "bin": 0,
+            "n_train": 2557,
+            "n_test": 323,
+            "rho": 0.30417092822380487,
+            "Vr": 0.0322320513573655,
+            "Vs": 0.056671149893934035,
+            "mu_r_residual": -0.005270333452218649,
+            "mu_s_residual": 0.009471479414897175
+          },
+          {
+            "bin": 1,
+            "n_train": 2557,
+            "n_test": 641,
+            "rho": 0.35639109389529033,
+            "Vr": 0.012792644613697458,
+            "Vs": 0.01045339113832856,
+            "mu_r_residual": 0.00877123619330774,
+            "mu_s_residual": -0.014153524641590932
+          },
+          {
+            "bin": 2,
+            "n_train": 2558,
+            "n_test": 520,
+            "rho": 0.15506108605195743,
+            "Vr": 0.0034457323399472244,
+            "Vs": 0.001729027988313432,
+            "mu_r_residual": -0.003848291674863198,
+            "mu_s_residual": 0.005276575336084568
+          }
+        ],
+        "bin_feature": "log_fp_power",
+        "cutpoints_train": [
+          -4.497216025336563,
+          -3.4500848407884583
+        ],
+        "cond_on_same_measurement": false,
+        "research_only": false
+      }
+    },
+    "R5": {
+      "m0": {
+        "muBASE": {
+          "max_abs": 1.1275702593849246e-16,
+          "max_normalized": 1.1275702593849246e-16
+        },
+        "R": {
+          "max_abs": 7.892991815694472e-17,
+          "max_normalized": 7.892991815694472e-17
+        },
+        "muMB": {
+          "max_abs": 1.1102230246251565e-16,
+          "max_normalized": 1.1102230246251565e-16
+        },
+        "D": {
+          "max_abs": 9.43689570931383e-16,
+          "max_normalized": 9.43689570931383e-16
+        },
+        "z": {
+          "max_abs": 1.7763568394002505e-15,
+          "max_normalized": 2.1995988083923184e-16
+        },
+        "MR_range_mu": {
+          "max_abs": 1.1102230246251565e-16,
+          "max_normalized": 1.1102230246251565e-16
+        }
+      },
+      "donor_cases_hgb": {
+        "R2_aA_m0": 1303,
+        "R2_aA_m45": 1303,
+        "R2_aB_m0": 1303,
+        "R4_aA_m0": 922,
+        "R4_aB_m0": 922
+      },
+      "donor_cases_power": {
+        "R2_aA_m0": 1303,
+        "R2_aA_m45": 1303,
+        "R2_aB_m0": 1303,
+        "R4_aA_m0": 922,
+        "R4_aB_m0": 922
+      },
+      "power_model": {
+        "features": [
+          "log_fp_power"
+        ],
+        "bins": [
+          {
+            "bin": 0,
+            "n_train": 1918,
+            "n_test": 688,
+            "rho": 0.0829178884796837,
+            "Vr": 0.019641392508048007,
+            "Vs": 0.07143076230334383,
+            "mu_r_residual": -0.004852294165422129,
+            "mu_s_residual": -0.00392387832669804
+          },
+          {
+            "bin": 1,
+            "n_train": 1917,
+            "n_test": 1233,
+            "rho": 0.003164115401441543,
+            "Vr": 0.00946566032495484,
+            "Vs": 0.01499187583683092,
+            "mu_r_residual": 0.008861499669343933,
+            "mu_s_residual": 0.006320344773203057
+          },
+          {
+            "bin": 2,
+            "n_train": 1918,
+            "n_test": 909,
+            "rho": 0.006866290365246031,
+            "Vr": 0.003546782606510179,
+            "Vs": 0.0030054126488357025,
+            "mu_r_residual": -0.0046237310249559885,
+            "mu_s_residual": -0.0028503780623059406
+          }
+        ],
+        "bin_feature": "log_fp_power",
+        "cutpoints_train": [
+          -4.482526892458106,
+          -3.4126070930248136
+        ],
+        "cond_on_same_measurement": false,
+        "research_only": false
+      }
+    }
+  },
+  "output_sha256": {
+    "R2_aB_m45_B0_Full_10__calibration.npz": "e7be2495c510e9dfd459e09c1122feb43a0f2671ec1608541ce971f19859bf67",
+    "R4_aB_m45_B0_Full_10__calibration.npz": "d918a153f2ebe3f3bf0be27a5b1c32f72cf466fc76c6a97c583795d8e414265c",
+    "R5_aB_m45_B0_Full_10__calibration.npz": "eaabd65a4978cb43e60b405fa3024d6b74a6f51a9093387bd14fe0251ab1608d"
+  }
+}
