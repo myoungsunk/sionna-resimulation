@@ -81,3 +81,7 @@ Snowball에서 G6를 통과한 유한 반사면 검사를 0° F1에 적용해 �
 | G4·봉인 검사 | PASS | 11개 케이스의 조합·항목별 p90 &#124;Δs&#124; 최댓값은 1.117 × 10⁻⁶(기준 0.005)였다. G-T2·G-V의 +45° 봉인 18개와 0° 봉인 기록의 SHA-256을 확인했다. [G4](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/gates/G4.json) · [봉인 검사](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/results/gates/SEAL_STORAGE_CHECK.json) |
 
 0° 생산 원본의 G6 판정은 FAIL로 보존되어 있다. +45° 원본 배열과 trace는 Snowball의 `/home/KMS/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5`에 보관한다. 최종 산출물은 3,951,944,324 B다. 저장소의 실행 코드와 검증 기록을 [전송 파일 체크섬](evidence/Production/G1_RT_TB3_MOUNT45_20261115T074417Z_IJyLT5/SNOWBALL_FILES.sha256)으로 대조할 수 있다.
+
+### 유한 반사면 검사를 적용한 +45° 재생성·G4
+
+2026-11-16 KST Snowball에서 G6 유한 반사면 검사를 적용한 +45° 생산과 G4를 완료했다. 기본 9개와 P-F 2개 조합에서 61,992 pose를 재생성했다. 27,810 pose의 PATHS_NEAR와 H를 같은 trace에서 저장했다. 필터를 적용한 0°와 26,460개 추적 위치의 경로 개수와 제거 기록이 일치했고, 문제 경로 4개는 각각 17개 노드에서 제거됐다. G4는 11개 조합·71,136관측에서 **PASS**였다. 조합·arm별 P90 절대 편차의 최댓값은 1.11683 × 10⁻⁶(기준 0.005)이었다. G-T2·G-V 봉인 파일 18개의 검사도 통과했다. 첫 실행에서 메모리 할당에 실패한 샤드 8개만 재실행했고 오류 기록을 보관했다. [실행 기록](evidence/Production/G1_RT_TB3_FINITE_FACE_MOUNT45_20261115T133901Z_gMgSBo/RESULT_KO.md) · [G4 판정](evidence/Production/G1_RT_TB3_FINITE_FACE_MOUNT45_20261115T133901Z_gMgSBo/results/gates/G4.json).

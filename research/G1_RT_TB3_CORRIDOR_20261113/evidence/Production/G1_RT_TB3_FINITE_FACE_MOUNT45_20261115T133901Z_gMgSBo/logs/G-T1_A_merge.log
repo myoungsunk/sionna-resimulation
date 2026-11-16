@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/run/code/merge_tb3_production.py", line 241, in <module>
+    main()
+  File "/run/code/merge_tb3_production.py", line 237, in main
+    merge(args.inputs, args.g7, args.case, args.shards, args.out)
+  File "/run/code/merge_tb3_production.py", line 202, in merge
+    np.savez_compressed(p_dir / "PATHS_NEAR.npz", frequencies_hz=frequencies,
+  File "/opt/rt-env/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 753, in savez_compressed
+    _savez(file, args, kwds, True, allow_pickle=allow_pickle)
+  File "/opt/rt-env/lib/python3.11/site-packages/numpy/lib/_npyio_impl.py", line 786, in _savez
+    format.write_array(fid, val,
+  File "/opt/rt-env/lib/python3.11/site-packages/numpy/lib/_format_impl.py", line 777, in write_array
+    fp.write(chunk.tobytes('C'))
+             ^^^^^^^^^^^^^^^^^^
+MemoryError

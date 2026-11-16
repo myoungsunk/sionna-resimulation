@@ -1,0 +1,134 @@
+{
+  "status": "PASS",
+  "case": "G-T1_A",
+  "role": "IMPLEMENTER",
+  "code_commit": "a2dff24f603c2460fcf7cabf5597cbf0da7ad551",
+  "question_ids": [
+    "G1-RT-TB3-001",
+    "G1-RT-TB3-002"
+  ],
+  "engine": {
+    "question_id": "G1-RT-TB3-001",
+    "spec_revision": "v1.1",
+    "status": "ADOPTED",
+    "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+    "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+    "base_nodes": 17,
+    "channel_bins": 257,
+    "mount_deg": 45,
+    "solver": {
+      "max_depth": 3,
+      "samples_per_src": 100000,
+      "max_num_paths_per_src": 1000000,
+      "synthetic_array": true,
+      "los": true,
+      "specular_reflection": true,
+      "refraction": false,
+      "diffraction": false,
+      "edge_diffraction": false,
+      "diffuse_reflection": false,
+      "seed": 20260924
+    },
+    "finite_face_guard": {
+      "stage": "PRE_FIELD",
+      "g6_result_sha256": "e97a4d41378d4de96f58c377622861f4c72d649c8ae12c33571c3928bdf9f8df",
+      "runtime_sha256": {
+        "field_calculator.py": "e12807588d19bd2ab404623fa99568f838178bb5d5cc2067b1e2e4007e58defe",
+        "paths.py": "c81f15e7ae6eddd89cd82ff10025db70e79fbbc19eec3a8cd2ce8d1ef1f852da",
+        "path_solver.py": "751c4b7dad2f4e97cfdacf297ae7b5ea39b0e4633ee334246d9af6b9b5e61a1a",
+        "image_method.py": "f1983dc1b5a6038f95788f331855f798552e216caa04c6361443ec0cc5015d2a"
+      }
+    }
+  },
+  "scope": "G8_CANARY",
+  "g0_manifest_sha256": "48ebdcdde68f3d62ec1b00c3061440f9363313ef35577f409eb5b5c0b75c13b6",
+  "g7_manifest_sha256": "a1542122461b919f55ad2ce43314ba0a3732e0611a574fd51fa692e6b03e9830",
+  "production_sha256": "0a74cafea16e141fccdfc10930bfa0f3ddea4c92ea4631285525b905573fb1e9",
+  "reference_sha256": "1f0b9082a8b5fbf8aa43ebdb585808f3b288b49efe2db25dd56944e471199252",
+  "ffd_manifest_sha256": "0017f2171da5d3729e4ad91d0d44384937d83213640c347ff12dda53e763a96e",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "source_sha256": {
+    "run_tb3_production.py": "5af5108fd3212e329c0d1ba357e7ee4f7ad9e1ef603a33a7d4f9d1c94e6f0a01",
+    "run_tb3_g1_pilot.py": "a8b086875196bbb778e68cd2821be08cd72fc34f83d0ef0fd116e3baa59dacf2",
+    "run_tb3_g8_pilot.py": "89073bd6cd5b30e3be3e3bcc79ede013a13be35157fe4d8100e617941120bd7e",
+    "tb3_native_los.py": "2c23394a409cff375e4309bfdb2b75f6ee7675cf08a5ab30be555b025420efa9",
+    "tb3_paths_near.py": "2789f3ac3377c262d8f84f24099504218d6e72b852ac20c814a2cef07aa851e3",
+    "tb3_finite_face_guard.py": "7de7679e4ba735f3eeab8b96b72400cdb62baacd3664565d8112cb7db6c622ee",
+    "tb3_g6_face_match.py": "be58e95fd438add0aa9b8e11fd8cd0adb85d007d6523c8dda7271e61e0cdc135"
+  },
+  "shard_index": 0,
+  "shard_count": 1,
+  "trace_positions": 6,
+  "poses": 332,
+  "main_poses": 332,
+  "diagnostic_poses": 0,
+  "near_pose_count": 332,
+  "solver_calls": 102,
+  "extra_export_solver_calls": 0,
+  "native_field_batch_positions": 64,
+  "started_utc": "2026-11-15T13:39:14.542362+00:00",
+  "finished_utc": "2026-11-15T13:39:54.971208+00:00",
+  "wall_s": 40.428849791991524,
+  "timings": {
+    "trace_s": 24.559182168042753,
+    "native_field_s": 8.374759981001262,
+    "apply_s": 2.112687717017252,
+    "save_s": 1.0956008450011723
+  },
+  "command": [
+    "/opt/rt-env/bin/python",
+    "/run/code/run_tb3_production.py",
+    "--inputs",
+    "/run/g0",
+    "--g7",
+    "/run/g7",
+    "--source",
+    "/ref",
+    "--reference",
+    "/run/frozen/REFERENCE.json",
+    "--ffd-manifest",
+    "/run/frozen/FFD_RESTORE_MANIFEST.json",
+    "--production",
+    "/run/config/PRODUCTION_F1.json",
+    "--case",
+    "G-T1_A",
+    "--out",
+    "/run/canary01",
+    "--g8-canary",
+    "/g1",
+    "--canary-los-reference",
+    "/run/los_reference",
+    "--code-commit",
+    "a2dff24f603c2460fcf7cabf5597cbf0da7ad551",
+    "--finite-face-guard"
+  ],
+  "runtime_versions": {
+    "sionna-rt": "2.0.1",
+    "mitsuba": "3.8.0",
+    "drjit": "1.3.1",
+    "numpy": "2.4.6"
+  },
+  "output_sha256": {
+    "CANARY.json": "6990010309f20abb51aa22003fbe912bda3e4ae0e5ee4dea735f29ee4f820610",
+    "H_LoS.npy": "c95135e2ce12ac9f08034d18b43ba4bf812dfeb4e2e1163b949f22d5c829df0a",
+    "H_full.npy": "fb9822f258ff9197982c0537d304cae06e9e027c347eeb844e6d3e1f29045a5e",
+    "PATHS_LoS.npz": "14b9517f755976db2570ec10c1229e2f5da75b000ebf54d8d21f520975ed65a3",
+    "PATHS_NEAR.npz": "3cd11864b0d1b9cf3a34bf40de13c9c0a0356ac0ceb8350434d95e489253df9d",
+    "PATHS_NEAR_SCHEMA.json": "e198c5cc85a6b5d7478715c70ffb3da2765390cb862b50f03b048f65114da4c4",
+    "POSE_IDS.npy": "8c7a06d6f5df58ea1305d0b214d1f162fd0941913f640cf34fcc83e3de731e7f",
+    "TRACE_RECEIPTS.json": "f6c6cdb7de0c4c032e789f57ae5a89e3dbcbd4fd0f2171e2e1ba27d92f60d65d"
+  },
+  "output_bytes": {
+    "CANARY.json": 583,
+    "H_LoS.npy": 5460864,
+    "H_full.npy": 5460864,
+    "PATHS_LoS.npz": 2855343,
+    "PATHS_NEAR.npz": 8339784,
+    "PATHS_NEAR_SCHEMA.json": 1906,
+    "POSE_IDS.npy": 2784,
+    "TRACE_RECEIPTS.json": 6481
+  }
+}
