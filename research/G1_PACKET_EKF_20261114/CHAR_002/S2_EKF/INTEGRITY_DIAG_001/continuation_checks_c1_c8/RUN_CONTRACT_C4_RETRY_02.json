@@ -1,0 +1,43 @@
+{
+  "question": "G1-INT-001/KS-C1-C6",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T01:40:25.033467+00:00",
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\RUN_CONTRACT_C1_C6.json",
+      "sha256": "ea9b02bd75132d7ef9eb670d9df2aff6113c442a4f68245fb4ac1caea9cf8d48"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_01\\EXECUTION.json",
+      "sha256": "723f503edd3cc676bfac8d1a45f6720e2bae9fb0228ce3a371c249c92251dd44"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_c4_retry_02.py",
+      "sha256": "0b86ecfc00a625f9f54db65f7d01a510984926c31a526c5cba0a5b42598d6c63"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_c4_retry\\EXECUTION.json",
+      "sha256": "8df4533aa1b87d8a8175620eb002191087e96fe815507301ae730edb1ec4eb39"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\RUN_CONTRACT_C4_RETRY.json",
+      "sha256": "833c360e213579d805e6d49c325d9fa2e89930babd58279fccb21ed192522b85"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_c4_retry.py",
+      "sha256": "b74f384b4792918893bd457a9146e2233aa0871b3e307bc2566ed891bf0a979f"
+    }
+  ],
+  "original_rules": {
+    "trigger": "C5 does not pass",
+    "strict_variants": [
+      "norm_full",
+      "norm_xy",
+      "directional"
+    ],
+    "fit": "separate two-donor NNLS per distance bin using centered squared D3 slow target and equal donor weight; keep distance-only length and all other parameters",
+    "scalars": "full squared norm of [H_x*1m,H_y*1m,H_yaw*1rad] and squared XY norm; directional three terms H_j^2 P_jj / R_ref_ss in yaw,x,y order, no cross terms; intercept for each",
+    "scope": "same fold/packet/support and original V8 thresholds; all preregistered variants reported; no selection or adoption"
+  },
+  "correction": "Replay donor under holdout's E0-LORO sigma table to reconstruct H and Pprior. Verify frozen M3 prior, Reff, mask, t, pose_id and g parity before fitting. Attach immutable online packet t/pose_id explicitly, as replay_sigma returns scored states without these packet identity fields."
+}

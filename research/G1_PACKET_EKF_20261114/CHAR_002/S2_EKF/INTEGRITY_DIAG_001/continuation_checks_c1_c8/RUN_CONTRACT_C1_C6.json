@@ -1,0 +1,110 @@
+{
+  "question": "G1-INT-001/KS-C1-C6",
+  "role": "IMPLEMENTER",
+  "base_commit": "8305058bcea6a0e29b45675ea148bfa0ee85aa0c",
+  "frozen_utc": "2026-11-16T01:35:11.451289+00:00",
+  "source": {
+    "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_followup.py",
+    "sha256": "13f64512d5446b0cf2a74b8c7df7c8c87637aa4e2880a6da071efe8dba62a888"
+  },
+  "governance": [
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\RUN_CONTRACT_RETRY_03.json",
+      "sha256": "89f8d5e0b407616e9e86e1de187928efebe86f6852f4682d85e202a06c2598d5"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\EXECUTION.json",
+      "sha256": "d28f44847a76af193aa7483c83f7af986c19a044258e43f15125c9d86596ca2e"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\PLAN_FROZEN.md",
+      "sha256": "1a5b5991b1e712b2a2d2b97ae38fe157832e046a7c75b0c92b7e959afa501973"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\FITTED_PARAMETERS.json",
+      "sha256": "11395e5aa7edc1756b3c33a7fdec4b68b8af14ad10b696870bb3c8471e53ab57"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V8.json",
+      "sha256": "92dfdf6e0c0e7c7a8f34c1ed44b51d9804b7af97865aec0b3d534b4a394e96ae"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V3.json",
+      "sha256": "726996a60f4d5c7cf433af5dc7e398c9021ae6cf52807bdaea4b275099e1b54a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V3_a.npz",
+      "sha256": "f1b0b04745c5bbfd991b7cfec4ade5a3467dd605b4d80cb96274b9b69f40b25c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V3_b.npz",
+      "sha256": "df639751810a719e5ea7c1dc8ed793c6cd9a371153eee8dde8108b64f9f0d917"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V3_c.npz",
+      "sha256": "ed4680dea93c0bdfa64f31d019b5525fce3f79b558ba522d15c2d3b6b546849a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_03\\V3_a_prime.npz",
+      "sha256": "fa753965e6e36e9b4e3deabcf38732f5e1a63c6718751de2f2359b415f2ad604"
+    }
+  ],
+  "rules": {
+    "C1": "Freeze V3(a) realized per-packet V_l_op, fast inflation and mask. KI adds frozen slow causal excess to matched marginal. WHITE adds V_l_op to frozen V3(a) Reff. WHITE_REF adds V_l_op to contemporaneous R_ref as literal additive variance control.",
+    "C2": {
+      "multipliers": [
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.5,
+        2.0,
+        4.0
+      ],
+      "policies": [
+        "cap",
+        "uncap"
+      ],
+      "fixed": "original V3(a) lengths and fast parameters; log requested and applied variance and caps",
+      "criterion": "original V3 (a) criterion, tested grid only, no new V8 criterion"
+    },
+    "C3": {
+      "fixed_controls": "cross a/c requested variance and a/c lengths in both directions, pure g^2 allocation from own a sill normalized on V3(a) E0-LORO D3 eligible g^2 in own distance bin",
+      "common_lengths_m": [
+        0.5,
+        1.0,
+        2.0,
+        4.0
+      ],
+      "series": [
+        "a",
+        "c"
+      ],
+      "cap": "all comparisons capped as originals"
+    },
+    "C6": "NIS <= native 9.210340371976184 at candidate own prior with augmented S and its own accepted history. Compare a/c at fixed/own gate. Peak reference is each fixed variant and LORO, local maxima of absolute heading error above its trajectory 90th percentile. Record differences for all original rejections and own changes, nearest peak time and counts within 1 s.",
+    "C5": "For each holdout compute one multiplier max across distance bins of larger/smaller centered slow D3 donor variance with original support and minimum variance. Multiply original distance-only donor estimate, use distance-only donor lengths and fixed E0 mask, cap as original. Compare to k=1. Apply the frozen plan section 5 criteria as diagnostic; any failed or unsupported condition triggers C4/C7 investigations, no KS admission reset.",
+    "C4": {
+      "trigger": "C5 does not pass",
+      "strict_variants": [
+        "norm_full",
+        "norm_xy",
+        "directional"
+      ],
+      "fit": "separate two-donor NNLS per distance bin using centered squared D3 slow target and equal donor weight; keep distance-only length and all other parameters",
+      "scalars": "full squared norm of [H_x*1m,H_y*1m,H_yaw*1rad] and squared XY norm; directional three terms H_j^2 P_jj / R_ref_ss in yaw,x,y order, no cross terms; intercept for each",
+      "scope": "same fold/packet/support and original V8 thresholds; all preregistered variants reported; no selection or adoption"
+    },
+    "bootstrap": "original KS 1500 draws with paired 5 and 10 s blocks on full grids, seed 20261115"
+  }
+}
