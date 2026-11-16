@@ -1,0 +1,40 @@
+{
+  "question_id": "G1-FINAL-MODEL/STAGE0-TRACE-DIAG-20261116",
+  "lane": "rref_exposure",
+  "frozen_utc": "2026-11-16T10:23:03.246165+00:00",
+  "root_contract_sha256": "3e6413fa4294ab8e5568b9811477504f02711eb8f8585846da989edff713eb59",
+  "implementation_sha256": "6679764a75f0cca89c8ca5aa5664cff833921f9173c268005aabf9f4fc70d894",
+  "definitions": {
+    "primary_seed": 10,
+    "reference": "Archived M6 G0 prior geometry, fixed accepted mask, archived D3 eps/slow/support",
+    "distance_edges_m": [
+      0,
+      1.5,
+      3,
+      6,
+      10
+    ],
+    "bin_closure": "left-closed right-open",
+    "marginal_ratios": [
+      "mean(eps_s^2 / R_ref_ss)",
+      "mean((eps_s-mean(eps_s))^2/R_ref_ss)",
+      "mean(slow_s^2/R_ref_ss)",
+      "mean((slow_s-mean(slow_s))^2/R_ref_ss)"
+    ],
+    "kernel": "rho_ij=exp(-abs(arc_i-arc_j)/1m-abs(yaw_i-yaw_j)/10deg), diagonal1",
+    "causal_window": "Current packet plus accepted past within10s and at most100 past, based on archived baseline motion",
+    "kernel_counts": "N_w=sum current-past rho. N_eff=N^2/sum over all window rho_ij. Report both separately.",
+    "information_proxies": [
+      "sum(rho_current_j*g_j^2/R_j)",
+      "g_rms_window^2 * N_eff",
+      "g_rms_window^2 * N_w",
+      "sum(g_j^2/R_j)*N_eff/N"
+    ],
+    "interpretation": "Kernel counts use the already frozen length scales, not independently fitted RF correlations. Sensitivity-square products are scalar-heading local exposure proxies, not full pose Fisher information."
+  },
+  "population": "accepted AND D3-supported; raw-only accepted population additionally reported",
+  "distance_geometry": "G0 prior horizontal rho_before",
+  "motion": "arc=cumsum(abs(ds)), yaw=cumsum(abs(wrap(gy-previous G0 b_g*dt)))",
+  "kernel_history": "all accepted history regardless of current distance bin; current packet included",
+  "R_ref": "archived G0 Reff_ss; G0 is E0-LORO-sigma_b, not original E0"
+}
