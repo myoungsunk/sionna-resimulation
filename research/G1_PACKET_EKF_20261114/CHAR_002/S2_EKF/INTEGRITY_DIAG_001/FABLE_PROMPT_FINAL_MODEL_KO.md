@@ -47,7 +47,7 @@
 | 6 | `FABLE_PROMPT_STRUCTURE_CHARACTERIZATION_KO.md` (직전 프롬프트, F1–F11 사실 목록) | `39d3a53` |
 | 참고 | M5 `hfki_m5/attempt_02/stage2·3/REPORT_KO.md`, R5 진단 `continuation_checks_c1_c8/r2_r5_failure/R5_DIAGNOSTIC_DATA_KO.md` | `eee3795`, `f4cd09e` |
 
-외부 논리 검토문은 저장소에 없다. 핵심을 §2와 §5에 옮겼다. 직전 프롬프트 §3.3의 거리별 팽창 제외 재생도 아직 저장소에 원본 코드와 trace가 없다. 검토자도 이 점을 지적했다.
+외부 논리 검토문은 저장소에 없다. 핵심을 §2와 §5에 옮겼다. 직전 프롬프트 §3.3의 거리별 팽창 제외 재생은 [D1 게시 묶음](section33_distance_ablation_d1/README.md)에 코드·결과·trace를 올렸다. 원래 인라인 실행 코드를 복구하고 같은 코드로 trace를 저장했다. 세 재생의 결과 JSON은 원래 출력과 정확히 일치한다.
 
 **공통 조건.**
 - 앵커 B (10, 0, 2.65), mount 0, B0, Full RF
@@ -203,7 +203,7 @@
 
 | # | 자료 | 해결하는 질문 | 현재 상태 |
 |---|---|---|---|
-| D1 | §3.3 거리별 제외 재생의 코드·trace 게시 | 근거리 결합 갱신 근거의 재현성 | 사용자 실행, 미게시 |
+| D1 | §3.3 거리별 제외 재생의 코드·trace 게시 | 근거리 결합 갱신 근거의 재현성 | [게시 완료](section33_distance_ablation_d1/README.md), 원본 코드 복구·trace 재실행 |
 | D2 | **DR 단독 대조 arm** (편파 갱신 없음, 거리만) | 편파 heading의 순이득. Goal 1 정확도 주장(DR/TB3 대비)의 전제 | 한 번도 실행하지 않음 |
 | D3 | seed별 자체 gate와 초기화 재생 | seed 결과가 고정 gate의 산물인지 | 미실행 |
 | D4 | 독립 RF 실현: 같은 복도의 다른 경로·위치, 또는 새 RT 장면 | 결론의 일반화. 거울해와 seed 취약성의 RF 의존성 | 없음 |

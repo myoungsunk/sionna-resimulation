@@ -47,7 +47,7 @@
 | 6 | `audit_m45_donor/README.md`, `audit_c1_c8/AUDIT_KO.md` (기전 진단, 거울해 분석) | `3b2bc76`, `46b407d` |
 | 참고 | 재생 코드: `hfki_m5/hfki_replay.py`, `exposure_m1_m4/exposure_replay.py` | — |
 
-거리별 팽창 제외 재생(§3.3)은 사용자가 따로 실행했다. 이 프롬프트를 작성하는 시점에는 저장소에 올라가지 않았으므로, §3.3의 표가 그 재생의 근거 자료다.
+거리별 팽창 제외 재생(§3.3)은 사용자가 따로 실행했다. 당시에는 표만 게시됐다. 이후 [D1 게시 묶음](section33_distance_ablation_d1/README.md)에 원본 인라인 실행 코드와 출력 JSON을 복구하고 trace를 재실행해 저장했다. 원래 출력과의 일치 검사와 실행 계약을 함께 게시했다.
 
 **공통 조건과 기하.**
 - 앵커 B (10, 0, 2.65), mount 0, B0, Full RF. 상태는 [x, y, ψ, b_g]다.
