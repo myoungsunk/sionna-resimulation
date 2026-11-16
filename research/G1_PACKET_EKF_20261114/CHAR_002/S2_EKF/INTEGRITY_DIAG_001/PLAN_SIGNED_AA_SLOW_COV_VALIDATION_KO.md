@@ -6,7 +6,7 @@
 - 출발 기준: research/g1-sweep-heading-floor-spec-20261113, 커밋 c404b3901357c596dc886efae128d19bd3d397b1(2026-11-16). 이 문서의 commit SHA는 게시 후 고정한다.
 - 데이터 1차: BLOCK_C R2/R4/R5 × anchor B × mount 0 × B0 Full, 기존 RF/LoS·truth 및 D3 진단 배열. anchor A, CHAR-001 RT G-T1의 TEACH/REPEAT·yaw sweep은 2차 독립 지원/기하 확인에만 사용한다.
 - 기존 운영 M7은 별도 [PLAN_M7_FINAL_MODEL_STAGE1_KO.md](PLAN_M7_FINAL_MODEL_STAGE1_KO.md). 본 검증에 M7 점수를 사용해 공분산 모델을 선택하지 않는다.
-- 기존 참고: [M6 K1′·K2](gm_theta_m6/characterization_tables/attempt_02/REPORT_KO.md), [M6 전체](gm_theta_m6/attempt_02/results/REPORT_KO.md), [D2/D3](continuation_d2_d3/REPORT_KO.md), [M1–M4](exposure_m1_m4/run_01/REPORT_KO.md), [Stage 0](final_model_stage0/REPORT_KO.md), [CHAR-001](../../../../CHAR_001/REPORT_KO.md).
+- 기존 참고: [M6 K1′·K2](gm_theta_m6/characterization_tables/attempt_02/REPORT_KO.md), [M6 전체](gm_theta_m6/attempt_02/results/REPORT_KO.md), [D2/D3](continuation_d2_d3/REPORT_KO.md), [M1–M4](exposure_m1_m4/run_01/REPORT_KO.md), [Stage 0](final_model_stage0/REPORT_KO.md), [CHAR-001](../../../CHAR_001/REPORT_KO.md).
 - 지침: 기존 RESEARCH-GOVERNANCE-v1을 준수한다. source/evaluator/모형/모수 SHA는 실행 계약 동결 단계에 채운다. 계획 게시 자체는 실행 승인 아님.
 
 ## 0. 연구 질문과 반증 가능성
@@ -123,7 +123,7 @@ CHAR-001의 5 m 창 '느린 공간장 3–14%'와 D3의 '국소 느린 성분 35
 
 | 단계 | 작업 | 반드시 남길 결과 | 중단 기준 |
 |---|---|---|---|
-| P0 | 입력 가용성·측정 정의·FFF/LoS parity·signed Jacobian 및 support | INPUT_INDEX.json, SOURCE_HASHES.json, SUPPORT.json | 원본 RF·truth mismatch, signed deriv 부정확, source 불명 |
+| P0 | 입력 가용성·측정 정의·FFD/LoS parity·signed Jacobian 및 support | INPUT_INDEX.json, SOURCE_HASHES.json, SUPPORT.json | 원본 RF·truth mismatch, signed deriv 부정확, source 불명 |
 | P1 | exact pair/cluster 생성, sign 지원·identifiability·분할 동결 | PAIR_INDEX.csv, SPLITS.json, PRE_REGISTERED_CONTRACT.json | 시간·경로 누설, sign/지원 미달 시 해당 fold만 NO_SUPPORT |
 | P2 | synthetic 및 null 대조 | TESTS.json, NULL_CONTROLS.json, CHECKS.json | 어느 필수 테스트라도 실패 |
 | P3 | donor 적합, held-out route/block 예측, 2,000회 cluster CI | FITS.json, HOLDOUT_SCORES.json, SIGN_CONTRAST.csv | holdout 사용한 적합·모델 재선택 |
