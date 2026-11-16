@@ -1,0 +1,78 @@
+{
+  "question": "G1-CHAR002-S2-MOUNT45/CHECKLIST-01",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T03:25:54.229353+00:00",
+  "publication_commit": "5b044c43b0c5a3a201e80ecb957bbee5addc8cdd",
+  "branch": "research/g1-sweep-heading-floor-spec-20261113",
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "scope": {
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ],
+    "anchor": "B",
+    "bias": "B0",
+    "seed": 10,
+    "mount_deg": 45
+  },
+  "limits": {
+    "branch_fixed_normalized_derivative": 1e-06,
+    "yaw_equivalence_abs": 1e-12,
+    "los_s_p90_abs": 0.005,
+    "los_tap_mismatches": 0,
+    "e0_h_normalized": 1e-10
+  },
+  "fd_steps_m_rad": [
+    1e-05,
+    3e-06,
+    1e-06,
+    3e-07
+  ],
+  "fd_rule": "Centered derivative at the largest declared step with center, endpoints and half-step points on the same FFD cell, O30 tap and strongest-port branch. Report all exceptions. State 4 has zero direct sensitivity.",
+  "los_rule": "P0 style native tap equality plus G4 P90(abs(sFFDbatch-sLoS)) <= 0.005. The archived LoS itself is used only for this verification.",
+  "paired_rf_rule": "Legacy BLOCK_C m0 and V01B m45 must match their manifest hashes, same raw pose grid and shared RT traces with only --mount and --out changed. Claim is restricted to those paired legacy traces.",
+  "inputs": {
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\RUN_CONTRACT.json": "00ae740057888859394da1795c8b6bfd45d0517046a45d274b3aa523af28c94b",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\PARITY_RESULTS.json": "3c715e06bd0b4e5a051cb7a712974e85854418d293174802e3369c1901d147d0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\CALIBRATION_PARITY.json": "81f2ecfc69b0fa6da9d5615032d353205681115eec45c903e09b94fe996220f8",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\CALIBRATION_MODEL_LOCK.json": "7122a132e7e7020e5b4bb15f9899b6d8a58099e4e20cc881efd3501df4a68faf",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__online.npz": "903dc266585445d18c8986b289c2d36848a126411ca6dd77124549d51fc82436",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__evaluator.npz": "c669bf4c9c49825fe67b1705766afebccc5466460d407a4a7efc169442dbbb59",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__e0_trace.npz": "576b4dee326fe85b4f12976096fa808720225f2e8953d009c9f5140ed762bba7",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R2_aB_m0.manifest.json": "2f97966d187ea26bcceb9c6a4b2c6c3f6aaeed68d9bfb5c804fafaf97c706a13",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R2_aB_m45.manifest.json": "24bf9f59c718ba99f3ab4fa2c21e77cf638e412827aa1804987075ea618181bd",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\FULL_RF\\H_R2_aB_m0.npy": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+    "D:\\SLAM_bot\\artifacts\\V01B_DATA_DELIVERY_20261012_01a12ba0\\checkout\\research\\V01B_DATA_REQUEST_20261011\\DELIVERY_A_20261012\\H_R2_aB_m45.npy": "fb229e187f9498025847ca550e061d3ab2cd82624f1c6e20ed9b78a5e7a60f75",
+    "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\artifacts\\i0_los_release_originals\\H_LoS_R2_aB_m45.npy": "7046e0a8dc0eb21950f5d1d2d1876059c6311851d731b2b62e4a7a8317cb9831",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\INPUTS\\rf_poses_R2.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R2_B0_Full_10__online.npz": "39b3001fae85ab7839c2afa33e3ec62d141fabfa4a0aafc70262a69029008bca",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R2_B0_Full_10__evaluator.npz": "90e4e2ad81a277290178ce50ba021ed2164ce2efcdf2b97908eb6104005da8c6",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__online.npz": "46c67dc611baeb95d02b0539d5496fd4ff583ea1750b9128af23ffa9a937dd89",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__evaluator.npz": "1225ff88e8abdeb40da2bcdb44522c3b64fa3c57c9e71d442cb98fe0d3612bdd",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__e0_trace.npz": "650e67597b84a21d6b9178a4527357c6d46b40eb8c6f34712c0b5966c9302308",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R4_aB_m0.manifest.json": "5e2beff44c0a17ecdd6772c34b1d11c79ab99add3f65962ff7b077138e95bb77",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R4_aB_m45.manifest.json": "997c4b57e2713acd929573a986d887dfa144bb02cddeca95cfcb91f3af578569",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\FULL_RF\\H_R4_aB_m0.npy": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+    "D:\\SLAM_bot\\artifacts\\V01B_DATA_DELIVERY_20261012_01a12ba0\\checkout\\research\\V01B_DATA_REQUEST_20261011\\DELIVERY_A_20261012\\H_R4_aB_m45.npy": "3f76d713edccf90ed1d20c8e0f65064add3ca5c5340b56d11c1f391ca81c791d",
+    "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\artifacts\\i0_los_release_originals\\H_LoS_R4_aB_m45.npy": "8515d1e0e0383b607c51078f88485e460a780a78de608fe20a706f919fb0fb8f",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\INPUTS\\rf_poses_R4.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R4_B0_Full_10__online.npz": "1a52c3b0138ab78a2da815a93514bd2044a712e8afdccc0821e7a9a4f51dc79a",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R4_B0_Full_10__evaluator.npz": "b5cd93a576c300b2ba371c3755e1ab9e1c8141a742206a8bd69014b16fd20f60",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__online.npz": "27b29339dbdb822c762d2790624ab6b9acf1d010243dd656bc511a4aa0a271f2",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__evaluator.npz": "ff46504606d318ed7e1875b16e2f2cdcc0f39b3b6f945d864e294b271d2e1a55",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__e0_trace.npz": "e7ba0504f70ac0a27174c9099465c40b59e227f969a11bf9f5e568ddc33319bb",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R5_aB_m0.manifest.json": "d8ef170611ebf9c938246a5a2af107dbc8248bff2218fac0303a75651de09b7f",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_ROUTES_20261007_01a11669\\final_20261007T140446Z\\results\\S2\\H_R5_aB_m45.manifest.json": "5846c3a0436b11e6eb4bb251e6782e0658ae449b9b2ca6c934d18d3d74369f12",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\FULL_RF\\H_R5_aB_m0.npy": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+    "D:\\SLAM_bot\\artifacts\\V01B_DATA_DELIVERY_20261012_01a12ba0\\checkout\\research\\V01B_DATA_REQUEST_20261011\\DELIVERY_A_20261012\\H_R5_aB_m45.npy": "8f0d87f213a04d6861d6de12f557ce5ce4ae2ba369b9c94e49496bc4f3e154e9",
+    "D:\\SLAM_bot\\artifacts\\dr_ekf_followup_audit_20261013\\artifacts\\i0_los_release_originals\\H_LoS_R5_aB_m45.npy": "a4406847a98b5d58a75e1927bc106815d956fa15b062fa6095e08ef008c115a0",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\INPUTS\\rf_poses_R5.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R5_B0_Full_10__online.npz": "78627ecb89915191bff3f81291fd3df1fb51e6e51eee4264cd507e9076e7a424",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\locked_release\\R5_B0_Full_10__evaluator.npz": "b7b3fa5ce18f22108657c409d474747eea54b1cb8a8455c476c3235246d65661"
+  },
+  "code_sha256": "1f814df481d122e590c58431d40ea4c72ccd35499730592abc2a5819135c6bf1"
+}

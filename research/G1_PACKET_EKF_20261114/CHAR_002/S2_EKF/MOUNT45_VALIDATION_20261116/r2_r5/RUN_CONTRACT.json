@@ -1,0 +1,415 @@
+{
+  "question": "G1-INT-001/KS-R2-R5-FAILURE/M45-B-B0",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T04:12:24.116174+00:00",
+  "source": {
+    "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\r2_r5\\run_r2_r5_bound.py",
+    "sha256": "165e94e34fe81287e047733fff1e77c6c257fca878d2498dba566d0548ce8394"
+  },
+  "rules": {
+    "scope": "Post-hoc DIAGNOSTIC_ONLY; B/B0 mount +45 seed 10, R2/R5. No model fit or adoption.",
+    "fixed": "Existing data, E0-LORO-sigma_b reference, common frozen mask, dynamics and mean.",
+    "C5_memory": "At each original k, independently suppress slow covariance memory (return V_l to white, preserve fast partition/history) and fast causal excess (empty history). Both off must agree with LORO.",
+    "C5_distance": "Apply conservative k in exactly one existing prior distance bin at a time, and in all bins except one at a time; compare with both original endpoints.",
+    "C4_R2": "Use frozen directional coefficients, replace with original C5 distance-only variance in exactly one of the three existing bins at a time.",
+    "scoring": "Full original scoring grid, paired 5/10 s bootstrap, plus fixed 10 s and LORO-prior distance strata; truth only for scoring.",
+    "interpretation": "Recomputed priors, gains and cap events are downstream effects of each intervention. Do not infer the physical source of the residuals."
+  },
+  "c4_applies": true,
+  "governance": [
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_r2_r5_mount45.py",
+      "sha256": "7164243958dd103aa25d30918414435789b2017e119e9f596d3820d2516565ea"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\r2_r5_failure\\run_failure.py",
+      "sha256": "f34dcac4f6971498cb4a7e122ff903a88b18858fbc1a0314966724b3a37062d4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\RUN_CONTRACT.json",
+      "sha256": "54920f4b93eb5ca200785d40578d5bafe509a8a5508618271b5c1e834cd1f863"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\RUN_CONTRACT.json",
+      "sha256": "81e25d8c6f7c178ea7c52bc39272f0cc572cd46d284acb267fe9716e5be94a33"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\EXECUTION.json",
+      "sha256": "4ff9acde64d874cf99d396b197f35d9edd0da353588a6e76069965e2c545d15c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C1.json",
+      "sha256": "02877274da5d40d454fcc08acd323c3d5461422a3a82c5559f1596293266214f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C1_R4_KI.npz",
+      "sha256": "ea5396398fbbfdc4d7d0d81f12b5e1fd19754cf28ae7a62a473b318f7e9705f9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C1_R4_WHITE.npz",
+      "sha256": "c374590c363d4d0ee9f0e4c33d9846c48e37df5b44aa3905152adb90d0fb7008"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C1_R4_WHITE_REF.npz",
+      "sha256": "1cf009b8359b7f8726e5383d240029c28a4370a08d5d0404e134a67db82ca2f2"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2.json",
+      "sha256": "cb70e6b5ab24de9f2e764d64f14a2ea179bc8523d68105129bcc7bf1adb72806"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_0.25.npz",
+      "sha256": "798e9f2bd543c202e8bb8c358ecf390d755ed77db2c1fd350b4990a114cca665"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_0.5.npz",
+      "sha256": "92bfcc7a63edbf6eb6b61da98906c7112783d3be1e57f577951066693e4f5b37"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_0.75.npz",
+      "sha256": "7eaa98db085ba51454f185df9241838882a42578d05bdaf92824219333cd7fc0"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_1.5.npz",
+      "sha256": "195557834735b89ed9a16ba4266d58822eaa9fe4c70fa9997b4a45ec297a6d82"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_1.npz",
+      "sha256": "ff2ea7e71c8a472d6392254f7b1b9053a850a86dcd6175b07fe0c9739c55907c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_2.npz",
+      "sha256": "aa96ab1df3c3eeff5f3f7b70faab75d5d77f2edd92e3dd0b2f60477bba03f765"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_cap_4.npz",
+      "sha256": "5fb4490f554216b549da86c50f3b03591347a88b34c768a36804b995dd503416"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_0.25.npz",
+      "sha256": "fe22bce77b8ba799a6c01fae0eb5adc182c1fcf541ebce5a28c67c1a63fedc37"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_0.5.npz",
+      "sha256": "0349cc194e3cc8ade89dcf294b50c0517af3f9d48c65dcb8852bd8b27c1af432"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_0.75.npz",
+      "sha256": "5b1ee34567cb5a63f4db21b58b41c6365167c32b4e553b33d795e17a039f3d2e"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_1.5.npz",
+      "sha256": "1abd15fe120640da1659e553c9266693c314c5a1a853b41f910b6eff60e2f686"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_1.npz",
+      "sha256": "60c4e593ec3ab6126b24aac2bf9bec39e24b9349c332ceea8af3fba1a5db9be4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_2.npz",
+      "sha256": "d4bb74a7aa2c7f0582b3f0846a9a53f6290d3736e670c9a6ff2ef201ad11cf20"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncap_4.npz",
+      "sha256": "623816f82cd0f2a128a91114ca74e4beaa568ee3011c5c6f184a1667153ba68f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C2_R4_uncapped_unity_reference.npz",
+      "sha256": "60c4e593ec3ab6126b24aac2bf9bec39e24b9349c332ceea8af3fba1a5db9be4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3.json",
+      "sha256": "161e2dbf2a177a5fcce8bd8b8c45ec55ba0c18ecc79906e87245e633afd03597"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_donor_length.npz",
+      "sha256": "8741fb415d55baa4a1f316f70bab35f8d69044f9bbb54702ad7e18eb2dfd1c1d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_ell_0.5.npz",
+      "sha256": "7b98d111ddf0625e83587b91dcfb44e033c5c3e6434ef34c2e058a8c12190bb1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_ell_1.npz",
+      "sha256": "b488c6eff91414a969ea16d415cafa51f6e8e448b88794c93f61ae2d9042f7cb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_ell_2.npz",
+      "sha256": "f2b1db31bf99474058fb8b146111f09210fde134a98cb1207278e718be72c704"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_ell_4.npz",
+      "sha256": "a5d4e39ecc18ee385c68c60b795d018dc128468dd85d04f19aa77c6b807c1126"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_a_g2_allocation.npz",
+      "sha256": "87975341b64bde10b740b6b6c90990e1c285ed1f50479ac8b5379b9560510ffd"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_c_ell_0.5.npz",
+      "sha256": "e10490e6b1f1cfd92878ec9d948515c9122709850b531da18f47c5e27a2c5443"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_c_ell_1.npz",
+      "sha256": "253770ee5924ad7315d96a89b0d730e6a72d7455af7fb0dfbfb57dc23c42faaa"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_c_ell_2.npz",
+      "sha256": "8fe1404087bc936b5429d8a6f47ff4e7568b8167638a2baba532d1a8bda8bc4f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_c_ell_4.npz",
+      "sha256": "d73a9e4e330b22678cf00d2ca3e0ce9923fc70396cd1e45626cf4393225722e1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C3_R4_c_oracle_length.npz",
+      "sha256": "42bd318da99f460ae32f0fb4d1aefd65b352526e991e0aecf2fd07d3e4170a8a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4.json",
+      "sha256": "cb09d6f796451651428a110c709fb8606c1e921d90a954d1bf694dd54a341bf1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R2_directional.npz",
+      "sha256": "278a1be3ed41e04be1d1506d79568f0de2f49b2e1898af5c73058246e23d4102"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R2_norm_full.npz",
+      "sha256": "4d9eaa0552ac3d0dedcc37d20b187e0baf702e82714ec7c0090c53365634264e"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R2_norm_xy.npz",
+      "sha256": "ae325e84060399ee279fea2b43069b33bd35147ec2d33d8e2cd8dcd6b4e28a23"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R4_directional.npz",
+      "sha256": "e432de974b6f07a6834c392f1db7c1b8e5c110efcfe0257cea4ed34032fdb54c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R4_norm_full.npz",
+      "sha256": "be8d2647d8eb3b1c1890b732a6148180238f5d1064fb1c1f7593206017a45d41"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R4_norm_xy.npz",
+      "sha256": "9393169e79c0165686b5904485cb8e0c07eeaa037d6471af87e5ca048c4d1605"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R5_directional.npz",
+      "sha256": "2219b3a08120f255ded923f5387e7c3279b7a187037ede07eb37485e4e619c07"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R5_norm_full.npz",
+      "sha256": "da9a61ec32366525e4293028d7666de1f1b4c89c87d9ffdb96b1314e6c4b05c5"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C4_R5_norm_xy.npz",
+      "sha256": "388da24e9231c461b8261bfeb2fe24913b5b9a11129901bc37d7ac38d531c9e0"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5.json",
+      "sha256": "8e53b9cb18094df4347fa982549c77a384032a6632938b0ac467b42ffaf5177d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R2_conservative.npz",
+      "sha256": "7d3855b26e11ac4176dfdc3f1da9319caa1178aa8cb8549250b5c5d0c9ccf563"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R2_distance.npz",
+      "sha256": "ed9a919ecadedd3005cd5b3b2e19ef5d777bebed189a4ac3376a2354b90d9e7b"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R4_conservative.npz",
+      "sha256": "55afbf1e12b27a231b12de2a850343d4d97d87fb09c1a2db45b6e2721dbfecce"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R4_distance.npz",
+      "sha256": "800b00a24198837ee62515da4e8f4313f2eedbed63a82c8e57f5085d5dc43915"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R5_conservative.npz",
+      "sha256": "0ca84a37cf5c8b48bc9541bfb01f8c1ca6d00d6b51011e83ac752ec01ea6acd3"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C5_R5_distance.npz",
+      "sha256": "b8e43dba4e8faa7325192ba6c64169530fcb24912de141ac5e764643a544afc9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C6.json",
+      "sha256": "0df6d257df227b867ca0f5624f391535f5f8fab3e1cbc6497b21ae086b3adbea"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C6_R4_a_own.npz",
+      "sha256": "9d4d819d45a8970bfa7582f6117e97a77a5286a07e44d66abec4d21714d0d05b"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\C6_R4_c_own.npz",
+      "sha256": "9e6b42e1ec4e2daa0fafeade18a0462d54080e48d986f34d043a3b4ead28f93f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\CHECKS.json",
+      "sha256": "b86c5af4a86ea8d5af0c0ff5a1017fc5a2c5099295df5af8f87e9939bc6c75f8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\execution\\PREFLIGHT.json",
+      "sha256": "f234153e12a94e2a3a50c51319ec0fb03eedd73052eef0678f0eb222557f034d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\EXECUTION.json",
+      "sha256": "47807abda8139cf533339f47ef6be5a85f43333f520fb94b60fd0df290d25445"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D4.json",
+      "sha256": "3e6a7743af764d52033d491350e88cc915d95cc6018d6e4aeba21404163d05c6"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6.json",
+      "sha256": "99acd646eb14d4da5b2c006b8961c7884d28d45b8a56c5aea067f4e0323058b8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_13.8.npz",
+      "sha256": "f34f6fab32ee574102d390d628b6fa098a682df866eeb02ff710a7413d8b5072"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_all_valid.npz",
+      "sha256": "f65a86b3e6632815c8d87144eb6df0068afb071bd35ec75a4e7855b11ed2fa85"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_native.npz",
+      "sha256": "b01f8520a22b3fd436da8753d5aa3acac9143abfa5c1f555bf8172da9874b933"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_13.8.npz",
+      "sha256": "e6cf5430dc48ee8c6c994f55401d4da4df9fbd588be0ef8fd2e07436e5326a57"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_all_valid.npz",
+      "sha256": "ed594e3baf4c1221ba647df2ec490ee5b00e5c4696e6a8875e3d69dea391689a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_native.npz",
+      "sha256": "74e778f7da67f08bbaef16cd9becebf367eee7be2d5383266d9f851cc94c6625"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_13.8.npz",
+      "sha256": "4df2a0624ae02e448ce15521addc1e383f9cb18efcd2088cde72e023915f29f9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_all_valid.npz",
+      "sha256": "afa2c1ac394f90d4d41598dcdf2b5eb22184de20c6c6cdbbb36485d0de91ff82"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_native.npz",
+      "sha256": "003fe9b65c59d542419cda3be7a9cc079d117d33bcdc3592e17265ab1242253f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\FITTED_PARAMETERS.json",
+      "sha256": "77eb069b88343acab2582c74f6dda6a9e7acb1fb10426efbbddbc7d6d82a42cb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\KS.json",
+      "sha256": "bbe81cbbc04ed868faebbef38380641a8f3931643926ed6802ccfbd6f10f38ee"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\PREFLIGHT.json",
+      "sha256": "e78779230c78fcffdf9900b2463e9bccbf9f48e9e28d8482c6f571e4e0a1f2d8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V1.json",
+      "sha256": "b25c3d80d417ff3500764a5ccc85fb94d1c71806d1986e694cbb645d7e334482"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V2.json",
+      "sha256": "1f86e27c84c970100485e5daa08038834f3716737f606ffa60dc22cb8a000011"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3.json",
+      "sha256": "abf6f2cf2d7bb90678d8a7e311eb1f4b11efc814124c6eec005506882b31aa39"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_a.npz",
+      "sha256": "ff2ea7e71c8a472d6392254f7b1b9053a850a86dcd6175b07fe0c9739c55907c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_b.npz",
+      "sha256": "800b00a24198837ee62515da4e8f4313f2eedbed63a82c8e57f5085d5dc43915"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_c.npz",
+      "sha256": "5f280fbf0174a4c1b55d24bc495f32d3a87d90be81bd37f140167f5a6d887580"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4.json",
+      "sha256": "14da3c8d011ad4003f4978567bed2bb0d19dfb84020393026ea567b2942698a8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R2.npz",
+      "sha256": "bd3e542c352df03e2184c5537669014e36836b4dd59aaab8dd0bae2692fd26fb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R4.npz",
+      "sha256": "0027ec1b930c9986be3ef62b73a977cb1e67cda69c696462823f2fc8c1434dd1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R5.npz",
+      "sha256": "dceaba70bdc59cdaa85f91fbc0f04830fe27d810f474f5f14e78aa1873cf8112"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V5.json",
+      "sha256": "8922b6b5b962db58f88875b34d9afba1f8bff9e16309ae99fa19663448a6e0bd"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V5_R4.npz",
+      "sha256": "fdd35b4f116eff2a2261eb80e1a42ab2a6117cbbe5afe5ef6bdc02082fe8ca57"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V6.json",
+      "sha256": "c5f49d24e18a10b1585e580ce92e0bb77f78cc2659265541e08853d645d2aeec"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V7.json",
+      "sha256": "4dbbc8303c5fd5c9a8811b8775b80c9af02924a675148a9ba22c0a5c8f1107c4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V8.json",
+      "sha256": "884488e061986f105e5113eccbb4aa0323892ced3e8b11e4993f44f17447ee36"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9.json",
+      "sha256": "b427239088d40dc219eec069423a42837d90826f8c62a1e746716bbd93d59c23"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_FIXED_GAIN.npz",
+      "sha256": "d4b4856f37d91eb430a7bc6f1793d00b4b9f909359db1107d1c1d8ebcf7eb3ff"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_GM.npz",
+      "sha256": "0f0e3852dda7bf6da3a2bb3c5733bb9c82800845b0bfd3ccd3d4682c9503ee52"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_SC.npz",
+      "sha256": "a715d177dba6c949d0c473f0cad78e3a0ea4f1818451753881ca475b54bc3f6b"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_FIXED_GAIN.npz",
+      "sha256": "34e0df8c378018adc84760b2b03cd3c9d4b58441978629c05fde5cdfd8b81dd4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_GM.npz",
+      "sha256": "d2615bd463f34a6bb18903463763eca75b2cfe86e2615af0a8e7755dac3a4fbe"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_SC.npz",
+      "sha256": "2e9562ad3efdfeb9cdcc049eeebaf796ac20e50750bee2acb407b1d89a14b068"
+    }
+  ]
+}

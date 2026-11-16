@@ -1,0 +1,240 @@
+{
+  "question": "G1-INT-001/KS-C1-C6/M45-B-B0",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T04:07:09.060143+00:00",
+  "source": {
+    "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\followup\\run_followup_bound.py",
+    "sha256": "30caf76bd5d0acdb736669ba6a91ac08dbf151ccdd54731a4e548d27d71a5450"
+  },
+  "governance": [
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "rules": {
+    "C1": "Freeze V3(a) realized per-packet V_l_op, fast inflation and mask. KI adds frozen slow causal excess to matched marginal. WHITE adds V_l_op to frozen V3(a) Reff. WHITE_REF adds V_l_op to contemporaneous R_ref as literal additive variance control.",
+    "C2": {
+      "multipliers": [
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.5,
+        2.0,
+        4.0
+      ],
+      "policies": [
+        "cap",
+        "uncap"
+      ],
+      "fixed": "original V3(a) lengths and fast parameters; log requested and applied variance and caps",
+      "criterion": "original V3 (a) criterion, tested grid only, no new V8 criterion"
+    },
+    "C3": {
+      "fixed_controls": "cross a/c requested variance and a/c lengths in both directions, pure g^2 allocation from own a sill normalized on V3(a) E0-LORO D3 eligible g^2 in own distance bin",
+      "common_lengths_m": [
+        0.5,
+        1.0,
+        2.0,
+        4.0
+      ],
+      "series": [
+        "a",
+        "c"
+      ],
+      "cap": "all comparisons capped as originals"
+    },
+    "C6": "NIS <= native 9.210340371976184 at candidate own prior with augmented S and its own accepted history. Compare a/c at fixed/own gate. Peak reference is each fixed variant and LORO, local maxima of absolute heading error above its trajectory 90th percentile. Record differences for all original rejections and own changes, nearest peak time and counts within 1 s.",
+    "C5": "For each holdout compute one multiplier max across distance bins of larger/smaller centered slow D3 donor variance with original support and minimum variance. Multiply original distance-only donor estimate, use distance-only donor lengths and fixed E0 mask, cap as original. Compare to k=1. Apply the frozen plan section 5 criteria as diagnostic; any failed or unsupported condition triggers C4/C7 investigations, no KS admission reset.",
+    "C4": {
+      "trigger": "C5 does not pass",
+      "strict_variants": [
+        "norm_full",
+        "norm_xy",
+        "directional"
+      ],
+      "fit": "separate two-donor NNLS per distance bin using centered squared D3 slow target and equal donor weight; keep distance-only length and all other parameters",
+      "scalars": "full squared norm of [H_x*1m,H_y*1m,H_yaw*1rad] and squared XY norm; directional three terms H_j^2 P_jj / R_ref_ss in yaw,x,y order, no cross terms; intercept for each",
+      "scope": "same fold/packet/support and original V8 thresholds; all preregistered variants reported; no selection or adoption"
+    },
+    "bootstrap": "original KS 1500 draws with paired 5 and 10 s blocks on full grids, seed 20261115"
+  },
+  "inherited_V3_traces": [
+    "a",
+    "b",
+    "c"
+  ],
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_followup_mount45.py",
+      "sha256": "53fd0136ba9be3adccb6ccbcae53c15380e7893c632df040e98e52f78a9a71e9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\run_followup.py",
+      "sha256": "13f64512d5446b0cf2a74b8c7df7c8c87637aa4e2880a6da071efe8dba62a888"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\RUN_CONTRACT.json",
+      "sha256": "81e25d8c6f7c178ea7c52bc39272f0cc572cd46d284acb267fe9716e5be94a33"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_checks_c1_c8\\RUN_CONTRACT_C1_C6.json",
+      "sha256": "ea9b02bd75132d7ef9eb670d9df2aff6113c442a4f68245fb4ac1caea9cf8d48"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\EXECUTION.json",
+      "sha256": "47807abda8139cf533339f47ef6be5a85f43333f520fb94b60fd0df290d25445"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D4.json",
+      "sha256": "3e6a7743af764d52033d491350e88cc915d95cc6018d6e4aeba21404163d05c6"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6.json",
+      "sha256": "99acd646eb14d4da5b2c006b8961c7884d28d45b8a56c5aea067f4e0323058b8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_13.8.npz",
+      "sha256": "f34f6fab32ee574102d390d628b6fa098a682df866eeb02ff710a7413d8b5072"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_all_valid.npz",
+      "sha256": "f65a86b3e6632815c8d87144eb6df0068afb071bd35ec75a4e7855b11ed2fa85"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R2_native.npz",
+      "sha256": "b01f8520a22b3fd436da8753d5aa3acac9143abfa5c1f555bf8172da9874b933"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_13.8.npz",
+      "sha256": "e6cf5430dc48ee8c6c994f55401d4da4df9fbd588be0ef8fd2e07436e5326a57"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_all_valid.npz",
+      "sha256": "ed594e3baf4c1221ba647df2ec490ee5b00e5c4696e6a8875e3d69dea391689a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R4_native.npz",
+      "sha256": "74e778f7da67f08bbaef16cd9becebf367eee7be2d5383266d9f851cc94c6625"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_13.8.npz",
+      "sha256": "4df2a0624ae02e448ce15521addc1e383f9cb18efcd2088cde72e023915f29f9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_all_valid.npz",
+      "sha256": "afa2c1ac394f90d4d41598dcdf2b5eb22184de20c6c6cdbbb36485d0de91ff82"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\D6_R5_native.npz",
+      "sha256": "003fe9b65c59d542419cda3be7a9cc079d117d33bcdc3592e17265ab1242253f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\FITTED_PARAMETERS.json",
+      "sha256": "77eb069b88343acab2582c74f6dda6a9e7acb1fb10426efbbddbc7d6d82a42cb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\KS.json",
+      "sha256": "bbe81cbbc04ed868faebbef38380641a8f3931643926ed6802ccfbd6f10f38ee"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\PREFLIGHT.json",
+      "sha256": "e78779230c78fcffdf9900b2463e9bccbf9f48e9e28d8482c6f571e4e0a1f2d8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V1.json",
+      "sha256": "b25c3d80d417ff3500764a5ccc85fb94d1c71806d1986e694cbb645d7e334482"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V2.json",
+      "sha256": "1f86e27c84c970100485e5daa08038834f3716737f606ffa60dc22cb8a000011"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3.json",
+      "sha256": "abf6f2cf2d7bb90678d8a7e311eb1f4b11efc814124c6eec005506882b31aa39"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_a.npz",
+      "sha256": "ff2ea7e71c8a472d6392254f7b1b9053a850a86dcd6175b07fe0c9739c55907c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_b.npz",
+      "sha256": "800b00a24198837ee62515da4e8f4313f2eedbed63a82c8e57f5085d5dc43915"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V3_c.npz",
+      "sha256": "5f280fbf0174a4c1b55d24bc495f32d3a87d90be81bd37f140167f5a6d887580"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4.json",
+      "sha256": "14da3c8d011ad4003f4978567bed2bb0d19dfb84020393026ea567b2942698a8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R2.npz",
+      "sha256": "bd3e542c352df03e2184c5537669014e36836b4dd59aaab8dd0bae2692fd26fb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R4.npz",
+      "sha256": "0027ec1b930c9986be3ef62b73a977cb1e67cda69c696462823f2fc8c1434dd1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V4_R5.npz",
+      "sha256": "dceaba70bdc59cdaa85f91fbc0f04830fe27d810f474f5f14e78aa1873cf8112"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V5.json",
+      "sha256": "8922b6b5b962db58f88875b34d9afba1f8bff9e16309ae99fa19663448a6e0bd"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V5_R4.npz",
+      "sha256": "fdd35b4f116eff2a2261eb80e1a42ab2a6117cbbe5afe5ef6bdc02082fe8ca57"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V6.json",
+      "sha256": "c5f49d24e18a10b1585e580ce92e0bb77f78cc2659265541e08853d645d2aeec"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V7.json",
+      "sha256": "4dbbc8303c5fd5c9a8811b8775b80c9af02924a675148a9ba22c0a5c8f1107c4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V8.json",
+      "sha256": "884488e061986f105e5113eccbb4aa0323892ced3e8b11e4993f44f17447ee36"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9.json",
+      "sha256": "b427239088d40dc219eec069423a42837d90826f8c62a1e746716bbd93d59c23"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_FIXED_GAIN.npz",
+      "sha256": "d4b4856f37d91eb430a7bc6f1793d00b4b9f909359db1107d1c1d8ebcf7eb3ff"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_GM.npz",
+      "sha256": "0f0e3852dda7bf6da3a2bb3c5733bb9c82800845b0bfd3ccd3d4682c9503ee52"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R2_SC.npz",
+      "sha256": "a715d177dba6c949d0c473f0cad78e3a0ea4f1818451753881ca475b54bc3f6b"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_FIXED_GAIN.npz",
+      "sha256": "34e0df8c378018adc84760b2b03cd3c9d4b58441978629c05fde5cdfd8b81dd4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_GM.npz",
+      "sha256": "d2615bd463f34a6bb18903463763eca75b2cfe86e2615af0a8e7755dac3a4fbe"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\execution\\V9_R5_SC.npz",
+      "sha256": "2e9562ad3efdfeb9cdcc049eeebaf796ac20e50750bee2acb407b1d89a14b068"
+    }
+  ],
+  "C4_R_ref": "Original R_ref, reconstruct donor H and Pprior with the holdout fold sigma and compare to frozen M3 identity.",
+  "C2_unity": "Recompute uncapped unity only within C2 if V3 did not trigger a prime; same frozen C2 cap/uncap rule."
+}

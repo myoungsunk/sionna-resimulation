@@ -1,0 +1,337 @@
+{
+  "question": "G1-INT-DIAG-001/M45/D4",
+  "classification": "DIAGNOSTIC_ONLY",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T04:03:19.000528+00:00",
+  "scope": {
+    "anchor": "B",
+    "bias": "B0",
+    "mount_deg": 45,
+    "seed": 10,
+    "n_expected": 3
+  },
+  "geometry": {
+    "anchor": [
+      10.0,
+      0.0,
+      2.65
+    ],
+    "robot_z_m": 0.45,
+    "mount_deg": 45.0
+  },
+  "thresholds": {
+    "distance_bins_m": [
+      [
+        0.0,
+        3.0
+      ],
+      [
+        3.0,
+        6.0
+      ],
+      [
+        6.0,
+        10.0
+      ],
+      [
+        10.0,
+        null
+      ]
+    ],
+    "min_packets_per_bin": 30,
+    "min_effective_packets_per_bin": 5.0,
+    "min_supported_route_distance_bins": 4,
+    "abs_mean_over_sigma_strictly_greater_than": 0.5,
+    "min_fraction_supported_bins_above_threshold": 0.25
+  },
+  "range_primary": "true horizontal Euclidean distance between robot and anchor",
+  "range_sensitivity": "true 3D slant range using the native robot RF height",
+  "residual": "z - native SourceFFD h(truth) - frozen per-packet muMB, [r metres, s ratio]",
+  "R_eff": "diagonal of authenticated D0 original E0 trace. Keep finite packets before gate.",
+  "autocorrelation": "Raw epsilon centered by route/bin/channel; D2-style initial positive lag pairs with product support restricted to contiguous runs within the same bin.",
+  "boundary": "H3 mean residual and historical HGB marginal feature support on +45 B/B0 seed 10.",
+  "feature_config": {
+    "source_commit": "902ddcaf0f8e59734bb8026d3bcdc36eab506a27",
+    "sources": {
+      "manifest": {
+        "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\EKF3_INDEPENDENT_20261013\\P0_INPUT_MANIFEST.json",
+        "sha256": "462c0bc89e1b55653d289d8a529c1c7022c17a8d954c5ea5740a99092d367455",
+        "bytes": 25085
+      },
+      "feature_csv": {
+        "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2_artifacts\\prepared\\OBSERVATION_FEATURES_LABELS.csv.gz",
+        "sha256": "6a69a36ad0f521e33a130a1bc1fbde5a4b7aae17ba62ec347ccc611fdd5c6fe4",
+        "bytes": 3225624
+      },
+      "mu_recursive": {
+        "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_DS_GATED_20261021\\mu_recursive.py",
+        "sha256": "766a22fd943114cc4439d31ee60bf42d6455b5c5e5aac47138e0b9ca047596c4",
+        "git_blob": "440f629edd29ef4dead53b8343c452434227c2c9",
+        "bytes": 7784
+      },
+      "series_dump": {
+        "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_DS_GATED_20261021\\series_dump.py",
+        "sha256": "d108122613e5751a1a061b27301128854e4fd545eec85ea63615639e24003010",
+        "git_blob": "f9449d311a549980a3bcac67eba6890c3e8f1076",
+        "bytes": 6403
+      },
+      "mr_series": {
+        "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_DS_GATED_20261021\\results_murec\\MR_SERIES.csv.gz",
+        "sha256": "bd2d14070685005a5a97f0c4b15752c5f89c2b4dd854d3c82718322b51fac351",
+        "git_blob": "a0b6d0ae08022eeaf7b0d9449c8e941016dc5d72",
+        "bytes": 6136056
+      },
+      "x1_stage": {
+        "path": "D:\\SLAM_bot\\DS_X1_X2_RESULTS_COMMIT_20261026\\research\\DS_MASK_CAUSAL_X1_X2_20261026\\x1\\run_stage.py",
+        "sha256": "a4297929e0770c62a9e9a1c86c19958c7824147c333c4a5886ef40f68d4e8295"
+      }
+    },
+    "source_cases": {
+      "R2_aA_m0": {
+        "route": "R2",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aA_m0\\SAMPLES.json",
+          "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+          "bytes": 89383
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aA_m0.npy",
+          "sha256": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+          "bytes": 21431872
+        }
+      },
+      "R2_aB_m0": {
+        "route": "R2",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aB_m0\\SAMPLES.json",
+          "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+          "bytes": 89383
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aB_m0.npy",
+          "sha256": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+          "bytes": 21431872
+        }
+      },
+      "R2_aA_m45": {
+        "route": "R2",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aA_m45\\SAMPLES.json",
+          "sha256": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+          "bytes": 89383
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aA_m45.npy",
+          "sha256": "dd0264c1d004d78ff0f0d39f5f0c613b084ea89ad558ac448ecbfd0b3e177ea1",
+          "bytes": 21431872
+        }
+      },
+      "R4_aA_m0": {
+        "route": "R4",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R4_aA_m0\\SAMPLES.json",
+          "sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+          "bytes": 62617
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R4_aA_m0.npy",
+          "sha256": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956",
+          "bytes": 15165184
+        }
+      },
+      "R4_aB_m0": {
+        "route": "R4",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R4_aB_m0\\SAMPLES.json",
+          "sha256": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+          "bytes": 62617
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R4_aB_m0.npy",
+          "sha256": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+          "bytes": 15165184
+        }
+      },
+      "R5_aA_m0": {
+        "route": "R5",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R5_aA_m0\\SAMPLES.json",
+          "sha256": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+          "bytes": 128681
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R5_aA_m0.npy",
+          "sha256": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80",
+          "bytes": 30971712
+        }
+      },
+      "R5_aB_m0": {
+        "route": "R5",
+        "samples": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R5_aB_m0\\SAMPLES.json",
+          "sha256": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+          "bytes": 128681
+        },
+        "full_rf": {
+          "path": "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R5_aB_m0.npy",
+          "sha256": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+          "bytes": 30971712
+        }
+      }
+    },
+    "columns": [
+      "log_fp_power",
+      "abs_s_fp",
+      "early4",
+      "early8",
+      "early16",
+      "delay_rms_ns",
+      "peak_diff_ns",
+      "eta_fp_win80",
+      "s_diff4",
+      "s_diff8",
+      "s_diff16",
+      "tap_pol_var80",
+      "jones_diversity",
+      "freq_s_var",
+      "detector_s_span",
+      "detector_delay_span_ns",
+      "ds_-8",
+      "ds_-4",
+      "ds_-2",
+      "ds_-1",
+      "ds_+1",
+      "ds_+2",
+      "ds_+4",
+      "ds_+8"
+    ],
+    "target": "e_r",
+    "training_rule": "all Full rows with route != held-out route",
+    "quantile_probabilities": [
+      0.05,
+      0.95
+    ],
+    "quantile_method": "linear"
+  },
+  "feature_model_commit": "beb845665661ad8c68d07c88f6d268da4832e493",
+  "feature_runtime": "1.7.2",
+  "d0_scores": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\RESULTS.json",
+  "cells": {
+    "R2": {
+      "online": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__online.npz",
+      "evaluator": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__evaluator.npz",
+      "d0": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R2.npz",
+      "d2": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R2.npz",
+      "model": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m0_refit.joblib",
+      "training_n": 5610,
+      "calibration_training_counts": {
+        "R4_aA_m0": 922,
+        "R4_aB_m0": 922,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      }
+    },
+    "R4": {
+      "online": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__online.npz",
+      "evaluator": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__evaluator.npz",
+      "d0": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R4.npz",
+      "d2": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R4.npz",
+      "model": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m0_refit.joblib",
+      "training_n": 7675,
+      "calibration_training_counts": {
+        "R2_aA_m0": 1303,
+        "R2_aA_m45": 1303,
+        "R2_aB_m0": 1303,
+        "R5_aA_m0": 1883,
+        "R5_aB_m0": 1883
+      }
+    },
+    "R5": {
+      "online": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__online.npz",
+      "evaluator": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__evaluator.npz",
+      "d0": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R5.npz",
+      "d2": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R5.npz",
+      "model": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m0_refit.joblib",
+      "training_n": 5753,
+      "calibration_training_counts": {
+        "R2_aA_m0": 1303,
+        "R2_aA_m45": 1303,
+        "R2_aB_m0": 1303,
+        "R4_aA_m0": 922,
+        "R4_aB_m0": 922
+      }
+    }
+  },
+  "inputs_sha256": {
+    "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d4\\RUN_CONTRACT_RETRY_02.json": "4610582a9e858878bfbd205a544e631099125f83736c6a6dc3c8459ebc0d9e2e",
+    "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d4\\run_d4.py": "607227c7fd5fdb840ed472a2bd99b015034c1054275b7540c9ec3d9cb8510493",
+    "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d4\\feature_d4.py": "b3d7dbdfb27a642daea305f5fa399f69a05ce904a83ee1f623b3e684d3d1c465",
+    "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_d4\\residual_d4.py": "c79c4972e6ee02a2d3de3853c4f9a1a233f586ceeec9093c75e93f8876eeb30a",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\replay_s2.py": "2174eba0cb43cca3de3afa77055d5699e0f97c08e05565503234ec6a7e2ce471",
+    "D:\\SLAM_bot\\DS_X1_X2_RESULTS_COMMIT_20261026\\research\\DS_MASK_CAUSAL_X1_X2_20261026\\x1\\INPUT_LOCK.json": "9ed7161e0c68ce11ee50a6287db40ad5800a1bf7a8006ac503a968e4551390e9",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2_artifacts\\prepared\\OBSERVATION_FEATURES_LABELS.csv.gz": "6a69a36ad0f521e33a130a1bc1fbde5a4b7aae17ba62ec347ccc611fdd5c6fe4",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_DS_GATED_20261021\\series_dump.py": "d108122613e5751a1a061b27301128854e4fd545eec85ea63615639e24003010",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_DS_GATED_20261021\\mu_recursive.py": "766a22fd943114cc4439d31ee60bf42d6455b5c5e5aac47138e0b9ca047596c4",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aA_m0\\SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aA_m0.npy": "1c40aea5ab7af87223f942c0727c0f6aabe7bd60e55a70c68c74d2c115750a51",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aB_m0\\SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aB_m0.npy": "b3b4c61e23286b86c78b6e87f5b9b5358121cbde7717bae73e5650cc900b546c",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R2_aA_m45\\SAMPLES.json": "35af279692a15dc429263f88cfbb4db949c1260cb7cf9d9e0c292172a7505b0e",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R2_aA_m45.npy": "dd0264c1d004d78ff0f0d39f5f0c613b084ea89ad558ac448ecbfd0b3e177ea1",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R4_aA_m0\\SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R4_aA_m0.npy": "73cfc35ded71b0114d3b15d2a50dba4a804b377d7b3b2b37aafe11c628c83956",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R4_aB_m0\\SAMPLES.json": "a7978081d26d4f67cc420af0f3e1dffab77eed44a2205043bf2e67858e43967e",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R4_aB_m0.npy": "30743ca017615bbfede78a8350739262a756d47ac2213c60b08eb109cebfe1b0",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R5_aA_m0\\SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R5_aA_m0.npy": "026a2c5ebb17916633f74d767ec8675f9358c93f8a4ee0df465733838ec89f80",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\R5_aB_m0\\SAMPLES.json": "cd0c1e202e4c99b4946de09a0a5a407d8397b6b8c19a768c6e2c5fe29ac0335a",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\results\\DRIVE_SIM_20261007\\POST_A23_RESULTS_20261010\\SUPPLEMENT_01a12449\\BLOCK_C\\FULL_RF\\H_R5_aB_m0.npy": "a4858372414f81156b25fde2e14d57fc0e1a3f987782a5b268dbdf14bcf174b3",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\RUN_CONTRACT.json": "00ae740057888859394da1795c8b6bfd45d0517046a45d274b3aa523af28c94b",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\PARITY_RESULTS.json": "3c715e06bd0b4e5a051cb7a712974e85854418d293174802e3369c1901d147d0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\CALIBRATION_PARITY.json": "81f2ecfc69b0fa6da9d5615032d353205681115eec45c903e09b94fe996220f8",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\CALIBRATION_MODEL_LOCK.json": "7122a132e7e7020e5b4bb15f9899b6d8a58099e4e20cc881efd3501df4a68faf",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\calibration.py": "74d9673551651999a02ec6c3ce1664fbd18ce14201c36308aa361dc64c17b606",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\prepare_mount45.py": "c6125b90b09441f3e4b53e24a6b08b3efe6f070728f2ba73e6ca38cce819dc9c",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\FFD_P0P3_20261016\\source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\FFD_P0P3_20261016\\p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\EKF4_RANGE_S_STAGED_20261014\\p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\EKF4_RANGE_S_STAGED_20261014\\core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\MBVAR_PRR_001_20261103\\S1\\online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\scenarios\\corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\sensor_v2.py": "e74cd4657b9784f5a5ef06b6bbeae9bce807d1942ddc9046a1513186dde7be40",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118",
+    "D:\\SLAM_bot\\artifacts\\DRIVE_SIM_POST_A23_UPLOAD_20261010\\supplement_retrieved\\BLOCK_C\\freqs_hz.npy": "fe0bcfeb1426847ea090668845fe124482086d0510e38ebdb463609e2a1169f8",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PHYSICS_RS_STAGED_20261015\\code\\features.py": "c2913abc9347286ad83812c0f84beadb5b2c0d7ce2a9ee57bc1ae6bd44ac2466",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\PJ_SEPARATE_RS_20261020\\experiment.py": "8f51015d052dca1ecd7248d55395ef96496ac8fb7806528508610f410ec206bc",
+    "D:\\SLAM_bot\\OFFICE_CORRIDOR_TRANSFER_FIX_20261026\\execution_33e9849\\p2\\research\\R5_N4B_20261015\\n4b_rf_errors.py": "89df74db9945e1974d8e2ebdffc831c7443201a384b3ca2b7dd7dba6154dd84b",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\fp_sc\\e0_baseline.py": "f022a4db43270d909b4b30022d42d064bf9cbb42b91a45b7f3c7a0d861c592a1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\RUN_CONTRACT.json": "6d2545e3030b6c981e2be6a98a61e68936a04fd221201523b0164579c12d7012",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\RUN_CONTRACT.json": "af1abe56d02ea6de74507c98a2a95bbce537d6ad65382be0a2160c462e752d9d",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\EXECUTION.json": "2ce4f850d969816ebb8792cf2b6613c7de3927587bbcb8f1f3bdecc662ac0b31",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\EXECUTION.json": "023dbb5836f6bfd827d214a3f3bce0b77b97bc2bdf8f29295745a52d8fabd264",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\EXECUTION.json": "2f2c5679c26aade139a5f6b2a43fad40a2a6acb94bb386d9846855f804d9a902",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_d4_mount45.py": "b65063d1309bef1f27faa8ba3fdcb00111c8e437f07f84f99961e61ae21349f1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_diag_mount45.py": "7892240cfa8b41cb8c7bf159bab9627812ed1cfcffae601c2a2c55ef9c222da0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\check_observer.py": "1f814df481d122e590c58431d40ea4c72ccd35499730592abc2a5819135c6bf1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\RESULTS.json": "050742145d8b98a78d28831fe1eb47a5e86e6fb7c80da97f63204f94d7240d12",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\RESULTS.json": "08b26398614dce2314efc919ebc23c9ae0ba2abe0be6376eba6d8c313564da0a",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__online.npz": "903dc266585445d18c8986b289c2d36848a126411ca6dd77124549d51fc82436",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__evaluator.npz": "c669bf4c9c49825fe67b1705766afebccc5466460d407a4a7efc169442dbbb59",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R2.npz": "03ce3f6e8d9cd8b70f604113d6055d4ca335b7edde85b72223ed85cac99f1e48",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R2.npz": "4cc9d3379fa7a91c6227ca3aaf34ddb02893423fd50588d05186dac5ed001bdb",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m0_refit.joblib": "a88ee8023c86209dc4c9bd17b03f5e37bdabfdde0d2f0a905006f7615e82b2ba",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__online.npz": "46c67dc611baeb95d02b0539d5496fd4ff583ea1750b9128af23ffa9a937dd89",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__evaluator.npz": "1225ff88e8abdeb40da2bcdb44522c3b64fa3c57c9e71d442cb98fe0d3612bdd",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R4.npz": "b0352e4100e052fa05eeaa76073866415d09da2b0f8c27b767d2b7e2337c154f",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R4.npz": "91f7cb6eb0ce698498dbd967f9ceedbf7df14377ca9614586ef93d09a02c3aeb",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m0_refit.joblib": "79194fee205ffc4edafd12ab67386de428a910adca4bc1d563d090410058a8a0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__online.npz": "27b29339dbdb822c762d2790624ab6b9acf1d010243dd656bc511a4aa0a271f2",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__evaluator.npz": "ff46504606d318ed7e1875b16e2f2cdcc0f39b3b6f945d864e294b271d2e1a55",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R5.npz": "b115e20ed9a72e182ab3a4a11554949b77fd108d2a0b5bf16cc012b2ac3754b1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R5.npz": "b6eb591c99c84f8f23847cd9f7e2898fd99201d6d44a34237577c0fc87445e7c",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m0_refit.joblib": "6781719901d68a235d90d103e95cb33c2e40385583cf935678242667a56f6911"
+  }
+}

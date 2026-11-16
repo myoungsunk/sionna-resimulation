@@ -1,0 +1,130 @@
+{
+  "question": "G1-CHAR002-S2-MOUNT45/CHECKLIST-03",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T03:44:30.485387+00:00",
+  "scope": {
+    "anchor": "B",
+    "mount_deg": 45,
+    "bias": "B0",
+    "seed": 10,
+    "channel": "Full",
+    "rows": {
+      "R2": 979,
+      "R4": 742,
+      "R5": 1415
+    }
+  },
+  "geometry": {
+    "anchor": [
+      10.0,
+      0.0,
+      2.65
+    ],
+    "robot_z_m": 0.45,
+    "mount_deg": 45.0
+  },
+  "s2_spec_commit": "6c175a53fbbbb19f990881f7dfcf82a3760dab70",
+  "thresholds": {
+    "pooled_pose95_min": 0.9,
+    "route_pose95_min": 0.75,
+    "pooled_heading95_min": 0.9,
+    "rmse_increase_cost_cutoff": 0.1,
+    "parity_normalized_tolerance": 1e-10
+  },
+  "gate": "fixed original W0 shadow-gate mask from each condition's E0; E1–E5 zero s mean adjustment",
+  "arms": {
+    "E0": "original frozen W0 including muMB_s",
+    "E1": "R1/S1",
+    "E2": "R2/S2",
+    "E3": "R2/S3 primary",
+    "E4": "R2/S3 plus yaw-correlated latent state",
+    "E5": "per-trajectory oracle R2/S3 fit on its evaluation packets"
+  },
+  "arm_eligibility": {
+    "E3": "S2 primary; fixed original S2 integrity criteria",
+    "E5": "DIAGNOSTIC_ONLY"
+  },
+  "historical_m45_reference": "Absent. m45 comparison is between recursive implementations with shared SourceFFD.",
+  "dr": "Original prediction-only DR with identical ds, gy, dt, x0, bias=0, P0 and Q; no RF update",
+  "input_files": {
+    "fit": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT.json",
+    "yaw_fit": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT_S2.json",
+    "fit_contract": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\RUN_CONTRACT.json",
+    "fit_receipt": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT_RECEIPT.json",
+    "observer_contract": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\OBSERVER_CONTRACT.json",
+    "observer_results": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\OBSERVER_RESULTS.json"
+  },
+  "frozen_predictors": "range and 180° folded relative bearing from predicted prior; lookup fixed through update, no lookup Jacobian",
+  "student_t": {
+    "nu/E3-E4": 2.63,
+    "weight_iterations": 3,
+    "variance_step": "divide current R_ss by w each iteration"
+  },
+  "yaw_state": {
+    "form": "unit-scale AR(1), Q_c=1-phi^2; c_s=sqrt(share)*sigma_s*c; white R_ss=(1-share)*sigma_s^2 before reweighting",
+    "reset_m": 0.02,
+    "reset_rule": "Euclidean XY displacement of consecutive priors",
+    "fit": "dense49 TEACH only"
+  },
+  "motion_labels": "CHAR-001 rules applied to evaluator truth on the packet time grid",
+  "bootstrap": {
+    "sizes_s": [
+      5,
+      10
+    ],
+    "repetitions": 1500,
+    "seed": 20261115
+  },
+  "distance_extrapolation_m": 10.89,
+  "distance_mean": "continue S1 linear location as fitted",
+  "metric_pooling": "Concatenate packet metrics. Pool end errors by RMS of the three route-end errors.",
+  "environment": {
+    "python": "3.13.15",
+    "numpy": "2.2.4",
+    "scipy": "1.15.2"
+  },
+  "governance": {
+    "COMMON_CONTRACT.md": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER.md": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "inputs_sha256": {
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_compare_mount45.py": "2d77d37294f886bd116d5e8863ee2c9066d5a7e6bb4414092804206e5ec6e902",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\run_20261115_a\\RUN_CONTRACT.json": "f4870df1afe81e57cd99083229738d9f184b56dff697a02ff6a56cf0078906bf",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\RUN_CONTRACT.json": "00ae740057888859394da1795c8b6bfd45d0517046a45d274b3aa523af28c94b",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\PARITY_RESULTS.json": "3c715e06bd0b4e5a051cb7a712974e85854418d293174802e3369c1901d147d0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\OBSERVER_CONTRACT.json": "84a656024e4c5860501597e143eba3e8e4ecf9d61cf768e0833c695bdf4bcaca",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\OBSERVER_RESULTS.json": "a301ac5cd99c20c4f8abfe16688e8889237bc34b9b1f2e84b1c18cdaf24edd77",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\RUN_CONTRACT.json": "e93fec3e4ad90c296c5120e56bb59d6555e47eb548031e69e6c116037163d6c1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT_RECEIPT.json": "ead401619fb52f91d80a765b456f49babf4fff5e587aef4b194cc51d87ebe459",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT.json": "c195545ad54f0d604c8813aef9eae4b5ac8c92827086d318e1d57e087f066ea3",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\training\\FIT_S2.json": "d69ccbf7ac6e5af8e4854537888fefcd6ebc3c02384b04a927056a0123d64819",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\run_20261115_a\\executed_source_2a_2b\\run_s2.py": "466c89f1a5efb1b356d773cafed330170929bc847b464f9bb8e6e33576a3a0c4",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\run_20261115_a\\executed_source_2a_2b\\replay_s2.py": "2174eba0cb43cca3de3afa77055d5699e0f97c08e05565503234ec6a7e2ce471",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\run_20261115_a\\executed_source_2a_2b\\metrics_s2.py": "850991059216dd79a0d2e3892e7bcb71d67df9709aa7660ebe2958478f8fb65c",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\compare_dr.py": "35a95a0d07d69e328a9da65db5d19e91168ec6e1d585bf983a66ea318b9d20e7",
+    "D:\\SLAM_bot\\g1_char002_s2_ekf_20261115\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\S2_EKF\\verify_s2.py": "943ec22e5096a0edbae6933b973b700d141c2218768aba1b779e243843fccad0",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\G1_PACKET_EKF_20261114\\CHAR_002\\scripts\\char2_fit_eval.py": "9792024feb17c329c35f67ea69020711492489810b8216e20627b2ae01a0de7c",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\prepare_mount45.py": "c6125b90b09441f3e4b53e24a6b08b3efe6f070728f2ba73e6ca38cce819dc9c",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\FFD_P0P3_20261016\\source_model.py": "e2591ecb238917e656e2effe50b0cb92543be343e90aef460edcf7b859820ba3",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\FFD_P0P3_20261016\\p0_initial.py": "369eb78b4e7b67a5f00df532cdf319b56de14d7c19658aa45c8e9631e3382086",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\EKF4_RANGE_S_STAGED_20261014\\p3_rf_adapter4.py": "dfec050fcc81ff39aed0058a2654b3b845b8d3320437136a3f2317033e5efe22",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\EKF4_RANGE_S_STAGED_20261014\\core.py": "1abdac002631e1de2303b0ef7c39c6c9eb619b53d9ba9fd8d89d1a3cd9c630d1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\research\\MBVAR_PRR_001_20261103\\S1\\online.py": "c38f33d31515d23059a13d30f3243e23be8a18d4d4d4f6c41f12d38c4445d173",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\observation.py": "8770f45df4c7f34ed5ff18ff9102a9a6ccc2cd377a9d9db4b0dfb21b805c8f22",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\hs_lut.py": "6e773cdbca7850c80710518a20316036fde26af96f246ae26ba70cd297d6317d",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\scenarios\\corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\sensor_v2.py": "e74cd4657b9784f5a5ef06b6bbeae9bce807d1942ddc9046a1513186dde7be40",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\drivesim\\sensors.py": "2285db90b465e13f90c99d66ae0ba867602abc148a1b1ba0bc02a565e9681118",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_INPUTS_20261115\\source_minimal\\research\\FP_SC_RECOVERY_R0_R5_20261107\\R45_sources\\src\\qclean_uwb\\fp_sc\\e0_baseline.py": "f022a4db43270d909b4b30022d42d064bf9cbb42b91a45b7f3c7a0d861c592a1",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__online.npz": "903dc266585445d18c8986b289c2d36848a126411ca6dd77124549d51fc82436",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__evaluator.npz": "c669bf4c9c49825fe67b1705766afebccc5466460d407a4a7efc169442dbbb59",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R2_aB_m45_B0_Full_10__e0_trace.npz": "576b4dee326fe85b4f12976096fa808720225f2e8953d009c9f5140ed762bba7",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__online.npz": "46c67dc611baeb95d02b0539d5496fd4ff583ea1750b9128af23ffa9a937dd89",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__evaluator.npz": "1225ff88e8abdeb40da2bcdb44522c3b64fa3c57c9e71d442cb98fe0d3612bdd",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R4_aB_m45_B0_Full_10__e0_trace.npz": "650e67597b84a21d6b9178a4527357c6d46b40eb8c6f34712c0b5966c9302308",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__online.npz": "27b29339dbdb822c762d2790624ab6b9acf1d010243dd656bc511a4aa0a271f2",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__evaluator.npz": "ff46504606d318ed7e1875b16e2f2cdcc0f39b3b6f945d864e294b271d2e1a55",
+    "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_20261116\\R5_aB_m45_B0_Full_10__e0_trace.npz": "e7ba0504f70ac0a27174c9099465c40b59e227f969a11bf9f5e568ddc33319bb"
+  }
+}

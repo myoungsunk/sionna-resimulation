@@ -1,0 +1,419 @@
+{
+  "governance": [
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "C:\\Users\\Myoungsun Kim\\.codex\\research-governance\\ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "plan_commit": "aa95e6cda82695a59e40549f41eb067d98b9b1a7",
+  "order": [
+    "PREFLIGHT",
+    "V8",
+    "V1",
+    "V2",
+    "V4",
+    "V3",
+    "V9",
+    "V5",
+    "V6",
+    "D4",
+    "V7",
+    "D6",
+    "KS"
+  ],
+  "rules": {
+    "parity_max": 1e-10,
+    "residual_decomposition_max": 1e-12,
+    "D3_window": {
+      "half_seconds": 5.0,
+      "half_distance_m": 0.25,
+      "half_yaw_deg": 5.0,
+      "min_window_packets": 10
+    },
+    "V8_distance_edges_m": [
+      1.5,
+      3.0,
+      6.0,
+      10.0
+    ],
+    "V8_min_centers": 30,
+    "V8_min_distinct_complete_20s_windows": 2,
+    "V8_ratio": [
+      0.5,
+      2.0
+    ],
+    "V8_variance_floor": 1e-12,
+    "V8_extrapolation_above": 0.5,
+    "V1_ratio": [
+      0.7,
+      1.3
+    ],
+    "lag_edges_m": [
+      0.02,
+      0.02785122939826433,
+      0.03878454894973716,
+      0.05400986849536707,
+      0.07521206186172788,
+      0.10473741942137155,
+      0.14585329474434222,
+      0.20310967852086678,
+      0.28284271247461906,
+      0.39387586343789677,
+      0.5484963513524147,
+      0.7638148852813547,
+      1.063659179388998,
+      1.4812107903366285,
+      2.062677075442492,
+      2.8724046201344913,
+      4.0
+    ],
+    "min_pairs": 50,
+    "fast_lengths_m": [
+      0.02,
+      0.022870596721658414,
+      0.02615320972023661,
+      0.029906975624424414,
+      0.03419951893353395,
+      0.039108170280178794,
+      0.044721359549995794,
+      0.05114020895561202,
+      0.058480354764257315,
+      0.0668740304976422,
+      0.07647244913317297,
+      0.08744852722211677,
+      0.1,
+      0.11435298360829202,
+      0.13076604860118304,
+      0.14953487812212204,
+      0.17099759466766967,
+      0.19554085140089394,
+      0.22360679774997896,
+      0.25570104477806005,
+      0.2924017738212865,
+      0.334370152488211,
+      0.38236224566586485,
+      0.4372426361105838,
+      0.5
+    ],
+    "slow_lengths_m": [
+      0.5,
+      0.5612310241546865,
+      0.6299605249474366,
+      0.7071067811865476,
+      0.7937005259840997,
+      0.8908987181403393,
+      1.0,
+      1.122462048309373,
+      1.2599210498948732,
+      1.414213562373095,
+      1.5874010519681996,
+      1.7817974362806783,
+      2.0,
+      2.2449240966187456,
+      2.5198420997897464,
+      2.8284271247461894,
+      3.174802103936399,
+      3.563594872561357,
+      3.999999999999999,
+      4.489848193237492,
+      5.039684199579493,
+      5.656854249492379,
+      6.349604207872796,
+      7.127189745122711,
+      8.0
+    ],
+    "V2_near_min_fraction": 0.05,
+    "V2_donor_length_ratio": 2.0,
+    "V4_trace": "original E0",
+    "V4_correlation": 0.8,
+    "V3_heading_gate": 0.75,
+    "V3_rmse_ratio": 1.25,
+    "V3_uncap_above": 0.1,
+    "V3_uncap_rule": "restore slow only; paired absolute CI including .75 inconclusive",
+    "V5_widths_m": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "V5_recovery": 0.9,
+    "V6_range_xy_delta": 0.05,
+    "V7_A_over_B": 2.0,
+    "D6_native": 9.210340371976184,
+    "D6_alternative": 13.8,
+    "D6_equivalence_band": 0.03,
+    "bootstrap_s": [
+      5,
+      10,
+      20,
+      30
+    ],
+    "bootstrap_min_blocks": 8,
+    "bootstrap_reps": 1500,
+    "bootstrap_seed": 20261115,
+    "M2": {
+      "pooled_pose95_min": 0.9,
+      "pooled_heading95_min": 0.9,
+      "per_route_pose95_min": 0.75,
+      "per_route_heading95_min": 0.75,
+      "per_route_xy95_min": 0.75,
+      "pooled_mean_nees3_interval": [
+        1.5,
+        6.0
+      ],
+      "pooled_rmse_ratio_max": 1.1,
+      "per_route_rmse_ratio_max": 1.25
+    },
+    "pooled_pose_heading_primary_CI_floor": 0.8,
+    "KI_history_seconds": 10.0,
+    "KI_history_cap": 100,
+    "length_lookup": "per-step predicted prior bin; integrate delta-distance/length; carry across unsupported bins",
+    "Rref_timing": "inherited previous posterior lookup, equivalently current prior when D5 sigma knots are flat",
+    "missing_bin": "fallback to baseline white; record packet count; no unsupported V3 claims",
+    "V3_unidentified_length": "longest near-minimum supported length for diagnostic replay",
+    "conditional_admission": "V8, V1, V2 PASS and V3 a,c PASS, with a prime diagnostic only"
+  },
+  "question": "G1-INT-001/KS-TRANSFER/M45-B-B0",
+  "role": "IMPLEMENTER",
+  "frozen_utc": "2026-11-16T04:04:02.333352+00:00",
+  "scope": {
+    "mount_deg": 45.0,
+    "anchor": "B",
+    "bias": "B0",
+    "seed": 10,
+    "routes": [
+      "R2",
+      "R4",
+      "R5"
+    ]
+  },
+  "sources": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\run_ks_mount45.py",
+      "sha256": "cf763ae05a370479c366ecb20bdac3a49a7e888cc7c8dea415707ef28aa522bb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\ks\\run_ks_bound.py",
+      "sha256": "50130186cd9d89f56a8ae50a69d850b61846059acb64dfe0fe4e46742c93d494"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\PLAN_FROZEN.md",
+      "sha256": "1a5b5991b1e712b2a2d2b97ae38fe157832e046a7c75b0c92b7e959afa501973"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\RUN_CONTRACT_RETRY_03.json",
+      "sha256": "89f8d5e0b407616e9e86e1de187928efebe86f6852f4682d85e202a06c2598d5"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\run_ks.py",
+      "sha256": "56226e6487d8a4ffb0de741699bba9a63196ed311e1e70da7a8312c7e3ab1961"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\ks_replay.py",
+      "sha256": "d5e8d9dd6ee3b1963eadf42a31e539460b3a12141dcec4a7896df9a39c698b9c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\ks_fit.py",
+      "sha256": "06cd5a5fe6d7acaefd833c8bd5a346b0b2a1bba4418cc3a9b5ee651aca6fdee0"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_INT_DIAG_001_20261115\\continuation_ks\\ks_diagnostics.py",
+      "sha256": "e7bf79c47ecd758cc74f30e917acc19102c50c4a39da39011f344735862a3ff0"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\RUN_CONTRACT.json",
+      "sha256": "6d2545e3030b6c981e2be6a98a61e68936a04fd221201523b0164579c12d7012"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\RUN_CONTRACT.json",
+      "sha256": "af1abe56d02ea6de74507c98a2a95bbce537d6ad65382be0a2160c462e752d9d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\RUN_CONTRACT.json",
+      "sha256": "3d72b9b7b82a6ed4d5dfc36f8e1015abb429c5d87ba3875be5af6cb344a96f2c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\EXECUTION.json",
+      "sha256": "023dbb5836f6bfd827d214a3f3bce0b77b97bc2bdf8f29295745a52d8fabd264"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R2.npz",
+      "sha256": "03ce3f6e8d9cd8b70f604113d6055d4ca335b7edde85b72223ed85cac99f1e48"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R4.npz",
+      "sha256": "b0352e4100e052fa05eeaa76073866415d09da2b0f8c27b767d2b7e2337c154f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\B_B0_R5.npz",
+      "sha256": "b115e20ed9a72e182ab3a4a11554949b77fd108d2a0b5bf16cc012b2ac3754b1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d0\\RESULTS.json",
+      "sha256": "08b26398614dce2314efc919ebc23c9ae0ba2abe0be6376eba6d8c313564da0a"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\EXECUTION.json",
+      "sha256": "d3e2ad714218dbf9818cd4c0dba1b5a5d1299a9451a0a03687dd3c8dee44ef58"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\B_B0_R2.npz",
+      "sha256": "eb71f67528551831ecc72982602d3254c9d66aa9f8ccce3142a325b6d5db95c1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\B_B0_R4.npz",
+      "sha256": "c8ad5f6779fde05b8b92e7ee240b6f9a8406719745ef9e15ab9ea362cf141936"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\B_B0_R5.npz",
+      "sha256": "09be4f32fe178215cc45850b6f73d5c631978842bc7fd3fee460f2569b8d22c5"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\FOLDS.json",
+      "sha256": "45b15e544df7a2cc13a39d0a8fbc73d3e89cd5bb99579af5f97172bdce840c13"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d5\\RESULTS.json",
+      "sha256": "741548cca38c73f0fb67d2fa447d254fd027c20ea5ca04d0d799b9c882e30ddd"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\EXECUTION.json",
+      "sha256": "2f2c5679c26aade139a5f6b2a43fad40a2a6acb94bb386d9846855f804d9a902"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R2.npz",
+      "sha256": "4cc9d3379fa7a91c6227ca3aaf34ddb02893423fd50588d05186dac5ed001bdb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R4.npz",
+      "sha256": "91f7cb6eb0ce698498dbd967f9ceedbf7df14377ca9614586ef93d09a02c3aeb"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\B_B0_R5.npz",
+      "sha256": "b6eb591c99c84f8f23847cd9f7e2898fd99201d6d44a34237577c0fc87445e7c"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_FITS_AND_PAIR_TABLES.json",
+      "sha256": "748f8bef7394dc15661e093f747e446a10e28e17188a97e7838bd142b80170d1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R2_donor_R4.npz",
+      "sha256": "3983cfa9937bc60bbe36c0b037e4269cf342f040ecc6084ae147dbfb8e05de3f"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R2_donor_R5.npz",
+      "sha256": "a8359991f3b0b8f3e311e1eccf22572d22f5e6cb02af3f82aa55cdade269b971"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R4_donor_R2.npz",
+      "sha256": "3d763478bf5eafedd1009d93a35e7f6f9db8cdef31cfca9e8e38c7b780424f07"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R4_donor_R5.npz",
+      "sha256": "364ec101ee6cf3f9c4aaae6beba973f409e9f5b849c2dd0741b7ff4bf77f66f3"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R5_donor_R2.npz",
+      "sha256": "8f08209da4ec58bbca439c98b26c7e11ee080f109b1a21eb6b9a7f5b95879ae9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\M3_R5_donor_R4.npz",
+      "sha256": "bce8f55bc6587f64f413db84f45b991d83ddcdeba5241787bb0bafe65d3e4633"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d2\\RESULTS.json",
+      "sha256": "7a6350d43729ebb69b60b676c1754cac1871d525053c5aad7f779c642d066d0d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\EXECUTION.json",
+      "sha256": "ae3c0f583649b5bf15558cb7dd2a48e2bf22e4a31ea253b7fb5f75d26aa3edd2"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\B_B0_R2.npz",
+      "sha256": "03aac1339205f255750e17022df85b9a045ba921ae8fe3847539f670665d02cc"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\B_B0_R4.npz",
+      "sha256": "9a9e61d19470845f4c2ebd093ad6834712f6b797897a62cc5571a479a1429ae1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\B_B0_R5.npz",
+      "sha256": "a67a9992634bac62080fc284b3ee4b8c50e452fe81d49174caaaf0805008b240"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\M3_SLOW_SCALE_COMPARISON.json",
+      "sha256": "a7bd501229f105b082560badaf7d03095705a22f7e28efaabb69c24d7aa0a839"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\diagnostics\\d3\\RESULTS.json",
+      "sha256": "dab3828a73aee47dc807a21b0472cf56ff2de27597a99107955b8a80e402c036"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\EXECUTION.json",
+      "sha256": "2ce4f850d969816ebb8792cf2b6613c7de3927587bbcb8f1f3bdecc662ac0b31"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\IMPLEMENTATION_CHECKS.json",
+      "sha256": "83b47c44db4bec499d70c0e26c3a01ded3d5144bddd992eb3b860489b8461351"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R2_KI_trace.npz",
+      "sha256": "c838c1ec685ed7f5591ec4afce0e90fe6aeb3fca2c6fd6558f9715a94d25f121"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R2_SC_trace.npz",
+      "sha256": "781fbf6ad7b4a436e7127c92fa907bd2a58aef573577bd758909694d142af850"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R4_KI_trace.npz",
+      "sha256": "9f44ce569102c2e1ce0ed0a7b869bf36db9f2cbc1d586b53b16fab1597dfd5e1"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R4_SC_trace.npz",
+      "sha256": "ec0848b2027db2ecdb9462e67d601dd0781c14a8cd79d5ebc4db1e54179dfbc9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R5_KI_trace.npz",
+      "sha256": "038d984a6ef0b47428ba62b71dd093a88403be66a56c8cd96d2c48489e4e66c8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\R5_SC_trace.npz",
+      "sha256": "415b2eee827a9acced03df7ad3db984d4d57fd1e1801ff3289f0fa7a2bec94d8"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\structure\\execution\\RESULTS.json",
+      "sha256": "050742145d8b98a78d28831fe1eb47a5e86e6fb7c80da97f63204f94d7240d12"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\EXECUTION.json",
+      "sha256": "3d6c33e0d22166d1cb91f7f3b7d6e2da7e1ed7f09e729c4a38117b0e4567abc4"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\CHECKS.json",
+      "sha256": "80feb08945653ca4fc339f9285322a495444861c95fe46486d8955edb6d8f3c9"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\HGB_FEATURE_RATES.csv",
+      "sha256": "36e82803c451f41b61dbce13a12308a1e5bc9b5ba02a0b7ca95e2c472efb7164"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\HGB_FEATURE_SUPPORT.json",
+      "sha256": "6d32d0217ccf4ca7df40ecc736ad3b42a95ea6df98b122c57825e8cfccabaae2"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\RESIDUAL_BINS.csv",
+      "sha256": "acab2abf3e9740e64695888309793ad109c43399b48bb991e181e92c990c4d3d"
+    },
+    {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\d4\\execution\\RESULTS.json",
+      "sha256": "91e021f8e8b9b1d95fd246cad01e3fc4fa1d9ea86bf4dd872df6bdae1588af4a"
+    }
+  ],
+  "route_reference_rule": "R_ref uses inherited previous-posterior horizontal range in replay; kernel and feature bins use current prior.",
+  "V7": "Requires matching A/B on B0 or L2; A +45 has no authenticated frozen baseline. Record missing V7 and continue D6, which operates only on B/B0."
+}

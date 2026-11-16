@@ -1,0 +1,131 @@
+{
+  "question_id": "G1-CHAR-002-S2-MOUNT45",
+  "role": "IMPLEMENTER",
+  "status": "FROZEN_BEFORE_FIT",
+  "frozen_utc": "2026-11-16T03:42:56.064509+00:00",
+  "spec_commit": "6c175a53fbbbb19f990881f7dfcf82a3760dab70",
+  "published_rt_commit": "1b5888cb7464b494bf9f3095855fe00d4e811558",
+  "scope": {
+    "mount_deg": 45.0,
+    "cases": [
+      "G-T1_A",
+      "G-T1_B",
+      "G-T1_C"
+    ]
+  },
+  "training_only": {
+    "model_sets": [
+      "P-A_TEACH",
+      "P-A_REPEAT"
+    ],
+    "model_cases": [
+      "G-T1_A",
+      "G-T1_B",
+      "G-T1_C"
+    ],
+    "e4_set": "P-A_TEACH",
+    "e4_protocol": "dense49"
+  },
+  "models": [
+    "R1",
+    "R2",
+    "S1",
+    "S2",
+    "S3"
+  ],
+  "exclusions": [
+    "G-T2",
+    "G-V",
+    "PATHS_NEAR",
+    "evaluation routes",
+    "sealed inputs"
+  ],
+  "angle_conventions": {
+    "bearing_predictor": "CHAR-001 rel_bearing from body yaw; folded to [0,180)",
+    "O30_sensitivity": "antenna yaw = body yaw + mount_deg (+45)",
+    "E4_yaw_delta": "body yaw as stored by SAMPLES; constant mount offset cancels from pairwise yaw difference"
+  },
+  "inputs": {
+    "retrieval_receipt": {
+      "path": "D:\\SLAM_bot\\artifacts\\G1_CHAR002_S2_MOUNT45_VALIDATION_20261116\\guarded_gt1\\RETRIEVAL.json",
+      "sha256": "ce52005e54244b4c93c9c5b8afc02ed26554d5aaba2f36d0d0f8b73410ee5743",
+      "published_commit": "1b5888cb7464b494bf9f3095855fe00d4e811558"
+    },
+    "guarded_files": {
+      "H/G-T1_A/MANIFEST.json": "0a5ee41749da5d0c981814bb114cd82d115017d3c16cfcd09931e97f9cafe1bd",
+      "H/G-T1_A/H_full.npy": "8584cb582dba8f26fbcc7b1a1936c56995061b1cde4bc01dedcde92be4d49bf3",
+      "H/G-T1_A/H_LoS.npy": "786045ac04f3c01b1fab1f7571100174a2813e2119798b95bf102fc7330abcb1",
+      "poses/G-T1_A/SAMPLES.json": "32fdb5a5019418d755cc3433eedf138b80a5fa93262aa83ceba61c4c9676ba9c",
+      "poses/G-T1_A/rf_poses.json": "1236eb1e84e62969735ead9403834b665f6acef59f7fa13d99cb64c48441c524",
+      "poses/G-T1_A/SCENE_ENTRY.json": "9528fe0c8f93cff168fca2a452b693acbf51bdd7ea891b5d7658818326ac2039",
+      "H/G-T1_B/MANIFEST.json": "065cc51089b9cbca0f8a90ac1d02229457f75ee40f71e266502346a728d81121",
+      "H/G-T1_B/H_full.npy": "d1b152e5deeb813e5b6ab198933746c7975a43650516558df14f8c8206e6b89c",
+      "H/G-T1_B/H_LoS.npy": "27912d8593af699e0aa526de156288efd8f5a906ec878d629d5ab9cde5cc0c1b",
+      "poses/G-T1_B/SAMPLES.json": "32fdb5a5019418d755cc3433eedf138b80a5fa93262aa83ceba61c4c9676ba9c",
+      "poses/G-T1_B/rf_poses.json": "1236eb1e84e62969735ead9403834b665f6acef59f7fa13d99cb64c48441c524",
+      "poses/G-T1_B/SCENE_ENTRY.json": "9528fe0c8f93cff168fca2a452b693acbf51bdd7ea891b5d7658818326ac2039",
+      "H/G-T1_C/MANIFEST.json": "effd33a8bb3ee5e084ddb66cfeb921250aed84a17fefd7c41276e4ac5e78775a",
+      "H/G-T1_C/H_full.npy": "d80ab44991af14667aa3c16dc790e059944cf688680ae214868e9f47e6c220e3",
+      "H/G-T1_C/H_LoS.npy": "d17cc77b9903430aa2a1293f017bc78a8fa5212f3cca244031fc14dc4845d05a",
+      "poses/G-T1_C/SAMPLES.json": "32fdb5a5019418d755cc3433eedf138b80a5fa93262aa83ceba61c4c9676ba9c",
+      "poses/G-T1_C/rf_poses.json": "1236eb1e84e62969735ead9403834b665f6acef59f7fa13d99cb64c48441c524",
+      "poses/G-T1_C/SCENE_ENTRY.json": "9528fe0c8f93cff168fca2a452b693acbf51bdd7ea891b5d7658818326ac2039"
+    },
+    "sources": {
+      "char_extract.py": "dadb7478c8cf6722f2120e4388072ba3dcbb1e5949a935d631f3411ed1a9abee",
+      "char_mount.py": "fd00418f3734bfafde654747bae99ef996761c348e7b5e876212a85af37bda1e",
+      "char2_fit_eval.py": "9792024feb17c329c35f67ea69020711492489810b8216e20627b2ae01a0de7c",
+      "replay_s2.py": "2174eba0cb43cca3de3afa77055d5699e0f97c08e05565503234ec6a7e2ce471",
+      "model.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+      "observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+      "pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8"
+    },
+    "banks": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    },
+    "model_rules": {
+      "char2_fit_eval.py": "R1/R2 on e_r_abs; S1/S2/S3 on e_s; original model definitions and optimizer"
+    },
+    "train_sets": [
+      "P-A_TEACH",
+      "P-A_REPEAT"
+    ],
+    "train_cases": [
+      "G-T1_A",
+      "G-T1_B",
+      "G-T1_C"
+    ],
+    "e4_filter": {
+      "set": "P-A_TEACH",
+      "protocol": "dense49"
+    }
+  },
+  "expected_outputs": [
+    "FIT.json",
+    "FIT_S2.json",
+    "FIT_RECEIPT.json",
+    "ERRORS_G-T1_A.npz",
+    "ERRORS_G-T1_B.npz",
+    "ERRORS_G-T1_C.npz",
+    "ERRORS_G-T1_A.csv.gz",
+    "ERRORS_G-T1_B.csv.gz",
+    "ERRORS_G-T1_C.csv.gz"
+  ],
+  "runner_sha256": "5d0214f556d1c387de81ea5f6b6e64b18350ba2c877143459ad45d7672fca45c",
+  "command": [
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_MOUNT45_VALIDATION_20261116/fit_mount45.py",
+    "--gt1",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_MOUNT45_VALIDATION_20261116/guarded_gt1",
+    "--src",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_MOUNT45_VALIDATION_20261116/frozen_model003_src",
+    "--banks",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_INPUTS_20261115/source_minimal/research/FP_SC_RECOVERY_R0_R5_20261107/R45_sources",
+    "--char-root",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_MOUNT45_VALIDATION_20261116/frozen_char",
+    "--s2-dir",
+    "D:/SLAM_bot/g1_char002_s2_ekf_20261115/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF",
+    "--out",
+    "D:/SLAM_bot/artifacts/G1_CHAR002_S2_MOUNT45_VALIDATION_20261116/training"
+  ]
+}
