@@ -1,0 +1,171 @@
+{
+  "question_id": "BLOCK-C-CENTERLINE-SWEEP-001",
+  "created_utc": "2026-11-17T09:51:53.398321+00:00",
+  "code_commit": "6154515b01b0d923645e37aec58fb7cb68fd54f1",
+  "geometry": "BLOCK_C",
+  "anchor": "B",
+  "anchor_xyz_m": [
+    10.0,
+    0.0,
+    2.65
+  ],
+  "x_start_m": 1.2,
+  "x_end_m": 18.75,
+  "station_spacing_m": 0.45,
+  "y_m": 0.0,
+  "receiver_z_m": 0.45,
+  "mount_deg": 0,
+  "heading_frame": "absolute world yaw in degrees",
+  "unique_yaw_deg": [
+    -180,
+    -170,
+    -160,
+    -150,
+    -140,
+    -130,
+    -120,
+    -110,
+    -100,
+    -90,
+    -80,
+    -70,
+    -60,
+    -50,
+    -40,
+    -30,
+    -20,
+    -10,
+    0,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+    70,
+    80,
+    90,
+    100,
+    110,
+    120,
+    130,
+    140,
+    150,
+    160,
+    170
+  ],
+  "observation_yaw_deg": [
+    -180,
+    -170,
+    -160,
+    -150,
+    -140,
+    -130,
+    -120,
+    -110,
+    -100,
+    -90,
+    -80,
+    -70,
+    -60,
+    -50,
+    -40,
+    -30,
+    -20,
+    -10,
+    0,
+    10,
+    20,
+    30,
+    40,
+    50,
+    60,
+    70,
+    80,
+    90,
+    100,
+    110,
+    120,
+    130,
+    140,
+    150,
+    160,
+    170,
+    180
+  ],
+  "endpoint_rule": "-180 and +180 observations share one RF pose_id",
+  "clean_h": true,
+  "thermal_noise": "not added; repeated endpoint is not an independent spatial sample",
+  "production": "adopted F1 plus pre-field finite-face guard",
+  "difference_from_M7_original": "refraction true -> false; finite-face guard enabled; new exact centerline poses",
+  "source_cases": {
+    "path": "/home/KMS/DRIVE_SIM_POST_A23_SUPPLEMENT_20261010_01a12449/BLOCK_C/CASES.json",
+    "sha256": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b"
+  },
+  "original_mesh_sources": [
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/floor.ply",
+      "sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+    },
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/ceiling.ply",
+      "sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+    },
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/wall_y_neg.ply",
+      "sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+    },
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/wall_y_pos.ply",
+      "sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+    },
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/end_x_min.ply",
+      "sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+    },
+    {
+      "path": "/home/KMS/COOL_DIJKSTRA_20261007_01a11582/source/results/CORRIDOR_SCAN2_20261007/x4.0_y0.7/scene/end_x_max.ply",
+      "sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+    }
+  ],
+  "method_b_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "method_b_sha256": {
+    "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+    "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+    "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+    "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+    "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+    "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+    "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+    "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+    "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+    "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+  },
+  "ffd_sha256": {
+    "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+    "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+  },
+  "runtime_image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+  "governance": {
+    "COMMON_CONTRACT_sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb",
+    "ROLE_IMPLEMENTER_sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+  },
+  "scope": "new BLOCK_C only; no heading estimation or sealed G-T2/G-V reads",
+  "input_sha256": {
+    "INPUT_VALIDATION.json": "f61d36d61d699bb88f9e88ddc9f340861967ca9715930778a642b81bb01fabff",
+    "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+    "PRODUCTION_F1.json": "fcd3ee9448640bcd29e0f031d06243a7cd5d8c6d7f80b1db49485ed7904017d8",
+    "SAMPLES.json": "a9d6482d0ac3db3b3276db9dfc56a4527cd16a2080e65aa25cd4b8c71ff9c1ad",
+    "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+    "STATIONS.json": "ac26437fb5d1f2a4ae97486488cdb2510464f8d6c6ec89b9f050b64344b9ff75",
+    "TIMELINE.csv": "5d24e6cb4e32f9d5dfb5f56dbeb3bf6ac462a6b9eb8cf9c408659446e37f8ed8",
+    "rf_poses.json": "835b6ccbe38975fb04fdc53b3a28ddfd06d00bb201eab4cbb74fdaaed5e73a3c",
+    "rf_tasks.json": "f9d11d8196f41a8ffa37893bf5a7ab9dd4001644009f4e105983f55dccb3f233",
+    "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+    "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+    "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+    "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+    "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+    "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+  }
+}

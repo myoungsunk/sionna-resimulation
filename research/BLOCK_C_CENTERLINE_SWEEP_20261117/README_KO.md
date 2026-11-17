@@ -25,3 +25,36 @@
 5. heading 오차를 계산하지 않는다. G-T2/G-V 봉인 데이터는 읽지 않는다. 기존 데이터와 FAIL 기록을 변경하지 않는다.
 
 실행 계약, 코드 revision, 원본 및 입력 SHA-256, 컨테이너 명령, 시간, 자원 전후 기록, 데이터 SHA-256과 저장량을 새 run root에 보존한다. 원래 결과와 구분된 별도 디렉터리에만 쓴다.
+
+## 완료된 실행과 데이터
+
+Snowball 실행 ID: `BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh`.
+실행 코드 커밋: `6154515b01b0d923645e37aec58fb7cb68fd54f1`.
+
+- 40 station, 1,440개 RF pose, 1,480개 관측 행을 모두 생성했다. 추가 경로 export를 위한 solver 호출은 0회다.
+- 파일럿 274.74초, 전체 생성 184.35초, 병합·검증 10.25초, 합계 469.36초다. 패키징 수정과 검증 코드 보강에 걸린 준비 시간은 이 실행 시간에 포함하지 않는다.
+- 최종 결과는 completion.json을 포함해 101,279,646 byte다.
+- G4 PASS: 관측 행 기준 p90 |delta s| = 6.438919686768688e-7, 최댓값 = 2.4034421407526096e-6. 기준 0.005를 유지했다.
+- G8 직렬화 PASS: 1,440 pose 전부, LoS 재합성 상대·절대 오차 0. 최종 파일 18개와 입력 파일 15개의 로컬 복사 SHA-256도 일치했다.
+- 이 결과는 새 BLOCK_C 데이터 생성·위 검사 범위에 한정된다. heading 오차 및 G-T2/G-V 데이터 분석은 수행하지 않았다.
+
+데이터와 원본 입력·로그는 [실행 폴더](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/)에 있다.
+
+| 파일 | 내용 |
+| --- | --- |
+| [H_full.npy](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/H/BLOCKC_B/H_full.npy) | 다중경로 포함 clean H, complex128, shape (1440, 257, 2, 2) |
+| [H_LoS.npy](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/H/BLOCKC_B/H_LoS.npy) | LoS 기준 H, 같은 shape·pose 순서 |
+| [rf_poses.json](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/poses/BLOCKC_B/rf_poses.json) | H 배열 첫 축과 일치하는 pose_id, 위치, 절대 yaw |
+| [SAMPLES.json](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/poses/BLOCKC_B/SAMPLES.json) | 1,480개 관측 순서와 pose_id 참조, 각 station의 양 끝 yaw 포함 |
+| [PATHS_NEAR.npz](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/paths/BLOCKC_B/PATHS_NEAR.npz) | H와 같은 trace에서 얻은 LoS 및 LoS 이후 2 tap 이내 경로 |
+| [completion.json](../../artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/completion.json) | 실행 provenance, shard 및 데이터 해시, G4·G8 결과 |
+
+H 축 순서는 `(pose, frequency, rx_port, tx_port)`이고 포트 순서는 `(+45, -45)`다. 관측 행 `row`의 H는 `H[row['pose_id']]`다. +180도 행은 같은 station의 -180도 행과 같은 RF 값을 참조한다.
+
+NPY·NPZ는 Git LFS로 제공한다. 해당 브랜치 체크아웃 후 다음 명령으로 이 실행의 네 개 바이너리 파일만 받을 수 있다.
+
+```sh
+git lfs pull --include="artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/H/BLOCKC_B/*.npy,artifacts/BLOCK_C_CENTERLINE_SWEEP_20261117T0956Z_OT9sPHzh/results/paths/BLOCKC_B/*.npz"
+```
+
+기존 Snowball 증거는 보존했다. 초기 패키징 시 CRLF 변환으로 입력 해시 검사에서 중단된 실행과, 독립 G4 import 순서를 고치기 위해 운영자가 취소한 파일럿은 별도 staging 기록으로 구분한다. 최종 PASS 실행과 섞어 집계하지 않는다.
