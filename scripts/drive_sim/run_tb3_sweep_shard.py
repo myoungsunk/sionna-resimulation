@@ -51,7 +51,7 @@ def trace_digest(trace):
     return digest.hexdigest()
 
 
-def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production, out, batch_xy):
+def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production, out, batch_xy, mounts=MOUNTS):
     from run_tb3_g8_pilot import capture_trace
     from tb3_finite_face_guard import FiniteFaceGuard
     from tb3_g6_face_match import load_faces
@@ -91,9 +91,9 @@ def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production,
     ids = np.array(sorted(pose_id for task in tasks for pose_id in task["pose_ids"]), dtype=np.int64)
     by_id = {pose_id: row for row, pose_id in enumerate(ids)}
     shape = (len(ids), len(freq), 2, 2)
-    coeff = {mount: np.empty(shape, dtype=np.complex128) for mount in MOUNTS}
-    full = {mount: np.empty(shape, dtype=np.complex128) for mount in MOUNTS}
-    packs = {mount: [] for mount in MOUNTS}
+    coeff = {mount: np.empty(shape, dtype=np.complex128) for mount in mounts}
+    full = {mount: np.empty(shape, dtype=np.complex128) for mount in mounts}
+    packs = {mount: [] for mount in mounts}
     delays = np.empty(len(ids), dtype=np.float64)
     angles = np.empty((len(ids), len(ANGLES)), dtype=np.float64)
     receipts = []
@@ -125,7 +125,7 @@ def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production,
                 tag=task["tag"], task_id=task["task_id"], pose_ids=task["pose_ids"],
                 node_bins=nodes.tolist(), solver_calls=len(nodes), trace_s=elapsed,
                 n_full_paths=len(trace["tau"]), trace_sha256=trace_digest(trace),
-                mounts_deg=list(MOUNTS), pre_field_rejections=sum(counts.values()),
+                mounts_deg=list(mounts), pre_field_rejections=sum(counts.values()),
                 pre_field_rejections_by_node=[
                     dict(bin=node, count=count) for node, count in sorted(counts.items()) if count
                 ],
@@ -133,18 +133,18 @@ def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production,
             batch.append((task, trace, int(direct[0]), slice(start, len(batch_poses)), rows, receipts[-1]))
 
         started = time.monotonic()
-        # Run one native direct-field batch for both mounts; these are field
+        # Run one native direct-field batch for the selected mounts; these are field
         # evaluations on known direct segments and do not call the path solver.
         mounted = [
             {"yaw_body_deg": pose["yaw_body_deg"] + mount}
-            for mount in MOUNTS for pose in batch_poses
+            for mount in mounts for pose in batch_poses
         ]
         native, native_delays = native_direct_fields(
-            core, tx, receivers * len(MOUNTS), mounted, 0, native_banks, ports,
+            core, tx, receivers * len(mounts), mounted, 0, native_banks, ports,
         )
         n = len(batch_poses)
-        native = native.reshape((len(MOUNTS), n, *shape[1:]))
-        native_delays = native_delays.reshape((len(MOUNTS), n))
+        native = native.reshape((len(mounts), n, *shape[1:]))
+        native_delays = native_delays.reshape((len(mounts), n))
         timings["native_field_s"] += time.monotonic() - started
 
         started = time.monotonic()
@@ -154,7 +154,7 @@ def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production,
                 raise ValueError(f"Native delay differs from the F1 direct path at {task['tag']}")
             delays[rows] = delay
             angles[rows] = trace["ang"][:, direct]
-            for mount, fields in zip(MOUNTS, native, strict=True):
+            for mount, fields in zip(mounts, native, strict=True):
                 channels, near = h_and_near_for_poses(
                     trace, banks, batch_poses[part], mount_deg=mount, none_event=codes["NONE"],
                     direct_coefficients=fields[part],
@@ -167,7 +167,7 @@ def generate(core, scene_entry, anchor_id, scene_root, poses, tasks, production,
         print(f"{offset + len(selected)}/{len(tasks)} shared guarded XY", flush=True)
 
     started = time.monotonic()
-    for mount in MOUNTS:
+    for mount in mounts:
         write_mount(out / f"mount{mount}", ids, freq, delays, angles, coeff[mount],
                     full[mount], packs[mount], codes, objects)
     write(out / "TRACE_RECEIPTS.json", receipts)
