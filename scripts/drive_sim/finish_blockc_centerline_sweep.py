@@ -12,8 +12,7 @@ import numpy as np
 from merge_tb3_production import LOS_ANGLES, fill_los, load_near
 from run_tb3_g1_pilot import read, sha, write
 from run_tb3_production import F1_SHA, utc_now, verify
-from tb3_paths_near import check_g8
-from validate_tb3_g4 import evaluate_case, load_model
+from validate_tb3_g4 import MODEL_SOURCE_SHA256, evaluate_case, load_model
 
 
 CASE = "BLOCKC_B"
@@ -149,13 +148,27 @@ def run(args):
         if path.is_file() and path.suffix.lower() in (".json", ".csv"):
             shutil.copyfile(path, pose_dir / path.name)
     model, observation, banks, model_frequencies, model_sha, bank_sha = load_model(args)
+    model_root = args.model_source.resolve()
+    model_src = model_root / "src" if (model_root / "src").is_dir() else model_root
+    loaded_modules = {}
+    for relative, expected_sha in MODEL_SOURCE_SHA256.items():
+        module_name = relative[:-3].replace("/", ".")
+        module = __import__(module_name, fromlist=["__file__"])
+        actual = Path(module.__file__).resolve()
+        if actual != (model_src / relative).resolve() or sha(actual) != expected_sha:
+            raise ValueError(f"Independent G4 loaded an unexpected module: {actual}")
+        loaded_modules[module_name] = dict(path=str(actual), sha256=sha(actual))
+    # This helper imports qclean_uwb too. Load it only after the independent
+    # model and every pinned transitive module have been verified in memory.
+    from tb3_paths_near import check_g8
+
     if not np.array_equal(model_frequencies, frequencies) or bank_sha != contract["ffd_sha256"]:
         raise ValueError("Independent G4 bank frequencies or provenance differ")
     g4_started = time.monotonic()
     g4 = evaluate_case(results, CASE, model, observation, banks, frequencies)
     g4.pop("_delta_by_pose")
     g4.update(gate="G4", wall_s=time.monotonic()-g4_started,
-              model_source_sha256=model_sha, ffd_bank_sha256=bank_sha)
+              model_source_sha256=model_sha, loaded_modules=loaded_modules, ffd_bank_sha256=bank_sha)
     write(results / "G4.json", g4)
     g8_started = time.monotonic()
     g8 = check_g8(p_dir / "PATHS_NEAR.npz", channels["H_LoS.npy"], ids)
