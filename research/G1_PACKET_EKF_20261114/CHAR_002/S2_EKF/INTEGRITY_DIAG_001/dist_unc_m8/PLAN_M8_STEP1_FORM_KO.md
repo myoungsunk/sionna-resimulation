@@ -3,7 +3,7 @@
 | 항목 | 계획 정의 |
 |---|---|
 | 질문 ID | G1-INT-001/M8-STEP1-FORM |
-| 상태 | PROPOSER · **PLAN_ONLY · EXECUTION_HOLD**. 입력 동결·적합·구현 검사·재생은 실행하지 않았다 |
+| 상태 | **실행 완료** (사용자 지시로 Claude가 직접 실행). 결과: [step1/attempt_01/REPORT_KO.md](step1/attempt_01/REPORT_KO.md). M8S1_PASS = 전 arm false. 계획 대비 수정 A1–A4는 결과 보고서 §7 |
 | 기준 브랜치 | research/g1-sweep-heading-floor-spec-20261113 |
 | 기준 커밋 | `e6487ddf` (M7 결과 `5a33a982`, M8 초안 사양 포함) |
 | 대체 | 같은 폴더의 [SPEC_M8_DIST_UNC_FILTER_KO.md](SPEC_M8_DIST_UNC_FILTER_KO.md)는 **3단계(sweep 값 대체)로 보류**한다. 이 계획이 M8의 첫 실행 범위다 |
