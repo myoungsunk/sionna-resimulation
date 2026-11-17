@@ -1,0 +1,89 @@
+{
+  "question_id": "G1-INT-SIGNED-COV-001",
+  "stage": "P0_ONLY",
+  "plan_commit": "bd28eac6a0e235412bdced9f08505148191e39d2",
+  "status": "FROZEN_BEFORE_P0",
+  "input_correction": {
+    "previous_attempt": "attempt_01 STOP/TRUTH_MISMATCH retained with original p0_inputs.py",
+    "cause": "raw RF poses serialized at six decimal places; evaluator retains pre-serialization precision",
+    "change": "raw RF generation poses are primary; exact quantization equality validates provenance",
+    "independent_review": "signed_cov_audit accepted proposed semantic correction before attempt02; not a fit approval",
+    "score_seen_before_change": false
+  },
+  "primary": "original noise-free Full O30 - original noise-free LoS O30; tx0",
+  "sensitivity": "signed analytic SourceFFD d(s)/d(body yaw), s/rad, at truth",
+  "scope": "BLOCK_C R2/R4/R5 B mount0 B0 seed10 timed pose grid only",
+  "appended_sweeps": "excluded from chronological primary; no invented times",
+  "gates": {
+    "rf_sha256": "CASES.json exact",
+    "banks_sha256": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    },
+    "raw_los_vs_evaluator_clean_H": "bitwise equal tx0 at pose_id",
+    "raw_full_vs_online_clean_Hrf": "bitwise equal tx0 at pose_id",
+    "truth_provenance": "RF generation SAMPLES == INPUTS/rf_poses SHA; evaluator xy/yaw_deg round6 exact equality",
+    "primary_pose": "actual original RF generation pose read by pose_id; evaluator only supplies t/pose_id",
+    "independent_O30_s_max_abs": 1e-12,
+    "independent_O30_tap": "exact",
+    "sourceFFD_vs_raw_los_s_max_abs": 0.0001,
+    "sourceFFD_vs_raw_los_tap": "exact",
+    "source_parity_policy": "new conservative maximum-error guard fixed before P0; not inherited p90 gate",
+    "FD_steps_deg": [
+      0.1,
+      0.01
+    ],
+    "FD_max_normalized_error": [
+      0.0001,
+      1e-05
+    ],
+    "FD_normalization": "abs(FD-a)/max(1,abs(a))",
+    "FD_stable": "tap AND strong_port AND all interpolation cells unchanged at +/- step",
+    "nonsmooth": "enumerate all; FD exemption does not exclude covariance packets/pairs",
+    "failure": "STOP_UNSUPPORTED_INPUT; preserve failed evidence; no threshold relaxation"
+  },
+  "pair_support": {
+    "lag_s": [
+      0.4,
+      5.0
+    ],
+    "min_abs_a_per_endpoint": 0.1,
+    "rho_bins_m": [
+      0,
+      1.5,
+      3,
+      6,
+      10
+    ],
+    "cluster_s": 10,
+    "cluster_owner": "earlier endpoint; cross-boundary pairs retained with both cluster ids",
+    "matching": "within route and rho stratum; exact coarsened cells; equal sign counts per cell",
+    "matching_rho_mean_bin_m": 0.5,
+    "matching_log_abs_aiaj_bin": 0.5,
+    "matching_lag_bin_s": 0.4,
+    "tie_break": "ascending (pose_i,pose_j), no residual used",
+    "minimum_pairs_each_sign": 30,
+    "minimum_clusters_each_sign": 3,
+    "max_standardized_signed_design_condition": 30
+  },
+  "preserved": [
+    "G-T2/G-V SEALED",
+    "S2prime STOP",
+    "Step3 HOLD",
+    "all M7 evidence"
+  ],
+  "later_stages": "NOT_RUN; covariance fit requires frozen P1 contract and independent synthetic audit",
+  "plan_sha256": "3a067b570f35b5dd5ae9ba3cff293f07bdb95f8c2dc74a0440c983e8b5905d41",
+  "implementation_sha256": "d4573ddf7b924f23e9499c290093840598958242fd9c009441da62a55de05e13",
+  "started_utc": "2026-11-17T07:09:51.993406+00:00",
+  "command": [
+    "D:/SLAM_bot/g1_signed_aa_cov_20261117/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/SIGNED_AA_SLOW_COV_001/p0_inputs_v2.py",
+    "--out",
+    "D:/SLAM_bot/g1_signed_aa_cov_20261117/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/SIGNED_AA_SLOW_COV_001/attempt_02"
+  ],
+  "python": "3.13.15 (tags/v3.13.15:4061bc4, Aug  5 2026, 13:05:39) [MSC v.1944 64 bit (AMD64)]",
+  "numpy": "2.2.4",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "thread_id": "01a1e847-e279-7481-837c-83c2a4387bb1",
+  "managed_process_id": "df3df8fa-d711-4469-9584-db649f9f0751"
+}

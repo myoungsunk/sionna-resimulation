@@ -1,0 +1,128 @@
+{
+  "question_id": "G1-INT-SIGNED-COV-001",
+  "stage": "P1",
+  "scope": "R2/R4/R5 B mount0 timed noise-free RF; no new RF or EKF",
+  "score": "Gaussian composite block log predictive score, nats/packet",
+  "score_components": "each 10s cluster -> two 5s halves x alternating 0.2s-grid index (4 components), then rho-bin; every eligible packet once; off-diagonal lags 0.4..4.8s",
+  "models": {
+    "S0": "q*K",
+    "S1": "q*K+theta*diag(a)*K*diag(a)",
+    "S2": "q*K+u*diag(abs(a))*K*diag(abs(a))",
+    "S3": "theta*diag(a)*K*diag(a)"
+  },
+  "kernel": {
+    "ell_arc_m": 1,
+    "ell_yaw_deg": 10,
+    "sensitivity_grid_m_deg": [
+      [
+        0.5,
+        5
+      ],
+      [
+        0.5,
+        20
+      ],
+      [
+        2,
+        5
+      ],
+      [
+        2,
+        20
+      ]
+    ],
+    "coordinates": "cumulative original RF pose arc and cumulative absolute wrapped yaw"
+  },
+  "pair_lag_s": [
+    0.4,
+    5
+  ],
+  "min_abs_a": 0.1,
+  "rho_bins_m": [
+    0,
+    1.5,
+    3,
+    6,
+    10
+  ],
+  "pair_primary": "same 10s cluster; cross-boundary pairs preserved as descriptive only",
+  "P0_P1_boundary_change": "P0 inventory retains boundary pairs; P1 primary excludes them before scores to avoid shared-endpoint bootstrap leakage; raw pairs retained",
+  "matching": "P0 deterministic equal counts per sign within rho_mean0.5m,log|aiaj|0.5,lag0.4s cells; no residuals",
+  "support": {
+    "minimum_pairs_per_sign": 30,
+    "minimum_clusters_per_sign": 3,
+    "max_signed_condition": 30
+  },
+  "endpoint_support": "within each rho-bin x sign(a), inclusive min/max donor abs(a); missing cells excluded as EXTRAPOLATION",
+  "fold_eligibility": "both holdout matched sign support and pooled donor matched sign support after site purge, boundary exclusion, endpoint envelope",
+  "mean": "one scalar mean of eligible donor packets only; same mean all models; no holdout centering",
+  "fitting": "nonnegative scalar q/theta/u Gaussian composite ML; analytic scale with fixed mixing-fraction grid+bounded scalar refinement; no heldout objective",
+  "epsilon": "fit unregularized donor S0 scale first; epsilon=1e-8*max(q0,1e-6), fixed for all models and test components",
+  "numerics": "double, Cholesky; no epsilon increase; report condition and failures",
+  "development": {
+    "train_cluster_mod10": [
+      0,
+      1,
+      2
+    ],
+    "validation_mod10": [
+      5,
+      6
+    ],
+    "guard_mod10": [
+      3,
+      4,
+      7,
+      8,
+      9
+    ],
+    "gap": "at least two unused 10s blocks on both sides",
+    "D3_extra_guard_s": 5
+  },
+  "loro": "donor routes only, all eligible donor blocks except shared heldout RF sites; fixed kernel; no model selection on heldout scores",
+  "revisit": {
+    "xy_radius_m": 0.05,
+    "yaw_radius_deg": 10,
+    "within_route_min_time_s": 10,
+    "purge": "whole donor/train10s block if any site overlaps heldout/validation site",
+    "bootstrap": "link holdout10s clusters containing same/revisit site; resample linked cluster groups as units"
+  },
+  "bootstrap": {
+    "replicates": 2000,
+    "seed": 20261116,
+    "primary_seconds": 10,
+    "sensitivity_seconds": [
+      5,
+      20
+    ],
+    "paired": true,
+    "pairs_individually_resampled": false
+  },
+  "controls": {
+    "N0": "S0 theta0",
+    "N1": "S2 unsigned",
+    "N2_N3": "100 block-stratified conditional permutations; no exact randomization p value",
+    "strata": "rho-bin and fixed abs(a) bins [.1,.3,.6,1,1.5,2,3,4,6,inf]; complete10s block only if homogeneous stratum, otherwise ineligible",
+    "N4": "independent white through original D3 slow decomposition; descriptive synthetic null"
+  },
+  "winsor": "donor abs residual p99, fixed before holdout score; auxiliary only",
+  "decision": "exact plan section7; no supported route implies no signed claim; same-scene conditional only",
+  "fit_execution": "WAIT_INDEPENDENT_SYNTHETIC_AUDIT",
+  "preserved": [
+    "attempt01 STOP",
+    "G-T2/G-V SEALED",
+    "S2prime STOP",
+    "Step3 HOLD",
+    "M7 unchanged"
+  ],
+  "audit_correction": "P1 initial donor pool could cross-route match; revision02 matches within each donor first; initial P1 retained; no scores existed",
+  "implementation_sha256": "4fe28af7f58bf39e431c71966b6e5ca17a1d1784abcbc1015e6774d495e9ae67",
+  "command": [
+    "D:/SLAM_bot/g1_signed_aa_cov_20261117/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/SIGNED_AA_SLOW_COV_001/p1_design_v2.py",
+    "--attempt",
+    "D:/SLAM_bot/g1_signed_aa_cov_20261117/research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/SIGNED_AA_SLOW_COV_001/attempt_02"
+  ],
+  "frozen_utc": "2026-11-17T07:15:58.648197+00:00",
+  "p0_contract_sha256": "558d09c95cd42e173f94100c32b3a0245c094038f25044e8f858d342bad2482f",
+  "p0_status_sha256": "b18130c064e77d57862acaa53f0007c3431020ee390a5bcb386ffd25d84e8d87"
+}

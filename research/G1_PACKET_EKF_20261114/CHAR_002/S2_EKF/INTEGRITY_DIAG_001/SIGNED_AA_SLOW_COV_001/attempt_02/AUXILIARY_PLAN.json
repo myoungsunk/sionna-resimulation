@@ -1,0 +1,32 @@
+{
+  "stage": "P2/P3 supplemental controls",
+  "status": "FROZEN_BEFORE_ANY_REAL_FIT_OR_SCORE",
+  "timestamp": "2026-11-17T07:31:05.302963+00:00",
+  "N4": {
+    "seed": 20261116,
+    "replicates": 200,
+    "source": "independent white on actual original RF pose/timed grid through exact reference_d3.decompose",
+    "config": {
+      "half_seconds": 5,
+      "half_distance_m": 0.25,
+      "half_yaw_deg": 5,
+      "min_window_packets": 10
+    },
+    "pairs": "P0 lag0.4..5s,same-rho-bin,g>=.1; D3 support both endpoints",
+    "strata": [
+      "overlapping windows",
+      "nonoverlapping windows"
+    ],
+    "cross_stream": "independent white stream for j endpoint; avoids shared smoothing noise; diagnostic only, not physical independent RF",
+    "statistics": "mean pair product / marginal supported variance, MC 2.5/97.5 percentiles; not RF uncertainty"
+  },
+  "fixed_fit_sensitivities": {
+    "fit": "reuse audited primary donor parameters; no retuning",
+    "gate": "intersect primary scoring indices with seed10 original E0 frozen trace_mask",
+    "D3_support": "intersect primary scoring indices with existing D3 decomposition_support",
+    "all_g": "all finite signed a, same primary-eligible rho bins and timed grid; includes donor-extrapolated and low-g packets, label descriptive only; same fixed mean/fit",
+    "bootstrap": "paired linked10s cluster groups,2000 seed20261116"
+  },
+  "primary_decision": "unchanged; supplemental cannot create primary signed support",
+  "P3_result_seen": false
+}
