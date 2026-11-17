@@ -3,7 +3,7 @@
 | 항목 | 정의 |
 |---|---|
 | 질문 ID | G1-INT-001/M8-DIST-UNC |
-| 역할·상태 | PROPOSER · **SPEC_PUBLISHED_NOT_EXECUTED**. 구현·입력 생성·재생·판정은 하지 않았다 |
+| 역할·상태 | PROPOSER · **SUPERSEDED_FOR_NOW → 3단계로 보류**. 단계별 진행 결정에 따라 [PLAN_M8_STEP1_FORM_KO.md](PLAN_M8_STEP1_FORM_KO.md)가 첫 실행 범위다. 이 사양의 "R_ref에 V를 더한다"는 정의는 packet R_ss와 이중 계산이 되므로(Step 1 §2.2) 3단계 개정 때 대체 방식으로 고친다 |
 | 브랜치 | `research/g1-sweep-heading-floor-spec-20261113` |
 | 기준 커밋 | `50c12e95eeb13ac3ca317fec4339bd5c098b8282` (M7 결과 `5a33a982` 포함) |
 | 범위 | mount **0°**, 앵커 B (10, 0, 2.65 m), robot z = 0.45 m, Full RF, R2/R4/R5, B0와 Q 일치 L2_GYRO_ARW, seed 10–29, 자체 gate |
