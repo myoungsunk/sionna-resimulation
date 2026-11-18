@@ -1,0 +1,475 @@
+<title>Corridor Curve Shift</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: finding first, one curve viewer, then movement charts (x then y), then the two cause tables. */
+:root {
+  --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee; --ref: #7b8794; --ok: #1f8a4c;
+  --c-los: #2a78d6; --c-all: #eb6834; --c-fit: #1baf7a;
+  --t0: #86b6ef; --t1: #5598e7; --t2: #2a78d6; --t3: #1c5cab; --t4: #104281;
+  --g-floor: #2a78d6; --g-ceiling: #eb6834; --g-side_walls: #1baf7a; --g-end_walls: #eda100; --g-multi_bounce: #e87ba4;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+    --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+    --t0: #184f95; --t1: #256abf; --t2: #3987e5; --t3: #6da7ec; --t4: #9ec5f4;
+    --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+  --c-los: #3987e5; --c-all: #d95926; --c-fit: #199e70;
+  --t0: #184f95; --t1: #256abf; --t2: #3987e5; --t3: #6da7ec; --t4: #9ec5f4;
+  --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 600; }
+h3 { margin: 0; font-size: 13.5px; font-weight: 500; }
+p { margin: 0; }
+.lede { max-width: 76ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.chart { min-width: 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; } .key.dot { border-top-style: dotted; }
+.note { font-size: 13px; color: var(--muted); max-width: 82ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-variant-numeric: tabular-nums; }
+button:hover { border-color: var(--muted); }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, svg:focus-visible { outline: 2px solid var(--c-los); outline-offset: 2px; }
+svg { width: 100%; display: block; touch-action: pan-y; }
+svg text { font-family: var(--font-body); fill: var(--muted); font-size: 11.5px; }
+svg .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.18); min-width: 150px; z-index: 2; }
+.tip[hidden] { display: none; }
+.tip .t { font-family: var(--font-mono); color: var(--muted); margin-bottom: 3px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--fg); }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.hi { font-weight: 600; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+.hbar { height: 8px; border-radius: 2px; background: var(--c-all); min-width: 2px; }
+details > summary { cursor: pointer; font-size: 13.5px; padding: 4px 0; }
+.fitbox { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 20px; font-size: 13px; }
+.fitbox div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; }
+.fitbox b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; text-align: right; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sionna RT 2.0.1 · yaw 곡선 = 이상 곡선 + x축 이동 + y축 이동</div>
+    <h1>복도 곡선 이동 원인</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section class="card" aria-label="곡선 뷰어">
+    <h2>이상 곡선과 피팅</h2>
+    <div class="controls" id="posbtn" role="group" aria-label="위치 선택"></div>
+    <div class="controls" id="txbtn" role="group" aria-label="앵커 TX 포트"></div>
+    <div class="legend" id="lgc"></div>
+    <div class="chart" id="curve"></div>
+    <div class="fitbox" id="fit"></div>
+    <p class="note" id="fitnote"></p>
+  </section>
+
+  <section class="card" aria-label="좌표별 각도 모델 비교">
+    <h2>모든 좌표: 각도만으로 만든 곡선 vs 실제 시뮬레이션 곡선</h2>
+    <p class="note">각 좌표에서 앵커–로봇 직선으로 송신 각도 (θ, φ<sub>tx</sub>)와 수신 각도 (θ, φ<sub>rx</sub>)를 계산하고, 두 안테나 패턴을 그 각도로 읽어 yaw 곡선을 만들었습니다(LoS만, 반사 없음, 실제 거리). 수신 방위 φ<sub>rx</sub>는 yaw를 돌리면 함께 변하며 표의 값은 yaw 0°일 때입니다.</p>
+    <div class="controls" id="txbtn3" role="group" aria-label="앵커 TX 포트 (좌표별 비교)"></div>
+    <div class="legend" id="lg3"></div>
+    <div class="row" id="grid3"></div>
+    <div class="scroll"><table id="tab3"></table></div>
+  </section>
+
+  <section class="card" aria-label="yaw 추정 템플릿 비교">
+    <h2>yaw 추정: 각도 모델을 사전 템플릿으로 쓰면 나아지나</h2>
+    <p class="note">측정한 비율 하나를 템플릿 곡선에 거꾸로 대입해 yaw 후보를 구하고(비율은 부호가 없어 후보가 4–5개), 후보 중 하나를 고릅니다. 앵커 아래를 뺀 22개 곡선, 각 곡선의 19개 yaw 모두에서 평가했습니다. 맞추는 템플릿은 그 yaw 하나를 뺀 18점으로 계수를 정했습니다(leave-one-out).</p>
+    <h3>① 정답에 가장 가까운 후보를 고른 경우 (모호성은 풀렸다고 가정, 템플릿 불일치만 측정)</h3>
+    <div class="scroll"><table id="tm1"></table></div>
+    <h3>② 정답을 모르고 yaw를 ±15° / ±30° 이내로만 아는 경우 (그 사전값에 가장 가까운 후보를 선택)</h3>
+    <div class="scroll"><table id="tm2"></table></div>
+    <p class="note" id="tm-note"></p>
+  </section>
+
+  <section class="card" aria-label="오차 분해">
+    <h2>곡선이 잘 맞는데 yaw 오차가 4.8°나 되는 이유</h2>
+    <p class="note">yaw 오차는 곡선의 세로 불일치가 아니라 가로 어긋남입니다. 지표 불일치 dr은 곡선 기울기 g로 나눠져 yaw 오차가 됩니다(오차 ≈ dr / g). 각도 모델(LoS만)과 실제의 불일치를 기울기 구간별로 나눴습니다(각도 모델 템플릿, 22개 곡선 × 19개 yaw = 418개 표본).</p>
+    <div class="scroll"><table id="eb"></table></div>
+    <div class="scroll"><table id="eby"></table></div>
+    <p class="note" id="eb-note"></p>
+  </section>
+
+  <section class="card" aria-label="sweep 간격 평평한 구간 대칭">
+    <h2>더 촘촘한 sweep, 평평한 구간, 0°와 90°의 대칭</h2>
+    <h3>① sweep 전체를 템플릿에 맞추면 (표본 간격별 yaw 오프셋 오차)</h3>
+    <div class="scroll"><table id="fa"></table></div>
+    <p class="note" id="fa-note"></p>
+    <h3>② 평평한 구간(곡선 꼭대기 근처)에서 약한 포트의 반사 오염</h3>
+    <div class="scroll"><table id="fb"></table></div>
+    <p class="note" id="fb-note"></p>
+    <h3>③ yaw 0°와 90° (각도 모델, 앵커 정면 방향 φ = 0°)</h3>
+    <div class="scroll"><table id="fc"></table></div>
+    <p class="note" id="fc-note"></p>
+  </section>
+
+  <section class="card" aria-label="이동 축 방향">
+    <h2>로봇을 옮기면 이동량이 어떻게 변하나</h2>
+    <div class="controls" id="txbtn2" role="group" aria-label="앵커 TX 포트 (이동 차트)"></div>
+    <div class="legend" id="lg1"></div>
+    <h3>x축 이동 (y = 0)</h3>
+    <div class="row" id="rowx"></div>
+    <h3>y축 이동 (x = 7)</h3>
+    <div class="row" id="rowy"></div>
+    <p class="note">곡선 이동의 x축 성분 yaw₀는 곡선이 yaw 방향으로 밀린 각도(°), y축 성분 B는 부호 있는 비율 (P1−P2)/(P1+P2)가 위로 밀린 양입니다. 이상 곡선은 yaw₀ = 0, B = 0입니다. 아래 두 차트는 LoS 위에 반사 그룹을 하나씩 더했을 때 생기는 변화량입니다.</p>
+  </section>
+
+  <section class="card" aria-label="LoS 단계 원인">
+    <h2>원인 1. LoS 단일 경로의 안테나 방향 의존성</h2>
+    <p class="note">LoS 채널을 뱅크에서 다시 계산하면서 안테나 패턴을 읽는 방향만 바꿔 봤습니다(PathSolver LoS와 부호 있는 비율 차이 2e-6). 각 칸은 yaw₀ (°) / B 입니다.</p>
+    <div class="scroll"><table id="los"></table></div>
+  </section>
+
+  <section class="card" aria-label="송신 수신 각도 실험">
+    <h2>원인 1-a. 송신·수신 안테나가 보는 각도</h2>
+    <p class="note">앵커가 정면(θ = 0°)에서 벗어난 방향 (θ, φ)로 보낼 때의 yaw 곡선입니다. 실제 기하에서는 같은 직선이 두 안테나 모두에 같은 오프보어사이트 각 θ를 만들고(앵커는 아래, 로봇은 위를 봄), 수신 쪽 방위는 yaw에 따라 돌아갑니다. 세 가지로 읽습니다. 송신 + 수신 모두는 실제 기하이고, 송신만과 수신만은 반대쪽 안테나를 정면(이상)으로 읽은 경우입니다. φ는 앵커 안테나 기준 방위이며 x축 스캔 방향이 φ = 0°입니다.</p>
+    <div class="controls" id="modebtn" role="group" aria-label="읽는 방식"></div>
+    <div class="controls" id="phibtn" role="group" aria-label="송신 방위 φ"></div>
+    <div class="controls" id="txabtn" role="group" aria-label="앵커 TX 포트 (각도 실험)"></div>
+    <div class="legend" id="lgt"></div>
+    <div class="legend" id="lgm"></div>
+    <div class="row" id="rowt"></div>
+    <div class="scroll"><table id="txtab"></table></div>
+  </section>
+
+  <section class="card" aria-label="다중 반사 단계 원인">
+    <h2>원인 2. 다중 반사 경로 (LoS 위에 더해진 몫)</h2>
+    <p class="note">LoS 전용 곡선에서 전체 곡선으로 가며 생긴 이동량을 반사 그룹별로 나눴습니다. 그룹별 값의 합은 전체 몫과 거의 같습니다(합산 오차 중앙값 0.08°, 0.0006).</p>
+    <div class="scroll"><table id="mp"></table></div>
+  </section>
+
+  <section class="card" aria-label="케이스 검증">
+    <h2>케이스 검증: 위치 (7.0, 0.7) · 앵커 TX +45°</h2>
+    <h3>① 피팅한 x축 이동이 맞게 계산됐나</h3>
+    <div class="scroll"><table id="ca"></table></div>
+    <p class="note" id="ca-note"></p>
+    <h3>② 이상 곡선 + 이동으로 yaw를 얼마나 잘 추정하나</h3>
+    <div class="scroll"><table id="cb"></table></div>
+    <p class="note" id="cb-note"></p>
+    <h3>③ 노란 박스 구간(yaw 80°–160°)에서 어떤 반사파가 어떤 방향·편파로 들어오나</h3>
+    <div class="scroll"><table id="cc"></table></div>
+    <p class="note" id="cc-note"></p>
+  </section>
+
+  <section class="card" aria-label="다중 반사 모델과 평평함">
+    <h2>다중 반사 모델 넣기, 그리고 평평함을 x·y축에서 바꾸는 법</h2>
+    <h3>① 해석적 1차 반사 모델을 각도 모델에 더하면 (yaw 추정, 22개 곡선, 정답에 가장 가까운 후보)</h3>
+    <div class="scroll"><table id="mt"></table></div>
+    <p class="note" id="mt-note"></p>
+    <h3>② 어느 축 보정이 오차를 줄이나 (같은 위치 sweep으로 leave-one-out 보정, 관측 |s| 기준)</h3>
+    <div class="scroll"><table id="ab"></table></div>
+    <p class="note" id="ab-note"></p>
+    <h3>③ 평평한 구간의 폭과 위치는 무엇이 정하나 (모델 s = B + σ·A·cos 2(yaw − yaw₀))</h3>
+    <div class="scroll"><table id="fx"></table></div>
+    <p class="note" id="fx-note"></p>
+    <h3>④ 두 송신 포트를 함께 쓰면 (사전 각도 모델, 보정 없음)</h3>
+    <div class="scroll"><table id="tp"></table></div>
+    <p class="note" id="tp-note"></p>
+  </section>
+
+  <section>
+    <h2>정리</h2>
+    <ul id="findings"></ul>
+  </section>
+  <section>
+    <h2>해석할 때 주의</h2>
+    <ul class="note" id="caveats"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = __RESULTS__;
+  var P = D.positions, TXS = ['LP_plus45', 'LP_minus45'], TXN = { LP_plus45: 'TX +45°', LP_minus45: 'TX −45°' };
+  var GS = D.groups, GN = { floor: '바닥', ceiling: '천장', side_walls: '옆벽', end_walls: '끝벽', multi_bounce: '다중 반사' };
+  var gcol = function (g) { return 'var(--g-' + g + ')'; };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var sg = function (v, n) { return (v >= 0 ? '+' : '') + Number(v).toFixed(n); };
+  var h = function (t, cls, txt) { var e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  var sv = function (t, a, txt) { var e = document.createElementNS('http://www.w3.org/2000/svg', t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var yaws = D.yaw_deg, N = yaws.length;
+  var xline = P.filter(function (p) { return p.y === 0; }).sort(function (a, b) { return a.x - b.x; });
+  var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
+  var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
+  var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
+  var st = { pos: 0, tx: 0, tx2: 0, tphi: 0, ttx: 0, tmode: 0, tx3: 0 };
+
+  // Line chart with a snapping crosshair; spec: {title, xs, xlabel, xname, series:[{name,color,vals,dash,w}], ymin, ymax, dec, zero}
+  function lineChart(host, spec) {
+    host.textContent = ''; host.appendChild(h('h3', null, spec.title));
+    var box = h('div'); host.appendChild(box); var tip = h('div', 'tip'); tip.hidden = true; host.appendChild(tip);
+    function draw() {
+      var W = Math.max(250, box.clientWidth || host.clientWidth), H = spec.h || 250, m = { l: 46, r: 12, t: 10, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b, xs = spec.xs, x0 = xs[0], x1 = xs[xs.length - 1];
+      var all = [].concat.apply([], spec.series.map(function (s) { return s.vals; }));
+      var lo = spec.ymin != null ? spec.ymin : Math.min(0, Math.min.apply(null, all)), hi = spec.ymax != null ? spec.ymax : Math.max(0, Math.max.apply(null, all));
+      var pad = (hi - lo) * 0.08 || 1; if (spec.ymin == null) lo -= lo < 0 ? pad : 0; if (spec.ymax == null) hi += pad;
+      var X = function (v) { return m.l + (x1 === x0 ? pw / 2 : (v - x0) / (x1 - x0) * pw); }, Y = function (v) { return m.t + ph * (1 - (Math.min(Math.max(v, lo), hi) - lo) / (hi - lo)); };
+      var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', tabindex: '0', 'aria-label': spec.title });
+      for (var i = 0; i <= 4; i++) { var v = lo + (hi - lo) * i / 4; svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), stroke: 'var(--grid)' })); svg.appendChild(sv('text', { x: m.l - 6, y: Y(v) + 4, 'text-anchor': 'end', class: 'num' }, Math.abs(hi - lo) > 3 ? f(v, 0) : f(v, Math.abs(hi - lo) > 0.5 ? 2 : 3))); }
+      if (lo < 0 && hi > 0) svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(0), y2: Y(0), stroke: 'var(--ref)', 'stroke-dasharray': '4 4' }));
+      xs.forEach(function (v, i) { if (xs.length <= 8 || i % 2 === 0) svg.appendChild(sv('text', { x: X(v), y: m.t + ph + 16, 'text-anchor': 'middle', class: 'num' }, String(v))); });
+      svg.appendChild(sv('text', { x: m.l + pw / 2, y: H - 4, 'text-anchor': 'middle' }, spec.xlabel));
+      spec.series.forEach(function (s) {
+        svg.appendChild(sv('path', { d: s.vals.map(function (v, i) { return (i ? 'L' : 'M') + X(xs[i]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(''), fill: 'none', stroke: s.color, 'stroke-width': s.w || 2, 'stroke-dasharray': s.dash || '', 'stroke-linejoin': 'round' }));
+        if (!s.nomark) s.vals.forEach(function (v, i) { svg.appendChild(sv('circle', { cx: X(xs[i]), cy: Y(v), r: 4, fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2 })); });
+      });
+      var cross = sv('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', visibility: 'hidden' }); svg.appendChild(cross);
+      var hit = sv('rect', { x: m.l - 10, y: m.t, width: pw + 20, height: ph, fill: 'transparent' }); svg.appendChild(hit);
+      function show(k) {
+        var x = X(xs[k]); cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+        tip.hidden = false; tip.textContent = ''; tip.appendChild(h('div', 't', spec.xname + ' ' + xs[k]));
+        spec.series.forEach(function (s) { var r = h('div', 'r'), l = h('span'), key = h('i', 'key' + (s.dash ? ' dash' : '')); key.style.borderColor = s.color; l.appendChild(key); l.appendChild(document.createTextNode(s.name)); r.appendChild(l); r.appendChild(h('b', null, f(s.vals[k], spec.dec == null ? 3 : spec.dec))); tip.appendChild(r); });
+        var left = x + 12; if (left + 190 > W) left = x - 202; tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '28px';
+      }
+      var hide = function () { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; }, c = 0;
+      hit.addEventListener('pointermove', function (e) { var b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * (W / b.width), best = 0; xs.forEach(function (v, i) { if (Math.abs(X(v) - px) < Math.abs(X(xs[best]) - px)) best = i; }); c = best; show(best); });
+      hit.addEventListener('pointerleave', hide); svg.addEventListener('blur', hide);
+      svg.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); c = Math.min(xs.length - 1, Math.max(0, c + (e.key === 'ArrowRight' ? 1 : -1))); show(c); } if (e.key === 'Escape') hide(); });
+      box.textContent = ''; box.appendChild(svg);
+    }
+    draw(); spec.redraw = draw; return spec;
+  }
+  var charts = [];
+  function legendItem(host, color, text, cls) { var s = h('span'), k = h('i', 'key ' + (cls || '')); k.style.borderColor = color; s.appendChild(k); s.appendChild(document.createTextNode(text)); host.appendChild(s); }
+  function btnGroup(host, labels, key, cb) { labels.forEach(function (lab, i) { var b = h('button', null, lab); b.type = 'button'; b.setAttribute('aria-pressed', String(st[key] === i)); b.addEventListener('click', function () { st[key] = i; host.querySelectorAll('button').forEach(function (x, j) { x.setAttribute('aria-pressed', String(j === i)); }); cb(); }); host.appendChild(b); }); }
+
+  // 1. Curve viewer.
+  function renderCurve() {
+    var p = cur[st.pos], t = TXS[st.tx], d = p.tx[t], fl = d.fit_los, ff = d.fit_full, s = d.shift;
+    var series = [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: d.ratio_ideal, nomark: true }, { name: 'LoS만', color: 'var(--c-los)', vals: d.ratio_los, w: 1.5 },
+      { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: d.ratio_full, w: 2.5 }, { name: '이동 피팅 (전체)', color: 'var(--c-fit)', dash: '2 3', vals: ff.fit_abs, nomark: true, w: 2 }];
+    lineChart(document.getElementById('curve'), { title: pname(p) + ' · 앵커 ' + TXN[t] + ' · FP 비율 |P1−P2| / (P1+P2)', xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', series: series, ymin: 0, ymax: 1.05, dec: 3 });
+    var fb = document.getElementById('fit'); fb.textContent = '';
+    [['x축 이동 yaw₀: 안테나·기하 (LoS) / 다중 반사 / 합', sg(s.x_antenna_geometry, 1) + '° / ' + sg(s.x_multipath, 1) + '° / ' + sg(s.x_total, 1) + '°'],
+      ['y축 이동 B: 안테나·기하 (LoS) / 다중 반사 / 합', sg(s.y_antenna_geometry, 3) + ' / ' + sg(s.y_multipath, 3) + ' / ' + sg(s.y_total, 3)],
+      ['진폭 A (LoS / 전체)', f(fl.A, 3) + ' / ' + f(ff.A, 3)], ['이동 모델이 설명하는 편차 (LoS / 전체)', (fl.captured == null ? '–' : f(fl.captured * 100, 0) + '%') + ' / ' + (ff.captured == null ? '–' : f(ff.captured * 100, 0) + '%')],
+      ['피팅 잔차 RMS |s| (전체)', f(ff.rmse_abs, 3)]].forEach(function (r) { var dv = h('div'); dv.appendChild(h('span', null, r[0])); dv.appendChild(h('b', null, r[1])); fb.appendChild(dv); });
+    document.getElementById('fitnote').textContent = '피팅식은 s(yaw) = B + σ·A·cos 2(yaw − yaw₀)이고 그림의 곡선은 |s|입니다(σ = TX +45°면 −1, TX −45°면 +1). 앵커 바로 아래 (4, 0)에서는 이상 곡선과 거의 겹칩니다. 오프보어사이트 위치에서 이동 모델이 설명하는 편차는 중앙값 ' + D.captured_median + '입니다. 나머지는 이동으로 표현되지 않는 형태 변화입니다.';
+  }
+  (function () { var l = document.getElementById('lgc'); legendItem(l, 'var(--ref)', '이상 곡선 (회색 점선)', 'dash'); legendItem(l, 'var(--c-los)', 'LoS 경로만 (파란 실선)'); legendItem(l, 'var(--c-all)', '다중 반사 포함 전체 (주황 실선)'); legendItem(l, 'var(--c-fit)', '이상 곡선을 x·y축으로 이동시킨 피팅 (녹색 점선)', 'dot'); })();
+  var posb = document.getElementById('posbtn'); btnGroup(posb, cur.map(pname), 'pos', renderCurve);
+  var txb = document.getElementById('txbtn'); btnGroup(txb, TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx', renderCurve);
+
+  // 2. Movement charts.
+  function buildRows() {
+    var t = TXS[st.tx2]; charts.length = 0;
+    [['rowx', xline, 'x'], ['rowy', yline, 'y']].forEach(function (cfg) {
+      var host = document.getElementById(cfg[0]), line = cfg[1], axis = cfg[2]; host.textContent = '';
+      var xs = line.map(function (p) { return axis === 'x' ? p.x : p.y; }), xl = axis === 'x' ? '로봇 x (m)' : '로봇 y (m)';
+      var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, xs: xs, xlabel: xl, xname: axis, series: series }, extra || {}); lineChart(c, spec); charts.push(spec); };
+      var g = function (fn) { return line.map(function (p) { return fn(p.tx[t].shift); }); };
+      mk('x축 이동 yaw₀ (°)', [{ name: '안테나·기하 (LoS)', color: 'var(--c-los)', vals: g(function (s) { return s.x_antenna_geometry; }) }, { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: g(function (s) { return s.x_total; }) }], { dec: 1 });
+      mk('y축 이동 B', [{ name: '안테나·기하 (LoS)', color: 'var(--c-los)', vals: g(function (s) { return s.y_antenna_geometry; }) }, { name: '전체 (다중 반사 포함)', color: 'var(--c-all)', vals: g(function (s) { return s.y_total; }) }], { dec: 3 });
+      mk('다중 반사가 만든 x축 이동 (°, 그룹별)', GS.map(function (gg) { return { name: GN[gg], color: gcol(gg), vals: g(function (s) { return s.x_by_group[gg]; }) }; }), { dec: 2 });
+      mk('다중 반사가 만든 y축 이동 (그룹별)', GS.map(function (gg) { return { name: GN[gg], color: gcol(gg), vals: g(function (s) { return s.y_by_group[gg]; }) }; }), { dec: 3 });
+    });
+  }
+  var lg = document.getElementById('lg1');
+  legendItem(lg, 'var(--c-los)', '안테나·기하 (LoS)'); legendItem(lg, 'var(--c-all)', '전체 (다중 반사 포함)'); GS.forEach(function (g) { legendItem(lg, gcol(g), GN[g]); });
+  var txb2 = document.getElementById('txbtn2'); btnGroup(txb2, TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx2', buildRows);
+
+  // 3. LoS-level counterfactual table.
+  var VL = { base: '실제 (양쪽 off-axis)', robot_boresight: '앵커만 off-axis', anchor_boresight: '로봇만 off-axis', both_boresight: '둘 다 보어사이트', robot_equal_gain: '로봇 포트 이득 동일' };
+  function renderLos() {
+    var t = TXS[st.tx2], keys = Object.keys(VL);
+    var html = '<thead><tr><th>위치</th><th class="n">off-bore (°)</th>' + keys.map(function (k) { return '<th class="n">' + VL[k] + '</th>'; }).join('') + '</tr></thead><tbody>';
+    cur.forEach(function (p) { var d = p.tx[t].fit_variants; html += '<tr><td>' + pname(p) + '</td><td class="n">' + f(p.off_boresight_deg, 0) + '</td>' + keys.map(function (k) { return '<td class="n' + (k === 'base' ? ' hi' : '') + '">' + sg(d[k].yaw0_deg, 1) + '° / ' + sg(d[k].B, 3) + '</td>'; }).join('') + '</tr>'; });
+    document.getElementById('los').innerHTML = html + '</tbody>';
+  }
+  // 4. Multipath attribution table.
+  function renderMp() {
+    var t = TXS[st.tx2];
+    var html = '<thead><tr><th>위치</th><th class="n">합계 x (°)</th>' + GS.map(function (g) { return '<th class="n">' + GN[g] + ' x</th>'; }).join('') + '<th class="n">합계 y</th>' + GS.map(function (g) { return '<th class="n">' + GN[g] + ' y</th>'; }).join('') + '</tr></thead><tbody>';
+    cur.forEach(function (p) { var s = p.tx[t].shift, mx = Math.max.apply(null, GS.map(function (g) { return Math.abs(s.x_by_group[g]); })), my = Math.max.apply(null, GS.map(function (g) { return Math.abs(s.y_by_group[g]); }));
+      html += '<tr><td>' + pname(p) + '</td><td class="n hi">' + sg(s.x_multipath, 1) + '</td>' + GS.map(function (g) { var v = s.x_by_group[g]; return '<td class="n' + (Math.abs(v) === mx && mx > 0.3 ? ' hi' : '') + '">' + sg(v, 1) + '</td>'; }).join('') +
+        '<td class="n hi">' + sg(s.y_multipath, 3) + '</td>' + GS.map(function (g) { var v = s.y_by_group[g]; return '<td class="n' + (Math.abs(v) === my && my > 0.004 ? ' hi' : '') + '">' + sg(v, 3) + '</td>'; }).join('') + '</tr>'; });
+    document.getElementById('mp').innerHTML = html + '</tbody>';
+  }
+  var oldCb = txb2.querySelectorAll('button'); oldCb.forEach(function (b) { b.addEventListener('click', function () { renderLos(); renderMp(); }); });
+
+  // TX / RX angle experiment: three ways of reading the antennas.
+  var TA = D.txang, TH = TA.theta_deg, PH = TA.phi_deg, tst = { phi: 0, tx: 0, mode: 0 }, tcharts = [];
+  var MODES = [['both', '송신 + 수신 모두 (실제 기하)'], ['tx_only', '송신만 (수신은 정면 고정, 이전 실험)'], ['rx_only', '수신만 (송신은 정면 고정)']];
+  var pk = function (th, mode) { var k = th + '_' + PH[tst.phi], tn = TXS[tst.tx]; return mode === 'tx_only' ? TA.data[k][tn] : TA.rx_included[k][mode][tn]; };
+  var TC = ['var(--t0)', 'var(--t1)', 'var(--t2)', 'var(--t3)', 'var(--t4)'], TSEL = [0, 20, 40, 60, 80];
+  var lgt = document.getElementById('lgt'); legendItem(lgt, 'var(--ref)', '이상 곡선', 'dash'); TSEL.forEach(function (th, i) { legendItem(lgt, TC[i], 'θ = ' + th + '°'); });
+  var lgm = document.getElementById('lgm'); legendItem(lgm, 'var(--c-all)', '송신 + 수신 모두'); legendItem(lgm, 'var(--c-los)', '송신만'); legendItem(lgm, 'var(--c-fit)', '수신만'); legendItem(lgm, 'var(--ref)', '송신 편파 기울기로 예측 (수신 정면 가정)', 'dash');
+  function renderTx() {
+    var host = document.getElementById('rowt'); host.textContent = ''; tcharts.length = 0; var md = MODES[tst.mode][0];
+    var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, series: series }, extra); lineChart(c, spec); tcharts.push(spec); };
+    mk('yaw 곡선 (' + MODES[tst.mode][1] + ')', [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: yaws.map(function (y) { return Math.abs(Math.cos(2 * y * Math.PI / 180)); }), nomark: true }].concat(TSEL.map(function (th, i) { return { name: 'θ = ' + th + '°', color: TC[i], vals: pk(th, md).ratio, nomark: true }; })),
+      { xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', ymin: 0, ymax: 1.05, dec: 3 });
+    var base = { xs: TH, xlabel: '송신 각도 θ (°)', xname: 'θ' };
+    var three = function (key) { return [{ name: '송신 + 수신 모두', color: 'var(--c-all)', vals: TH.map(function (t) { return pk(t, 'both')[key]; }) }, { name: '송신만', color: 'var(--c-los)', vals: TH.map(function (t) { return pk(t, 'tx_only')[key]; }) }, { name: '수신만', color: 'var(--c-fit)', vals: TH.map(function (t) { return pk(t, 'rx_only')[key]; }) }]; };
+    mk('x축 이동 yaw₀ (°)', three('yaw0').concat([{ name: '송신 편파 기울기로 예측', color: 'var(--ref)', dash: '5 4', vals: TH.map(function (t) { return pk(t, 'tx_only').yaw0_pred; }), nomark: true }]), Object.assign({ dec: 1 }, base));
+    mk('곡선 깊이 A', three('A'), Object.assign({ dec: 3, ymin: 0.6, ymax: 1.05 }, base));
+    mk('y축 이동 B', three('B'), Object.assign({ dec: 3 }, base));
+    mk('송신 안테나 XPD (공칭 편파 대비, dB)', [{ name: 'XPD', color: 'var(--c-los)', vals: TH.map(function (t) { return pk(t, 'tx_only').xpd_db; }) }], Object.assign({ dec: 1 }, base));
+    var html = '<thead><tr><th class="n">θ (°)</th><th class="n">모두 x (°)</th><th class="n">모두 B</th><th class="n">모두 A</th><th class="n">송신만 x</th><th class="n">송신만 B</th><th class="n">수신만 x</th><th class="n">수신만 B</th><th class="n">TX XPD (dB)</th></tr></thead><tbody>';
+    TH.forEach(function (t) { var a = pk(t, 'both'), b = pk(t, 'tx_only'), c = pk(t, 'rx_only'); html += '<tr><td class="n">' + t + '</td><td class="n hi">' + sg(a.yaw0, 1) + '</td><td class="n hi">' + sg(a.B, 3) + '</td><td class="n hi">' + f(a.A, 3) + '</td><td class="n">' + sg(b.yaw0, 1) + '</td><td class="n">' + sg(b.B, 3) + '</td><td class="n">' + sg(c.yaw0, 1) + '</td><td class="n">' + sg(c.B, 3) + '</td><td class="n">' + f(b.xpd_db, 1) + '</td></tr>'; });
+    document.getElementById('txtab').innerHTML = html + '</tbody>';
+  }
+  btnGroup(document.getElementById('modebtn'), MODES.map(function (m) { return m[1]; }), 'tmode', function () { tst.mode = st.tmode; renderTx(); });
+  btnGroup(document.getElementById('phibtn'), PH.map(function (p) { return 'φ = ' + p + '°'; }), 'tphi', function () { tst.phi = st.tphi; renderTx(); });
+  btnGroup(document.getElementById('txabtn'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'ttx', function () { tst.tx = st.ttx; renderTx(); });
+  renderTx();
+  buildRows(); renderLos(); renderMp(); renderCurve();
+
+  // Every coordinate: angle-only curve vs simulated curve.
+  (function () {
+    var AM = D.angmodel, PS = AM.positions, cs3 = [], t3 = { tx: 0 };
+    var lg = document.getElementById('lg3'); legendItem(lg, 'var(--ref)', '이상 곡선 (정면)', 'dash'); legendItem(lg, 'var(--c-los)', '각도만으로 만든 곡선 (송신 + 수신)'); legendItem(lg, 'var(--c-all)', '실제 시뮬레이션 (반사 포함)');
+    function draw() {
+      var tn = TXS[t3.tx], host = document.getElementById('grid3'); host.textContent = ''; cs3.length = 0;
+      PS.forEach(function (r) {
+        var v = r.tx[tn], c = h('div', 'chart'); host.appendChild(c);
+        var spec = { title: '(' + f(r.x, 1) + ', ' + f(r.y, 2) + ') · θ ' + f(r.theta_tx_deg, 0) + '° · φtx ' + sg(r.phi_tx_deg, 0) + '° · φrx(0°) ' + sg(r.phi_rx_at_yaw0_deg, 0) + '°', xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', ymin: 0, ymax: 1.05, dec: 3, h: 215,
+          series: [{ name: '이상 곡선', color: 'var(--ref)', dash: '5 4', vals: v.ratio_ideal, nomark: true }, { name: '각도만으로', color: 'var(--c-los)', vals: v.ratio_angle_model, nomark: true, w: 2 }, { name: '실제', color: 'var(--c-all)', vals: v.ratio_full_sim, w: 2 }] };
+        lineChart(c, spec); cs3.push(spec);
+      });
+    }
+    var html = '<thead><tr><th>좌표</th><th>TX</th><th class="n">거리 (m)</th><th class="n">θ (°)</th><th class="n">φtx (°)</th><th class="n">φrx(0°) (°)</th><th class="n">RMSE 이상 → 실제</th><th class="n">RMSE 각도 모델 → 실제</th><th class="n">설명한 비율</th><th class="n">각도 모델 vs 시뮬 LoS</th></tr></thead><tbody>';
+    PS.forEach(function (r) { TXS.forEach(function (tn) { var v = r.tx[tn]; html += '<tr><td>(' + f(r.x, 1) + ', ' + f(r.y, 2) + ')</td><td>' + TXN[tn] + '</td><td class="n">' + f(r.range_m, 2) + '</td><td class="n">' + f(r.theta_tx_deg, 1) + '</td><td class="n">' + sg(r.phi_tx_deg, 1) + '</td><td class="n">' + sg(r.phi_rx_at_yaw0_deg, 1) + '</td><td class="n">' + f(v.rmse_ideal_vs_full, 3) + '</td><td class="n hi">' + f(v.rmse_model_vs_full, 3) + '</td><td class="n">' + (v.explained == null ? '–' : f(v.explained * 100, 0) + '%') + '</td><td class="n">' + f(v.rmse_model_vs_los_sim, 4) + '</td></tr>'; }); });
+    document.getElementById('tab3').innerHTML = html + '</tbody>';
+    btnGroup(document.getElementById('txbtn3'), TXS.map(function (t) { return '앵커 ' + TXN[t]; }), 'tx3', function () { t3.tx = st.tx3; draw(); });
+    draw(); tcharts.push({ redraw: function () { cs3.forEach(function (c) { c.redraw(); }); } });
+  })();
+
+  // Template comparison for yaw estimation.
+  (function () {
+    var T = D.tmpl, S = T.summary, DR = T.decision_rules, CT = T.calibration_transfer, SE = T.coordinate_error_sensitivity;
+    var L = [['ideal', '이상 곡선 |cos 2·yaw|', '없음'], ['shift_xyA', '이상 + x·y 이동 + 진폭 (이전 6.3° 템플릿)', '같은 위치의 yaw sweep 측정'], ['shift_los_params', '이상 + LoS 피팅값 이동', 'LoS 피팅(좌표 + 안테나 패턴)'],
+      ['angle_model', '각도 모델 (좌표로 계산한 파랑 곡선)', '좌표만'], ['angle_model_cal', '각도 모델 + 보정 (yaw 오프셋·B·A)', '같은 위치의 yaw sweep 측정']];
+    var mx = Math.max.apply(null, L.map(function (l) { return S[l[0]].rmse; }).concat([CT.rmse]));
+    var html = '<thead><tr><th>템플릿</th><th>필요한 정보</th><th class="n">RMSE (°)</th><th></th><th class="n">중앙값 |오차|</th><th class="n">90% 분위</th><th class="n">최대</th><th class="n">3° 이내</th><th class="n">5° 이내</th></tr></thead><tbody>';
+    var row = function (name, need, v, hi) { return '<tr><td>' + name + '</td><td>' + need + '</td><td class="n' + (hi ? ' hi' : '') + '">' + f(v.rmse, 2) + '</td><td style="width:90px"><div class="hbar" style="width:' + (v.rmse / mx * 100) + '%"></div></td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + (v.p90_abs == null ? '–' : f(v.p90_abs, 1)) + '</td><td class="n">' + (v.max_abs == null ? '–' : f(v.max_abs, 1)) + '</td><td class="n">' + (v.within3 == null ? '–' : f(v.within3 * 100, 0) + '%') + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td></tr>'; };
+    L.forEach(function (l) { html += row(l[1], l[2], S[l[0]], l[0] === 'angle_model'); });
+    html += row('각도 모델 + 가까운 다른 좌표(평균 ' + f(CT.mean_neighbour_distance_m, 2) + ' m)의 보정', '다른 위치의 yaw sweep 측정', CT, false);
+    document.getElementById('tm1').innerHTML = html + '</tbody>';
+    var h2 = '<thead><tr><th>템플릿</th><th class="n">후보 수/역산</th><th class="n">±15° RMSE</th><th class="n">±15° 5° 이내</th><th class="n">±15° 오답 가지(>20°)</th><th class="n">±30° RMSE</th><th class="n">±30° 오답 가지(>20°)</th></tr></thead><tbody>';
+    L.forEach(function (l) { var r = DR[l[0]]; h2 += '<tr><td>' + l[1] + '</td><td class="n">' + f(r.mean_candidates, 1) + '</td><td class="n hi">' + f(r.prior15.rmse, 2) + '</td><td class="n">' + f(r.prior15.within5 * 100, 0) + '%</td><td class="n">' + f(r.prior15.wrong_branch * 100, 1) + '%</td><td class="n">' + f(r.prior30.rmse, 2) + '</td><td class="n">' + f(r.prior30.wrong_branch * 100, 1) + '%</td></tr>'; });
+    document.getElementById('tm2').innerHTML = h2 + '</tbody>';
+    var ks = Object.keys(SE);
+    document.getElementById('tm-note').textContent = '각도 모델은 22개 곡선 중 ' + T.angle_model_better_than_shift_xyA_curves + '개에서 이전 이동 템플릿보다 RMSE가 낮습니다. 좌표가 틀려도 거의 변하지 않습니다(좌표 오차 ' + ks.map(function (k) { return k + ' m: ' + f(SE[k].rmse_mean, 2) + '°'; }).join(', ') + ', 오차 0 m: ' + f(S.angle_model.rmse, 2) + '°). 같은 위치에서 sweep을 측정해 보정하면 ' + f(S.angle_model_cal.rmse, 2) + '°까지 내려가지만, 그 보정을 가까운 다른 좌표에서 빌려 쓰면 ' + f(CT.rmse, 2) + '°로 보정 없는 각도 모델보다 나빠집니다. 다중 반사가 만드는 보정량이 위치마다 다르기 때문입니다. 정답을 모르고 ±30°만 아는 경우에는 모든 템플릿이 14–16°이고 오답 가지가 13–19%라서, 이 비율 하나로는 4–5개 후보를 가를 수 없습니다.';
+  })();
+
+  // Error budget: slope converts metric mismatch into yaw error.
+  (function () {
+    var E = D.errbud, h1 = '<thead><tr><th class="n">템플릿 기울기 g (1/°)</th><th class="n">표본 수</th><th class="n">지표 불일치 RMS dr</th><th class="n">yaw 오차 RMS (°)</th><th class="n">중앙값 |오차| (°)</th><th class="n">전체 제곱오차 중 비중</th></tr></thead><tbody>';
+    E.bins.forEach(function (b) { h1 += '<tr><td class="n">' + f(b.slope_lo, 3) + ' – ' + (b.slope_hi >= 1 ? '' : f(b.slope_hi, 3)) + '</td><td class="n">' + b.n + '</td><td class="n">' + f(b.rms_dr, 3) + '</td><td class="n hi">' + f(b.rms_err, 2) + '</td><td class="n">' + f(b.median_abs_err, 2) + '</td><td class="n">' + f(b.share_of_sse * 100, 0) + '%</td></tr>'; });
+    document.getElementById('eb').innerHTML = h1 + '</tbody>';
+    var h2 = '<thead><tr><th>실제 yaw (°)</th>' + E.by_yaw.map(function (d) { return '<th class="n">' + f(d.yaw, 0) + '</th>'; }).join('') + '</tr></thead><tbody><tr><td>yaw 오차 RMS (°)</td>' + E.by_yaw.map(function (d) { return '<td class="n' + (d.rms_err >= 5.5 ? ' hi' : '') + '">' + f(d.rms_err, 1) + '</td>'; }).join('') + '</tr><tr><td>평균 기울기 g (1/°)</td>' + E.by_yaw.map(function (d) { return '<td class="n">' + f(d.mean_slope, 3) + '</td>'; }).join('') + '</tr></tbody>';
+    document.getElementById('eby').innerHTML = h2;
+    var flat = E.bins[0].n + E.bins[1].n, flatShare = E.bins[0].share_of_sse + E.bins[1].share_of_sse;
+    document.getElementById('eb-note').textContent = '가파른 구간(g ≥ 0.02/°, ' + E.n_steep + '개)에서는 yaw 오차 RMS가 ' + f(E.rms_err_steep, 2) + '°이고 dr/g로 예측한 값 ' + f(E.linear_prediction_rms_steep, 2) + '°와 같습니다. 이 값은 다중 반사가 만든 x축 이동의 RMS ' + f(E.multipath_x_shift_rms, 2) + '°와 거의 같습니다. LoS만 다루는 각도 모델이 놓친 다중 반사의 가로 어긋남이 그대로 yaw 오차가 된 것입니다. 평평한 구간(g < 0.01/°, ' + flat + '개)에서는 dr이 작아도(' + f(E.bins[0].rms_dr, 3) + ' ~ ' + f(E.bins[1].rms_dr, 3) + ') yaw 오차가 5–7.5°로 커지며 전체 제곱오차의 ' + f(flatShare * 100, 0) + '%를 차지합니다. 극값 근처에서는 오차가 dr이 아니라 √dr에 비례합니다(|cos 2·yaw|는 극값에서 1 − 2·Δyaw²). 지표 불일치 RMS는 ' + f(E.rms_dr, 3) + '(곡선별 RMSE의 중앙값 0.066)이고 곡선 기울기 RMS는 ' + f(E.rms_slope, 4) + '/°라서, 기울기가 어디서나 같았더라도 ' + f(E.uniform_slope_estimate, 1) + '° 정도는 남습니다. 이 곡선은 yaw 90°–100°(피크 근처)에서 6.7–7.5°로 가장 큽니다.';
+  })();
+
+  // Denser sweep, flat regions, 0/90 degree symmetry.
+  (function () {
+    var F = D.flat, A = F.A, ks = Object.keys(A).sort(function (a, b) { return a - b; });
+    var h1 = '<thead><tr><th class="n">표본 간격 (°)</th><th class="n">사용 표본 수</th><th class="n">오프셋 RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">최대</th></tr></thead><tbody><tr><td>단일 표본 역산 (이전 방식)</td><td class="n">1</td><td class="n hi">' + f(F.single_sample_oracle_rmse, 2) + '</td><td class="n">2.20</td><td class="n">24.8</td></tr>';
+    ks.forEach(function (k) { var v = A[k]; h1 += '<tr><td class="n">' + k + '</td><td class="n">' + f(v.mean_points, 1) + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.max_abs, 1) + '</td></tr>'; });
+    document.getElementById('fa').innerHTML = h1 + '</tbody>';
+    document.getElementById('fa-note').textContent = 'sweep 전체(측정한 |s| 곡선, yaw 상대 간격은 알고 절대 오프셋만 ±45° 안에서 모름)를 각도 모델에 맞추면 오차가 단일 표본 ' + f(F.single_sample_oracle_rmse, 2) + '°에서 ' + f(A['10'].rmse, 2) + '°로 줄어듭니다. 그러나 표본 간격이 10°에서 30°(표본 6개)로 성겨져도 ' + f(A['10'].rmse, 2) + '° → ' + f(A['30'].rmse, 2) + '°로 거의 변하지 않아서 표본을 더 촘촘히 한다고 이 바닥(약 3.5°)이 내려가지 않습니다. 바닥은 LoS만 다루는 모델이 놓친 다중 반사의 x축 이동 RMS 3.7°와 같은 크기입니다(전체 곡선이 한꺼번에 3–4° 밀려 있어서 표본을 늘려도 평균되지 않는 체계적인 오차). 가진 sweep이 10° 간격이라 그보다 촘촘한 간격은 직접 시험하지 못했습니다. 0.1° 단위의 각도 매칭은 이미 하고 있습니다(템플릿을 0.1° 격자에서 역산).';
+    var B = F.B, g = { flat: '평평한 구간 (yaw 0°, 10°, 80°–100°, 170°, 180°)', steep: '가파른 구간 (yaw 30°–60°, 120°–150°)' };
+    var h2 = '<thead><tr><th>구간</th><th class="n">표본 수</th><th class="n">두 포트 LoS 전력 차 (중앙값, dB)</th><th class="n">약한 포트 반사 오염</th><th class="n">강한 포트 반사 오염</th><th class="n">약한 포트 오염 > 0.2 비율</th></tr></thead><tbody>';
+    ['flat', 'steep'].forEach(function (k) { var v = B[k]; h2 += '<tr><td>' + g[k] + '</td><td class="n">' + v.n + '</td><td class="n">' + f(v.median_gap_db, 1) + '</td><td class="n hi">' + f(v.median_contamination_weak_port, 2) + '</td><td class="n">' + f(v.median_contamination_strong_port, 2) + '</td><td class="n">' + f(v.share_weak_port_contamination_above_0p2 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('fb').innerHTML = h2 + '</tbody>';
+    document.getElementById('fb-note').textContent = '맞습니다. 평평한 구간은 한 포트가 LoS 편파와 나란하고 다른 포트가 직교(교차편파)인 yaw입니다. 그 직교 포트는 상대 전력이 중앙값 ' + f(B.flat.median_gap_db, 1) + ' dB 낮아서 곡선이 yaw에 둔감하고(전력이 yaw 차이의 제곱에 비례), 그 약한 포트에 들어오는 반사 필드가 LoS 필드의 ' + f(B.flat.median_contamination_weak_port, 2) + '배(강한 포트는 ' + f(B.flat.median_contamination_strong_port, 2) + '배)라서 오염에도 가장 약합니다. 가파른 구간에서는 두 포트의 전력 차가 ' + f(B.steep.median_gap_db, 1) + ' dB이고 오염이 두 포트에서 비슷합니다(' + f(B.steep.median_contamination_weak_port, 2) + ' / ' + f(B.steep.median_contamination_strong_port, 2) + '). 지표 |s|를 정하는 것은 크기가 큰 포트가 아니라 이 작은 포트입니다.';
+    var h3 = '<thead><tr><th>θ (°)</th><th>TX</th><th class="n">|s| (0°)</th><th class="n">|s| (90°)</th><th class="n">|s| (180°)</th><th class="n">s(0°) + s(90°) = 2B</th><th class="n">P포트1(90°) − P포트2(0°) (dB)</th><th class="n">P포트2(90°) − P포트1(0°) (dB)</th></tr></thead><tbody>';
+    F.C.forEach(function (r) { h3 += '<tr><td class="n">' + r.theta + '</td><td>' + TXN[r.tx] + '</td><td class="n">' + f(r.abs0, 3) + '</td><td class="n hi">' + f(r.abs90, 3) + '</td><td class="n">' + f(r.abs180, 3) + '</td><td class="n">' + sg(r.swap_asymmetry, 3) + '</td><td class="n">' + sg(r.d_port1_90_vs_port2_0_db, 1) + '</td><td class="n">' + sg(r.d_port2_90_vs_port1_0_db, 1) + '</td></tr>'; });
+    document.getElementById('fc').innerHTML = h3 + '</tbody>';
+    document.getElementById('fc-note').textContent = '이상 포트라면 90° 돌리면 두 포트가 서로 바뀌어서 |s|(0°) = |s|(90°)이어야 하고, 그 경우 s(0°) + s(90°) = 0입니다. 이 합이 정확히 2B(y축 이동)입니다. 수신 포트를 이상 포트로 바꾸면 B가 0.000이 되었고(앞선 4개 방향 시험), 이 경우 송신 편파 상태와 무관하게 s(yaw + 90°) = −s(yaw)가 이론적으로 성립합니다. 실제 안테나에서는 대칭이 깨집니다. 정면(θ = 0°)에서도 크기가 큰 포트끼리는 0.1 dB로 맞지만(P포트1(90°) ≈ P포트2(0°)) 교차편파 포트는 yaw 0°에서 약 −16 dB, 90°에서 −56 dB로 약 40 dB 달라서 |s|가 0.953과 1.000이 됩니다. 비스듬히 볼수록 두 포트의 빔이 서로 다른 방위로 기울어(φ ≈ +41°, −44°) 90° 돌린 포트는 원래 반대쪽 포트의 패턴이 아니게 되어 비대칭이 커집니다(θ = 80°, TX −45°에서 |s| 0.999 대 0.696).';
+  })();
+
+  // Case check tables.
+  (function () {
+    var K = D.case, A = K.A.filter(function (r) { return r.x === K.case.x && r.y === K.case.y && r.tx === K.case.tx; })[0];
+    var all = K.A, ok2 = all.filter(function (r) { return r.null_shift_1 != null; });
+    var med = function (a) { a = a.slice().sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; };
+    document.getElementById('ca').innerHTML = '<thead><tr><th>방법</th><th class="n">x축 이동 yaw₀ (°)</th><th class="n">y축 이동 B</th><th class="n">|s| 잔차 RMS</th></tr></thead><tbody>' +
+      '<tr><td>선형 최소제곱 (페이지의 피팅)</td><td class="n hi">' + sg(A.lin_yaw0, 2) + '</td><td class="n">' + sg(A.lin_B, 3) + '</td><td class="n">' + f(A.rmse_lin, 3) + '</td></tr>' +
+      '<tr><td>독립 비선형 피팅 (|s|에 직접, 여러 시작점)</td><td class="n hi">' + sg(A.nl_yaw0, 2) + '</td><td class="n">' + sg(A.nl_B, 3) + '</td><td class="n">' + f(A.rmse_nl, 3) + '</td></tr>' +
+      '<tr><td>측정 영점 이동: 첫 영점(이상 45°) / 둘째 영점(이상 135°)</td><td class="n hi">' + sg(A.null_shift_1, 1) + ' / ' + sg(A.null_shift_2, 1) + '</td><td class="n">–</td><td class="n">–</td></tr>' +
+      '<tr><td>두 영점 이동의 평균</td><td class="n">' + sg(0.5 * (A.null_shift_1 + A.null_shift_2), 1) + '</td><td class="n">–</td><td class="n">–</td></tr></tbody>';
+    document.getElementById('ca-note').textContent = '피팅 계산은 맞습니다. 알려진 값을 넣은 합성 곡선(' + K.synthetic_n + '개)에서 오차가 0이고, 독립 비선형 피팅과 소수 둘째 자리까지 같습니다. 다만 이 케이스는 두 영점이 +' + f(A.null_shift_1, 1) + '°와 +' + f(A.null_shift_2, 1) + '°로 서로 다르게 움직였습니다(간격이 이상 90°가 아니라 ' + f(90 + A.null_shift_2 - A.null_shift_1, 0) + '°). 이동 하나(+' + f(A.lin_yaw0, 1) + '°)로는 이 비대칭을 표현할 수 없어서 평균(+' + f(0.5 * (A.null_shift_1 + A.null_shift_2), 1) + '°)보다 작은 값이 나왔습니다. 24개 곡선 중 ' + ok2.filter(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1) >= 3; }).length + '개에서 두 영점의 이동이 3° 이상 서로 달랐고(차이 중앙값 ' + f(med(ok2.map(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1); })), 1) + '°, 최대 ' + f(Math.max.apply(null, ok2.map(function (r) { return Math.abs(r.null_shift_2 - r.null_shift_1); })), 1) + '°), 피팅 yaw₀가 영점 이동 평균과 2° 이내인 곡선은 ' + ok2.filter(function (r) { return Math.abs(r.lin_yaw0 - 0.5 * (r.null_shift_1 + r.null_shift_2)) <= 2; }).length + '/' + ok2.length + '개입니다.';
+    var MN = { ideal: '이상 곡선 그대로', x: '이상 + x축 이동', xy: '이상 + x·y축 이동', xyA: '이상 + x·y축 이동 + 진폭', harm: '고조파 템플릿 (1ψ·2ψ·3ψ)', xyA_los_params: '이상 + 이동 (LoS 피팅값, 사전 예측)' };
+    var html = '<thead><tr><th>템플릿</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차| (°)</th><th class="n">최대 (°)</th><th class="n">5° 이내</th><th class="n">이 케이스 RMSE (°)</th></tr></thead><tbody>';
+    Object.keys(MN).forEach(function (m) { var v = K.B[m], ce = v.case_err ? Math.sqrt(v.case_err.reduce(function (s, e) { return s + e * e; }, 0) / v.case_err.length) : NaN; html += '<tr><td>' + MN[m] + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.max_abs, 1) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(ce, 2) + '</td></tr>'; });
+    document.getElementById('cb').innerHTML = html + '</tbody>';
+    document.getElementById('cb-note').textContent = '측정한 비율 하나를 템플릿 곡선에 거꾸로 대입해 yaw 후보를 구하고, 후보 중 실제 yaw에 가장 가까운 값을 추정값으로 삼았습니다(모호성은 풀렸다고 가정). 템플릿 계수는 해당 곡선에서 그 yaw 하나를 뺀 18점으로 맞췄습니다(leave-one-out). 앵커 아래를 뺀 ' + K.B.ideal.curves + '개 곡선 기준입니다. 이동을 넣을수록 오차가 줄지만 약 6°에서 멈춥니다. 비율은 극값 근처에서 yaw에 거의 반응하지 않기 때문입니다.';
+    var C = K.C, rows = C.rows.filter(function (r) { return r.yaw >= 80 && r.yaw <= 160; });
+    var h3 = '<thead><tr><th class="n">yaw (°)</th><th class="n">포트 +45° 빔 방위</th><th class="n">포트 −45° 빔 방위</th><th class="n">|s| LoS</th><th class="n">|s| 전체</th><th class="n">LoS 편파 기울기 (°)</th><th class="n">천장 진폭비 (+45 / −45)</th><th class="n">천장 편파 중첩</th><th class="n">천장 Δ|s|</th><th class="n">옆벽 진폭비 (+45 / −45)</th><th class="n">옆벽 편파 중첩</th><th class="n">옆벽 Δ|s|</th></tr></thead><tbody>';
+    rows.forEach(function (r) { var c = r.groups.ceiling, w = r.groups.side_walls; h3 += '<tr><td class="n">' + r.yaw + '</td><td class="n">' + sg(r.port_plus45_beam_azimuth, 0) + '°</td><td class="n">' + sg(r.port_minus45_beam_azimuth, 0) + '°</td><td class="n">' + f(r.abs_s_los, 2) + '</td><td class="n">' + f(r.abs_s_full, 2) + '</td><td class="n">' + sg(r.los_pol.tilt_deg, 0) + '</td><td class="n">' + f(c.c1_over_los, 3) + ' / ' + f(c.c2_over_los, 3) + '</td><td class="n">' + f(c.overlap, 2) + '</td><td class="n hi">' + sg(c.d_abs_s, 3) + '</td><td class="n">' + f(w.c1_over_los, 3) + ' / ' + f(w.c2_over_los, 3) + '</td><td class="n">' + f(w.overlap, 2) + '</td><td class="n">' + sg(w.d_abs_s, 3) + '</td></tr>'; });
+    document.getElementById('cc').innerHTML = h3 + '</tbody>';
+    var ar = C.arrivals;
+    document.getElementById('cc-note').textContent = '도래 방위(그 방향에서 들어옴): LoS ' + f(ar.los.from_azimuth_deg, 0) + '°, 천장 반사 ' + f(ar.ceiling.from_azimuth_deg, 0) + '°(LoS와 같은 방향, 초과 지연 ' + f(ar.ceiling.delay_excess_ns, 1) + ' ns), 가까운 옆벽(+y) 반사 ' + f(ar.wall_y_pos.from_azimuth_deg, 0) + '°(초과 지연 ' + f(ar.wall_y_pos.delay_excess_ns, 1) + ' ns), 먼 옆벽(−y) 반사 ' + f(ar.wall_y_neg.from_azimuth_deg, 0) + '°. 포트 빔 방위는 뱅크의 빔 피크 방위(+45° 포트 +41°, −45° 포트 −44°)에 yaw를 더한 값입니다. 편파 중첩은 반사파와 LoS의 편파 상태가 얼마나 같은지(1이면 같은 편파, 0이면 직교)이며, 진폭비·중첩은 두 포트의 first-path 탭 필드에서 구했습니다. Δ|s|는 LoS에 그 반사 그룹 하나만 더했을 때 |s|가 바뀌는 양입니다.';
+  })();
+
+  // Multipath model, axis ablation, flatness versus shifts, two-port estimator.
+  (function () {
+    var M = D.mpt.summary, MN = {
+      ideal: '이상 곡선 그대로', los: '각도 모델 (LoS만)', mp_ceiling: '+ 천장 반사만', mp_ceiling_walls: '+ 천장 + 옆벽', mp_all: '+ 바닥·천장·옆벽·끝벽 (1차 반사 전부)',
+      'mp_all_material_x0.8': '전부, 재질 상수 ×0.8로 틀림', 'mp_all_material_x1.2': '전부, 재질 상수 ×1.2로 틀림', 'mp_all_wall_+5cm': '전부, 옆벽 위치 +5 cm 틀림', 'mp_all_wall_-5cm': '전부, 옆벽 위치 −5 cm 틀림',
+      'mp_all_coord_0.1m': '전부, 로봇 좌표 0.1 m 틀림', 'mp_all_coord_0.25m': '전부, 로봇 좌표 0.25 m 틀림', 'mp_all_coord_0.5m': '전부, 로봇 좌표 0.5 m 틀림' };
+    var html = '<thead><tr><th>템플릿</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">5° 이내</th><th class="n">최대 (°)</th><th class="n">사전 ±15° 안에서 RMSE</th></tr></thead><tbody>';
+    Object.keys(MN).forEach(function (k) { var v = M[k]; html += '<tr><td>' + MN[k] + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(v.max_abs, 1) + '</td><td class="n">' + f(v.prior15_rmse, 2) + '</td></tr>'; });
+    document.getElementById('mt').innerHTML = html + '</tbody>';
+    var G = D.mpm.positions.filter(function (p) { return p.x !== 4; }), mr = [], lr = [];
+    G.forEach(function (p) { TXS.forEach(function (t) { mr.push(p.tx[t].rmse_model_vs_sim); lr.push(p.tx[t].rmse_los_vs_sim); }); });
+    var md = function (a) { a = a.slice().sort(function (x, y) { return x - y; }); return a[Math.floor(a.length / 2)]; };
+    document.getElementById('mt-note').textContent = '넣는 방법: 로봇 좌표에서 이미지법으로 바닥·천장·옆벽·끝벽 1차 반사점을 구하고, 각 반사 경로를 (ITU-R P.2040 단일층 슬랩 TE/TM 반사계수) × (송신 포트 패턴을 그 출발 방향으로 읽은 필드) × (수신 포트 패턴을 그 도래 방향으로 읽은 필드)로 만든 뒤 LoS와 복소수로 더하고, 같은 first-path 탭의 필드로 포트 전력을 계산합니다. 새로 맞추는 파라미터가 없습니다. Sionna의 경로별 first-path 탭 필드와 비교하면 상대 오차가 바닥 2e-4, 천장 1.4e-3, 옆벽 7e-5 이하이고(앵커 바로 아래는 수직 입사라 편광 기저가 퇴화해 제외), 곡선 RMSE의 중앙값은 LoS만 ' + f(md(lr), 3) + '에서 반사 포함 ' + f(md(mr), 3) + '으로 내려갑니다. yaw 추정은 RMSE 4.8°에서 1.3°로, 5° 이내 비율은 78%에서 99%로 올라갑니다. 천장만 넣으면 거의 효과가 없고(4.6°) 옆벽까지 넣어야 2.2°가 됩니다. 한계: 반사가 first-path 탭 안에서 LoS와 위상이 맞아 더해지는 간섭이라 파장(4.6 cm) 단위의 기하 오차에 민감합니다. 재질 상수 ±20%는 2.1–2.2°로 견디지만 옆벽 위치 5 cm나 로봇 좌표 0.1 m가 틀리면 이득이 사라져 5° 근처로 돌아갑니다(RMSE 5.0–6.9°). 정밀한 좌표가 없으면 이 모델은 수치 이득보다 원인 해석 도구로 쓰는 편이 안전합니다. 같은 위치 sweep 전체를 맞추면 오프셋 오차가 LoS만 3.6°, 반사 포함 0.9°입니다.';
+    var AB = D.abl.ablation, an = ['none', 'x', 'y', 'A', 'x+y', 'x+A', 'y+A', 'x+y+A'];
+    var h2 = '<thead><tr><th>보정하는 축</th><th class="n">RMSE (°)</th><th class="n">중앙값 |오차|</th><th class="n">5° 이내</th></tr></thead><tbody>';
+    an.forEach(function (k) { var v = AB[k]; h2 += '<tr><td>' + v.label + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.median_abs, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('ab').innerHTML = h2 + '</tbody>';
+    var xs = [], ys = [];
+    P.forEach(function (p) { if (p.off_boresight_deg < 1) return; TXS.forEach(function (t) { if (p.tx[t].shift) { xs.push(Math.abs(p.tx[t].shift.x_multipath)); ys.push(Math.abs(p.tx[t].shift.y_multipath)); } }); });
+    document.getElementById('ab-note').textContent = '말씀하신 전제(x 이동은 각도 모델이 잡고 y 변동을 반사로 잡아야 한다)와 이 데이터는 다릅니다. 반사가 만든 y 이동은 작습니다. 반사 몫의 |B| 중앙값은 ' + f(md(ys), 3) + '이고 x 이동 몫은 중앙값 ' + f(md(xs), 1) + '°입니다. 다중 반사가 크게 움직이는 축은 x(yaw₀)이고, 진폭은 x와 함께 쓸 때 보탬이 됩니다. 보정을 한 축씩 허용해 보면 y만으로는 4.8°에서 4.8°로 거의 변하지 않고, 진폭만 4.6°, x만 3.5°, x+진폭 2.7°, 셋 다 2.6°(94%)입니다. 그리고 y축 이동 B를 넣어도 잡히지 않는 것은 곡선 모양 자체의 어긋남입니다. x·y·진폭 코사인을 맞춘 뒤에도 |s| 잔차 RMS의 중앙값이 0.110(범위 0.066–0.146)으로 각도 모델 곡선의 값 0.066보다도 큽니다. 이 잔차는 상수 B로는 잡히지 않고, 반사 경로를 직접 넣은 ①의 곡선에서 0.004로 줄어듭니다. 따라서 y 변동을 상수 이동으로 잡으려는 접근보다 반사 경로를 직접 넣는 쪽이 맞습니다.';
+    var X = D.fax, h3 = '<thead><tr><th>바꾸는 것</th><th>평평한 구간에 미치는 영향</th><th class="n">수치 (기울기 < 0.01/° 인 yaw 비율)</th></tr></thead><tbody>';
+    var gA = function (a) { return X.A_B_grid.filter(function (r) { return r.A === a && r.B === 0; })[0].flat; };
+    var gB = function (a, b) { return X.A_B_grid.filter(function (r) { return r.A === a && r.B === b; })[0].flat; };
+    var po = function (d) { return X.pair_offset.filter(function (r) { return r.offset_deg === d; })[0]; };
+    h3 += '<tr><td>x 이동 yaw₀</td><td>평평한 구간이 yaw₀ + k·90°를 중심으로 통째로 이동합니다. 폭은 변하지 않습니다.</td><td class="n">변화 없음 (' + f(gA(0.95) * 100, 0) + '%)</td></tr>' +
+      '<tr><td>진폭 A (깊이)</td><td>곡선이 가파를수록 평평한 폭이 줄어듭니다. 꼭대기 하나의 반폭 ≈ ½·asin(0.29/A) (A = 1이면 약 8.4°)입니다.</td><td class="n">A = 0.7: ' + f(gA(0.7) * 100, 0) + '%, 0.8: ' + f(gA(0.8) * 100, 0) + '%, 0.9: ' + f(gA(0.9) * 100, 0) + '%, 1.0: ' + f(gA(1) * 100, 0) + '%</td></tr>' +
+      '<tr><td>y 이동 B</td><td>기울기의 크기는 같아서 폭은 안 변합니다. 대신 꼭대기 높이가 B + A와 A − B로 갈라져(0°와 90° 근처가 서로 다른 높이) 같은 지표 값이 가리키는 yaw가 달라집니다. 영점 부근 꺾이는 점도 옮겨집니다.</td><td class="n">B = 0 → 0.2 (A = 0.8): ' + f(gB(0.8, 0) * 100, 0) + '% → ' + f(gB(0.8, 0.2) * 100, 0) + '%</td></tr>' +
+      '<tr><td>두 포트(TX +45°, TX −45°)의 x 이동 차</td><td>TX +45°는 한쪽으로, TX −45°는 반대쪽으로 yaw₀이 움직여서 두 곡선의 평평한 구간이 서로 어긋납니다. 어긋남이 평평한 폭(약 ±8°)보다 크면 한 포트가 평평할 때 다른 포트가 가파릅니다.</td><td class="n">포트 간 yaw₀ 차 0°: 공동 ' + f(po(0).joint * 100, 0) + '%, 10°: ' + f(po(10).joint * 100, 0) + '%, 15° 이상: ' + f(po(15).joint * 100, 0) + '% (단일 포트는 ' + f(po(0).single * 100, 0) + '%)</td></tr>';
+    document.getElementById('fx').innerHTML = h3 + '</tbody>';
+    var pm = X.positions, avg = function (a) { return a.reduce(function (s, v) { return s + v; }, 0) / a.length; };
+    document.getElementById('fx-note').textContent = '시뮬레이션 11개 위치(앵커 아래 제외)에서 두 포트의 yaw₀ 차는 평균 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return Math.abs(r.yaw0_diff_deg); })), 1) + '°이고, 이 값으로는 공동 평평 비율이 평균 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return r.joint; })) * 100, 1) + '%이지만 두 포트의 yaw₀이 같다고 가정하면 ' + f(avg(pm.filter(function (r) { return r.x !== 4; }).map(function (r) { return r.joint_if_synced; })) * 100, 0) + '%입니다. 즉 x축 이동이 평평한 구간을 포트마다 다른 yaw로 옮기는 것이 두 포트를 함께 쓸 때 평평한 구간을 없애는 직접적인 원인입니다. 정리하면 x는 평평한 구간의 위치를, A는 폭을, B는 꼭대기 높이의 비대칭을 정합니다. 평평한 구간의 폭은 x·y 이동으로는 줄어들지 않고 A를 키워야(편파 순도를 높여야) 줄어듭니다.';
+    var T = D.abl.two_port, TN = { single_tx_plus45: 'TX +45°만', single_tx_minus45: 'TX −45°만', joint: '두 포트 공동 (비용 합)' };
+    var h4 = '<thead><tr><th>추정기</th><th class="n">후보 수 (평균)</th><th class="n">정답 후보 선택 RMSE (°)</th><th class="n">5° 이내</th><th class="n">후보 선택 없이 최솟값만 쓸 때 중앙값 |오차| (°)</th><th class="n">그때 5° 이내</th></tr></thead><tbody>';
+    Object.keys(TN).forEach(function (k) { var v = T[k]; h4 += '<tr><td>' + TN[k] + '</td><td class="n">' + f(v.mean_candidates, 1) + '</td><td class="n hi">' + f(v.rmse, 2) + '</td><td class="n">' + f(v.within5 * 100, 0) + '%</td><td class="n">' + f(v.global_min_median, 1) + '</td><td class="n">' + f(v.global_min_within5 * 100, 0) + '%</td></tr>'; });
+    document.getElementById('tp').innerHTML = h4 + '</tbody>';
+    document.getElementById('tp-note').textContent = '공동 추정이 더 낫고(5.2/4.5° → 3.9°) 이는 두 포트의 평평한 구간이 겹치지 않는 것과 부합합니다(원인을 따로 분리하지는 않았습니다). 정답 후보를 미리 알지 못하는 실제 추정(비용 최솟값)에서는 단일 포트가 5° 이내 ' + f(T.single_tx_plus45.global_min_within5 * 100, 0) + '%로 모호성에 막히지만 공동 추정은 ' + f(T.joint.global_min_within5 * 100, 0) + '%입니다. 두 포트를 합치면 모호성이 상당히 풀리지만 일부 곡선은 여전히 크게 틀립니다(RMSE ' + f(T.joint.global_min_rmse, 0) + '°). 이전 실행에서 공동 추정기가 10.4°로 나빠 보인 것은 후보 탐색이 yaw 0°와 180° 끝점을 빠뜨린 버그였고, 고쳤습니다. 이 비교는 후보 수가 다른 추정기를 정답에 가까운 후보로 평가하므로 후보가 많을수록 유리하다는 점에 주의하십시오(그래서 오른쪽 두 열을 함께 봅니다).';
+  })();
+
+  document.getElementById('lede').textContent = D.lede;
+  D.findings.forEach(function (t) { document.getElementById('findings').appendChild(h('li', null, t)); });
+  D.caveats.forEach(function (t) { document.getElementById('caveats').appendChild(h('li', null, t)); });
+  window.addEventListener('resize', function () { charts.forEach(function (c) { c.redraw(); }); tcharts.forEach(function (c) { c.redraw(); }); renderCurve(); });
+})();
+</script>

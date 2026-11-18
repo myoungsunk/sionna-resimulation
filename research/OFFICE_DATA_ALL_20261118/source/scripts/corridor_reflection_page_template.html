@@ -1,0 +1,236 @@
+<title>Corridor Reflection Fit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: finding first, then x-move and y-move chart rows, then the per-position curve and fit viewer. */
+:root {
+  --bg: #eef1f5; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #d3d9e2; --grid: #e4e8ee; --ref: #7b8794; --ok: #1f8a4c;
+  --g-floor: #2a78d6; --g-ceiling: #eb6834; --g-side_walls: #1baf7a; --g-end_walls: #eda100; --g-multi_bounce: #e87ba4; --g-all: #52514e;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+    --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; --g-all: #c3c2b7; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151d; --surface: #1a1a19; --fg: #ffffff; --muted: #c3c2b7; --line: #2f3a49; --grid: #2a2f36; --ref: #98a3b0; --ok: #4cc283;
+  --g-floor: #3987e5; --g-ceiling: #d95926; --g-side_walls: #199e70; --g-end_walls: #c98500; --g-multi_bounce: #d55181; --g-all: #c3c2b7; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 24px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 4px 0 6px; font-size: clamp(24px, 4vw, 34px); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+h2 { margin: 0; font-size: 16px; font-weight: 600; }
+h3 { margin: 0; font-size: 13.5px; font-weight: 500; }
+p { margin: 0; }
+.lede { max-width: 74ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 16px; }
+.chart { min-width: 0; display: flex; flex-direction: column; gap: 4px; position: relative; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.key { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.key.dash { border-top-style: dashed; }
+.note { font-size: 13px; color: var(--muted); max-width: 80ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 13px; }
+label { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+button { font: inherit; font-size: 13px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer; font-variant-numeric: tabular-nums; }
+button:hover { border-color: var(--muted); }
+button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+button:focus-visible, svg:focus-visible, input:focus-visible { outline: 2px solid var(--g-floor); outline-offset: 2px; }
+svg { width: 100%; display: block; touch-action: pan-y; }
+svg text { font-family: var(--font-body); fill: var(--muted); font-size: 11.5px; }
+svg .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 7px 9px; font-size: 12.5px; box-shadow: 0 2px 10px rgba(0,0,0,.18); min-width: 150px; z-index: 2; }
+.tip[hidden] { display: none; }
+.tip .t { font-family: var(--font-mono); color: var(--muted); margin-bottom: 3px; }
+.tip .r { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+.tip .r b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; color: var(--fg); }
+.tip .r span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 10px 5px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 500; color: var(--muted); font-size: 12.5px; }
+td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+td.hi { font-weight: 600; }
+ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+code { font-family: var(--font-mono); font-size: 12.5px; }
+.fitbox { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px 20px; font-size: 13px; }
+.fitbox div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 3px 0; }
+.fitbox b { font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Sionna RT 2.0.1 · x축 / y축 이동 · 반사 경로 귀속</div>
+    <h1>복도 반사 왜곡 피팅</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <section class="card" aria-label="스캔 위치">
+    <h2>스캔한 위치</h2>
+    <div id="map"></div>
+    <p class="note">앵커는 천장 (4, 0)입니다. x축 이동은 y = 0 선 위, y축 이동은 x = 7 선 위의 위치입니다. 각 위치에서 yaw 0°–180°를 10° 간격으로, 257개 주파수로 계산했습니다.</p>
+  </section>
+
+  <section class="card" aria-label="x축 이동">
+    <h2>x축 이동 (y = 0)</h2>
+    <div class="legend" id="gl"></div>
+    <div class="row" id="rowx"></div>
+  </section>
+
+  <section class="card" aria-label="y축 이동">
+    <h2>y축 이동 (x = 7)</h2>
+    <div class="row" id="rowy"></div>
+    <p class="note">왜곡 크기는 전체 채널과 LoS만 남긴 채널의 FP 비율 차이(RMS)입니다. 탭 누설 비율은 first-path 탭에서 반사 그룹의 필드 크기를 LoS 필드 크기로 나눈 값입니다. 초과 지연은 해당 반사 경로가 LoS보다 늦게 도착하는 시간이며, 점선은 대역폭 501.4 MHz의 분해능 1/BW ≈ 2.0 ns입니다.</p>
+  </section>
+
+  <section class="card" aria-label="위치별 곡선과 피팅">
+    <h2>위치별 곡선과 피팅</h2>
+    <div class="controls" id="posbtn" role="group" aria-label="위치 선택"></div>
+    <div class="controls" id="txbtn" role="group" aria-label="앵커 TX 포트"></div>
+    <div class="controls" id="grpbox" role="group" aria-label="반사 그룹 표시"></div>
+    <div class="chart" id="curve"></div>
+    <div class="fitbox" id="fit"></div>
+    <p class="note" id="fitnote"></p>
+  </section>
+
+  <section class="card" aria-label="연관성">
+    <h2>이동량과 반사 경로의 연관성</h2>
+    <div class="scroll"><table id="assoc"></table></div>
+    <div class="scroll"><table id="attr"></table></div>
+  </section>
+
+  <section>
+    <h2>해석할 때 주의</h2>
+    <ul class="note" id="caveats"></ul>
+  </section>
+</div>
+
+<script>
+(function () {
+  var D = __RESULTS__;
+  var P = D.positions, TXS = ['LP_plus45', 'LP_minus45'], TXN = { LP_plus45: 'TX +45°', LP_minus45: 'TX −45°' };
+  var GN = { floor: '바닥', ceiling: '천장', side_walls: '옆벽', end_walls: '끝벽', multi_bounce: '다중 반사' };
+  var GS = ['floor', 'ceiling', 'side_walls', 'end_walls', 'multi_bounce'];
+  var gcol = function (g) { return 'var(--g-' + g + ')'; };
+  var f = function (v, n) { return Number(v).toFixed(n); };
+  var h = function (t, cls, txt) { var e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  var sv = function (t, a, txt) { var e = document.createElementNS('http://www.w3.org/2000/svg', t); Object.keys(a || {}).forEach(function (k) { e.setAttribute(k, a[k]); }); if (txt != null) e.textContent = txt; return e; };
+  var xline = P.filter(function (p) { return p.y === 0; }).sort(function (a, b) { return a.x - b.x; });
+  var yline = P.filter(function (p) { return p.x === 7; }).sort(function (a, b) { return a.y - b.y; });
+  var dist = function (p, t) { return p.tx[t].distortion_rms; };
+  var pname = function (p) { return '(' + f(p.x, 1) + ', ' + f(p.y, 2) + ')'; };
+
+  // Generic line chart with a snapping crosshair and one tooltip for every series.
+  // spec: { xs, xlabel, ylabel, series:[{name,color,vals,dash,label}], ymax, ref:{y,label} }
+  function lineChart(host, spec) {
+    host.textContent = '';
+    host.appendChild(h('h3', null, spec.title));
+    var box = h('div'); host.appendChild(box); var tip = h('div', 'tip'); tip.hidden = true; host.appendChild(tip);
+    function draw() {
+      var W = Math.max(280, box.clientWidth || host.clientWidth), H = 250, m = { l: 44, r: W < 420 ? 8 : 12, t: 10, b: 36 }, pw = W - m.l - m.r, ph = H - m.t - m.b;
+      var xs = spec.xs, x0 = xs[0], x1 = xs[xs.length - 1];
+      var ymax = spec.ymax || Math.max.apply(null, [].concat.apply([], spec.series.map(function (s) { return s.vals; }))) * 1.12 || 1;
+      var X = function (v) { return m.l + (x1 === x0 ? pw / 2 : (v - x0) / (x1 - x0) * pw); };
+      var Y = function (v) { return m.t + ph * (1 - Math.min(Math.max(v, 0), ymax) / ymax); };
+      var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', tabindex: '0', 'aria-label': spec.title });
+      var nt = 4;
+      for (var i = 0; i <= nt; i++) { var v = ymax * i / nt; svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), stroke: 'var(--grid)' })); svg.appendChild(sv('text', { x: m.l - 6, y: Y(v) + 4, 'text-anchor': 'end', class: 'num' }, v >= 10 ? f(v, 0) : f(v, ymax < 2 ? 2 : 1))); }
+      xs.forEach(function (v) { svg.appendChild(sv('text', { x: X(v), y: m.t + ph + 16, 'text-anchor': 'middle', class: 'num' }, String(v))); });
+      svg.appendChild(sv('text', { x: m.l + pw / 2, y: H - 4, 'text-anchor': 'middle' }, spec.xlabel));
+      if (spec.ref) { svg.appendChild(sv('line', { x1: m.l, x2: m.l + pw, y1: Y(spec.ref.y), y2: Y(spec.ref.y), stroke: 'var(--ref)', 'stroke-dasharray': '4 4' })); svg.appendChild(sv('text', { x: m.l + pw - 2, y: Y(spec.ref.y) - 4, 'text-anchor': 'end' }, spec.ref.label)); }
+      spec.series.forEach(function (s) {
+        svg.appendChild(sv('path', { d: s.vals.map(function (v, i) { return (i ? 'L' : 'M') + X(xs[i]).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(''), fill: 'none', stroke: s.color, 'stroke-width': 2, 'stroke-dasharray': s.dash || '', 'stroke-linejoin': 'round' }));
+        s.vals.forEach(function (v, i) { svg.appendChild(sv('circle', { cx: X(xs[i]), cy: Y(v), r: 4, fill: s.color, stroke: 'var(--surface)', 'stroke-width': 2 })); });
+      });
+      var cross = sv('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--muted)', visibility: 'hidden' }); svg.appendChild(cross);
+      var hit = sv('rect', { x: m.l - 10, y: m.t, width: pw + 20, height: ph, fill: 'transparent' }); svg.appendChild(hit);
+      function show(k) {
+        var x = X(xs[k]); cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+        tip.hidden = false; tip.textContent = ''; tip.appendChild(h('div', 't', spec.xname + ' ' + xs[k]));
+        spec.series.forEach(function (s) { var r = h('div', 'r'), l = h('span'), key = h('i', 'key' + (s.dash ? ' dash' : '')); key.style.borderColor = s.color; l.appendChild(key); l.appendChild(document.createTextNode(s.name)); r.appendChild(l); r.appendChild(h('b', null, f(s.vals[k], spec.dec == null ? 3 : spec.dec))); tip.appendChild(r); });
+        var left = x + 12; if (left + 170 > W) left = x - 182; tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '28px';
+      }
+      var hide = function () { cross.setAttribute('visibility', 'hidden'); tip.hidden = true; }, cur = 0;
+      hit.addEventListener('pointermove', function (e) { var b = svg.getBoundingClientRect(), px = (e.clientX - b.left) * (W / b.width), best = 0; xs.forEach(function (v, i) { if (Math.abs(X(v) - px) < Math.abs(X(xs[best]) - px)) best = i; }); cur = best; show(best); });
+      hit.addEventListener('pointerleave', hide); svg.addEventListener('blur', hide);
+      svg.addEventListener('keydown', function (e) { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); cur = Math.min(xs.length - 1, Math.max(0, cur + (e.key === 'ArrowRight' ? 1 : -1))); show(cur); } if (e.key === 'Escape') hide(); });
+      box.textContent = ''; box.appendChild(svg);
+    }
+    draw(); spec.redraw = draw; return spec;
+  }
+  var charts = [];
+  function rowFor(host, line, axis) {
+    var xs = line.map(function (p) { return axis === 'x' ? p.x : p.y; }), xl = axis === 'x' ? '로봇 x (m)' : '로봇 y (m)', xn = axis === 'x' ? 'x' : 'y';
+    var mk = function (title, series, extra) { var c = h('div', 'chart'); host.appendChild(c); var spec = Object.assign({ title: title, xs: xs, xlabel: xl, xname: xn, series: series }, extra || {}); lineChart(c, spec); charts.push(spec); };
+    mk('왜곡 크기 (FP 비율 RMS)', TXS.map(function (t, i) { return { name: TXN[t], color: 'var(--fg)', dash: i ? '5 4' : '', vals: line.map(function (p) { return dist(p, t); }) }; }));
+    mk('first-path 탭 누설 비율 (반사 / LoS)', GS.map(function (g) { return { name: GN[g], color: gcol(g), vals: line.map(function (p) { return p.tap_leakage_ratio[g]; }) }; }).concat([{ name: '반사 전체', color: 'var(--g-all)', dash: '5 4', vals: line.map(function (p) { return p.tap_leakage_ratio.all_reflections; }) }]), { dec: 2 });
+    mk('반사 경로 초과 지연 (ns)', ['floor', 'ceiling', 'side_walls', 'multi_bounce'].map(function (g) { return { name: GN[g], color: gcol(g), vals: line.map(function (p) { return p.excess_delay_ns[g]; }) }; }), { ref: { y: 2.0, label: '분해능 2 ns' }, dec: 2 });
+  }
+  rowFor(document.getElementById('rowx'), xline, 'x');
+  rowFor(document.getElementById('rowy'), yline, 'y');
+  var gl = document.getElementById('gl');
+  GS.forEach(function (g) { var s = h('span'), k = h('i', 'key'); k.style.borderColor = gcol(g); s.appendChild(k); s.appendChild(document.createTextNode(GN[g])); gl.appendChild(s); });
+  var sa = h('span'), ka = h('i', 'key dash'); ka.style.borderColor = 'var(--g-all)'; sa.appendChild(ka); sa.appendChild(document.createTextNode('반사 전체')); gl.appendChild(sa);
+  [['TX +45° (왜곡 크기 차트)', ''], ['TX −45° (왜곡 크기 차트)', 'dash']].forEach(function (r) { var s2 = h('span'), k2 = h('i', 'key ' + r[1]); k2.style.borderColor = 'var(--fg)'; s2.appendChild(k2); s2.appendChild(document.createTextNode(r[0])); gl.appendChild(s2); });
+
+  // Map of scan positions (top view).
+  (function () {
+    var host = document.getElementById('map'), W = Math.max(300, host.clientWidth || 600), m = { l: 14, r: 14, t: 18, b: 22 }, L = 20, Wc = 2.4, pw = W - m.l - m.r, sc = pw / L, H = Wc * sc + m.t + m.b;
+    var X = function (v) { return m.l + v * sc; }, Y = function (v) { return m.t + (1.2 - v) * sc; };
+    var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': '위에서 본 복도와 스캔 위치' });
+    svg.appendChild(sv('rect', { x: X(0), y: Y(1.2), width: L * sc, height: Wc * sc, fill: 'none', stroke: 'var(--ref)' }));
+    svg.appendChild(sv('line', { x1: X(0), x2: X(L), y1: Y(0), y2: Y(0), stroke: 'var(--grid)', 'stroke-dasharray': '3 3' }));
+    P.forEach(function (p) { svg.appendChild(sv('circle', { cx: X(p.x), cy: Y(p.y), r: 4.5, fill: 'var(--g-ceiling)', stroke: 'var(--surface)', 'stroke-width': 2 })); });
+    svg.appendChild(sv('rect', { x: X(4) - 5, y: Y(0) - 5, width: 10, height: 10, fill: 'var(--g-floor)', stroke: 'var(--surface)', 'stroke-width': 2 }));
+    svg.appendChild(sv('text', { x: X(4) + 9, y: Y(0) - 8 }, '앵커 (천장)'));
+    [0, 5, 10, 15, 20].forEach(function (v) { svg.appendChild(sv('text', { x: X(v), y: H - 6, 'text-anchor': 'middle', class: 'num' }, v + ' m')); });
+    host.appendChild(svg);
+  })();
+
+  // Per-position curves and fit.
+  var st = { pos: 0, tx: 0, groups: {} };
+  var cur = P.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
+  var yaws = D.yaw_deg;
+  var pb = document.getElementById('posbtn'), tb = document.getElementById('txbtn'), gb = document.getElementById('grpbox');
+  cur.forEach(function (p, i) { var b = h('button', null, pname(p)); b.type = 'button'; b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false'); b.addEventListener('click', function () { st.pos = i; pb.querySelectorAll('button').forEach(function (x, j) { x.setAttribute('aria-pressed', String(j === i)); }); renderCurve(); }); pb.appendChild(b); });
+  TXS.forEach(function (t, i) { var b = h('button', null, '앵커 ' + TXN[t]); b.type = 'button'; b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false'); b.addEventListener('click', function () { st.tx = i; tb.querySelectorAll('button').forEach(function (x, j) { x.setAttribute('aria-pressed', String(j === i)); }); renderCurve(); }); tb.appendChild(b); });
+  GS.forEach(function (g) { st.groups[g] = true; var l = h('label'), c = h('input'); c.type = 'checkbox'; c.checked = true; c.id = 'cb-' + g; c.addEventListener('change', function () { st.groups[g] = c.checked; renderCurve(); }); l.appendChild(c); var k = h('i', 'key'); k.style.borderColor = gcol(g); l.appendChild(k); l.appendChild(document.createTextNode('LoS + ' + GN[g])); gb.appendChild(l); });
+  var absCos = function (m, y0, y) { return m * Math.abs(Math.cos(2 * (y - y0) * Math.PI / 180)); };
+  function renderCurve() {
+    var p = cur[st.pos], t = TXS[st.tx], d = p.tx[t];
+    var series = [{ name: 'LoS만', color: 'var(--ref)', dash: '5 4', vals: d.ratio_los }];
+    GS.forEach(function (g) { if (st.groups[g]) series.push({ name: 'LoS + ' + GN[g], color: gcol(g), vals: d.ratio_partial[g] }); });
+    series.push({ name: '전체 채널', color: 'var(--fg)', vals: d.ratio_full });
+    series.push({ name: '피팅 (전체)', color: 'var(--fg)', dash: '1 4', vals: yaws.map(function (y) { return absCos(d.fit_full.m, d.fit_full.yaw0_deg, y); }) });
+    var host = document.getElementById('curve'); var spec = { title: pname(p) + ' · 앵커 ' + TXN[t] + ' · FP 비율 |P1−P2| / |P1+P2|', xs: yaws, xlabel: '로봇 yaw (°)', xname: 'yaw', series: series, ymax: 1.05, dec: 3 };
+    lineChart(host, spec);
+    var fb = document.getElementById('fit'); fb.textContent = '';
+    [['LoS만: 깊이 m / 기울기 yaw₀', f(d.fit_los.m, 3) + ' / ' + f(d.fit_los.yaw0_deg, 1) + '°'], ['전체: 깊이 m / 기울기 yaw₀', f(d.fit_full.m, 3) + ' / ' + f(d.fit_full.yaw0_deg, 1) + '°'],
+      ['반사로 인한 변화 Δm / Δyaw₀', (d.delta_m >= 0 ? '+' : '') + f(d.delta_m, 3) + ' / ' + (d.delta_yaw0_deg >= 0 ? '+' : '') + f(d.delta_yaw0_deg, 1) + '°'],
+      ['피팅 잔차 (LoS / 전체)', f(d.fit_los.rmse, 3) + ' / ' + f(d.fit_full.rmse, 3)], ['왜곡 RMS / 최대', f(d.distortion_rms, 3) + ' / ' + f(d.distortion_max, 3)],
+      ['귀속 설명력 R² (그룹별 합산)', f(d.attribution.r2, 3)]].forEach(function (r) { var dv = h('div'); dv.appendChild(h('span', null, r[0])); dv.appendChild(h('b', null, r[1])); fb.appendChild(dv); });
+    document.getElementById('fitnote').textContent = '귀속 가중치(전체 왜곡 ≈ Σ w·단일 그룹 왜곡): ' + GS.map(function (g) { return GN[g] + ' ' + f(d.attribution.weights[g], 2); }).join(' · ') + '. 가중치가 1에 가까우면 해당 그룹을 하나씩 더한 효과의 합이 전체 왜곡을 그대로 설명합니다.';
+  }
+  renderCurve();
+
+  // Association tables.
+  var A = D.spearman_across_positions, ah = '<thead><tr><th>반사 경로 지표</th><th class="n">왜곡 크기와의 ρ</th><th class="n">Δm과의 ρ</th></tr></thead><tbody>';
+  var rowsA = [['반사 전체 누설 비율', 'all_reflections'], ['바닥 누설 비율', 'floor'], ['천장 누설 비율', 'ceiling'], ['옆벽 누설 비율', 'side_walls'], ['끝벽 누설 비율', 'end_walls'], ['다중 반사 누설 비율', 'multi_bounce'],
+    ['바닥 초과 지연', 'excess_delay_floor'], ['천장 초과 지연', 'excess_delay_ceiling'], ['옆벽 초과 지연', 'excess_delay_side_walls'], ['끝벽 초과 지연', 'excess_delay_end_walls']];
+  ah += rowsA.map(function (r) { var a = A.distortion_rms[r[1]], b = A.delta_m[r[1]]; return '<tr><td>' + r[0] + '</td><td class="n' + (Math.abs(a) >= 0.7 ? ' hi' : '') + '">' + f(a, 2) + '</td><td class="n' + (Math.abs(b) >= 0.7 ? ' hi' : '') + '">' + f(b, 2) + '</td></tr>'; }).join('') + '</tbody>';
+  document.getElementById('assoc').innerHTML = ah;
+  var th = '<thead><tr><th>위치</th><th>TX</th><th class="n">왜곡 RMS</th><th class="n">R²</th>' + GS.map(function (g) { return '<th class="n">' + GN[g] + ' 단독 RMS</th>'; }).join('') + '</tr></thead><tbody>';
+  cur.forEach(function (p) { TXS.forEach(function (t) { var d = p.tx[t], mx = Math.max.apply(null, GS.map(function (g) { return d.distortion_rms_by_group[g]; }));
+    th += '<tr><td>' + pname(p) + '</td><td>' + TXN[t] + '</td><td class="n">' + f(d.distortion_rms, 3) + '</td><td class="n">' + f(d.attribution.r2, 2) + '</td>' + GS.map(function (g) { var v = d.distortion_rms_by_group[g]; return '<td class="n' + (v === mx && v > 0.005 ? ' hi' : '') + '">' + f(v, 3) + '</td>'; }).join('') + '</tr>'; }); });
+  document.getElementById('attr').innerHTML = th + '</tbody>';
+
+  document.getElementById('lede').textContent = D.lede;
+  var cv = document.getElementById('caveats');
+  D.caveats.forEach(function (t) { cv.appendChild(h('li', null, t)); });
+  window.addEventListener('resize', function () { charts.forEach(function (c) { c.redraw(); }); renderCurve(); });
+})();
+</script>
