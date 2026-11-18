@@ -1,5 +1,7 @@
 # BLOCK-C-CENTERLINE-SWEEP-001
 
+2026-11-18 수정 안내: 이 디렉터리의 기존 데이터는 F1 설정으로 생성된 기록이며 보존한다. 사용자가 요구한 M7 원본 RT 설정 호환 sweep은 별도 [M7 원본 설정 실행](../BLOCK_C_CENTERLINE_M7_20261118/README_KO.md)에 기록한다. 기존 F1 결과를 M7 원본 설정 데이터로 사용하지 않는다.
+
 질문: M7의 R2/R4/R5와 같은 BLOCK_C 원본 형상에서 정확한 복도 중앙선의 360도 station sweep을 새로 생성한다.
 
 ## 동결 입력

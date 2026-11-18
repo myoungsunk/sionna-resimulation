@@ -38,4 +38,28 @@ H_full, H_LoS와 PATHS_NEAR는 같은 trace에서 저장한다. 여기서 H_LoS�
 
 본 생성 후 40 station·1,440 pose의 완전성, 원본 H 합성 일치, 저장 해시, G4(직접파 모델), G8(동일 trace 직렬화)를 확인한다. G4와 G8은 원본 다중경로 동등성 전체 검증을 대신하지 않는다. G-T2·G-V를 읽지 않고 heading 오차를 계산하지 않는다. 기존 데이터와 FAIL 기록은 보존한다.
 
-실행 결과는 완료 후 이 문서와 별도 증거 디렉터리에 추가한다.
+## 완료된 실행
+
+Snowball 실행 ID: `BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5`.
+실행 코드 commit: `e9b4a76a8ce85d15de0f2be94900487c9b7b52bf`.
+실행 시각: 2026-11-18 02:15:42–02:17:44 UTC.
+
+- 원본 대조 PASS: R2 pose 0/651/1302, R4 pose 0/461/921, R5 pose 0/941/1882의 복소 H 계수 9,252개가 원본과 정확히 일치했다. 별도 바이트 비교에서도 각 route의 SHA-256이 같았다. 이 9 pose 표본에 한정한 원본 대조다.
+- 전체 생성 PASS: 40 station, 1,440 RF pose, 1,480 관측 행. 모든 station에서 원본 적응형 추적으로 실제 21 node를 사용했다. 본 생성 solver 호출은 840회이며 export를 위한 추가 RT 호출은 0회다.
+- 전체 1,440 pose의 H_full은 같은 trace를 원본 합성 함수에 넣은 결과와 배열 값이 정확히 같았다. 유한 반사면 검사·직접파 계수 대체·경로 후처리 필터는 적용하지 않았다.
+- G4 PASS: 관측 1,480행 기준 p90 |Δs|=2.233846791932504e-7, 최대=5.810667242367451e-7. 기존 p90 기준 0.005를 유지했다.
+- G8 직렬화 PASS: 1,440 pose, 복소 계수 1,480,320개, 최대 상대·절대 재합성 오차 0. PATHS_NEAR는 3,168개 경로 행이며, 전체 경로 raw trace도 40개 저장했다.
+- 소요 시간: 원본 대조 43.48초, 본 생성 69.47초, 병합·검증 8.34초, 합계 121.29초. 코드 준비·복사·업로드 시간은 제외한다.
+- 최종 results 폴더 용량: 128,201,448 byte(128.20 MB). 입력·대조 출력·로그·자원 기록을 포함한 전송 대상은 131,801,291 byte다.
+- G-T2·G-V 봉인을 유지했고 heading 오차는 계산하지 않았다. 기존 F1 데이터와 FAIL 기록은 보존했다.
+
+[전체 실행 증거](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/)에 입력, 계약, 원본 대조, 로그, 자원 기록과 결과를 보관한다.
+
+| 파일 | 내용 |
+|---|---|
+| [H_full.npy](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/results/H/BLOCKC_B/H_full.npy) | M7 원본 RT 동작의 다중경로 H, shape (1440,257,2,2), complex128 |
+| [H_LoS.npy](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/results/H/BLOCKC_B/H_LoS.npy) | 동일 full trace의 직접파 기여 |
+| [M7_RT_CONFIG.json](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/inputs/M7_RT_CONFIG.json) | 원본 solver 전체 설정과 node 정책 |
+| [BASELINE_BYTE_CHECK.json](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/BASELINE_BYTE_CHECK.json) | 원본 9 pose의 바이트 SHA-256 비교 |
+| [completion.json](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/results/completion.json) | 전체 결과·검증·파일 SHA-256 |
+| [raw traces](../../artifacts/BLOCK_C_CENTERLINE_M7_20261118_dhdj70s5/results/traces/BLOCKC_B/) | station별 전체 경로 Jones·지연·방향·node 존재 여부 |
