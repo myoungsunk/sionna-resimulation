@@ -1,7 +1,8 @@
 # Corridor 원거리 Kriging A/B 실행 패키지 (2026-11-19)
 
 ## 현재 상태
-- **CODE_IMPLEMENTED / EKF_NOT_EXECUTED**: GitHub에서 읽을 수 있는 수치 결과만으로 새 재귀 EKF의 RMSE·coverage를 추정하지 않는다.
+- **STOP_BASELINE_PARITY_FAIL (2026-11-19)**: Snowball에서 smoke 재생을 실행했으나 기존 F2SKRWV Heading RMSE 오차 `1.1128e-5°`가 동결 허용치 `1e-8`을 초과했다. 계약에 따라 전체 A/B와 집계는 실행하지 않았다. [실행 결과와 검증 근거](execution_20261119/RESULT_KO.md).
+- 실제 EKF A/B 성능은 미확정이다. GitHub에서 읽을 수 있는 수치 결과만으로 새 재귀 EKF의 RMSE·coverage를 추정하지 않는다.
 - 비교: frozen `F2SKRWV` vs `F2SKRWV_FAR_K`; 주 변경은 **6–10 m 편파 평균 `mu_s`** POWER → 동일한 sweep Kriging (`e_s|2`).
 - 변경 없는 요소: 근·중거리 Kriging, 거리 평균·분산, F2 `c1,c0`(V 표), GM 상태, KI, gyro Q, NIS, seed/route.
 - 사전 계약: [PLAN_KO.md](PLAN_KO.md).
