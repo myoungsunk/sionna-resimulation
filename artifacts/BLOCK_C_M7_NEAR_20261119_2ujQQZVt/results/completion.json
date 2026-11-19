@@ -1,0 +1,3050 @@
+{
+  "status": "PASS",
+  "case": "BLOCKC_B",
+  "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+  "question_id": "BLOCK-C-M7-NEAR-STATION-SWEEP-001",
+  "role": "IMPLEMENTER",
+  "mount_deg": 0,
+  "poses": 864,
+  "trace_positions": 24,
+  "shard_count": 12,
+  "solver_calls": 504,
+  "base_nodes": 17,
+  "adaptive_nodes": true,
+  "node_count_distribution": {
+    "21": 24
+  },
+  "original_h_array_equal": true,
+  "finite_face_guard": false,
+  "native_los_override": false,
+  "post_filter": false,
+  "raw_traces": 24,
+  "extra_export_solver_calls": 0,
+  "shared_trace": true,
+  "heading_error_computed": false,
+  "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+  "baseline_pass_sha256": "0a5b24feed54ee52b92b75fa2ad812d8ea06f6702936b5346b9fd1c92f6855d1",
+  "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+  "shards": [
+    {
+      "manifest_sha256": "745b757ef3ca4cad3e3ddd7aba7679cc92b17f100fedfb882a1b35dde49edf37",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 0,
+        "shard_count": 12,
+        "selected_task_ids": [
+          0,
+          12
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 0,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 72
+          },
+          "near_path_rows": 144
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.86611018097028,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard0",
+          "--shard-index",
+          "0",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "ccc7acbedd4dfe3019d464b7b984d0fbf48b5618956dad19a283dad7c6dd9e6b",
+          "TRACE_RECEIPTS.json": "b19c7a4be6d8a31a048ff20447a40da2d4e75645256235c859a9438ea0452be6",
+          "mount0/H_LoS.npy": "a4be923cae24069e3fe292d5534cb8ecc0b5609d6fb5904b29cab0f3d268b2b1",
+          "mount0/H_full.npy": "3863e85593f37d58f02e3be37447e51533cf343b6034780d9dbe390bb4840229",
+          "mount0/PATHS_LoS.npz": "bc8663c03595998e2b0c113972b629cb8d0be2f58d130b6e34fa26e60dfc8cd6",
+          "mount0/PATHS_NEAR.npz": "7a9879530f1555abb438d51e4c7cd3943c279087d36a68fbd59e10816bf2ec1f",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "94c745b7e0b23712c17b2682693f3469f3be113b3ccc1c9ef8683ab64fbd56d4",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0000_trace.npz": "050ad7ff197828672c768315a254e11dea3dc898c3d41dcae952f304fb814174",
+          "trace/task_0012_trace.npz": "353f46b16223a61100a2da527be90a779729f39c40a6d55a1017be0adb89431d"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 409,
+          "TRACE_RECEIPTS.json": 3086,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1134754,
+          "mount0/PATHS_NEAR.npz": 2282874,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0000_trace.npz": 177738,
+          "trace/task_0012_trace.npz": 175518
+        }
+      }
+    },
+    {
+      "manifest_sha256": "697220f6bb4d8b543d65ccfa4eb653d1d0fb1e2d7eb702fe9eeff6a13e1b335a",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 1,
+        "shard_count": 12,
+        "selected_task_ids": [
+          1,
+          13
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 36,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 72
+          },
+          "near_path_rows": 144
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.079731174046174,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard1",
+          "--shard-index",
+          "1",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "d4a3d7efe2f561234eb09e1d02d108b9bc9d7f1e7e3530df3e750bc685f3cad4",
+          "TRACE_RECEIPTS.json": "3ce4f0936509d7fc5fee7e990b9a2fe6b80c044cd512cc6dcf957ca0328cc6f0",
+          "mount0/H_LoS.npy": "a966c1a9e8ec72374dcea75177969331bd6c6ef0c3dfaeaeca71cfbef8c28b24",
+          "mount0/H_full.npy": "3c5a0616ac4b4bed76b2b6f2c371644564262dc687a060d06b4550bc90f16ff6",
+          "mount0/PATHS_LoS.npz": "46091387676f3eb70af44e1789011785f02391ef6acb2705a9c8dcf144843143",
+          "mount0/PATHS_NEAR.npz": "5a5e3e309493ae5a192d702732dc60e701f799c5b986f5111884ad56d44e8860",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "fe762884ff19d87ebf2382cf3ead7e87df1901020a890264e2a5cd5f74148fa7",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0001_trace.npz": "cce9ee7e4554fb90ca541de2dca3044cad1a45975cc7239435e044c3f8775f15",
+          "trace/task_0013_trace.npz": "30ddd0dc8cb8bc3a27654ea1ad6e2f423d91a376a2d37b0afc6d82c7e2d35ccc"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 410,
+          "TRACE_RECEIPTS.json": 3094,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1134690,
+          "mount0/PATHS_NEAR.npz": 2282711,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0001_trace.npz": 178684,
+          "trace/task_0013_trace.npz": 176376
+        }
+      }
+    },
+    {
+      "manifest_sha256": "23bccfb4146b67f680aa340e57bb0b647d180031e5a4799a1c90a2a20ecc90a0",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 2,
+        "shard_count": 12,
+        "selected_task_ids": [
+          2,
+          14
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 72,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 72
+          },
+          "near_path_rows": 144
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.82138705800753,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard2",
+          "--shard-index",
+          "2",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "946bb94831e26862f43612a2ef1fc71ad960dc7f8f950d90a09b69e0808f1b97",
+          "TRACE_RECEIPTS.json": "0808ff0327973bed74c30c19552aa2537036e5b2889e475047b501e941702e88",
+          "mount0/H_LoS.npy": "5de0960f2b17dd6f305c73353797264360b5ceb69477a803b6d994edb867db58",
+          "mount0/H_full.npy": "02bc2876c25492d51e170d1176f2fb5d567812ab72432c7862c6478552553c81",
+          "mount0/PATHS_LoS.npz": "5c16b7f467bc3dd2f4d849d1a5c080053b16a8260623f37956db25cbdf39bd0e",
+          "mount0/PATHS_NEAR.npz": "d3f87f710dcec27af987c90b0afea8df22df0a2092c4180c2364f0a4ee902d26",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "5466d6b7ff35f5f436dc54aa9b999b07553e43b3cfe3f7094be0680f3c89a6af",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0002_trace.npz": "cd6ffa349ac7fddfa98267addc4183516e05d9239feb0a8130924d92ea173b53",
+          "trace/task_0014_trace.npz": "3330246158502b124774662c74f887b3c22003f5969a95eb5a44bf12e13de461"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 410,
+          "TRACE_RECEIPTS.json": 3100,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1134681,
+          "mount0/PATHS_NEAR.npz": 2282714,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0002_trace.npz": 178956,
+          "trace/task_0014_trace.npz": 178015
+        }
+      }
+    },
+    {
+      "manifest_sha256": "6e0be377bc0f159ca12dd2cb59b059a966eab6b683ab1722e47d48594f3ae6fb",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 3,
+        "shard_count": 12,
+        "selected_task_ids": [
+          3,
+          15
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 108,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 72
+          },
+          "near_path_rows": 144
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.812093336950056,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard3",
+          "--shard-index",
+          "3",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "ec463fc47a079cb665a09aed7c410691c201879bdf717065c66ec0f31da8fc48",
+          "TRACE_RECEIPTS.json": "e6e2d3936304d7d7fd50099c16f8da8b08eee72e7147df0506cb0c207c96d68b",
+          "mount0/H_LoS.npy": "cf537e14f406992d5f51df78e190060e2ea1030e71c26872117f37f509daf8ab",
+          "mount0/H_full.npy": "a5ffea9c9f54e3a922d1ca22f89fb230e72cf5a412b07e8e31f60c03053e52a2",
+          "mount0/PATHS_LoS.npz": "78a58d69c82c5413dcfb135b9150ac0225a08744ca03ed65ee5362b234a7291e",
+          "mount0/PATHS_NEAR.npz": "c178299ae17fe5c748ef1bf70b5c492d3a9b621213c9d1524e117d5d9a196c7c",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "f1c26ccd0efadabe4e571c201d98ac87928e0ee9567005fc586be0a163c94aaf",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0003_trace.npz": "66d8e19c83d01b499b053c2780ebaa3e58fd92f8a577028d58e1c6ba42819777",
+          "trace/task_0015_trace.npz": "97b234f3b00b4b81fe028cc48cbb3f14ddd0928439b4e7b5959846db2f23ebb6"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 411,
+          "TRACE_RECEIPTS.json": 3133,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1134703,
+          "mount0/PATHS_NEAR.npz": 2282631,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0003_trace.npz": 177787,
+          "trace/task_0015_trace.npz": 177339
+        }
+      }
+    },
+    {
+      "manifest_sha256": "ba5ac2c2ec30b8ade0b7d5f9ce387de938b11e8db46098a65eeeded12210925d",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 4,
+        "shard_count": 12,
+        "selected_task_ids": [
+          4,
+          16
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 144,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.460699670948088,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard4",
+          "--shard-index",
+          "4",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "22718a7344fcdb7a36fc063c8b99712efff0cc4385ebeb2730eab684c57361df",
+          "TRACE_RECEIPTS.json": "151a96bee5ac6b608dcaf50aea1c4366e3a9a35324707aab42bfda1681433db6",
+          "mount0/H_LoS.npy": "f0701e19c77a02bae631962769e778a34ef3a03716fb60a60a8c40d77fae34b9",
+          "mount0/H_full.npy": "b8399db514bc7569dc22fe0de7071f546b9db5ba3096da0debc1efd091f22dac",
+          "mount0/PATHS_LoS.npz": "8faf660e60be5f807dc4d47e560d93bea110bb101afd9fc006b34b205dc22962",
+          "mount0/PATHS_NEAR.npz": "8b5fb3bb7f156044a61778b86d3c5ffc04a537fe00ee036d7199bb42c4d67242",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "5b1d23dd5d57aa00b30953ce7f3804cf452d577dda2cca91285bc657e90eacc1",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0004_trace.npz": "bd531947a016ef02d740164b1c417d5603a0fdebfff3fc9b873b034fe3addad8",
+          "trace/task_0016_trace.npz": "f23bb6fb56319bc3428c27637d0fe79ca6095e0ee1cebcfe8902c7ff2e5bc3b1"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3131,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1137416,
+          "mount0/PATHS_NEAR.npz": 2856110,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0004_trace.npz": 177719,
+          "trace/task_0016_trace.npz": 177701
+        }
+      }
+    },
+    {
+      "manifest_sha256": "f7849282fbaa1e5dae632a67cd3c905c3677fa8d0ac850ff4bfd0ac475af28af",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 5,
+        "shard_count": 12,
+        "selected_task_ids": [
+          5,
+          17
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 180,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.87292232294567,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard5",
+          "--shard-index",
+          "5",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "946ed217a1de913def72ffaba7fad029883643cba50ef353c6ecb63cf0f95619",
+          "TRACE_RECEIPTS.json": "af7ec18a84d1a22c3157440cb4f1d978feb828f6181d75cd42ea3b81053b717d",
+          "mount0/H_LoS.npy": "f5cc648d962b5cd55aa6511ad4eb799214f8b6eea70c6d8557370796ec693e61",
+          "mount0/H_full.npy": "37216e713b443a74c4be66601fc0db91c3227baa5aae0df597722c9fd64cf0bb",
+          "mount0/PATHS_LoS.npz": "a6fc355b29d7f88427eff80fb3b2c6e208d291d3a8bb114064df419b73bb3258",
+          "mount0/PATHS_NEAR.npz": "ac34857b5b21d54ef105105d53985d93b751317c41aa3342c8d2ce4d5c24c9f8",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "b384089085775ae965538f4cee0fe17fed8014dccaaf729bfb75823330373495",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0005_trace.npz": "1b2fd703ffc852d7646ed01725efc48f7aab1519e866caa416c9e56932cb1847",
+          "trace/task_0017_trace.npz": "10a5a8e9981f5c389251e5f37950a915465ac709419cf4390c49420b162671c7"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3131,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1137357,
+          "mount0/PATHS_NEAR.npz": 2856134,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0005_trace.npz": 176711,
+          "trace/task_0017_trace.npz": 176114
+        }
+      }
+    },
+    {
+      "manifest_sha256": "7b322d2c4fa6b5237c621ab496b1b01549e802fde4e477fca21cc1e562f60054",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 6,
+        "shard_count": 12,
+        "selected_task_ids": [
+          6,
+          18
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 216,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.295727325952612,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard6",
+          "--shard-index",
+          "6",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "fe7594ffc30b1b19dc11a98c6780751be6ef14f400b584ce7322aee1398864d5",
+          "TRACE_RECEIPTS.json": "e0c775996d0a1df7b224035881557abc2a71526bbef612b1d7cf64775bda3bbb",
+          "mount0/H_LoS.npy": "b0a43a770004b531786a3fce07957f173f7e679bfe982658c11e1d1e9663c87b",
+          "mount0/H_full.npy": "0071a6193af4ef2083e37c91925dfe8891c881b369dc8b9f9407272e651310c1",
+          "mount0/PATHS_LoS.npz": "d8a0af16c205ebbc509524cb2ee7983f6b6b1866c7268025f47367a1c5e9ddba",
+          "mount0/PATHS_NEAR.npz": "8a35ac478704ec0bda39fbfc74aef66ffddf782fef9f1d2e5080804a412e7e61",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "b34100e8284a1637c50ab719b49714471b8b179ad6325857bdd4dbd5267e347b",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0006_trace.npz": "6420464717cc15244e335a0da20028847ee1074168f99a4a950d0364f34cd941",
+          "trace/task_0018_trace.npz": "2cc0b56a408bdb46c32f5723e5d47256869438d641bdee87ce0c9c3160f04ac6"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3132,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1137428,
+          "mount0/PATHS_NEAR.npz": 2856175,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0006_trace.npz": 179334,
+          "trace/task_0018_trace.npz": 175672
+        }
+      }
+    },
+    {
+      "manifest_sha256": "edee621ac78814210504cafe6fe615c530240ef62ebe53efed6e812a5dc4ac44",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 7,
+        "shard_count": 12,
+        "selected_task_ids": [
+          7,
+          19
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 252,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.996071357047185,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard7",
+          "--shard-index",
+          "7",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "3913298309e8986089077f14bfc6dea4197223fd082daceb42ab264c7346d6b5",
+          "TRACE_RECEIPTS.json": "c80e6dff340b79a6bf5d2e96944200d010f238173e759e432d82fab221fa9e96",
+          "mount0/H_LoS.npy": "72775fc67edf52aaea5dafa27aa188fce931885925a735c81f07a2e35f6b23ad",
+          "mount0/H_full.npy": "d15e652fd3c2d94510c6372f5b3a2ac3a631b3cc011dd8e21f85c15f2e0dbfe7",
+          "mount0/PATHS_LoS.npz": "8d31666336d354da469a5f686af010a99dc4d8fcce76c0a72900fb014f811f16",
+          "mount0/PATHS_NEAR.npz": "5c089bd2238ddc73a148bc419eff282beba120115aea74f123bf0c12fd0d1afb",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "94af871fb07d31260e81e07f3198c3380328ad9e9f9216352dae7b5d8df57a65",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0007_trace.npz": "81c2f68cad69d841f16dc21e3ef4f1a49c661f86911b1caa94e4b34f42ac2d51",
+          "trace/task_0019_trace.npz": "fb2233c3fbde2f92533f2867ec77ef43eecb88becc9665881cf8152d9ba746ea"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3133,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1137477,
+          "mount0/PATHS_NEAR.npz": 2856021,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0007_trace.npz": 177839,
+          "trace/task_0019_trace.npz": 172686
+        }
+      }
+    },
+    {
+      "manifest_sha256": "4eb03efc36b9e9802c84a64ed8da34d2eee470b3d5e5d9e084edac468d29a165",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 8,
+        "shard_count": 12,
+        "selected_task_ids": [
+          8,
+          20
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 288,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.581034804927185,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard8",
+          "--shard-index",
+          "8",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "f13626826598540aea3f0e85cc84c9b9d13216e1aaacb3a008f18cdda672a06a",
+          "TRACE_RECEIPTS.json": "6a7485f22c4f8b0db1c59d0230260a098c19293fd9cbe2c0d73fd79f45a8ceba",
+          "mount0/H_LoS.npy": "f666cc81d80aea0e28636259cf96bac8cfb0fabf56efb2e73ba03b8b4935991c",
+          "mount0/H_full.npy": "94ea0547a836e47a360852532cd8d1bcda095d1cec63bc1e050fc72354d545b1",
+          "mount0/PATHS_LoS.npz": "e733e99b02329a62222930d2ebb2f0abdce109343336ace2cd7aacc8aed77854",
+          "mount0/PATHS_NEAR.npz": "2fd768df880c1d8a897c2da401eca55a94da975630da0627d9240359550b6503",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "2fae549426c2e0af7bad55fcbc4e893ceb73c1c0058408f9bd0920ece94b3406",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0008_trace.npz": "813701d45a8fdc558703903d77feda77a78db19fa06ea9a139191aecf34c52bf",
+          "trace/task_0020_trace.npz": "35e396d142c3cf18fa662ee4e3bc406d72e8c582d124a1892032090be208a4a7"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3132,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1138920,
+          "mount0/PATHS_NEAR.npz": 2860850,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0008_trace.npz": 175352,
+          "trace/task_0020_trace.npz": 176951
+        }
+      }
+    },
+    {
+      "manifest_sha256": "cc3c6a129becb8bd873dc4831f33fb77ae1d72cb57f1f67ca0a855d058d94f3b",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 9,
+        "shard_count": 12,
+        "selected_task_ids": [
+          9,
+          21
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 324,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 18.828885004040785,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard9",
+          "--shard-index",
+          "9",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "38b2ecef19f3101f3524230e650ab75cb44d6950310ecad13799d8934722713a",
+          "TRACE_RECEIPTS.json": "0e8d6d98dc858f3bd8161e679466f4e5be6851277fd135ddc57f23d53e50bb1b",
+          "mount0/H_LoS.npy": "060fe2d7bc76bb62ce57bb7e6a451198ff952cb298107cc5efb8e1d9d1e2ed35",
+          "mount0/H_full.npy": "848aad495923afa759ee58317f781f505b0db96ffa7959c65e4683f55aef47c9",
+          "mount0/PATHS_LoS.npz": "1fdedc3388d76a437eb064832ada0af061f7b01b355fc0b89f70b97fd63a83ab",
+          "mount0/PATHS_NEAR.npz": "59925d575b2ae8bdda7e4d9bbd10e4d95ce186f621dc7a8fa23f2c18a1bb7821",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "ef0d3cf9dbaa784b11b6d9aadff1c07d1fcf902d346ff16aa80a420155eb0980",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0009_trace.npz": "64f73511d356c76496aede9282cf1acbc40b30b7462959c080e8acbb218d6fd2",
+          "trace/task_0021_trace.npz": "4ac6d1932c1636a2d475eb508d139b2e8dc1ff03816b912db5617cc2de546c9f"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3133,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1138879,
+          "mount0/PATHS_NEAR.npz": 2860595,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0009_trace.npz": 176982,
+          "trace/task_0021_trace.npz": 174524
+        }
+      }
+    },
+    {
+      "manifest_sha256": "afd392ac74a6d04a6b765a5e8c336b481617930d52b12d23b89f7666f1f584e8",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 10,
+        "shard_count": 12,
+        "selected_task_ids": [
+          10,
+          22
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 360,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.497050671023317,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard10",
+          "--shard-index",
+          "10",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "c1b8173fa49d35218b033085d91be9eb0de6bd334f472f95b02a9f8f84af18e6",
+          "TRACE_RECEIPTS.json": "da10ae1a3ed55332edfd58dd0e7a7cab478f36dab113c31cdef87dafe55c6d34",
+          "mount0/H_LoS.npy": "6418bbdd7e6e61a267d70a54e80565464e34da751da20a95c00442472bca6f2e",
+          "mount0/H_full.npy": "0a0ac9a221302faa5f959f3c23cf47db7cc0f0768dc1d4385a611e3fd9eec4b4",
+          "mount0/PATHS_LoS.npz": "7f36a5a9891624620f2a61d2ab1a5ea7198d9cd21d9af6a528fc1dd35ddec6bd",
+          "mount0/PATHS_NEAR.npz": "77463dd19df81388f2f60892c9a78847ae2beb1e29261e9de05558150a01004a",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "7b9d49a7767336e8900aec803c70c717d57dc22eb19d3af57d28b86ce4cc6388",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0010_trace.npz": "cb49a796165daaffbb49bfe91a000af78d74ca20a4d4cd3234db22c067611381",
+          "trace/task_0022_trace.npz": "ba60f5efbb61f7279cc45302dad3e2ba261607dd640d1c3ea68a54143981aaa1"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3131,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1138813,
+          "mount0/PATHS_NEAR.npz": 2860814,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0010_trace.npz": 176530,
+          "trace/task_0022_trace.npz": 177801
+        }
+      }
+    },
+    {
+      "manifest_sha256": "ab895fdac2eee5845de2b42d98b1a218babb68e9f52c807ddd812e82181dc293",
+      "manifest": {
+        "status": "PASS",
+        "scope": "M7_CENTERLINE_SWEEP_SHARD",
+        "code_commit": "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+        "source_commit": "047cce2acb244ec2d7badc563345ccdd1f48613f",
+        "runtime_versions": {
+          "sionna-rt": "2.0.1",
+          "mitsuba": "3.8.0",
+          "drjit": "1.3.1",
+          "numpy": "2.4.6"
+        },
+        "run_contract_sha256": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+        "input_sha256": {
+          "COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+          "COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+          "INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+          "M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+          "ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+          "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+          "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+          "STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+          "TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+          "baselines/R2/rf_poses.json": "d5d02058b5027223b4a1856379e60781c697b3660c07bbe4f0902d3aaf31376b",
+          "baselines/R2/rf_tasks.json": "efec0cf046e2cb1a6fa8b295a47fb72f8dad0380664ea1bf6945e49784051ab9",
+          "baselines/R4/rf_poses.json": "e7186904ea9abf7e5c541219d30aa879c7141d4d50197345ddce0678cd5d4ac4",
+          "baselines/R4/rf_tasks.json": "0354e7dc28eb0c521e0cb6221ef0ba948c0e60904828655fdc7d7f934d67a63f",
+          "baselines/R5/rf_poses.json": "511d9e9edaa0740497af15e7e76c3e7f0a48a16d5bb2f49a062d69fe7ad13c08",
+          "baselines/R5/rf_tasks.json": "77ec661d00c4e1021314018d8d0d37dad57ae3cb8b4ba710619a904aa398fdf8",
+          "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+          "rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+        },
+        "method_b_sha256": {
+          "scripts/drive_sim/rf_b_trace.py": "930d75d1827910c0d8049cba4b9525f49cea9d210fa256e18ec0a50624d54b31",
+          "scripts/drive_sim/rf_b_apply.py": "7e97c7c1ea83f715eac6a0b5da80f88d931a8f528ded45341420356f1a05850c",
+          "scripts/corridor_sionna_run.py": "0ef395f260f3bf72f573231c9d849fb054439126bd139a401d6681c151219aee",
+          "scripts/g2_completion/sionna_native_runtime.py": "bf5eb1ad9660f9cae5104450384bf7993ada34152402d4d201e8402f9be5851d",
+          "src/qclean_uwb/drivesim/rf_store.py": "bac45411d2fa0c2980a16108f0266bf3cf20448db9aace7937faad9b1d2caa52",
+          "src/qclean_uwb/drivesim/pattern_apply.py": "9717013a7b011f5f5ef4e33fa3b0ba1b4c07ccbc22a3478377e56640b126153d",
+          "src/qclean_uwb/drivesim/paths.py": "4436e140225330ab068bc3525edd6fd0d5e04e576ceb8c13fecc6c8ad635c1ed",
+          "src/qclean_uwb/scenarios/corridor.py": "9d2d818e3f489b7173ddb84185fae6eca7754896f05b85fe07155bb746332a43",
+          "src/qclean_uwb/drivesim/config.py": "75c02a3727b1684ed5822c11a06da4fd2002abe7b782c627df11cb785d79bd82",
+          "results/SIONNA_G2_FFD_NOFLIP_20260924_01a0d30b/bank/BANK_MANIFEST.json": "6ed46d657a70560a391fc574462d4a64826df3f3c6a90cef497db56deea68ea6"
+        },
+        "ffd_sha256": {
+          "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+          "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+        },
+        "config_sha256": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+        "engine": {
+          "solver": {
+            "max_depth": 3,
+            "samples_per_src": 100000,
+            "max_num_paths_per_src": 1000000,
+            "synthetic_array": true,
+            "los": true,
+            "specular_reflection": true,
+            "refraction": true,
+            "diffraction": false,
+            "edge_diffraction": false,
+            "diffuse_reflection": false,
+            "seed": 20260924
+          },
+          "base_node_bins": [
+            0,
+            16,
+            32,
+            48,
+            64,
+            80,
+            96,
+            112,
+            128,
+            144,
+            160,
+            176,
+            192,
+            208,
+            224,
+            240,
+            256
+          ],
+          "node_policy": "unchanged original rf_b_trace.trace_position adaptive boundary bisection",
+          "finite_face_guard": false,
+          "native_los_override": false,
+          "post_filter": false,
+          "H_full_synthesis": "unchanged original rf_store.h_for_antenna_yaws",
+          "H_LoS_definition": "LoS contribution extracted from the same full original trace"
+        },
+        "material_bindings": [
+          {
+            "object": "floor",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a"
+          },
+          {
+            "object": "ceiling",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4"
+          },
+          {
+            "object": "wall_y_neg",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760"
+          },
+          {
+            "object": "wall_y_pos",
+            "itu_type": "plasterboard",
+            "thickness_m": 0.0125,
+            "ply_sha256": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d"
+          },
+          {
+            "object": "end_x_min",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e"
+          },
+          {
+            "object": "end_x_max",
+            "itu_type": "concrete",
+            "thickness_m": 0.2,
+            "ply_sha256": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21"
+          }
+        ],
+        "pose_table_sha256": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+        "task_table_sha256": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+        "shard_index": 11,
+        "shard_count": 12,
+        "selected_task_ids": [
+          11,
+          23
+        ],
+        "poses": 72,
+        "trace_positions": 2,
+        "mounts_deg": [
+          0
+        ],
+        "shared_trace": true,
+        "original_h_array_equal": true,
+        "solver_calls": 42,
+        "extra_export_solver_calls": 0,
+        "finite_face_guard": false,
+        "native_los_override": false,
+        "post_filter": false,
+        "serialization_g8": {
+          "status": "PASS",
+          "expected_pose_count": 72,
+          "validated_pose_count": 72,
+          "complex_entries": 74016,
+          "max_relative_error": 0.0,
+          "max_absolute_error": 0.0,
+          "worst_index": {
+            "pose_id": 396,
+            "bin": 0,
+            "rx_port_index": 0,
+            "tx_port_index": 0
+          },
+          "zero_reference_mismatches": 0,
+          "strict_relative_limit": 1e-06,
+          "near_count_histogram": {
+            "2": 36,
+            "3": 36
+          },
+          "near_path_rows": 180
+        },
+        "baseline_comparison": null,
+        "wall_s": 19.4709641400259,
+        "command": [
+          "/opt/rt-env/bin/python",
+          "/run/code/run_blockc_m7_sweep.py",
+          "--inputs",
+          "/run/inputs",
+          "--source",
+          "/ref",
+          "--code-commit",
+          "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4",
+          "--source-commit",
+          "047cce2acb244ec2d7badc563345ccdd1f48613f",
+          "--out",
+          "/run/attempts/production/shard11",
+          "--shard-index",
+          "11",
+          "--shard-count",
+          "12"
+        ],
+        "runner_sha256": "bcd505a907745b7ed0effad064dea021e25d31306ba600ef68e883bd7448bd66",
+        "output_sha256": {
+          "SERIALIZATION_G8.json": "503d24e573b8fe2334b2f1c5b7389e6c6b6e0377163b021a6dd3b7bacca37150",
+          "TRACE_RECEIPTS.json": "0e9ec559f9c7fcd7693b0de109e100d14b914575fa559f1c72a6f7c6ae84568c",
+          "mount0/H_LoS.npy": "b913e539e587bd6f990644df25d6629eaca8545e9704743f9f636bca3cf2f7b6",
+          "mount0/H_full.npy": "5238e5a71262bd46fecd9127b3de2d7578c8523ef527bcb8bc20ae9be73501a1",
+          "mount0/PATHS_LoS.npz": "4c0cf647ecf4b7a88eb8e3d4dd87542943d89c63c29217984f73fcf5950708f6",
+          "mount0/PATHS_NEAR.npz": "937a54c046735d8bf926e56aff18f28d193a0a1aecbcd23ab593bf74f16074a2",
+          "mount0/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+          "mount0/POSE_IDS.npy": "cb7a9f4c21338483aaba1f445ca14fbf0900f7f3430881a89dbb48afeb4cf03f",
+          "scene/ceiling.ply": "e9b68731b050d1b176bc0ac21d4cdfca7399617f626c2ce61a115e39b67d7fa4",
+          "scene/end_x_max.ply": "a45c48307ca2f0c11ae1fd7553b07028e3e9158bb21360593289df34147b7d21",
+          "scene/end_x_min.ply": "fc7cbd58a40b41602709af7bfca4902f8f6971379531777c9e376fcd98b6c52e",
+          "scene/floor.ply": "f3ceb3b49aa359750beba1e517e7226acca52f6b7941ac584f3c48d516a9403a",
+          "scene/wall_y_neg.ply": "e1ce2d595027a26dbe7f480b6e68e5276befafb5e3b6b3e6e5fcc4c126236760",
+          "scene/wall_y_pos.ply": "b34c026da1e32ea81421901c9700e25988c8bb7c0bda71147b568d5600dc646d",
+          "trace/task_0011_trace.npz": "b33fc970c4bc194401f85a1758a97dbea7e07df805e0dd5ace269d3329f3e818",
+          "trace/task_0023_trace.npz": "cf3e26565df8774520f06442dbaba222cbbf91d52d27ada30f7e4873021981f1"
+        },
+        "output_bytes": {
+          "SERIALIZATION_G8.json": 424,
+          "TRACE_RECEIPTS.json": 3131,
+          "mount0/H_LoS.npy": 1184384,
+          "mount0/H_full.npy": 1184384,
+          "mount0/PATHS_LoS.npz": 1138779,
+          "mount0/PATHS_NEAR.npz": 2860847,
+          "mount0/PATHS_NEAR_SCHEMA.json": 1882,
+          "mount0/POSE_IDS.npy": 704,
+          "scene/ceiling.ply": 274,
+          "scene/end_x_max.ply": 242,
+          "scene/end_x_min.ply": 238,
+          "scene/floor.ply": 206,
+          "scene/wall_y_neg.ply": 242,
+          "scene/wall_y_pos.ply": 238,
+          "trace/task_0011_trace.npz": 177159,
+          "trace/task_0023_trace.npz": 175694
+        }
+      }
+    }
+  ],
+  "started_utc": "2026-11-19T01:56:21.704758+00:00",
+  "finished_utc": "2026-11-19T01:56:27.628706+00:00",
+  "wall_s": 5.923978458973579,
+  "command": [
+    "/opt/rt-env/bin/python",
+    "/run/code/finish_blockc_m7_far_sweep.py",
+    "--root",
+    "/run",
+    "--model-source",
+    "/model",
+    "--banks-dir",
+    "/ref",
+    "--code-commit",
+    "1a0f3c1b15be8e07c1884dbd1e42a1bb6c9b74f4"
+  ],
+  "finish_source_sha256": "7452cfe71a05c5b193e1b6a78533913cd3bb7bd9cb0b0b5cf3f9e1d709a52cd4",
+  "output_sha256": {
+    "G4.json": "13d24d4de7034a802efc7aaff86ddeba53b2f03233a0a2b77c98a3650ca6b652",
+    "G8.json": "907c3290af00f881cee0ad49c336153bb01e761b522c476526c3c7a66ab8e96e",
+    "H/BLOCKC_B/H_LoS.npy": "4d63c6f943888088fdb5b210e0f4cc0abfbc1cc54c3dfeaec3677bbbf3649d04",
+    "H/BLOCKC_B/H_full.npy": "e738958eebb69484743c89375d408befbe229fea670bf3fd5029c354baf257fc",
+    "baselines/BASELINE_PASS.json": "0a5b24feed54ee52b92b75fa2ad812d8ea06f6702936b5346b9fd1c92f6855d1",
+    "baselines/R2/BASELINE_COMPARISON.json": "4ea98015b2a403daa6386f164f7e00a8e1eabaf4732a4315b5294678af624255",
+    "baselines/R2/MANIFEST.json": "b9301b6e816ef43c02dd1c5eae2cc7c4aa7d0602cd5ec13fbd7755069b9d072b",
+    "baselines/R4/BASELINE_COMPARISON.json": "963392959791dea89364dc8ff46e7fbcbd6dbe613fb69fd434c503077da26b04",
+    "baselines/R4/MANIFEST.json": "5d0f97ce2a6211f649eb95a902c8e8eb58865ee5726c6cd2002b737aacbb4402",
+    "baselines/R5/BASELINE_COMPARISON.json": "27edeef813afd2f07ab6e9a237e7add17d59564bf4a0269a699af3116ade4d41",
+    "baselines/R5/MANIFEST.json": "3d435baccb7abee8d1e28231a1d8f85eb1085067e4fe091ec24addddf941d053",
+    "paths/BLOCKC_B/PATHS_LoS.npz": "c57e5ac2dbfe405ecd340d9305b8f9df47f3ad780d12bdbb324e83b55e837415",
+    "paths/BLOCKC_B/PATHS_NEAR.npz": "6a42a011e6a8f10d58d6c65e9fbbb277c1df3ecbf88148a1512fe8bb070f5161",
+    "paths/BLOCKC_B/PATHS_NEAR_SCHEMA.json": "aa6b137d93721599b524bf106b8c77099eee411a91a176c855756b255057b08c",
+    "paths/BLOCKC_B/TRACE_RECEIPTS.json": "64a9cdc9bbbc90fef74fbe52e2f9f145964ab68ce69be2710ab400b2684a6a39",
+    "poses/BLOCKC_B/COMPARISON_OBSERVATIONS.json": "57c1d113d2703e2d6a35cefeff9e77b7398396038df89bb208f63b441815d2ea",
+    "poses/BLOCKC_B/COMPARISON_RF_POSES.json": "ad988ad2fcdf102000e1dc5176fca4465dc3ff08a4a4dc32cfeb9b1d7640f45d",
+    "poses/BLOCKC_B/INPUT_VALIDATION.json": "c1fddb264fa9cb7c18144346fac120cd35ef6b0f3ee3ded3487d1dde42b01d90",
+    "poses/BLOCKC_B/M7_RT_CONFIG.json": "c544d43924aa524e8bcfb88b7fc8da6d09e1382549c742487df55f7569227c54",
+    "poses/BLOCKC_B/ORIGINAL_BLOCK_C_CASES.json": "ecd5c91daea78588b34b90b8af41e14ec356fb364b631cecf32feed31866fc7b",
+    "poses/BLOCKC_B/RUN_CONTRACT.json": "304cdad2bc70de4373c4f96b2c135c4247f41e6a4e308a910ce5ec6dd280de65",
+    "poses/BLOCKC_B/SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+    "poses/BLOCKC_B/SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+    "poses/BLOCKC_B/STATIONS.json": "e53fde7e43965526928b539a90efedfd9457b436d057c0fb37bbfd7278a57940",
+    "poses/BLOCKC_B/TIMELINE.csv": "a17c9351885f02423cabe79dc06a9f7b3d0b743e7345cf25dad3d8aaf956e7cc",
+    "poses/BLOCKC_B/rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+    "poses/BLOCKC_B/rf_tasks.json": "8d5ea0221e05d378b6e3382975893af0c9bebf644d39aca77b0c60461211b5a8",
+    "traces/BLOCKC_B/task_0000_trace.npz": "050ad7ff197828672c768315a254e11dea3dc898c3d41dcae952f304fb814174",
+    "traces/BLOCKC_B/task_0001_trace.npz": "cce9ee7e4554fb90ca541de2dca3044cad1a45975cc7239435e044c3f8775f15",
+    "traces/BLOCKC_B/task_0002_trace.npz": "cd6ffa349ac7fddfa98267addc4183516e05d9239feb0a8130924d92ea173b53",
+    "traces/BLOCKC_B/task_0003_trace.npz": "66d8e19c83d01b499b053c2780ebaa3e58fd92f8a577028d58e1c6ba42819777",
+    "traces/BLOCKC_B/task_0004_trace.npz": "bd531947a016ef02d740164b1c417d5603a0fdebfff3fc9b873b034fe3addad8",
+    "traces/BLOCKC_B/task_0005_trace.npz": "1b2fd703ffc852d7646ed01725efc48f7aab1519e866caa416c9e56932cb1847",
+    "traces/BLOCKC_B/task_0006_trace.npz": "6420464717cc15244e335a0da20028847ee1074168f99a4a950d0364f34cd941",
+    "traces/BLOCKC_B/task_0007_trace.npz": "81c2f68cad69d841f16dc21e3ef4f1a49c661f86911b1caa94e4b34f42ac2d51",
+    "traces/BLOCKC_B/task_0008_trace.npz": "813701d45a8fdc558703903d77feda77a78db19fa06ea9a139191aecf34c52bf",
+    "traces/BLOCKC_B/task_0009_trace.npz": "64f73511d356c76496aede9282cf1acbc40b30b7462959c080e8acbb218d6fd2",
+    "traces/BLOCKC_B/task_0010_trace.npz": "cb49a796165daaffbb49bfe91a000af78d74ca20a4d4cd3234db22c067611381",
+    "traces/BLOCKC_B/task_0011_trace.npz": "b33fc970c4bc194401f85a1758a97dbea7e07df805e0dd5ace269d3329f3e818",
+    "traces/BLOCKC_B/task_0012_trace.npz": "353f46b16223a61100a2da527be90a779729f39c40a6d55a1017be0adb89431d",
+    "traces/BLOCKC_B/task_0013_trace.npz": "30ddd0dc8cb8bc3a27654ea1ad6e2f423d91a376a2d37b0afc6d82c7e2d35ccc",
+    "traces/BLOCKC_B/task_0014_trace.npz": "3330246158502b124774662c74f887b3c22003f5969a95eb5a44bf12e13de461",
+    "traces/BLOCKC_B/task_0015_trace.npz": "97b234f3b00b4b81fe028cc48cbb3f14ddd0928439b4e7b5959846db2f23ebb6",
+    "traces/BLOCKC_B/task_0016_trace.npz": "f23bb6fb56319bc3428c27637d0fe79ca6095e0ee1cebcfe8902c7ff2e5bc3b1",
+    "traces/BLOCKC_B/task_0017_trace.npz": "10a5a8e9981f5c389251e5f37950a915465ac709419cf4390c49420b162671c7",
+    "traces/BLOCKC_B/task_0018_trace.npz": "2cc0b56a408bdb46c32f5723e5d47256869438d641bdee87ce0c9c3160f04ac6",
+    "traces/BLOCKC_B/task_0019_trace.npz": "fb2233c3fbde2f92533f2867ec77ef43eecb88becc9665881cf8152d9ba746ea",
+    "traces/BLOCKC_B/task_0020_trace.npz": "35e396d142c3cf18fa662ee4e3bc406d72e8c582d124a1892032090be208a4a7",
+    "traces/BLOCKC_B/task_0021_trace.npz": "4ac6d1932c1636a2d475eb508d139b2e8dc1ff03816b912db5617cc2de546c9f",
+    "traces/BLOCKC_B/task_0022_trace.npz": "ba60f5efbb61f7279cc45302dad3e2ba261607dd640d1c3ea68a54143981aaa1",
+    "traces/BLOCKC_B/task_0023_trace.npz": "cf3e26565df8774520f06442dbaba222cbbf91d52d27ada30f7e4873021981f1"
+  },
+  "output_bytes": {
+    "G4.json": 2980,
+    "G8.json": 491,
+    "H/BLOCKC_B/H_LoS.npy": 14211200,
+    "H/BLOCKC_B/H_full.npy": 14211200,
+    "baselines/BASELINE_PASS.json": 7443,
+    "baselines/R2/BASELINE_COMPARISON.json": 180,
+    "baselines/R2/MANIFEST.json": 10578,
+    "baselines/R4/BASELINE_COMPARISON.json": 179,
+    "baselines/R4/MANIFEST.json": 10576,
+    "baselines/R5/BASELINE_COMPARISON.json": 180,
+    "baselines/R5/MANIFEST.json": 10577,
+    "paths/BLOCKC_B/PATHS_LoS.npz": 13608987,
+    "paths/BLOCKC_B/PATHS_NEAR.npz": 31958124,
+    "paths/BLOCKC_B/PATHS_NEAR_SCHEMA.json": 1882,
+    "paths/BLOCKC_B/TRACE_RECEIPTS.json": 37434,
+    "poses/BLOCKC_B/COMPARISON_OBSERVATIONS.json": 382480,
+    "poses/BLOCKC_B/COMPARISON_RF_POSES.json": 225819,
+    "poses/BLOCKC_B/INPUT_VALIDATION.json": 244,
+    "poses/BLOCKC_B/M7_RT_CONFIG.json": 833,
+    "poses/BLOCKC_B/ORIGINAL_BLOCK_C_CASES.json": 14108,
+    "poses/BLOCKC_B/RUN_CONTRACT.json": 17342,
+    "poses/BLOCKC_B/SAMPLES.json": 318211,
+    "poses/BLOCKC_B/SCENE_ENTRY.json": 1500,
+    "poses/BLOCKC_B/STATIONS.json": 3881,
+    "poses/BLOCKC_B/TIMELINE.csv": 75931,
+    "poses/BLOCKC_B/rf_poses.json": 70693,
+    "poses/BLOCKC_B/rf_tasks.json": 22179,
+    "traces/BLOCKC_B/task_0000_trace.npz": 177738,
+    "traces/BLOCKC_B/task_0001_trace.npz": 178684,
+    "traces/BLOCKC_B/task_0002_trace.npz": 178956,
+    "traces/BLOCKC_B/task_0003_trace.npz": 177787,
+    "traces/BLOCKC_B/task_0004_trace.npz": 177719,
+    "traces/BLOCKC_B/task_0005_trace.npz": 176711,
+    "traces/BLOCKC_B/task_0006_trace.npz": 179334,
+    "traces/BLOCKC_B/task_0007_trace.npz": 177839,
+    "traces/BLOCKC_B/task_0008_trace.npz": 175352,
+    "traces/BLOCKC_B/task_0009_trace.npz": 176982,
+    "traces/BLOCKC_B/task_0010_trace.npz": 176530,
+    "traces/BLOCKC_B/task_0011_trace.npz": 177159,
+    "traces/BLOCKC_B/task_0012_trace.npz": 175518,
+    "traces/BLOCKC_B/task_0013_trace.npz": 176376,
+    "traces/BLOCKC_B/task_0014_trace.npz": 178015,
+    "traces/BLOCKC_B/task_0015_trace.npz": 177339,
+    "traces/BLOCKC_B/task_0016_trace.npz": 177701,
+    "traces/BLOCKC_B/task_0017_trace.npz": 176114,
+    "traces/BLOCKC_B/task_0018_trace.npz": 175672,
+    "traces/BLOCKC_B/task_0019_trace.npz": 172686,
+    "traces/BLOCKC_B/task_0020_trace.npz": 176951,
+    "traces/BLOCKC_B/task_0021_trace.npz": 174524,
+    "traces/BLOCKC_B/task_0022_trace.npz": 177801,
+    "traces/BLOCKC_B/task_0023_trace.npz": 175694
+  },
+  "g4": {
+    "status": "PASS",
+    "gate_by_arm": {
+      "original": {
+        "n_observations": 888,
+        "median_abs_delta_s": 8.54186729126738e-08,
+        "p90_abs_delta_s": 1.9066851811855303e-07,
+        "max_abs_delta_s": 2.8399409390811314e-07,
+        "threshold_p90_abs_delta_s": 0.005,
+        "passed": true
+      }
+    },
+    "by_set": {
+      "BLOCKC_NEAR": {
+        "n_observations": 888,
+        "median_abs_delta_s": 8.54186729126738e-08,
+        "p90_abs_delta_s": 1.9066851811855303e-07,
+        "max_abs_delta_s": 2.8399409390811314e-07
+      }
+    },
+    "unique_pose_metrics": {
+      "n_observations": 864,
+      "median_abs_delta_s": 8.574963977769912e-08,
+      "p90_abs_delta_s": 1.9122967321594242e-07,
+      "max_abs_delta_s": 2.8399409390811314e-07
+    },
+    "path_archive_checks": {
+      "max_delay_geometry_error_s": 2.0767776180016814e-15,
+      "max_direction_error_rad": 2.1508480285703513e-07,
+      "max_h_reconstruction_relative_error": 0.0,
+      "path_rows": 864,
+      "unique_los_paths_per_pose_bin": true
+    },
+    "input_sha256": {
+      "rf_poses.json": "13380ebf078c182cb3f555db9e4e8d38b0c4dbbbd083a4d4f1510e4be6c96561",
+      "SAMPLES.json": "2cfaab48e78dc21b9a627e844440da6900b3f305251ba2f19bcb661d24d0831e",
+      "SCENE_ENTRY.json": "1337e66ab399ef7094c0404337c0c57daf89cf440f8748586a08c5b4f3a0ac9a",
+      "H_LoS.npy": "4d63c6f943888088fdb5b210e0f4cc0abfbc1cc54c3dfeaec3677bbbf3649d04",
+      "PATHS_LoS.npz": "c57e5ac2dbfe405ecd340d9305b8f9df47f3ad780d12bdbb324e83b55e837415"
+    },
+    "gate": "G4",
+    "wall_s": 0.8455168219516054,
+    "model_source_sha256": {
+      "qclean_uwb/drivesim/hs_lut.py": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6",
+      "qclean_uwb/drivesim/observation.py": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab",
+      "qclean_uwb/drivesim/pattern_apply.py": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8",
+      "qclean_uwb/scenarios/corridor.py": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e"
+    },
+    "loaded_modules": {
+      "qclean_uwb.drivesim.hs_lut": {
+        "path": "/model/src/qclean_uwb/drivesim/hs_lut.py",
+        "sha256": "24f1007e12d84dc68e07ab62164b92997a5a92377c1079ec679505da4ca5d8a6"
+      },
+      "qclean_uwb.drivesim.observation": {
+        "path": "/model/src/qclean_uwb/drivesim/observation.py",
+        "sha256": "95079dc044a31d94a1aa7f771fb0d59093d15571bcc4752167ad93e47837dbab"
+      },
+      "qclean_uwb.drivesim.pattern_apply": {
+        "path": "/model/src/qclean_uwb/drivesim/pattern_apply.py",
+        "sha256": "ab991a70a7333dbd7b0b9b90d8845ce306fc5e1bd6c73de7c6e62184242969e8"
+      },
+      "qclean_uwb.scenarios.corridor": {
+        "path": "/model/src/qclean_uwb/scenarios/corridor.py",
+        "sha256": "38c42cb12a8492679652b862a3d614a5c04d4b208b041098b215f52fc2b3354e"
+      }
+    },
+    "ffd_bank_sha256": {
+      "LP_plus45_bank.npz": "b29ae471a64617eacb0cf02ddbbcc3b2db190de171fba85f05dddb9cec0c453b",
+      "LP_minus45_bank.npz": "39729fe9f02cf80119a8492be8fcc43e08e2e9e00beebda2909e7c9819c76eb9"
+    }
+  },
+  "g8": {
+    "status": "PASS",
+    "expected_pose_count": 864,
+    "validated_pose_count": 864,
+    "complex_entries": 888192,
+    "max_relative_error": 0.0,
+    "max_absolute_error": 0.0,
+    "worst_index": {
+      "pose_id": 0,
+      "bin": 0,
+      "rx_port_index": 0,
+      "tx_port_index": 0
+    },
+    "zero_reference_mismatches": 0,
+    "strict_relative_limit": 1e-06,
+    "near_count_histogram": {
+      "2": 576,
+      "3": 288
+    },
+    "near_path_rows": 2016,
+    "gate": "G8_SERIALIZATION",
+    "wall_s": 0.18664941401220858
+  }
+}
