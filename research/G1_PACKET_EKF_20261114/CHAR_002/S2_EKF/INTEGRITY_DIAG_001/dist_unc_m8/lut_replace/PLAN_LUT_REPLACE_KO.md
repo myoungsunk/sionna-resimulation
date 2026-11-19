@@ -205,3 +205,15 @@
 `dist_unc_m8/lut_replace/` 아래 `stage0/` … `stage4/`. 단계마다 다음을 남긴다.
 - 보고서, 코드, 표(CSV), GROUP 묶음, SHA256SUMS
 - 확정 실행 전 개정 기록
+
+## 개정 01 — Stage 0 결과 반영, Stage 1 실행 전 (2026-11-19, 사용자 확인)
+
+Stage 0 결과: [stage0/REPORT_KO.md](stage0/REPORT_KO.md) (커밋 `fdbd223d`).
+
+| # | 항목 | 개정 내용 |
+|---|---|---|
+| A1 | 비교 기준 | C0-3은 기준(점수 차이 ≤ 1e−3)을 바꾸지 않고 FAIL로 둔다. 판정은 40/40 같고 최대 차이는 XY RMSE 1.74e−3 cm다. **Stage 1 이후의 비교 기준을 S0-id로 바꾼다.** S0-id는 F2SKRW-V 구조를 그대로 두고 라벨만 e_s = s_full − h_FFD로 다시 적합한 것이다. 확정 seed 50–69에서 S0-id를 후보와 같은 입력으로 함께 실행한다 |
+| A2 | LUT 형태 | 정의역은 **(ψ, el, β)** (Stage 0-A). h_emp(ψ, el, β) = Σ_q Σ_j Σ_m θ_qjm f_q(ψ) B_j(el) g_m(β)이다. f_q는 ψ에 대한 K차 Fourier 기저(2K+1개), B_j는 el에 대한 3차 B-spline(기저 J개)이다. g_m은 β의 주기 조화 기저로, Corridor는 {1, cos β, sin β}이다. cos β가 앵커 양쪽(β ≈ 0°/180°)을 가르고, sin β가 측방 1차 항이 된다. 이렇게 두면 앵커 바로 아래에서도 연속이다. Office(Stage 4)는 2차 조화까지 쓴다. K ∈ {2, 4, 6, 8}과 J ∈ {4, 6, 8}은 x 방향 10개 공간 블록(5줄을 함께 뺌) 교차검증의 미사용 s_full RMSE로 고른다. 적합은 Huber IRLS다. a_emp와 위치 Jacobian은 해석적으로 미분해 얻는다. el은 학습 범위 밖에서 경계값으로 고정하고, 그 비율을 보고한다 |
+| A3 | 감도 부호 관문 | 거리 bin마다, \|a_FFD\| ≥ 0.3인 미사용 블록 pose에서 sign(a_emp) = sign(a_FFD) 비율 ≥ 0.95 |
+| A4 | Stage 1 구현 | 감도 a는 F2 상관 상태의 적재(a·√c₁)와 Jacobian에 쓰인다. S1-h와 S1-a를 분리하려고, 동결 `m8_replay.replay_m8`을 복사해 a를 따로 넣는 훅 `a_fn`만 더한다. `a_fn`이 없으면 원본과 비트 단위로 같아야 하며, 실행 전에 검사한다. S1 계열의 정확도 기준 arm(H2, H2S)은 FFD 관측 모델 그대로 함께 재생한다 |
+| A5 | Stage 1 정적 관문의 z_s | 미사용 블록 station에서 z_s = (s_full − h − μ_s)/√(c₁a² + c₀)를 계산한다. μ_s는 ρ < 6 m에서 미사용 블록을 뺀 kriging(S0-id 라벨, S0 초모수), 그 밖에서는 미사용 블록을 뺀 POWER(균일 가중)다. c₁, c₀는 S0-id V 표를 쓴다. S0-id(h = FFD)에도 같은 값을 계산해 함께 보고한다 |
