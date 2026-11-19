@@ -100,7 +100,8 @@ def static_policy_check(far_mu):
         KO.krige_s = old
 
 def report_one(cond, seed, env, scorer, B, table, published, *,
-               allow_baseline_mismatch=False, trace_dir=None):
+               allow_baseline_mismatch=False, trace_dir=None,
+               candidate_mu_s_fn_factory=None):
     from_trace, scores_with_blocks, branch_metrics = scorer
     truth, times, traces = {}, {}, {}
     dmax = 0.
@@ -120,7 +121,10 @@ def report_one(cond, seed, env, scorer, B, table, published, *,
         settings = dict(table=table, sigma_b=ZERO, condition=cond,
                         **M.ARM_MODES["F2"])
         tr[BASE] = M.replay_m8(pk, env, BASE, mu_s_fn=KO.make_fn(mu_s, near_limit=6.), **settings)
-        tr[FAR] = M.replay_m8(pk, env, FAR, mu_s_fn=KO.make_fn(mu_s, near_limit=10.), **settings)
+        candidate_fn = (KO.make_fn(mu_s, near_limit=10.)
+                        if candidate_mu_s_fn_factory is None
+                        else candidate_mu_s_fn_factory(mu_s))
+        tr[FAR] = M.replay_m8(pk, env, FAR, mu_s_fn=candidate_fn, **settings)
         assert np.array_equal(tr[BASE]["t"],tr[FAR]["t"])
         assert np.array_equal(tr[BASE]["pose_id"],tr[FAR]["pose_id"])
         n = len(original["t"])
