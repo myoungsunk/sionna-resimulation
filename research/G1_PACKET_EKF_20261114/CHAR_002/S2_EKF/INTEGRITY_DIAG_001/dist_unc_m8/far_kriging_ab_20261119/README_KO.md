@@ -1,6 +1,7 @@
 # Corridor 원거리 Kriging A/B 실행 패키지 (2026-11-19)
 
 ## 현재 상태
+- **후속 전 거리 POWER 시험 완료:** 같은 조건의 별도 시험에서 pooled XY/Heading RMSE가 두 조건 모두 20/20 seed에서 악화했다. [전 거리 POWER 결과·검사](../power_all_ab_20261119/execution_20261119/RESULT_KO.md).
 - **사용자 승인 전체 탐색 실행 완료:** 기준선 미통과를 유지하고 B0/L2 seed 30–49 전체 40조합을 실행했다. R4/R5 일부 개선, R2 악화, pooled RMSE 개선 근거 없음. [전체 결과·검사·실행 근거](authorized_exploration_20261119/RESULT_KO.md).
 - **이전 재현 원인 조사·수정 재검증 (2026-11-19):** Kriging 150번째 이웃 경계의 수치 불안정성을 확인하고 결정적 동률 처리 수정 후보를 검증했다. 두 환경 간 X/P/R/mask는 일치하지만, 수정 후보도 과거 동결 기준선 `1e-8` 게이트에 실패해 전체 A/B는 실행하지 않았다. [재검증 결과·한계](revalidation_20261119/RESULT_KO.md).
 - **STOP_BASELINE_PARITY_FAIL (2026-11-19)**: Snowball에서 smoke 재생을 실행했으나 기존 F2SKRWV Heading RMSE 오차 `1.1128e-5°`가 동결 허용치 `1e-8`을 초과했다. 계약에 따라 전체 A/B와 집계는 실행하지 않았다. [실행 결과와 검증 근거](execution_20261119/RESULT_KO.md).
