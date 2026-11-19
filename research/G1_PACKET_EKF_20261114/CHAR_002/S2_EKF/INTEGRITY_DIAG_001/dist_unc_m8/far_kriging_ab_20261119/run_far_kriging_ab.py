@@ -99,7 +99,8 @@ def static_policy_check(far_mu):
     finally:
         KO.krige_s = old
 
-def report_one(cond, seed, env, scorer, B, table, published):
+def report_one(cond, seed, env, scorer, B, table, published, *,
+               allow_baseline_mismatch=False, trace_dir=None):
     from_trace, scores_with_blocks, branch_metrics = scorer
     truth, times, traces = {}, {}, {}
     dmax = 0.
@@ -127,10 +128,15 @@ def report_one(cond, seed, env, scorer, B, table, published):
         far_count[route] = {"n":n, "n_baseline_far":int(far_mask.sum()),
                             "n_candidate_far":int((np.asarray(tr[FAR]["distance"])>=6.).sum())}
         traces[route] = tr
+        if trace_dir is not None:
+            trace_dir.mkdir(parents=True, exist_ok=True)
+            for arm, trace in tr.items():
+                np.savez_compressed(trace_dir / f"{route}_{arm}.npz", **trace)
     g = S.score(seed, cond, "own", traces, truth, times,
                 from_trace=from_trace, scores_with_blocks=scores_with_blocks,
                 branch_metrics=branch_metrics)
     # Fail closed before using any candidate result: verify replay of original F2SKRWV.
+    parity_checks = []
     for route in (*ROUTES, "pooled"):
         for arm in ("H2", "H2S", BASE):
             rec=published.get((cond, seed, arm, route))
@@ -139,12 +145,20 @@ def report_one(cond, seed, env, scorer, B, table, published):
             score=g["point"][route][arm]
             for field in PAIR_PARAMS:
                 gap=abs(float(score[field])-rec[field])
+                if not np.isfinite(gap):
+                    raise RuntimeError(f"NONFINITE_BASELINE {cond}/{seed}/{arm}/{route}/{field}")
                 dmax=max(dmax,gap)
-                if not np.isfinite(gap) or gap > 1e-8:
+                parity_checks.append(dict(route=route, arm=arm, metric=field,
+                    expected=rec[field], actual=float(score[field]), abs_gap=gap,
+                    passed=gap <= 1e-8))
+                if gap > 1e-8 and not allow_baseline_mismatch:
                     raise RuntimeError(f"PARITY_FAIL {cond}/{seed}/{arm}/{route}/{field}: "
                                        f"expected={rec[field]} new={score[field]}, gap={gap}")
     g["far_exposure"] = far_count
     g["frozen_parity_max_abs"] = dmax
+    g["frozen_parity_pass"] = all(row["passed"] for row in parity_checks)
+    g["frozen_parity_checks"] = parity_checks
+    g["baseline_mismatch_authorized"] = bool(allow_baseline_mismatch)
     g["model_change"] = "mu_s>=6m POWER->same-bin station sweep Kriging (no R change)"
     return g
 
