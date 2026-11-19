@@ -1,0 +1,448 @@
+{
+  "question_id": "IPALO-FAR-KRIGING-AB-20261119/AUTHORIZED-EXPLORATION-01",
+  "role": "IMPLEMENTER_SELF_CHECK",
+  "independent_audit": false,
+  "authorization": "2026-11-19 user: 우선 그냥 진행하도록 해",
+  "source_commit": "46eb586c9737138ce87da713e3609ec38f1a1512",
+  "recorded_utc": "2026-11-19T06:45:55.696244+00:00",
+  "account": "KMS",
+  "remote_workspace": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+  "status": "EXPLORATORY_USER_AUTHORIZED_BASELINE_MISMATCH",
+  "original_model_sources": "Unchanged read-only attempt_02; execution_20261119/BUNDLE_MANIFEST.json",
+  "frozen_model_and_calibration_sha256": {
+    "m8/common.py": "c5f58d9bb3beca2654fdf81e37a689c448258e8eb186a9af84cf87e61b7a8f24",
+    "m8/krige_online.py": "982ba96cfef71a5b2f3cf5ca49576066673158574b815514a81f7e6d159c0e3e",
+    "m8/m8_replay.py": "4069ec62145824ff1cc5cbd46fa23b9b39fef431e4a6105d33c9b6b32a47922e",
+    "m8/m8s3_score.py": "b10335c3c392a87bd048d9b5b0632a8624be6cd562e23bfee3d8b959cc48ce92",
+    "m8cal/SWEEP_FEATURES.csv.gz": "2917a06c8317fa81f3729e90d4c65a077af14c73c56137c75777eea6d710c320",
+    "m8cal/KRIGE_PARAMS.json": "fad67226ce0607db82fc9710df984d20ba9b7de5c4b20581ccd53f0d762716db",
+    "m8cal/SWEEP_TABLE_V.json": "bc918bb246e132c19e5ea10573b80e9839a2a6f9286832d3b50522de20e2daaf",
+    "m8cal/SWEEP_CAL_B.npz": "2a7be23be7c8b69eaa4712149208862dc55928ddab696f45e664b30f2365c4fb"
+  },
+  "pinned_governance": [
+    {
+      "path": "research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/gm_theta_m6/inputs/COMMON_CONTRACT.md",
+      "sha256": "a5cca7d8a8d5f20f4a89ea9b6509da0b8d7506626aac4a47fa1d27891ff5ebdb"
+    },
+    {
+      "path": "research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/gm_theta_m6/inputs/ROLE_IMPLEMENTER.md",
+      "sha256": "2380fb1fe7302870a6c2d825cc2e65a73e91138677e095b4e51db43ab9ea90da"
+    }
+  ],
+  "containers": [
+    {
+      "name": "far-authorized-B0-30-01a1f269",
+      "id": "4e529e5660f685f7a6c1d8b0ce51cd94c8aceca32cac3276c1a17ee80ba3e7d9",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:38:54.036612218Z",
+        "FinishedAt": "2026-11-19T06:45:08.976715179Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/code/run_authorized_exploration.py",
+        "run",
+        "--out",
+        "/runout/results",
+        "--condition",
+        "B0",
+        "--first",
+        "30",
+        "--last",
+        "39",
+        "--source-commit",
+        "46eb586c9737138ce87da713e3609ec38f1a1512",
+        "--acknowledge-baseline-mismatch"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source",
+          "Destination": "/banks",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "OPENBLAS_NUM_THREADS=1",
+        "OMP_NUM_THREADS=1",
+        "PYTHONDONTWRITEBYTECODE=1"
+      ]
+    },
+    {
+      "name": "far-authorized-B0-40-01a1f269",
+      "id": "087a7fbce29727161d148cd65e19a49dc6c6260e17dc2c1713f8214f0d8e287b",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:38:56.577537399Z",
+        "FinishedAt": "2026-11-19T06:45:09.321357564Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/code/run_authorized_exploration.py",
+        "run",
+        "--out",
+        "/runout/results",
+        "--condition",
+        "B0",
+        "--first",
+        "40",
+        "--last",
+        "49",
+        "--source-commit",
+        "46eb586c9737138ce87da713e3609ec38f1a1512",
+        "--acknowledge-baseline-mismatch"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source",
+          "Destination": "/banks",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "OMP_NUM_THREADS=1",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "OPENBLAS_NUM_THREADS=1"
+      ]
+    },
+    {
+      "name": "far-authorized-L2_GYRO_ARW-30-01a1f269",
+      "id": "6936319ccce44648eec7c5276e7773b784662244b3383509ddb397a691171fba",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:38:57.342960011Z",
+        "FinishedAt": "2026-11-19T06:45:09.02140722Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/code/run_authorized_exploration.py",
+        "run",
+        "--out",
+        "/runout/results",
+        "--condition",
+        "L2_GYRO_ARW",
+        "--first",
+        "30",
+        "--last",
+        "39",
+        "--source-commit",
+        "46eb586c9737138ce87da713e3609ec38f1a1512",
+        "--acknowledge-baseline-mismatch"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source",
+          "Destination": "/banks",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "OPENBLAS_NUM_THREADS=1",
+        "OMP_NUM_THREADS=1",
+        "PYTHONDONTWRITEBYTECODE=1"
+      ]
+    },
+    {
+      "name": "far-authorized-L2_GYRO_ARW-40-01a1f269",
+      "id": "632284acf8bbc41b31b10900fd4b94e6240a4e5df561c74cb21dc706c6c4139b",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:38:57.856835671Z",
+        "FinishedAt": "2026-11-19T06:45:12.842480575Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/code/run_authorized_exploration.py",
+        "run",
+        "--out",
+        "/runout/results",
+        "--condition",
+        "L2_GYRO_ARW",
+        "--first",
+        "40",
+        "--last",
+        "49",
+        "--source-commit",
+        "46eb586c9737138ce87da713e3609ec38f1a1512",
+        "--acknowledge-baseline-mismatch"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source",
+          "Destination": "/banks",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "OPENBLAS_NUM_THREADS=1",
+        "OMP_NUM_THREADS=1",
+        "PYTHONDONTWRITEBYTECODE=1"
+      ]
+    },
+    {
+      "name": "far-authorized-aggregate-01a1f269",
+      "id": "98be02d6f4e87a3191dbdf6be8bc6e6360161a17b2aefb861946df618342ee9f",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:45:24.0970952Z",
+        "FinishedAt": "2026-11-19T06:45:25.793023474Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/code/run_authorized_exploration.py",
+        "aggregate",
+        "--out",
+        "/runout/results"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/DRIVE_SIM_ROUTES_20261007_01a11669/source",
+          "Destination": "/banks",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "OMP_NUM_THREADS=1",
+        "PYTHONDONTWRITEBYTECODE=1",
+        "OPENBLAS_NUM_THREADS=1"
+      ]
+    },
+    {
+      "name": "far-authorized-verify-01a1f269",
+      "id": "11d2ac8ad2b297715da620f1f974d351d343645f556f1e89140f75b0d8c0fca4",
+      "image": "sha256:18a2a931b69ef39a028ee6b81e5e0a9dcb2ae0382d07c0093a22efd266eb3b9f",
+      "state": {
+        "Status": "exited",
+        "Running": false,
+        "Paused": false,
+        "Restarting": false,
+        "OOMKilled": false,
+        "Dead": false,
+        "Pid": 0,
+        "ExitCode": 0,
+        "Error": "",
+        "StartedAt": "2026-11-19T06:45:36.148116236Z",
+        "FinishedAt": "2026-11-19T06:45:44.187854399Z"
+      },
+      "command": [
+        "/opt/rt-env/bin/python",
+        "/runout/verify_authorized_traces.py",
+        "--out",
+        "/runout/results",
+        "--prior-baseline",
+        "/priorcheck"
+      ],
+      "user": "1001:1001",
+      "mounts": [
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/revalidation_01/base246",
+          "Destination": "/priorcheck",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01",
+          "Destination": "/runout",
+          "Mode": "",
+          "RW": true,
+          "Propagation": "rprivate"
+        },
+        {
+          "Type": "bind",
+          "Source": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/attempt_02",
+          "Destination": "/home/claude",
+          "Mode": "ro",
+          "RW": false,
+          "Propagation": "rprivate"
+        }
+      ],
+      "network": "none",
+      "nano_cpus": 1000000000,
+      "memory": 4294967296,
+      "environment": [
+        "PYTHONDONTWRITEBYTECODE=1",
+        "OPENBLAS_NUM_THREADS=1",
+        "OMP_NUM_THREADS=1"
+      ]
+    }
+  ],
+  "source_sha256": {
+    "test_authorized_gate.py": "7b408d6fcd1ecd3c7fdf5904088fa6a71c144518eba4206559a63f5ef3ada542",
+    "run_far_kriging_ab.py": "e716b6d152763923bdd76fc0f6c2736020d04355ed6671f1e050383ab62608f3",
+    "aggregate_far_kriging_ab.py": "6783118c1953085e36e1d64ea460995ecaa57aefdc20d9bf4cc414eca2341637",
+    "run_authorized_exploration.py": "aa45fd9438149c66d648457cd5aae9f48e5017510131d25fa8d908b4933aa47b"
+  },
+  "input_files": 120,
+  "output_files": 40,
+  "evidence_tools_sha256": {
+    "verify_authorized_traces.py": "46c999b0dcc4d413808f1941c8b2b7788092f8a45bc25baf6347c47a32a470b7",
+    "collect_authorized_evidence.py": "583937829af04388a076d58295f5168be41cce29f88d021c3f667603caaddd26"
+  },
+  "paired_trace_files": 480,
+  "stable_kriging_applied": false,
+  "trace_location": "/home/KMS/FAR_KRIGING_AB_20261119_01a1f269/authorized_explore_01/results/{condition}/seed{seed}/traces/",
+  "baseline_tolerance": 1e-08,
+  "scientific_adoption_pass": false
+}

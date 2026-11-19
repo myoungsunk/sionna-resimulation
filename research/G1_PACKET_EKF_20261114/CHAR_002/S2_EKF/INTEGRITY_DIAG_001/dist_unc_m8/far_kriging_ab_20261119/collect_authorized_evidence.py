@@ -64,6 +64,20 @@ def main():
     for path, value in output_hashes.items():
         assert sha(OUT / Path(path).relative_to("/runout/results")) == value
     old = json.loads((EX / "revalidation_20261119/EXECUTION_RECEIPT.json").read_text(encoding="utf-8"))
+    bundle_manifest = json.loads((EX / "execution_20261119/BUNDLE_MANIFEST.json").read_text(encoding="utf-8"))
+    pins = {r["path"]: r["sha256"] for r in bundle_manifest["files"]}
+    prefix = "research/G1_PACKET_EKF_20261114/CHAR_002/S2_EKF/INTEGRITY_DIAG_001/dist_unc_m8"
+    frozen = {"m8/" + name: pins[prefix + "/step3_fair/code/" + name]
+              for name in ("common.py", "krige_online.py", "m8_replay.py", "m8s3_score.py")}
+    frozen.update({"m8cal/" + name: value for name, value in {
+        "SWEEP_FEATURES.csv.gz": "2917a06c8317fa81f3729e90d4c65a077af14c73c56137c75777eea6d710c320",
+        "KRIGE_PARAMS.json": "fad67226ce0607db82fc9710df984d20ba9b7de5c4b20581ccd53f0d762716db",
+        "SWEEP_TABLE_V.json": "bc918bb246e132c19e5ea10573b80e9839a2a6f9286832d3b50522de20e2daaf",
+        "SWEEP_CAL_B.npz": "2a7be23be7c8b69eaa4712149208862dc55928ddab696f45e664b30f2365c4fb"}.items()})
+    asset_root = REMOTE.rsplit("/", 1)[0] + "/attempt_02/"
+    actual = {line.split()[1].removeprefix(asset_root): line.split()[0]
+              for line in ssh("sha256sum " + " ".join(asset_root + k for k in frozen)).decode().splitlines()}
+    assert actual == frozen, "Frozen model/calibration drift"
     receipt = dict(question_id="IPALO-FAR-KRIGING-AB-20261119/AUTHORIZED-EXPLORATION-01",
         role="IMPLEMENTER_SELF_CHECK", independent_audit=False,
         authorization="2026-11-19 user: 우선 그냥 진행하도록 해",
@@ -72,6 +86,7 @@ def main():
         account=ssh("whoami").decode().strip(), remote_workspace=REMOTE,
         status="EXPLORATORY_USER_AUTHORIZED_BASELINE_MISMATCH",
         original_model_sources="Unchanged read-only attempt_02; execution_20261119/BUNDLE_MANIFEST.json",
+        frozen_model_and_calibration_sha256=actual,
         pinned_governance=old["pinned_governance"], containers=containers,
         source_sha256=runs[0]["source_sha256"], input_files=len(input_hashes), output_files=len(output_hashes),
         evidence_tools_sha256={name: sha(EX / name) for name in
