@@ -118,8 +118,8 @@ def report_one(cond, seed, env, scorer, B, table, published):
         static_policy_check(mu_s)
         settings = dict(table=table, sigma_b=ZERO, condition=cond,
                         **M.ARM_MODES["F2"])
-        tr[BASE] = M.replay_m8(pk, env, "F2", mu_s_fn=KO.make_fn(mu_s, near_limit=6.), **settings)
-        tr[FAR] = M.replay_m8(pk, env, "F2", mu_s_fn=KO.make_fn(mu_s, near_limit=10.), **settings)
+        tr[BASE] = M.replay_m8(pk, env, BASE, mu_s_fn=KO.make_fn(mu_s, near_limit=6.), **settings)
+        tr[FAR] = M.replay_m8(pk, env, FAR, mu_s_fn=KO.make_fn(mu_s, near_limit=10.), **settings)
         assert np.array_equal(tr[BASE]["t"],tr[FAR]["t"])
         assert np.array_equal(tr[BASE]["pose_id"],tr[FAR]["pose_id"])
         n = len(original["t"])
