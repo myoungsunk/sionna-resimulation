@@ -112,3 +112,10 @@ L2의 2a는 B0와 같은 양상이다(N_I 0, 비율 2.0–7.0). → [S2_DEV_JUDG
 | [S2_DEV_JUDGE.csv](S2_DEV_JUDGE.csv), [S2_CONFIRM_JUDGE.csv](S2_CONFIRM_JUDGE.csv) | 비열등 판정과 궤적별 합산 RMSE |
 | [S2_DEV_PERSEED.csv](S2_DEV_PERSEED.csv), [S2_CONFIRM_PERSEED.csv](S2_CONFIRM_PERSEED.csv) | seed·궤적·arm별 지표와 heading 편향 |
 | [code/](code/) | `pert.py`(FFD′), `stage2_static.py`, `stage2_cause.py`, `run_s2.py`, `judge.py`, `perseed.py` |
+| [STAGE2_STATION_LABELS.csv.gz](STAGE2_STATION_LABELS.csv.gz) | station 7200행: S0-id·P별 라벨 e_s, 감도 a, LOSO 평균 보정 |
+| [STAGE2_ROUTE_CAL.csv.gz](STAGE2_ROUTE_CAL.csv.gz) | 궤적 pose별 보정 μ_r, μ_s, R_rr, R_ss (S0-id, P1, P1−, P2, P3, P1cv) |
+| [groups_s2.tar.gz](groups_s2.tar.gz) | seed별 원본 GROUP.json (dev 40개, 확정 40개) |
+| STATIC_RUN.log, DEV_RUN.log, CONFIRM_RUN.log | 실행 로그 |
+| [SHA256SUMS](SHA256SUMS) | 이 폴더 파일 해시 |
+
+코드의 로컬 경로와 저장소 사본의 대응은 [../CODE_DEPENDENCIES_KO.md](../CODE_DEPENDENCIES_KO.md)에 있다.

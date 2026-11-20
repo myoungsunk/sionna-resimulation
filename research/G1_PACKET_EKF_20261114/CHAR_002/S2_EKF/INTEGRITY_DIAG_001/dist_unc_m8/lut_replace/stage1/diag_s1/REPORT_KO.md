@@ -60,3 +60,8 @@ L2도 같은 양상이다. → [S1_DIAG_JUDGE.csv](S1_DIAG_JUDGE.csv), [S1_DIAG_
 | [code/run_s1.py](code/run_s1.py) | 진단 재생 |
 | [code/id_check.py](code/id_check.py) | hook 항등 검사 |
 | [code/judge.py](code/judge.py), [code/perseed.py](code/perseed.py) | 비열등 계산(§9 규칙), seed별 표 |
+| [groups_s1.tar.gz](groups_s1.tar.gz) | seed별 원본 GROUP.json 40개 |
+| RUN.log | 실행 로그 |
+| [SHA256SUMS](SHA256SUMS) | 이 폴더 파일 해시 |
+
+코드의 로컬 경로와 저장소 사본의 대응은 [../../CODE_DEPENDENCIES_KO.md](../../CODE_DEPENDENCIES_KO.md)에 있다.
