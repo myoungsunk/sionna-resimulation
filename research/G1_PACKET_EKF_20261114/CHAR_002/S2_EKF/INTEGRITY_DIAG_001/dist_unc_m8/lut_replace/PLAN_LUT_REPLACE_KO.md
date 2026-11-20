@@ -229,3 +229,10 @@ Stage 1 정적 결과: [stage1/REPORT_KO.md](stage1/REPORT_KO.md) (커밋 `77d1b
 | B3 | 진행 규칙 | S1의 실패는 라벨이 참값(Full − LoS)일 때 LUT 계통 오차를 흡수할 항이 없어서 생기는 구조적 결과다. 그래서 "S1과 2b 모두 통과"를 다음과 같이 바꾼다: **2b(P1)가 정적 관문과 필터 비열등을 통과하면 Stage 3으로 간다** |
 | B4 | Stage 2 관문 적용 | Stage 2의 z_s 관문은 각 arm의 라벨과 표로 계산한다. 2a는 S0-id 라벨과 표에 h′와 a′를 넣고, 2b는 s_full − h′로 다시 적합한 라벨과 표를 쓴다. 감도 부호 관문은 a′와 a_FFD를 비교한다. 의도적으로 넣은 오차가 얼마나 큰지를 보는 진단용 값이다 |
 | B5 | Stage 2 범위 | 2b-cv(kriging 초모수 재선정)는 P1에만 적용한다. 확정 seed 50–69 실행에는 S0-id, 2a(P1), 2b(P1)를 넣는다 |
+
+## 개정 03 — Stage 3을 블록 v2 계획으로 대체 (2026-11-20)
+
+- Stage 2: 2b(P1)가 비열등에서 실패했다([stage2/REPORT_KO.md](stage2/REPORT_KO.md)). 원인은 평균 보정이 station 열 사이에서 오차를 잃는 것이다([stage2/diag_d1d2/REPORT_KO.md](stage2/diag_d1d2/REPORT_KO.md)).
+- Stage 1: EMP K8 블록은 다중경로를 블록 안에 넣는다.
+- 이 둘을 반영해, Stage 3(EMP + 라벨 s_full − h_emp)은 단독 단계로 진행하지 않는다. 대신 [block_v2/PLAN_BLOCK_V2_KO.md](block_v2/PLAN_BLOCK_V2_KO.md)의 비교 arm ENC로 넣는다.
+- 정적 관문의 미사용 단위는 x 열 제외로 바꾼다. 개정 02 B1을 대체한다.
