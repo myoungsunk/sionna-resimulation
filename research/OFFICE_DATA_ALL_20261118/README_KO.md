@@ -12,6 +12,7 @@
 | **O01, mount 45°** | 원래 궤적의 H·경로·pose·검증 | [O01 Release](https://github.com/myoungsunk/sionna-resimulation/releases/tag/route-rf-o01-20261019-r01) |
 | **O02, mount 45°** | 원래 궤적의 H·경로·pose·검증 | [O02 Release](https://github.com/myoungsunk/sionna-resimulation/releases/tag/route-rf-o02-20261019-r01) |
 | **O03, mount 45°** | 원래 궤적의 H·경로·pose·검증 | [O03 Release](https://github.com/myoungsunk/sionna-resimulation/releases/tag/route-rf-o03-20261019-r01) |
+| **O01~O03, mount 0°·45°, RF 5배 밀도** | 관측 8,086행의 H·pose·QA, 신규 300개 trace 배치의 원시 경로, 실행 기록 | [데이터 색인](rf_5x/), [GitHub Release](https://github.com/myoungsunk/sionna-resimulation/releases/tag/office-route-rf-5x-20261119) |
 | **과거 O01 파일럿** | 초기 시도와 RF_R02의 원본 H·경로·입력·로그. 당시 판정 유지 | [파일럿 아카이브](payloads/OFFICE_GITHUB_PILOT_20261118.tar), [파일별 SHA-256](payloads/OFFICE_GITHUB_PILOT_20261118.tar.json) |
 | **mount 준비·파생 입력** | 기존 feature·label·timeline, 검증 및 코드 | [기존 inputs 브랜치](https://github.com/myoungsunk/sionna-resimulation/tree/e4ccdd737fac9961261b7483095a79e515297111/research/OFFICE_CORRIDOR_POWER_PWIDE_TRANSFER_20261026/mount_inputs_20261027) |
 | **모델·transfer 실행 결과** | 기존 모델, scores, QA, 실패·재시도 기록, EXECUTION_EVIDENCE | [기존 실행 브랜치](https://github.com/myoungsunk/sionna-resimulation/tree/9ec8790f0985132c5e7b2e9293ce53cdfff7714c/research/OFFICE_CORRIDOR_POWER_PWIDE_TRANSFER_20261026/run_mount0_45_20261027), [transfer 자료](https://github.com/myoungsunk/sionna-resimulation/tree/33e9849be8c5c62d45eb7e5ade7e85438b8fa247/research/OFFICE_CORRIDOR_POWER_PWIDE_TRANSFER_20261026) |
