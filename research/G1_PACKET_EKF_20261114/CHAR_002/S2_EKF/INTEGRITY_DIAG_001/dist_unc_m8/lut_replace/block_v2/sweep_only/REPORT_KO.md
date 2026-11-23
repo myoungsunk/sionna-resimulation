@@ -64,6 +64,16 @@ SWB를 LoS형(δ̄도 되돌림)으로 만들어 FFD와 비교하면 RMS가 근 
 
 Pose95는 R2·R5에서 약간 낮고, Heading95는 더 높다. heading 분산은 보수적이고 위치 분산은 약간 작은 쪽이다. I를 통과하지 못한 seed는 B0에서 10, 13, 14, 18, 21, 25, 27이다 → [SWB_JUDGE.csv](SWB_JUDGE.csv), [SWB_PERSEED.csv](SWB_PERSEED.csv)
 
+### integrity 세부와 비교군
+
+- SWB의 integrity 실패는 모두 pooled Pose95 < 0.90에서 나왔다. B0 seed 14와 27은 R2 Pose95나 그 하한도 미달이다.
+- 실패 seed 중 10, 14, 18, 25는 S0-id도 같은 이유로 실패한다. SWB에서만 실패하는 seed(B0 13·21·27, L2 13·15·28)는 Pose95가 0.882–0.897이다.
+- 평균 NEES는 S0-id와 같다(3.20 대 3.21). Heading95는 SWB가 높다(0.992 대 0.977).
+- 보정 없는 FFD 필터 H2는 XY 14.7 cm, heading 2.21°, N_I 0이다. SWB는 이보다 XY 45%, heading 43% 작다.
+- → [SWB_INTEGRITY_BREAKDOWN.csv](SWB_INTEGRITY_BREAKDOWN.csv), [SWB_VS_REFS.csv](SWB_VS_REFS.csv)
+
+설계 근거와 FFD 대체가 가능했던 이유는 [SWB_RATIONALE_KO.md](SWB_RATIONALE_KO.md)에, 블록 구성 그림은 [SWB_BLOCK_DIAGRAM.svg](SWB_BLOCK_DIAGRAM.svg)에 있다.
+
 ## 4. 해석
 
 - FFD 없이 station sweep만으로 만든 블록이 평균 보정 없이도 S0-id(FFD + kriging + POWER)와 정확도가 거의 같다. R4와 R5 heading은 더 낫다. 실패 폭은 N_I 3 seed와 heading 비율 상한 0.04–0.08이다.
