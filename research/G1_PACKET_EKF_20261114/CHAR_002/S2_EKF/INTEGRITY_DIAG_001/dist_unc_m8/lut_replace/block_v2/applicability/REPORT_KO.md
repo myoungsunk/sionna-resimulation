@@ -75,4 +75,8 @@ BV_P1의 값은 BV와 소수점 넷째 자리까지 같다. nadir 기준이라 �
 | code/heading_split_check.py | 매끄러운 몫 / 흩어짐 분리와 2차 모멘트 |
 | code/corr_length_check.py | station 격자 상관 |
 | [ROUTE_CORR_CHECK.csv](ROUTE_CORR_CHECK.csv) | 궤적 위 자기상관과 필터 핵 비교. code/route_corr_check.py |
+| [STATION_CHI_L.csv](STATION_CHI_L.csv), [STATION_CHI_L_SUMMARY.csv](STATION_CHI_L_SUMMARY.csv) | station별 편파각 χ·편파비 L (Full, LoS), nadir 대비 LoS 변화. code/station_chi_check.py |
+| [LOSFREE_CHI_INTERP.csv](LOSFREE_CHI_INTERP.csv), [LOSFREE_CHI_INTERP_SUMMARY.csv](LOSFREE_CHI_INTERP_SUMMARY.csv) | LoS 없이 근거리·원거리 평균 기준으로 중거리 χ 보간 (1차·2차). code/losfree_chi_interp.py |
+| [CORR_LENGTH_CHECK.txt](CORR_LENGTH_CHECK.txt) | station 격자 x·y·ψ 상관과 궤적 packet 간격 (corr_length_check.py 출력) |
+| [HEADING_SPLIT_CHECK.txt](HEADING_SPLIT_CHECK.txt) | heading 매끄러운 몫·흩어짐 분리와 2차 모멘트 (heading_split_check.py 출력) |
 | [groups_bv_bvk.tar.gz](groups_bv_bvk.tar.gz) | seed별 GROUP.json |
