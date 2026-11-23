@@ -1,5 +1,7 @@
 # station sweep만으로 만든 블록 (FFD 미사용) — 1차 시험 (DIAGNOSTIC_ONLY)
 
+> 감사 후속(열 제외 수정, yaw 없는 동일 거리 보정): [followup_audit/REPORT_KO.md](followup_audit/REPORT_KO.md). 열 제외는 이 보고서의 구현에서 마지막 spline 단계에만 적용됐다. 수정해도 판정은 같다.
+
 | 항목 | 내용 |
 |---|---|
 | 목적 | FFD 없이 station sweep만으로 만든 블록이 기존 FFD LUT 필터를 대체할 수 있는지 1차 확인 |
