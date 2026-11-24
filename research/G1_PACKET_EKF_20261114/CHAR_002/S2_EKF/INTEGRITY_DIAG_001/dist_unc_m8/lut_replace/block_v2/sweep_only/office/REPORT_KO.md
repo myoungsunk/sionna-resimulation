@@ -59,6 +59,8 @@ O01의 integrity 실패는 두 arm 모두 XY95와 그 하한(위치 coverage)에
 
 ## 5. Corridor에서 학습한 SWB를 Office에 그대로 쓰는 경우
 
+저장된 블록(SWB-O, SWB-C, SWB-C0의 계수·분산 표·거리 보정·구성)은 [blocks/](blocks/README_KO.md)에 있다.
+
 **대응 방법.** Office pose를 앵커 기준 수평거리 ρ와 앵커 좌우로 Corridor 복도축 위의 점(x = 10 ± ρ, y = 0)에 대응시켰다. 두 공간의 앵커와 태그 높이가 같아 앙각이 같다. ψ는 그대로 쓰고, Jacobian은 연쇄법칙으로 구한다. 분산 표는 Corridor 완전 열 제외 표를 쓴다.
 - **SWB-C:** 거리 보정은 Office sweep T1
 - **SWB-C0:** 거리 보정도 Corridor sweep T0

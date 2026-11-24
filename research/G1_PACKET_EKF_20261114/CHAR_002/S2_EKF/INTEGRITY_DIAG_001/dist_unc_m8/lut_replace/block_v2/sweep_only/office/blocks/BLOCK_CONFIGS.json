@@ -1,0 +1,31 @@
+{
+ "common": {
+  "psi_samples_deg": "-180:10:170",
+  "harmonics": "k = 0..18 of numpy rfft over the 36 samples; s(psi) = sum_k w_k Re(c_k exp(i k (psi + pi))), w = [1, 2..2, 1] / 36",
+  "filter": "F2 replay (m8_replay.py, unchanged); h and Jacobian replaced through h_ref.SwapS; mean correction mu_s = 0"
+ },
+ "SWB-O": {
+  "space": "Office",
+  "block": "SWB_O_COEFS.csv (25 LoS stations, raw station curves)",
+  "interpolation": "Delaunay-linear in (x, y), nearest station outside the hull; d/dx, d/dy central difference 1 mm",
+  "table": "TABLE_SWB_O.json (leave-one-station-out)",
+  "range_calibration": "RANGE_CAL_T1.csv (Office sweep)",
+  "code": "../code/office_swb.py"
+ },
+ "SWB-C": {
+  "space": "Corridor block used in the Office",
+  "block": "SWB_C_COEFS.csv (Corridor processed station curves)",
+  "interpolation": "cubic spline in x per y-line, linear in y (corridor coordinates)",
+  "mapping": "Office (x, y, psi) -> Corridor (10 + s*rho, 0, psi); rho = |(x, y) - (5, 2.2)|, s = sign(x - 5); chain-rule Jacobian",
+  "table": "TABLE_SWB_C.json (Corridor full column-out)",
+  "range_calibration": "RANGE_CAL_T1.csv (Office sweep)",
+  "code": "../code/corr2office.py"
+ },
+ "SWB-C0": {
+  "space": "Corridor block used in the Office",
+  "block": "same as SWB-C",
+  "table": "TABLE_SWB_C.json",
+  "range_calibration": "RANGE_CAL_T0.csv (Corridor sweep)",
+  "code": "../code/corr2office.py"
+ }
+}
