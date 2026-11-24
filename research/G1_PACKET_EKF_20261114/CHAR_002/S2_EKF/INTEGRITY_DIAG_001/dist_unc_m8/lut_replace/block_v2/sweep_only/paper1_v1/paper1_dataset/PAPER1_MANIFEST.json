@@ -1,0 +1,96 @@
+{
+ "purpose": "Paper 1 (dual-polarization heading + single-anchor EKF): accuracy-first comparison DR / range-only / SWB",
+ "routes": {
+  "N1": "corridor loop, start next to anchor (rho 0.6 m)",
+  "N2": "slalom out (+-0.35 m, 4 m wavelength), straight back",
+  "N4": "stop-and-look (+-45 deg in-place) out, straight back",
+  "N5": "far-end start, lane changes (~14 deg), centre-line return"
+ },
+ "environment": "RT Corridor BLOCK_C, anchor B (10, 0, 2.65 m), tag 0.45 m, mount 0 deg; N1-N6 RT and CIR from Snowball run BLOCK_C_M7_N1_N6_20261124_U37mIR8l",
+ "arms": {
+  "H0": "DR: wheel + gyro, no RF update",
+  "H1S": "range-only EKF; mu_r = U3 (HGB on 16 CIR features, sweep-trained, uniform station weights), R_rr = sweep CV mean-square by measured-range rho bin",
+  "H2S-SWB": "H1S range channel + polarization s with SWB block as observation function h_s = m(x,y,psi); mu_s = 0; R_ss = column-out mean-square by prior-rho bin [0,3),[3,6),[6,10); white G0, 2-D NIS gate 9.21, Joseph"
+ },
+ "frozen": {
+  "sweep_features_sha256": "2917a06c...c320 (SWEEP_FEATURES.csv.gz, 200 stations x 36 yaw)",
+  "swb_code": "sw_block_fullco.py (sha 76e1dbd5...), coefficient sha fbbd6430...86e2",
+  "R_ss_sd": [
+   0.0227,
+   0.0928,
+   0.1897
+  ],
+  "R_rr_sd_cm": [
+   4.31,
+   6.82,
+   15.38
+  ],
+  "B_OLD_m": -0.5316
+ },
+ "seeds": {
+  "dev": [
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29
+  ],
+  "confirm": [
+   70,
+   71,
+   72,
+   73,
+   74,
+   75,
+   76,
+   77,
+   78,
+   79,
+   80,
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89
+  ],
+  "note": "dev used during development (V1 settings chosen on R2/R5 dev); N routes never used for tuning"
+ },
+ "conditions": [
+  "B0",
+  "L2_GYRO_ARW"
+ ],
+ "metrics": {
+  "rmse": "per seed: sqrt(mean over packets); summary: median over 20 seeds, and pooled over all packets of all seeds",
+  "ratio": "seed-paired SWB/ref; median and bootstrap 97.5% upper bound (10000 resamples)",
+  "coverage": "Pose95 / Heading95 / XY95 = fraction of packets inside nominal 95% region; NEES3 mean",
+  "mirror": "branch-metric mirror fail at anchor passages (not meaningful for DR)"
+ },
+ "source": {
+  "snowball_receipt_manifest_sha256": "c04bbeaa287d213f5ea7733452bc2457f378e1bff5482ad075d3e6d54d236633",
+  "replay_code": "code/run_n1_n6_v1.py (preflight parity <=1e-8 vs R2/R4/R5 V1 runs)"
+ },
+ "files": {
+  "PAPER1_PERSEED.csv": "70c37c423646a020192536fd78188568ccf08c1c79efc6497efcb0e6f9477098",
+  "PAPER1_SUMMARY.csv": "4dc08105d901e01bc34b58fd0d5cf3feafba5257124bac0cebb5b7a5e5fddaae",
+  "PAPER1_RATIOS.csv": "ce8028e51c9235966a8796c443a37d10e27d0d690f2f774a8a529322565013c3"
+ }
+}
