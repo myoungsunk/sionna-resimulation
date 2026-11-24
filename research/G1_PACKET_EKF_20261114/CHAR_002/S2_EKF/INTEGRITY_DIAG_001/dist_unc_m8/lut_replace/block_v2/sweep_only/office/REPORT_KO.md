@@ -56,3 +56,38 @@ O01의 integrity 실패는 두 arm 모두 XY95와 그 하한(위치 coverage)에
 - **근거리 station 밀도가 부족하다.** 근거리에서는 FFD가 더 정확하다. Office에서 sweep 블록을 쓰려면 앵커 주변 station을 더 촘촘하게 두거나, 근거리만 FFD(또는 nadir 기준 상대 모델)와 섞는 방식이 필요하다.
 - **N_I 0은 판정 미달이다.** 세 arm 모두 O01 위치 coverage 때문에 seed 단위 integrity를 통과하지 못한다. Office에서 Goal 1 판정을 하려면 O01 위치 공분산(거리 채널)을 먼저 봐야 한다.
 - **범위.** RT Office, LoS 구간만, dev seed, 이번 대화에서 정한 블록 형태다. station heading 영점 오차는 넣지 않았다(Corridor 시험에서 1°에도 크게 민감했다).
+
+## 5. Corridor에서 학습한 SWB를 Office에 그대로 쓰는 경우
+
+**대응 방법.** Office pose를 앵커 기준 수평거리 ρ와 앵커 좌우로 Corridor 복도축 위의 점(x = 10 ± ρ, y = 0)에 대응시켰다. 두 공간의 앵커와 태그 높이가 같아 앙각이 같다. ψ는 그대로 쓰고, Jacobian은 연쇄법칙으로 구한다. 분산 표는 Corridor 완전 열 제외 표를 쓴다.
+- **SWB-C:** 거리 보정은 Office sweep T1
+- **SWB-C0:** 거리 보정도 Corridor sweep T0
+- Corridor sweep에는 복도축 방위(β ≈ 0°, 180°) 자료만 있어, Office의 방위 의존은 무시된다
+- → [code/corr2office.py](code/corr2office.py), [code/run_c2o.py](code/run_c2o.py)
+
+**정적 (LoS 궤적 pose, s_full 잔차 RMS / heading 등가)**
+
+| 거리 | FFD만 | SWB-O (Office sweep) | SWB-C (Corridor sweep) |
+|---|---|---|---|
+| < 3 m | 0.0125 / −0.04° | 0.0185 / +0.36° | 0.1347 / +2.34° |
+| 3–6 m | 0.0606 / +1.22° | 0.0205 / +0.06° | 0.1201 / −1.75° |
+| ≥ 6 m | 0.1317 / +7.60° | 0.0237 / −0.26° | 0.4632 / +24.3° |
+
+방위별 SWB-C 잔차는 복도축과 같은 방위(±30°)에서 0.093, 수직 방위(30–150°)에서 0.389(heading 등가 +21°), 반대 축(150–210°)에서 0.109다 → [C2O_STATIC.csv](C2O_STATIC.csv)
+
+**필터 (dev seed 10–29, B0)**
+
+| arm | N_I | gross | XY (cm) | heading (°) | Pose95 | NEES | O01 / O02 / O03L XY (cm) |
+|---|---|---|---|---|---|---|---|
+| H2 | 0 | 20 | 45.4 | 5.33 | 0.36 | 63.3 | 7.4 / 71.8 / 12.5 |
+| F2T1V | 0 | 1 | 15.8 | 2.54 | 0.65 | 12.9 | 4.6 / 22.0 / 9.6 |
+| SWB-O | 0 | 0 | 9.2 | 1.37 | 0.73 | 5.7 | 5.9 / 11.7 / 7.6 |
+| SWB-C | 0 | 13 | 52.4 | 5.65 | 0.40 | 68.7 | 9.1 / 82.1 / 13.8 |
+| SWB-C0 | 0 | 25 | 80.4 | 8.83 | 0.39 | 121.7 | 11.4 / 127.6 / 18.3 |
+
+L2도 같은 양상이다(SWB-C 50.4 cm, SWB-C0 74.8 cm) → [C2O_JUDGE.csv](C2O_JUDGE.csv), [C2O_PERSEED.csv](C2O_PERSEED.csv)
+
+**해석.** Corridor에서 학습한 SWB는 Office로 옮겨가지 않는다. 보정 없는 H2(45.4 cm)보다도 나쁘다.
+- **β 의존이 빠졌다.** Corridor sweep은 앵커 주위 방위가 복도축뿐이다. Office 궤적은 모든 방위를 지나고, LoS 편파각 자체가 방위에 따라 크게 달라진다. Stage 0에서 β 의존이 크다고 확인한 것과 같다.
+- **블록에 그 공간의 다중경로가 들어 있다.** 복도축 방위(±30°)에서도 잔차가 0.09로 Office sweep 블록(0.02)보다 훨씬 크다. Corridor의 천장·벽 반사가 블록 안에 들어 있기 때문이다.
+- **결론.** sweep 블록은 공간마다 그 공간의 sweep으로 다시 만들어야 한다. Corridor에서 만든 블록을 다른 공간의 사전값으로 쓰는 것은 근거가 없다.
