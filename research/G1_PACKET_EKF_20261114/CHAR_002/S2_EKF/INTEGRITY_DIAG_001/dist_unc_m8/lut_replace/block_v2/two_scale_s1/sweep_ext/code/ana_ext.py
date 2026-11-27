@@ -4,7 +4,8 @@ Implementation choices fixed here before the stage-2 numbers are produced (plan 
  - B1 prediction uses the full per-position traces of run B (all paths), not PATHS_NEAR (stored window is only dL <= 0.30 m,
    which would drop paths the plan's sinc^2 weight keeps). A PATHS_NEAR-window variant (dL <= 0.2991 m) is reported alongside.
  - Path gradient g_k: quadratic LSQ fit of dL_k(dx, dy) over the 64 run-B positions of the patch, gradient at the patch center.
-   Paths matched across positions by trace signature. Path power |a_k|^2: Frobenius power of the trace Jones, mean over present nodes.
+   Paths matched across positions by their (object id, interaction) sequence. [Correction after first run: the trace
+   'signature' field is a positional label, not the path's object sequence; matching on it merged different paths.] Path power |a_k|^2: Frobenius power of the trace Jones, mean over present nodes.
  - B1 y direction: l_obs from the A1 1 cm line (line mean removed); if that is '> max' (8 cm), the patch y value is used.
  - C1 eta: RMS over the 108 off-grid yaws of (e - e_interp) divided by RMS of e over all 144 yaws."""
 import sys, json, glob, numpy as np, pandas as pd
@@ -128,9 +129,11 @@ def predict(c, near_only=False):
         sig = z["signature"]; tau = z["tau"]; pres = z["present"]; J = z["jones"]
         i0 = int(np.flatnonzero(sig == "LOS")[0])
         pw = np.array([np.mean(np.sum(np.abs(J[pres[:, k], k]) ** 2, axis=(1, 2))) if pres[:, k].any() else 0.0 for k in range(len(sig))])
-        for k, s in enumerate(sig):
+        obj, itr = z["objects"], z["interactions"]
+        for k in range(len(sig)):
             if k == i0: continue
-            rec.setdefault(str(s), []).append(((px - cx) / 100, py / 100, C0 * (tau[k] - tau[i0]), pw[k]))
+            s = "/".join(f"{int(o) if int(i) else 0}:{int(i)}" for o, i in zip(obj[k], itr[k]))   # path key = object/interaction sequence
+            rec.setdefault(s, []).append(((px - cx) / 100, py / 100, C0 * (tau[k] - tau[i0]), pw[k]))
     P = []
     for s, v in rec.items():
         if len(v) < 20: continue
