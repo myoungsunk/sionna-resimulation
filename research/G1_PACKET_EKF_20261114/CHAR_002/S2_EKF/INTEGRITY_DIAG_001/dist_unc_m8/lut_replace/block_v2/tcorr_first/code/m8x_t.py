@@ -92,13 +92,12 @@ def replay_m8(packet, env, arm, *, table, sigma_b, condition, white, corr=None, 
             V, q_supported = c0, True
         else:
             raise ValueError("corr mode")
-        if (far_corr_off and distance >= 6.) or (near_corr_off and distance < 3.):
-            V = 0.
+        _nocorr = (far_corr_off and distance >= 6.) or (near_corr_off and distance < 3.)   # keep V as white, drop only the cumulative term
         while past and time - past[0][0] > 10.:
             past.popleft()
         causal = 0.
         for _, old_hazard, old_V in past:
-            causal += 2. * math.sqrt(V * old_V) * math.exp(old_hazard - hazard)
+            causal += 0. if _nocorr else 2. * math.sqrt(V * old_V) * math.exp(old_hazard - hazard)
         history_n = len(past)
         R = reference.copy()
         R[1, 1] = W + V + causal

@@ -70,3 +70,7 @@ L2도 같은 순서다([BB_SUMMARY.csv](BB_SUMMARY.csv)).
 - `code/`: bb_block.py, prep_bb.py, run_bb.py, m8_replay_k.py, agg_bb.py
 - `static/`: station 분해·재현성·평균 모델 스크립트와 결과
 - [BB_SUMMARY.csv](BB_SUMMARY.csv), [BB_JUDGE.csv](BB_JUDGE.csv), [BB_PERSEED.csv](BB_PERSEED.csv), [BB_DIAG_BIN.csv](BB_DIAG_BIN.csv), [BB_TABLES.json](BB_TABLES.json), [BB_STATIC.json](BB_STATIC.json), `groups_bb.tar.gz`(seed별 GROUP.json), `RUN*.log`
+
+## 정정 (2026-11-27)
+
+P4 구현 오류: `m8_replay_k.py`의 far_corr_off는 원거리 V = 0으로 구현되어 있었다. F2 경로에서는 W = 0이므로, 이 구현은 원거리 편파 잡음 자체를 0으로 만들었다. 누적항만 끄도록 고친 `m8_replay_k2.py`로 B0를 다시 돌렸다(`run_p4fix.py`, [P4FIX_PERSEED.csv](P4FIX_PERSEED.csv)): N_I 16 → 12, XY 비율 1.044 (상한 1.105), heading 1.071 (상한 1.128). Q4는 여전히 불성립이지만, 4절 5번의 "크게 악화"는 버그 결과이므로 "원거리 상관 할인은 도움이 되며 효과는 중간 크기"로 정정한다. 자세한 내용은 [../tcorr_first/REPORT_KO.md](../tcorr_first/REPORT_KO.md) 4절.
