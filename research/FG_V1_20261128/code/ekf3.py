@@ -56,7 +56,8 @@ def sym(P):
     return (P + P.T) * .5
 
 
-def replay(pkt, hfun, condition="B0", nstate=3, sigma_b=0.005, fixed_mask=None, anchor=None):
+def replay(pkt, hfun, condition="B0", nstate=3, sigma_b=0.005, fixed_mask=None, anchor=None, lateral=0.):
+    """lateral: odom lateral noise std [m/step] added as lateral^2 n n^T (n = left normal of the previous heading); 0 = M7."""
     N = GYRO_N[condition]
     sig_vals = np.full(len(KNOTS), sigma_b) if np.isscalar(sigma_b) else np.asarray(sigma_b, float)
     x = np.array(pkt["x0"][:nstate], float)
@@ -71,6 +72,8 @@ def replay(pkt, hfun, condition="B0", nstate=3, sigma_b=0.005, fixed_mask=None, 
             ds, gy, dt = (float(pkt[k][i]) for k in ("ds", "gy", "dt"))
             y, F, G = transition(x, ds, gy, dt)
             Pp = sym(F @ P @ F.T + G @ q_input(ds, dt, N, nstate) @ G.T)
+            if lateral:
+                nv = np.zeros(nstate); nv[:2] = [-math.sin(x[2]), math.cos(x[2])]; Pp = sym(Pp + lateral ** 2 * np.outer(nv, nv))
         else:
             y, Pp = x.copy(), P.copy()
         h, H3 = hfun(y[:3])

@@ -21,9 +21,12 @@ def X(k):
     return gtsam.symbol('x', k)
 
 
-def odom_cov(x, ds, gy, dt, N):
+def odom_cov(x, ds, gy, dt, N, lateral=0.):
     _, F, G = ekf3.transition(x, ds, gy, dt)
-    return G @ ekf3.q_input(ds, dt, N, 3) @ G.T + EPS * np.eye(3)
+    C = G @ ekf3.q_input(ds, dt, N, 3) @ G.T
+    if lateral:
+        nv = np.array([-math.sin(x[2]), math.cos(x[2]), 0.]); return C + lateral ** 2 * np.outer(nv, nv) + 1e-14 * np.eye(3)
+    return C + EPS * np.eye(3)
 
 
 def odom_err(ds, gy, dt, this, v, H):
@@ -60,7 +63,7 @@ def gauss(C):
     return gtsam.noiseModel.Gaussian.Covariance(np.asarray(C, float))
 
 
-def g0(pkt, ek, hfun, N):
+def g0(pkt, ek, hfun, N, lateral=0.):
     """lag=1, one GN step linearized at the EKF prior. Returns x, P per packet."""
     x, P = pkt["x0"][:3].astype(float).copy(), pkt["P0"][:3, :3].astype(float).copy()
     A, C = gtsam.symbol('a', 0), gtsam.symbol('c', 0)
@@ -72,7 +75,7 @@ def g0(pkt, ek, hfun, N):
         else:
             ds, gy, dt = (float(pkt[q][k]) for q in ("ds", "gy", "dt"))
             g.add(gtsam.CustomFactor(gauss(P), [A], partial(prior_err, x)))
-            g.add(gtsam.CustomFactor(gauss(odom_cov(x, ds, gy, dt, N)), [A, C], partial(odom_err, ds, gy, dt)))
+            g.add(gtsam.CustomFactor(gauss(odom_cov(x, ds, gy, dt, N, lateral)), [A, C], partial(odom_err, ds, gy, dt)))
             v.insert(A, x); v.insert(C, ekf3.transition(x, ds, gy, dt)[0]); keys = [A, C]
         if ek["mask"][k]:
             g.add(gtsam.CustomFactor(gauss(ek["Reff"][k]), [C], partial(meas_err, hfun, pkt["z"][k], pkt["muMB"][k])))
@@ -84,7 +87,7 @@ def g0(pkt, ek, hfun, N):
     return np.array(xs), np.array(Ps)
 
 
-def run_isam(pkt, ek, hfun, N, thr=1e-3, nmax=None, budget_s=None, counter=None, split=False):
+def run_isam(pkt, ek, hfun, N, thr=1e-3, nmax=None, budget_s=None, counter=None, split=False, lateral=0.):
     """lag=inf causal: iSAM2 with QR, relinearizeSkip=1. Returns latest-node x, P, per-step update time, relin/reelim counts."""
     p = gtsam.ISAM2Params(); p.setFactorization("QR"); p.setRelinearizeThreshold(thr); p.relinearizeSkip = 1
     isam = gtsam.ISAM2(p)
@@ -98,7 +101,7 @@ def run_isam(pkt, ek, hfun, N, thr=1e-3, nmax=None, budget_s=None, counter=None,
             g.add(gtsam.CustomFactor(gauss(pkt["P0"][:3, :3]), [X(0)], partial(prior_err, x0))); init.insert(X(0), x0)
         else:
             ds, gy, dt = (float(pkt[q][k]) for q in ("ds", "gy", "dt"))
-            g.add(gtsam.CustomFactor(gauss(odom_cov(prev, ds, gy, dt, N)), [X(k - 1), X(k)], partial(odom_err, ds, gy, dt)))
+            g.add(gtsam.CustomFactor(gauss(odom_cov(prev, ds, gy, dt, N, lateral)), [X(k - 1), X(k)], partial(odom_err, ds, gy, dt)))
             init.insert(X(k), ekf3.transition(prev, ds, gy, dt)[0])
         if ek["mask"][k] and not split:
             g.add(gtsam.CustomFactor(gauss(ek["Reff"][k]), [X(k)], partial(meas_err, hfun, pkt["z"][k], pkt["muMB"][k])))

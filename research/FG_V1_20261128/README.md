@@ -91,3 +91,34 @@ setup.sh가 받은 LFS 파일은 git에서 수정됨으로 보인다(LFS filter 
 | `code/legacy/` | 4-state(b_g 포함)·FFD 시기의 스크립트. 작성 당시 절대 경로 그대로 (fixed-lag W=10: 132 ms/step, W=50: 568 ms/step) |
 | `results/` | 위 표의 JSON 원본과 MANIFEST |
 | `FABLE_DISCUSSION_PROMPT.md` | 시간 상관 적용 방식·검증 arm 논의용 프롬프트 |
+
+## 6. 선진단 (페이블 제안 4절, 2026-11-29)
+
+기록: `results/PRE_MANIFEST.json`. 코드: `code/pre_*.py`, `code/sw_common.py`.
+
+**진단 1: S-W(모델 일치 synthetic)에서 EKF3 vs FG lag=∞** — B0, seed 10–29, R2/R4/R5. r·s를 surrogate h(truth) + μ + N(0, Reff)로 생성. odom 횡방향 σ 1e-4 m를 두 추정기에 공통 적용. 결과: `results/PRE1_SW_EKF_VS_FG.json`.
+
+| route | log ANEES EKF / FG | FG − EKF [95% CI] | 등가(ln 1.15) | 포함률 EKF / FG | 위치 RMSE EKF / FG (m) |
+|---|---|---|---|---|---|
+| R2 | 1.195 / 1.107 | −0.089 [−0.167, −0.015] | 아님 | 0.902 / 0.933 | 0.081 / 0.075 |
+| R4 | 1.171 / 1.167 | −0.004 [−0.032, 0.022] | 등가 | 0.944 / 0.945 | 0.061 / 0.060 |
+| R5 | 1.355 / 1.075 | −0.280 [−0.780, −0.006] | 아님 | 0.891 / 0.936 | 0.117 / 0.076 |
+| 전체 | 1.241 / 1.116 | −0.124 [−0.305, −0.021] | 아님 | 0.913 / 0.938 | 0.087 / 0.071 |
+
+R5 seed14에서 EKF가 무너졌다(ANEES 1046, 최대 2.02 m). 초기 heading 오차가 −13.6°(P0 σ 5°의 2.7배)인 seed로, FG는 회복했다(ANEES 9.2, 최대 0.93 m). 이 seed를 빼면 FG − EKF = −0.046 [−0.082, −0.013]로 등가 범위 안이다.
+
+**진단 2: R4 과신 분해** — B0, seed 10–29, 현재 T0 설정. 결과: `results/PRE2_R4_DECOMPOSITION.json`.
+
+| 변형 | ANEES(기하평균) EKF / FG | 포함률 EKF / FG | yaw RMSE EKF / FG (°) |
+|---|---|---|---|
+| 실데이터 | 8.61 / 8.70 | 0.771 / 0.777 | 0.86 / 0.86 |
+| s만 white | 2.84 / 2.79 | 0.959 / 0.961 | 0.42 / 0.42 |
+| range만 white | 10.41 / 10.22 | 0.693 / 0.708 | 0.91 / 0.90 |
+| 둘 다 white | 3.23 / 3.21 | 0.944 / 0.945 | 0.42 / 0.41 |
+
+s만 white로 바꾸면 기준(3 × 1.3 = 3.9) 아래로 돌아온다 → R4 과신의 원인은 e_s.
+
+**진단 3: EKF/FG 비대칭** — R5/B0/seed10 실데이터. 결과: `results/pre_asym/`.
+
+- (a) relinearization: threshold 1e9(off)에서 FG = EKF (0.3 mm, 0.009°). 0.1 → 3.1 cm, 0.03 → 15 cm, 0.01 → 0.70 m, 0.001 → 0.68 m (FG − EKF 최대 위치 차).
+- (b) 참값 궤적(k 0–156)을 X_0 중심으로 회전: odom cost 불변. range cost는 θ=0에서 기울기 0.03/°로 거의 평탄하고, −7°에서 다시 0이 되는 골짜기가 있으며(+쪽은 2차보다 빠르게 증가, 5°/1° 상승비 40), s cost는 음의 방향으로 단조 감소(기울기 1.3/°). 직선 근사로 계산한 거울해 회전은 −5.9°. FG 해의 heading offset(−6.9°)은 이 골짜기 위치와 일치한다.
